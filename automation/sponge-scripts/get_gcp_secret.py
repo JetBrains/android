@@ -14,12 +14,13 @@
 
 import argparse
 import base64
+import json
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 
-import requests
-
-from auth_utils import get_access_token
+from auth_utils import get_access_token, get_clean_opener
 
 
 def fetch_secret(project_id: str, secret_id: str, token: str) -> str:
@@ -31,12 +32,11 @@ def fetch_secret(project_id: str, secret_id: str, token: str) -> str:
   }
 
   try:
-    session = requests.Session()
-    session.trust_env = False
-    response = session.get(url, headers=headers, timeout=30)
-    response.raise_for_status()  # Catch HTTP errors (403, 404, etc.)
+    opener = get_clean_opener()
+    req = urllib.request.Request(url, headers=headers)
+    with opener.open(req, timeout=30) as response:
+      json_data = json.loads(response.read().decode("utf-8"))
 
-    json_data = response.json()
     b64_payload = json_data.get("payload", {}).get("data")
 
     if not b64_payload:
@@ -46,7 +46,7 @@ def fetch_secret(project_id: str, secret_id: str, token: str) -> str:
     decoded_secret = base64.b64decode(b64_payload).decode('utf-8')
     return decoded_secret
 
-  except requests.exceptions.RequestException as e:
+  except (urllib.error.URLError, TimeoutError, Exception) as e:
     raise RuntimeError(f"Error fetching secret via API: {e}") from e
 
 def main():

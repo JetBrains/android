@@ -61,11 +61,7 @@ The script utilizes the `gosso` command to perform authenticated HTTP requests.
 - Make sure `gosso` is installed on your Mac and is available in your `PATH` (usually in `/usr/local/bin` or `/opt/homebrew/bin`).
 
 ### 4. Python Dependencies
-The scripts are written in Python 3 and require the `requests` library.
-- Install it via pip:
-  ```bash
-  pip3 install requests
-  ```
+The scripts are written in Python 3 and utilize standard library modules (such as `urllib.request`). No external pip dependencies are required.
 
 ---
 
@@ -85,6 +81,7 @@ python3 tools/adt/idea/automation/sponge-scripts/analyze_sponge_data.py <INVOCAT
 | `--output-dir` | A custom base output directory to save logs and JSON results. | `~/Downloads/studio-test-artifacts` |
 | `--gcp-project` | Google Cloud Project containing the Sponge API key secret. | `android-studio-test-automation` |
 | `--secret-name` | GCP Secret Manager secret ID for the API key. | `studio-sponge-api-key` |
+| `--use-default-loas-project` | Use default LOAS project for authentication instead of fetching an API key via `gcloud`. | `False` |
 | `--verbose` | Enable verbose debug logging to console. | `False` |
 
 ### Environment Variables
@@ -207,3 +204,6 @@ A markdown prompt template containing placeholders for dynamic failure details.
 
 ### [parse_failures.py](parse_failures.py)
 A powerful command-line utility to filter, summarize, and inspect failures from the downloaded `failed_test_results.json`. Supports regex filtering by target, class, method, and error message, and offers truncated stack trace previews.
+
+### [skill.md](skill.md)
+Agent skill documentation providing metadata and usage instructions for AI assistants.

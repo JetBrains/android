@@ -23,7 +23,7 @@ import subprocess
 import sys
 from typing import Any, Dict, List, Optional, Tuple
 
-from auth_utils import check_uplink_health, get_access_token
+from auth_utils import check_uplink_health, get_access_token, get_minimal_env
 from download_sponge_artifact import download_file
 from generate_prompt import generate_prompts_from_file
 from get_gcp_secret import fetch_secret
@@ -110,16 +110,7 @@ def match_target_filename(file: str) -> Optional[str]:
 def run_gosso_command(gosso_args: List[str], timeout: int = 180) -> Any:
   """Runs a gosso command."""
   command = ["gosso", "-pac=true"] + gosso_args
-
-  # Inject a pristine, tightly controlled environment dictionary into the
-  # subprocess rather than inheriting the user's global os.environ. This
-  # guarantees execution consistency across different developer machines.
-  minimal_env = {
-    "PATH": os.environ.get("PATH", "/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin"),
-    "USER": os.environ.get("USER", ""),
-    "HOME": os.environ.get("HOME", ""),
-    "LANG": os.environ.get("LANG", "en_US.UTF-8"),
-  }
+  minimal_env = get_minimal_env()
 
   try:
     result = subprocess.run(
@@ -144,16 +135,18 @@ def run_gosso_command(gosso_args: List[str], timeout: int = 180) -> Any:
     logger.error(f"gosso command failed with exit code {result.returncode}")
     raise subprocess.CalledProcessError(result.returncode, command, output=result.stdout, stderr=result.stderr)
 
-def get_invocation_status_attributes(invocation_id: str, api_key: str) -> Dict[str, Any]:
+def get_invocation_status_attributes(invocation_id: str, api_key: Optional[str]) -> Dict[str, Any]:
   """Fetches the top-level statusAttributes for the Invocation itself."""
   url = f"https://resultstoredownload.corp.googleapis.com/v2/invocations/{invocation_id}"
   field_mask = "status_attributes"
 
-  gosso_args = [
-    "-header", f"X-Goog-Api-Key: {api_key}",
+  gosso_args = []
+  if api_key:
+    gosso_args.extend(["-header", f"X-Goog-Api-Key: {api_key}"])
+  gosso_args.extend([
     "-header", f"X-Goog-FieldMask: {field_mask}",
     "-url", url
-  ]
+  ])
   try:
     data = run_gosso_command(gosso_args, timeout=60)
     return data.get("statusAttributes", data.get("status_attributes", {}))
@@ -161,7 +154,7 @@ def get_invocation_status_attributes(invocation_id: str, api_key: str) -> Dict[s
     logger.warning(f"Failed to fetch invocation status attributes: {e}")
     return {}
 
-def export_test_actions(invocation_id: str, api_key: str) -> List[Dict[str, Any]]:
+def export_test_actions(invocation_id: str, api_key: Optional[str]) -> List[Dict[str, Any]]:
   """Fetches test actions using the targets/-/configuredTargets/-/actions endpoint."""
   base_url = f"https://resultstoredownload.corp.googleapis.com/v2/invocations/{invocation_id}/targets/-/configuredTargets/-/actions"
 
@@ -181,11 +174,13 @@ def export_test_actions(invocation_id: str, api_key: str) -> List[Dict[str, Any]
     if next_page_token:
       full_url = f"{base_url}?page_token={next_page_token}"
 
-    gosso_args = [
-      "-header", f"X-Goog-Api-Key: {api_key}",
+    gosso_args = []
+    if api_key:
+      gosso_args.extend(["-header", f"X-Goog-Api-Key: {api_key}"])
+    gosso_args.extend([
       "-header", f"X-Goog-FieldMask: {field_mask}",
       "-url", full_url
-    ]
+    ])
     try:
       page_data = run_gosso_command(gosso_args, timeout=300)
       actions = page_data.get("actions", [])
@@ -277,11 +272,17 @@ def extract_log_urls(output_data: Dict[str, Any], base_download_dir: Path) -> Di
           download_tasks.append((uri, folder_path, artifact_name, target_id, action_id))
   return download_tasks, action_folders
 
-def download_files(download_tasks: List[Tuple[str, Path, str, str, str]]) -> None:
+def download_files(
+    download_tasks: List[Tuple[str, Path, str, str, str]],
+    api_key: Optional[str] = None,
+    access_token: Optional[str] = None,
+) -> None:
   logger.info(f"Downloading files in parallel ({len(download_tasks)} tasks)")
   with ThreadPoolExecutor(max_workers=8) as executor:
     future_to_task = {
-        executor.submit(download_file, uri, folder_path, artifact_name): (uri, target_id, action_id)
+        executor.submit(
+            download_file, uri, folder_path, artifact_name, api_key=api_key, access_token=access_token
+        ): (uri, target_id, action_id)
         for uri, folder_path, artifact_name, target_id, action_id in download_tasks
     }
 
@@ -319,20 +320,25 @@ def update_local_paths(action_folders: Dict[str, Any]) -> None:
     action_data["important_files"] = local_important_files
     logger.info(f"  -> {clean_target} ({clean_action}): Found {len(local_important_files)} logs. Updated paths.")
 
-def download_failed_logs(output_data: Dict[str, Any], output_dir: str) -> None:
+def download_failed_logs(
+    output_data: Dict[str, Any],
+    output_dir: str,
+    api_key: Optional[str] = None,
+    access_token: Optional[str] = None,
+) -> None:
   """Downloads the minimal required zip archives in parallel and updates JSON with local paths."""
   base_download_dir = Path(output_dir)
   download_tasks, action_folders = extract_log_urls(output_data, base_download_dir)
 
   if not download_tasks:
     return
-  download_files(download_tasks)
+  download_files(download_tasks, api_key=api_key, access_token=access_token)
   update_local_paths(action_folders)
 
-def fetch_api_key(gcp_project: str, secret_name: str) -> str:
+def fetch_api_key(gcp_project: str, secret_name: str, access_token: Optional[str] = None) -> str:
   logger.info("Fetching API key from Secret Manager...")
   try:
-    token = get_access_token()
+    token = access_token or get_access_token()
     api_key = fetch_secret(gcp_project, secret_name, token)
   except Exception as e:
     raise RuntimeError(f"Failed to fetch API key: {e}") from e
@@ -343,7 +349,7 @@ def fetch_api_key(gcp_project: str, secret_name: str) -> str:
   return api_key
 
 
-def analyze_sponge_data(invocation_id: str, api_key: str) -> Dict[str, Any]:
+def analyze_sponge_data(invocation_id: str, api_key: Optional[str] = None) -> Dict[str, Any]:
   # Master output that collects everything first
   output = {
     "invocationId": invocation_id,
@@ -534,6 +540,11 @@ def main():
       default=os.environ.get("STUDIO_ARTIFACT_DIR"),
       help="The local directory path where artifacts are saved. Defaults to a temporary directory if not provided."
   )
+  parser.add_argument(
+      "--use-default-loas-project",
+      action="store_true",
+      help="Use default LOAS project for authentication instead of fetching an API key via gcloud"
+  )
   args = parser.parse_args()
 
   log_level = logging.DEBUG if args.verbose else logging.INFO
@@ -549,13 +560,17 @@ def main():
     logger.error("Uplink health check failed. Exiting.")
     sys.exit(1)
   try:
-    api_key = fetch_api_key(args.gcp_project, args.secret_name)
+    api_key = None
+    access_token = None
+    if not args.use_default_loas_project:
+      access_token = get_access_token()
+      api_key = fetch_api_key(args.gcp_project, args.secret_name, access_token=access_token)
     output = analyze_sponge_data(args.invocation_id, api_key)
   except Exception as e:
     logger.error(f"Critical error: {e}")
     sys.exit(1)
 
-  download_failed_logs(output, output_dir)
+  download_failed_logs(output, output_dir, api_key=api_key, access_token=access_token)
   passed_output, failed_output = split_passed_failed_results(args.invocation_id, output)
 
   passed_json_path, failed_json_path = save_results_to_directory(

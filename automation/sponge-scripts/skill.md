@@ -17,8 +17,7 @@ Use this skill to download and analyze test logs and test suite results for any 
 - **Failure Query Utility:** `tools/adt/idea/automation/sponge-scripts/parse_failures.py`
 
 ## Prerequisites
-- The script executes using `python3` and relies on `requests` and `gosso` internally.
-  - Ensure `requests` is installed: `pip install requests`.
+- The script executes using `python3` and relies on `urllib.request` and `gosso` internally.
 - A stable corporate network/gCorp VPN connection is required to access corp-restricted endpoints (e.g. ResultStore and Secret Manager) and pass the script's uplink health check.
 - You must have Google Cloud SDK / gcloud authenticated to fetch the API key from Secret Manager.
 
@@ -54,7 +53,14 @@ If the API Key needs to be fetched from a different GCP Project or Secret:
 python3 tools/adt/idea/automation/sponge-scripts/analyze_sponge_data.py {invocation_id} --gcp-project {project_id} --secret-name {secret_name}
 ```
 
-### 5. Querying and Filtering Failures Locally
+### 5. Authentication using Default LOAS
+If executing on a workstation or desktop with an active default LOAS project, avoid requiring `gcloud` by appending `--use-default-loas-project`:
+
+```bash
+python3 tools/adt/idea/automation/sponge-scripts/analyze_sponge_data.py {invocation_id} --use-default-loas-project
+```
+
+### 6. Querying and Filtering Failures Locally
 Once `failed_test_results.json` is generated, you can use the helper script `parse_failures.py` to quickly filter and inspect failures without opening the raw JSON:
 
 ```bash
