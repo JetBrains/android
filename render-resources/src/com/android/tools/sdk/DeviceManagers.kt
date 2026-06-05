@@ -53,6 +53,8 @@ class DeviceManagerCache(val logger: ILogger) {
   fun getDeviceManager(sdkHandler: AndroidSdkHandler): DeviceManager =
     synchronized(deviceManagers) {
       deviceManagers.computeIfAbsent(sdkHandler) {
+        UserDevicesXmlHandler.backupUnsupportedUserDevicesXml(sdkHandler, logger)
+
         DeviceManager.createInstance(sdkHandler, logger) { device ->
           DeviceManagerDeviceFilter.getInstance().isSupportedDevice(device)
         }
