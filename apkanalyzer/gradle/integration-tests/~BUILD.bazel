@@ -258,7 +258,7 @@ jvm_library(
     "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/core-api:core",
     "//platform/util",
-    "@lib//:guava",
+    "//libraries/guava",
   ]
 )
 

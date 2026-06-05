@@ -12,7 +12,7 @@
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="ASM" level="project" />
-    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" name="kxml2" level="project" />
