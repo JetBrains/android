@@ -31,7 +31,7 @@ internal class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
     return withContext(Dispatchers.IO) {
       val documents = mutableListOf<Pair<Revision, String>>()
 
-      this::class.java.getResourceAsStream("/v2/wna-markdown.zip")?.use { stream ->
+      this@WhatsNewDocumentLoaderImpl.javaClass.getResourceAsStream("/v2/wna-markdown.zip")?.use { stream ->
         ZipInputStream(stream).use { zipStream ->
           while (true) {
             val entry = zipStream.nextEntry ?: break

@@ -24,7 +24,7 @@ object WhatsNewMarkdownParser {
   fun parseMarkdown(revision: Revision, markdown: String): WhatsNewMarkdownDocument {
     val h1Match = Regex("^#\\s+(.*)$", RegexOption.MULTILINE).find(markdown)
     val productName = h1Match?.groupValues?.get(1)?.trim() ?: "Android Studio $revision"
-    val shortName = productName.removePrefix("What's New in Android Studio ").trim()
+    val shortName = productName.removePrefix("What's New in Android Studio ").removePrefix("What's New in ").trim()
     return WhatsNewMarkdownDocument(productVersion = revision, shortName = shortName, fullMarkdownContents = markdown)
   }
 }
