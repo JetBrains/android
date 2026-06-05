@@ -1186,7 +1186,7 @@ class EmulatorToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     val call2 = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(call2.request)).isEqualTo("format: RGB888 width: 320 height: 320")
-    assertThat(call1.completion.isCancelled).isTrue() // The previous call has been cancelled.
+    assertThat(call1.completion.isCancelled).isTrue() // The previous call has been canceled.
     assertThat(call1.completion.isDone).isTrue() // The previous call is no longer active.
     assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(320)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
@@ -1196,7 +1196,7 @@ class EmulatorToolWindowPanelTest {
 
     emulatorView.zoom(ZoomType.IN)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
     assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(640)
@@ -1207,7 +1207,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.size = Dimension(800, 1200)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
     assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(640)
@@ -1218,7 +1218,7 @@ class EmulatorToolWindowPanelTest {
 
     emulatorView.zoom(ZoomType.FIT)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
     assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(674)
@@ -1229,7 +1229,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.size = Dimension(850, 1200)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
     assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(716)
@@ -1240,7 +1240,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.size = Dimension(1200, 1200)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
     assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(960)
@@ -1251,7 +1251,7 @@ class EmulatorToolWindowPanelTest {
 
     emulatorView.zoom(ZoomType.OUT)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
     assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(640)
@@ -1262,7 +1262,7 @@ class EmulatorToolWindowPanelTest {
 
     emulatorView.zoom(ZoomType.ACTUAL)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
     assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(320)
