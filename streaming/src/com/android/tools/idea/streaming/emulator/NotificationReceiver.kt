@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.DisplayConfiguration
+import com.android.emulator.control.LedIndicator
 import com.android.emulator.control.Notification as EmulatorNotification
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.XrOptions
@@ -26,6 +27,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.util.computeUserDataIfAbsent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
+import java.awt.Color
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,6 +50,9 @@ internal class NotificationReceiver private constructor(private val emulator: Em
 
   private val _displayConfigurations = MutableStateFlow<List<DisplayConfiguration>?>(null)
   val displayConfigurations: StateFlow<List<DisplayConfiguration>?> = _displayConfigurations.asStateFlow()
+
+  private val _ledStates = MutableStateFlow<Map<Int, Color?>>(emulatorConfig.ledIndicators.associate { it.id to null })
+  val ledStates: StateFlow<Map<Int, Color?>> = _ledStates.asStateFlow()
 
   private val log = Logger.getInstance(NotificationReceiver::class.java)
   private val emulatorConfig
@@ -73,6 +78,7 @@ internal class NotificationReceiver private constructor(private val emulator: Em
       message.hasPosture() -> updateCurrentPosture(message.posture.value)
       message.hasXrOptions() -> _xrOptions.value = message.xrOptions
       message.hasMicrophoneState() -> _microphoneInput.value = message.microphoneState.realAudioEnabled
+      message.hasLedIndicator() -> updateLedIndicators(message.ledIndicator)
       else -> {}
     }
   }
@@ -93,6 +99,18 @@ internal class NotificationReceiver private constructor(private val emulator: Em
       }
     } else {
       log.error("Unexpected posture: $posture")
+    }
+  }
+
+  private fun updateLedIndicators(indicator: LedIndicator) {
+    @Suppress("UseJBColor")
+    val color =
+      when (indicator.state) {
+        LedIndicator.State.ON -> Color(indicator.color)
+        else -> null
+      }
+    if (_ledStates.value[indicator.id] != color) {
+      _ledStates.value += (indicator.id to color)
     }
   }
 

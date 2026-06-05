@@ -508,6 +508,28 @@ class EmulatorViewTest {
   }
 
   @Test
+  fun testLedIndicatorState() {
+    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createDisplayGlassesAvd(path) }
+    fakeUi = FakeUi(panel)
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+    val ledStates = NotificationReceiver.forEmulator(view.emulator).ledStates
+
+    // Initially LED indicators are turned off.
+    assertThat(ledStates.value).containsExactly(0, null, 1, null)
+
+    // Send a notification that LED 1 is ON with color red.
+    fakeEmulator.setLedState(1, LedIndicator.State.ON, 0xff0000)
+    waitForCondition(2.seconds) { ledStates.value[1] != null }
+    assertThat(ledStates.value[1]).isEqualTo(Color(0xff0000))
+
+    // Send a notification that LED 1 is OFF.
+    fakeEmulator.setLedState(1, LedIndicator.State.OFF, 0x000000)
+    waitForCondition(2.seconds) { ledStates.value[1] == null }
+  }
+
+  @Test
   fun testFolding() {
     hiDpiRule.setRetinaMode()
     val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createFoldableAvd(path) }
