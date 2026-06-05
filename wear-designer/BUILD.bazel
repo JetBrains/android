@@ -6,10 +6,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 create_kotlinc_options(
     name = "custom_wear-designer",
-    opt_in = [
-        "com.intellij.openapi.util.IntellijInternalApi",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
+    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
 )
 
 jvm_library(
@@ -151,10 +148,7 @@ exports_files(
 
 create_kotlinc_options(
     name = "custom_wear-designer-tests",
-    opt_in = [
-        "com.intellij.openapi.util.IntellijInternalApi",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
+    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
 )
 
 jvm_library(

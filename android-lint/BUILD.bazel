@@ -6,10 +6,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 create_kotlinc_options(
     name = "custom_lint",
-    opt_in = [
-        "com.intellij.openapi.util.IntellijInternalApi",
-        "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
-    ],
+    opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"],
 )
 
 jvm_library(

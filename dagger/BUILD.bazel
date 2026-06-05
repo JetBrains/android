@@ -6,10 +6,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 create_kotlinc_options(
     name = "custom_dagger",
-    opt_in = [
-        "com.intellij.openapi.util.IntellijInternalApi",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
+    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
 )
 
 jvm_library(

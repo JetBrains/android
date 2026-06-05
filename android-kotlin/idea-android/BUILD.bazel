@@ -7,7 +7,6 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 create_kotlinc_options(
     name = "custom_android-kotlin-idea",
     opt_in = [
-        "com.intellij.openapi.util.IntellijInternalApi",
         "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
         "org.jetbrains.kotlin.K1Deprecation",
     ],

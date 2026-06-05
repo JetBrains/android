@@ -7,7 +7,6 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 create_kotlinc_options(
     name = "custom_projectSystem-gradle",
     opt_in = [
-        "com.intellij.openapi.util.IntellijInternalApi",
         "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
         "org.jetbrains.kotlin.K1Deprecation",
     ],
@@ -381,10 +380,7 @@ exports_files(
 
 create_kotlinc_options(
     name = "custom_projectSystem-gradle-tests",
-    opt_in = [
-        "com.intellij.openapi.util.IntellijInternalApi",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
+    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
 )
 
 jvm_library(
