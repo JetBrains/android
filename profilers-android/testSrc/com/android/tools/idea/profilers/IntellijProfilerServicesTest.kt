@@ -217,13 +217,13 @@ class IntellijProfilerServicesTest {
   fun testAddDependencyDoesNothingIfDependencyAlreadyExists() {
     val artifact = GoogleMavenArtifactId.LEAKCANARY
     val mocks = setupDependencyMocks()
-    doReturn(false).whenever(mocks.services).showConfirmationDialog(any(), any(), any())
+    doReturn(false).whenever(mocks.services).showConfirmationDialog(any(), any(), any(), org.mockito.kotlin.anyOrNull())
     whenever(mocks.androidModuleSystem.hasResolvedDependency(any())).thenReturn(true)
 
     mocks.services.addDependency(artifact, DependencyType.DEBUG_IMPLEMENTATION)
     ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
-    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any())
+    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any(), org.mockito.kotlin.anyOrNull())
     verify(mocks.registeringModuleSystem, never()).registerDependency(any<GoogleMavenArtifactId>(), any())
   }
 
@@ -232,12 +232,17 @@ class IntellijProfilerServicesTest {
     val artifact = GoogleMavenArtifactId.LEAKCANARY
     val mocks = setupDependencyMocks()
     whenever(mocks.androidModuleSystem.hasResolvedDependency(any())).thenReturn(false)
-    doReturn(false).whenever(mocks.services).showConfirmationDialog(any(), any(), any())
+    doReturn(false).whenever(mocks.services).showConfirmationDialog(any(), any(), any(), org.mockito.kotlin.anyOrNull())
+
+    val unresolvedId = mock<RegisteredDependencyId>()
+    whenever(mocks.registeringModuleSystem.getRegisteredDependencyId(artifact)).thenReturn(unresolvedId)
+    whenever(mocks.registeringModuleSystem.analyzeDependencyCompatibility(any())).thenReturn(null)
 
     mocks.services.addDependency(artifact, DependencyType.DEBUG_IMPLEMENTATION)
     ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
-    verify(mocks.services).showConfirmationDialog(any(), eq(artifact), eq(DependencyType.DEBUG_IMPLEMENTATION))
+    verify(mocks.services)
+      .showConfirmationDialog(any(), eq(artifact), eq(DependencyType.DEBUG_IMPLEMENTATION), org.mockito.kotlin.anyOrNull())
     verify(mocks.registeringModuleSystem, never()).registerDependency(any<GoogleMavenArtifactId>(), any())
   }
 
@@ -246,7 +251,7 @@ class IntellijProfilerServicesTest {
     val artifact = GoogleMavenArtifactId.LEAKCANARY
     val mocks = setupDependencyMocks()
     whenever(mocks.androidModuleSystem.hasResolvedDependency(any())).thenReturn(false)
-    doReturn(true).whenever(mocks.services).showConfirmationDialog(any(), any(), any())
+    doReturn(true).whenever(mocks.services).showConfirmationDialog(any(), any(), any(), org.mockito.kotlin.anyOrNull())
     whenever(mocks.syncManager.requestSyncProject(any())).thenReturn(mock())
 
     // Mock background resolution
@@ -263,7 +268,7 @@ class IntellijProfilerServicesTest {
     mocks.services.addDependency(artifact, DependencyType.IMPLEMENTATION)
     ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
-    verify(mocks.services).showConfirmationDialog(any(), eq(artifact), eq(DependencyType.IMPLEMENTATION))
+    verify(mocks.services).showConfirmationDialog(any(), eq(artifact), eq(DependencyType.IMPLEMENTATION), org.mockito.kotlin.anyOrNull())
     verify(mocks.registeringModuleSystem).registerDependency(eq(resolvedId), eq(DependencyType.IMPLEMENTATION))
     verify(mocks.syncManager).requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
   }
@@ -278,7 +283,7 @@ class IntellijProfilerServicesTest {
     ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     assertThat(future.get()).isFalse()
-    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any())
+    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any(), org.mockito.kotlin.anyOrNull())
   }
 
   @Test
@@ -291,7 +296,7 @@ class IntellijProfilerServicesTest {
     ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     assertThat(future.get()).isFalse()
-    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any())
+    verify(mocks.services, never()).showConfirmationDialog(any(), any(), any(), org.mockito.kotlin.anyOrNull())
   }
 
   private data class DependencyMocks(

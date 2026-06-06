@@ -35,6 +35,7 @@ class DependencyConfirmationDialog(
   private val module: Module,
   private val artifact: GoogleMavenArtifactId,
   private val configuration: DependencyType,
+  private val resolvedCoordinate: String? = null,
 ) : DialogWrapper(project, false) {
 
   init {
@@ -74,6 +75,8 @@ class DependencyConfirmationDialog(
       }
     content.add(summary)
 
+    val displayCoordinate = resolvedCoordinate ?: "$artifact:+"
+
     // The dark rounded box holding the code snippet details
     val details =
       javax.swing.JTextPane().apply {
@@ -91,7 +94,7 @@ class DependencyConfirmationDialog(
             "$css</style></head><body><div style=\"padding: 10px;\">" +
             "<pre><b>${module.name}/build.gradle</b>\n\n" +
             "    Add the library dependency:\n" +
-            "        ${configuration.configurationName} <font class=\"dependency\">'$artifact:+'</font>\n" +
+            "        ${configuration.configurationName} <font class=\"dependency\">'$displayCoordinate'</font>\n" +
             "</pre></div></body></html>"
       }
 

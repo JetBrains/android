@@ -520,96 +520,124 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     if (artifact == GoogleMavenArtifactId.LEAKCANARY) {
       getFeatureTracker().trackLeakCanaryAutoInjectPopup();
     }
-    if (showConfirmationDialog(module, artifact, dependencyType)) {
-      try {
-        AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-        RegisteringModuleSystem<@NotNull RegisteredDependencyQueryId, @NotNull RegisteredDependencyId> registeringModuleSystem =
-            moduleSystem.getRegisteringModuleSystem();
-        if (registeringModuleSystem != null) {
-          // 1. Run a non-blocking background task with a progress bar in the IDE status bar
-          Task.Backgroundable task = new Task.Backgroundable(myProject, "Resolving Dependency Version...", true) {
-            @Override
-            public void run(@NotNull ProgressIndicator indicator) {
-              try {
-                // 2. Get the unresolved ID (which contains the '+' version fallback)
-                RegisteredDependencyId unresolvedId = ApplicationManager.getApplication().runReadAction(
-                    (Computable<RegisteredDependencyId>) () -> registeringModuleSystem.getRegisteredDependencyId(artifact)
-                );
 
-                // 3. Force the project system to analyze it. This safely resolves the '+' to a concrete version via the background index fetch!
-                ListenableFuture<RegisteredDependencyCompatibilityResult<RegisteredDependencyId>> compatibilityFuture =
-                    registeringModuleSystem.analyzeDependencyCompatibility(List.of(unresolvedId));
+    try {
+      AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+      RegisteringModuleSystem<@NotNull RegisteredDependencyQueryId, @NotNull RegisteredDependencyId> registeringModuleSystem =
+          moduleSystem.getRegisteringModuleSystem();
+      if (registeringModuleSystem != null) {
+        // 1. Run a non-blocking background task with a progress bar in the IDE status bar
+        Task.Backgroundable task = new Task.Backgroundable(myProject, "Resolving Dependency Version...", true) {
+          @Override
+          public void run(@NotNull ProgressIndicator indicator) {
+            try {
+              // 2. Get the unresolved ID (which contains the '+' version fallback)
+              RegisteredDependencyId unresolvedId = ApplicationManager.getApplication().runReadAction(
+                  (Computable<RegisteredDependencyId>) () -> registeringModuleSystem.getRegisteredDependencyId(artifact)
+              );
 
-                RegisteredDependencyId tempResolvedId;
-                if (compatibilityFuture != null) {
-                  RegisteredDependencyCompatibilityResult<RegisteredDependencyId> result;
-                  try {
-                    final long timeoutSeconds = 10;
-                    final long pollIntervalMs = 100;
+              // 3. Force the project system to analyze it. This safely resolves the '+' to a concrete version via the background index fetch!
+              ListenableFuture<RegisteredDependencyCompatibilityResult<RegisteredDependencyId>> compatibilityFuture =
+                  registeringModuleSystem.analyzeDependencyCompatibility(List.of(unresolvedId));
 
-                    long startTimeNs = System.nanoTime();
-                    long timeoutNs = TimeUnit.SECONDS.toNanos(timeoutSeconds);
+              RegisteredDependencyId tempResolvedId;
+              if (compatibilityFuture != null) {
+                RegisteredDependencyCompatibilityResult<RegisteredDependencyId> result;
+                try {
+                  final long timeoutSeconds = 10;
+                  final long pollIntervalMs = 100;
 
-                    // Poll the future, allowing the user to cancel the progress bar
-                    while (!compatibilityFuture.isDone()) {
-                      indicator.checkCanceled();
+                  long startTimeNs = System.nanoTime();
+                  long timeoutNs = TimeUnit.SECONDS.toNanos(timeoutSeconds);
 
-                      // Use a 10-second timeout to prevent hanging on bad network
-                      if (System.nanoTime() - startTimeNs > timeoutNs) {
-                        throw new TimeoutException("Compatibility analysis timed out after " + timeoutSeconds + " seconds.");
-                      }
-                      try {
-                        compatibilityFuture.get(pollIntervalMs, TimeUnit.MILLISECONDS);
-                      } catch (TimeoutException ignored) {
-                        // Expected during polling. Keep looping.
-                      }
+                  // Poll the future, allowing the user to cancel the progress bar
+                  while (!compatibilityFuture.isDone()) {
+                    indicator.checkCanceled();
+
+                    // Use a 10-second timeout to prevent hanging on bad network
+                    if (System.nanoTime() - startTimeNs > timeoutNs) {
+                      throw new TimeoutException("Compatibility analysis timed out after " + timeoutSeconds + " seconds.");
                     }
-                    result = compatibilityFuture.get();
-
-                    // 4. Extract the concrete, resolved ID if available
-                    if (result.getCompatible().containsKey(unresolvedId)) {
-                      tempResolvedId = result.getCompatible().get(unresolvedId);
-                      getLogger().info("Successfully resolved " + artifact + " to concrete version: " + tempResolvedId);
-                    } else {
-                      tempResolvedId = unresolvedId;
-                      getLogger().warn("Failed to resolve exact version for " + artifact + ". Falling back to dynamic version.");
+                    try {
+                      compatibilityFuture.get(pollIntervalMs, TimeUnit.MILLISECONDS);
+                    } catch (TimeoutException ignored) {
+                      // Expected during polling. Keep looping.
                     }
-                  } catch (ProcessCanceledException pce) {
-                    // Handled correctly, complete future as false to safely abort the injection process
-                    compatibilityFuture.cancel(true);
-                    getLogger().info("User canceled dependency injection for " + artifact);
-                    future.complete(false);
-                    throw pce; // Rethrow to let IntelliJ ProgressManager know the task was canceled
-                  } catch (TimeoutException timeoutEx) {
-                    compatibilityFuture.cancel(true);
-                    tempResolvedId = unresolvedId;
-                    getLogger().warn("Network timeout resolving " + artifact + ". Falling back to dynamic version.");
-                  } catch (Exception ex) {
-                    compatibilityFuture.cancel(true);
-                    if (ex instanceof InterruptedException) {
-                      Thread.currentThread().interrupt(); // Restore interrupt status
-                    }
-                    tempResolvedId = unresolvedId;
-                    getLogger().warn("Exception resolving " + artifact + ". Falling back to dynamic version.", ex);
                   }
-                } else {
-                  // Fallback for tests or unexpected mock behaviors where the future is null
+                  result = compatibilityFuture.get();
+
+                  // 4. Extract the concrete, resolved ID if available
+                  if (result.getCompatible().containsKey(unresolvedId)) {
+                    tempResolvedId = result.getCompatible().get(unresolvedId);
+                    getLogger().info("Successfully resolved " + artifact + " to concrete version: " + tempResolvedId);
+                  } else {
+                    tempResolvedId = unresolvedId;
+                    getLogger().warn("Failed to resolve exact version for " + artifact + ". Falling back to dynamic version.");
+                  }
+                } catch (ProcessCanceledException pce) {
+                  // Handled correctly, complete future as false to safely abort the injection process
+                  compatibilityFuture.cancel(true);
+                  getLogger().info("User canceled dependency injection for " + artifact);
+                  future.complete(false);
+                  throw pce; // Rethrow to let IntelliJ ProgressManager know the task was canceled
+                } catch (TimeoutException timeoutEx) {
+                  compatibilityFuture.cancel(true);
                   tempResolvedId = unresolvedId;
-                  getLogger().warn("Compatibility analysis returned null future. Falling back to dynamic version.");
+                  getLogger().warn("Network timeout resolving " + artifact + ". Falling back to dynamic version.");
+                } catch (Exception ex) {
+                  compatibilityFuture.cancel(true);
+                  if (ex instanceof InterruptedException) {
+                    Thread.currentThread().interrupt(); // Restore interrupt status
+                  }
+                  tempResolvedId = unresolvedId;
+                  getLogger().warn("Exception resolving " + artifact + ". Falling back to dynamic version.", ex);
                 }
+              } else {
+                // Fallback for tests or unexpected mock behaviors where the future is null
+                tempResolvedId = unresolvedId;
+                getLogger().warn("Compatibility analysis returned null future. Falling back to dynamic version.");
+              }
 
-                final RegisteredDependencyId finalResolvedId = tempResolvedId;
+              RegisteredDependencyId finalResolvedId = tempResolvedId;
 
-                // 5. Safely inject the concrete version on the UI thread
-                ApplicationManager.getApplication().invokeLater(() -> {
-                  try {
-                    if (myProject.isDisposed()) {
-                      future.complete(false);
-                      return;
-                    }
+              // Fallback to extract preview versions (e.g. alphas) specifically for LeakCanary since analyzeDependencyCompatibility filters them out.
+              // We restrict this reflection hack ONLY to the studio-leakcanary artifact to prevent breaking other generic ProjectSystem callers.
+              if (artifact == GoogleMavenArtifactId.LEAKCANARY && finalResolvedId.toString().endsWith(":+")) {
+                try {
+                  Class<?> repoManagerClass = Class.forName("com.android.tools.idea.gradle.repositories.RepositoryUrlManager");
+                  Object repoManager = repoManagerClass.getMethod("get").invoke(null);
+                  Object versionString = repoManagerClass.getMethod("getLibraryRevision", String.class, String.class, java.util.function.Predicate.class, boolean.class, java.nio.file.FileSystem.class)
+                      .invoke(repoManager, artifact.getMavenGroupId(), artifact.getMavenArtifactId(), null, true, java.nio.file.FileSystems.getDefault());
 
+                  if (versionString != null) {
+                    // Update both the UI string AND the backend injected ID to ensure they match (Addressing code review feedback)
+                    final String resolvedCoordinate = artifact.getMavenGroupId() + ":" + artifact.getMavenArtifactId() + ":" + versionString;
+                    finalResolvedId = new RegisteredDependencyId() {
+                      @Override
+                      public String toString() {
+                        return resolvedCoordinate;
+                      }
+                    };
+                  }
+                } catch (Exception ignored) {
+                  // If reflection fails (e.g., method signature changes), silently swallow the exception and fall back to the '+' version.
+                }
+              }
+
+              final RegisteredDependencyId dependencyIdToInject = finalResolvedId;
+              final String finalCoordinateForUi = dependencyIdToInject.toString();
+
+              // 5. Safely inject the concrete version on the UI thread
+              ApplicationManager.getApplication().invokeLater(() -> {
+                try {
+                  if (myProject.isDisposed()) {
+                    future.complete(false);
+                    return;
+                  }
+
+                  if (showConfirmationDialog(module, artifact, dependencyType, finalCoordinateForUi)) {
                     WriteCommandAction.runWriteCommandAction(myProject, "Add " + artifact.toString(), null, () -> {
-                      registeringModuleSystem.registerDependency(finalResolvedId, dependencyType); // Use finalResolvedId!
+                      registeringModuleSystem.registerDependency(dependencyIdToInject, dependencyType); // Use dependencyIdToInject!
                     });
 
                     ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
@@ -622,51 +650,52 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
                       catch (Exception e) {
                         getLogger().warn("Sync failed or interrupted", e);
                         AndroidNotification.getInstance(myProject).showBalloon(
-                          "LeakCanary",
+                          artifact.getMavenArtifactId(),
                           "Failed to sync project after adding " + artifact + " dependency.",
                           NotificationType.WARNING
                         );
                         future.complete(false);
                       }
                     }, command -> command.run());
-                  } catch (Exception e) {
-                    getLogger().error("Failed to inject dependency on UI thread", e);
+                  } else {
                     future.complete(false);
                   }
-                }, ModalityState.defaultModalityState());
-              } catch (ProcessCanceledException pce) {
-                throw pce;
-              } catch (Exception ex) {
-                getLogger().error("Error resolving dependency version for " + artifact, ex);
-                future.complete(false);
-              }
+                } catch (Exception e) {
+                  getLogger().error("Failed to inject dependency on UI thread", e);
+                  future.complete(false);
+                }
+              }, ModalityState.defaultModalityState());
+            } catch (ProcessCanceledException pce) {
+              future.complete(false);
+              throw pce;
+            } catch (Exception ex) {
+              getLogger().error("Error resolving dependency version for " + artifact, ex);
+              future.complete(false);
             }
-          };
-          if (ApplicationManager.getApplication().isUnitTestMode()) {
-            task.run(new EmptyProgressIndicator());
-          } else {
-            ProgressManager.getInstance().run(task);
           }
+        };
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          task.run(new EmptyProgressIndicator());
         } else {
-          future.complete(false);
+          ProgressManager.getInstance().run(task);
         }
-      }
-      catch (Exception e) {
-        getLogger().error(e);
-        AndroidNotification.getInstance(myProject).showBalloon(
-            "LeakCanary",
-            "Failed to add dependency: " + e.getMessage(),
-            NotificationType.WARNING
-        );
+      } else {
         future.complete(false);
       }
-    } else {
+    }
+    catch (Exception e) {
+      getLogger().error(e);
+      AndroidNotification.getInstance(myProject).showBalloon(
+          artifact.getMavenArtifactId(),
+          "Failed to add dependency: " + e.getMessage(),
+          NotificationType.WARNING
+      );
       future.complete(false);
     }
   }
   @VisibleForTesting
-  protected boolean showConfirmationDialog(Module module, GoogleMavenArtifactId artifact, DependencyType dependencyType) {
-    DependencyConfirmationDialog dialog = new DependencyConfirmationDialog(myProject, module, artifact, dependencyType);
+  protected boolean showConfirmationDialog(Module module, GoogleMavenArtifactId artifact, DependencyType dependencyType, @Nullable String resolvedCoordinate) {
+    DependencyConfirmationDialog dialog = new DependencyConfirmationDialog(myProject, module, artifact, dependencyType, resolvedCoordinate);
     return dialog.showAndGet();
   }
 
