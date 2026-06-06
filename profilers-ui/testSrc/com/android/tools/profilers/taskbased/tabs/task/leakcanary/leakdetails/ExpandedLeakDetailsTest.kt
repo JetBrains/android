@@ -120,7 +120,7 @@ class ExpandedLeakDetailsTest : WithFakeTimer {
     composeTestRule.onNodeWithText("Unknown").assertIsDisplayed()
 
     composeTestRule.onNodeWithText("Not Leaking").assertDoesNotExist()
-    composeTestRule.onNodeWithText("Referencing Field: $referencingField").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Referencing Field: classname.referenceName").assertIsDisplayed()
     composeTestRule.onNodeWithText("Retained Bytes: 2 KB").assertIsDisplayed()
     composeTestRule.onNodeWithText("Referencing Objects: 10").assertIsDisplayed()
   }

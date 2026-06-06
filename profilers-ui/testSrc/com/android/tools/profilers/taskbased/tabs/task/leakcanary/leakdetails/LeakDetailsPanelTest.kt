@@ -159,7 +159,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
     composeTestRule.onNodeWithTag("dalvik.system.PathClassLoader").performClick()
     composeTestRule.onAllNodesWithText("Leaking").assertCountEquals(2) // 2 occurrence of this text are open now
     composeTestRule.onAllNodesWithText("No").assertCountEquals(2) // 2 occurrence of this text are open now
-    composeTestRule.onNodeWithText("InternalLeakCanary↓ is not leaking and A ClassLoader is never leaking").isDisplayed()
+    composeTestRule.onNodeWithText("InternalLeakCanary is not leaking and A ClassLoader is never leaking").isDisplayed()
 
     composeTestRule.onNodeWithTag("androidx.constraintlayout.widget.ConstraintLayout").performClick()
     composeTestRule.onAllNodesWithText("Leaking").assertCountEquals(3) // 3 occurrence of this text are open now
@@ -413,7 +413,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         onOpenStatesChange = { openStates = it },
         onAnalyzeLeakWithStudioBot = { callbackInvoked = true },
         isLeakCanaryStudioBotEnabled = true,
-        onCopy = {}
+        onCopy = {},
       )
     }
 

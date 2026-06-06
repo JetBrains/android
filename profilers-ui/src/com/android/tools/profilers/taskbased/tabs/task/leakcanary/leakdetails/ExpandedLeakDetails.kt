@@ -56,6 +56,14 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
+/**
+ * Strips LeakCanary's structural ASCII characters from the raw string. This ensures that when the text is rendered in the UI using a
+ * proportional font, it doesn't contain misaligned structural artifacts (like │ or ↓) that were meant for monospace terminals.
+ */
+private fun String.stripLeakCanaryAscii(): String {
+  return this.replace("│", "").replace("├─", "").replace("╰→", "").replace("↓", "").replace("~", "").trim()
+}
+
 @Composable
 fun LeakNodeDetails(node: Node, modifier: Modifier = Modifier) {
   var showMoreInfo by remember { mutableStateOf(true) }
@@ -76,9 +84,13 @@ fun LeakNodeDetails(node: Node, modifier: Modifier = Modifier) {
       DetailedHeaderText(LEAKCANARY_WHY)
       Spacer(modifier = Modifier.height(5.dp))
       if (node.leakingStatusReason.isNotBlank()) {
-        Text(text = node.leakingStatusReason, fontWeight = FontWeight.Thin, modifier = Modifier.padding(bottom = 8.dp))
+        Text(
+          text = node.leakingStatusReason.stripLeakCanaryAscii(),
+          fontWeight = FontWeight.Thin,
+          modifier = Modifier.padding(bottom = 8.dp),
+        )
       }
-      node.referencingField?.let { DetailText("$LEAKCANARY_REFERENCING_FIELD$it") }
+      node.referencingField?.let { DetailText("$LEAKCANARY_REFERENCING_FIELD${it.toString().stripLeakCanaryAscii()}") }
       node.retainedHeapSize?.let { DetailText("$LEAKCANARY_RETAINED_BYTES$it") }
       node.retainedObjectCount?.let { DetailText("$LEAKCANARY_REFERENCING_OBJECTS$it") }
       if (node.notes.isNotEmpty()) {
