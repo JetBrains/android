@@ -106,6 +106,7 @@ class LiveEditServiceImpl(val project: Project, var executor: Executor, override
     registerWithRunningDevices(project, adapter)
 
     deployMonitor = LiveEditProjectMonitor(this, project)
+    Disposer.register(this, deployMonitor)
 
     // When we change editor, grab a snapshot of the current PSI. We cannot do this in the beforeDocumentChanged
     // callback, as certain editor actions modify the PSI *before* the document callbacks occur. This causes us to
@@ -319,7 +320,7 @@ class LiveEditServiceImpl(val project: Project, var executor: Executor, override
     if (toolWindow == null) {
       // If our service gets initialized before running devices tool window, then we need to listen for when the tool window is created,
       // then add listeners to it.
-      val connection = project.messageBus.connect()
+      val connection = project.messageBus.connect(this)
       connection.subscribe(
         ToolWindowManagerListener.TOPIC,
         object : ToolWindowManagerListener {

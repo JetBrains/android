@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ThreeState
 import org.junit.Before
@@ -84,6 +85,10 @@ class BasicAndroidMonitorTest {
 
     connection = FakeLiveEditAdbListener()
     clients = clients.plus(client)
+    val oldService = project.getServiceIfCreated(LiveEditServiceImpl::class.java)
+    if (oldService != null) {
+      Disposer.dispose(oldService)
+    }
     service = LiveEditServiceImpl(project, MoreExecutors.directExecutor(), connection)
     project.replaceService(LiveEditServiceImpl::class.java, service, projectRule.testRootDisposable)
     monitor = service.getDeployMonitor()
