@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.ui.JBColor
@@ -23,7 +24,7 @@ import com.intellij.util.ui.JBUI.Borders
 import javax.swing.BoxLayout
 
 /** The panel containing controls specific to AI glasses. */
-class GlassesInputPanel(private val emulator: EmulatorController) : JBBox(BoxLayout.X_AXIS) {
+class GlassesInputPanel(private val emulator: EmulatorController, parentDisposable: Disposable) : JBBox(BoxLayout.X_AXIS) {
 
   private val emulatorConfig
     get() = emulator.emulatorConfig
@@ -42,8 +43,11 @@ class GlassesInputPanel(private val emulator: EmulatorController) : JBBox(BoxLay
         toolbar.targetComponent = this
         add(toolbar.component)
       }
+    }
 
+    if (emulatorConfig.ledIndicators.isNotEmpty()) {
       add(createHorizontalGlue())
+      add(LedIndicatorPanel(emulator, parentDisposable))
     }
   }
 }

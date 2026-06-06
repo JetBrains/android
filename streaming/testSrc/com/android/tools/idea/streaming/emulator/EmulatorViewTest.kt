@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming.emulator
 
-import com.android.emulator.control.LedIndicator
 import com.android.emulator.control.Posture.PostureValue
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.GoldenImageRule
@@ -80,7 +79,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.EditorNotificationPanel
-import java.awt.Color
 import java.awt.Component
 import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
@@ -505,28 +503,6 @@ class EmulatorViewTest {
     mockFocusManager.processKeyEvent(view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
 
     verify(mockFocusManager, atLeast(1)).focusNextComponent(eq(view))
-  }
-
-  @Test
-  fun testLedIndicatorState() {
-    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createDisplayGlassesAvd(path) }
-    fakeUi = FakeUi(panel)
-    fakeUi.root.size = Dimension(200, 300)
-    fakeUi.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame()
-    val ledStates = NotificationReceiver.forEmulator(view.emulator).ledStates
-
-    // Initially LED indicators are turned off.
-    assertThat(ledStates.value).containsExactly(0, null, 1, null)
-
-    // Send a notification that LED 1 is ON with color red.
-    fakeEmulator.setLedState(1, LedIndicator.State.ON, 0xff0000)
-    waitForCondition(2.seconds) { ledStates.value[1] != null }
-    assertThat(ledStates.value[1]).isEqualTo(Color(0xff0000))
-
-    // Send a notification that LED 1 is OFF.
-    fakeEmulator.setLedState(1, LedIndicator.State.OFF, 0x000000)
-    waitForCondition(2.seconds) { ledStates.value[1] == null }
   }
 
   @Test

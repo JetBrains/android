@@ -90,6 +90,7 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -639,7 +640,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testAiGlassesToolbarActions() {
+  fun testDisplayGlassesToolbarActions() {
     val avdFolder = FakeEmulator.createDisplayGlassesAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
     panel = createWindowPanel(avdFolder)
 
@@ -650,13 +651,15 @@ class EmulatorToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
 
     // Check appearance.
+    emulator.setLedState(0, Color.RED)
+    emulator.setLedState(1, Color.GREEN)
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(430, 450)
     fakeUi.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1146 height: 724")
-    assertAppearance("AiGlassesToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+    assertAppearance("DisplayGlassesToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
     emulator.clearGrpcCallLog()
 
     var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Connect/Disconnect Microphone" }
@@ -698,7 +701,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testAiGlassesDisplaylessToolbarActions() {
+  fun testAudioGlassesToolbarActions() {
     val avdFolder = FakeEmulator.createAudioGlassesAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
     panel = createWindowPanel(avdFolder)
 
@@ -715,7 +718,7 @@ class EmulatorToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 430 height: 362")
-    assertAppearance("AiGlassesDisplaylessToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+    assertAppearance("AudioGlassesToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
     emulator.clearGrpcCallLog()
 
     var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Connect/Disconnect Microphone" }
