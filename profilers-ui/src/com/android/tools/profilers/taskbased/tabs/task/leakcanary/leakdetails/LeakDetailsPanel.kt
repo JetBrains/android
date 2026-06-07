@@ -124,7 +124,14 @@ fun LeakDetailsPanel(
   } else {
     val scrollState = rememberScrollState()
     Column(modifier = Modifier.fillMaxSize()) {
-        LeakActionToolbar(selectedLeak = selectedLeak, onExpandAll = onExpandAll, onCollapseAll = onCollapseAll, onCopy = onCopy, onAnalyzeLeakWithStudioBot = { onAnalyzeLeakWithStudioBot(selectedLeak) }, isStudioBotEnabled = isLeakCanaryStudioBotEnabled)
+      LeakActionToolbar(
+        selectedLeak = selectedLeak,
+        onExpandAll = onExpandAll,
+        onCollapseAll = onCollapseAll,
+        onCopy = onCopy,
+        onAnalyzeLeakWithStudioBot = { onAnalyzeLeakWithStudioBot(selectedLeak) },
+        isStudioBotEnabled = isLeakCanaryStudioBotEnabled,
+      )
       ToolWindowHorizontalDivider()
       Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
@@ -277,7 +284,7 @@ private fun getReferringDisplayName(previousNode: Node?, node: Node): String {
   val referringField = previousNode?.referencingField ?: return ""
   val cleanedField = referringField.toString().replace("│", "").replace("↓", "").trim().split("\n")[0].trim()
   val className = node.className.split(".").last()
-  return "($cleanedField:$className)"
+  return "$cleanedField:$className"
 }
 
 /**
@@ -292,10 +299,17 @@ private fun AnnotatedString.Builder.appendClassAndStatusText(previousNode: Node?
   val firstSection =
     if (referenceDisplaySplitIndex > 0) referringDisplayName.substring(0, referenceDisplaySplitIndex) else referringDisplayName
   val lastSection =
-    if (referenceDisplaySplitIndex > 0) "$" + referringDisplayName.substring(referenceDisplaySplitIndex + 1, referringDisplayName.length)
-    else ""
+    if (referenceDisplaySplitIndex > 0) referringDisplayName.substring(referenceDisplaySplitIndex + 1, referringDisplayName.length) else ""
   append(AnnotatedString(text = node.className))
   append(AnnotatedString(" ${node.nodeType} \n"))
-  append(AnnotatedString(firstSection))
-  append(AnnotatedString(lastSection, spanStyle = SpanStyle(color = getLeakStatusColor(node.leakingStatus))))
+
+  if (referringDisplayName.isNotEmpty()) {
+    append(AnnotatedString("("))
+    append(AnnotatedString(firstSection))
+    if (lastSection.isNotEmpty()) {
+      append(AnnotatedString(": "))
+      append(AnnotatedString(lastSection, spanStyle = SpanStyle(color = getLeakStatusColor(node.leakingStatus))))
+    }
+    append(AnnotatedString(")"))
+  }
 }
