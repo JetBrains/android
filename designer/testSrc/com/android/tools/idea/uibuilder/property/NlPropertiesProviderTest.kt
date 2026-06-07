@@ -58,10 +58,10 @@ import com.android.tools.idea.uibuilder.property.testutils.MockAppCompat
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.asJava.classes.runReadAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
