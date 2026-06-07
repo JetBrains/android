@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea
+// TODO: android-merge; upstream keeps package com.android.tools.idea for the files a623568dee9e3 moved into adb_wifi/, and Qodana zero tolerance rejects a package that does not match its directory
+package com.android.tools.idea.adb_wifi
 
 import com.android.tools.testlib.Adb
 import com.android.tools.testlib.Emulator
