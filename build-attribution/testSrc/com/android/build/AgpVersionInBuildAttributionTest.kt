@@ -27,7 +27,7 @@ enum class AgpVersionInBuildAttributionTest(
   override val kotlinVersion: String? = null,
 ) : AgpVersionSoftwareEnvironment {
   CURRENT(compileSdk = "34"),
-  AGP_71_GRADLE_75(agpVersion = "7.1.0", gradleVersion = "7.5", jdkVersion = JavaSdkVersion.JDK_17, compileSdk = "34");
+  AGP_72_GRADLE_75(agpVersion = "7.2.0", gradleVersion = "7.5", jdkVersion = JavaSdkVersion.JDK_17, compileSdk = "34");
 
   override val targetSdk: String
     get() = compileSdk

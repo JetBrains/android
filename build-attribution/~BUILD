@@ -1,5 +1,5 @@
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list")
-load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_1", "AGP_DATA", "GRADLE_7_5", "GRADLE_DISTRIBUTIONS")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_2", "AGP_DATA", "GRADLE_7_5", "GRADLE_DISTRIBUTIONS")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -120,7 +120,7 @@ generate_old_agp_tests_from_list(
     tests_list = [
         dict(
             timeout = "long",
-            agp_version = AGP_7_1,
+            agp_version = AGP_7_2,
             data = [
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/sdk:build-tools/34.0.0",
@@ -129,11 +129,11 @@ generate_old_agp_tests_from_list(
                 "//prebuilts/studio/sdk:platforms/latest",
                 "//tools/adt/idea/android/testData",
                 "//tools/adt/idea/build-attribution/testData",
-            ] + AGP_DATA[AGP_7_1] + GRADLE_DISTRIBUTIONS[GRADLE_7_5],
+            ] + AGP_DATA[AGP_7_2] + GRADLE_DISTRIBUTIONS[GRADLE_7_5],
             gradle_version = GRADLE_7_5,
             ignore_other_tests = True,
             maven_deps = [
-                "//tools/base/build-system/previous-versions:7.1.0",
+                "//tools/base/build-system/previous-versions:7.2.0",
                 "//tools/base/build-system/previous-versions:kgp1.3.72",
                 ":test_deps",
             ],
