@@ -19,9 +19,16 @@ import com.intellij.execution.ApplicationRunLineMarkerHider
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.idea.codeInsight.KotlinRunLineMarkerHider
 
-class AndroidRunMarkerHider : ApplicationRunLineMarkerHider {
+/** Hides the Run button for the main() function in both Java and Kotlin files (b/457204879). */
+class AndroidRunMarkerHider : ApplicationRunLineMarkerHider, KotlinRunLineMarkerHider {
+
   override fun runLineMarkerAvailable(element: PsiElement): Boolean {
     return element.module?.isAndroidModule() != true
+  }
+
+  override fun shouldHideRunLineMarker(element: PsiElement): Boolean {
+    return element.module?.isAndroidModule() == true
   }
 }
