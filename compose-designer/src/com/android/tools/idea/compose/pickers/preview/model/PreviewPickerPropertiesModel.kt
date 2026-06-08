@@ -69,9 +69,6 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -79,9 +76,6 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
@@ -116,11 +110,13 @@ private constructor(
           currentDeviceValue?.let(availableDevices::findOrParseFromDefinition)
 
         deviceFromParameterValue
-          ?: ConfigurationManager.findExistingInstance(module)?.getDefaultPreviewDevice()
+        ?: ConfigurationManager.findExistingInstance(module)?.getDefaultPreviewDevice()
       }
+
       AvailableDevicesKey.name -> {
         availableDevices
       }
+
       else -> null
     }
 
@@ -134,11 +130,11 @@ private constructor(
       val annotationEntry = previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val libraryDefaultValues: Map<String, String?> =
         (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues()
-          ?: kotlin.run {
-            Logger.getInstance(PsiCallPropertiesModel::class.java)
-              .warn("Could not obtain default values")
-            emptyMap()
-          }
+        ?: kotlin.run {
+          Logger.getInstance(PsiCallPropertiesModel::class.java)
+            .warn("Could not obtain default values")
+          emptyMap()
+        }
       val valuesProvider =
         PreviewPickerValuesProvider.createPreviewValuesProvider(
           module = module,
@@ -165,18 +161,22 @@ private constructor(
             PARAMETER_WIDTH_DP,
             PARAMETER_HEIGHT,
             PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
+
             PARAMETER_BACKGROUND_COLOR ->
               null // We ignore background color, as the default value is set by Studio
             PARAMETER_UI_MODE ->
               UiMode.entries.firstOrNull { it.resolvedValue == entry.value }?.display
-                ?: UiMode.UNDEFINED.display
+              ?: UiMode.UNDEFINED.display
+
             PARAMETER_DEVICE ->
               Device.entries.firstOrNull { it.resolvedValue == entry.value }?.display
-                ?: Device.DEFAULT.display
+              ?: Device.DEFAULT.display
+
             PARAMETER_LOCALE -> entry.value?.takeIf { it.isNotEmpty() } ?: "Default (en-US)"
             PARAMETER_WALLPAPER ->
               Wallpaper.entries.firstOrNull { it.resolvedValue == entry.value }?.display
-                ?: Wallpaper.NONE.display
+              ?: Wallpaper.NONE.display
+
             PARAMETER_FONT_SCALE -> entry.value?.removeSuffix("f")
             else -> entry.value
           }
@@ -213,7 +213,6 @@ private class PreviewPropertiesProvider(
   private val defaultValues: Map<String, String?>,
   private val annotationEntry: KtAnnotationEntry,
 ) : PsiPropertiesProvider {
-  val resolvedCall: ResolvedCall<out CallableDescriptor>? = null
 
   override fun invoke(
     project: Project,
@@ -221,37 +220,10 @@ private class PreviewPropertiesProvider(
   ): Collection<PsiPropertyItem> {
     val properties = mutableListOf<PsiPropertyItem>()
     ReadAction.run<Throwable> {
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        collectParameterPropertyItemsForK2(project, model, properties)
-        return@run
-      }
-      resolvedCall!!
-        .valueArguments
-        .toList()
-        .sortedBy { (descriptor, _) -> descriptor.index }
-        .forEach { (descriptor, resolved) ->
-          val argumentExpression =
-            (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
-          val defaultValue = defaultValues[descriptor.name.asString()]
-          val parameterName = descriptor.name
-          val parameterTypeNameIfStandard = descriptor.type.nameIfStandardType
-          collectParameterPropertyItems(
-            project,
-            model,
-            properties,
-            parameterName,
-            parameterTypeNameIfStandard,
-            argumentExpression,
-            defaultValue,
-            null,
-          )
-        }
+      collectParameterPropertyItemsForK2(project, model, properties)
     }
     return properties
   }
-
-  private val KotlinType.nameIfStandardType: Name?
-    get() = constructor.declarationDescriptor?.takeIf(KotlinBuiltIns::isBuiltIn)?.name
 
   private fun collectParameterPropertyItems(
     project: Project,
@@ -264,11 +236,7 @@ private class PreviewPropertiesProvider(
     callElement: KtCallElement?,
   ) {
     fun addNewValueArgument(newValueArgument: KtValueArgument, psiFactory: KtPsiFactory) =
-      if (KotlinPluginModeProvider.isK2Mode()) {
-        callElement?.addNewValueArgument(newValueArgument, psiFactory)
-      } else {
-        resolvedCall?.addNewValueArgument(newValueArgument, psiFactory)
-      }
+      callElement?.addNewValueArgument(newValueArgument, psiFactory)
 
     when (
       parameterName.asString()
@@ -284,6 +252,7 @@ private class PreviewPropertiesProvider(
           argumentExpression,
           defaultValue,
         )
+
       PARAMETER_BACKGROUND_COLOR ->
         ColorPsiCallParameter(
           project,
@@ -294,6 +263,7 @@ private class PreviewPropertiesProvider(
           argumentExpression,
           defaultValue,
         )
+
       PARAMETER_WIDTH,
       PARAMETER_WIDTH_DP,
       PARAMETER_HEIGHT,
@@ -308,6 +278,7 @@ private class PreviewPropertiesProvider(
           defaultValue,
           IntegerNormalValidator,
         )
+
       PARAMETER_API_LEVEL ->
         PsiCallParameterPropertyItem(
           project,
@@ -319,19 +290,21 @@ private class PreviewPropertiesProvider(
           defaultValue,
           IntegerStrictValidator,
         )
+
       PARAMETER_DEVICE -> { // Note that DeviceParameterPropertyItem sets its own name to
         // PARAMETER_HARDWARE_DEVICE
         DeviceParameterPropertyItem(
-            project,
-            model,
-            ::addNewValueArgument,
-            parameterName,
-            parameterTypeNameIfStandard,
-            argumentExpression,
-            defaultValue,
-          )
+          project,
+          model,
+          ::addNewValueArgument,
+          parameterName,
+          parameterTypeNameIfStandard,
+          argumentExpression,
+          defaultValue,
+        )
           .also { properties.addAll(it.innerProperties) }
       }
+
       PARAMETER_UI_MODE,
       PARAMETER_WALLPAPER ->
         ClassPsiCallParameter(
@@ -343,6 +316,7 @@ private class PreviewPropertiesProvider(
           argumentExpression,
           defaultValue,
         )
+
       PARAMETER_SHOW_SYSTEM_UI,
       PARAMETER_SHOW_BACKGROUND ->
         BooleanPsiCallParameter(
@@ -354,6 +328,7 @@ private class PreviewPropertiesProvider(
           argumentExpression,
           defaultValue,
         )
+
       else ->
         PsiCallParameterPropertyItem(
           project,

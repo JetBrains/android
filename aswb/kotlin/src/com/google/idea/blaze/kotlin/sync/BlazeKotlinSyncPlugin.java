@@ -62,7 +62,7 @@ import org.jetbrains.kotlin.cli.common.arguments.FreezableKt;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.kotlin.config.CompilerSettings;
 import org.jetbrains.kotlin.config.LanguageVersion;
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
+ ;
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCompilerSettings;

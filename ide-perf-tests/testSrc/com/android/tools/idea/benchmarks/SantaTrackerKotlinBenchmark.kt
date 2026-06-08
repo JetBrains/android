@@ -20,7 +20,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.fileTypes.LanguageFileType
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
@@ -40,17 +40,19 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
     val staticRule = AndroidGradleProjectRule()
 
     private const val PROJECT_NAME = "SantaTrackerKotlin"
+
     @JvmStatic
     @BeforeClass
     fun setUpBeforeClass() {
       loadProject(staticRule, PROJECT_NAME)
-      assert(KotlinPluginModeProvider.isK1Mode())
+      assert(false)
     }
   }
 
   @Test
   fun fullProjectHighlighting() {
-    super.fullProjectHighlighting(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
+    super.fullProjectHighlighting(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE),
+                                  PROJECT_NAME)
   }
 
   @Test

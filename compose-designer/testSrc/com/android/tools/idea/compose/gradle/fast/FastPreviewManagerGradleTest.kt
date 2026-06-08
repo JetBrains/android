@@ -64,7 +64,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+ 
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
@@ -172,13 +172,6 @@ class FastPreviewManagerGradleTest {
       assertTrue("Expected stringResource calls not found", matches.count() != 0)
 
       // K2 does not generate `LDC (\\d+)`, so we cannot check IDs for the light R class.
-      if (KotlinPluginModeProvider.isK2Mode()) return@runBlocking
-
-      // Real ids are all above 0x7f000000
-      assertTrue(
-        "Fake IDs are not expected for a compiled project in the light R class",
-        matches.all { it.groupValues[1].toInt() > 0x7f000000 },
-      )
     }
   }
 

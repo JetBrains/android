@@ -22,7 +22,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -37,11 +37,11 @@ import kotlin.io.path.writeText
 
 ```
 bazel test [target]  \
-   --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
-   --sandbox_writable_path=$(bazel info workspace) \
-   --test_strategy=standalone \
-   --nocache_test_results \
-   --test_timeout=6000
+--jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
+--sandbox_writable_path=$(bazel info workspace) \
+--test_strategy=standalone \
+--nocache_test_results \
+--test_timeout=6000
 ```
 
  *
@@ -60,12 +60,13 @@ interface SnapshotComparisonTest {
   /**
    * The list of file name suffixes applicable to the currently running test.
    */
-  val snapshotSuffixes: List<String> get() = listOfNotNull(
-    "_K2_phased".takeIf { KotlinPluginModeProvider.isK2Mode() && StudioFlags.PHASED_SYNC_ENABLED.get() },
-    "_K2".takeIf { KotlinPluginModeProvider.isK2Mode() },
-    "_phased".takeIf { StudioFlags.PHASED_SYNC_ENABLED.get() },
-    "",
-  )
+  val snapshotSuffixes: List<String>
+    get() = listOfNotNull(
+      "_K2_phased".takeIf { StudioFlags.PHASED_SYNC_ENABLED.get() },
+      "_K2",
+      "_phased".takeIf { StudioFlags.PHASED_SYNC_ENABLED.get() },
+      "",
+    )
 
   /**
    * Assumed to be matched by [UsefulTestCase.getName].
@@ -95,7 +96,11 @@ enum class SnapshotSuffix(val suffix: String) {
 
 private val testLogsPath: String?
   get() = System.getenv("TEST_TARGET")?.takeIf { it.isNotEmpty() }?.removePrefix("//")?.replace(":", "/")?.let { targetPath ->
-    targetPath + (System.getenv("TEST_SHARD_INDEX")?.takeIf { it.isNotEmpty() }?.let { shard -> "/shard_${shard}_of_${System.getenv("TEST_TOTAL_SHARDS")}" } ?: "")
+    targetPath + (System.getenv("TEST_SHARD_INDEX")?.takeIf { it.isNotEmpty() }?.let { shard ->
+      "/shard_${shard}_of_${
+        System.getenv("TEST_TOTAL_SHARDS")
+      }"
+    } ?: "")
   }
 
 private fun SnapshotComparisonTest.assertInSnapshotTextContext() = Truth.assert_().withMessage("""
@@ -168,7 +173,8 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
       println("Writing to: ${this.absolutePath}")
       writeText(text)
     }
-  } else if (TestUtils.runningFromBazel()) {
+  }
+  else if (TestUtils.runningFromBazel()) {
     // Populate additional test output if the file needs updating
     if (!snapshotFile.isFile || expectedText != text) {
       val workspaceRelativePath = TestUtils.getWorkspaceRoot().relativize(snapshotFile.toPath())
@@ -192,7 +198,7 @@ private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String, su
     .map { configuredWorkspace.resolve("${project.substringAfter("projects/")}$it$suffix.txt").toFile() }
 }
 
-private fun SnapshotComparisonTest.getExpectedTextAndFileFor(project: String, suffix: String): Pair<String,File> =
+private fun SnapshotComparisonTest.getExpectedTextAndFileFor(project: String, suffix: String): Pair<String, File> =
   getCandidateSnapshotFiles(project, suffix)
     .let { candidateFiles ->
       candidateFiles
@@ -214,7 +220,9 @@ data class ProjectViewSettings(
 
 fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }
 
-fun nameProperties(snapshotLines: Sequence<String>, attachValue: Boolean = false, skipTopLevel: Boolean = false): Sequence<Pair<String, String>> = sequence {
+fun nameProperties(snapshotLines: Sequence<String>,
+                   attachValue: Boolean = false,
+                   skipTopLevel: Boolean = false): Sequence<Pair<String, String>> = sequence {
   val context = mutableListOf<Pair<Int, String>>()
   var previousIndentation = -1
   for (existingLine in snapshotLines) {
@@ -222,7 +230,8 @@ fun nameProperties(snapshotLines: Sequence<String>, attachValue: Boolean = false
     val propertyName = existingLine.trimStart().removePrefix("- ").substringBefore(' ', existingLine).trim()
     val line = if (attachValue && propertyValue != propertyName) {
       if (propertyName.isEmpty()) propertyValue else "$propertyName ($propertyValue)"
-    } else propertyName
+    }
+    else propertyName
     val indentation = existingLine.indexOfFirst { !it.isWhitespace() }.let { if (it == -1) existingLine.length else it }
     when {
       indentation > previousIndentation -> context.add(indentation to line)
@@ -235,7 +244,7 @@ fun nameProperties(snapshotLines: Sequence<String>, attachValue: Boolean = false
       }
     }
     previousIndentation = indentation
-    if (!(skipTopLevel && indentation == 0) ) {
+    if (!(skipTopLevel && indentation == 0)) {
       yield(context.joinToString(separator = "/") { (_, line) -> line } to existingLine)
     }
   }
