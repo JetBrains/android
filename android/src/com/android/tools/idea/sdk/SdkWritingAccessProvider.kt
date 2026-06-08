@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.sdk
 
-import com.intellij.openapi.application.runReadActionBlocking
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.WritingAccessProvider
 import com.intellij.util.SlowOperations
+import java.util.concurrent.Callable
 
 /** Marks Android SDK sources as read-only to prevent accidental edits. */
 class SdkWritingAccessProvider(private val project: Project) : WritingAccessProvider() {
@@ -33,12 +35,20 @@ class SdkWritingAccessProvider(private val project: Project) : WritingAccessProv
     return !isInAndroidSdk(file)
   }
 
+  // JetBrains patch: ProjectFileIndex is backend API in a shared module. The Android plugin is not split into frontend and backend modules, so there is no backend module to move this into.
+  @Suppress("SplitModeApiUsage")
   private fun isInAndroidSdk(file: VirtualFile): Boolean {
+    val computation = {
+      // Optimization: avoid querying isInAndroidSdk() in the common case where the file is within project sources.
+      !ProjectFileIndex.getInstance(project).isInContent(file) && AndroidSdks.getInstance().isInAndroidSdk(project, file)
+    }
     return SlowOperations.knownIssue("b/322462245").use {
-      // JetBrains patch: this runs on the EDT with no read lock, where a non-blocking read action asserts.
-      runReadActionBlocking {
-        // Optimization: avoid querying isInAndroidSdk() in the common case where the file is within project sources.
-        !ProjectFileIndex.getInstance(project).isInContent(file) && AndroidSdks.getInstance().isInAndroidSdk(project, file)
+      if (ApplicationManager.getApplication().isDispatchThread) {
+        // ReadAction.nonBlocking on the UI thread will throw since it is not meant to be used in that way so, in this case, we just
+        // run a regular blocking read action.
+        ReadAction.computeBlocking<Boolean, Exception> { computation() }
+      } else {
+        ReadAction.nonBlocking(Callable { computation() }).expireWhen { project.isDisposed }.executeSynchronously()
       }
     }
   }
