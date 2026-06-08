@@ -453,13 +453,17 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   }
 
   @Test
-  fun testApiLevel36ThrowsException() {
-    assertFailsWith<ComplicationsRequireLowerApiException> { runConfigurationOnApi(36) }
+  fun testApiLevel34AndHigherThrowsException() {
+    for (api in 34..37) {
+      assertFailsWith<ComplicationsRequireLowerApiException> { runConfigurationOnApi(api) }
+    }
   }
 
   @Test
-  fun testApiLevel35DoesNotThrowException() {
-    runConfigurationOnApi(35)
+  fun testApiLevel33AndLowerDoesNotThrowException() {
+    for (api in 33 downTo 28) {
+      runConfigurationOnApi(api)
+    }
   }
 
   @Test
@@ -496,34 +500,38 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       }
     }
 
-    val device = AndroidDebugBridge.getBridge()!!.devices.single()
-    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
-    val watchFaceApp =
-      createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName), activitiesName = emptyList())
-    val settings =
-      object : AppRunSettings {
-        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-        override val componentLaunchOptions =
-          ComplicationLaunchOptions().apply {
-            watchFaceInfo = TestWatchFaceInfo
-            componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
-            chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
-          }
-      }
-    val appInstaller = TestApplicationInstaller(hashMapOf(Pair(appId, app), Pair(TestWatchFaceInfo.appId, watchFaceApp)))
-    val executor =
-      Mockito.spy(
-        AndroidComplicationConfigurationExecutor(
-          env,
-          FakeAndroidDevice.forDevices(listOf(device)),
-          settings,
-          TestApksProvider(appId),
-          TestApplicationProjectContext(appId),
-          appInstaller,
+    try {
+      val device = AndroidDebugBridge.getBridge()!!.devices.single()
+      val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+      val watchFaceApp =
+        createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName), activitiesName = emptyList())
+      val settings =
+        object : AppRunSettings {
+          override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+          override val componentLaunchOptions =
+            ComplicationLaunchOptions().apply {
+              watchFaceInfo = TestWatchFaceInfo
+              componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
+              chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
+            }
+        }
+      val appInstaller = TestApplicationInstaller(hashMapOf(Pair(appId, app), Pair(TestWatchFaceInfo.appId, watchFaceApp)))
+      val executor =
+        Mockito.spy(
+          AndroidComplicationConfigurationExecutor(
+            env,
+            FakeAndroidDevice.forDevices(listOf(device)),
+            settings,
+            TestApksProvider(appId),
+            TestApplicationProjectContext(appId),
+            appInstaller,
+          )
         )
-      )
-    doReturn(listOf("SHORT_TEXT")).whenever(executor).getComplicationSourceTypes(any())
+      doReturn(listOf("SHORT_TEXT")).whenever(executor).getComplicationSourceTypes(any())
 
-    getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
+      getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
+    } finally {
+      fakeAdbRule.disconnectDevice(deviceState.deviceId)
+    }
   }
 }

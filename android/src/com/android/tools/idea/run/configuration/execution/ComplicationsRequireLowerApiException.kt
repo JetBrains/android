@@ -22,8 +22,8 @@ class ComplicationsRequireLowerApiException(isDebug: Boolean) :
     // language=html
     """
      <html lang="en">
-       <p>Complications run configurations are currently not supported on API 36+.</p>
-       <p>Please ${if (isDebug) "debug" else "run" } the configuration on a device with API 35 or less.</p>
+       <p>Complications run configurations are currently not supported on API 34+.</p>
+       <p>Please ${if (isDebug) "debug" else "run" } the configuration on a device with API 33 or less.</p>
      </html>
     """
       .trimIndent()
