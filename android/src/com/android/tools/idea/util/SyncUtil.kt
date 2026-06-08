@@ -36,8 +36,8 @@ private val LOG: Logger
   get() = Logger.getInstance("SyncUtil.kt")
 
 /**
- * Registers [listener] to be notified of any sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on [project]'s message bus until the next
- * sync completes. The [listener] maintains its subscription to [PROJECT_SYSTEM_SYNC_TOPIC] until either
+ * Registers [listener] to be notified of any sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on [this] [Project]'s message bus until
+ * the next sync completes. The [listener] maintains its subscription to [PROJECT_SYSTEM_SYNC_TOPIC] until either
  * 1) a sync completes and [listener] is notified, or
  * 2) [parentDisposable] is disposed
  */
