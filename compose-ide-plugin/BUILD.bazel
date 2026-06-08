@@ -463,6 +463,8 @@ jvm_library(
         "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting_test_lib",
         "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-base",
         "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-base_test_lib",
+        "//plugins/kotlin/references",
+        "//plugins/kotlin/references:references_test_lib",
         "//plugins/kotlin/base/psi",
         "//plugins/kotlin/base/psi:psi_test_lib",
         "//libraries/kotlinc/compose-compiler-plugin:libraries-kotlinc-compose-compiler-plugin",

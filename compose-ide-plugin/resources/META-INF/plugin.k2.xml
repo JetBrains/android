@@ -23,6 +23,7 @@
     <extractFunctionDescriptorModifier implementation="com.android.tools.compose.aa.ComposableFunctionExtractableAnalyser"/>
     <bundledFirCompilerPluginProvider implementation="com.android.tools.compose.aa.Pre2Point0CompatableComposeCompilerPluginProviderForK2"/>
     <firCompilerPluginConfigurationProvider implementation="com.android.tools.compose.aa.K2ComposeCompilerConfigurationProvider"/>
+    <kaAdditionalKDocResolutionProvider implementation="com.android.tools.compose.aa.ComposeAdditionalKDocResolutionProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
