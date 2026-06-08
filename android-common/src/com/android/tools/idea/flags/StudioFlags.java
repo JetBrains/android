@@ -2875,6 +2875,11 @@ public final class StudioFlags {
                     "Enable Task Roadmap progress panels",
                     "When enabled, long-running agent tasks will display a multi-step roadmap status-bar and sidebar.");
 
+  public static final Flag<Boolean> STUDIOBOT_CHANGE_REVIEW_NATIVE_DIFF_DISABLED =
+    new BooleanFlag(STUDIOBOT, "change.review.native.diff.disabled",
+                    "Disable native diff engine in Change Review details pane",
+                    "When true, the Change Review details pane falls back to rendering file changes using markdown diff blocks instead of the native diff component.");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
