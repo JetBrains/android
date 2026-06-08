@@ -34,10 +34,14 @@ import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEvent
 import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APP_DEPLOYED
 import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APP_DEPLOYED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.ide.browsers.BrowserLauncher
+import com.intellij.notification.Notification
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import java.io.File
+import javax.swing.event.HyperlinkEvent
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -706,6 +710,35 @@ class PageAlignNotifierTest {
       .assertHasBalloonCount(0)
       .assertHasEventCount(1)
       .assertHasEvent(ALIGN_NATIVE_NON_COMPLIANT_APP_DEPLOYED)
+  }
+
+  @Test
+  fun `hyperlink listener only browses http and https`() {
+    val project = Mockito.mock(Project::class.java)
+    val listener = PageAlignNotifier.HyperlinkListener(project)
+    val launcher = Mockito.mock(BrowserLauncher::class.java)
+    ApplicationManager.getApplication().registerServiceInstance(BrowserLauncher::class.java, launcher, disposableRule.disposable)
+
+    val notification = Mockito.mock(Notification::class.java)
+
+    // Verify http works
+    val httpUrl = java.net.URL("http://example.com")
+    val httpEvent = HyperlinkEvent(notification, HyperlinkEvent.EventType.ACTIVATED, httpUrl, "http://example.com")
+    listener.hyperlinkUpdate(notification, httpEvent)
+    Mockito.verify(launcher).browse("http://example.com", null, project)
+
+    // Verify https works
+    val httpsUrl = java.net.URL("https://example.com")
+    val httpsEvent = HyperlinkEvent(notification, HyperlinkEvent.EventType.ACTIVATED, httpsUrl, "https://example.com")
+    listener.hyperlinkUpdate(notification, httpsEvent)
+    Mockito.verify(launcher).browse("https://example.com", null, project)
+
+    // Verify file protocol is blocked
+    val fileUrl = java.net.URL("file:///tmp/calc.exe")
+    val fileEvent = HyperlinkEvent(notification, HyperlinkEvent.EventType.ACTIVATED, fileUrl, "file:///tmp/calc.exe")
+    listener.hyperlinkUpdate(notification, fileEvent)
+    // There should be no new browse calls to launcher with the file URL
+    Mockito.verifyNoMoreInteractions(launcher)
   }
 
   class Apk(vararg val sos: Pair<ByteArray, ZipEntryOptions>)
