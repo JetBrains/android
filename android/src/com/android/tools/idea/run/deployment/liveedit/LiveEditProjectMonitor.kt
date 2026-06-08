@@ -53,10 +53,12 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.StandardFileSystems
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
@@ -364,6 +366,10 @@ open class LiveEditProjectMonitor(liveEditService: LiveEditService, private val 
 
   @Trace
   fun onAgentTrigger(path: String, vibe: String?): String {
+    if (!StudioFlags.STUDIOBOT_DEPLOY_VIBE_EDIT_AGENT.get()) {
+      throw LiveEditUpdateException.internalErrorVibeEdit("Vibe Edit agent is disabled.")
+    }
+
     if (liveEditDevices.devices().isEmpty()) {
       throw LiveEditUpdateException.internalErrorVibeEdit("No running application available for Live Edit.")
     }
@@ -378,6 +384,11 @@ open class LiveEditProjectMonitor(liveEditService: LiveEditService, private val 
     val virtualFile =
       StandardFileSystems.local().findFileByPath(path)
         ?: throw LiveEditUpdateException.internalErrorVibeEdit("$path not found in local file system.")
+
+    val baseDir = project.guessProjectDir()
+    if (baseDir == null || !VfsUtilCore.isAncestor(baseDir, virtualFile, /* strict= */ false)) {
+      throw LiveEditUpdateException.internalErrorVibeEdit("Vibe Edit target '$path' is outside the project content root.")
+    }
 
     val file = PsiManager.getInstance(project).findFile(virtualFile)
 
