@@ -65,4 +65,27 @@ class PageAlignConfigTest {
     assertThat(message).contains("example.apk")
     assertThat(message).contains("example.so")
   }
+
+  @Test
+  fun `check html injection in filenames is escaped`() {
+    val textProto =
+      """
+      play_store_deadline_date: "November 2026"
+      message_url: "developer.android.com/16kb-page-size"
+      so_unaligned_in_apk_message: "The following native libraries are not aligned at 16 KB boundary inside [APK]:"
+      unaligned_load_segments_message: "The following native libraries have segments that are not aligned at 16 KB boundary inside [APK]:"
+      message_postscript: "Beginning [DATE] the Google Play Store requires that all apps must be 16 KB compatible. For more information, visit [URL]."
+      """
+        .trimIndent()
+    val builder = PageAlign16kb.newBuilder()
+    TextFormat.getParser().merge(textProto, builder)
+    val service = Mockito.mock(ServerFlagService::class.java)
+    whenever(service.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PageAlignConfig.PROTO_TEMPLATE)).thenReturn(builder.build())
+    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
+
+    val hostileFilename = "<script>alert(1)</script>.so"
+    val message = PageAlignConfig.createSoNotAlignedInZipMessage("example.apk", listOf(hostileFilename))
+    assertThat(message).doesNotContain(hostileFilename)
+    assertThat(message).contains("&lt;script&gt;alert(1)&lt;/script&gt;.so")
+  }
 }
