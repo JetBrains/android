@@ -1062,10 +1062,10 @@ MODULE                        : NonStandardSourceSetDependencies
                             sourceCompatibility           : 1.7
                             targetCompatibility           : 1.7
                             - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : jvmApiElements (DefaultExternalProjectDependency)
                                 projectPath                   : :common
                                 - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
-                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : default (DefaultExternalProjectDependency)
                                 projectPath                   : :jarWrapperLib
                                 - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar
@@ -1094,10 +1094,10 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - files                       : <ROOT>/javaLibrary/build/classes/java/main [-]
                                 - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
                                 - files                       : <ROOT>/javaLibrary/build/resources/main [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : jvmApiElements (DefaultExternalProjectDependency)
                                 projectPath                   : :common
                                 - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
-                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : default (DefaultExternalProjectDependency)
                                 projectPath                   : :jarWrapperLib
                                 - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar

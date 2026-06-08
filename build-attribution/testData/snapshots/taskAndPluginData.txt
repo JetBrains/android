@@ -106,11 +106,11 @@ Task                          : :app:minifyDebugWithR8
 Task                          : :app:overlappingOutputTask1
     TaskType                      : OverlappingOutputTask
     PrimaryTaskCategory           : BUILD_SCRIPT
-    Plugin                        : script :app:build.gradle
+    Plugin                        : script :app:build file 'app/build.gradle'
 Task                          : :app:overlappingOutputTask2
     TaskType                      : OverlappingOutputTask
     PrimaryTaskCategory           : BUILD_SCRIPT
-    Plugin                        : script :app:build.gradle
+    Plugin                        : script :app:build file 'app/build.gradle'
 Task                          : :app:packageDebug
     TaskType                      : com.android.build.gradle.tasks.PackageApplication
     PrimaryTaskCategory           : APK_PACKAGING
@@ -346,6 +346,9 @@ Task                          : :lib:writeDebugAarMetadata
 Plugin                        : ::build.gradle
     PluginType                    : SCRIPT
     PluginDisplayNames            : ::build.gradle
+Plugin                        : :app:build file 'app/build.gradle'
+    PluginType                    : SCRIPT
+    PluginDisplayNames            : :app:build file 'app/build.gradle'
 Plugin                        : :app:build.gradle
     PluginType                    : SCRIPT
     PluginDisplayNames            : :app:build.gradle
