@@ -2098,6 +2098,11 @@ public final class StudioFlags {
   // region STUDIO_BOT
   private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
 
+  public static final Flag<Boolean> STUDIOBOT_AGENT_EDITOR_TAB_ENABLED =
+    new BooleanFlag(STUDIOBOT, "agent.editor.tab.enabled",
+                    "Enable Agent Tabs",
+                    "Enables opening the Agent UI as Editor Tabs.");
+
   // a debug flag for the timeline to show *all* steps. This is NOT to be enabled in feature_flags.txt
   // This is to be manually enabled only.
   public static final Flag<Boolean> STUDIOBOT_TIMELINE_DEBUG_MODE =

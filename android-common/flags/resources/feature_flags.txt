@@ -172,6 +172,7 @@ settingssync.onboarding.wizard.enable=PREVIEW
 studio.diagnostic.adb.host.logs.diagnostic.report.enable=PREVIEW
 studio.diagnostic.studio.tracing.enable=INTERNAL
 studiobot.agent.changes.drawer=COMPLETE:2025
+studiobot.agent.editor.tab.enabled=PREVIEW
 studiobot.agent.experimental.build.prompt=PREVIEW
 studiobot.agent.mode=COMPLETE:2025
 studiobot.agent.notifications=COMPLETE:2026
