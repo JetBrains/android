@@ -95,6 +95,7 @@ private class HttpServer(traceFile: File, requestReceivedLatch: CompletableJob) 
   private var server =
     ServerBootstrap.bootstrap()
       .setListenerPort(port)
+      .setLocalAddress(java.net.InetAddress.getLoopbackAddress())
       .setSocketConfig(SocketConfig.custom().setSoReuseAddress(true).setSoKeepAlive(true).build())
       .registerHandler("/${traceFile.name}") { request, response, _ ->
         when (request.requestLine.method) {
