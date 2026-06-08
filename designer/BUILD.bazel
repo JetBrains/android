@@ -4,6 +4,12 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.designer` start
 
+create_kotlinc_options(
+    name = "custom_designer",
+    api_version = "2.3",
+    language_version = "2.3",
+)
+
 jvm_library(
     name = "designer",
     srcs = glob(
@@ -14,6 +20,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
+    kotlinc_opts = ":custom_designer",
     module_name = "intellij.android.designer",
     resource_strip_prefix = "resources",
     resources = glob(
@@ -119,6 +126,7 @@ jvm_library(
         allow_empty = True,
     ),
     associates = [":designer"],
+    kotlinc_opts = ":custom_designer",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
