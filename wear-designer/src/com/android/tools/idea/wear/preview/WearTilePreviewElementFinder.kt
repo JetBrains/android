@@ -40,6 +40,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
+import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.removeUserData
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
@@ -53,6 +54,7 @@ import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
+import java.lang.ref.SoftReference
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -61,6 +63,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
@@ -84,11 +88,10 @@ const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TileP
 // fast and re-used fast.
 // This way additional calls made before the value has finished being calculated won't result
 // in additional calculations being "piled on". Instead, they can just wait on the deferred.
-private val hasPreviewElementsCacheKey = Key<ChangeTrackerCachedValue<Deferred<Boolean>>>("hasPreviewElements")
-private val previewElementsCacheKey = Key<ChangeTrackerCachedValue<Deferred<Collection<PsiWearTilePreviewElement>>>>("previewElements")
-private val uMethodsWithTilePreviewSignatureCacheKey =
-  Key<ChangeTrackerCachedValue<Deferred<List<UMethod>>>>("uMethodsWithTilePreviewSignature")
-private val isTileAnnotationUsedCacheKey = Key<ChangeTrackerCachedValue<Deferred<Boolean>>>("isTileAnnotationUsed")
+private val hasPreviewElementsCacheKey = Key<AsyncCachedValue<Boolean>>("hasPreviewElements")
+private val previewElementsCacheKey = Key<AsyncCachedValue<Collection<PsiWearTilePreviewElement>>>("previewElements")
+private val uMethodsWithTilePreviewSignatureCacheKey = Key<AsyncCachedValue<List<UMethod>>>("uMethodsWithTilePreviewSignature")
+private val isTileAnnotationUsedCacheKey = Key<AsyncCachedValue<Boolean>>("isTileAnnotationUsed")
 
 /**
  * Object that can detect wear tile preview elements in a file.
@@ -306,8 +309,15 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
   return hasSingleContextParameter
 }
 
-private fun <T> UserDataHolder.getOrCreateCachedValue(key: Key<ChangeTrackerCachedValue<T>>, create: () -> ChangeTrackerCachedValue<T>) =
-  getUserData(key) ?: create().also { putUserData(key, it) }
+private fun <T> UserDataHolder.getOrCreateAsyncCachedValue(
+  key: Key<AsyncCachedValue<T>>,
+  create: () -> AsyncCachedValue<T>,
+): AsyncCachedValue<T> {
+  if (this is UserDataHolderEx) {
+    return this.putUserDataIfAbsent(key, create())
+  }
+  return getUserData(key) ?: create().also { putUserData(key, it) }
+}
 
 private fun Project.javaKotlinAndDumbChangeTrackers() =
   ChangeTracker(
@@ -352,31 +362,75 @@ internal suspend fun CoroutineScope.isTileAnnotationUsed(project: Project, vFile
   }
 }
 
+/**
+ * Helper to cache a long-running coroutine computation associated with a [UserDataHolder].
+ *
+ * It uses [AsyncCachedValue] to ensure that concurrent calls share the same [Deferred] and do not trigger duplicate background work.
+ */
 private suspend fun <T> CoroutineScope.cachedAsyncValue(
   dataHolder: UserDataHolder,
-  cacheKey: Key<ChangeTrackerCachedValue<Deferred<T>>>,
+  cacheKey: Key<AsyncCachedValue<T>>,
   vararg dependencies: ChangeTracker,
   valueProvider: suspend () -> T,
 ): T {
-  val cachedValue =
-    dataHolder.getOrCreateCachedValue(cacheKey) {
-      // weakReferences get cleared almost immediately by the gc, it's best to use softReference
-      ChangeTrackerCachedValue.softReference()
+  val cachedValue = dataHolder.getOrCreateAsyncCachedValue(cacheKey) { AsyncCachedValue { dataHolder.removeUserData(cacheKey) } }
+  return cachedValue.get(this, ChangeTracker(*dependencies)) { valueProvider() }.await()
+}
+
+/**
+ * A thread-safe, coroutine-friendly cached value that stores a [Deferred] result.
+ *
+ * This is used instead of [ChangeTrackerCachedValue] to prevent duplicate concurrent computations. When multiple coroutines request the
+ * value concurrently while the cache is empty, [AsyncCachedValue] ensures that only a single [Deferred] is created and started. Subsequent
+ * requests will reuse the same [Deferred] and await its result, rather than starting duplicate background work.
+ *
+ * It uses a [SoftReference] to allow the cached [Deferred] to be garbage collected if memory is low.
+ *
+ * To avoid memory leaks (specifically leaking [Project] instances), this class does not store the [valueProvider] or [dependency] in
+ * fields, as [AsyncCachedValue] is stored in [VirtualFile] user data which can outlive the project. Instead, these are passed as arguments
+ * to [get].
+ */
+private class AsyncCachedValue<T>(private val onFailure: () -> Unit) {
+  private val mutex = Mutex()
+  @Volatile private var cachedDeferredRef = SoftReference<Deferred<T>>(null)
+  @Volatile private var cachedCount: Long = -1
+
+  /**
+   * Returns the cached [Deferred] if valid, or creates a new one atomically.
+   *
+   * @param scope the [CoroutineScope] used to launch the eager [async] computation if needed.
+   * @param dependency the [ChangeTracker] used to check for cache invalidation.
+   * @param valueProvider the suspending lambda that computes the value.
+   */
+  suspend fun get(scope: CoroutineScope, dependency: ChangeTracker, valueProvider: suspend CoroutineScope.() -> T): Deferred<T> {
+    val currentCount = dependency.count()
+    val cached = cachedDeferredRef.get()
+    // Fast path: if we have a valid cached deferred, return it immediately without locking.
+    if (cached != null && cachedCount == currentCount) {
+      return cached
     }
-  return ChangeTrackerCachedValue.get(
-      cachedValue,
-      {
-        async { valueProvider() }
-          .also {
-            it.invokeOnCompletion { throwable ->
-              if (throwable != null) {
-                // ensure we don't cache a failed deferred
-                dataHolder.removeUserData(cacheKey)
-              }
-            }
+    // Slow path: acquire the mutex to safely create or update the deferred.
+    // We use a coroutine Mutex instead of a JVM lock to avoid blocking threads.
+    return mutex.withLock {
+      // Double-check after acquiring the lock.
+      val cached2 = cachedDeferredRef.get()
+      if (cached2 != null && cachedCount == currentCount) {
+        cached2
+      } else {
+        // Create and start the deferred eagerly.
+        // The lock is released immediately after this block returns (returning the Deferred),
+        // so we do NOT hold the lock while the long-running valueProvider is executing.
+        // This prevents blocking other coroutines and avoids deadlocks (e.g. with runBlocking in tests).
+        val newDeferred = scope.async { valueProvider() }
+        newDeferred.invokeOnCompletion { throwable ->
+          if (throwable != null) {
+            onFailure()
           }
-      },
-      ChangeTracker(*dependencies),
-    )
-    .await()
+        }
+        cachedDeferredRef = SoftReference(newDeferred)
+        cachedCount = currentCount
+        newDeferred
+      }
+    }
+  }
 }
