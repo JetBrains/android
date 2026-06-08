@@ -439,6 +439,18 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       } else if (_checkState.value == LeakCanaryCheckState.REFLECTION_FAILED) {
         return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_REFLECTION_FAILED)
       }
+
+      val preferredProcess = sessionsManager.studioProfilers.preferredProcessName
+      val selectedProcess = process.name
+
+      // To determine if the user is trying to profile an external APK vs their currently opened project,
+      // we compare the selected process against the IDE's preferredProcessName.
+      // We split by ':' to safely handle multi-process applications (e.g., matching 'com.app:leakcanary' to 'com.app').
+      val isProjectMatch = !preferredProcess.isNullOrEmpty() && preferredProcess.split(':').first() == selectedProcess.split(':').first()
+
+      if (!isProjectMatch) {
+        return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_NOT_FOUND_EXTERNAL_PROCESS)
+      }
       return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_NOT_FOUND)
     }
     return null
