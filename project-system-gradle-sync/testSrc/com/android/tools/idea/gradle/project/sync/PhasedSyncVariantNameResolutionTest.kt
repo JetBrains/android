@@ -336,7 +336,11 @@ class PhasedSyncVariantNameResolutionTest {
 
     // Check that we indeed failed to resolve lib2 because there was no matchingFallback specified for paid by APP.
     val exception = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
-    assertThat(exception).hasMessageThat().contains("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: :lib2.")
+    assertThat(exception)
+      .hasMessageThat()
+      .contains(
+        "Variant Conflict: Unresolved variant \"paidRelease\".\n" + "Cause: Could not resolve ProductFlavors ambiguity for project: :lib2."
+      )
 
     // Now, select a variant that will propagate back to the dependencies correctly.
     setSwitchVariantRequest(":app", "freeDebug")
@@ -422,7 +426,11 @@ class PhasedSyncVariantNameResolutionTest {
 
     setSwitchVariantRequest(":app", "release")
     val newException = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
-    assertThat(newException).hasMessageThat().contains("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: :lib5.")
+    assertThat(newException)
+      .hasMessageThat()
+      .contains(
+        "Variant Conflict: Unresolved variant \"release\".\n" + "Cause: Could not resolve ProductFlavors ambiguity for project: :lib5."
+      )
   }
 
   @Test
@@ -460,7 +468,12 @@ class PhasedSyncVariantNameResolutionTest {
 
     setSwitchVariantRequest(":app", "release")
     val newException = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
-    assertThat(newException).hasMessageThat().contains("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: :lib3.")
+    assertThat(newException)
+      .hasMessageThat()
+      .contains(
+        "Variant Conflict: Unresolved variant \"flav11Release\".\n" +
+          "Cause: Could not resolve ProductFlavors ambiguity for project: :lib3."
+      )
   }
 
   @Test
@@ -807,7 +820,11 @@ class PhasedSyncVariantNameResolutionTest {
     setSwitchVariantRequest(":app2", "faq")
 
     val exception = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
-    assertThat(exception).hasMessageThat().contains("Variant Conflict: Could not resolve BuildTypes ambiguity for project: :shared-lib.")
+    assertThat(exception)
+      .hasMessageThat()
+      .contains(
+        "Variant Conflict: Unresolved variant \"faq\".\n" + "Cause: Could not resolve BuildTypes ambiguity for project: :shared-lib."
+      )
   }
 
   @Test
@@ -919,7 +936,7 @@ class PhasedSyncVariantNameResolutionTest {
   }
 
   @Test
-  fun `test project synchronizes with its target app variant`() {
+  fun `test project synchronizes with its target app variant when possible`() {
     // Setup:
     // App (:app) -> Root App
     // Library (:lib1)
@@ -940,17 +957,22 @@ class PhasedSyncVariantNameResolutionTest {
           projectType = IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
           dependencies = emptyList(),
           defaultVariant = "debug",
-          variants = listOf("debug", "release", "qa"),
-          buildTypes = listOf(TestAndroidBuildType("debug"), TestAndroidBuildType("release"), TestAndroidBuildType("qa", listOf("faq"))),
+          variants = listOf("debug", "qa", "quiz"),
+          buildTypes = listOf(TestAndroidBuildType("debug"), TestAndroidBuildType("qa"), TestAndroidBuildType("quiz")),
         ),
         ProjectSetup(
           moduleId = ":test-project",
           projectType = IdeAndroidProjectType.PROJECT_TYPE_TEST,
-          dependencies = listOf(":app"),
+          dependencies = listOf(":app", ":lib1"),
           defaultVariant = "debug",
-          variants = listOf("debug", "release", "faq"),
+          variants = listOf("debug", "release", "faq", "quiz"),
           buildTypes =
-            listOf(TestAndroidBuildType("debug"), TestAndroidBuildType("release"), TestAndroidBuildType("faq", listOf("release"))),
+            listOf(
+              TestAndroidBuildType("debug"),
+              TestAndroidBuildType("release", listOf("qa")),
+              TestAndroidBuildType("faq", listOf("release", "qa")),
+              TestAndroidBuildType("quiz"),
+            ),
           testedTargetProject = ":app", // Special link
         ),
       )
@@ -965,14 +987,75 @@ class PhasedSyncVariantNameResolutionTest {
     assertThat(selected[":app"]).isEqualTo("release")
     assertThat(selected[":test-project"]).isEqualTo("release")
 
-    setSwitchVariantRequest(":lib1", "qa")
-
-    val selectedFromLib1 = sortProjectsAndGetSelectedVariants(projects)
-
-    assertThat(selectedFromLib1[":lib1"]).isEqualTo("qa")
+    setSwitchVariantRequest(":test-project", "faq")
+    val selectedFromTet1 = sortProjectsAndGetSelectedVariants(projects)
+    assertThat(selectedFromTet1[":lib1"]).isEqualTo("qa")
     // The variant resolved here for the test project is debug as it doesn't know anything about the custom APP variants.
-    assertThat(selectedFromLib1[":test-project"]).isEqualTo("debug")
-    assertThat(selected[":app"]).isEqualTo("release")
+    assertThat(selectedFromTet1[":test-project"]).isEqualTo("faq")
+    assertThat(selectedFromTet1[":app"]).isEqualTo("release")
+
+    // Now switch APP to something that doesn't match directly with TEST. TODO: should we warn here or what ?
+    setSwitchVariantRequest(":app", "qa")
+    val selectedFromApp = sortProjectsAndGetSelectedVariants(projects)
+    assertThat(selectedFromApp[":test-project"]).isEqualTo("debug")
+    assertThat(selectedFromApp[":app"]).isEqualTo("qa")
+
+    // Now switch Test to something that won't resolve in APP
+    setSwitchVariantRequest(":test-project", "quiz")
+    val exception = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
+    assertThat(exception)
+      .hasMessageThat()
+      .contains("Variant Conflict: Unresolved variant \"quiz\".\n" + "Cause: Could not resolve BuildTypes ambiguity for project: :app.")
+  }
+
+  @Test
+  fun `test project matches variant like library projects when attributes are defined`() {
+    val appFlavors =
+      listOf(
+        TestProductFlavor("paid", "pricing", emptyList()),
+        TestProductFlavor("free", "pricing", listOf("prod")),
+        TestProductFlavor("member", "pricing", listOf("demo")),
+      )
+
+    val testFlavors = listOf(TestProductFlavor("demo", "pricing", listOf("paid", "random")), TestProductFlavor("prod", "pricing"))
+
+    val appBuildTypes =
+      // We test with qa that the fallback to release won't be picked up by test_project and that we will fallback to debug.
+      listOf(TestAndroidBuildType("debug"), TestAndroidBuildType("release"), TestAndroidBuildType("qa", listOf("release")))
+    val testBuildTypes = listOf(TestAndroidBuildType("debug"))
+
+    val projects =
+      listOf(
+        ProjectSetup(
+          moduleId = ":app",
+          projectType = IdeAndroidProjectType.PROJECT_TYPE_APP,
+          dependencies = listOf(":lib1", ":lib2"),
+          defaultVariant = "paidDebug",
+          variants =
+            listOf("paidDebug", "paidRelease", "paidQa", "freeDebug", "freeRelease", "freeQa", "memberDebug", "memberRelease", "memberQa"),
+          buildTypes = appBuildTypes,
+          productFlavors = appFlavors,
+        ),
+        ProjectSetup(
+          moduleId = ":test-project",
+          projectType = IdeAndroidProjectType.PROJECT_TYPE_TEST,
+          dependencies = listOf(":app"),
+          defaultVariant = "demoDebug",
+          variants = listOf("demoDebug", "prodDebug"),
+          buildTypes = testBuildTypes,
+          productFlavors = testFlavors,
+          testedTargetProject = ":app", // Special link
+        ),
+      )
+
+    // Scenario: User switches App to 'release'.
+    setSwitchVariantRequest(":app", "paidRelease")
+
+    val selected = sortProjectsAndGetSelectedVariants(projects)
+
+    assertThat(selected[":app"]).isEqualTo("paidRelease")
+    // We don't propagate from App to Test for the buildTypes here so having test select its suitable variant is fine.
+    assertThat(selected[":test-project"]).isEqualTo("demoDebug")
   }
 
   @Test
@@ -1044,7 +1127,9 @@ class PhasedSyncVariantNameResolutionTest {
     setSwitchVariantRequest(":feature", "faq")
 
     val newException = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
-    assertThat(newException).hasMessageThat().contains("Variant conflict: Unable to find variant \"faq\" to Sync for project: :app.")
+    assertThat(newException)
+      .hasMessageThat()
+      .contains("Variant Conflict: Unresolved variant \"faq\".\n" + "Cause: Could not resolve BuildTypes ambiguity for project: :app.")
   }
 
   @Test
@@ -1146,7 +1231,11 @@ class PhasedSyncVariantNameResolutionTest {
     setSwitchVariantRequest(":lib", "release")
 
     val exception = assertFailsWith(Exception::class) { sortProjectsAndGetSelectedVariants(projects) }
-    assertThat(exception).hasMessageThat().contains("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: :lib2.")
+    assertThat(exception)
+      .hasMessageThat()
+      .contains(
+        "Variant Conflict: Unresolved variant \"release\".\n" + "Cause: Could not resolve ProductFlavors ambiguity for project: :lib2."
+      )
   }
 
   private fun sortProjectsAndGetSelectedVariants(projectsSetups: List<ProjectSetup>): Map<String, String> {

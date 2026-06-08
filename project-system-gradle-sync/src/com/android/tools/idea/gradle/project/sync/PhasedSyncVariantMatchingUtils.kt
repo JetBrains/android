@@ -310,8 +310,9 @@ private fun resolveVariantByCase(
 
   return when (androidProjectContext.basicAndroidProject.projectType) {
     ProjectType.TEST -> resolveTestProjectVariant(gradleProject, androidProjectContext, variantResolutionContext, priority)
-    ProjectType.DYNAMIC_FEATURE,
-    ProjectType.APPLICATION -> resolveStrictMatchVariant(gradleProject, androidProjectContext, variantRequirement, priority)
+    ProjectType.DYNAMIC_FEATURE ->
+      resolveDynamicFeatureStrictVariantMatching(gradleProject, androidProjectContext, variantRequirement, priority)
+    ProjectType.APPLICATION -> resolveApplicationVariantMatching(gradleProject, androidProjectContext, variantRequirement, priority)
     else -> {
       // We do not require anything for this project (from other consumers), so we just resolve the variant based on the initial
       // AndroidProjectData variant.
@@ -351,29 +352,85 @@ private fun resolveTestProjectVariant(
   val targetAppVariant = targetAppId?.let { variantResolutionContext.projectToSelectedVariants[it] }
 
   val effectivePriority = targetAppVariant?.priority ?: priority
-  val variantName = targetAppVariant?.variant?.name ?: androidProjectContext.selectedVariantName
+  val appVariant = targetAppVariant?.variant
 
+  if (appVariant != null) {
+    // AppVariant exists: First check if we have an expected variant selected by APP and that matches a variant in the TEST project.
+    val matchingVariantForTestProject = androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == appVariant.name }
+    // Check if we can get matching per variant attributes and not just the name.
+    if (matchingVariantForTestProject != null && verifyAllVariantAttributesMatch(appVariant, matchingVariantForTestProject)) {
+      return VariantAndPriority(matchingVariantForTestProject, effectivePriority)
+    }
+  }
+
+  // If We couldn't get a variant to propagate from APP, then just use the best variant we can select (based on Sync scenario).
   val variant =
-    androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantName }
+    androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == androidProjectContext.selectedVariantName }
+      // Only throw if there is no variant at all to sync for This project.
       ?: throw IllegalStateException(
-        "Variant Conflict: Unable to find variant \"$variantName\" to Sync for project: ${gradleProject.path}."
+        "Variant Conflict: Unable to find variant \"${androidProjectContext.selectedVariantName}\" to Sync for project: ${gradleProject.path}."
       )
-  return VariantAndPriority(variant, effectivePriority)
+
+  return VariantAndPriority(variant, priority)
 }
 
-private fun resolveStrictMatchVariant(
+private fun resolveDynamicFeatureStrictVariantMatching(
   gradleProject: BasicGradleProject,
   androidProjectContext: AndroidProjectData,
   variantRequirement: VariantRequirement?,
   priority: Int,
 ): VariantAndPriority {
-  val expectedName = variantRequirement?.variant?.name ?: androidProjectContext.selectedVariantName
-  val variant =
-    androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == expectedName }
-      ?: throw IllegalStateException(
-        "Variant conflict: Unable to find variant \"$expectedName\" to Sync for project: ${gradleProject.path}."
+  if (variantRequirement != null) {
+    val variant = androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantRequirement.variant.name }
+    if (variant != null && verifyAllVariantAttributesMatch(variantRequirement, variant, androidProjectContext.androidDsl)) {
+      return VariantAndPriority(variant, variantRequirement.priority)
+    } else {
+      throw IllegalStateException(
+        "Variant conflict: Unable to find variant \"${variantRequirement.variant.name}\" to Sync for project: ${gradleProject.path}."
       )
-  return VariantAndPriority(variant, variantRequirement?.priority ?: priority)
+    }
+  } else {
+    // Otherwise, we don't have a requirement and we just pick the variant that we initially wanted.
+    val variant =
+      androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == androidProjectContext.selectedVariantName }
+        ?: throw IllegalStateException(
+          "Variant conflict: Unable to find variant " +
+            "\"${androidProjectContext.selectedVariantName}\" to Sync for project: ${gradleProject.path}."
+        )
+    return VariantAndPriority(variant, priority)
+  }
+}
+
+private fun resolveApplicationVariantMatching(
+  gradleProject: BasicGradleProject,
+  androidProjectContext: AndroidProjectData,
+  variantRequirement: VariantRequirement?,
+  priority: Int,
+): VariantAndPriority {
+  if (variantRequirement != null) {
+    val variant = androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == variantRequirement.variant.name }
+    return if (variant != null) {
+      // Verify the matching is not by name, but also by the attributes.
+      if (verifyAllVariantAttributesMatch(variantRequirement, variant, androidProjectContext.androidDsl))
+        VariantAndPriority(variant, variantRequirement.priority)
+      else
+        throw IllegalStateException(
+          "Variant conflict: Unable to find variant \"${variantRequirement.variant.name}\" to Sync for project: ${gradleProject.path}."
+        )
+    } else {
+      // we couldn't find a direct match so use the attribute matching like a library. We handle dynamic feature case because it only passes
+      // the variant name down in the requirements for its dependencies
+      resolveLibraryVariant(gradleProject, androidProjectContext, variantRequirement)
+    }
+  }
+
+  val expectedVariantFromSelf =
+    androidProjectContext.basicAndroidProject.variants.firstOrNull { it.name == androidProjectContext.selectedVariantName }
+      ?: throw IllegalStateException(
+        "Variant conflict: Unable to find variant \"${androidProjectContext.selectedVariantName}\" to " +
+          "Sync for project: ${gradleProject.path}."
+      )
+  return VariantAndPriority(expectedVariantFromSelf, priority)
 }
 
 private fun resolveLibraryVariant(
@@ -414,7 +471,9 @@ private fun resolveVariantAttributes(
           // We have dimension matching between dependencies, but there is only one productFlavor in this project, so we do
           // not need to resolve any ambiguity and can pick the single product flavor
           ?: androidProjectContext.androidDsl.productFlavors.singleOrNull { it.dimension == dimension }
-          ?: throw IllegalStateException("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}.")
+          ?: throw IllegalStateException(
+            "Variant Conflict: Unresolved variant \"${variantRequirement.variant.name}\".\nCause: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}."
+          )
     }
     // 2. In this case we have a mismatch between dimensions and in this case we need to use missingDimensionStrategy to find what to use
     // for this dimension
@@ -424,20 +483,27 @@ private fun resolveVariantAttributes(
         variantRequirement.missingDimensionStrategies[dimension]!!.requestedFlavors.firstNotNullOfOrNull { requestedFlavor ->
           androidProjectContext.androidDsl.productFlavors.firstOrNull { it.name == requestedFlavor && it.dimension == dimension }
           // And if we don't find any matching PF, we warn about it.
-        } ?: throw IllegalStateException("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}")
+        }
+          ?: throw IllegalStateException(
+            "Variant Conflict: Unresolved variant \"${variantRequirement.variant.name}\".\nCause: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}"
+          )
     }
     // We have dimension matching between dependencies, so here we use:
     // 3. if we have one flavor -> use it.
     else if (androidProjectContext.androidDsl.productFlavors.singleOrNull { it.dimension == dimension } != null)
       dimensionsToFlavors[dimension] = androidProjectContext.androidDsl.productFlavors.single { it.dimension == dimension }
     else {
-      throw IllegalStateException("Variant Conflict: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}.")
+      throw IllegalStateException(
+        "Variant Conflict: Unresolved variant \"${variantRequirement.variant.name}\".\nCause: Could not resolve ProductFlavors ambiguity for project: ${gradleProject.path}."
+      )
     }
   }
 
   // Determine the BuildType for this project's variant.
   if (variantRequirement.buildTypeRequirement == null && androidProjectContext.androidDsl.buildTypes.isNotEmpty())
-    throw IllegalStateException("Variant Conflict: Could not resolve BuildTypes ambiguity for project: ${gradleProject.path}.")
+    throw IllegalStateException(
+      "Variant Conflict: Unresolved variant \"${variantRequirement.variant.name}\".\nCause: Could not resolve BuildTypes ambiguity for project: ${gradleProject.path}."
+    )
 
   val buildTypeOrFallback =
     if (androidProjectContext.androidDsl.buildTypes.isNotEmpty()) {
@@ -450,7 +516,9 @@ private fun resolveVariantAttributes(
               androidProjectContext.androidDsl.buildTypes.firstOrNull { it.name == fallback }
             }
         }
-        ?: throw IllegalStateException("Variant Conflict: Could not resolve BuildTypes ambiguity for project: ${gradleProject.path}.")
+        ?: throw IllegalStateException(
+          "Variant Conflict: Unresolved variant \"${variantRequirement.variant.name}\".\nCause: Could not resolve BuildTypes ambiguity for project: ${gradleProject.path}."
+        )
     } else null
 
   // need to now create a variant out of this build type and productFlavors.
@@ -471,6 +539,15 @@ private fun verifyAllVariantAttributesMatch(
   val buildTypeMatch = currentVariant.buildType == expectedVariantRequirement.variant.buildType
 
   return buildTypeMatch && dimensionsMatch && flavorsMatch
+}
+
+/** Verifies if all variant attributes (BuildType and all ProductFlavors) strictly match. */
+private fun verifyAllVariantAttributesMatch(expectedVariant: BasicVariant, currentVariant: BasicVariant): Boolean {
+  // Heuristics caveat: This is not the best matching as it misses comparing the flavors by their dims as well instead of the names only.
+  val flavorsMatch = currentVariant.productFlavors.toSet() == expectedVariant.productFlavors.toSet()
+  val buildTypeMatch = currentVariant.buildType == expectedVariant.buildType
+
+  return buildTypeMatch && flavorsMatch
 }
 
 private fun getVariantRequirementAttributesInformation(
@@ -561,7 +638,12 @@ private fun setUpExpectedVariantForDependantProjects(
     // Higher priority consumer overrides existing variant expectation.
     val existingVariantRequirement = variantResolutionContext.projectVariantRequirements[dependencyId]
     if (existingVariantRequirement == null || currentProjectPriority < existingVariantRequirement.priority) {
-      variantResolutionContext.projectVariantRequirements[dependencyId] = currentRequirement
+      // Special case for Dynamic feature's dependencies (which should be APP only): we only propagate the variant name requirement because
+      // We don't need to resolve the attributes fallbacks as the variant matching should be direct.
+      if (androidProjectContext.ideAndroidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE)
+        variantResolutionContext.projectVariantRequirements[dependencyId] =
+          VariantRequirement(currentRequirement.variant, null, emptyMap(), emptyMap(), priority = currentRequirement.priority)
+      else variantResolutionContext.projectVariantRequirements[dependencyId] = currentRequirement
     }
   }
 }
