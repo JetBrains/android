@@ -74,7 +74,7 @@ data class DeclarativeSchemaModelTestDef(
   }
 
   override fun runTest(root: File, project: Project) {
-    val text = project.dumpDeclarativeSchemaModel()
+    val text = project.dumpDeclarativeSchemaModel().trim()
     val snapshotContext =
       SnapshotContext(testProject.projectName, agpVersion, "tools/adt/idea/android/testData/snapshots/declarativeSchema")
     snapshotContext.assertIsEqualToSnapshot(text)

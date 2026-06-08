@@ -18,6 +18,7 @@ package com.android.build.attribution.utils
 import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import java.io.File
 import kotlin.math.max
 
 class BuildAnalysisResultsSnapshotGenerator {
@@ -48,17 +49,21 @@ class BuildAnalysisResultsSnapshotGenerator {
         prop("TaskType") { taskData.taskType }
         prop("PrimaryTaskCategory") { taskData.primaryTaskCategory.name }
         taskData.secondaryTaskCategories.joinToString(",").takeIf { it.isNotEmpty() }?.let { prop("SecondaryTaskCategories") { it } }
-        prop("Plugin") { taskData.originPlugin.toString() }
+        prop("Plugin") { taskData.originPlugin.toString().normalizePathSeparators() }
       }
     }
   }
 
   private fun dumpPluginData(pluginMap: Map<String, PluginData>) {
     pluginMap.toSortedMap().forEach { (pluginName, pluginData) ->
-      head("Plugin") { pluginName }
+      head("Plugin") { pluginName.normalizePathSeparators() }
       nest {
         prop("PluginType") { pluginData.pluginType.name }
-        pluginData.displayNames().joinToString(",").takeIf { it.isNotEmpty() }?.let { prop("PluginDisplayNames") { it } }
+        pluginData
+          .displayNames()
+          .joinToString(",")
+          .takeIf { it.isNotEmpty() }
+          ?.let { prop("PluginDisplayNames") { it.normalizePathSeparators() } }
       }
     }
   }
@@ -74,4 +79,9 @@ class BuildAnalysisResultsSnapshotGenerator {
     stringBuilder.append(currentNestingPrefix)
     stringBuilder.appendLine(data.trimEnd())
   }
+
+  // Script ids/display names can be the following:
+  // script :app:build file 'app/build.gradle'
+  // script :app:build file 'app\build.gradle'
+  private fun String.normalizePathSeparators() = replace(File.separator, "/")
 }

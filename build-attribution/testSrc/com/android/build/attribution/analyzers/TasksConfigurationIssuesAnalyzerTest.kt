@@ -46,11 +46,11 @@ class TasksConfigurationIssuesAnalyzerTest {
 
       assertThat(tasksSharingOutput.taskList[0].getTaskPath()).isEqualTo(":app:overlappingOutputTask1")
       assertThat(tasksSharingOutput.taskList[0].taskType).isEqualTo("OverlappingOutputTask")
-      assertThat(tasksSharingOutput.taskList[0].originPlugin.toString()).isEqualTo("script :app:build.gradle")
+      assertThat(tasksSharingOutput.taskList[0].originPlugin.toString()).isEqualTo("script :app:build file 'app/build.gradle'")
 
       assertThat(tasksSharingOutput.taskList[1].getTaskPath()).isEqualTo(":app:overlappingOutputTask2")
       assertThat(tasksSharingOutput.taskList[1].taskType).isEqualTo("OverlappingOutputTask")
-      assertThat(tasksSharingOutput.taskList[1].originPlugin.toString()).isEqualTo("script :app:build.gradle")
+      assertThat(tasksSharingOutput.taskList[1].originPlugin.toString()).isEqualTo("script :app:build file 'app/build.gradle'")
     }
   }
 }

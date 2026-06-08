@@ -133,13 +133,11 @@ MODULE                        : project
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>.jar
-                                source                        : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                            - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/android/tools/lint/lint-api/<ANDROID_TOOLS_BASE_VERSION>/lint-api-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/lint/lint-api/<ANDROID_TOOLS_BASE_VERSION>/lint-api-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                                file                          : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/android/tools/lint/lint-model/<ANDROID_TOOLS_BASE_VERSION>/lint-model-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/lint/lint-model/<ANDROID_TOOLS_BASE_VERSION>/lint-model-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
@@ -175,15 +173,13 @@ MODULE                        : project
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/ow2/asm/asm-commons/9.9/asm-commons-9.9.jar
-                            - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/ow2/asm/asm-tree/9.9/asm-tree-9.9.jar
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/ow2/asm/asm/9.9/asm-9.9.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                                file                          : <M2>/org/ow2/asm/asm-commons/9.9/asm-commons-9.9.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                                file                          : <M2>/org/ow2/asm/asm-tree/9.9/asm-tree-9.9.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/android/tools/annotations/<ANDROID_TOOLS_BASE_VERSION>/annotations-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/annotations/<ANDROID_TOOLS_BASE_VERSION>/annotations-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
@@ -193,8 +189,9 @@ MODULE                        : project
                                 file                          : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar
                             - dependencies                : DefaultExternalLibraryDependency
@@ -207,6 +204,9 @@ MODULE                        : project
                                 file                          : <M2>/com/google/errorprone/error_prone_annotations/2.36.0/error_prone_annotations-2.36.0.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/lint/build/classes/java/main [-]
                                 - files                       : <ROOT>/lint/build/resources/main [-]
