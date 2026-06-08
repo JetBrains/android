@@ -16,7 +16,6 @@
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails
 
 import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,8 +46,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -182,7 +184,7 @@ fun GcRootNodeView(leakTrace: LeakTrace) {
         Modifier.border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp),
     )
     Row(modifier = Modifier.height(16.dp)) {
-      Spacer(Modifier.padding(12.dp))
+      Spacer(Modifier.width(30.dp))
       VerticalLeakStatusLine(leakTrace.nodes[0].leakingStatus)
     }
   }
@@ -210,10 +212,12 @@ fun LeakTraceNodeView(
   val interactionSource = remember { MutableInteractionSource() }
   val isFocused by interactionSource.collectIsFocusedAsState()
   val focusRequester = remember { FocusRequester() }
+  val isKeyboardInput = LocalInputModeManager.current.inputMode == InputMode.Keyboard
+  val showBorder = isFocused && isKeyboardInput
 
   val rowClickableModifier =
     Modifier.focusRequester(focusRequester)
-      .clickable(onClick = { onClickNode() }, interactionSource = interactionSource)
+      .clickable(onClick = { onClickNode() }, interactionSource = interactionSource, indication = null)
       .pointerHoverIcon(PointerIcon.Hand)
   var isDeclarationFound by remember(node) { mutableStateOf(true) }
 
@@ -221,8 +225,9 @@ fun LeakTraceNodeView(
   Column(
     modifier =
       Modifier.height(IntrinsicSize.Min)
-        .background(
-          if (isFocused) TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent,
+        .border(
+          width = if (showBorder) 1.dp else 0.dp,
+          color = if (showBorder) TaskBasedUxColors.PAST_RECORDINGS_BANNER_BORDER_COLOR else Color.Transparent,
           shape = RoundedCornerShape(4.dp),
         )
         .padding(horizontal = 5.dp)
@@ -234,15 +239,15 @@ fun LeakTraceNodeView(
         } else {
           Icon(AllIconsKeys.General.ArrowRight, LEAKCANARY_CLOSE, modifier = Modifier.padding(top = 2.dp))
         }
-        Spacer(Modifier.padding(2.5.dp))
+        Spacer(Modifier.width(12.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-          LeakIcon(node.leakingStatus)
+          Box(modifier = Modifier.padding(top = 2.dp)) { LeakIcon(node.leakingStatus) }
           if (nextNode != null) {
             VerticalLeakStatusLine(nextNode.leakingStatus)
           }
         }
       }
-      Spacer(Modifier.padding(20.dp))
+      Spacer(Modifier.width(7.dp))
       Column(horizontalAlignment = Alignment.Start) {
         Row(modifier = rowClickableModifier.padding(top = 3.dp, end = 5.dp)) {
           Text(
@@ -252,7 +257,7 @@ fun LeakTraceNodeView(
           )
           if (isOpen) {
             if (isDeclarationFound) {
-              Link(text = LEAKCANARY_GO_TO_DECLARATION, onClick = { gotoDeclaration(node) }, modifier = Modifier.padding(top = 2.dp))
+              Link(text = LEAKCANARY_GO_TO_DECLARATION, onClick = { gotoDeclaration(node) }, modifier = Modifier.padding(start = 5.dp))
             } else {
               NotificationWithTooltip(
                 notificationText = LEAKCANARY_NO_DECLARATION_FOUND,
@@ -265,8 +270,10 @@ fun LeakTraceNodeView(
           }
         }
         if (isOpen) {
+          Spacer(Modifier.height(15.dp))
           LeakNodeDetails(node)
         }
+        Spacer(Modifier.height(10.dp))
       }
     }
   }
@@ -301,10 +308,10 @@ private fun AnnotatedString.Builder.appendClassAndStatusText(previousNode: Node?
   val lastSection =
     if (referenceDisplaySplitIndex > 0) referringDisplayName.substring(referenceDisplaySplitIndex + 1, referringDisplayName.length) else ""
   append(AnnotatedString(text = node.className))
-  append(AnnotatedString(" ${node.nodeType} \n"))
+  append(AnnotatedString(" ${node.nodeType}"))
 
   if (referringDisplayName.isNotEmpty()) {
-    append(AnnotatedString("("))
+    append(AnnotatedString(" \n("))
     append(AnnotatedString(firstSection))
     if (lastSection.isNotEmpty()) {
       append(AnnotatedString(": "))

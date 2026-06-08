@@ -16,7 +16,6 @@
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,8 +26,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.tools.leakcanarylib.data.Leak
+import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import icons.StudioIconsCompose
@@ -57,63 +58,66 @@ fun LeakActionToolbar(
     modifier =
       Modifier.padding(
           horizontal = TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP,
-        vertical = TaskBasedUxDimensions.LEAKCANARY_ACTION_BAR_VERTICAL_PADDING_DP,
+          vertical = TaskBasedUxDimensions.LEAKCANARY_ACTION_BAR_VERTICAL_PADDING_DP,
         )
         .fillMaxWidth()
         .height(TaskBasedUxDimensions.LEAKCANARY_ACTION_BAR_HEIGHT_DP),
-    horizontalArrangement = Arrangement.End,
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    if (isStudioBotEnabled) {
-      OutlinedButton(onClick = onAnalyzeLeakWithStudioBot, enabled = selectedLeak != null) {
-        Text(TaskBasedUxStrings.LEAKCANARY_FIX_WITH_AGENT)
-      }
-      Spacer(Modifier.width(8.dp))
-    }
-    Tooltip(
-      tooltip = {
-        Column(horizontalAlignment = Alignment.Start) {
-          Text(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL)
-          Text(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL_SHORTCUT, color = JewelTheme.globalColors.text.info)
+    val leakName = selectedLeak?.let { LeakCanaryModel.getLeakClassName(it) } ?: ""
+    Text(text = leakName, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(end = 8.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      if (isStudioBotEnabled) {
+        OutlinedButton(onClick = onAnalyzeLeakWithStudioBot, enabled = selectedLeak != null) {
+          Text(TaskBasedUxStrings.LEAKCANARY_FIX_WITH_AGENT)
         }
+        Spacer(Modifier.width(8.dp))
       }
-    ) {
-      IconButton(onClick = onExpandAll, enabled = selectedLeak != null) {
-        Icon(
-          key = StudioIconsCompose.Profiler.Toolbar.ExpandSession,
-          contentDescription = TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL,
-          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
-        )
-      }
-    }
-    Tooltip(
-      tooltip = {
-        Column(horizontalAlignment = Alignment.Start) {
-          Text(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL)
-          Text(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL_SHORTCUT, color = JewelTheme.globalColors.text.info)
-        }
-      }
-    ) {
-      IconButton(onClick = onCollapseAll, enabled = selectedLeak != null) {
-        Icon(
-          key = StudioIconsCompose.Profiler.Toolbar.CollapseSession,
-          contentDescription = TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL,
-          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
-        )
-      }
-    }
-    Tooltip(tooltip = { Text(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD) }) {
-      IconButton(
-        onClick = {
-          copyLeakToClipboard(selectedLeak.toString())
-          onCopy()
+      Tooltip(
+        tooltip = {
+          Column(horizontalAlignment = Alignment.Start) {
+            Text(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL)
+            Text(TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL_SHORTCUT, color = JewelTheme.globalColors.text.info)
+          }
         }
       ) {
-        Icon(
-          key = AllIconsKeys.Actions.Copy,
-          contentDescription = TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD,
-          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
-        )
+        IconButton(onClick = onExpandAll, enabled = selectedLeak != null) {
+          Icon(
+            key = StudioIconsCompose.Profiler.Toolbar.ExpandSession,
+            contentDescription = TaskBasedUxStrings.LEAKCANARY_EXPAND_ALL,
+            modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
+          )
+        }
+      }
+      Tooltip(
+        tooltip = {
+          Column(horizontalAlignment = Alignment.Start) {
+            Text(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL)
+            Text(TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL_SHORTCUT, color = JewelTheme.globalColors.text.info)
+          }
+        }
+      ) {
+        IconButton(onClick = onCollapseAll, enabled = selectedLeak != null) {
+          Icon(
+            key = StudioIconsCompose.Profiler.Toolbar.CollapseSession,
+            contentDescription = TaskBasedUxStrings.LEAKCANARY_COLLAPSE_ALL,
+            modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
+          )
+        }
+      }
+      Tooltip(tooltip = { Text(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD) }) {
+        IconButton(
+          onClick = {
+            copyLeakToClipboard(selectedLeak.toString())
+            onCopy()
+          }
+        ) {
+          Icon(
+            key = AllIconsKeys.Actions.Copy,
+            contentDescription = TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD,
+            modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP),
+          )
+        }
       }
     }
   }
