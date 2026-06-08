@@ -53,48 +53,48 @@ class ComputeAndroidGradlePluginCompatibilityTest(private val info: TestInfo) {
         TestInfo("3.1.0-rc03", "4.2.0-alpha01", BEFORE_MINIMUM),
 
         // RC/release of the same major/minor cycle
-        TestInfo("7.1.0-rc01", "7.1.0", COMPATIBLE),
-        TestInfo("7.1.0", "7.1.0-rc01", COMPATIBLE),
-        TestInfo("7.1.0", "7.1.1", COMPATIBLE),
-        TestInfo("7.1.1", "7.1.0", COMPATIBLE),
+        TestInfo("7.2.0-rc01", "7.2.0", COMPATIBLE),
+        TestInfo("7.2.0", "7.2.0-rc01", COMPATIBLE),
+        TestInfo("7.2.0", "7.2.1", COMPATIBLE),
+        TestInfo("7.2.1", "7.2.0", COMPATIBLE),
 
         // project's version is a snapshot, and Studio is a RC/release of the same major/minor version
-        TestInfo("7.1.0-dev", "7.1.0-rc01", DIFFERENT_PREVIEW),
+        TestInfo("7.2.0-dev", "7.2.0-rc01", DIFFERENT_PREVIEW),
 
         // project's version is a snapshot, and Studio is an alpha/beta of the same major/minor version
-        TestInfo("7.1.0-dev", "7.1.0-alpha01", COMPATIBLE),
+        TestInfo("7.2.0-dev", "7.2.0-alpha01", COMPATIBLE),
 
         // project's version is later than Studio's latest
-        TestInfo("7.1.0-dev", "7.0.0-rc01", AFTER_MAXIMUM),
-        TestInfo("7.1.0-dev", "7.0.0-dev", AFTER_MAXIMUM),
-        TestInfo("7.1.0-dev", "7.0.0-alpha01", AFTER_MAXIMUM),
-        TestInfo("7.1.0-alpha01", "7.0.0-rc01", AFTER_MAXIMUM),
-        TestInfo("7.1.0-alpha01", "7.0.0-dev", AFTER_MAXIMUM),
-        TestInfo("7.1.0-alpha01", "7.0.0-alpha01", AFTER_MAXIMUM),
-        TestInfo("7.1.0-rc01", "7.0.0-rc01", AFTER_MAXIMUM),
-        TestInfo("7.1.0-rc01", "7.0.0-dev", AFTER_MAXIMUM),
-        TestInfo("7.1.0-rc01", "7.0.0-alpha01", AFTER_MAXIMUM),
-        TestInfo("7.1.0-rc01", "7.1.0-alpha01", AFTER_MAXIMUM),
-        TestInfo("7.1.0-alpha02", "7.1.0-alpha01", AFTER_MAXIMUM),
+        TestInfo("7.2.0-dev", "7.1.0-rc01", AFTER_MAXIMUM),
+        TestInfo("7.2.0-dev", "7.1.0-dev", AFTER_MAXIMUM),
+        TestInfo("7.2.0-dev", "7.1.0-alpha01", AFTER_MAXIMUM),
+        TestInfo("7.2.0-alpha01", "7.1.0-rc01", AFTER_MAXIMUM),
+        TestInfo("7.2.0-alpha01", "7.1.0-dev", AFTER_MAXIMUM),
+        TestInfo("7.2.0-alpha01", "7.1.0-alpha01", AFTER_MAXIMUM),
+        TestInfo("7.2.0-rc01", "7.1.0-rc01", AFTER_MAXIMUM),
+        TestInfo("7.2.0-rc01", "7.1.0-dev", AFTER_MAXIMUM),
+        TestInfo("7.2.0-rc01", "7.1.0-alpha01", AFTER_MAXIMUM),
+        TestInfo("7.2.0-rc01", "7.2.0-alpha01", AFTER_MAXIMUM),
+        TestInfo("7.2.0-alpha02", "7.2.0-alpha01", AFTER_MAXIMUM),
 
         // project's version is an alpha/beta and Studio's version is not a snapshot
-        TestInfo("7.1.0-alpha01", "7.1.0-rc01", DIFFERENT_PREVIEW),
-        TestInfo("7.1.0-alpha01", "7.1.0-alpha02", DIFFERENT_PREVIEW),
-        TestInfo("7.1.0-alpha01", "7.2.0-alpha01", DIFFERENT_PREVIEW),
-        TestInfo("7.1.0-alpha01", "7.2.0-rc01", DIFFERENT_PREVIEW),
+        TestInfo("7.2.0-alpha01", "7.2.0-rc01", DIFFERENT_PREVIEW),
+        TestInfo("7.2.0-alpha01", "7.2.0-alpha02", DIFFERENT_PREVIEW),
+        TestInfo("7.2.0-alpha01", "7.3.0-alpha01", DIFFERENT_PREVIEW),
+        TestInfo("7.2.0-alpha01", "7.3.0-rc01", DIFFERENT_PREVIEW),
 
         // project's version is a snapshot of an earlier series
-        TestInfo("7.1.0-dev", "7.2.0-dev", DIFFERENT_PREVIEW),
-        TestInfo("7.1.0-dev", "7.2.0-alpha01", DIFFERENT_PREVIEW),
-        TestInfo("7.1.0-dev", "7.2.0-rc01", DIFFERENT_PREVIEW),
+        TestInfo("7.2.0-dev", "7.3.0-dev", DIFFERENT_PREVIEW),
+        TestInfo("7.2.0-dev", "7.3.0-alpha01", DIFFERENT_PREVIEW),
+        TestInfo("7.2.0-dev", "7.3.0-rc01", DIFFERENT_PREVIEW),
 
         // otherwise
-        TestInfo("7.1.0-rc01", "7.2.0-alpha01", COMPATIBLE),
-        TestInfo("7.1.0-rc01", "7.2.0-rc01", COMPATIBLE),
-        TestInfo("7.1.0-rc01", "7.2.0-dev", COMPATIBLE),
-        TestInfo("7.1.0-rc01", "7.1.0-dev", COMPATIBLE),
-        TestInfo("7.1.0-alpha01", "7.1.0-dev", COMPATIBLE),
-        TestInfo("7.1.0-alpha01", "7.2.0-dev", COMPATIBLE),
+        TestInfo("7.2.0-rc01", "7.3.0-alpha01", COMPATIBLE),
+        TestInfo("7.2.0-rc01", "7.3.0-rc01", COMPATIBLE),
+        TestInfo("7.2.0-rc01", "7.3.0-dev", COMPATIBLE),
+        TestInfo("7.2.0-rc01", "7.2.0-dev", COMPATIBLE),
+        TestInfo("7.2.0-alpha01", "7.2.0-dev", COMPATIBLE),
+        TestInfo("7.2.0-alpha01", "7.3.0-dev", COMPATIBLE),
       )
   }
 
