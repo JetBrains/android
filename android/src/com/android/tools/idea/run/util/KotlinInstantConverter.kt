@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.util
 
 import com.intellij.util.xmlb.Converter
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 object KotlinInstantConverter : Converter<Instant>() {
   override fun toString(value: Instant): String = value.toString()

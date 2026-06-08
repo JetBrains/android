@@ -37,7 +37,7 @@ import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XCollection
 import java.nio.file.FileSystems
 import java.nio.file.Path
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * The PersistentStateComponent responsible for persisting the selected targets in

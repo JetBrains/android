@@ -31,7 +31,7 @@ import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
 import java.text.Collator
 import javax.swing.Icon
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 
 /**

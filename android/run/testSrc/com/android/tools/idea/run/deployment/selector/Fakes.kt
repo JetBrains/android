@@ -50,7 +50,7 @@ import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import java.nio.file.Paths
 import java.time.Duration
 import kotlin.coroutines.EmptyCoroutineContext

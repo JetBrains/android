@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.memory
 import com.android.tools.perflogger.Benchmark
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.createDirectories
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import java.io.File
 
 val MEMORY_BENCHMARK = Benchmark.Builder("Retained heap size")
