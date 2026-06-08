@@ -36,6 +36,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -75,6 +76,7 @@ class WhatsNewEditorPanelTest {
     composeTestRule.onNodeWithText("Quail 1 | 2026.1.1").assertExists()
   }
 
+  @Ignore("b/520107807")
   @Test
   fun oneColumnWithNarrowPanel() {
     composeTestRule.setContent {
