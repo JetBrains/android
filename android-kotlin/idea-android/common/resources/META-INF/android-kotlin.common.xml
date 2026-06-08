@@ -37,5 +37,6 @@
     <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinApkModuleConfigurator"/>
     <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
     <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
+    <idea.codeInsight.lineMarkers.kotlinRunLineMarkerHider implementation="com.android.tools.idea.run.AndroidRunMarkerHider"/>
   </extensions>
 </idea-plugin>
