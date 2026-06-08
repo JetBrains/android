@@ -22,8 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
@@ -42,5 +40,5 @@ fun DropdownOptionText(modifier: Modifier = Modifier, primaryText: String, secon
 
 @Composable
 private fun DropdownOptionText(text: String, color: Color = Color.Unspecified) {
-  EllipsisText(text = text, color = color, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp))
+  EllipsisText(text = text, color = color)
 }

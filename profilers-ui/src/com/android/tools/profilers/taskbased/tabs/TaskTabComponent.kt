@@ -16,9 +16,8 @@
 package com.android.tools.profilers.taskbased.tabs
 
 import androidx.compose.runtime.Composable
-import com.android.tools.adtui.compose.StudioTheme
+import com.android.tools.adtui.compose.StudioComposePanel
 import com.intellij.util.ui.components.BorderLayoutPanel
-import org.jetbrains.jewel.bridge.JewelComposePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
@@ -26,7 +25,7 @@ import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 abstract class TaskTabComponent(tabContent: @Composable () -> Unit) : BorderLayoutPanel() {
   init {
     enableNewSwingCompositing()
-    val composePanel = JewelComposePanel { StudioTheme { tabContent() } }
+    val composePanel = StudioComposePanel { tabContent() }
     addToCenter(composePanel)
   }
 }
