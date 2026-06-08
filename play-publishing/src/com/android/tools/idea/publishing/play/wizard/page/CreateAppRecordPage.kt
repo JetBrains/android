@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.publishing.play.PlayPublishingUsageTracker
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.playStoreLanguageNames
@@ -52,6 +53,7 @@ import com.android.tools.idea.publishing.play.client.type.AppType
 import com.android.tools.idea.publishing.play.wizard.FormField
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
+import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateAppDetails.CreateAppResult
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
@@ -87,11 +89,16 @@ fun WizardPageScope.CreateAppRecordPage() {
   val accounts by
     produceState(initialValue = emptyList()) {
       try {
-        value = PlayPublishingClient.getInstance().listDevelopers()
-      } catch (e: PlayPublishingException) {
-        errorMessage = "Failed to load developers: ${e.message}"
+        val developerAccounts = PlayPublishingClient.getInstance().listDevelopers()
+        value = developerAccounts
+        if (developerAccounts.isEmpty()) {
+          PlayPublishingUsageTracker.trackCreateApp(CreateAppResult.FAILED_NO_DEVELOPER_ACCOUNTS)
+        }
+      } catch (e: CancellationException) {
+        throw e
       } catch (e: Exception) {
         errorMessage = "Failed to load developers: ${e.message}"
+        PlayPublishingUsageTracker.trackCreateApp(CreateAppResult.FAILED_LIST_DEVELOPER_ACCOUNTS_FAILED)
       } finally {
         isLoadingDevelopers = false
       }
@@ -214,14 +221,17 @@ fun WizardPageScope.CreateAppRecordPage() {
               val message = e.message ?: "Unknown error"
               errorMessage =
                 if (message.contains("Package name ${state.packageName} is not available on Play", ignoreCase = true)) {
+                  PlayPublishingUsageTracker.trackCreateApp(CreateAppResult.FAILED_PACKAGE_NAME_NOT_AVAILABLE)
                   "The package name ${state.packageName} is not available on Play. Please change the package name, generate a new signed bundle or APK and try again."
                 } else {
+                  PlayPublishingUsageTracker.trackCreateApp(CreateAppResult.UNKNOWN_CREATE_APP_RESULT)
                   message
                 }
               false
             } catch (e: CancellationException) {
               throw e
             } catch (e: Exception) {
+              PlayPublishingUsageTracker.trackCreateApp(CreateAppResult.UNKNOWN_CREATE_APP_RESULT)
               errorMessage = e.message ?: "Unknown error"
               false
             } finally {
@@ -232,6 +242,7 @@ fun WizardPageScope.CreateAppRecordPage() {
           state.isAppCreated = true
           state.releaseName = DEFAULT_RELEASE_NAME
           state.releaseNotes = DEFAULT_RELEASE_NOTES
+          PlayPublishingUsageTracker.trackCreateApp(CreateAppResult.SUCCESS)
           pushPage { CreateReleasePage() }
         }
       }

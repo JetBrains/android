@@ -66,8 +66,6 @@ import kotlinx.serialization.json.Json
 
 private const val BASE_PATH = "androidpublisher/v3"
 
-private const val NO_APP_LISTING_CORRECTION_MESSAGE =
-  "No app listing is available for this app. Create one before publishing releases to non-Internal Test Tracks."
 private const val DRAFT_APP_DRAFT_RELEASE = "Only releases with status draft may be created on draft app."
 private const val FAILED_PRECONDITION = "Precondition check failed."
 private val TRACK_RESTRICTED_REGEX = "Track .* of app .* is restricted".toRegex()

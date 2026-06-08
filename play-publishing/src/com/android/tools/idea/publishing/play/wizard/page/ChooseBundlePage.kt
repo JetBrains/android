@@ -53,6 +53,7 @@ import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.publishing.play.AppMetadata
+import com.android.tools.idea.publishing.play.PlayPublishingUsageTracker
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.type.App
@@ -338,6 +339,13 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
       WizardAction.Disabled
     else
       WizardAction {
+        PlayPublishingUsageTracker.trackChooseBundle(
+          isPackageRegistered = state.isRegistered,
+          isAppNameRead = !state.appName.isNullOrEmpty(),
+          isPackageNameRead = !state.packageName.isNullOrEmpty(),
+          isVersionCodeRead = !versionCode.isNullOrEmpty(),
+          isVersionNameRead = !versionName.isNullOrEmpty(),
+        )
         if (isAppInConsole) {
           pushPage { CreateReleasePage() }
         } else {

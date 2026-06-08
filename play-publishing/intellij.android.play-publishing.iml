@@ -52,6 +52,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf.kotlin" />
     <orderEntry type="module" module-name="intellij.android.app-publishing" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="aapt-proto" level="project" />
