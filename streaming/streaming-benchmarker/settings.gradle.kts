@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Streaming Benchmarker"
-include ':app'
+include(":app")
