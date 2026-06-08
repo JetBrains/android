@@ -487,7 +487,7 @@ class KotlinModelConverter {
         variantSourceProvider = null,
         multiFlavorSourceProvider = null,
         ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
-        generatedSourceFolders = emptyList(), // For now, there is no generated sourced
+        generatedSourceFolders = mainAndroidCompilation.generatedSourceFoldersList.convertAndDeduplicate(),
         isTestArtifact = false,
         compileClasspathCore = IdeDependenciesCoreDirect(dependencies = mainSourceSetCompileDependencies ?: emptyList()),
         runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = mainSourceSetRuntimeDependencies ?: emptyList()),
@@ -495,7 +495,7 @@ class KotlinModelConverter {
         applicationId = null,
         signingConfigName = null,
         isSigned = false,
-        generatedResourceFolders = emptyList(),
+        generatedResourceFolders = mainAndroidCompilation.mainInfo?.generatedResourceFoldersList?.convertAndDeduplicate() ?: emptyList(),
         additionalRuntimeApks = emptyList(),
         testOptions = null,
         abiFilters = emptySet(),
@@ -521,7 +521,7 @@ class KotlinModelConverter {
           variantSourceProvider = null,
           multiFlavorSourceProvider = null,
           ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
-          generatedSourceFolders = emptyList(), // For now, there is no generated sourced
+          generatedSourceFolders = unitTestAndroidCompilation.generatedSourceFoldersList.convertAndDeduplicate(),
           isTestArtifact = true,
           compileClasspathCore = IdeDependenciesCoreDirect(dependencies = unitTestSourceSetCompileDependencies ?: emptyList()),
           runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = unitTestSourceSetRuntimeDependencies ?: emptyList()),
@@ -544,7 +544,7 @@ class KotlinModelConverter {
           variantSourceProvider = null,
           multiFlavorSourceProvider = null,
           ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
-          generatedSourceFolders = emptyList(), // For now, there is no generated sourced
+          generatedSourceFolders = androidTestAndroidCompilation.generatedSourceFoldersList.convertAndDeduplicate(),
           isTestArtifact = true,
           compileClasspathCore = IdeDependenciesCoreDirect(dependencies = androidTestSourceSetCompileDependencies ?: emptyList()),
           runtimeClasspathCore = IdeDependenciesCoreDirect(dependencies = androidTestSourceSetRuntimeDependencies ?: emptyList()),
@@ -552,7 +552,8 @@ class KotlinModelConverter {
           applicationId = androidTestAndroidCompilation.instrumentedTestInfo.namespace,
           signingConfigName = androidTestAndroidCompilation.instrumentedTestInfo.signingConfig?.name,
           isSigned = androidTestAndroidCompilation.instrumentedTestInfo.signingConfig != null,
-          generatedResourceFolders = emptyList(),
+          generatedResourceFolders =
+            androidTestAndroidCompilation.instrumentedTestInfo?.generatedResourceFoldersList?.convertAndDeduplicate() ?: emptyList(),
           additionalRuntimeApks = emptyList(),
           testOptions = targetInfo.testInfo.convert(),
           abiFilters = emptySet(),
