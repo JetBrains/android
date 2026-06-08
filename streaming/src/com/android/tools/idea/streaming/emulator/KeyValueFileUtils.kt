@@ -23,7 +23,6 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.ATOMIC_MOVE
-import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.nio.file.StandardOpenOption.CREATE
 import java.util.TreeMap
 import kotlin.text.Charsets.UTF_8
@@ -60,7 +59,7 @@ fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
   val tempFile = file.resolveSibling(file.fileName.toString() + ".temp")
   try {
     Files.write(tempFile, lines, UTF_8, CREATE)
-    Files.move(tempFile, file, REPLACE_EXISTING, ATOMIC_MOVE)
+    Files.move(tempFile, file, ATOMIC_MOVE)
   } catch (e: IOException) {
     try {
       Files.deleteIfExists(tempFile)

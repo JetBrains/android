@@ -29,6 +29,8 @@ import java.nio.file.CopyOption
 import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
+import kotlin.io.path.deleteIfExists
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -49,12 +51,9 @@ class KeyValueFileUtilsTest {
     Logger.setFactory(originalLoggerFactory)
   }
 
-  @Test
-  fun testUpdateKeyValueFile() {
-    val fileSystem = MockFileSystemProvider(createInMemoryFileSystem()).fileSystem
-    val file = fileSystem.someRoot.resolve("test.ini")
+  fun updateAndAssert(path: Path) {
     Files.write(
-      file,
+      path,
       listOf(
         "AvdId = Pixel_4_XL_API_30",
         "PlayStore.enabled = false",
@@ -66,7 +65,7 @@ class KeyValueFileUtilsTest {
     )
     // Check normal update.
     updateKeyValueFile(
-      file,
+      path,
       mapOf(
         "PlayStore.enabled" to "true",
         "fastboot.chosenSnapshotFile" to null,
@@ -74,7 +73,7 @@ class KeyValueFileUtilsTest {
         "fastboot.forceFastBoot" to "yes",
       ),
     )
-    assertThat(file)
+    assertThat(path)
       .hasContents(
         "AvdId=Pixel_4_XL_API_30",
         "PlayStore.enabled=true",
@@ -83,19 +82,40 @@ class KeyValueFileUtilsTest {
         "fastboot.forceFastBoot=yes",
         "hw.sensors.orientation=yes",
       )
-    assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
+  }
+
+  @Test
+  fun testUpdateKeyValueFileMockFilesystem() {
+    val fileSystem = MockFileSystemProvider(createInMemoryFileSystem()).fileSystem
+    val path = fileSystem.someRoot.resolve("test.ini")
+    updateAndAssert(path)
+
+    assertThat(fileSystem.getExistingFiles()).containsExactly("$path") // No extra files left behind.
 
     // Check with I/O errors.
     exception = IOException("simulated I/O error")
-    val errors = executeCapturingLoggedErrors { updateKeyValueFile(file, mapOf("PlayStore.enabled" to "false")) }
-    assertThat(errors).containsExactly("Error writing $file - simulated I/O error")
-    assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
+    val errors = executeCapturingLoggedErrors { updateKeyValueFile(path, mapOf("PlayStore.enabled" to "false")) }
+    assertThat(errors).containsExactly("Error writing $path - simulated I/O error")
+    assertThat(fileSystem.getExistingFiles()).containsExactly("$path") // No extra files left behind.
+  }
+
+  @Test
+  fun testUpdateKeyValueFileRealFilesystem() {
+    val dir = Files.createTempDirectory("key-value")
+    val path = dir.resolve("test.ini")
+    try {
+      updateAndAssert(path)
+    } finally {
+      path.deleteIfExists()
+      Files.delete(dir)
+    }
   }
 
   private inner class MockFileSystemProvider(fileSystem: FileSystem) : DelegatingFileSystemProvider(fileSystem) {
     override fun move(source: Path, target: Path, vararg options: CopyOption) {
       exception?.let { throw it }
-      super.move(source, target, *options)
+      // https://github.com/google/jimfs/issues/478
+      super.move(source, target, StandardCopyOption.REPLACE_EXISTING, *options)
     }
   }
 }

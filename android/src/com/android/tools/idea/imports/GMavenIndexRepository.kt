@@ -238,7 +238,7 @@ internal constructor(
         // Writes the decompressed bytes of the data to the temp file.
         Files.write(tempFile, it)
       }
-      Files.move(tempFile, cacheFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+      Files.move(tempFile, cacheFile, StandardCopyOption.ATOMIC_MOVE)
     } catch (e: Exception) {
       Files.deleteIfExists(tempFile)
       throw e

@@ -71,7 +71,7 @@ public class AtomicFileWriter implements Closeable {
   public void onWriteComplete() throws IOException {
     outputStream.close();
     Files.move(
-        tmpFile, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        tmpFile, destination, StandardCopyOption.ATOMIC_MOVE);
   }
 
   @Override

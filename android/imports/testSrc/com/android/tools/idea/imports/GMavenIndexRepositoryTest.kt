@@ -16,7 +16,6 @@
 package com.android.tools.idea.imports
 
 import com.android.io.CancellableFileIo
-import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.truth.PathSubject.assertThat
 import com.google.common.truth.Truth.assertThat
 import com.sun.net.httpserver.HttpServer
@@ -28,20 +27,25 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Properties
+import kotlin.lazy
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
 import org.junit.After
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 private const val LOCALHOST = "127.0.0.1"
 private const val CONTEXT_PATH = "/v0.1/classes-v0.1.json.gz"
 
 class GMavenIndexRepositoryTest {
-  private val cacheDir = createInMemoryFileSystemAndFolder("tempCacheDir")
-  private val cacheFile = cacheDir.resolve("v0.1/classes-v0.1.json")
+  @get:Rule val temporaryFolderRule = TemporaryFolder()
+  private val cacheDir by lazy { temporaryFolderRule.newFolder("tempCacheDir").toPath() }
+  private val cacheFile by lazy { cacheDir.resolve("v0.1/classes-v0.1.json") }
 
   private val server =
     HttpServer.create().apply {
@@ -54,7 +58,12 @@ class GMavenIndexRepositoryTest {
   private val testDispatcher = StandardTestDispatcher(testScheduler)
   private val testScope = TestScope(testDispatcher)
 
-  private val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, testScope, testDispatcher)
+  lateinit var gMavenIndexRepository: GMavenIndexRepository
+
+  @Before
+  fun startUp() {
+    gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, testScope, testDispatcher)
+  }
 
   @After
   fun tearDown() {
@@ -79,7 +88,7 @@ class GMavenIndexRepositoryTest {
 
   @Test
   fun testRefreshDiskCache_noModificationSinceLast() {
-    val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, testScope, testDispatcher)
+    // val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, testScope, testDispatcher)
     createContext(path = CONTEXT_PATH, content = "This is for unit test", eTag = "843fc7", rCode = HttpURLConnection.HTTP_OK)
 
     testScheduler.advanceTimeBy(5.hours)
