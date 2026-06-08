@@ -319,6 +319,7 @@
       <module fileurl="file://$PROJECT_DIR$/android/imports/intellij.android.core.imports.iml" filepath="$PROJECT_DIR$/android/imports/intellij.android.core.imports.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/integration/intellij.android.core.integration.iml" filepath="$PROJECT_DIR$/android/integration/intellij.android.core.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/jetbrains/intellij.android.core.jetbrains.iml" filepath="$PROJECT_DIR$/android/jetbrains/intellij.android.core.jetbrains.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/studio-automation/plugin/studio.automation.plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/studio-automation/plugin/studio.automation.plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/lang/intellij.android.core.lang.iml" filepath="$PROJECT_DIR$/android/lang/intellij.android.core.lang.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/model/intellij.android.core.model.iml" filepath="$PROJECT_DIR$/android/model/intellij.android.core.model.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/modularize/intellij.android.core.modularize.iml" filepath="$PROJECT_DIR$/android/modularize/intellij.android.core.modularize.iml" />
