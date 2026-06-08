@@ -17,8 +17,8 @@
 
 package com.android.tools.idea.gradle.project.entities
 
+import com.android.tools.idea.gradle.project.entities.impl.GradleModuleModelEntityImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
-import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
@@ -26,7 +26,6 @@ import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.WorkspaceEntity
 import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
-import com.intellij.platform.workspace.storage.annotations.Parent
 
 @GeneratedCodeApiVersion(3)
 interface GradleModuleModelEntityBuilder : WorkspaceEntityBuilder<GradleModuleModelEntity> {
@@ -37,6 +36,7 @@ interface GradleModuleModelEntityBuilder : WorkspaceEntityBuilder<GradleModuleMo
 
 internal object GradleModuleModelEntityType : EntityType<GradleModuleModelEntity, GradleModuleModelEntityBuilder>() {
   override val entityClass: Class<GradleModuleModelEntity> get() = GradleModuleModelEntity::class.java
+  override val entityImplBuilderClass: Class<*> get() = GradleModuleModelEntityImpl.Builder::class.java
   operator fun invoke(
     gradleModuleModel: GradleModuleModel,
     entitySource: EntitySource,

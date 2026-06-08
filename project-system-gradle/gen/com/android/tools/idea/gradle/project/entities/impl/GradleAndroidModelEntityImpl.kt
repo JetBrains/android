@@ -13,68 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:OptIn(EntityStorageInstrumentationApi::class)
+
 package com.android.tools.idea.gradle.project.entities.impl
 
-import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityBuilder
-import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
-import com.intellij.openapi.module.Module
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
-import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.ConnectionId
 import com.intellij.platform.workspace.storage.EntitySource
-import com.intellij.platform.workspace.storage.EntityStorage
-import com.intellij.platform.workspace.storage.EntityType
-import com.intellij.platform.workspace.storage.ExternalMappingKey
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
 import com.intellij.platform.workspace.storage.GeneratedCodeImplVersion
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.WorkspaceEntity
 import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
 import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
-import com.intellij.platform.workspace.storage.annotations.Parent
 import com.intellij.platform.workspace.storage.impl.EntityLink
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityData
-import com.intellij.platform.workspace.storage.impl.extractOneToOneParent
-import com.intellij.platform.workspace.storage.impl.updateOneToOneParentOfChild
 import com.intellij.platform.workspace.storage.instrumentation.EntityStorageInstrumentation
 import com.intellij.platform.workspace.storage.instrumentation.EntityStorageInstrumentationApi
 import com.intellij.platform.workspace.storage.instrumentation.MutableEntityStorageInstrumentation
+import com.intellij.platform.workspace.storage.instrumentation.instrumentation
 import com.intellij.platform.workspace.storage.metadata.model.EntityMetadata
-import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
 
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(7)
 @OptIn(WorkspaceEntityInternalApi::class)
-internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroidModelEntityData) : GradleAndroidModelEntity,
-                                                                                                    WorkspaceEntityBase(dataSource) {
+internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroidModelEntityData) : GradleAndroidModelEntity, WorkspaceEntityBase(
+  dataSource) {
 
   private companion object {
-    internal val MODULE_CONNECTION_ID: ConnectionId =
-      ConnectionId.create(ModuleEntity::class.java, GradleAndroidModelEntity::class.java, ConnectionId.ConnectionType.ONE_TO_ONE, false)
-
-    private val connections = listOf<ConnectionId>(
-      MODULE_CONNECTION_ID,
-    )
+    internal val MODULE_CONNECTION_ID: ConnectionId = ConnectionId.create(ModuleEntity::class.java, GradleAndroidModelEntity::class.java,
+                                                                          ConnectionId.ConnectionType.ONE_TO_ONE, false)
+    private val connections = listOf<ConnectionId>(MODULE_CONNECTION_ID)
 
   }
 
   override val module: ModuleEntity
-    get() = snapshot.extractOneToOneParent(MODULE_CONNECTION_ID, this)!!
-
+    get() = snapshot.instrumentation.getParent(MODULE_CONNECTION_ID, this) as? ModuleEntity ?: error(
+      "Parent module not found for GradleAndroidModelEntity")
   override val gradleAndroidModel: GradleAndroidModelImpl
     get() {
       readField("gradleAndroidModel")
       return dataSource.gradleAndroidModel
     }
-
   override val resolvedVariant: IdeVariantImpl?
     get() {
       readField("resolvedVariant")
@@ -92,8 +79,8 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
   }
 
 
-  internal class Builder(result: GradleAndroidModelEntityData?) :
-    ModifiableWorkspaceEntityBase<GradleAndroidModelEntity, GradleAndroidModelEntityData>(result), GradleAndroidModelEntityBuilder {
+  internal class Builder(result: GradleAndroidModelEntityData?) : ModifiableWorkspaceEntityBase<GradleAndroidModelEntity, GradleAndroidModelEntityData>(
+    result), GradleAndroidModelEntityBuilder {
     internal constructor() : this(GradleAndroidModelEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
@@ -101,18 +88,17 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
         if (existsInBuilder(builder)) {
           this.diff = builder
           return
-        } else {
+        }
+        else {
           error("Entity GradleAndroidModelEntity is already created in a different builder")
         }
       }
-
       this.diff = builder
       addToBuilder()
       this.id = getEntityData().createEntityId()
       // After adding entity data to the builder, we need to unbind it and move the control over entity data to builder
       // Builder may switch to snapshot at any moment and lock entity data to modification
       this.currentEntityData = null
-
       // Process linked entities that are connected without a builder
       processLinkedEntities(builder)
       checkInitialization() // TODO uncomment and check failed tests
@@ -124,10 +110,11 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
         error("Field WorkspaceEntity#entitySource should be initialized")
       }
       if (_diff != null) {
-        if (_diff.extractOneToOneParent<WorkspaceEntityBase>(MODULE_CONNECTION_ID, this) == null) {
+        if (_diff.instrumentation.getParentBuilder(MODULE_CONNECTION_ID, this) == null) {
           error("Field GradleAndroidModelEntity#module should be initialized")
         }
-      } else {
+      }
+      else {
         if (this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] == null) {
           error("Field GradleAndroidModelEntity#module should be initialized")
         }
@@ -159,16 +146,17 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
         changedProperty.add("entitySource")
 
       }
-
     override var module: ModuleEntityBuilder
       get() {
         val _diff = diff
         return if (_diff != null) {
-          @OptIn(EntityStorageInstrumentationApi::class)
           ((_diff as MutableEntityStorageInstrumentation).getParentBuilder(MODULE_CONNECTION_ID, this) as? ModuleEntityBuilder)
-            ?: (this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)]!! as ModuleEntityBuilder)
-        } else {
-          this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)]!! as ModuleEntityBuilder
+          ?: (this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] as? ModuleEntityBuilder) ?: error(
+            "module is null for GradleAndroidModelEntity")
+        }
+        else {
+          (this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] as? ModuleEntityBuilder) ?: error(
+            "module is null for GradleAndroidModelEntity")
         }
       }
       set(value) {
@@ -182,13 +170,13 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
           _diff.addEntity(value as ModifiableWorkspaceEntityBase<WorkspaceEntity, *>)
         }
         if (_diff != null && (value !is ModifiableWorkspaceEntityBase<*, *> || value.diff != null)) {
-          _diff.updateOneToOneParentOfChild(MODULE_CONNECTION_ID, this, value)
-        } else {
+          _diff.instrumentation.addChild(MODULE_CONNECTION_ID, value, this)
+        }
+        else {
           if (value is ModifiableWorkspaceEntityBase<*, *>) {
             value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
           }
           // else you're attaching a new entity to an existing entity that is not modifiable
-
           this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] = value
         }
         changedProperty.add("module")
@@ -202,7 +190,6 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
         changedProperty.add("gradleAndroidModel")
 
       }
-
     override var resolvedVariant: IdeVariantImpl?
       get() = getEntityData().resolvedVariant
       set(value) {
@@ -214,6 +201,7 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
 
     override fun getEntityClass(): Class<GradleAndroidModelEntity> = GradleAndroidModelEntity::class.java
   }
+
 }
 
 @OptIn(WorkspaceEntityInternalApi::class)
@@ -230,7 +218,6 @@ internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidM
     return modifiable
   }
 
-  @OptIn(EntityStorageInstrumentationApi::class)
   override fun createEntity(snapshot: EntityStorageInstrumentation): GradleAndroidModelEntity {
     val entityId = createEntityId()
     return snapshot.initializeEntity(entityId) {
@@ -242,7 +229,8 @@ internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidM
   }
 
   override fun getMetadata(): EntityMetadata {
-    return MetadataStorageImpl.getMetadataByTypeFqn("com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity") as EntityMetadata
+    return MetadataStorageImpl.getMetadataByTypeFqn(
+      "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity") as EntityMetadata
   }
 
   override fun getEntityInterface(): Class<out WorkspaceEntity> {
@@ -265,9 +253,7 @@ internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidM
   override fun equals(other: Any?): Boolean {
     if (other == null) return false
     if (this.javaClass != other.javaClass) return false
-
     other as GradleAndroidModelEntityData
-
     if (this.entitySource != other.entitySource) return false
     if (this.gradleAndroidModel != other.gradleAndroidModel) return false
     if (this.resolvedVariant != other.resolvedVariant) return false
@@ -277,9 +263,7 @@ internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidM
   override fun equalsIgnoringEntitySource(other: Any?): Boolean {
     if (other == null) return false
     if (this.javaClass != other.javaClass) return false
-
     other as GradleAndroidModelEntityData
-
     if (this.gradleAndroidModel != other.gradleAndroidModel) return false
     if (this.resolvedVariant != other.resolvedVariant) return false
     return true

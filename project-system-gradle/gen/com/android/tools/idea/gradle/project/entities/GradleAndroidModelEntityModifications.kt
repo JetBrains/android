@@ -17,25 +17,16 @@
 
 package com.android.tools.idea.gradle.project.entities
 
-import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
-import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.entities.impl.GradleAndroidModelEntityImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
-import com.intellij.openapi.module.Module
-import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
-import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.EntitySource
-import com.intellij.platform.workspace.storage.EntityStorage
 import com.intellij.platform.workspace.storage.EntityType
-import com.intellij.platform.workspace.storage.ExternalMappingKey
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.WorkspaceEntity
 import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
-import com.intellij.platform.workspace.storage.annotations.Parent
-import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
 
 @GeneratedCodeApiVersion(3)
 interface GradleAndroidModelEntityBuilder : WorkspaceEntityBuilder<GradleAndroidModelEntity> {
@@ -47,6 +38,7 @@ interface GradleAndroidModelEntityBuilder : WorkspaceEntityBuilder<GradleAndroid
 
 internal object GradleAndroidModelEntityType : EntityType<GradleAndroidModelEntity, GradleAndroidModelEntityBuilder>() {
   override val entityClass: Class<GradleAndroidModelEntity> get() = GradleAndroidModelEntity::class.java
+  override val entityImplBuilderClass: Class<*> get() = GradleAndroidModelEntityImpl.Builder::class.java
   operator fun invoke(
     gradleAndroidModel: GradleAndroidModelImpl,
     entitySource: EntitySource,
