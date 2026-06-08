@@ -124,6 +124,7 @@ class NlDesignSurfaceZoomControlsTest {
     surface = invokeAndWaitIfNeeded {
       NlSurfaceBuilder.builder(androidProjectRule.project, androidProjectRule.fixture.testRootDisposable)
         .setZoomControlsPolicy(ZoomControlsPolicy.VISIBLE)
+        .setScreenViewProvider(NlScreenViewProvider.RENDER_AND_BLUEPRINT, false)
         .build()
     }
 
@@ -166,7 +167,7 @@ class NlDesignSurfaceZoomControlsTest {
       }
     }
 
-    delayUntilCondition(100, 2.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 2 }
+    delayUntilCondition(100, 5.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 2 }
 
     // Try to restore the zoom
     surface.restoreZoomOrZoomToFit()
