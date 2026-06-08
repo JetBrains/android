@@ -1,3 +1,4 @@
+<!-- intellij-build: pack-content-into-plugin-jar -->
 <idea-plugin>
   <dependencies>
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
