@@ -30,12 +30,25 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.PathUtil
 import java.io.StringReader
+import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
 import org.jetbrains.annotations.VisibleForTesting
 import org.xml.sax.InputSource
 
 private val GSON = Gson()
-private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+private val XML =
+  DocumentBuilderFactory.newInstance()
+    .apply {
+      // isXml() only needs well-formedness — never DTD semantics. Disable DTDs entirely.
+      runCatching { setFeature("http://apache.org/xml/features/disallow-doctype-decl", true) }
+      runCatching { setFeature("http://xml.org/sax/features/external-general-entities", false) }
+      runCatching { setFeature("http://xml.org/sax/features/external-parameter-entities", false) }
+      runCatching { setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false) }
+      runCatching { setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true) }
+      isXIncludeAware = false
+      isExpandEntityReferences = false
+    }
+    .newDocumentBuilder()
 
 /**
  * An action that opens a popup dialog containing embedded JSON/XML from the log message
@@ -112,22 +125,22 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
 }
 
 // TODO(b/235501148): Detect partial JSON. See LintSyntaxHighlighter#tokenizeXml() for a starting
-// point.
+//  point.
 private fun isJson(text: String): Boolean {
   return try {
     GSON.fromJson(text, JsonObject::class.java) != null
-  } catch (e: Exception) {
+  } catch (_: Exception) {
     false
   }
 }
 
 // TODO(b/235501148): Detect partial XML. See LintSyntaxHighlighter#tokenizeXml() for a starting
-// point.
+//  point.
 private fun isXml(text: String): Boolean {
   return try {
     XML.parse(InputSource(StringReader(text)))
     true
-  } catch (e: Exception) {
+  } catch (_: Exception) {
     false
   }
 }
