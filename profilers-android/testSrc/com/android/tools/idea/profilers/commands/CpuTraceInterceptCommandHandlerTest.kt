@@ -177,7 +177,11 @@ class CpuTraceInterceptCommandHandlerTest {
           Trace.StartTrace.newBuilder()
             .apply {
               profilerType = Trace.ProfilerType.CPU
-              val configuration = Trace.TraceConfiguration.newBuilder().apply { abiCpuArch = "FakeAbi" }
+              val configuration =
+                Trace.TraceConfiguration.newBuilder().apply {
+                  abiCpuArch = "FakeAbi"
+                  appName = "com.example.app"
+                }
               // Add the technology-specific options.
               TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)
               this.configuration = configuration.build()

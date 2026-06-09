@@ -376,7 +376,7 @@ class TransportServiceProxy(
   }
 
   private fun addProcess(client: ClientSummary, timestampNs: Long, level: ExposureLevel) =
-    client.name.let { description ->
+    (client.name.takeIf { SAFE_PROCESS_NAME.matches(it) } ?: "pid-${client.pid}").let { description ->
       // Process is started up and is ready
       // Parse cpu arch from client abi info, for example, "arm64" from "64-bit (arm64)". Abi string indicates whether application is
       // 64-bit or 32-bit and its cpu arch. Old devices of 32-bit do not have the application data, fall back to device's abi cpu arch.
@@ -439,6 +439,7 @@ class TransportServiceProxy(
     private const val EMULATOR = "Emulator"
     const val PRE_LOLLIPOP_FAILURE_REASON = "Pre-Lollipop devices are not supported."
     private val ART_VERSION_CODE_REGEX = Regex("package:com\\.google\\.android\\.art versionCode:(\\d+)")
+    private val SAFE_PROCESS_NAME = Regex("[a-zA-Z0-9._:]+")
 
     /**
      * Converts an [IDevice] object into a [Common.Device].
