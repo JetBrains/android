@@ -23,6 +23,7 @@ import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
+import com.android.tools.idea.streaming.core.htmlEscaped
 import com.android.tools.idea.streaming.device.DeviceState.Property
 import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.AppLocale
 import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.UiCommand
@@ -462,7 +463,7 @@ private val DeviceState.adjustedName: String
     if (adjustedName.startsWith("HALF_")) {
       adjustedName = "HALF-" + adjustedName.substring("HALF_".length)
     }
-    return toTitleCase(adjustedName.replace('_', ' ').lowercase())
+    return toTitleCase(adjustedName.replace('_', ' ').lowercase()).htmlEscaped()
   }
 
 private val logger
