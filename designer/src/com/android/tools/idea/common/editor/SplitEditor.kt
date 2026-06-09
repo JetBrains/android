@@ -42,12 +42,20 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
+import com.intellij.ui.JBSplitter
 import com.intellij.ui.NewUI
 import com.intellij.util.containers.orNull
+import com.intellij.util.ui.JBUI
+import java.awt.Dimension
 import javax.swing.Icon
 import javax.swing.JComponent
 
 val SPLIT_TEXT_EDITOR_KEY = DataKey.create<TextEditor>(TextEditor::class.java.name)
+
+private val SPLIT_EDITOR_MIN_SIZE: Dimension
+  get() {
+    return Dimension(JBUI.scale(100), JBUI.scale(100))
+  }
 
 /**
  * [TextEditorWithPreview] with keyboard shortcuts to navigate between views, and code navigation when interacting with the preview portion
@@ -87,6 +95,12 @@ abstract class SplitEditor<P : FileEditor>(
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
+    // Enforce a dynamic minimum size on the preview component that scales with both the IDE
+    // HiDPI/Retina display scale and the user's custom IDE font size setting. This prevents the
+    // preview pane from collapsing into an unusable state when dragging the splitter handle,
+    // which protects all child and overlay components (such as zoom toolbars, floating panels,
+    // and interactive menus) from layout clipping and vertical/horizontal squishing.
+    myPreview.component.minimumSize = SPLIT_EDITOR_MIN_SIZE
     // If displaying the split controls in the editor tabs, i.e. when using the new UI but not
     // when editor tabs are hidden, we should make sure the legacy toolbar is not visible.
     if (NewUI.isEnabled() && UISettings.instanceOrNull?.editorTabPlacement != UISettings.TABS_NONE) {
@@ -97,6 +111,10 @@ abstract class SplitEditor<P : FileEditor>(
       registerModeNavigationShortcuts(thisComponent)
     }
     return thisComponent
+  }
+
+  override fun createSplitter(): JBSplitter {
+    return super.createSplitter().apply { setHonorComponentsMinimumSize(true) }
   }
 
   override fun getFile(): VirtualFile? = myEditor.file
