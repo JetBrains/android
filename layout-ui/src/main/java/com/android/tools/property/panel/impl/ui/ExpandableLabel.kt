@@ -37,11 +37,16 @@ private const val RIGHT_OVERLAY_MARGIN = 6
  * text a popup will complete the hidden text.
  */
 class ExpandableLabel : JLabel() {
+  init {
+    putClientProperty("html.disable", true)
+  }
+
   private val expandableLabelHandler = ExpandableLabelHandler(this)
   private var htmlText: String = ""
   private var showEllipsis = true
     set(value) {
       field = value
+      putClientProperty("html.disable", if (value) true else null)
       updateText()
     }
 
@@ -88,13 +93,12 @@ class ExpandableLabel : JLabel() {
       // This renderer is used to display the text that expands to the right of the original label
       // component.
       // This is done in a popup in [AbstractExpandableItemsHandler].
+      // Record the label being expanded and hide the ellipsis at the end of the text.
+      key.showEllipsis = false
       renderer.text = key.text
       renderer.icon = key.icon
       renderer.font = key.font
       renderer.foreground = key.foreground
-
-      // Record the label being expanded and hide the ellipsis at the end of the text.
-      key.showEllipsis = false
       return ComponentBounds.create(renderer, computeOverlayBounds(key))
     }
 
