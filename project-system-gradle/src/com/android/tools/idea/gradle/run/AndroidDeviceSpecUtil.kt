@@ -31,6 +31,7 @@ import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 import java.io.StringWriter
 import java.io.Writer
+import java.nio.file.Files
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
@@ -69,10 +70,11 @@ sealed class ProcessedDeviceSpec {
         }
       log.info("Device spec file generated: $jsonString")
 
-      val tempDir = File(System.getProperty("java.io.tmpdir"))
+      val tempDir = Files.createTempDirectory("writeSingleJsonFile").toFile()
+      tempDir.deleteOnExit()
       val tempFile = File(tempDir, filename)
-      FileUtil.writeToFile(tempFile, jsonString)
       tempFile.deleteOnExit()
+      FileUtil.writeToFile(tempFile, jsonString)
       return tempFile
     }
   }
