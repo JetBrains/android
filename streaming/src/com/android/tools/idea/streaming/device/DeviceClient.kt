@@ -55,6 +55,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import java.awt.Dimension
 import java.io.EOFException
 import java.io.IOException
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
 import java.nio.ByteBuffer
@@ -210,7 +211,8 @@ class DeviceClient(val deviceSerialNumber: String, val deviceConfig: DeviceConfi
       }
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext") val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
+    @Suppress("BlockingMethodInNonBlockingContext")
+    val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(InetAddress.getLoopbackAddress(), 0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     logger.debug("Using port $port")
     var channels: Channels? = null
