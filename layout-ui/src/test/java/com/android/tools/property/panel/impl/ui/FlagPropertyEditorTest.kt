@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -64,7 +65,9 @@ class FlagPropertyEditorTest {
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposableRule.disposable)
+    // Mock ActionManagerEx because SearchTextField (used in FlagPropertyPanel)
+    // triggers keymap initialization which casts ActionManager to ActionManagerEx.
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock<ActionManagerEx>(), disposableRule.disposable)
     whenever(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
   }
 
@@ -153,6 +156,18 @@ class FlagPropertyEditorTest {
     assertThat(checked.map { it.text }).containsExactly("one", "two", "three", "eight", "nine", "ten", "eleven")
     val disabled = findDisabledCheckBoxes(panel)
     assertThat(disabled.map { it.text }).containsExactly("three", "nine", "ten", "eleven")
+  }
+
+  @Test
+  fun testHtmlDisableIsSetOnCheckBoxes() {
+    val table = createTableWithFlagEditors()
+    val flagEditor = getEditorFromTable(table, 1)
+    val panel = FlagPropertyPanel(flagEditor.editorModel, flagEditor.tableParent!!, 400)
+    val checkBoxes = panel.flatten().filterIsInstance<JBCheckBox>()
+    assertThat(checkBoxes).isNotEmpty()
+    for (checkBox in checkBoxes) {
+      assertThat(checkBox.getClientProperty("html.disable")).isEqualTo(true)
+    }
   }
 
   private fun clickFlag(ui: FakeUi, panel: FlagPropertyPanel, name: String) {

@@ -192,7 +192,9 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel, privat
 
   private fun addCheckBoxes(panel: JPanel, items: List<String>) {
     items.forEach {
-      val checkBox = JBCheckBox(it)
+      val checkBox = JBCheckBox()
+      checkBox.putClientProperty("html.disable", true)
+      checkBox.text = it
       panel.add(checkBox)
       checkBox.background = secondaryPanelBackground
       checkBox.addActionListener { editorModel.toggle(checkBox.text) }
