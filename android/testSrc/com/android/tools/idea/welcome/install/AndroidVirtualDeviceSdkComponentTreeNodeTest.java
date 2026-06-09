@@ -397,7 +397,7 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
       return null;
     }
     AvdManagerConnection connection =
-      new AvdManagerConnection(sdkHandler, IdeAvdManagers.INSTANCE.getAvdManager(sdkHandler), Dispatchers.getUnconfined());
+      new AvdManagerConnection(sdkHandler, IdeAvdManagers.Instance.getAvdManager(sdkHandler), Dispatchers.getUnconfined());
     Set<AvdInfo> existingAvds = new HashSet<>(connection.getAvds(true));
     InstallContext context = new InstallContext(tempDirectoryRule.newPath().toFile(), progressStep);
     avdCreator.configure(context, sdkHandler);
