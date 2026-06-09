@@ -18,6 +18,7 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.property.panel.api.PropertyItem
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.util.text.HtmlChunk
 import com.intellij.util.text.nullize
 import javax.swing.JComponent
 
@@ -64,7 +65,10 @@ object PropertyTooltip {
   }
 
   private fun createTooltipWithContent(component: JComponent, text: String, title: String? = null) {
-    val truncatedText = if (text.length > MAX_TOOLTIP_TEXT_LENGTH) text.substring(0, MAX_TOOLTIP_TEXT_LENGTH) + "..." else text
-    HelpTooltip().setTitle(title).setDescription(truncatedText).installOn(component)
+    val truncatedText = if (text.length > MAX_TOOLTIP_TEXT_LENGTH) "${text.substring(0, MAX_TOOLTIP_TEXT_LENGTH)}..." else text
+    HelpTooltip()
+      .setPlainTextTitle(title)
+      .setDescription(HtmlChunk.text(truncatedText))
+      .installOn(component)
   }
 }

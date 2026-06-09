@@ -19,13 +19,19 @@ import com.android.SdkConstants
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.HelpTooltip
-import org.junit.Test
+import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.testFramework.ApplicationRule
 import javax.swing.JPanel
+import org.junit.Rule
+import org.junit.Test
 
 private const val SHORT_VALUE = "Hello World!"
 private val LONG_VALUE = "1234567890".repeat(1000)
 
 class PropertyTooltipTest {
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @Test
   fun normal() {
@@ -34,7 +40,7 @@ class PropertyTooltipTest {
     item.tooltipForValue = SHORT_VALUE
     PropertyTooltip.setToolTip(panel, item, forValue = true, SHORT_VALUE)
     val tooltip = HelpTooltip.getTooltipFor(panel)
-    val expected = HelpTooltip().apply { setDescription(SHORT_VALUE) }
+    val expected = HelpTooltip().apply { setDescription(HtmlChunk.text(SHORT_VALUE)) }
     assertThat(tooltip).isEqualTo(expected)
   }
 
@@ -43,9 +49,21 @@ class PropertyTooltipTest {
     val panel = JPanel()
     val item = FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT)
     item.tooltipForValue = LONG_VALUE
-    PropertyTooltip.setToolTip(panel, item, forValue = true, SHORT_VALUE)
+    PropertyTooltip.setToolTip(panel, item, forValue = true, LONG_VALUE)
     val tooltip = HelpTooltip.getTooltipFor(panel)
-    val expected = HelpTooltip().apply { setDescription(LONG_VALUE.substring(0, 1000) + "...") }
+    val expected = HelpTooltip().apply { setDescription(HtmlChunk.text("${LONG_VALUE.substring(0, 1000)}...")) }
+    assertThat(tooltip).isEqualTo(expected)
+  }
+
+  @Test
+  fun htmlInTooltipIsEscaped() {
+    val panel = JPanel()
+    val item = FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT)
+    val htmlValue = "<html><body>evil</body></html>"
+    item.tooltipForValue = htmlValue
+    PropertyTooltip.setToolTip(panel, item, forValue = true, htmlValue)
+    val tooltip = HelpTooltip.getTooltipFor(panel)
+    val expected = HelpTooltip().apply { setDescription(HtmlChunk.text(htmlValue)) }
     assertThat(tooltip).isEqualTo(expected)
   }
 }
