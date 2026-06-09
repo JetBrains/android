@@ -1,8 +1,12 @@
-- name: lib/android-gradle-declarative-lang-ide-frontend.jar
-  contentModules:
-  - name: intellij.android.gradle.declarative.lang
-  - name: intellij.android.gradle.declarative.lang.sync
-  - name: intellij.android.gradle.declarative.lang.flags
 - name: lib/android-gradle-declarative-lang-ide.jar
   modules:
   - name: intellij.android.gradle.declarative.lang.ide
+- name: lib/intellij.android.gradle.declarative.lang.flags.jar
+  contentModules:
+  - name: intellij.android.gradle.declarative.lang.flags
+- name: lib/intellij.android.gradle.declarative.lang.jar
+  contentModules:
+  - name: intellij.android.gradle.declarative.lang
+- name: lib/intellij.android.gradle.declarative.lang.sync.jar
+  contentModules:
+  - name: intellij.android.gradle.declarative.lang.sync

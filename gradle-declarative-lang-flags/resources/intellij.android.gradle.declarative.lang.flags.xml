@@ -13,7 +13,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<!-- intellij-build: pack-content-into-plugin-jar -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <registryKey key="gradle.declarative.ide.support" defaultValue="false" description="Declarative IDE support"/>
