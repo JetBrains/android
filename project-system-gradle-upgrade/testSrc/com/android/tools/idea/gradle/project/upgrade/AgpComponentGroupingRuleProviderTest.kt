@@ -69,7 +69,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
     val group = getParentComponentGroupFor(usages[0])
-    assertThat(group.presentableGroupText).isEqualTo("Upgrade Gradle version to 7.0.2")
+    assertThat(group.presentableGroupText).isEqualTo("Upgrade Gradle version to 7.2")
   }
 
   fun testMigrateToBuildFeaturesRefactoringProcessor() {

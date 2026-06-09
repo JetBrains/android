@@ -268,15 +268,6 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testFirebasePerfVersionTo70() {
-    writeToBuildFile(TestFileName("GradlePlugins/FirebasePerfVersion"))
-    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("7.0.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("GradlePlugins/FirebasePerfVersion"))
-  }
-
-  @Test
   fun testFirebasePerfVersionTo90() {
     writeToBuildFile(TestFileName("GradlePlugins/FirebasePerfVersion"))
     val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("9.0.0"))
@@ -292,15 +283,6 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("GradlePlugins/FirebasePerfVersionInDslExpected"))
-  }
-
-  @Test
-  fun testFirebasePerfVersionInDslTo70() {
-    writeToBuildFile(TestFileName("GradlePlugins/FirebasePerfVersionInDsl"))
-    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("7.0.0"))
-    processor.run()
-
-    verifyFileContents(buildFile, TestFileName("GradlePlugins/FirebasePerfVersionInDsl"))
   }
 
   @Test
