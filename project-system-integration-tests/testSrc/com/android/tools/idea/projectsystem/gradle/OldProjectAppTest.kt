@@ -34,7 +34,7 @@ class OldProjectAppTest {
       addVmOption("-Dstudio.project.sync.debug.mode=true")
     }
     val project = AndroidProject("tools/adt/idea/project-system-integration-tests/testData/oldprojectapp")
-    project.setDistribution("tools/external/gradle/gradle-7.0.2-bin.zip")
+    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
 
     val embeddedJdk11Path = EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11")
     system.setEnv(IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME, embeddedJdk11Path.toString())
