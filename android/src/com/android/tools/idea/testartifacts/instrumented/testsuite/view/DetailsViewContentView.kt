@@ -284,20 +284,18 @@ open class DetailsViewContentView(
     refreshTestResultLabel()
   }
 
-  private fun setLogcat(logcat: String) {
-    // force refresh myLogsView on first call to setLogcat
-    needsRefreshLogsView = needsRefreshLogsView || (myLogcat != logcat)
-    if (needsRefreshLogsView) {
-      myLogcat = logcat
-      refreshLogsView()
-    }
-  }
-
-  private fun setErrorStackTrace(errorStackTrace: String) {
-    needsRefreshLogsView = myErrorStackTrace != errorStackTrace
-    if (needsRefreshLogsView) {
-      myErrorStackTrace = errorStackTrace
-      refreshTestResultLabel()
+  private fun setLogs(logcat: String?, errorStackTrace: String?) {
+    val nonNullLogcat = logcat.orEmpty()
+    val nonNullError = errorStackTrace.orEmpty()
+    val logcatChanged = myLogcat != nonNullLogcat
+    val errorChanged = myErrorStackTrace != nonNullError
+    if (needsRefreshLogsView || logcatChanged || errorChanged) {
+      needsRefreshLogsView = false
+      myLogcat = nonNullLogcat
+      myErrorStackTrace = nonNullError
+      if (errorChanged) {
+        refreshTestResultLabel()
+      }
       refreshLogsView()
     }
   }
@@ -394,8 +392,7 @@ open class DetailsViewContentView(
   fun setResults(androidDevice: AndroidDevice, testResults: AndroidTestResults) {
     setAndroidDevice(androidDevice)
     setAndroidTestCaseResult(testResults.getTestCaseResult(androidDevice))
-    setLogcat(testResults.getLogcat(androidDevice))
-    setErrorStackTrace(testResults.getErrorStackTrace(androidDevice))
+    setLogs(testResults.getLogcat(androidDevice), testResults.getErrorStackTrace(androidDevice))
     setBenchmarkText(testResults.getBenchmark(androidDevice))
     setAdditionalTestArtifacts(testResults.getAdditionalTestArtifacts(androidDevice), testResults)
   }
