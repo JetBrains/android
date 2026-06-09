@@ -93,6 +93,7 @@ public abstract class TooltipView extends AspectObserver {
   @NotNull
   protected static JLabel createTooltipLabel() {
     JLabel label = new JLabel();
+    label.putClientProperty("html.disable", Boolean.TRUE);
     label.setFont(TOOLTIP_BODY_FONT);
     label.setForeground(TOOLTIP_TEXT);
     return label;

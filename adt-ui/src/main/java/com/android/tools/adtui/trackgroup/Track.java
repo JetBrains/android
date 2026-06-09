@@ -75,7 +75,9 @@ public class Track {
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackContent) {
     myTrackContent = trackContent;
     trackContent.setBackground(StudioColorsKt.getTrackBackground());
-    myTitleLabel = new JLabel(trackModel.getTitle());
+    myTitleLabel = new JLabel();
+    myTitleLabel.putClientProperty("html.disable", Boolean.TRUE);
+    myTitleLabel.setText(trackModel.getTitle());
     myTitleLabel.setVerticalAlignment(SwingConstants.TOP);
     myTitleLabel.setToolTipText(trackModel.getTitleTooltip());
     myTitleLabel.setIconTextGap(0);

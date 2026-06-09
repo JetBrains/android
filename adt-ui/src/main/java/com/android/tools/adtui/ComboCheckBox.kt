@@ -61,8 +61,10 @@ object ComboCheckBox {
     val checkBoxes =
       options.map {
         val title = abbreviate(it)
-        JBCheckBox(title).apply {
+        JBCheckBox().apply {
+          putClientProperty("html.disable", true)
           isSelected = it in initialSelection
+          text = title
           toolTipText = elaborate(it)
           addItemListener { _ ->
             if (isSelected) selectionState.add(it) else selectionState.remove(it)

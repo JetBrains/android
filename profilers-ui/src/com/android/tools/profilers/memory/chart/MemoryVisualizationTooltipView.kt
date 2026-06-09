@@ -34,7 +34,11 @@ class MemoryVisualizationTooltipView(
 
   public override fun showTooltip(node: ClassifierSetHNode) {
     tooltipContainer.removeAll()
-    val nameLabel = JLabel(node.name)
+    val nameLabel =
+      JLabel().apply {
+        putClientProperty("html.disable", true)
+        text = node.name
+      }
     nameLabel.font = TooltipView.TOOLTIP_BODY_FONT
     nameLabel.foreground = ProfilerColors.TOOLTIP_TEXT
     val formattedNumber =
