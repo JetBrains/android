@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
+import com.intellij.openapi.util.text.StringUtil
 import java.util.Base64
 
 /**
@@ -43,7 +44,12 @@ class HeapProfdConverter(private val memorySet: NativeMemoryHeapSet, private val
 
     val module = base64.decode(rawFrame.module).toString(Charsets.UTF_8)
     val file = if (rawFrame.lineNumber > 0) base64.decode(rawFrame.sourceFile).toString(Charsets.UTF_8) else ""
-    val name = base64.decode(rawFrame.name).toString(Charsets.UTF_8)
+    var name = base64.decode(rawFrame.name).toString(Charsets.UTF_8)
+
+    // Neutralize Swing BasicHTML trigger for malicious ELF symbols
+    if (StringUtil.toLowerCase(name).startsWith("<html")) {
+      name = "\u200B" + name
+    }
 
     // If there is a file name (source file), then we will have a line number.
     val fullName =
