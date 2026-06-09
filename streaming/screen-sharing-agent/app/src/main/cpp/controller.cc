@@ -23,7 +23,6 @@
 
 #include "accessors/device_state_manager.h"
 #include "accessors/display_control.h"
-#include "accessors/input_manager.h"
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
 #include "accessors/surface_control.h"
@@ -612,7 +611,6 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 }
 
 void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
-  nanoseconds event_time = UptimeNanos();
   InjectKeyEvent(message.action(), message.keycode(), message.meta_state());
 }
 
@@ -640,7 +638,7 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
         if (Log::IsEnabled(Log::Level::DEBUG)) {
           Log::D("key_event: %s", key_event.ToString().c_str());
         }
-        InjectInputEvent(key_event);
+        InjectInputEvent(key_event, InputEventInjectionSync::WAIT_FOR_FINISHED);
       }
     }
   }
@@ -698,7 +696,7 @@ void Controller::InjectKeyEvent(const KeyEvent& event) {
   if (Log::IsEnabled(Log::Level::DEBUG)) {
     Log::D("key_event: %s", key_event.ToString().c_str());
   }
-  InjectInputEvent(key_event);
+  InjectInputEvent(key_event, InputEventInjectionSync::WAIT_FOR_FINISHED);
 }
 
 bool Controller::UseUInputForKeyEvents() const {
@@ -719,7 +717,7 @@ void Controller::InjectMotionEvent(const MotionEvent& event) {
   if (Agent::device_type() == DeviceType::XR) {
     InjectXrMotionEvent(motion_event);
   } else {
-    InjectInputEvent(motion_event);
+    InjectInputEvent(motion_event, InputEventInjectionSync::NONE);
   }
 }
 
@@ -727,14 +725,14 @@ void Controller::InjectCancelMotionEvent() {
   MotionEvent event(Jvm::GetJni());
   event.action = AMOTION_EVENT_ACTION_CANCEL;
   event.event_time_millis = duration_cast<milliseconds>(UptimeNanos()).count();
-  InjectInputEvent(event.ToJava());
+  InjectInputEvent(event.ToJava(), InputEventInjectionSync::WAIT_FOR_FINISHED);
 }
 
-void Controller::InjectInputEvent(const JObject& input_event) {
+void Controller::InjectInputEvent(const JObject& input_event, InputEventInjectionSync mode) {
   if (input_event_injection_disabled_) {
     return;
   }
-  if (!InputManager::InjectInputEvent(jni_, input_event, InputEventInjectionSync::WAIT_FOR_FINISHED)) {
+  if (!InputManager::InjectInputEvent(jni_, input_event, mode)) {
     JThrowable exception = jni_.GetAndClearException();
     if (exception.IsNotNull()) {
       Log::E("Unable to inject an input event - %s", JString::ValueOf(exception).c_str());
