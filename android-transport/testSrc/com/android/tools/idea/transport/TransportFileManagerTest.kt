@@ -16,6 +16,7 @@
 package com.android.tools.idea.transport
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -256,7 +257,7 @@ class TransportFileManagerTest {
 
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}${it.cpuArch}/perfetto" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
-    expectedAbis.map {
+    expectedAbis.forEach {
       val filePath = "${TransportFileManager.DEVICE_DIR}${it.cpuArch}"
       verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p -m 755 $filePath; chown shell:shell $filePath"), any())
     }
@@ -305,5 +306,20 @@ class TransportFileManagerTest {
 
     fileManagerSpy.copyFilesToDevice()
     verify(fileManagerSpy, times(expectedNumberOfFiles)).copyFileToDevice(any())
+  }
+
+  @Test
+  fun testConfigureStartupAgentWithInvalidPackageName() {
+    val result = fileManager.configureStartupAgent("invalid;package", "config", "executor")
+    assertThat(result).isEmpty()
+  }
+
+  @Test
+  fun testConfigureStartupAgentWithValidPackageName() {
+    val version = AndroidVersion(AndroidVersion.VersionCodes.M, 0)
+    whenever(mockDevice.version).thenReturn(version)
+    val result = fileManager.configureStartupAgent("com.example.app", "config", "executor")
+    assertThat(result).isEmpty()
+    verify(mockDevice, times(1)).version
   }
 }
