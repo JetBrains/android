@@ -57,6 +57,7 @@ import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -813,7 +814,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     myTaskTracker.trackProcessingTaskFailed(TaskProcessingFailedMetadata(leakCanaryProcessingStatus = error))
 
     // Show IDE balloon notification
-    profilers.ideServices.showNotification(Notification(Notification.Severity.ERROR, "LeakCanary Task Failed", message, null))
+    profilers.ideServices.showNotification(
+      Notification(Notification.Severity.ERROR, "LeakCanary Task Failed", escapeXmlEntities(message), null)
+    )
 
     // Safely tear down the task
     stopListening(isUserInitiated = false)

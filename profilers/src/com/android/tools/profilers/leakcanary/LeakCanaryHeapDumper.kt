@@ -26,6 +26,7 @@ import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.tasks.analytics.LeakCanaryProcessingErrorCode
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -90,7 +91,10 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
         onFatalError(cause.errorCode, cause.message ?: "Unknown error")
       } else {
         logger.error("Host analysis process failed unexpectedly.", cause)
-        onFatalError(LeakCanaryProcessingErrorCode.UNKNOWN_ERROR, "Unexpected error: ${cause?.message}")
+        onFatalError(
+          LeakCanaryProcessingErrorCode.UNKNOWN_ERROR,
+          "Unexpected error: " + escapeXmlEntities(cause?.message ?: "unknown error"),
+        )
       }
     } finally {
       isHeapDumpInProgress.set(false)
@@ -240,7 +244,7 @@ class LeakCanaryHeapDumper(private val profilers: StudioProfilers) {
       } else {
         throw LeakCanaryProcessingException(
           LeakCanaryProcessingErrorCode.SHARK_ANALYSIS_EXCEPTION,
-          "Heap analysis failed for ${hprofFile.path}: ${cause?.message}",
+          "Heap analysis failed for ${hprofFile.path}: " + escapeXmlEntities(cause?.message ?: "unknown shark error"),
         )
       }
     } else {
