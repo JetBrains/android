@@ -2588,10 +2588,17 @@ private fun <T> openPreparedProject(
       } finally {
         runInEdtAndWait {
           if (!project.isDisposed) {
+            // Process any pending events queued while the project was active (e.g. document/editor updates)
+            // before we start tearing down resources.
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
             PlatformTestUtil.saveProject(project, true)
             Disposer.dispose(projectScopedDisposable)
             ProjectManager.getInstance().closeAndDispose(project)
+            // Empty the event queue to ensure all disposal and listener unregistration tasks
+            // (e.g. FocusChangeListeners registered by EditorTrackerImpl) that were asynchronously queued onto the
+            // EDT by the closeAndDispose process are completely processed.
+            // This prevents intermittent listener leak assertion errors during test tearDown.
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           }
         }
       }
