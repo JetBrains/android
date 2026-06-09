@@ -50,6 +50,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.instanceviewers.BitmapViewer;
 import com.android.tools.profilers.memory.instanceviewers.InstanceViewer;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -441,7 +442,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
           InstanceObject instance = getInstanceObjectFromTreeNode(node);
           if (instance != null && instance.isTransient()) {
             return String.format("Class '%s' is from system image and has no active instance",
-                                 instance.getClassEntry().getSimpleClassName());
+                                 StringUtil.escapeXmlEntities(instance.getClassEntry().getSimpleClassName()));
           }
         }
         return super.getToolTipText(e);
@@ -622,7 +623,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
           InstanceObject instance = getInstanceObjectFromTreeNode(node);
           if (instance != null && instance.isTransient()) {
             return String.format("Class '%s' is from system image and has no active instance",
-                                 instance.getClassEntry().getSimpleClassName());
+                                 StringUtil.escapeXmlEntities(instance.getClassEntry().getSimpleClassName()));
           }
         }
         return super.getToolTipText(e);
