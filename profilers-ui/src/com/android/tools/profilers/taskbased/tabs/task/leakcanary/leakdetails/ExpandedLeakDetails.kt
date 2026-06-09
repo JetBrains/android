@@ -70,7 +70,7 @@ fun LeakNodeDetails(node: Node, modifier: Modifier = Modifier) {
         interactionSource = remember { MutableInteractionSource() },
       )
       .pointerHoverIcon(PointerIcon.Hand)
-  Row(modifier = modifier.padding(start = 15.dp), horizontalArrangement = Arrangement.spacedBy(35.dp)) {
+  Row(modifier = modifier.padding(start = 15.dp), horizontalArrangement = Arrangement.spacedBy(25.dp)) {
     Column(modifier = Modifier.widthIn(min = 80.dp)) {
       DetailedHeaderText(LEAKCANARY_LEAKING)
       Spacer(modifier = Modifier.height(5.dp))

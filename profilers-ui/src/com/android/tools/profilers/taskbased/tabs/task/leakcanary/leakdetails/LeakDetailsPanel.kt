@@ -184,7 +184,7 @@ fun GcRootNodeView(leakTrace: LeakTrace) {
         Modifier.border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp),
     )
     Row(modifier = Modifier.height(16.dp)) {
-      Spacer(Modifier.width(30.dp))
+      Spacer(Modifier.width(28.dp))
       VerticalLeakStatusLine(leakTrace.nodes[0].leakingStatus)
     }
   }
@@ -239,7 +239,7 @@ fun LeakTraceNodeView(
         } else {
           Icon(AllIconsKeys.General.ArrowRight, LEAKCANARY_CLOSE, modifier = Modifier.padding(top = 2.dp))
         }
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(10.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
           Box(modifier = Modifier.padding(top = 2.dp)) { LeakIcon(node.leakingStatus) }
           if (nextNode != null) {
@@ -247,7 +247,7 @@ fun LeakTraceNodeView(
           }
         }
       }
-      Spacer(Modifier.width(7.dp))
+      Spacer(Modifier.width(14.dp))
       Column(horizontalAlignment = Alignment.Start) {
         Row(modifier = rowClickableModifier.padding(top = 3.dp, end = 5.dp)) {
           Text(
