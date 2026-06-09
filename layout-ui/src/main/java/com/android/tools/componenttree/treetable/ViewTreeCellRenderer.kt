@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.html.HtmlEscapers
 import com.intellij.ui.NewUI
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -214,16 +215,15 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
 
     // Only show tooltip if we have both elements: id, tagName (since we only show one of these in
     // the renderer)
-    private fun generateTooltip(): String? =
-      if (id.isNullOrEmpty() || tagName.isEmpty()) null
-      else
-        """
-        <html>
-          $tagName<br/>
-          ${if (textValue.isNullOrEmpty()) id else "$id: ${textValue?.truncateTooltipValue()}"}
-        </html>
-        """
-          .trimIndent()
+    private fun generateTooltip(): String? {
+      if (id.isNullOrEmpty() || tagName.isEmpty()) return null
+      val esc = HtmlEscapers.htmlEscaper()
+      val safeTag = esc.escape(tagName)
+      val safeId = esc.escape(id!!)
+      val safeText = textValue?.truncateTooltipValue()?.let { esc.escape(it) }
+      val line2 = if (safeText.isNullOrEmpty()) safeId else "$safeId: $safeText"
+      return "<html>$safeTag<br/>$line2</html>"
+    }
   }
 
   companion object {
@@ -247,11 +247,9 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       return str
     }
 
-    private fun stripId(id: String?): String? {
-      return id?.substringAfter('/')
-    }
+    private fun stripId(id: String?): String? = id?.substringAfter('/')
 
     private fun String.truncateTooltipValue(): String =
-      if (this.length > MAX_TOOLTIP_TEXT_LENGTH) this.substring(0, MAX_TOOLTIP_TEXT_LENGTH) + "..." else this
+      if (this.length > MAX_TOOLTIP_TEXT_LENGTH) "${this.substring(0, MAX_TOOLTIP_TEXT_LENGTH)}..." else this
   }
 }

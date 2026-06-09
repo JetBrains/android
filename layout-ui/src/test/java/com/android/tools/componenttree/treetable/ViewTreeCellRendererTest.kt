@@ -92,16 +92,7 @@ class ViewTreeCellRendererTest {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "\"Hello\"", Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("text", normal), Fragment(" \"Hello\"", grey))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText)
-      .isEqualTo(
-        """
-        <html>
-          TextView<br/>
-          text: "Hello"
-        </html>
-        """
-          .trimIndent()
-      )
+    assertThat(component.toolTipText).isEqualTo("<html>TextView<br/>text: &quot;Hello&quot;</html>")
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("text \"Hello\"")
   }
 
@@ -119,16 +110,7 @@ class ViewTreeCellRendererTest {
     val item = Item(FQCN_TEXT_VIEW, "@id/textView", null, Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("textView", normal))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText)
-      .isEqualTo(
-        """
-        <html>
-          TextView<br/>
-          textView
-        </html>
-        """
-          .trimIndent()
-      )
+    assertThat(component.toolTipText).isEqualTo("<html>TextView<br/>textView</html>")
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("textView - TextView")
   }
 
@@ -199,16 +181,7 @@ class ViewTreeCellRendererTest {
     item.enabled = false
     val component = renderAndCheckFragments(item, Fragment("text", strikeout), Fragment(" \"Hello\"", greyStrikeout))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText)
-      .isEqualTo(
-        """
-        <html>
-          TextView<br/>
-          text: "Hello"
-        </html>
-        """
-          .trimIndent()
-      )
+    assertThat(component.toolTipText).isEqualTo("<html>TextView<br/>text: &quot;Hello&quot;</html>")
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("text \"Hello\"")
   }
 
@@ -218,15 +191,7 @@ class ViewTreeCellRendererTest {
     item.enabled = false
     val component = renderAndCheckFragments(item, Fragment("text", strikeout), Fragment(" $LONG_TEXT_VALUE", greyStrikeout))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText)
-      .isEqualTo(
-        """
-      <html>
-        TextView<br/>
-        text: ${LONG_TEXT_VALUE.substring(0, 1000)}...
-      </html>"""
-          .trimIndent()
-      )
+    assertThat(component.toolTipText).isEqualTo("<html>TextView<br/>text: ${LONG_TEXT_VALUE.substring(0, 1000)}...</html>")
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("text ${LONG_TEXT_VALUE.substring(0, 1000)}...")
   }
 
@@ -255,6 +220,13 @@ class ViewTreeCellRendererTest {
     assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = true)!!, faint)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = true)).isSameAs(normal)
     assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)!!, selectedWithFocus)
+  }
+
+  @Test
+  fun testHtmlInTooltipIsEscaped() {
+    val item = Item(FQCN_TEXT_VIEW, "@+id/<html>evil-id</html>", "<html>evil-text</html>", Palette.TEXT_VIEW)
+    val component = renderer.getTreeCellRendererComponent(tree!!, item, false, false, true, TEST_ROW, false) as ColoredViewRenderer
+    assertThat(component.toolTipText).isEqualTo("<html>TextView<br/>&lt;html&gt;evil-id&lt;/html&gt;: &lt;html&gt;evil-text&lt;/html&gt;</html>")
   }
 
   @Suppress("UndesirableClassUsage")
