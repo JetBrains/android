@@ -16,5 +16,5 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="/META-INF/safeargs.common.xml"/>
   <xi:include href="/META-INF/safeargs.common.gradle.xml"/>
-  <xi:include href="/META-INF/safeargs.k2.xml" includeUnless="idea.kotlin.plugin.use.k1.obsolete"/>
+  <xi:include href="/META-INF/safeargs.k2.xml"/>
 </idea-plugin>

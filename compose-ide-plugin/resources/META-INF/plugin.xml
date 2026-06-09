@@ -201,5 +201,5 @@
     </action>
   </actions>
 
-  <xi:include href="plugin.k2.xml" includeUnless="idea.kotlin.plugin.use.k1.obsolete"/>
+  <xi:include href="plugin.k2.xml"/>
 </idea-plugin>
