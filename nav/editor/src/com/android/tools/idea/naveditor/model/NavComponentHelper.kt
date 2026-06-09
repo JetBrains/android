@@ -55,6 +55,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
@@ -110,7 +111,9 @@ enum class ActionType {
 }
 
 val NlComponent.uiName: String
-  get() = id ?: resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".") ?: tagName
+  get() = StringUtil.removeHtmlTags(
+    id ?: resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".") ?: tagName
+  )
 
 /**
  * Creates a map of the visible destinations The keys make up the parent chain to the root. Each value is a list of visible destinations

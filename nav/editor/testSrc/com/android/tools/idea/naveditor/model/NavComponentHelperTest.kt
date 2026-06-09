@@ -53,6 +53,13 @@ class NavComponentHelperTest {
     assertEquals("Bar", component.uiName)
     whenever(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn("@+id/myId")
     assertEquals("myId", component.uiName)
+
+    whenever(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn("@+id/<html>evil</html>")
+    assertEquals("evil", component.uiName)
+
+    whenever(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn(null)
+    whenever(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("com.example.<html>evil</html>")
+    assertEquals("evil", component.uiName)
   }
 }
 
