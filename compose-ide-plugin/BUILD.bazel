@@ -406,8 +406,6 @@ jvm_library(
         "//plugins/kotlin/code-insight/api:api_test_lib",
         "//plugins/kotlin/code-insight/inspections-k2:kotlin-codeInsight-inspections",
         "//plugins/kotlin/code-insight/inspections-k2:kotlin-codeInsight-inspections_test_lib",
-        "//plugins/kotlin/code-insight/inspections-shared:kotlin-code-insight-inspections-shared",
-        "//plugins/kotlin/code-insight/inspections-shared:kotlin-code-insight-inspections-shared_test_lib",
         "//plugins/kotlin/formatter",
         "//plugins/kotlin/formatter:formatter_test_lib",
         "//plugins/kotlin/formatter/minimal",

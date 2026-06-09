@@ -51,7 +51,7 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageTarget
-import org.jetbrains.kotlin.idea.k2.codeinsight.inspections.UnusedSymbolInspection
+import org.jetbrains.kotlin.idea.codeInsight.inspections.UnusedSymbolInspection
 import org.junit.Rule
 import org.junit.Test
 import java.io.File

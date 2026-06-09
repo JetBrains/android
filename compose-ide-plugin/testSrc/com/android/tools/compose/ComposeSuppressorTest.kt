@@ -23,8 +23,8 @@ import com.intellij.openapi.roots.SourceFolder
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.idea.codeInsight.inspections.shared.FunctionNameInspection
-import org.jetbrains.kotlin.idea.codeInsight.inspections.shared.TestFunctionNameInspection
+import org.jetbrains.kotlin.idea.codeInsight.inspections.FunctionNameInspection
+import org.jetbrains.kotlin.idea.codeInsight.inspections.TestFunctionNameInspection
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

@@ -19,7 +19,7 @@ import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
 import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.idea.k2.codeinsight.inspections.UnusedSymbolInspection
+import org.jetbrains.kotlin.idea.codeInsight.inspections.UnusedSymbolInspection
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule

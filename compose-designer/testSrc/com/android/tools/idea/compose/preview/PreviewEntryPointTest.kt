@@ -22,7 +22,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.jetbrains.kotlin.idea.k2.codeinsight.inspections.UnusedSymbolInspection as K2UnusedSymbolInspection
+import org.jetbrains.kotlin.idea.codeInsight.inspections.UnusedSymbolInspection as K2UnusedSymbolInspection
 
 class PreviewEntryPointTest {
 
