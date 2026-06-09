@@ -26,6 +26,7 @@ import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorGroupInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.TfliteModelException;
+import com.android.utils.Pair;
 import com.android.utils.StringHelper;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
@@ -33,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Floats;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -53,7 +55,6 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightMethodBuilder;
-import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HyperlinkLabel;
@@ -87,10 +88,12 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -106,6 +109,7 @@ import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
@@ -379,13 +383,16 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static JBTable addTable(@NotNull JPanel tableContainer,
                                   @NotNull List<List<String>> rowDataList,
                                   @NotNull List<String> headerData) {
-    MetadataTableModel tableModel = new MetadataTableModel(rowDataList, headerData);
+    Set<Pair<Integer, Integer>> cellsWithHtml = new HashSet<>();
+    List<List<String>> sanitizedRowDataList = sanitizeRowInputs(rowDataList, cellsWithHtml);
+
+    MetadataTableModel tableModel = new MetadataTableModel(sanitizedRowDataList, cellsWithHtml, headerData);
     JBTable table = new JBTable(tableModel);
     table.setAlignmentX(Component.LEFT_ALIGNMENT);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     table.setBackground(UIUtil.getTextFieldBackground());
-    table.setDefaultEditor(String.class, new MetadataCellComponentProvider());
-    table.setDefaultRenderer(String.class, new MetadataCellComponentProvider());
+    table.setDefaultEditor(String.class, new MetadataCellComponentProvider(cellsWithHtml));
+    table.setDefaultRenderer(String.class, new MetadataCellComponentProvider(cellsWithHtml));
     table.setRowSelectionAllowed(false);
     table.setShowGrid(false);
     table.setShowColumns(true);
@@ -960,17 +967,36 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return arrayString1 + separator + arrayString2;
   }
 
-  private static boolean isCellContentTypeHtml(TableModel tableModel, int rowIndex, int columnIndex) {
-    return ((String)tableModel.getValueAt(rowIndex, columnIndex)).startsWith("<html>");
+  private static @NotNull List<List<String>> sanitizeRowInputs(@NotNull List<List<String>> rowDataList, Set<Pair<Integer, Integer>> cellsWithHtml) {
+    List<List<String>> sanitizedRows = new ArrayList<>(rowDataList.size());
+
+    for (int r = 0; r < rowDataList.size(); r++) {
+      List<String> row = rowDataList.get(r);
+      List<String> sanitizedRow = new ArrayList<>(row.size());
+      for (int c = 0; c < row.size(); c++) {
+        String cellValue = row.get(c);
+        if (URLUtil.URL_PATTERN.matcher(cellValue).find()) {
+          sanitizedRow.add(HtmlUtils.plainTextToHtml(cellValue));
+          cellsWithHtml.add(Pair.of(r, c));
+        } else {
+          sanitizedRow.add(cellValue);
+        }
+      }
+
+      sanitizedRows.add(sanitizedRow);
+    }
+
+    return sanitizedRows;
   }
 
   private static class MetadataTableModel extends AbstractTableModel {
     private final List<List<String>> myRowDataList;
+    private final Set<Pair<Integer, Integer>> myCellsWithHtml;
     private final List<String> myHeaderData;
 
-    private MetadataTableModel(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
-      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(
-        row, cellValue -> URLUtil.URL_PATTERN.matcher(cellValue).find() ? HtmlUtils.plainTextToHtml(cellValue) : cellValue));
+    private MetadataTableModel(@NotNull List<List<String>> rowDataList, @NotNull Set<Pair<Integer, Integer>> cellsWithHtml, @NotNull List<String> headerData) {
+      myRowDataList = rowDataList;
+      myCellsWithHtml = cellsWithHtml;
       myHeaderData = headerData;
     }
 
@@ -1003,7 +1029,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     public boolean isCellEditable(int rowIndex, int columnIndex) {
       // HACK We're relying on cell editor components (as opposed to cell renderer components) in order to receive events so we can linkify
       // urls and make them clickable. We're not using those editors to actually edit the table model values.
-      return isCellContentTypeHtml(this, rowIndex, columnIndex);
+      return myCellsWithHtml.contains(Pair.of(rowIndex, columnIndex));
     }
 
     private boolean hasHeader() {
@@ -1015,10 +1041,20 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static class MetadataCellComponentProvider extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
     @NotNull
     private final JTextPane myTextPane;
+    @NotNull
+    private final Set<Pair<Integer, Integer>> myCellsWithHtml;
 
-    private MetadataCellComponentProvider() {
+    private MetadataCellComponentProvider(@NotNull Set<Pair<Integer, Integer>> cellsWithHtml) {
+      myCellsWithHtml = cellsWithHtml;
       myTextPane = new JTextPane();
-      myTextPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+      myTextPane.addHyperlinkListener(e -> {
+          if (e.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
+          String href = e.getDescription();
+          // Only allow plain web links from model metadata.
+            if (href != null && (href.startsWith("http://") || href.startsWith("https://"))) {
+              BrowserUtil.browse(href);
+            }
+        });
       myTextPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
       myTextPane.setBackground(UIUtil.getTextFieldBackground());
       myTextPane.setEditable(false);
@@ -1051,7 +1087,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     private void configureTextPane(@NotNull JTable table, int row, int column) {
-      myTextPane.setContentType(isCellContentTypeHtml(table.getModel(), row, column) ? "text/html" : "text/plain");
+      int modelRow = table.convertRowIndexToModel(row);
+      int modelCol = table.convertColumnIndexToModel(column);
+      myTextPane.setContentType(myCellsWithHtml.contains(Pair.of(modelRow, modelCol)) ? "text/html" : "text/plain");
+
       myTextPane.setText((String)table.getValueAt(row, column));
       if (((MetadataTableModel)table.getModel()).hasHeader()) {
         myTextPane.setBorder(Borders.empty(8, 8, 8, 0));
