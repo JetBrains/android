@@ -122,7 +122,7 @@ internal class LogcatFilterParser(
    */
   fun removeFilterNames(filterString: String): String {
     return try {
-      val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
+      val psi = runReadActionBlocking { psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString) }
       val offsets =
         PsiTreeUtil.findChildrenOfType(psi, LogcatFilterLiteralExpression::class.java)
           .filter { it.firstChild.text == "name:" }
@@ -145,7 +145,7 @@ internal class LogcatFilterParser(
       filterString.isEmpty() -> null
       filterString.isBlank() -> StringFilter(filterString, IMPLICIT_LINE, matchCase, TextRange(0, filterString.length))
       else -> {
-        val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
+        val psi = runReadActionBlocking { psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString) }
         if (PsiTreeUtil.hasErrorElements(psi)) {
           val errorElement = PsiTreeUtil.findChildOfType(psi, PsiErrorElement::class.java) as PsiErrorElement
           throw LogcatFilterParseException(errorElement)
