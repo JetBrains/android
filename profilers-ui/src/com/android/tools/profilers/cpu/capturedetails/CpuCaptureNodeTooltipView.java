@@ -45,6 +45,7 @@ public class CpuCaptureNodeTooltipView extends TooltipView {
     long idleDuration = totalDuration - threadDuration;
 
     JLabel nameLabel = new JLabel(myCaptureNode.getData().getFullNameWithSuffix());
+    nameLabel.putClientProperty("html.disable", Boolean.TRUE);
     JLabel runningLabel = new JLabel(String.format("Running: %s", TimeFormatter.getSingleUnitDurationString(threadDuration)));
     JLabel idleLabel = new JLabel(String.format("Idle: %s", TimeFormatter.getSingleUnitDurationString(idleDuration)));
     JLabel totalLabel = new JLabel(String.format("Total: %s", TimeFormatter.getSingleUnitDurationString(totalDuration)));

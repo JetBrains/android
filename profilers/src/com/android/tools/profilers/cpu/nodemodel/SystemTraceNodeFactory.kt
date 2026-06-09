@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu.nodemodel
 
+import com.intellij.openapi.util.text.StringUtil
+
 /**
  * This Factory returns instances of {@link SystemTraceNodeModel}s, guaranteeing that nodes that represents a same object would be mapped to
  * a single instance.
@@ -24,8 +26,9 @@ class SystemTraceNodeFactory {
 
   fun getNode(name: String): SystemTraceNodeModel {
     return nodeMap.getOrPut(name) {
-      val canonicalName = NUMBER_SUFFIX_PATTERN.replace(name, "")
-      SystemTraceNodeModel(canonicalName, name)
+      val safeName = StringUtil.escapeXmlEntities(name)
+      val canonicalName = NUMBER_SUFFIX_PATTERN.replace(safeName, "")
+      SystemTraceNodeModel(canonicalName, safeName)
     }
   }
 

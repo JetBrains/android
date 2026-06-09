@@ -194,7 +194,9 @@ public class TabbedToolbar extends JPanel {
       // Add spacing to match mocks.
       setBorder(JBUI.Borders.empty(5, 10));
       setFocusable(true);
-      add(new JLabel(name), BorderLayout.CENTER);
+      JLabel label = new JLabel(name);
+      label.putClientProperty("html.disable", Boolean.TRUE);
+      add(label, BorderLayout.CENTER);
       if (onClosed != null) {
         CommonButton closeButton = new CommonButton(StudioIcons.Common.CLOSE);
         closeButton.addActionListener((e) -> onClosed.doAction());

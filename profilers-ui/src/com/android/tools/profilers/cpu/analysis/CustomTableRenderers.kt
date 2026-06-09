@@ -62,6 +62,10 @@ internal class IntegerAsStringTableCellRender(border: Border = DEFAULT_CELL_BORD
  * @param customBorder a custom border to apply to the table cells.
  */
 internal open class CustomBorderTableCellRenderer(private val customBorder: Border = DEFAULT_CELL_BORDER) : DefaultTableCellRenderer() {
+  init {
+    putClientProperty("html.disable", true)
+  }
+
   override fun getTableCellRendererComponent(
     table: JTable?,
     value: Any?,

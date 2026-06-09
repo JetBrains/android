@@ -48,6 +48,7 @@ class CpuChartTooltipView extends ChartTooltipViewBase<CaptureNode> {
 
     getTooltipContainer().removeAll();
     JLabel nameLabel = new JLabel(node.getData().getFullName());
+    nameLabel.putClientProperty("html.disable", Boolean.TRUE);
     nameLabel.setFont(TOOLTIP_BODY_FONT);
     nameLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
     getTooltipContainer().add(nameLabel, new TabularLayout.Constraint(0, 0));
