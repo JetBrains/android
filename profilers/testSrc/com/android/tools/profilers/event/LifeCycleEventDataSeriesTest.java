@@ -266,6 +266,28 @@ public class LifeCycleEventDataSeriesTest {
     assertThat(((LifecycleAction)event.value).getName()).isEqualTo(FRAGMENT_NAME);
   }
 
+  @Test
+  public void testActivityNameEscaped() {
+    String maliciousName = "<html><img src='http://attacker/x'>EvilActivity";
+    buildActivityEvent(maliciousName,
+                       new ActivityStateData[]{
+                         new ActivityStateData(Interaction.ViewData.State.CREATED,
+                                               TEST_START_TIME_NS),
+                         new ActivityStateData(Interaction.ViewData.State.RESUMED,
+                                               TEST_START_TIME_NS),
+                       },
+                       0);
+    Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForRange(range);
+    assertThat(dataList).hasSize(1);
+    SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
+    verifyActivity(event, 0);
+    assertThat(event.value.getType()).isEqualTo(LifecycleEvent.STARTED);
+    assertThat(((LifecycleAction)event.value).getName()).isEqualTo(
+      "&lt;html&gt;&lt;img src=&#39;http://attacker/x&#39;&gt;EvilActivity"
+    );
+  }
+
   private static void verifyActivity(SeriesData<EventAction<LifecycleEvent>> event, long endTime) {
     assertThat(event.x).isEqualTo(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
     assertThat(event.value.getStartUs()).isEqualTo(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));

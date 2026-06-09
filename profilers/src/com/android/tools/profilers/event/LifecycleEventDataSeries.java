@@ -73,7 +73,9 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
       for (int i = 0; i < group.getEventsCount(); i++) {
         Common.Event event = group.getEvents(i);
         Interaction.ViewData data = event.getView();
-        String displayString = data.getName();
+        // ViewData.name comes from the (potentially hostile) profiled process / device.
+        // Strip/escape XML entities so it can never trigger Swing BasicHTML in downstream JLabels.
+        String displayString = com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(data.getName());
 
         // Match start states with end states.
         switch (data.getState()) {

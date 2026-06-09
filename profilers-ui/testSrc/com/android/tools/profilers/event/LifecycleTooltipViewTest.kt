@@ -157,6 +157,36 @@ class LifecycleTooltipViewTest {
   }
 
   @Test
+  fun tooltipLabelsHaveHtmlDisabled() {
+    buildActivityEvent(
+      ACTIVITY_NAME,
+      arrayOf(
+        ActivityStateData(Interaction.ViewData.State.CREATED, TEST_START_TIME_NS),
+        ActivityStateData(Interaction.ViewData.State.RESUMED, TEST_START_TIME_NS),
+      ),
+      0,
+    )
+    for (fragmentName in FRAGMENT_NAMES) {
+      buildActivityEvent(
+        fragmentName,
+        arrayOf(ActivityStateData(Interaction.ViewData.State.ADDED, TEST_START_TIME_NS)),
+        fragmentName.hashCode().toLong(),
+      )
+    }
+    timer.tick(TimeUnit.SECONDS.toNanos(2))
+
+    assertThat(activityTooltipView.activityNameLabel.getClientProperty("html.disable")).isEqualTo(true)
+    assertThat(activityTooltipView.durationLabel.getClientProperty("html.disable")).isEqualTo(true)
+
+    val fragmentsPanel = activityTooltipView.fragmentsPanel
+    assertThat(fragmentsPanel.componentCount).isEqualTo(2)
+    for (i in 0 until fragmentsPanel.componentCount) {
+      val label = fragmentsPanel.getComponent(i) as JLabel
+      assertThat(label.getClientProperty("html.disable")).isEqualTo(true)
+    }
+  }
+
+  @Test
   fun testGetActivityTitleTextCompleted() {
     buildActivityEvent(
       ACTIVITY_NAME,

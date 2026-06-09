@@ -61,7 +61,9 @@ public class LifecycleTooltipView extends TooltipView {
     getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
 
     myActivityNameLabel = new JLabel();
+    myActivityNameLabel.putClientProperty("html.disable", Boolean.TRUE);
     myDurationLabel = new JLabel();
+    myDurationLabel.putClientProperty("html.disable", Boolean.TRUE);
     myFragmentsPanel = new JPanel(new VerticalFlowLayout(0, 0));
   }
 
@@ -115,7 +117,10 @@ public class LifecycleTooltipView extends TooltipView {
       else if (justRemoved) {
         text += " - paused";
       }
-      labels.add(new JLabel(text));
+      JLabel fragmentLabel = new JLabel();
+      fragmentLabel.putClientProperty("html.disable", Boolean.TRUE);
+      fragmentLabel.setText(text);
+      labels.add(fragmentLabel);
     });
     labels.sort((o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
     labels.forEach(label -> myFragmentsPanel.add(label));
