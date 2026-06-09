@@ -157,9 +157,10 @@ internal constructor(
     }
 
     decoderScope.launch {
-      readChannelHeaderAndInitializeCodec()
-      val packetReader = PacketReader()
+      var packetReader: PacketReader? = null
       try {
+        readChannelHeaderAndInitializeCodec()
+        packetReader = PacketReader()
         while (true) {
           packetReader.readAndProcessPacket()
         }
@@ -173,7 +174,7 @@ internal constructor(
           decodingContext.close()
         }
         decodingContexts.clear()
-        packetReader.close()
+        packetReader?.close()
       }
     }
   }
@@ -186,8 +187,13 @@ internal constructor(
     val ffmpegCodecName =
       when (codecName) {
         "av01" -> "av1"
-        "avc" -> "h264"
-        else -> codecName
+        "avc",
+        "h264" -> "h264"
+        "hevc" -> "hevc"
+        "vp8" -> "vp8"
+        "vp9" -> "vp9"
+        "vvc" -> "vvc"
+        else -> throw VideoDecoderException("Unsupported video codec '$codecName' advertised by device")
       }
     codec.complete(avcodec_find_decoder_by_name(ffmpegCodecName) ?: throw VideoDecoderException("$ffmpegCodecName decoder not found"))
   }
@@ -224,7 +230,7 @@ internal constructor(
       headerBuffer.clear()
       val packetSize = header.packetSize
       val presentationTimestampUs = header.presentationTimestampUs
-      if (presentationTimestampUs < 0 || packetSize < 0) {
+      if (presentationTimestampUs < 0 || packetSize < 0 || packetSize > MAX_VIDEO_PACKET_SIZE) {
         throw VideoDecoderException("Invalid packet header: ${toHexString(headerBuffer.rewind().toByteArray())}")
       }
       if (packetSize == 0) {
@@ -673,6 +679,7 @@ private fun BufferedImage.fill(color: Color) {
 }
 
 private const val CHANNEL_HEADER_LENGTH = 20
+private const val MAX_VIDEO_PACKET_SIZE = 16 * 1024 * 1024
 /** Number of frames to be received before considering bit rate to be stable. */
 @VisibleForTesting // Visible and mutable for testing.
 internal var BIT_RATE_STABILITY_FRAME_COUNT = 1000
