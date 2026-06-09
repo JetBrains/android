@@ -208,11 +208,21 @@ class CpuTraceInterceptCommandHandler(val device: IDevice, private val transport
       else -> handshake.enableTracingImmediate(libraryProvider)
     }
 
+  private companion object {
+    // Strict validation to prevent path traversal and SSRF attacks via malicious requiredVersion strings
+    private val SAFE_VERSION = Regex("[A-Za-z0-9._+\\-]{1,64}")
+  }
+
   private fun resolveArtifact(artifactVersion: String): Path? {
+    if (!SAFE_VERSION.matches(artifactVersion)) {
+      log.warn("Rejecting Perfetto-SDK requiredVersion from device: '$artifactVersion'")
+      return null
+    }
     val artifact = Artifact("androidx.tracing", "tracing-perfetto-binary", artifactVersion)
     return try {
-      val tmpDir = IdeFileService("profiler-artifacts").getOrCreateTempDir("http-tmp")
-      val tmpFile = tmpDir.resolve(artifact.fileName)
+      val tmpDir = IdeFileService("profiler-artifacts").getOrCreateTempDir("http-tmp").normalize()
+      val tmpFile = tmpDir.resolve(artifact.fileName).normalize()
+      require(tmpFile.startsWith(tmpDir)) { "perfetto-binary download path escaped $tmpDir: ${artifact.fileName}" }
       log.debug("StudioDownloader downloading: ${artifact.fileName}")
       StudioDownloader()
         .downloadFullyWithCaching(
@@ -223,6 +233,10 @@ class CpuTraceInterceptCommandHandler(val device: IDevice, private val transport
         )
       tmpFile
     } catch (e: IOException) {
+      log.warn("Error downloading Perfetto-SDK binary:", e)
+      null
+    } catch (e: IllegalArgumentException) {
+      log.warn("Error resolving Perfetto-SDK binary path:", e)
       null
     }
   }

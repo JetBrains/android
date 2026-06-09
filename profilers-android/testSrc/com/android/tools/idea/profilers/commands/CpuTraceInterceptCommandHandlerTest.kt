@@ -120,6 +120,33 @@ class CpuTraceInterceptCommandHandlerTest {
     }
   }
 
+  @Test
+  fun `Trace gracefully rejects invalid SDK version`() {
+    val testPid = 1
+    val cmdId = 1
+    // Exit code 11 == SDK binary missing, combined with an invalid payload
+    val payload = "1.0.0/tracing-perfetto-binary-1.0.0.aar#/../../../../../../../../../../../../../../../../../../tmp/aswb_044_pwned"
+    val broadcastFailed =
+      ("Broadcasting: Intent { act=androidx.tracing.perfetto.action.ENABLE_TRACING flg=0x400000" +
+        "cmp=androidx.compose.samples.crane/androidx.tracing.perfetto.TracingReceiver }\n" +
+        "Broadcast completed: result=11, data=\"{\"exitCode\":11,\"requiredVersion\":\"$payload\"" +
+        "}\"\n")
+    val commandHandler = setupInterceptForTest(testPid, broadcastFailed)
+    val startTrackCommand = buildCommand(cmdId, TraceType.PERFETTO)
+    val returnValue = commandHandler.execute(startTrackCommand)
+    Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
+    val captor = ArgumentCaptor.forClass(String::class.java)
+    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), any())
+    Truth.assertThat(captor.value).contains("broadcast")
+    Truth.assertThat(commandHandler.lastResponseCode).isEqualTo(ResponseResultCodes.RESULT_CODE_ERROR_BINARY_MISSING)
+    with(commandHandler.lastMetricsEvent!!) {
+      Truth.assertThat(hasAndroidProfilerEvent()).isTrue()
+      Truth.assertThat(androidProfilerEvent.hasPerfettoSdkHandshakeMetadata()).isTrue()
+      Truth.assertThat(androidProfilerEvent.perfettoSdkHandshakeMetadata.handshakeResult)
+        .isEqualTo(HandshakeResult.ERROR_BINARY_UNAVAILABLE)
+    }
+  }
+
   private fun setupInterceptForTest(testPid: Int): CpuTraceInterceptCommandHandler {
     val broadcast =
       ("Broadcasting: Intent { act=androidx.tracing.perfetto.action.ENABLE_TRACING flg=0x400000" +
