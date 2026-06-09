@@ -19,7 +19,6 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -31,7 +30,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.application
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 
@@ -40,7 +40,8 @@ import org.jetbrains.android.facet.ResourceFolderManager
  * to update resource repositories.
  */
 @Service(Service.Level.PROJECT)
-class AndroidProjectRootListener private constructor(private val project: Project) : Disposable.Default {
+class AndroidProjectRootListener private constructor(private val project: Project, private val coroutineScope: CoroutineScope) :
+  Disposable.Default {
   init {
     val messageBusConnection = project.messageBus.connect(this)
 
@@ -55,20 +56,15 @@ class AndroidProjectRootListener private constructor(private val project: Projec
 
     messageBusConnection.subscribe(
       PROJECT_SYSTEM_SYNC_TOPIC,
-      ProjectSystemSyncManager.SyncResultListener {
-        // This event is called on the EDT. Calling `moduleRootsOrDependenciesChanged` directly ends
-        // up executing the DumbModeTask synchronously, which has leads to failures due to the state
-        // we're in from higher up the stack. Executing this on the EDT later avoids that situation.
-        application.invokeLater { moduleRootsOrDependenciesChanged() }
-      },
+      ProjectSystemSyncManager.SyncResultListener { moduleRootsOrDependenciesChanged() },
     )
   }
 
   /** Called when module roots have changed in the associated [project]. */
   private fun moduleRootsOrDependenciesChanged() {
-    runReadAction {
+    coroutineScope.launch {
       if (!project.isDisposed && hasAndroidFacets()) {
-        RootsChangedDumbModeTask(project, this).queue(project)
+        RootsChangedDumbModeTask(project, this@AndroidProjectRootListener).queue(project)
       }
     }
   }

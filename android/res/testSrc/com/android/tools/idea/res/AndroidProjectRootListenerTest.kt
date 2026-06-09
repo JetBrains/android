@@ -15,22 +15,23 @@
  */
 package com.android.tools.idea.res
 
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.android.facet.ResourceFolderManager
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.never
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
 
 @RunWith(JUnit4::class)
 class AndroidProjectRootListenerTest {
@@ -39,19 +40,29 @@ class AndroidProjectRootListenerTest {
   private val project by lazy { androidProjectRule.project }
   private val module by lazy { androidProjectRule.fixture.module }
 
-  @Test
-  fun updateAfterSync() {
-    // Register ResourceFolderManager spy so we can tell if it's been updated.
-    val resourceFolderManagerSpy: ResourceFolderManager = spy(ResourceFolderManager(module))
+  private var checkForChangesInvocations = 0
+
+  @Before
+  fun setUp() {
+    val mockResourceFolderManager: ResourceFolderManager = mock {
+      on { checkForChanges() } doAnswer
+        {
+          checkForChangesInvocations++
+          Unit
+        }
+    }
     module.registerOrReplaceServiceInstance(
       ResourceFolderManager::class.java,
-      resourceFolderManagerSpy,
+      mockResourceFolderManager,
       androidProjectRule.testRootDisposable,
     )
+  }
 
+  @Test
+  fun updateAfterSync() {
     // Register AndroidProjectRootListener and ensure it doesn't trigger updates as it starts.
     AndroidProjectRootListener.ensureSubscribed(project)
-    verify(resourceFolderManagerSpy, never()).checkForChanges()
+    assertThat(checkForChangesInvocations).isEqualTo(0)
 
     // Simulate sync finishing.
     ApplicationManager.getApplication().invokeAndWait {
@@ -59,24 +70,14 @@ class AndroidProjectRootListenerTest {
     }
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
-    ApplicationManager.getApplication().invokeAndWait {}
-    IndexingTestUtil.waitUntilIndexesAreReady(project)
-    verify(resourceFolderManagerSpy, times(1)).checkForChanges()
+    waitForCondition(10.seconds) { checkForChangesInvocations == 1 }
   }
 
   @Test
   fun updateAfterProjectRootsChange() {
-    // Register ResourceFolderManager spy so we can tell if it's been updated.
-    val resourceFolderManagerSpy: ResourceFolderManager = spy(ResourceFolderManager(module))
-    module.registerOrReplaceServiceInstance(
-      ResourceFolderManager::class.java,
-      resourceFolderManagerSpy,
-      androidProjectRule.testRootDisposable,
-    )
-
     // Register AndroidProjectRootListener and ensure it doesn't trigger updates as it starts.
     AndroidProjectRootListener.ensureSubscribed(project)
-    verify(resourceFolderManagerSpy, never()).checkForChanges()
+    assertThat(checkForChangesInvocations).isEqualTo(0)
 
     // Simulate roots changing.
     ApplicationManager.getApplication().invokeAndWait {
@@ -87,8 +88,6 @@ class AndroidProjectRootListenerTest {
     }
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
-    ApplicationManager.getApplication().invokeAndWait {}
-    IndexingTestUtil.waitUntilIndexesAreReady(project)
-    verify(resourceFolderManagerSpy, times(1)).checkForChanges()
+    waitForCondition(10.seconds) { checkForChangesInvocations == 1 }
   }
 }
