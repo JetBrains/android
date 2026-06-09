@@ -148,7 +148,9 @@ public class TrackGroup extends AspectObserver {
     toolbarPanel.add(mySeparator);
     toolbarPanel.add(myCollapseButton);
 
-    myTitleLabel = new JLabel(groupModel.getTitle());
+    myTitleLabel = new JLabel();
+    myTitleLabel.putClientProperty("html.disable", Boolean.TRUE);
+    myTitleLabel.setText(groupModel.getTitle());
     myTitleLabel.setFont(TITLE_FONT);
     myTitleLabel.setBorder(JBUI.Borders.emptyLeft(16));
     myTitleInfoIcon = new JLabel(StudioIcons.Common.HELP);
