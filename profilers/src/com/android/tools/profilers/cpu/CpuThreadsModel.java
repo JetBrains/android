@@ -29,6 +29,7 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
+import com.intellij.openapi.util.text.StringUtil;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,7 +102,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     for (EventGroup eventGroup : response.getGroupsList()) {
       if (eventGroup.getEventsCount() > 0) {
         Cpu.CpuThreadData threadData = eventGroup.getEvents(0).getCpuThread();
-        requestedThreadsRangedCpuThreads.put(threadData.getTid(), new RangedCpuThread(myRange, threadData.getTid(), threadData.getName()));
+        String safeName = StringUtil.escapeXmlEntities(threadData.getName());
+        requestedThreadsRangedCpuThreads.put(threadData.getTid(), new RangedCpuThread(myRange, threadData.getTid(), safeName));
       }
     }
 

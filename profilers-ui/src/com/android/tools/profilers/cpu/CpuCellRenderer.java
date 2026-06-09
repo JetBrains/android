@@ -61,6 +61,7 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
 
   public CpuCellRenderer(JList<T> list) {
     myLabel = new JLabel();
+    myLabel.putClientProperty("html.disable", Boolean.TRUE);
     myLabel.setFont(STANDARD_FONT);
     Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
     Border marginLeft = JBUI.Borders.emptyLeft(10);
