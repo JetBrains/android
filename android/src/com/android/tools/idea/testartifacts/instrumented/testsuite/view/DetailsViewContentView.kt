@@ -122,28 +122,34 @@ open class DetailsViewContentView(
     // Journey results tab
     myJourneysResultsPanel = JourneysResultsPanel(project)
     Disposer.register(this, myJourneysResultsPanel)
-    myJourneyScreenshotsTab = TabInfo(myJourneysResultsPanel)
-    myJourneyScreenshotsTab.setText("Results")
-    myJourneyScreenshotsTab.setTooltipText("Show the actions taken by Gemini")
-    myJourneyScreenshotsTab.isHidden = true
+    myJourneyScreenshotsTab =
+      TabInfo(myJourneysResultsPanel).apply {
+        setText("Results")
+        setTooltipText("Show the actions taken by Gemini")
+        isHidden = true
+      }
     tabs.addTab(myJourneyScreenshotsTab)
 
     // Screenshot tab
     myScreenshotResultView = ScreenshotResultView(project)
     Disposer.register(this, myScreenshotResultView)
-    myScreenshotTab = TabInfo(myScreenshotResultView.getComponent())
-    myScreenshotTab.setText("Screenshot")
-    myScreenshotTab.setTooltipText("Show screenshot information")
-    myScreenshotTab.isHidden = true
+    myScreenshotTab =
+      TabInfo(myScreenshotResultView.getComponent()).apply {
+        setText("Screenshot")
+        setTooltipText("Show screenshot information")
+        isHidden = true
+      }
     tabs.addTab(myScreenshotTab)
 
     // Screenshot attributes tab
     myScreenshotAttributesView = ScreenshotAttributesView()
     Disposer.register(this, myScreenshotAttributesView)
-    myScreenshotAttributesTab = TabInfo(myScreenshotAttributesView.getComponent())
-    myScreenshotAttributesTab.setText("Attributes")
-    myScreenshotAttributesTab.setTooltipText("Show preview attributes")
-    myScreenshotAttributesTab.isHidden = true
+    myScreenshotAttributesTab =
+      TabInfo(myScreenshotAttributesView.getComponent()).apply {
+        setText("Attributes")
+        setTooltipText("Show preview attributes")
+        isHidden = true
+      }
     tabs.addTab(myScreenshotAttributesTab)
 
     // Create logcat tab.
@@ -167,9 +173,11 @@ open class DetailsViewContentView(
     logViewToolbar.targetComponent = myLogsView.component
     logsViewWithVerticalToolbar.add(logViewToolbar.component, BorderLayout.EAST)
 
-    logsTab = TabInfo(logsViewWithVerticalToolbar)
-    logsTab.setText("Logs")
-    logsTab.setTooltipText("Show logcat output")
+    logsTab =
+      TabInfo(logsViewWithVerticalToolbar).apply {
+        setText("Logs")
+        setTooltipText("Show logcat output")
+      }
     tabs.addTab(logsTab)
 
     // Create benchmark tab.
@@ -189,10 +197,12 @@ open class DetailsViewContentView(
           false,
         )
     benchmarkViewWithVerticalToolbar.add(benchmarkViewToolbar.component, BorderLayout.EAST)
-    myBenchmarkTab = TabInfo(benchmarkViewWithVerticalToolbar)
-    myBenchmarkTab.setText("Benchmark")
-    myBenchmarkTab.setTooltipText("Show benchmark results")
-    myBenchmarkTab.isHidden = true
+    myBenchmarkTab =
+      TabInfo(benchmarkViewWithVerticalToolbar).apply {
+        setText("Benchmark")
+        setTooltipText("Show benchmark results")
+        isHidden = true
+      }
     tabs.addTab(myBenchmarkTab)
 
     // Device info tab.
@@ -201,9 +211,11 @@ open class DetailsViewContentView(
       myDeviceInfoTableView.getComponent(),
       ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW,
     )
-    myDeviceInfoTab = TabInfo(myDeviceInfoTableView.getComponent())
-    myDeviceInfoTab.setText("Device Info")
-    myDeviceInfoTab.setTooltipText("Show device information")
+    myDeviceInfoTab =
+      TabInfo(myDeviceInfoTableView.getComponent()).apply {
+        setText("Device Info")
+        setTooltipText("Show device information")
+      }
     tabs.addTab(myDeviceInfoTab)
 
     rootPanel = createAccessiblePanel(BorderLayout(), accessibleName = "Test Results Panel Structure")
