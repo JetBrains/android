@@ -38,6 +38,8 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/rendering:intellij.android.rendering",
+        "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
     ],
     test_srcs = ["testSrc"],

@@ -25,8 +25,8 @@ import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.annotations.TestOnly
 import com.android.tools.environment.Logger
 import com.android.tools.rendering.api.RenderModelModule
-import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.useWithClassLoader
+import com.android.tools.rendering.security.RenderSandbox
 import com.google.common.annotations.VisibleForTesting
 import java.util.Objects
 import kotlin.math.min
@@ -338,8 +338,9 @@ open class ParametrizedComposePreviewElementTemplate<T>(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
+    val sandboxTransform = RenderSandbox.getClassTransform()
     (privateClassLoaderFactory(basePreviewElement) ?: return sequenceOf())
-      .getClassLoader(parentClassLoader, ClassTransform.identity, ClassTransform.identity, Runnable {})
+      .getClassLoader(parentClassLoader, sandboxTransform, sandboxTransform, Runnable {})
       .useWithClassLoader { classLoader ->
         return parameterProviders.map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }.first()
       }
@@ -349,82 +350,84 @@ open class ParametrizedComposePreviewElementTemplate<T>(
     classLoader: ClassLoader,
     previewParameter: PreviewParameter,
   ): Sequence<ComposePreviewElementInstance<T>> {
-    try {
-      val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn)
-      val parameterProviderSizeMethod = parameterProviderClass.methods.single { "getCount" == it.name }.also { it.isAccessible = true }
-      val parameterProvider =
-        parameterProviderClass.constructors
-          .single { it.parameters.isEmpty() } // Find the default constructor
-          .also { it.isAccessible = true }
-          .newInstance()
-      val parameterProviderSize = parameterProviderSizeMethod.invoke(parameterProvider) as? Int ?: 0
-      val providerCount = min(parameterProviderSize, previewParameter.limit)
+    return RenderSandbox.computeWithSandbox(BasicRenderSandbox) {
+      try {
+        val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn)
+        val parameterProviderSizeMethod = parameterProviderClass.methods.single { "getCount" == it.name }.also { it.isAccessible = true }
+        val parameterProvider =
+          parameterProviderClass.constructors
+            .single { it.parameters.isEmpty() } // Find the default constructor
+            .also { it.isAccessible = true }
+            .newInstance()
+        val parameterProviderSize = parameterProviderSizeMethod.invoke(parameterProvider) as? Int ?: 0
+        val providerCount = min(parameterProviderSize, previewParameter.limit)
 
-      val parameterProviderDisplayNameMethod =
-        parameterProviderClass.methods
-          .firstOrNull { method -> method.name == "getDisplayName" && method.parameterCount == 1 }
-          ?.apply { isAccessible = true }
+        val parameterProviderDisplayNameMethod =
+          parameterProviderClass.methods
+            .firstOrNull { method -> method.name == "getDisplayName" && method.parameterCount == 1 }
+            ?.apply { isAccessible = true }
 
-      if (providerCount == 0) {
-        // Returns a ParametrizedComposePreviewElementInstance with the error:
-        // "IndexOutOfBoundsException: Sequence doesn't contain element at index 0."
-        // In case providerCount is 0 we want to show an error instance that there are no
-        // PreviewParameters instead of showing nothing.
-        // TODO(b/238315228): propagate the exception so it's shown on the issues panel instead of
-        //  forcing the error changing the index.
-        Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
-          .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider: no parameters found")
-        return sequenceOf(
-          ParametrizedComposePreviewElementInstance(
-            basePreviewElement = basePreviewElement,
-            parameterName = previewParameter.name,
-            index = 0,
-            maxIndex = 0,
-            providerClassFqn = previewParameter.providerClassFqn,
-            displayName = null,
-          )
-        )
-      } else {
-        return (0 until providerCount)
-          .map { index ->
+        if (providerCount == 0) {
+          // Returns a ParametrizedComposePreviewElementInstance with the error:
+          // "IndexOutOfBoundsException: Sequence doesn't contain element at index 0."
+          // In case providerCount is 0 we want to show an error instance that there are no
+          // PreviewParameters instead of showing nothing.
+          // TODO(b/238315228): propagate the exception so it's shown on the issues panel instead of
+          //  forcing the error changing the index.
+          Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
+            .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider: no parameters found")
+          sequenceOf(
             ParametrizedComposePreviewElementInstance(
               basePreviewElement = basePreviewElement,
               parameterName = previewParameter.name,
-              index = index,
-              maxIndex = providerCount - 1,
+              index = 0,
+              maxIndex = 0,
               providerClassFqn = previewParameter.providerClassFqn,
-              displayName = parameterProviderDisplayNameMethod?.invoke(parameterProvider, index) as? String,
+              displayName = null,
             )
-          }
-          .asSequence()
+          )
+        } else {
+          (0 until providerCount)
+            .map { index ->
+              ParametrizedComposePreviewElementInstance(
+                basePreviewElement = basePreviewElement,
+                parameterName = previewParameter.name,
+                index = index,
+                maxIndex = providerCount - 1,
+                providerClassFqn = previewParameter.providerClassFqn,
+                displayName = parameterProviderDisplayNameMethod?.invoke(parameterProvider, index) as? String,
+              )
+            }
+            .asSequence()
+        }
+      } catch (e: Throwable) {
+        Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
+          .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider", e)
+        // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
+        // should handle the exception that will be thrown for this method not being found.
+        // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
+        val fakeElementFqn = "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
+        sequenceOf(
+          SingleComposePreviewElementInstance(
+            fakeElementFqn,
+            PreviewDisplaySettings(
+              name = basePreviewElement.displaySettings.name,
+              baseName = basePreviewElement.displaySettings.baseName,
+              parameterName = basePreviewElement.displaySettings.parameterName,
+              group = null,
+              showDecoration = false,
+              background = PreviewDisplaySettings.Background.None,
+              organizationGroup = basePreviewElement.displaySettings.baseName + basePreviewElement.displaySettings.parameterName,
+              organizationName = basePreviewElement.displaySettings.organizationName,
+            ),
+            null,
+            null,
+            PreviewConfiguration.cleanAndGet(),
+            previewWrapperProviderFqn,
+          )
+        )
       }
-    } catch (e: Throwable) {
-      Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
-        .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider", e)
     }
-    // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
-    // should handle the exception that will be thrown for this method not being found.
-    // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
-    val fakeElementFqn = "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
-    return sequenceOf(
-      SingleComposePreviewElementInstance(
-        fakeElementFqn,
-        PreviewDisplaySettings(
-          name = basePreviewElement.displaySettings.name,
-          baseName = basePreviewElement.displaySettings.baseName,
-          parameterName = basePreviewElement.displaySettings.parameterName,
-          group = null,
-          showDecoration = false,
-          background = PreviewDisplaySettings.Background.None,
-          organizationGroup = basePreviewElement.displaySettings.baseName + basePreviewElement.displaySettings.parameterName,
-          organizationName = basePreviewElement.displaySettings.organizationName,
-        ),
-        null,
-        null,
-        PreviewConfiguration.cleanAndGet(),
-        previewWrapperProviderFqn,
-      )
-    )
   }
 
   override fun equals(other: Any?): Boolean {
