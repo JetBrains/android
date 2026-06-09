@@ -164,6 +164,12 @@ class AndroidRunConfigurations {
     runReadAction {
       if (!project.isDisposed) {
         runManager.addConfiguration(settings)
+      }
+    }
+    // Selecting the run configuration fires an event to UI listeners (e.g. Device Selector)
+    // which assert that they are called on the EDT. Thus we must dispatch this to the EDT.
+    ApplicationManager.getApplication().invokeLater {
+      if (!project.isDisposed) {
         runManager.selectedConfiguration = settings
       }
     }
@@ -253,6 +259,12 @@ class AndroidRunConfigurations {
     runReadAction {
       if (!project.isDisposed) {
         runManager.addConfiguration(settings)
+      }
+    }
+    // Selecting the run configuration fires an event to UI listeners (e.g. Device Selector)
+    // which assert that they are called on the EDT. Thus we must dispatch this to the EDT.
+    ApplicationManager.getApplication().invokeLater {
+      if (!project.isDisposed) {
         runManager.selectedConfiguration = settings
       } else {
         LOG.debug { "addAndroidRunConfiguration: Add run configuration $settings - project s already disposed." }
