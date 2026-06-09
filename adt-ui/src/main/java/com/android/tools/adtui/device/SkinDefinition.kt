@@ -352,7 +352,10 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     @JvmStatic
     private fun getReferencedFile(node: SkinLayoutDefinition, propertyName: String, skinFolder: Path): Path? {
       val filename = node.getValue(propertyName) ?: return null
-      return skinFolder.resolve(filename)
+      val base = skinFolder.normalize()
+      val resolved = skinFolder.resolve(filename).normalize()
+      if (!resolved.startsWith(base)) return null
+      return resolved
     }
 
     @JvmStatic
