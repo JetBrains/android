@@ -30,6 +30,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.SwingHelper
@@ -67,6 +68,7 @@ internal class BackupDialog(
     ComboBox(DefaultComboBoxModel(applicationIds.sorted().toTypedArray())).apply {
       name = "applicationIdComboBox"
       maximumSize = Dimension(APPLICATION_ID_FIELD_WIDTH, maximumSize.height)
+      renderer = SimpleListCellRenderer.create("") { it } // SimpleListCellRenderer puts html.disable=TRUE
     }
   private val typeComboBox =
     ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray())).apply {
