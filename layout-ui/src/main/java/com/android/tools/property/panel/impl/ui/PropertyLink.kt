@@ -57,6 +57,13 @@ class PropertyLink(private val model: LinkPropertyEditorModel) : JPanel(BorderLa
   }
 
   private fun updateFromModel() {
+    if (model.tableExpansionState == TableExpansionState.NORMAL) {
+      label.putClientProperty("html.disable", true)
+      link.putClientProperty("html.disable", true)
+    } else {
+      label.putClientProperty("html.disable", null)
+      link.putClientProperty("html.disable", null)
+    }
     label.text = expandableText(model.value, model.tableExpansionState)
     label.foreground = model.displayedForeground(UIUtil.getLabelForeground())
     link.text = expandableText(model.linkProperty.link.templateText, model.tableExpansionState, underlined = true)

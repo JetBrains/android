@@ -61,6 +61,11 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
     val actualValue = model.value
     val textValue = actualValue.takeIf { it.isNotEmpty() } ?: model.defaultValue
     val textColor = if (actualValue.isEmpty()) NamedColorUtil.getInactiveTextColor() else UIUtil.getLabelForeground()
+    if (model.tableExpansionState == TableExpansionState.NORMAL) {
+      putClientProperty("html.disable", true)
+    } else {
+      putClientProperty("html.disable", null)
+    }
     text = expandableText(textValue, model.tableExpansionState)
     isVisible = model.visible
     foreground = model.displayedForeground(textColor)
