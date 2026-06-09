@@ -59,7 +59,7 @@ class CompilerExceptionHandlingTest {
     try {
       LiveEditCompiler(file.project, cache)
         .also { it.resetState(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(mapOf())) }
-        .compile(listOf(input))
+        .compile(listOf(input), giveWritePriority = false)
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (e: LiveEditUpdateException) {
       assertEquals(LiveEditUpdateException.Error.COMPILATION_ERROR, e.error)
@@ -76,7 +76,9 @@ class CompilerExceptionHandlingTest {
     Mockito.`when`(cache["AKt"]).thenThrow(ExceptionUnknownToStudio())
 
     try {
-      LiveEditCompiler(file.project, cache).compile(listOf(input))
+      LiveEditCompiler(file.project, cache)
+        .also { it.resetState(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(mapOf())) }
+        .compile(listOf(input), giveWritePriority = false)
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (e: LiveEditUpdateException) {}
   }
