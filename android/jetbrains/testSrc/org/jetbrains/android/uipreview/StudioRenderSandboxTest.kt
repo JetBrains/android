@@ -96,4 +96,15 @@ class StudioRenderSandboxTest {
       fail("Expected SecurityException")
     } catch (_: SecurityException) {}
   }
+
+  @Test
+  fun `check concurrency denied`() {
+    val sandbox = StudioRenderSandbox(null, null, null)
+    try {
+      sandbox.checkConcurrency()
+      fail("Expected SecurityException")
+    } catch (e: SecurityException) {
+      org.junit.Assert.assertEquals("Concurrency is not allowed during rendering", e.message)
+    }
+  }
 }

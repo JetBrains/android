@@ -35,6 +35,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.zip.ZipFile
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLServerSocket
@@ -77,6 +82,10 @@ private fun checkConnection() {
 
 private fun checkProcessExec() {
   RenderSandbox.getRenderSandbox().checkProcessExec()
+}
+
+private fun checkConcurrency() {
+  RenderSandbox.getRenderSandbox().checkConcurrency()
 }
 
 private fun checkLoadLibrary(library: String) {
@@ -569,6 +578,20 @@ object RenderSandboxTransformTrampoline {
 
       // URL.openStream
       Intercept.instance<URL>("openStream", checkInstanceCallIgnoreArgs(::checkConnection)),
+
+      // Concurrency/Async operations
+      Intercept.static<CompletableFuture<*>>("supplyAsync", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.static<CompletableFuture<*>>("runAsync", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.static<ForkJoinPool>("commonPool", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.instance<ForkJoinPool>("submit", checkInstanceCallIgnoreArgs(::checkConcurrency)),
+      Intercept.instance<ForkJoinPool>("execute", checkInstanceCallIgnoreArgs(::checkConcurrency)),
+      Intercept.static<Executors>("newSingleThreadExecutor", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.static<Executors>("newCachedThreadPool", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.static<Executors>("newFixedThreadPool", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.static<Executors>("newScheduledThreadPool", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.static<ThreadPoolExecutor>("<init>", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.static<ScheduledThreadPoolExecutor>("<init>", checkStaticNoArgsCall(::checkConcurrency)),
+      Intercept.static<ForkJoinPool>("<init>", checkStaticNoArgsCall(::checkConcurrency)),
 
       // Reflection
       Intercept.instance<Method>("invoke", ::checkMethodInvoke),

@@ -83,6 +83,10 @@ class StudioRenderSandbox(val sdkPath: String?, val projectPath: String?, val ap
     throw SecurityException("ObjectInputStream.readObject is denied")
   }
 
+  override fun checkConcurrency() {
+    throw SecurityException("Concurrency is not allowed during rendering")
+  }
+
   override fun checkCreateClassLoader() {
     // Layoutlib makes heavy use of this, so we can't block it yet.
     // To fix this we should make a local class loader, passed to layoutlib, which

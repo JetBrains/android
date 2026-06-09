@@ -125,4 +125,9 @@ class PreCheckRenderSandboxDelegate(private val delegate: RenderSandbox, private
     if (!check()) return
     delegate.checkObjectInputStream(ois)
   }
+
+  override fun checkConcurrency() {
+    if (!check()) return
+    delegate.checkConcurrency()
+  }
 }

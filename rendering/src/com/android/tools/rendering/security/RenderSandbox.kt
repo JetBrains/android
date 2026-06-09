@@ -127,6 +127,9 @@ interface RenderSandbox {
   /** Guards ObjectInputStream deserialization. */
   fun checkObjectInputStream(ois: java.io.ObjectInputStream)
 
+  /** Guards against concurrent/async execution (e.g. CompletableFuture, ForkJoinPool, Executors). */
+  fun checkConcurrency()
+
   companion object {
     /**
      * Currently active [RenderSandbox]. Optimized for runtime access using @Volatile to avoid lock overhead on every check. Updates are
@@ -230,6 +233,8 @@ open class RenderSandboxDelegate(private val delegate: RenderSandbox) : RenderSa
   override fun checkDefineClass() = delegate.checkDefineClass()
 
   override fun checkObjectInputStream(ois: java.io.ObjectInputStream) = delegate.checkObjectInputStream(ois)
+
+  override fun checkConcurrency() = delegate.checkConcurrency()
 }
 
 /** A [RenderSandbox] implementation that denies everything by default. */
@@ -322,6 +327,10 @@ object DenyAllRenderSandbox : RenderSandbox {
   override fun checkObjectInputStream(ois: java.io.ObjectInputStream) {
     throw SecurityException("Access to ObjectInputStream is denied")
   }
+
+  override fun checkConcurrency() {
+    throw SecurityException("checkConcurrency")
+  }
 }
 
 /** A default [RenderSandbox] does not do anything. */
@@ -367,4 +376,6 @@ object AllowAllRenderSandbox : RenderSandbox {
   override fun checkDefineClass() {}
 
   override fun checkObjectInputStream(ois: java.io.ObjectInputStream) {}
+
+  override fun checkConcurrency() {}
 }

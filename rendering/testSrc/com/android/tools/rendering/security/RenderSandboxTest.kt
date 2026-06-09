@@ -31,6 +31,12 @@ import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.function.Supplier
 import java.util.zip.ZipFile
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -60,6 +66,14 @@ class MaliciousSerializable : java.io.Serializable {
     stream.defaultReadObject()
     System.exit(0)
   }
+}
+
+class TestSupplier : Supplier<String> {
+  override fun get(): String = "test"
+}
+
+class TestRunnable : Runnable {
+  override fun run() {}
 }
 
 interface ClassToCheck {
@@ -168,6 +182,12 @@ interface ClassToCheck {
   fun tryDeserialization(bytes: ByteArray)
 
   fun tryConnect()
+
+  fun checkCompletableFuture()
+
+  fun checkForkJoinPool()
+
+  fun checkThreadPoolExecutor()
 }
 
 class ClassToCheckImpl : ClassToCheck {
@@ -412,6 +432,22 @@ class ClassToCheckImpl : ClassToCheck {
   override fun tryConnect() {
     val socket = java.net.Socket()
     socket.connect(java.net.InetSocketAddress("localhost", 8080), 100)
+  }
+
+  // Suppressed because we want to test that the sandbox intercepts implicit executors.
+  @Suppress("ImplicitExecutor")
+  override fun checkCompletableFuture() {
+    CompletableFuture.supplyAsync(TestSupplier())
+  }
+
+  // Suppressed because we want to test that the sandbox intercepts common ForkJoinPool usage.
+  @Suppress("CommonForkJoinPool")
+  override fun checkForkJoinPool() {
+    ForkJoinPool.commonPool().submit(TestRunnable())
+  }
+
+  override fun checkThreadPoolExecutor() {
+    ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, LinkedBlockingQueue())
   }
 }
 
@@ -768,5 +804,23 @@ class RenderSandboxTest {
   fun `check socket connect fails`() {
     val methodIntercept = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as ClassToCheck
     verifyThrowsSecurityException("checkConnection") { methodIntercept.tryConnect() }
+  }
+
+  @Test
+  fun `check CompletableFuture fails`() {
+    val methodIntercept = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as ClassToCheck
+    verifyThrowsSecurityException("checkConcurrency") { methodIntercept.checkCompletableFuture() }
+  }
+
+  @Test
+  fun `check ForkJoinPool fails`() {
+    val methodIntercept = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as ClassToCheck
+    verifyThrowsSecurityException("checkConcurrency") { methodIntercept.checkForkJoinPool() }
+  }
+
+  @Test
+  fun `check ThreadPoolExecutor creation fails`() {
+    val methodIntercept = testClassLoader.loadClass("Test").getDeclaredConstructor().newInstance() as ClassToCheck
+    verifyThrowsSecurityException("checkConcurrency") { methodIntercept.checkThreadPoolExecutor() }
   }
 }
