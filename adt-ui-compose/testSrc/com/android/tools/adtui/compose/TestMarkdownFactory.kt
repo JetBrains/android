@@ -105,12 +105,42 @@ class TestMarkdownFactory(private val isDark: Boolean) : MarkdownFactory {
     )
   }
 
-  override fun createDefaultStyling(defaultTextStyle: TextStyle, editorTextStyle: TextStyle): MarkdownStyling =
-    if (isDark) {
-      MarkdownStyling.dark(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
-    } else {
-      MarkdownStyling.light(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
-    }
+  override fun createDefaultStyling(defaultTextStyle: TextStyle, editorTextStyle: TextStyle): MarkdownStyling {
+    val base =
+      if (isDark) {
+        MarkdownStyling.dark(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
+      } else {
+        MarkdownStyling.light(baseTextStyle = defaultTextStyle, editorTextStyle = editorTextStyle)
+      }
+
+    val inlines = base.paragraph.inlinesStyling
+    val sanitizedInlines =
+      InlinesStyling(
+        textStyle = inlines.textStyle.copy(fontFamily = defaultTextStyle.fontFamily),
+        inlineCode = inlines.inlineCode.copy(fontFamily = editorTextStyle.fontFamily),
+        link = inlines.link.copy(fontFamily = defaultTextStyle.fontFamily),
+        linkDisabled = inlines.linkDisabled.copy(fontFamily = defaultTextStyle.fontFamily),
+        linkFocused = inlines.linkFocused.copy(fontFamily = defaultTextStyle.fontFamily),
+        linkHovered = inlines.linkHovered.copy(fontFamily = defaultTextStyle.fontFamily),
+        linkPressed = inlines.linkPressed.copy(fontFamily = defaultTextStyle.fontFamily),
+        linkVisited = inlines.linkVisited.copy(fontFamily = defaultTextStyle.fontFamily),
+        emphasis = inlines.emphasis.copy(fontFamily = defaultTextStyle.fontFamily),
+        strongEmphasis = inlines.strongEmphasis.copy(fontFamily = defaultTextStyle.fontFamily),
+        inlineHtml = inlines.inlineHtml.copy(fontFamily = defaultTextStyle.fontFamily),
+      )
+
+    return MarkdownStyling(
+      blockVerticalSpacing = base.blockVerticalSpacing,
+      paragraph = MarkdownStyling.Paragraph(sanitizedInlines),
+      heading = base.heading,
+      blockQuote = base.blockQuote,
+      code = base.code,
+      list = base.list,
+      image = base.image,
+      thematicBreak = base.thematicBreak,
+      htmlBlock = base.htmlBlock,
+    )
+  }
 
   override fun createUndecoratedCodeStyling(editorTextStyle: TextStyle, padding: PaddingValues, background: Color): MarkdownStyling.Code =
     if (isDark) {
