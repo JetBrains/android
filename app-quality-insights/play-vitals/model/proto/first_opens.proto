@@ -53,7 +53,7 @@ option java_package = "com.google.play.developer.reporting";
 // **Required permissions**: to access this resource, the calling user needs the
 // _View app information (read-only)_ permission for the app.
 //
-// (== resource_for v1beta1.activations.firstOpens ==)
+// (== resource_for v1beta1.grow.firstOpens ==)
 message FirstOpensMetricSet {
   // The resource name.
   string name = 1;
