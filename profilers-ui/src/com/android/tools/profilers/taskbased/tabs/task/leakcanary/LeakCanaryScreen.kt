@@ -90,7 +90,14 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
         onEditConfigurationClick = {
           val dummyStage = CpuProfilerStage(leakCanaryModel.studioProfilers)
           val configModel = CpuProfilerConfigModel(leakCanaryModel.studioProfilers, dummyStage)
-          ideProfilerComponents.openTaskConfigurationsDialog(configModel, leakCanaryModel.studioProfilers.ideServices)
+          val leakConfig =
+            leakCanaryModel.studioProfilers.ideServices.getTaskCpuProfilerConfigs(0).find {
+              it.traceType == com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType.LEAKCANARY
+            }
+          if (leakConfig != null) {
+            configModel.profilingConfiguration = leakConfig
+          }
+          ideProfilerComponents.openCpuProfilingConfigurationsDialog(configModel, 0, {}, leakCanaryModel.studioProfilers.ideServices)
           leakCanaryModel.updateModeFromSettings()
         },
       )
