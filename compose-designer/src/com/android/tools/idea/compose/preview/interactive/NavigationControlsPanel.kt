@@ -149,7 +149,8 @@ fun NavigationControlsPanel(
     Row(
       modifier =
         Modifier.padding(vertical = DEFAULT_SPACING)
-          .fillMaxWidth()
+          .widthIn(min = 16.dp, max = 800.dp)
+          .align(Alignment.CenterHorizontally)
           .border(width = 1.dp, color = JewelTheme.globalColors.borders.normal, shape = RoundedCornerShape(4.dp)),
       horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
       verticalAlignment = Alignment.CenterVertically,
