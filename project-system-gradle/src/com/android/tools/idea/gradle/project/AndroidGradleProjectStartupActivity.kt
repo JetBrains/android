@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
 import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
+import com.android.tools.idea.gradle.project.sync.ParallelSyncMigrationActivity
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.shouldDisableForceUpgrades
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
@@ -129,10 +130,11 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
           val newProjectStartupJob = async {
             project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().awaitInitialization()
           }
+          val parallelSyncMigrationJob = async { project.service<ParallelSyncMigrationActivity.StartupService>().awaitInitialization() }
 
           ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
           whenAllModulesLoaded(project, isJpsProjectLoaded) { jpsProjectJob.complete(Unit) }
-          awaitAll(newProjectStartupJob, externalProjectsJob, jpsProjectJob)
+          awaitAll(newProjectStartupJob, parallelSyncMigrationJob, externalProjectsJob, jpsProjectJob)
         }
 
         performActivity(project)

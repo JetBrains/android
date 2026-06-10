@@ -161,6 +161,7 @@
     <resolveScopeEnlarger implementation="com.android.tools.idea.lang.proguardR8.ProguardR8GradleResolveScopeEnlarger"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.ParallelSyncMigrationActivity"/>
     <intentionAction>
       <language>UAST</language>
       <className>org.jetbrains.android.intentions.AndroidAddLibraryDependencyAction</className>

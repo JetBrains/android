@@ -40,6 +40,8 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
 
   public boolean SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = false;
 
+  public boolean ALWAYS_ENABLE_MIGRATION_TO_PARALLEL_SYNC = false;
+
   @NotNull
   public static GradleExperimentalSettings getInstance() {
     return ApplicationManager.getApplication().getService(GradleExperimentalSettings.class);

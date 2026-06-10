@@ -1114,6 +1114,14 @@ public final class StudioFlags {
     "Enables consumer-driven variant resolution to determine the selected variant at early stage of Gradle Sync."
   );
 
+  public static final Flag<Boolean> SHOW_PARALLEL_SYNC_PROPERTY_MIGRATION_WINDOW = new BooleanFlag(
+    GRADLE_IDE,
+    "parallel.sync.property.migration.notification",
+    "Show parallel Sync property migration.",
+    "Enables a notification balloon suggesting to add 'org.gradle.tooling.parallel=true' to gradle.properties if the legacy " +
+    "'org.gradle.parallel' flag is detected."
+  );
+
   //endregion
 
   //region Gradle Phased Sync
