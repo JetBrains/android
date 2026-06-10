@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType
 
 /**
- * This [TemplateContextType] replicates the structure of [KotlinTemplateContextType],
+ * This [TemplateContextType] replicates the structure of [org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType],
  * intersecting it with the [AndroidSourceSetTemplateContextType].
  */
 internal sealed class AndroidKotlinTemplateContextType(

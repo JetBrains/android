@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.templates
 
+import com.android.tools.compose.templates.ComposeKotlinTemplateContextTypeTest.Companion.nestedSubClass
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule

@@ -105,8 +105,8 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
     <orderEntry type="module" module-name="intellij.kotlin.compilerPlugins.support.bundled" />
     <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" />
-    <orderEntry type="module" module-name="kotlin.code-insight.live-templates.shared" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
     <orderEntry type="module" module-name="intellij.platform.debugger.impl.shared" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.liveTemplates" />
   </component>
 </module>

@@ -22,7 +22,7 @@ import com.intellij.codeInsight.template.TemplateContextType
 import org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType
 
 /**
- * This [TemplateContextType] replicates the structure of [KotlinTemplateContextType], intersecting
+ * This [TemplateContextType] replicates the structure of [org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType], intersecting
  * it with the [ComposeEnabledTemplateContextType].
  */
 internal sealed class ComposeKotlinTemplateContextType(

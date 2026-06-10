@@ -70,10 +70,10 @@ jvm_library(
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/project-structure",
         "//plugins/kotlin/base/util",
-        "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
         "@lib//:kotlinc-analysis-api-provided",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
         "//platform/util-class-loader:util-classLoader",
+        "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
     ],
 )
 
@@ -127,7 +127,6 @@ jvm_library(
         "//plugins/kotlin/base/plugin:plugin_test_lib",
         "//plugins/kotlin/base/project-structure:project-structure_test_lib",
         "//plugins/kotlin/base/util:util_test_lib",
-        "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
         "@lib//:kotlinc-analysis-api-provided",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
         "//platform/util-class-loader:util-classLoader_test_lib",
@@ -137,6 +136,7 @@ jvm_library(
         "//android/gradle-dsl-flags:gradle-dsl-flags_test_lib",
         "//android/gradle-declarative-lang-flags",
         "//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags_test_lib",
+        "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.templates` end
@@ -278,8 +278,6 @@ jvm_library(
         "//plugins/kotlin/base/project-structure:project-structure_test_lib",
         "//plugins/kotlin/base/util",
         "//plugins/kotlin/base/util:util_test_lib",
-        "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
-        "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "//android/android-npw:newProjectWizard",
@@ -312,6 +310,8 @@ jvm_library(
         "//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags_test_lib",
         "//platform/code-style-api:codeStyle",
         "//platform/code-style-api:codeStyle_test_lib",
+        "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
+        "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.templates.tests` end

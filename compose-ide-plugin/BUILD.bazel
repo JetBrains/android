@@ -113,9 +113,9 @@ jvm_library(
         "@lib//:kotlinc-compose-compiler-plugin-provided",
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled",
         "//plugins/kotlin/jvm-debugger/base/util",
-        "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
         "//platform/forms_rt:java-guiForms-rt",
         "//platform/xdebugger-impl/shared",
+        "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
     ],
 )
 
@@ -211,9 +211,9 @@ jvm_library(
         "@lib//:kotlinc-compose-compiler-plugin-provided",
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled_test_lib",
         "//plugins/kotlin/jvm-debugger/base/util:util_test_lib",
-        "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
         "//platform/forms_rt:java-guiForms-rt_test_lib",
         "//platform/xdebugger-impl/shared:shared_test_lib",
+        "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin` end
@@ -421,8 +421,8 @@ jvm_library(
         "//plugins/kotlin/jvm-debugger/base/util:util_test_lib",
         "@lib//:mockito-kotlin",
         "@lib//:kotlin-test",
-        "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
-        "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
+        "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
+        "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin.tests` end
