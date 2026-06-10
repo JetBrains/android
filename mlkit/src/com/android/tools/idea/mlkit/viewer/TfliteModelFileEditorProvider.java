@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.mlkit.viewer;
 
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -32,7 +33,7 @@ public class TfliteModelFileEditorProvider implements FileEditorProvider, DumbAw
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return FileTypeRegistry.getInstance().isFileOfType(file, TfliteModelFileType.INSTANCE);
+    return TrustedProjects.isProjectTrusted(project) && FileTypeRegistry.getInstance().isFileOfType(file, TfliteModelFileType.INSTANCE);
   }
 
   @NotNull

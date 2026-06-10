@@ -17,6 +17,7 @@
 package com.android.tools.idea.editors.fonts;
 
 import com.android.tools.idea.fileTypes.FontFileType;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -30,7 +31,7 @@ public class FontEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return file.getFileType() == FontFileType.INSTANCE;
+    return TrustedProjects.isProjectTrusted(project) && file.getFileType() == FontFileType.INSTANCE;
   }
 
   @Override
