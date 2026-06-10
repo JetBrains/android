@@ -84,7 +84,8 @@ class StudioRenderSandbox(val sdkPath: String?, val projectPath: String?, val ap
   }
 
   override fun checkConcurrency() {
-    throw SecurityException("Concurrency is not allowed during rendering")
+    // Many applications use concurrency so we can not simply disable it at the moment until we can restrict in a more targeted way.
+    // throw SecurityException("Concurrency is not allowed during rendering")
   }
 
   override fun checkCreateClassLoader() {

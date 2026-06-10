@@ -24,6 +24,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerExtension
 import java.io.File
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Test
 
 class StudioRenderSandboxTest {
@@ -97,6 +98,7 @@ class StudioRenderSandboxTest {
     } catch (_: SecurityException) {}
   }
 
+  @Ignore("b/513189628")
   @Test
   fun `check concurrency denied`() {
     val sandbox = StudioRenderSandbox(null, null, null)
