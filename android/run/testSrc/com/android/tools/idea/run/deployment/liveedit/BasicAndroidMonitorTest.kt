@@ -19,6 +19,9 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
@@ -37,6 +40,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ThreeState
+import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -67,8 +71,11 @@ class BasicAndroidMonitorTest {
 
   @get:Rule var projectRule = AndroidProjectRule.onDisk()
 
+  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
+
   @Before
   fun setUp() {
+    UsageTracker.setWriterForTest(usageTracker)
     // GradleSyncState initialization needs happen after AndroidProjectRule had a chance
     // to initialize Application.
     mySyncState = mock()
@@ -105,6 +112,11 @@ class BasicAndroidMonitorTest {
     monitor.notifyAppDeploy(TestApplicationProjectContext(appId), device, LiveEditApp(emptySet(), 24), emptyList()) { true }
   }
 
+  @After
+  fun tearDown() {
+    UsageTracker.cleanAfterTesting()
+  }
+
   @Test
   fun upToDateTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
@@ -116,9 +128,9 @@ class BasicAndroidMonitorTest {
   @Test
   fun syncNeededTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
+    whenever(mySyncState.isSyncNeeded()).thenReturn(ThreeState.YES)
 
     val file = projectRule.createKtFile("Test.kt", "")
-    whenever(mySyncState.isSyncNeeded()).thenReturn(ThreeState.YES)
 
     monitor.fileChanged(file.virtualFile)
     monitor.waitForThreadInTest(5000)
