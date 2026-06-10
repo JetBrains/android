@@ -92,7 +92,7 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     environment: ExecutionEnvironment,
     executor: AndroidConfigurationExecutor,
     indicator: ProgressIndicator,
-  ): RunContentDescriptor {
+  ): RunContentDescriptor? {
     val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
 
     return if (swapInfo != null) {

@@ -275,5 +275,5 @@ private class LazilyInitializedDelegatingBlazeAndroidConfigurationExecutor(
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = delegate.run(indicator)
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = delegate.debug(indicator)
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor? = delegate.debug(indicator)
 }

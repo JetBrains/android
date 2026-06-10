@@ -48,6 +48,8 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XSessionStartedResult;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -191,9 +193,10 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
     }
   }
 
+  @SuppressWarnings("UnstableApiUsage")
   @Nullable
   @Override
-  public XDebugSession startDebuggerSession(
+  public XSessionStartedResult startDebuggerSession(
     BazelAndroidRunContext runContext,
     AndroidDebugger androidDebugger,
     AndroidDebuggerState androidDebuggerState,
@@ -202,7 +205,7 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
     ConsoleView consoleView,
     ProgressIndicator indicator) {
     try {
-      return BuildersKt.runBlocking(
+        return BuildersKt.runBlocking(
           EmptyCoroutineContext.INSTANCE,
           (scope, continuation) ->
               DebugSessionStarter.INSTANCE.attachDebuggerToStartedProcess(

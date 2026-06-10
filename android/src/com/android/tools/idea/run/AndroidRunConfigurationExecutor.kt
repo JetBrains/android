@@ -61,7 +61,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
-import com.intellij.xdebugger.impl.XDebugSessionImpl
+import com.intellij.xdebugger.XSessionStartedResult
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -210,7 +210,7 @@ class AndroidRunConfigurationExecutor(
       }
     }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor? = runBlockingCancellable {
     val applicationId = applicationContext.applicationId
     val devices = getDevices(env, deviceFutures, indicator)
 
@@ -276,15 +276,16 @@ class AndroidRunConfigurationExecutor(
     if (configuration.SHOW_LOGCAT_AUTOMATICALLY) {
       project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
     }
-    session.runContentDescriptor
+    @Suppress("UnstableApiUsage") session.runContentDescriptor
   }
 
+  @Suppress("UnstableApiUsage")
   private suspend fun startDebugSession(
     device: IDevice,
     applicationId: String,
     indicator: ProgressIndicator,
     console: ConsoleView,
-  ): XDebugSessionImpl {
+  ): XSessionStartedResult {
     val debugger =
       configuration.androidDebuggerContext.androidDebugger
         ?: throw ExecutionException("Unable to determine debugger to use for this launch")
@@ -458,7 +459,7 @@ class AndroidRunConfigurationExecutor(
     ) {
       existingRunContentDescriptor?.processHandler?.detachProcess()
       if (env.executor.isDebug) {
-        startDebugSession(devices.single(), applicationId, indicator, createConsole()).runContentDescriptor
+        @Suppress("UnstableApiUsage") startDebugSession(devices.single(), applicationId, indicator, createConsole()).runContentDescriptor
       } else {
         val processHandler = AndroidProcessHandler(applicationId).apply { devices.forEach { addTargetDevice(it) } }
         AndroidSessionInfo.create(processHandler, devices, applicationId)

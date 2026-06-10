@@ -59,7 +59,7 @@ abstract class AndroidConfigurationProgramRunner(private val getAndroidTarget: (
     environment: ExecutionEnvironment,
     executor: AndroidConfigurationExecutor,
     indicator: ProgressIndicator,
-  ): RunContentDescriptor
+  ): RunContentDescriptor?
 
   override fun getRunnerId(): String = "AndroidConfigurationProgramRunner"
 

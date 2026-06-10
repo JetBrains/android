@@ -28,7 +28,7 @@ import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.xdebugger.impl.XDebugSessionImpl
+import com.intellij.xdebugger.XSessionStartedResult
 
 abstract class AndroidWearConfigurationExecutor(
   environment: ExecutionEnvironment,
@@ -39,12 +39,13 @@ abstract class AndroidWearConfigurationExecutor(
   deployer: ApplicationDeployer,
 ) : AndroidConfigurationExecutorBase(environment, deviceFutures, appRunSettings, apkProvider, applicationContext, deployer) {
 
+  @Suppress("UnstableApiUsage")
   override suspend fun startDebugSession(
     device: IDevice,
     applicationContext: ApplicationProjectContext,
     console: ConsoleView,
     indicator: ProgressIndicator,
-  ): XDebugSessionImpl {
+  ): XSessionStartedResult {
     checkAndroidVersionForWearDebugging(device.version, console)
     return DebugSessionStarter.attachDebuggerToStartedProcess(
       device,

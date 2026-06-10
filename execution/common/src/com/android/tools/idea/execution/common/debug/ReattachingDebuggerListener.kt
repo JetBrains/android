@@ -34,6 +34,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.xdebugger.impl.XDebugSessionImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -152,7 +153,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
       addProcessedClientPid(client.clientData.pid)
       AndroidCoroutineScope(project).launch(Dispatchers.Default) {
         LOG.info("Attaching debugger to a client, PID: ${client.clientData.pid}")
-        val session =
+        val sessionStarted =
           DebugSessionStarter.attachDebuggerToStartedProcess(
             client.device,
             applicationContext,
@@ -163,14 +164,16 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
             indicator = EmptyProgressIndicator(),
             consoleViewToReuse,
           )
+        @Suppress("UnstableApiUsage") val session = sessionStarted.session
         processHandlerForOpenedTab.detachProcess()
         processHandlerForOpenedTab = ReattachingProcessHandler(masterProcessHandler)
         processHandlerForOpenedTab.subscribeOnDebugProcess(session.debugProcess.processHandler)
 
-        session.runContentDescriptor.processHandler = processHandlerForOpenedTab
+        @Suppress("UnstableApiUsage")
+        sessionStarted.runContentDescriptor?.processHandler = processHandlerForOpenedTab
         withContext(Dispatchers.EDT) {
           try {
-            session.showSessionTab()
+            @Suppress("UnstableApiUsage") (session as XDebugSessionImpl).showSessionTab()
           } catch (e: Throwable) {
             handleError(e)
           }
