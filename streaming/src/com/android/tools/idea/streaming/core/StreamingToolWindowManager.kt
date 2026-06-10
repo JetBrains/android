@@ -1540,7 +1540,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   ) : Comparable<DeviceDescription> {
 
     val htmlDisplayName: String
-      get() = "<html>$deviceName ${"($serialNumber)".htmlColored(JBColor.GRAY)}</html>"
+      get() {
+        return "<html>${deviceName.htmlEscaped()} ${"(${serialNumber.htmlEscaped()})".htmlColored(JBColor.GRAY)}</html>"
+      }
 
     override fun compareTo(other: DeviceDescription): Int {
       val c = deviceName.compareTo(other.deviceName)

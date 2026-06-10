@@ -25,6 +25,7 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.actions.StreamingAction
+import com.google.common.html.HtmlEscapers
 import com.intellij.ide.actions.ShowLogAction
 import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.AnAction
@@ -188,6 +189,9 @@ internal val Rectangle.bottom: Int
 
 internal val MouseEvent.location: Point
   get() = Point(x, y)
+
+/** Escapes a string to be rendered as HTML. */
+internal fun String.htmlEscaped(): String = HtmlEscapers.htmlEscaper().escape(this)
 
 /** Wraps the string with &lt;font color=...>, &lt;/font> tags. */
 internal fun String.htmlColored(color: Color): String = "<font color=${(color.rgb and 0xFFFFFF).toString(16)}>$this</font>"
