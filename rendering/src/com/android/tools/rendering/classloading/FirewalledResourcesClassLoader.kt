@@ -32,9 +32,10 @@ class FirewalledResourcesClassLoader(parent: ClassLoader?) : ClassLoader(parent)
 
   override fun findResource(moduleName: String, name: String): URL? = null
 
-  override fun getResource(name: String): URL? = null
+  override fun getResource(name: String): URL? = if (name.endsWith(".class")) super.getResource(name) else null
 
-  override fun getResources(name: String): Enumeration<URL> = Collections.emptyEnumeration()
+  override fun getResources(name: String): Enumeration<URL> =
+    if (name.endsWith(".class")) super.getResources(name) else Collections.emptyEnumeration()
 
-  override fun getResourceAsStream(name: String): InputStream? = null
+  override fun getResourceAsStream(name: String): InputStream? = if (name.endsWith(".class")) super.getResourceAsStream(name) else null
 }
