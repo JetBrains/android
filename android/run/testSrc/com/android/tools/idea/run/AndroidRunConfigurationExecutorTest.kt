@@ -87,12 +87,14 @@ import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.xdebugger.XDebuggerManager
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Ignore
@@ -148,6 +150,13 @@ class AndroidRunConfigurationExecutorTest {
     projectRule.project.registerOrReplaceServiceInstance(BackupManager::class.java, fakeBackupManager, disposableRule.disposable)
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
+  }
+
+  @After
+  fun tearDown() {
+    // If we call stop before the virtual machine initialize, the JDI Internal Event Handler thread may leak.
+    Thread.sleep(250)
+    XDebuggerManager.getInstance(projectRule.project).debugSessions.forEach { it.stop() }
   }
 
   @Test
