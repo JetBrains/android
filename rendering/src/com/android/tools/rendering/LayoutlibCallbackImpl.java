@@ -318,54 +318,52 @@ public class LayoutlibCallbackImpl extends LayoutlibCallbackEx {
   @Nullable
   public XmlPullParser createXmlParserForPsiFile(@NotNull String fileName) {
     // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files
-    // in build outputs or layoutlib built-in directories.
-    if (fileName.contains(EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB) || fileName.contains(BUILD_CACHE)) {
+    // in layoutlib built-in directories.
+    if (fileName.contains(FD_LAYOUTLIB)) {
       return null;
     }
 
-    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-    try {
-      ResourceValue resourceValue = myFontFamilies.get(fileName);
-      if (resourceValue != null) {
-        // This is a font-family XML. Now check if it defines a downloadable font. If it is,
-        // this is a special case where we generate a synthetic font-family XML file that points
-        // to the cached fonts downloaded by the DownloadableFontCacheService.
-        if (myProjectFonts == null) {
-          myProjectFonts =
-            new ProjectFonts(
-              myRenderModule.getEnvironment().getDownloadableFontCacheService(),
-              myRenderModule.getResourceRepositoryManager(),
-              ResourceIdManagerHelper.getResolver(myRenderModule.getResourceIdManager())
-            );
-        }
+    ResourceValue resourceValue = myFontFamilies.get(fileName);
+    if (resourceValue != null) {
+      // This is a font-family XML. Now check if it defines a downloadable font. If it is,
+      // this is a special case where we generate a synthetic font-family XML file that points
+      // to the cached fonts downloaded by the DownloadableFontCacheService.
+      if (myProjectFonts == null) {
+        myProjectFonts =
+          new ProjectFonts(
+            myRenderModule.getEnvironment().getDownloadableFontCacheService(),
+            myRenderModule.getResourceRepositoryManager(),
+            ResourceIdManagerHelper.getResolver(myRenderModule.getResourceIdManager())
+          );
+      }
 
-        FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
-        String fontFamilyXml = myFontCacheService.toXml(family);
-        if (fontFamilyXml == null) {
-          try {
-            CompletableFuture<Void> refreshFuture = new CompletableFuture<>();
-            myFontCacheService.refresh(() -> refreshFuture.complete(null), () -> refreshFuture.complete(null));
-            boolean success = refreshFuture.thenCompose(unused -> myFontCacheService.download(family)).get(1, TimeUnit.SECONDS);
-            if (success) {
-              fontFamilyXml = myFontCacheService.toXml(family);
-            }
-          }
-          catch (InterruptedException | ExecutionException | TimeoutException e) {
-            return null;
+      FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
+      String fontFamilyXml = myFontCacheService.toXml(family);
+      if (fontFamilyXml == null) {
+        boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+        try {
+          CompletableFuture<Void> refreshFuture = new CompletableFuture<>();
+          myFontCacheService.refresh(() -> refreshFuture.complete(null), () -> refreshFuture.complete(null));
+          boolean success = refreshFuture.thenCompose(unused -> myFontCacheService.download(family)).get(1, TimeUnit.SECONDS);
+          if (success) {
+            fontFamilyXml = myFontCacheService.toXml(family);
           }
         }
+        catch (InterruptedException | ExecutionException | TimeoutException e) {
+          return null;
+        }
+        finally {
+          RenderSecurityManager.exitSafeRegion(token);
+        }
+      }
 
-        return fontFamilyXml != null ? getParserFromText(fileName, fontFamilyXml) : null;
-      }
-      String fileText = myRenderModule.getEnvironment().getFileText(fileName);
-      if (fileText != null) {
-        return getParserFromText(fileName, fileText);
-      }
-      return null;
+      return fontFamilyXml != null ? getParserFromText(fileName, fontFamilyXml) : null;
     }
-    finally {
-      RenderSecurityManager.exitSafeRegion(token);
+    String fileText = myRenderModule.getEnvironment().getFileText(fileName);
+    if (fileText != null) {
+      return getParserFromText(fileName, fileText);
     }
+    return null;
   }
 
   @Override
