@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.util.text.StringUtil
 
 /**
  * A [DropDownAction] that shows the list of debuggable processes running in the device corresponding to [targetDeviceSerialNumber]. Each
@@ -59,7 +60,8 @@ class SingleDeviceSelectProcessAction(
     event.presentation.isVisible =
       deviceModel.getForegroundProcessDetectionSupport(targetDevice) == ForegroundProcessDetectionSupport.NOT_SUPPORTED
     event.presentation.icon = targetDevice.toIcon()
-    deviceModel.selectedProcess?.name?.let { event.presentation.text = it }
+    // Disable mnemonic parsing on presentation to avoid HTML injection by preserving escaped entities.
+    deviceModel.selectedProcess?.name?.let { event.presentation.setText(StringUtil.escapeXmlEntities(it), false) }
   }
 
   public override fun updateActions(context: DataContext): Boolean {
@@ -77,7 +79,12 @@ class SingleDeviceSelectProcessAction(
     return true
   }
 
-  private inner class SelectProcessAction(private val processDescriptor: ProcessDescriptor) : ToggleAction(processDescriptor.name) {
+  private inner class SelectProcessAction(private val processDescriptor: ProcessDescriptor) : ToggleAction() {
+
+    init {
+      // Disable mnemonic parsing on templatePresentation to avoid HTML injection by preserving escaped entities (e.g. &lt;).
+      templatePresentation.setText(StringUtil.escapeXmlEntities(processDescriptor.name), false)
+    }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
