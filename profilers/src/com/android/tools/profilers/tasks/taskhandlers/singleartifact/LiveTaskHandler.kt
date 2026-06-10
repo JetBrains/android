@@ -27,6 +27,7 @@ import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
 
 class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTaskHandler(sessionsManager) {
+  private var stage: LiveStage? = null
 
   /** Returns whether the task supports a given session artifact (backing data construct). */
   override fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean {
@@ -37,7 +38,16 @@ class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTa
   override fun startTask(args: TaskArgs) {
     val studioProfilers = sessionsManager.studioProfilers
     val liveStage = LiveStage(studioProfilers, ::stopTask)
+    stage = liveStage
     studioProfilers.stage = liveStage
+  }
+
+  override fun exit() {
+    stage = null
+  }
+
+  override fun canStop(): Boolean {
+    return stage != null
   }
 
   /** Ends live view task by ending the session. */

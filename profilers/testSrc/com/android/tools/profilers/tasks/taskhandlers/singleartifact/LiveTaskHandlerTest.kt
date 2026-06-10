@@ -262,4 +262,22 @@ class LiveTaskHandlerTest {
     // Since SessionMetaData.SessionType.FULL is not true, the stage is not changed hence LiveStage is not set.
     assertThat(myProfilers.stage).isNotInstanceOf(LiveStage::class.java)
   }
+
+  @Test
+  fun testCanStop() {
+    assertThat(liveTaskHandler.canStop()).isFalse()
+
+    TaskHandlerTestUtils.startSession(
+      Common.Process.ExposureLevel.DEBUGGABLE,
+      myProfilers,
+      myTransportService,
+      myTimer,
+      Common.ProfilerTaskType.LIVE_VIEW,
+    )
+    liveTaskHandler.enter(mock())
+    assertThat(liveTaskHandler.canStop()).isTrue()
+
+    liveTaskHandler.exit()
+    assertThat(liveTaskHandler.canStop()).isFalse()
+  }
 }
