@@ -79,6 +79,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -152,6 +153,28 @@ class NlPropertyItemTest {
     assertThat(property.colorButton).isNull()
     val browseButton = property.browseButton!!
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
+  }
+
+  @Test
+  fun testEvilTextProperty() {
+    val util = SupportTestUtil(projectRule, createEvilTextView())
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
+    val toggleKeyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)
+    assertThat(toggleKeyStroke).isEqualTo(if (SystemInfo.isMac) "⌘-" else "Ctrl+Minus")
+    property.model.showResolvedValues = false
+    assertThat(property.name).isEqualTo(ATTR_TEXT)
+    assertThat(property.namespace).isEqualTo(ANDROID_URI)
+    assertThat(property.type).isEqualTo(NlPropertyType.STRING)
+    assertThat(property.value).isEqualTo("@string/evil")
+    assertThat(property.rawValue).isEqualTo("@string/evil")
+    assertThat(property.isReference).isTrue()
+    assertThat(property.resolvedValue).isEqualTo("<html><b>bold text</b> evil</html>")
+    assertThat(property.tooltipForValue).isEqualTo("\"@string/evil\" = \"<html><b>bold text</b> evil</html>\" ($toggleKeyStroke)")
+    property.model.showResolvedValues = true
+    assertThat(property.value).isEqualTo("<html><b>bold text</b> evil</html>")
+    assertThat(property.rawValue).isEqualTo("@string/evil")
+    assertThat(property.resolvedValue).isEqualTo("<html><b>bold text</b> evil</html>")
+    assertThat(property.tooltipForValue).isEqualTo("\"@string/evil\" = \"<html><b>bold text</b> evil</html>\" ($toggleKeyStroke)")
   }
 
   @Test
@@ -483,7 +506,7 @@ class NlPropertyItemTest {
     val text = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val values = text.editingSupport.completion("")
     assertThat(values.size).isAtLeast(25)
-    assertThat(values.filter { it.startsWith("@string/") }).containsExactly("@string/demo", "@string/design").inOrder()
+    assertThat(values.filter { it.startsWith("@string/") }).containsExactly("@string/demo", "@string/design", "@string/evil").inOrder()
     assertThat(values).containsAllOf("@android:string/yes", "@android:string/no", "@android:string/cancel")
   }
 
@@ -779,6 +802,13 @@ class NlPropertyItemTest {
       .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
       .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
 
+  private fun createEvilTextView(): ComponentDescriptor =
+    ComponentDescriptor(TEXT_VIEW)
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/evil")
+      .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
+
   private fun createButton(): ComponentDescriptor =
     ComponentDescriptor(BUTTON)
       .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
@@ -983,6 +1013,7 @@ class NlPropertyItemTest {
     """<?xml version="1.0" encoding="utf-8"?>
     <resources>
       <string name="demo">Demo String</string>
+      <string name="evil"><html><b>bold text</b> evil</html></string>
       <string name="design">Design Demo</string>
       <dimen name="lineSpacing">13sp</dimen>
     </resources>
