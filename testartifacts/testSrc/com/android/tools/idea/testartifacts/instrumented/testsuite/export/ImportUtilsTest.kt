@@ -43,6 +43,29 @@ class ImportUtilsTest {
   @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule).around(temporaryDirectoryRule)
 
   @Test
+  fun importAndroidTestMatrixResultXmlFile_disallowsDtd() {
+    val xxeFile = runWriteAction {
+      val file = temporaryDirectoryRule.createVirtualDir("testDirXXE").createChildData(this, "xxe.xml")
+      file.setBinaryContent(
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE foo [ <!ENTITY xxe SYSTEM "http://google.com"> ]>
+        <androidTestMatrix>
+          <device id="&xxe;" deviceName="Pixel_3a_XL_API_23" deviceType="LOCAL_EMULATOR" version="23">
+          </device>
+        </androidTestMatrix>
+        """
+          .trimIndent()
+          .toByteArray(Charsets.UTF_8)
+      )
+      file
+    }
+
+    val succeeded = importAndroidTestMatrixResultXmlFile(projectRule.project, xxeFile)
+    assertThat(succeeded).isFalse()
+  }
+
+  @Test
   fun importTestHistory() {
     val view = importXmlFile("testHistory")
     assertThat(view!!.myIsImportedResult).isTrue()

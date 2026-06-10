@@ -178,7 +178,11 @@ private class ImportAndroidTestMatrixRunProfileState(
     handler.detachProcess()
 
     ApplicationManager.getApplication().executeOnPooledThread {
-      val saxParser = SAXParserFactory.newInstance().newSAXParser()
+      val spf = SAXParserFactory.newInstance()
+      spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+      spf.setFeature("http://xml.org/sax/features/external-general-entities", false)
+      spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+      val saxParser = spf.newSAXParser()
       saxParser.parse(
         InputSource(InputStreamReader(FileInputStream(historyXmlFile), StandardCharsets.UTF_8)),
         object : DefaultHandler() {
