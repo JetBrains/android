@@ -41,6 +41,11 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_CAPTURING_DUMP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_FORCE_DUMP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_RETAINED_OBJECT
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_TOOLTIP_FORCE_DUMP_EXECUTING
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_TOOLTIP_FORCE_DUMP_STOPPING
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_TOOLTIP_FORCE_DUMP_STOPPING_NO_DUMP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_TOOLTIP_FORCE_DUMP_THRESHOLD_REACHED
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_TOOLTIP_FORCE_DUMP_WAITING
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_WAITING_HEAP_DUMP
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
 import icons.StudioIconsCompose
@@ -48,6 +53,7 @@ import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.HorizontalProgressBar
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
 /**
  * Composable function to display the LeakCanary action bar.
@@ -57,6 +63,7 @@ import org.jetbrains.jewel.ui.component.Text
  * @param leakCanaryModel The LeakCanaryModel providing the recording state.
  * @param testMode A boolean flag indicating whether the component is in test mode (default: false).
  */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
   val isRecording by leakCanaryModel.isRecording.collectAsState()
@@ -66,14 +73,33 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
   val isForceDumpExecuting by leakCanaryModel.isForceDumpExecuting.collectAsState()
   val isForceDumpEnabled = objectRetainedCount > 0 && objectRetainedCount < retainedObjectThreshold && !isStopping && !isForceDumpExecuting
 
+  val forceDumpTooltipText =
+    when {
+      isStopping && objectRetainedCount > 0 -> LEAKCANARY_TOOLTIP_FORCE_DUMP_STOPPING
+      isStopping -> LEAKCANARY_TOOLTIP_FORCE_DUMP_STOPPING_NO_DUMP
+      objectRetainedCount >= retainedObjectThreshold -> LEAKCANARY_TOOLTIP_FORCE_DUMP_THRESHOLD_REACHED
+      isForceDumpExecuting -> LEAKCANARY_TOOLTIP_FORCE_DUMP_EXECUTING
+      objectRetainedCount == 0 -> LEAKCANARY_TOOLTIP_FORCE_DUMP_WAITING
+      else -> null
+    }
+
   if (isRecording) {
     Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP), verticalAlignment = Alignment.CenterVertically) {
       RecordingTimer(leakCanaryModel)
       Spacer(modifier = Modifier.weight(1f))
       HeapDumpAndAnalysisStatus(leakCanaryModel)
       Spacer(modifier = Modifier.width(8.dp))
-      DefaultButton(onClick = { leakCanaryModel.forceHeapDump(isUserInitiated = true) }, enabled = isForceDumpEnabled) {
-        Text(LEAKCANARY_FORCE_DUMP)
+      val forceDumpButton =
+        @Composable {
+          DefaultButton(onClick = { leakCanaryModel.forceHeapDump(isUserInitiated = true) }, enabled = isForceDumpEnabled) {
+            Text(LEAKCANARY_FORCE_DUMP)
+          }
+        }
+
+      if (forceDumpTooltipText != null) {
+        Tooltip(tooltip = { Text(forceDumpTooltipText) }) { forceDumpButton() }
+      } else {
+        forceDumpButton()
       }
       Spacer(modifier = Modifier.width(8.dp))
       DefaultButton(onClick = { leakCanaryModel.requestStopRecording() }, enabled = !isStopping) { Text(ACTION_BAR_STOP_RECORDING) }
