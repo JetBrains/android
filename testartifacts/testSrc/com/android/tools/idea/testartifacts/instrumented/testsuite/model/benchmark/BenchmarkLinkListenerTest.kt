@@ -84,6 +84,13 @@ class BenchmarkLinkListenerTest {
   }
 
   @Test
+  fun listenerRejectsPathTraversalLink() {
+    val listener = BenchmarkLinkListener(projectRule.project)
+    listener.hyperlinkClicked("file://../evil.trace")
+    verifyNoInteractions(mockEditorService)
+  }
+
+  @Test
   fun listenerOpensV2FileLinkInPerfettoWeb() {
     val fakePerfettoLoader = FakePerfettoLoader()
     assertThat(fakePerfettoLoader.callCount).isEqualTo(0)

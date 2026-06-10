@@ -35,7 +35,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.util.ClassUtil
-import java.io.File
+import java.nio.file.Paths
 
 /** An adapter to translate [ITestRunListener] and [ProcessListener] callback methods into [AndroidTestResultListener]. */
 class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice, private val listener: AndroidTestResultListener) :
@@ -206,8 +206,18 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice, private val l
             object : Task.Backgroundable(null, "Pulling: $link", true) {
               override fun run(indicator: ProgressIndicator) {
                 val relativeFilePath = link.replace(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX, "")
-                val localFilePath = FileUtil.getTempDirectory() + File.separator + relativeFilePath
-                val localFile = File(localFilePath)
+                val tempRoot =
+                  try {
+                    Paths.get(FileUtil.getTempDirectory()).toRealPath()
+                  } catch (e: Exception) {
+                    Paths.get(FileUtil.getTempDirectory()).toAbsolutePath().normalize()
+                  }
+                val localPath = tempRoot.resolve(relativeFilePath).normalize()
+                if (!localPath.startsWith(tempRoot)) {
+                  logger.warn("Rejected benchmark trace path traversal: $relativeFilePath")
+                  return
+                }
+                val localFile = localPath.toFile()
                 localFile.deleteOnExit()
                 if (!localFile.exists() && (localFile.parentFile.exists() || localFile.parentFile.mkdirs())) {
                   myIDevice.pullFile("$deviceRoot/$relativeFilePath", localFile.absolutePath)

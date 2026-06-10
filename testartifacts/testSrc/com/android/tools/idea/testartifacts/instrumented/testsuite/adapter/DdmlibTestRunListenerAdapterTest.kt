@@ -367,6 +367,29 @@ class DdmlibTestRunListenerAdapterTest {
   }
 
   @Test
+  fun benchmarkFileLinkWithPathTraversalIsRejected() {
+    val traversalTracePath = "../../../evil.trace"
+    val benchmarkOutputFromAndroidX =
+      """
+      Benchmark test ran in [32 ns](file://$traversalTracePath)
+    """
+        .trimIndent()
+    val deviceRoot = "/device/root/path"
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+    adapter.testRunStarted("exampleTestSuite", /* testCount= */ 1)
+    adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1", 1))
+    val testCase = ArgumentCaptor.forClass(AndroidTestCase::class.java)
+    verify(mockListener).onTestCaseStarted(any(), any(), testCase.capture() ?: AndroidTestCase("", "", "", ""))
+    adapter.testEnded(
+      TestIdentifier("exampleTestClass", "exampleTest1", 1),
+      mutableMapOf(BENCHMARK_TEST_METRICS_KEY to benchmarkOutputFromAndroidX, BENCHMARK_PATH_TEST_METRICS_KEY to deviceRoot),
+    )
+    adapter.testRunEnded(/* elapsedTime= */ 1000, mutableMapOf())
+    // Expect we DO NOT attempt to copy the trace file because it is a path traversal.
+    verify(mockDevice, times(0)).pullFile(any(), any())
+  }
+
+  @Test
   fun testResultsShouldChangeToCancelledWhenTestProcessIsKilled() {
     val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
 

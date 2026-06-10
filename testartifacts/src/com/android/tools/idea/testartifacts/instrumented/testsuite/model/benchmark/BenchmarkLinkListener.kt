@@ -29,6 +29,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.net.URI
+import java.nio.file.Paths
 
 private val BENCHMARK_TRACE_FILE_PREFIX_V2 = BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX
 private val BENCHMARK_TRACE_FILE_PREFIX_V3 = "uri://"
@@ -46,7 +47,19 @@ class BenchmarkLinkListener(
 
         // check if the file exists
         val fileName = link.drop(BENCHMARK_TRACE_FILE_PREFIX_V3.length).replace(Regex("\\?.*"), "") // drop query params (and the prefix)
-        val localFile = File(FileUtil.getTempDirectory() + File.separator + fileName)
+        val tempRoot =
+          try {
+            Paths.get(FileUtil.getTempDirectory()).toRealPath()
+          } catch (e: Exception) {
+            Paths.get(FileUtil.getTempDirectory()).toAbsolutePath().normalize()
+          }
+        val localPath = tempRoot.resolve(fileName).normalize()
+        if (!localPath.startsWith(tempRoot)) {
+          AndroidNotification.getInstance(project)
+            .showBalloon("Invalid benchmark path", "Rejected path traversal: $fileName", NotificationType.WARNING)
+          return
+        }
+        val localFile = localPath.toFile()
         if (!localFile.exists()) {
           AndroidNotification.getInstance(project)
             .showBalloon("Benchmark file not found", "Unable to open trace file (${localFile.name})", NotificationType.WARNING)
