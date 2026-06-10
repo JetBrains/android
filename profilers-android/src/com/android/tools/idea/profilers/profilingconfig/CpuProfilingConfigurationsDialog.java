@@ -440,6 +440,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
       public ProfilingConfigurationsListCellRenderer() {
         myLabel = new JLabel();
+        myLabel.putClientProperty("html.disable", Boolean.TRUE);
         Border marginLeft = new EmptyBorder(0, 10, 0, 0);
         myLabel.setBorder(marginLeft);
       }
