@@ -30,12 +30,20 @@ service ReportingService {
       returns (QueryFirstOpensMetricSetResponse) {}
 
   // Describes the properties of the metric set.
-  rpc GetRatingsMetricSet(GetRatingsMetricSetRequest)
-      returns (RatingsMetricSet) {}
+  rpc GetAverageRatingsMetricSet(GetAverageRatingsMetricSetRequest)
+      returns (AverageRatingsMetricSet) {}
 
   // Queries the metrics in the metric set.
-  rpc QueryRatingsMetricSet(QueryRatingsMetricSetRequest)
-      returns (QueryRatingsMetricSetResponse) {}
+  rpc QueryAverageRatingsMetricSet(QueryAverageRatingsMetricSetRequest)
+      returns (QueryAverageRatingsMetricSetResponse) {}
+
+  // Describes the properties of the google play rating metric set.
+  rpc GetGooglePlayRatingMetricSet(GetGooglePlayRatingMetricSetRequest)
+      returns (GooglePlayRatingMetricSet) {}
+
+  // Queries the metrics in the google play rating metric set.
+  rpc QueryGooglePlayRatingMetricSet(QueryGooglePlayRatingMetricSetRequest)
+      returns (QueryGooglePlayRatingMetricSetResponse) {}
 
   // Describes the properties of the engagement metric set.
   rpc GetEngagementMetricSet(GetEngagementMetricSetRequest)
