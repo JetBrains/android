@@ -22,6 +22,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiFile
 import java.io.File
 import java.net.MalformedURLException
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 interface HtmlLinkManager {
   /** Handles a click in the [HtmlLinkManager]. */
@@ -57,7 +59,9 @@ interface HtmlLinkManager {
 
   fun createReplaceTagsUrl(from: String, to: String): String = "$URL_REPLACE_TAGS$from/$to"
 
-  fun createEditAttributeUrl(attribute: String, value: String): String = "$URL_EDIT_ATTRIBUTE$attribute/$value"
+  private fun enc(s: String) = URLEncoder.encode(s, StandardCharsets.UTF_8.name())
+
+  fun createEditAttributeUrl(attribute: String, value: String): String = "$URL_EDIT_ATTRIBUTE${enc(attribute)}/${enc(value)}"
 
   fun createDisableSandboxUrl(): String = URL_DISABLE_SANDBOX
 
@@ -70,7 +74,7 @@ interface HtmlLinkManager {
   fun createAddDebugDependencyUrl(artifactId: GoogleMavenArtifactId): String = "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
 
   fun createReplaceAttributeValueUrl(attribute: String, oldValue: String, newValue: String): String =
-    "$URL_REPLACE_ATTRIBUTE_VALUE$attribute/$oldValue/$newValue"
+    "$URL_REPLACE_ATTRIBUTE_VALUE${enc(attribute)}/${enc(oldValue)}/${enc(newValue)}"
 
   fun createIgnoreFragmentsUrl(): String = URL_ACTION_IGNORE_FRAGMENTS
 

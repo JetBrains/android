@@ -116,6 +116,8 @@ import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
@@ -813,8 +815,11 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     assert url.startsWith(URL_EDIT_ATTRIBUTE);
     int attributeStart = URL_EDIT_ATTRIBUTE.length();
     int valueStart = url.indexOf('/');
-    final String attributeName = url.substring(attributeStart, valueStart);
-    final String value = url.substring(valueStart + 1);
+    final String attributeNameEncoded = url.substring(attributeStart, valueStart);
+    final String valueEncoded = url.substring(valueStart + 1);
+
+    final String attributeName = URLDecoder.decode(attributeNameEncoded, StandardCharsets.UTF_8);
+    final String value = URLDecoder.decode(valueEncoded, StandardCharsets.UTF_8);
 
     XmlAttribute first = ApplicationManager.getApplication().runReadAction((Computable<XmlAttribute>)() -> {
       Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
@@ -841,9 +846,13 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     int attributeStart = URL_REPLACE_ATTRIBUTE_VALUE.length();
     int valueStart = url.indexOf('/');
     int newValueStart = url.indexOf('/', valueStart + 1);
-    final String attributeName = url.substring(attributeStart, valueStart);
-    final String oldValue = url.substring(valueStart + 1, newValueStart);
-    final String newValue = url.substring(newValueStart + 1);
+    final String attributeNameEncoded = url.substring(attributeStart, valueStart);
+    final String oldValueEncoded = url.substring(valueStart + 1, newValueStart);
+    final String newValueEncoded = url.substring(newValueStart + 1);
+
+    final String attributeName = URLDecoder.decode(attributeNameEncoded, StandardCharsets.UTF_8);
+    final String oldValue = URLDecoder.decode(oldValueEncoded, StandardCharsets.UTF_8);
+    final String newValue = URLDecoder.decode(newValueEncoded, StandardCharsets.UTF_8);
 
     WriteCommandAction.writeCommandAction(module.getProject(), file).withName("Set Attribute Value").run(() -> {
       Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
@@ -873,9 +882,18 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   }
 
   private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable HtmlLinkManager.RefreshableSurface surface) {
+    int answer = Messages.showYesNoDialog(module.getProject(),
+        "Disabling the custom view rendering sandbox allows project-supplied bytecode (including " +
+        "third-party libraries) to run with full IDE process permissions, including file-system and " +
+        "network access.\n\nOnly do this if you fully trust ALL code on this project's classpath.",
+        "Disable Rendering Sandbox?", Messages.getWarningIcon());
+    if (answer != Messages.YES) {
+      return;
+    }
     RenderSecurityManager.sEnabled = false;
-    surface.requestRender();
-
+    if (surface != null) {
+      surface.requestRender();
+    }
     Messages.showInfoMessage(module.getProject(),
                              "The custom view rendering sandbox was disabled for this session.\n\n" +
                              "You can turn it off permanently by adding\n" +
