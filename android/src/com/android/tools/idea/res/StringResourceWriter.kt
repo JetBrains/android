@@ -252,23 +252,25 @@ private object StringResourceWriterImpl : StringResourceWriter {
     translatable: Boolean,
     insertBefore: StringResourceKey? = null,
   ): Boolean {
-    val resources: XmlTag = xmlFile.rootTag ?: return false
-    val resource: XmlTag =
-      resources
-        .createChildTag(SdkConstants.TAG_STRING, resources.namespace, escapeIfValid(value), /* enforceNamespacesDeep= */ false)
-        .apply {
-          setAttribute(SdkConstants.ATTR_NAME, key.name)
-          if (!translatable) setAttribute(SdkConstants.ATTR_TRANSLATABLE, false.toString())
-        }
-    val beforeTag: XmlTag? = resources.findSubtagForKey(insertBefore)
+    var success = false
     WriteCommandAction.writeCommandAction(project).withName("Add string resource ${key.name}").run<Nothing> {
+      val resources: XmlTag = xmlFile.rootTag ?: return@run
+      val resource: XmlTag =
+        resources
+          .createChildTag(SdkConstants.TAG_STRING, resources.namespace, escapeIfValid(value), /* enforceNamespacesDeep= */ false)
+          .apply {
+            setAttribute(SdkConstants.ATTR_NAME, key.name)
+            if (!translatable) setAttribute(SdkConstants.ATTR_TRANSLATABLE, false.toString())
+          }
+      val beforeTag: XmlTag? = resources.findSubtagForKey(insertBefore)
       if (beforeTag == null) {
         resources.addSubTag(resource, /* first= */ false)
       } else {
         resources.addBefore(resource, beforeTag)
       }
+      success = true
     }
-    return true
+    return success
   }
 
   private fun add(
