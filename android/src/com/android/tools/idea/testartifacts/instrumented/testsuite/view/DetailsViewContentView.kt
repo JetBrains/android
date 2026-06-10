@@ -48,7 +48,6 @@ import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.ActiveRunnable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfoRt
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
@@ -64,7 +63,6 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
-import java.util.Arrays
 import java.util.Locale
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
@@ -411,52 +409,46 @@ open class DetailsViewContentView(
 
   @VisibleForTesting
   fun refreshTestResultLabel() {
-    val device = myAndroidDevice
-    if (device == null) {
-      myTestResultLabel.text = "No test status available"
-      return
-    }
-    val testCaseResult = myAndroidTestCaseResult
+    val device =
+      myAndroidDevice
+        ?: run {
+          myTestResultLabel.text = "No test status available"
+          myDeviceTestResultLabel.text = ""
+          return
+        }
     myDeviceTestResultLabel.text = String.format(Locale.US, "<html>%s</html>", device.getName().htmlEscape())
-    if (testCaseResult == null) {
-      myTestResultLabel.text = "No test status available"
-      return
-    }
-    if (testCaseResult.isTerminalState) {
-      val statusColor = getColorFor(testCaseResult) ?: UIUtil.getActiveTextColor()
-      when (testCaseResult) {
-        AndroidTestCaseResult.PASSED ->
-          myTestResultLabel.text =
-            String.format(Locale.US, "<html><font color='%s'>Passed</font></html>", ColorUtil.toHtmlColor(statusColor))
-        AndroidTestCaseResult.FAILED -> {
-          val errorMessage = Arrays.stream(StringUtil.splitByLines(myErrorStackTrace)).findFirst().orElse("")
-          if (StringUtil.isEmptyOrSpaces(errorMessage)) {
-            myTestResultLabel.text =
-              String.format(Locale.US, "<html><font color='%s'>Failed</font></html>", ColorUtil.toHtmlColor(statusColor))
-          } else {
-            myTestResultLabel.text =
-              String.format(
-                Locale.US,
-                "<html><font color='%s'>Failed</font> %s</html>",
-                ColorUtil.toHtmlColor(statusColor),
-                errorMessage.htmlEscape(),
-              )
+
+    val testCaseResult =
+      myAndroidTestCaseResult
+        ?: run {
+          myTestResultLabel.text = "No test status available"
+          return
+        }
+
+    myTestResultLabel.text =
+      if (testCaseResult.isTerminalState) {
+        val statusColor = getColorFor(testCaseResult) ?: UIUtil.getActiveTextColor()
+        val hexColor = ColorUtil.toHtmlColor(statusColor)
+        when (testCaseResult) {
+          AndroidTestCaseResult.PASSED -> String.format(Locale.US, "<html><font color='%s'>Passed</font></html>", hexColor)
+          AndroidTestCaseResult.FAILED -> {
+            val errorMessage = myErrorStackTrace.lineSequence().firstOrNull { it.isNotBlank() } ?: ""
+            if (errorMessage.isBlank()) {
+              String.format(Locale.US, "<html><font color='%s'>Failed</font></html>", hexColor)
+            } else {
+              String.format(Locale.US, "<html><font color='%s'>Failed</font> %s</html>", hexColor, errorMessage.htmlEscape())
+            }
+          }
+          AndroidTestCaseResult.SKIPPED -> String.format(Locale.US, "<html><font color='%s'>Skipped</font></html>", hexColor)
+          AndroidTestCaseResult.CANCELLED -> String.format(Locale.US, "<html><font color='%s'>Cancelled</font></html>", hexColor)
+          else -> {
+            Logger.getInstance(javaClass).warn(String.format(Locale.US, "Unexpected result type: %s", testCaseResult))
+            ""
           }
         }
-        AndroidTestCaseResult.SKIPPED ->
-          myTestResultLabel.text =
-            String.format(Locale.US, "<html><font color='%s'>Skipped</font></html>", ColorUtil.toHtmlColor(statusColor))
-        AndroidTestCaseResult.CANCELLED ->
-          myTestResultLabel.text =
-            String.format(Locale.US, "<html><font color='%s'>Cancelled</font></html>", ColorUtil.toHtmlColor(statusColor))
-        else -> {
-          myTestResultLabel.text = ""
-          Logger.getInstance(javaClass).warn(String.format(Locale.US, "Unexpected result type: %s", testCaseResult))
-        }
+      } else {
+        String.format(Locale.US, "Running on %s", device.getName())
       }
-    } else {
-      myTestResultLabel.text = String.format(Locale.US, "Running on %s", device.getName())
-    }
   }
 
   @VisibleForTesting
@@ -464,41 +456,40 @@ open class DetailsViewContentView(
     needsRefreshLogsView = false
     myLogsView.clear()
 
-    if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
+    if (myLogcat.isBlank() && myErrorStackTrace.isBlank()) {
       myLogsView.print("No logs available", ConsoleViewContentType.NORMAL_OUTPUT)
       return
     }
     logsTab.isHidden = false
-    if (!StringUtil.isEmptyOrSpaces(myLogcat)) {
+    if (myLogcat.isNotBlank()) {
       myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
       myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
     }
-    myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT)
+    if (myErrorStackTrace.isNotBlank()) {
+      myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT)
+    }
 
     myLogsView.scrollToEnd()
   }
 
   private fun updateSelectedTab() {
-    ApplicationManager.getApplication().invokeLater {
-      val lastSelectedTab = this.lastTabSelectedByUser
+    invokeLater {
+      val lastSelectedTab = lastTabSelectedByUser
 
       // Let's always default to the tab last selected by the user (if it's visible)
-      if (lastSelectedTab != null && !lastSelectedTab.isHidden) {
+      if (lastSelectedTab?.isHidden == false) {
         tabs.select(lastSelectedTab, false)
         return@invokeLater
       }
 
       // Otherwise select the first visible tab in the ordered set defined below
-      for (tab in setOf(myJourneyScreenshotsTab, myScreenshotTab, myBenchmarkTab, logsTab, myDeviceInfoTab)) {
-        if (!tab.isHidden) {
+      listOf(myJourneyScreenshotsTab, myScreenshotTab, myBenchmarkTab, logsTab, myDeviceInfoTab)
+        .firstOrNull { !it.isHidden }
+        ?.let { tab ->
           tabs.select(tab, false)
-
           // We only want to track tabs selected by the user - so reset it to the previous value
-          this.lastTabSelectedByUser = lastSelectedTab
-
-          return@invokeLater
+          lastTabSelectedByUser = lastSelectedTab
         }
-      }
     }
   }
 
