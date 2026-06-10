@@ -229,6 +229,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       CachedValueProvider.Result.create(
         GradleBuildConfigurationSourceProvider(project),
         ProjectRootModificationTracker.getInstance(project),
+        ProjectSyncModificationTracker.getInstance(project),
       )
     }
   }
