@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
@@ -47,5 +48,19 @@ public class GradleProjectSystemTest extends HeavyPlatformTestCase {
   public void testCompileProject() {
     ProjectSystemUtil.getProjectSystem(getProject()).getBuildManager().compileProject();
     verify(GradleBuildInvoker.getInstance(myProject)).compileJava(any());
+  }
+
+  public void testBuildConfigurationSourceProviderIsInvalidatedOnSync() {
+    GradleProjectSystem projectSystem = (GradleProjectSystem)ProjectSystemUtil.getProjectSystem(myProject);
+    BuildConfigurationSourceProvider provider1 = projectSystem.getBuildConfigurationSourceProvider();
+
+    // Simulate sync modification by notifying the message bus.
+    // This is a regression test for b/519813717 where Gradle files were missing after reopening.
+    // Reopening triggers a sync, which must invalidate the BuildConfigurationSourceProvider cache.
+    myProject.getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS);
+
+    BuildConfigurationSourceProvider provider2 = projectSystem.getBuildConfigurationSourceProvider();
+
+    assertNotSame(provider1, provider2);
   }
 }
