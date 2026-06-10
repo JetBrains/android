@@ -41,27 +41,27 @@ class SherlockFlagsTest {
   fun testQueryGenerationFlag() {
     // JetBrains patch: disabled, FeatureFlags belongs to the sherlock.common module, which this repository does not carry.
     // // Verify the default value.
-    // assertThat(FeatureFlags.queryGenerationEnabled).isEqualTo(StudioFlags.PROFILER_PERFETTO_QUERY_GENERATION.get())
+    // assertThat(FeatureFlags.queryGenerationEnabled.get()).isEqualTo(StudioFlags.PROFILER_PERFETTO_QUERY_GENERATION.get())
     //
     // // Verify we can override the value, and can read properly.
     // StudioFlags.PROFILER_PERFETTO_QUERY_GENERATION.override(true)
-    // assertThat(FeatureFlags.queryGenerationEnabled).isTrue()
+    // assertThat(FeatureFlags.queryGenerationEnabled.get()).isTrue()
     //
     // StudioFlags.PROFILER_PERFETTO_QUERY_GENERATION.override(false)
-    // assertThat(FeatureFlags.queryGenerationEnabled).isFalse()
+    // assertThat(FeatureFlags.queryGenerationEnabled.get()).isFalse()
   }
 
   @Test
   fun testAiTraceAnalysisFlag() {
     // JetBrains patch: disabled, FeatureFlags belongs to the sherlock.common module, which this repository does not carry.
     // // Verify the default value.
-    // assertThat(FeatureFlags.aiTraceAnalysisEnabled).isEqualTo(StudioFlags.PROFILER_PERFETTO_AI_TRACE_ANALYSIS.get())
+    // assertThat(FeatureFlags.aiTraceAnalysisEnabled.get()).isEqualTo(StudioFlags.PROFILER_PERFETTO_AI_TRACE_ANALYSIS.get())
     //
     // // Verify we can override the value, and can read properly.
     // StudioFlags.PROFILER_PERFETTO_AI_TRACE_ANALYSIS.override(true)
-    // assertThat(FeatureFlags.aiTraceAnalysisEnabled).isTrue()
+    // assertThat(FeatureFlags.aiTraceAnalysisEnabled.get()).isTrue()
     //
     // StudioFlags.PROFILER_PERFETTO_AI_TRACE_ANALYSIS.override(false)
-    // assertThat(FeatureFlags.aiTraceAnalysisEnabled).isFalse()
+    // assertThat(FeatureFlags.aiTraceAnalysisEnabled.get()).isFalse()
   }
 }
