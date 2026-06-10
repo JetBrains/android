@@ -96,6 +96,7 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/jlink
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/jmap
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/jmod
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/jnativescan
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/jps
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/jrunscript
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/jstack
@@ -104,13 +105,13 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/keytool
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/rmiregistry
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/bin/serialver
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/jaxp-strict.properties.template
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/jaxp.properties
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/logging.properties
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/management/jmxremote.access
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/management/jmxremote.password.template
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/management/management.properties
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/net.properties
-+++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/security/java.policy
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/security/java.security
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/security/policy/README.txt
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/conf/security/policy/limited/default_US_export.policy
@@ -123,7 +124,6 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.base/ASSEMBLY_EXCEPTION
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.base/LICENSE
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.base/aes.md
-+++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.base/asm.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.base/c-libutl.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.base/cldr.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.base/icu.md
@@ -209,8 +209,16 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/bcel.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/dom.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/jcup.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/schema10part1.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/schema10part2.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/xalan.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/xerces.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/xhtml10.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/xhtml10schema.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/xhtml11.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/xhtml11schema.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/xmlspec.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/java.xml/xmlxsd.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.accessibility/ADDITIONAL_LICENSE_INFO
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.accessibility/ASSEMBLY_EXCEPTION
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.accessibility/LICENSE
@@ -251,6 +259,10 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.le/ASSEMBLY_EXCEPTION
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.le/LICENSE
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.le/jline.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.md/ADDITIONAL_LICENSE_INFO
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.md/ASSEMBLY_EXCEPTION
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.md/LICENSE
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.md/commonmark.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.internal.opt/LICENSE
@@ -264,6 +276,8 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/ADDITIONAL_LICENSE_INFO
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/ASSEMBLY_EXCEPTION
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/LICENSE
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/dejavufonts.md
++++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/highlightjs.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/jquery.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/jqueryUI.md
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.jcmd/ADDITIONAL_LICENSE_INFO
@@ -284,9 +298,6 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.jlink/ADDITIONAL_LICENSE_INFO
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.jlink/ASSEMBLY_EXCEPTION
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.jlink/LICENSE
-+++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.jsobject/ADDITIONAL_LICENSE_INFO
-+++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.jsobject/ASSEMBLY_EXCEPTION
-+++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.jsobject/LICENSE
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.localedata/ADDITIONAL_LICENSE_INFO
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.localedata/ASSEMBLY_EXCEPTION
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/legal/jdk.localedata/LICENSE
@@ -406,7 +417,6 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/libjsig.dylib
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/libjsound.dylib
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/liblcms.dylib
-+++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/lible.dylib
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/libmanagement.dylib
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/libmanagement_agent.dylib
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/libmanagement_ext.dylib
@@ -430,7 +440,6 @@
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/psfontj2d.properties
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/security/blocked.certs
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/security/cacerts
-+++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/security/default.policy
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/security/public_suffix_list.dat
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/server/libjsig.dylib
 +++Android Studio Nightly.app/Contents/jbr/Contents/Home/lib/server/libjvm.dylib
@@ -4001,6 +4010,7 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jlink
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jmap
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jmod
+---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jnativescan
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jps
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jrunscript
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jstack
@@ -4009,13 +4019,13 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/keytool
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/rmiregistry
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/bin/serialver
+---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/jaxp-strict.properties.template
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/jaxp.properties
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/logging.properties
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/management/jmxremote.access
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/management/jmxremote.password.template
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/management/management.properties
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/net.properties
----Android Studio Preview.app/Contents/jbr/Contents/Home/conf/security/java.policy
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/security/java.security
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/security/policy/README.txt
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/conf/security/policy/limited/default_US_export.policy
@@ -4028,7 +4038,6 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/ASSEMBLY_EXCEPTION
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/LICENSE
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/aes.md
----Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/asm.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/c-libutl.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/cldr.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/icu.md
@@ -4114,8 +4123,16 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/bcel.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/dom.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/jcup.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/schema10part1.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/schema10part2.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/xalan.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/xerces.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/xhtml10.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/xhtml10schema.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/xhtml11.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/xhtml11schema.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/xmlspec.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.xml/xmlxsd.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.accessibility/ADDITIONAL_LICENSE_INFO
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.accessibility/ASSEMBLY_EXCEPTION
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.accessibility/LICENSE
@@ -4156,6 +4173,10 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.le/ASSEMBLY_EXCEPTION
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.le/LICENSE
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.le/jline.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.md/ADDITIONAL_LICENSE_INFO
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.md/ASSEMBLY_EXCEPTION
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.md/LICENSE
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.md/commonmark.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.internal.opt/LICENSE
@@ -4169,6 +4190,8 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/ADDITIONAL_LICENSE_INFO
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/ASSEMBLY_EXCEPTION
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/LICENSE
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/dejavufonts.md
+---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/highlightjs.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/jquery.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.javadoc/jqueryUI.md
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jcmd/ADDITIONAL_LICENSE_INFO
@@ -4189,9 +4212,6 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jlink/ADDITIONAL_LICENSE_INFO
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jlink/ASSEMBLY_EXCEPTION
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jlink/LICENSE
----Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jsobject/ADDITIONAL_LICENSE_INFO
----Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jsobject/ASSEMBLY_EXCEPTION
----Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.jsobject/LICENSE
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.localedata/ADDITIONAL_LICENSE_INFO
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.localedata/ASSEMBLY_EXCEPTION
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/legal/jdk.localedata/LICENSE
@@ -4311,7 +4331,6 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libjsig.dylib
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libjsound.dylib
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/liblcms.dylib
----Android Studio Preview.app/Contents/jbr/Contents/Home/lib/lible.dylib
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libmanagement.dylib
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libmanagement_agent.dylib
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libmanagement_ext.dylib
@@ -4335,7 +4354,6 @@
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/psfontj2d.properties
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/blocked.certs
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/cacerts
----Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/default.policy
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/public_suffix_list.dat
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/server/libjsig.dylib
 ---Android Studio Preview.app/Contents/jbr/Contents/Home/lib/server/libjvm.dylib
