@@ -76,10 +76,10 @@ abstract class AndroidConfigurationExecutorBaseTest {
     override fun getTestPackageName(): String? = null
   }
 
-  protected fun getRunContentDescriptorForTests(runContentDescriptorProvider: () -> RunContentDescriptor): RunContentDescriptor {
+  protected fun getRunContentDescriptorForTests(runContentDescriptorProvider: () -> RunContentDescriptor?): RunContentDescriptor? {
     val runContentDescriptor =
       (ProgressManager.getInstance().runProcess(Computable { runContentDescriptorProvider.invoke() }, EmptyProgressIndicator()))
-    val processHandler = runContentDescriptor.processHandler!!
+    val processHandler = runContentDescriptor?.processHandler!!
     Disposer.register(project) { processHandler.detachProcess() }
 
     if (!processHandler.isStartNotified) {

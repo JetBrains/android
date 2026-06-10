@@ -42,7 +42,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
-import com.intellij.xdebugger.impl.XDebugSessionImpl
+import com.intellij.xdebugger.XSessionStartedResult
 import icons.StudioIcons
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
@@ -59,6 +59,7 @@ object DebugSessionStarter {
    * Starts a new debugging session for given [Client]. Use this method only if debugging is started by using 'Debug' on configuration,
    * otherwise use [AndroidDebugger.attachToClient]
    */
+  @Suppress("UnstableApiUsage")
   suspend fun <S : AndroidDebuggerState> attachDebuggerToStartedProcess(
     device: IDevice,
     applicationContext: ApplicationProjectContext,
@@ -70,7 +71,7 @@ object DebugSessionStarter {
     consoleView: ConsoleView? = null,
     timeout: Long = 15,
     waitingProcessState: ClientData.DebuggerStatus = ClientData.DebuggerStatus.WAITING,
-  ): XDebugSessionImpl =
+  ): XSessionStartedResult =
     RunStats.from(environment).track(START_DEBUGGER_SESSION) {
       val client = waitForClientReadyForDebug(device, listOf(applicationContext.applicationId), timeout, indicator, waitingProcessState)
 
@@ -82,16 +83,13 @@ object DebugSessionStarter {
           androidDebuggerState,
           consoleView,
         )
-      val session =
+      val sessionStarted =
         withContext(Dispatchers.EDT) {
           indicator.text = "Attaching debugger"
-          XDebuggerManager.getInstance(environment.project)
-            .newSessionBuilder(debugProcessStarter)
-            .environment(environment)
-            .startSession()
-            .session as XDebugSessionImpl
+          val debuggerManager = XDebuggerManager.getInstance(environment.project)
+          @Suppress("UnstableApiUsage") debuggerManager.newSessionBuilder(debugProcessStarter).environment(environment).startSession()
         }
-
+      val session = sessionStarted.session
       val debugProcessHandler = session.debugProcess.processHandler
       debugProcessHandler.startNotify()
       debugProcessHandler.addProcessListener(
@@ -115,9 +113,10 @@ object DebugSessionStarter {
         }
       )
       AndroidSessionInfo.create(debugProcessHandler, listOf(device), applicationContext.applicationId)
-      session
+      sessionStarted
     }
 
+  @Suppress("UnstableApiUsage")
   suspend fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
     device: IDevice,
     applicationContext: ApplicationProjectContext,
@@ -129,7 +128,7 @@ object DebugSessionStarter {
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 300,
-  ): XDebugSessionImpl {
+  ): XSessionStartedResult {
     val masterProcessHandler = AndroidProcessHandler(masterProcessName, finishAndroidProcessCallback = destroyRunningProcess)
     masterProcessHandler.addTargetDevice(device)
     return attachReattachingDebuggerToStartedProcess(
@@ -150,6 +149,7 @@ object DebugSessionStarter {
    * kill the instrumentation process between each test, disconnecting the debugger. We listen for the start of a new test, waiting for a
    * debugger, and reconnect.
    */
+  @Suppress("UnstableApiUsage")
   suspend fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
     device: IDevice,
     applicationContext: ApplicationProjectContext,
@@ -160,7 +160,7 @@ object DebugSessionStarter {
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 300,
-  ): XDebugSessionImpl =
+  ): XSessionStartedResult =
     RunStats.from(environment).track(START_REATTACHING_DEBUGGER_SESSION) {
       val client = waitForClientReadyForDebug(device, listOf(applicationContext.applicationId), timeout, indicator)
       val debugProcessStarter =
@@ -204,16 +204,18 @@ object DebugSessionStarter {
       LOG.info("Start first session")
 
       withContext(Dispatchers.EDT) {
-        val sessionResult =
-          XDebuggerManager.getInstance(environment.project).newSessionBuilder(debugProcessStarter).environment(environment).startSession()
-
-        val debugProcessHandler = sessionResult.session.debugProcess.processHandler
+        val debuggerManager = XDebuggerManager.getInstance(environment.project)
+        @Suppress("UnstableApiUsage")
+        val sessionStarted = debuggerManager.newSessionBuilder(debugProcessStarter).environment(environment).startSession()
+        @Suppress("UnstableApiUsage") val session = sessionStarted.session
+        val debugProcessHandler = session.debugProcess.processHandler
         debugProcessHandler.startNotify()
         reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
-        sessionResult.runContentDescriptor!!.processHandler = reattachingProcessHandler
+        @Suppress("UnstableApiUsage")
+        sessionStarted.runContentDescriptor?.processHandler = reattachingProcessHandler
 
         AndroidSessionInfo.create(debugProcessHandler, listOf(device), applicationContext.applicationId)
-        sessionResult.session as XDebugSessionImpl
+        sessionStarted
       }
     }
 

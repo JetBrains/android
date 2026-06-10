@@ -30,6 +30,8 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XSessionStartedResult;
+
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +58,7 @@ public interface BlazeAndroidDeployAndLaunchStrategy {
 
   /** Returns the task to connect the debugger. */
   @Nullable
-  XDebugSession startDebuggerSession(
+  XSessionStartedResult startDebuggerSession(
     BazelAndroidRunContext runContext,
     AndroidDebugger androidDebugger,
     AndroidDebuggerState androidDebuggerState,

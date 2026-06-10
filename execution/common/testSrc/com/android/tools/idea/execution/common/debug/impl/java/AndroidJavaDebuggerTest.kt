@@ -124,16 +124,18 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testAllInformationForPositionManager() = runTest {
+    @Suppress("UnstableApiUsage")
     val session =
       DebugSessionStarter.attachDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(appId),
-        executionEnvironment,
-        javaDebugger,
-        javaDebugger.createState(),
-        onDebugProcessDestroyed,
-        EmptyProgressIndicator(),
-      )
+          device,
+          TestApplicationProjectContext(appId),
+          executionEnvironment,
+          javaDebugger,
+          javaDebugger.createState(),
+          onDebugProcessDestroyed,
+          EmptyProgressIndicator(),
+        )
+        .session
 
     val processHandler = session.debugProcess.processHandler
     // For AndroidPositionManager.
@@ -144,16 +146,18 @@ class AndroidJavaDebuggerTest {
   fun testSessionCreated() = runTest {
     val stats = RunStatsService.get(project).create().also { executionEnvironment.putUserData(RunStats.KEY, it) }
 
+    @Suppress("UnstableApiUsage")
     val session =
       DebugSessionStarter.attachDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(appId),
-        executionEnvironment,
-        javaDebugger,
-        javaDebugger.createState(),
-        onDebugProcessDestroyed,
-        EmptyProgressIndicator(),
-      )
+          device,
+          TestApplicationProjectContext(appId),
+          executionEnvironment,
+          javaDebugger,
+          javaDebugger.createState(),
+          onDebugProcessDestroyed,
+          EmptyProgressIndicator(),
+        )
+        .session
     assertThat(session).isNotNull()
     assertThat(session.sessionName).isEqualTo("myConfiguration")
     stats.success()
@@ -163,16 +167,18 @@ class AndroidJavaDebuggerTest {
   @Test
   fun testOnDebugProcessDestroyCallback() = runTest {
     val countDownLatch = CountDownLatch(1)
+    @Suppress("UnstableApiUsage")
     val session =
       DebugSessionStarter.attachDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(appId),
-        executionEnvironment,
-        javaDebugger,
-        javaDebugger.createState(),
-        destroyRunningProcess = { countDownLatch.countDown() },
-        EmptyProgressIndicator(),
-      )
+          device,
+          TestApplicationProjectContext(appId),
+          executionEnvironment,
+          javaDebugger,
+          javaDebugger.createState(),
+          destroyRunningProcess = { countDownLatch.countDown() },
+          EmptyProgressIndicator(),
+        )
+        .session
 
     Thread.sleep(250)
     // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
@@ -189,7 +195,7 @@ class AndroidJavaDebuggerTest {
 
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
-    assertThat(session!!.sessionName).isEqualTo("Java Only (${client.clientData.pid})")
+    assertThat(session.sessionName).isEqualTo("Java Only (${client.clientData.pid})")
   }
 
   @Test
@@ -210,16 +216,18 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testKillAppOnDestroy() = runTest {
+    @Suppress("UnstableApiUsage")
     val session =
       DebugSessionStarter.attachDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(appId),
-        executionEnvironment,
-        javaDebugger,
-        javaDebugger.createState(),
-        onDebugProcessDestroyed,
-        indicator = EmptyProgressIndicator(),
-      )
+          device,
+          TestApplicationProjectContext(appId),
+          executionEnvironment,
+          javaDebugger,
+          javaDebugger.createState(),
+          onDebugProcessDestroyed,
+          indicator = EmptyProgressIndicator(),
+        )
+        .session
 
     val countDownLatch = CountDownLatch(1)
 
@@ -252,17 +260,19 @@ class AndroidJavaDebuggerTest {
   @Test
   fun testDoesDestroyOnDestroy() = runTest {
     val isDestroyed = AtomicBoolean(false)
+    @Suppress("UnstableApiUsage")
     val session =
       DebugSessionStarter.attachDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(appId),
-        executionEnvironment,
-        javaDebugger,
-        javaDebugger.createState(),
-        destroyRunningProcess = { isDestroyed.set(true) },
-        indicator = EmptyProgressIndicator(),
-      )
-    @Suppress("UnstableApiUsage") val processHandler = session.debugProcess.processHandler
+          device,
+          TestApplicationProjectContext(appId),
+          executionEnvironment,
+          javaDebugger,
+          javaDebugger.createState(),
+          destroyRunningProcess = { isDestroyed.set(true) },
+          indicator = EmptyProgressIndicator(),
+        )
+        .session
+    val processHandler = session.debugProcess.processHandler
     val latch = CountDownLatch(1)
     processHandler.addProcessListener(
       object : ProcessAdapter() {
@@ -281,18 +291,20 @@ class AndroidJavaDebuggerTest {
   @Test
   fun testDoesNotDestroyOnDetach() = runTest {
     val isDestroyed = AtomicBoolean(false)
+    @Suppress("UnstableApiUsage")
     val session =
       DebugSessionStarter.attachDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(appId),
-        executionEnvironment,
-        javaDebugger,
-        javaDebugger.createState(),
-        destroyRunningProcess = { isDestroyed.set(true) },
-        indicator = EmptyProgressIndicator(),
-      )
+          device,
+          TestApplicationProjectContext(appId),
+          executionEnvironment,
+          javaDebugger,
+          javaDebugger.createState(),
+          destroyRunningProcess = { isDestroyed.set(true) },
+          indicator = EmptyProgressIndicator(),
+        )
+        .session
 
-    @Suppress("UnstableApiUsage") val processHandler = session.debugProcess.processHandler
+    val processHandler = session.debugProcess.processHandler
     val latch = CountDownLatch(1)
     processHandler.addProcessListener(
       object : ProcessAdapter() {
@@ -319,16 +331,18 @@ class AndroidJavaDebuggerTest {
 
     whenever(mockDeploymentAppService.findClient(eq(device), eq(appId))).thenReturn(listOf(spyClient))
 
+    @Suppress("UnstableApiUsage")
     val session =
       DebugSessionStarter.attachDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(appId),
-        executionEnvironment,
-        javaDebugger,
-        javaDebugger.createState(),
-        onDebugProcessDestroyed,
-        EmptyProgressIndicator(),
-      )
+          device,
+          TestApplicationProjectContext(appId),
+          executionEnvironment,
+          javaDebugger,
+          javaDebugger.createState(),
+          onDebugProcessDestroyed,
+          EmptyProgressIndicator(),
+        )
+        .session
 
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()

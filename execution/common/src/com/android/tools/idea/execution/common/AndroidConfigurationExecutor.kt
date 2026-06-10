@@ -43,7 +43,7 @@ interface AndroidConfigurationExecutor {
 
   @Throws(ExecutionException::class) fun run(indicator: ProgressIndicator): RunContentDescriptor
 
-  @Throws(ExecutionException::class) fun debug(indicator: ProgressIndicator): RunContentDescriptor
+  @Throws(ExecutionException::class) fun debug(indicator: ProgressIndicator): RunContentDescriptor?
 
   @Throws(ExecutionException::class)
   fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor {
@@ -51,7 +51,7 @@ interface AndroidConfigurationExecutor {
   }
 
   @Throws(ExecutionException::class)
-  fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
+  fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor? {
     throw RuntimeException("Unsupported operation")
   }
 }

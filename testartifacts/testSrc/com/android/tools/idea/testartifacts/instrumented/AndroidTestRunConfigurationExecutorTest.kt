@@ -175,11 +175,11 @@ class AndroidTestRunConfigurationExecutorTest {
     val runContentDescriptor =
       ProgressManager.getInstance().runProcess(Computable { executor.debug(EmptyProgressIndicator()) }, EmptyProgressIndicator())
 
-    assertThat(runContentDescriptor.executionConsole).isInstanceOf(AndroidTestSuiteView::class.java)
+    assertThat(runContentDescriptor?.executionConsole).isInstanceOf(AndroidTestSuiteView::class.java)
     stats.success()
     assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
     deviceState.stopClient(1235)
-    runContentDescriptor.processHandler!!.waitFor()
+    runContentDescriptor?.processHandler!!.waitFor()
     if (!historyLatch.await(20, TimeUnit.SECONDS)) {
       fail("History is not saved")
     }

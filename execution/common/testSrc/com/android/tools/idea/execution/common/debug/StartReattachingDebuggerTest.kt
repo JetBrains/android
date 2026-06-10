@@ -98,16 +98,18 @@ class StartReattachingDebuggerTest {
     val stats = RunStatsService.get(project).create().also { executionEnvironment.putUserData(RunStats.KEY, it) }
     val masterProcessHandler = AndroidProcessHandler(MASTER_PROCESS_NAME, {})
     deviceState.launchAndWaitForProcess(1234, 4321, APP_ID, true)
+    @Suppress("UnstableApiUsage")
     val firstSession =
       DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(APP_ID),
-        masterProcessHandler,
-        executionEnvironment,
-        AndroidJavaDebugger(),
-        AndroidJavaDebugger().createState(),
-        EmptyProgressIndicator(),
-      )
+          device,
+          TestApplicationProjectContext(APP_ID),
+          masterProcessHandler,
+          executionEnvironment,
+          AndroidJavaDebugger(),
+          AndroidJavaDebugger().createState(),
+          EmptyProgressIndicator(),
+        )
+        .session
     Thread.sleep(250)
     // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
 
@@ -202,24 +204,26 @@ class StartReattachingDebuggerTest {
       }
     }
 
-    val sessionImpl =
+    @Suppress("UnstableApiUsage")
+    val runContentDescriptor =
       DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
-        device,
-        TestApplicationProjectContext(APP_ID),
-        MASTER_PROCESS_NAME,
-        executionEnvironment,
-        AndroidJavaDebugger(),
-        AndroidJavaDebugger().createState(),
-        destroyRunningProcess = {
-          it.forceStop(APP_ID)
-          it.forceStop(MASTER_PROCESS_NAME)
-        },
-        EmptyProgressIndicator(),
-      )
+          device,
+          TestApplicationProjectContext(APP_ID),
+          MASTER_PROCESS_NAME,
+          executionEnvironment,
+          AndroidJavaDebugger(),
+          AndroidJavaDebugger().createState(),
+          destroyRunningProcess = {
+            it.forceStop(APP_ID)
+            it.forceStop(MASTER_PROCESS_NAME)
+          },
+          EmptyProgressIndicator(),
+        )
+        .runContentDescriptor
 
     // when we stop for debug, master process should be stopped too
-    sessionImpl.runContentDescriptor.processHandler!!.destroyProcess()
-    sessionImpl.runContentDescriptor.processHandler!!.waitFor()
+    runContentDescriptor?.processHandler?.destroyProcess()
+    runContentDescriptor?.processHandler?.waitFor()
 
     if (!latch.await(20, TimeUnit.SECONDS)) {
       fail("Process is not stopped")

@@ -47,6 +47,8 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XSessionStartedResult;
+
 import javax.annotation.Nullable;
 import kotlin.Unit;
 import kotlin.coroutines.EmptyCoroutineContext;
@@ -153,9 +155,10 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
         startActivityFlagsProvider);
   }
 
+  @SuppressWarnings("UnstableApiUsage")
   @Nullable
   @Override
-  public XDebugSession startDebuggerSession(
+  public XSessionStartedResult startDebuggerSession(
     BazelAndroidRunContext runContext,
     AndroidDebugger androidDebugger,
     AndroidDebuggerState androidDebuggerState,

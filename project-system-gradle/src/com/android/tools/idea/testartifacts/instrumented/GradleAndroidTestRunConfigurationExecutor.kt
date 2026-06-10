@@ -113,7 +113,7 @@ open class GradleAndroidTestRunConfigurationExecutor(env: ExecutionEnvironment, 
       }
     }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor? = runBlockingCancellable {
     LOG.info("Start debug tests")
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
@@ -136,8 +136,8 @@ open class GradleAndroidTestRunConfigurationExecutor(env: ExecutionEnvironment, 
         packageName
       }
 
-    val session = startDebuggerSession(indicator, device, FacetBasedApplicationProjectContext(packageNameForDebug, facet), console)
-    session.runContentDescriptor
+    val sessionStarted = startDebuggerSession(indicator, device, FacetBasedApplicationProjectContext(packageNameForDebug, facet), console)
+    @Suppress("UnstableApiUsage") sessionStarted.runContentDescriptor
   }
 
   private suspend fun createAndroidTestSuiteView() =

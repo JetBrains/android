@@ -140,7 +140,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     assertThat(receivedAmCommands[2]).isEqualTo(showTile)
 
     // Verify that a warning was raised in console.
-    val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
+    val consoleViewImpl = runContentDescriptor?.executionConsole as ConsoleViewImpl
     // Print deferred text
     val consoleOutputPromise = CompletableFuture<String>()
     invokeLater {
@@ -324,10 +324,10 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       )
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
-    assertThat(runContentDescriptor.processHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
+    assertThat(runContentDescriptor?.processHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
 
     // Stop configuration.
-    runContentDescriptor.processHandler!!.destroyProcess()
+    runContentDescriptor?.processHandler!!.destroyProcess()
     if (!processTerminatedLatch.await(10, TimeUnit.SECONDS)) {
       fail("process is not terminated")
     }
