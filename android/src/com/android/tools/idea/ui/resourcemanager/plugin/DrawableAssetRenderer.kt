@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.SdkConstants
 import com.android.tools.idea.rendering.DrawableRenderer
+import com.android.utils.XmlUtils
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileTypeRegistry
@@ -29,9 +30,7 @@ import java.awt.image.BufferedImage
 import java.text.ParseException
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
-import javax.xml.parsers.DocumentBuilderFactory
 import org.jetbrains.android.facet.AndroidFacet
-import org.xml.sax.SAXParseException
 
 private val LOG = Logger.getInstance(DrawableAssetRenderer::class.java)
 
@@ -54,8 +53,6 @@ private val SUPPORTED_DRAWABLE_TAG =
 
 /** [DesignAssetRenderer] to display Vector Drawable. */
 class DrawableAssetRenderer : DesignAssetRenderer {
-
-  private val documentBuilder = DocumentBuilderFactory.newDefaultInstance().newDocumentBuilder()
 
   private fun createRenderer(module: Module, targetFile: VirtualFile): CompletableFuture<DrawableRenderer> {
     if (module.isDisposed || module.project.isDisposed) {
@@ -81,14 +78,12 @@ class DrawableAssetRenderer : DesignAssetRenderer {
     }
 
     return try {
-      val document = documentBuilder.parse(file.inputStream)
-      document.documentElement.nodeName in SUPPORTED_DRAWABLE_TAG
-    } catch (ex: SAXParseException) {
-      LOG.debug("${ex::class.simpleName} in ${file.path}", ex)
-      return false
+      // Only the root tag name is needed — use the non-expanding string-scan helper
+      // (same one used by ImageAsset/VectorAsset) instead of a full DOM parse.
+      XmlUtils.getRootTagName(String(file.contentsToByteArray())) in SUPPORTED_DRAWABLE_TAG
     } catch (ex: Exception) {
       LOG.warn("${ex::class.simpleName} in ${file.path}", ex)
-      return false
+      false
     }
   }
 
