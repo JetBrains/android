@@ -1,0 +1,89 @@
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+### auto-generated section `build intellij.android.core.integration.adb_wifi` start
+jvm_library(
+    name = "adb_wifi",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.core.integration.adb_wifi",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//java/java-syntax:syntax",
+        "@lib//:kotlin-stdlib",
+        "//libraries/jetbrains/annotations",
+        "//libraries/guava",
+        "//platform/util",
+        "//platform/projectModel-api:projectModel",
+        "//platform/core-api:core",
+    ],
+)
+
+jvm_library(
+    name = "adb_wifi_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "testSrc/**/*.kt",
+            "testSrc/**/*.java",
+            "testSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.core.integration.adb_wifi",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":adb_wifi"],
+    deps = [
+        # do not sort,
+        "//java/java-syntax:syntax",
+        "//java/java-syntax:syntax_test_lib",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "//libraries/jetbrains/annotations",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//libraries/guava",
+        "//libraries/guava:guava_test_lib",
+        "//platform/util",
+        "//platform/util:util_test_lib",
+        "//platform/projectModel-api:projectModel",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/core-api:core",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-ui",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//android/as-driver/utils",
+        "//android/as-driver/utils:utils_test_lib",
+        "@lib//:truth",
+        "//android/android:core",
+        "//android/android:core_test_lib",
+        "//android/platform-performance-testing",
+        "//android/platform-performance-testing:platform-performance-testing_test_lib",
+        "//android/as-driver/integration",
+        "//android/as-driver/integration:integration_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.core.integration.adb_wifi` end
+
+### auto-generated section `iml intellij.android.core.integration.adb_wifi` start
+exports_files(
+    [
+        "intellij.android.core.integration.adb_wifi.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.core.integration.adb_wifi` end
+
+### auto-generated section `test intellij.android.core.integration.adb_wifi` start
+jps_test(
+    name = "adb_wifi_test",
+    runtime_deps = [":adb_wifi_test_lib"],
+)
+### auto-generated section `test intellij.android.core.integration.adb_wifi` end

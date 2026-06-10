@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// JetBrains patch: package matches the adb_wifi/ directory. Upstream a623568dee9e3 moved these files into adb_wifi/ but kept package com.android.tools.idea, and the PackageDirectoryMismatch check (Qodana zero tolerance) rejects that. Keep this package line when resolving conflicts.
 package com.android.tools.idea.adb_wifi
 
 import com.android.tools.testlib.Adb
