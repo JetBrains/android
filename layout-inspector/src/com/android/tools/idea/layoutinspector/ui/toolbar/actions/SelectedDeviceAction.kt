@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.LayeredIcon
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.Icon
@@ -107,7 +108,8 @@ class SelectDeviceAction(
       }
 
     event.presentation.icon = dropDownPresentation.icon
-    event.presentation.text = dropDownPresentation.text
+    // Disable mnemonic parsing on presentation to avoid HTML injection by preserving escaped entities.
+    event.presentation.setText(dropDownPresentation.text, false)
     event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
@@ -162,7 +164,12 @@ class SelectDeviceAction(
   }
 
   /** A device which the user can select. */
-  private inner class DeviceAction(private val device: DeviceDescriptor) : ToggleAction(device.toTitle(), null, device.toIcon()) {
+  private inner class DeviceAction(private val device: DeviceDescriptor) : ToggleAction(null, null, device.toIcon()) {
+
+    init {
+      // Disable mnemonic parsing on templatePresentation to avoid HTML injection by preserving escaped entities (e.g. &lt;).
+      templatePresentation.setText(StringUtil.escapeXmlEntities(device.toTitle()), false)
+    }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -190,12 +197,16 @@ class SelectDeviceAction(
    * A device with all its debuggable processes, which the user can select. This is shown if [device] doesn't support foreground process
    * detection.
    */
-  private inner class DeviceProcessPickerAction(private val device: DeviceDescriptor) :
-    DropDownAction(
-      "${device.buildDeviceName()} ${LayoutInspectorBundle.message("cant.detect.foreground.process")}",
-      null,
-      device.toIcon(),
-    ) {
+  private inner class DeviceProcessPickerAction(private val device: DeviceDescriptor) : DropDownAction(null, null, device.toIcon()) {
+
+    init {
+      // Disable mnemonic parsing on templatePresentation to avoid HTML injection by preserving escaped entities (e.g. &lt;).
+      templatePresentation.setText(
+        "${StringUtil.escapeXmlEntities(device.buildDeviceName())} ${LayoutInspectorBundle.message("cant.detect.foreground.process")}",
+        false,
+      )
+    }
+
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     init {
@@ -216,7 +227,13 @@ class SelectDeviceAction(
     }
   }
 
-  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) : ToggleAction(processDescriptor.name) {
+  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) : ToggleAction() {
+
+    init {
+      // Disable mnemonic parsing on templatePresentation to avoid HTML injection by preserving escaped entities (e.g. &lt;).
+      templatePresentation.setText(StringUtil.escapeXmlEntities(processDescriptor.name), false)
+    }
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == deviceModel.selectedProcess
     }
@@ -269,10 +286,11 @@ class SelectDeviceAction(
 }
 
 private fun createDeviceLabel(device: DeviceDescriptor, process: ProcessDescriptor? = null): String {
+  val escapedDeviceName = StringUtil.escapeXmlEntities(device.buildDeviceName())
   return if (process != null) {
-    "${device.buildDeviceName()} > ${process.name}"
+    "$escapedDeviceName > ${StringUtil.escapeXmlEntities(process.name)}"
   } else {
-    device.buildDeviceName()
+    escapedDeviceName
   }
 }
 

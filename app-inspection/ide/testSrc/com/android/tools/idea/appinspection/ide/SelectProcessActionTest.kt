@@ -338,6 +338,38 @@ class SelectProcessActionTest {
 
     assertThat(presentation.getClientProperty(SHOW_TEXT_IN_TOOLBAR)).isTrue()
   }
+
+  @Test
+  fun htmlIsEscaped() {
+    val testNotifier = TestProcessDiscovery()
+    val model = ProcessesModel(testNotifier)
+    val selectProcessAction = SelectProcessAction(model)
+
+    val device =
+      FakeTransportService.FAKE_DEVICE.toBuilder()
+        .setSerial("serial")
+        .setManufacturer("<b>FakeManufacturer</b>")
+        .setModel("<i>FakeDevice</i>")
+        .setIsEmulator(false)
+        .build()
+    val stream = Common.Stream.newBuilder().setDevice(device).build()
+
+    val process =
+      TransportProcessDescriptor(stream, FakeTransportService.FAKE_PROCESS.toBuilder().setName("<html>unsafe-process").setPid(100).build())
+
+    testNotifier.addDevice(stream.device.toDeviceDescriptor())
+    testNotifier.fireConnected(process)
+
+    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children = selectProcessAction.getChildren(null)
+    assertThat(children).hasLength(2)
+    val deviceAction = children[0]
+    assertThat(deviceAction.templateText).isEqualTo("&lt;b&gt;FakeManufacturer&lt;/b&gt; &lt;i&gt;FakeDevice&lt;/i&gt;")
+
+    val processes = deviceAction.getChildren()
+    assertThat(processes).hasLength(1)
+    assertThat(processes[0].templateText).isEqualTo("&lt;html&gt;unsafe-process")
+  }
 }
 
 private fun update(action: AnAction): AnActionEvent {

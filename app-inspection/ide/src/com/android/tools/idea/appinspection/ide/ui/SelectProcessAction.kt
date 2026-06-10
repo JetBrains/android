@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import icons.StudioIcons
 import javax.swing.JComponent
@@ -118,11 +119,11 @@ class SelectProcessAction(
 
   companion object {
     fun createDefaultProcessLabel(process: ProcessDescriptor): String {
-      return "${process.device.buildDeviceName()} > ${process.buildProcessName()}"
+      return "${StringUtil.escapeXmlEntities(process.device.buildDeviceName())} > ${process.buildProcessName()}"
     }
 
     fun createCompactProcessLabel(process: ProcessDescriptor): String {
-      return process.name.substringAfterLast('.')
+      return StringUtil.escapeXmlEntities(process.name.substringAfterLast('.'))
     }
   }
 
@@ -151,7 +152,8 @@ class SelectProcessAction(
         }
 
     event.presentation.icon = currentProcess?.device.toIcon()
-    event.presentation.text = content
+    // Disable mnemonic parsing on presentation to avoid HTML injection by preserving escaped entities.
+    event.presentation.setText(content, false)
   }
 
   public override fun updateActions(context: DataContext): Boolean {
@@ -189,7 +191,12 @@ class SelectProcessAction(
     val desc: String = AppInspectionBundle.message("action.stop.inspectors.description"),
   )
 
-  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) : ToggleAction(processDescriptor.buildProcessName()) {
+  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) : ToggleAction() {
+
+    init {
+      // Disable mnemonic parsing on templatePresentation to avoid HTML injection by preserving escaped entities (e.g. &lt;).
+      templatePresentation.setText(processDescriptor.buildProcessName(), false)
+    }
 
     override fun getActionUpdateThread() = BGT
 
@@ -203,15 +210,19 @@ class SelectProcessAction(
 
     override fun update(event: AnActionEvent) {
       super.update(event)
+      // Disable mnemonic parsing on presentation to avoid HTML injection by preserving escaped entities.
+      event.presentation.setText(processDescriptor.buildProcessName(), false)
       customProcessAttribution(processDescriptor, event)
     }
   }
 
-  private inner class DeviceAction(private val device: DeviceDescriptor) : DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
+  private inner class DeviceAction(private val device: DeviceDescriptor) : DropDownAction(null, null, device.toIcon()) {
 
     override fun getActionUpdateThread() = BGT
 
     init {
+      // Disable mnemonic parsing on templatePresentation to avoid HTML injection by preserving escaped entities (e.g. &lt;).
+      templatePresentation.setText(StringUtil.escapeXmlEntities(device.buildDeviceName()), false)
       val (preferredProcesses, otherProcesses) =
         model.processes
           .sortedBy { it.name }
@@ -259,6 +270,6 @@ fun DeviceDescriptor.buildDeviceName(): String {
   return deviceNameBuilder.toString()
 }
 
-private fun ProcessDescriptor.buildProcessName() = "$name${if (isRunning) "" else " [DETACHED]"}"
+private fun ProcessDescriptor.buildProcessName() = "${StringUtil.escapeXmlEntities(name)}${if (isRunning) "" else " [DETACHED]"}"
 
 private fun DeviceDescriptor?.toIcon() = if (this?.isEmulator == true) ICON_EMULATOR else ICON_PHONE
