@@ -306,7 +306,7 @@ class RenderErrorContributorImplTest {
     } else {
       assertHtmlEquals(
         "java.lang.ArithmeticException: / by zero<BR/>" +
-          "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#&lt;init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
+          "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#%3Cinit%3E;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
           "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
           "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)<BR/>" +
           "&nbsp;&nbsp;at android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:64)<BR/>" +
@@ -735,7 +735,7 @@ class RenderErrorContributorImplTest {
         "555;\">Exception Details</font><BR/>java.lang.ArithmeticExcept" +
         "ion: / by zero<BR/>&nbsp;&nbsp;at com.example.myapplication.M" +
         "yButton.&lt;init>(<A HREF=\"open:com.example.myapplication.MyB" +
-        "utton#&lt;init>;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
+        "utton#%3Cinit%3E;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
         "REF=\"\">Copy stack to clipboard</A><BR/><BR/>",
       issues[0]!!,
     )

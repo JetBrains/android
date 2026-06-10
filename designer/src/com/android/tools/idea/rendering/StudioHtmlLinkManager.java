@@ -334,6 +334,8 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     if (delimiterPos != -1) {
       String wrongTag = url.substring(start, delimiterPos);
       String rightTag = url.substring(delimiterPos + 1);
+      wrongTag = URLDecoder.decode(wrongTag, StandardCharsets.UTF_8);
+      rightTag = URLDecoder.decode(rightTag, StandardCharsets.UTF_8);
       new ReplaceTagFix((XmlFile)file, wrongTag, rightTag).run();
     }
   }
@@ -364,6 +366,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   private static void handleOpenClassUrl(@NotNull String url, @NotNull Module module) {
     assert url.startsWith(URL_OPEN_CLASS) : url;
     String className = url.substring(URL_OPEN_CLASS.length());
+    className = URLDecoder.decode(className, StandardCharsets.UTF_8);
     Project project = module.getProject();
     PsiClass clz = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project));
     if (clz != null) {
@@ -381,7 +384,9 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
 
   private static void handleShowTagUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_SHOW_TAG) : url;
-    final String tagName = url.substring(URL_SHOW_TAG.length());
+    String decodedTag = url.substring(URL_SHOW_TAG.length());
+    decodedTag = URLDecoder.decode(decodedTag, StandardCharsets.UTF_8);
+    final String tagName = decodedTag;
 
     XmlTag first = ApplicationManager.getApplication().runReadAction((Computable<XmlTag>)() -> {
       Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
@@ -406,6 +411,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   private static void handleNewClassUrl(@NotNull String url, @NotNull Module module) {
     assert url.startsWith(URL_CREATE_CLASS) : url;
     String s = url.substring(URL_CREATE_CLASS.length());
+    s = URLDecoder.decode(s, StandardCharsets.UTF_8);
 
     final Project project = module.getProject();
     String title = "Create Custom View";
@@ -551,6 +557,14 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       className = className.substring(0, hash);
     }
 
+    className = URLDecoder.decode(className, StandardCharsets.UTF_8);
+    if (fileName != null) {
+      fileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+    }
+    if (method != null) {
+      method = URLDecoder.decode(method, StandardCharsets.UTF_8);
+    }
+
     GlobalSearchScope searchScope = GlobalSearchScope.allScope(project);
 
     // First, try to find a source file corresponding to the class, because other search mechanisms below might return the .class files.
@@ -692,13 +706,19 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     final String fragmentClass = getFragmentClass(module, className);
 
     int start = URL_ASSIGN_FRAGMENT_URL.length();
+    String decodedId = null;
+    if (start != url.length()) {
+      decodedId = url.substring(start);
+      decodedId = URLDecoder.decode(decodedId, StandardCharsets.UTF_8);
+    }
+    
     final String id;
-    if (start == url.length()) {
+    if (decodedId == null) {
       // No specific fragment identified; use the first one
       id = null;
     }
     else {
-      id = Lint.stripIdPrefix(url.substring(start));
+      id = Lint.stripIdPrefix(decodedId);
     }
 
     WriteCommandAction.writeCommandAction(module.getProject(), file).withName("Assign Fragment").run(()-> {
@@ -743,12 +763,15 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     if (layoutStart == -1) {
       // Only specified activity; pick it
       String activityName = url.substring(start);
+      activityName = URLDecoder.decode(activityName, StandardCharsets.UTF_8);
       pickLayout(module, xmlFile, activityName);
     }
     else {
       // Set directory to specified layoutName
-      final String activityName = url.substring(start, layoutStart);
-      final String layoutName = url.substring(layoutStart + 1);
+      String activityName = url.substring(start, layoutStart);
+      String layoutName = url.substring(layoutStart + 1);
+      activityName = URLDecoder.decode(activityName, StandardCharsets.UTF_8);
+      layoutName = URLDecoder.decode(layoutName, StandardCharsets.UTF_8);
       final String layout = LAYOUT_RESOURCE_PREFIX + layoutName;
       assignLayout(project, xmlFile, activityName, layout);
     }
