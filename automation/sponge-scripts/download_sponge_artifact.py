@@ -155,9 +155,17 @@ def download_file(uri, output_path, artifact_name=None, is_directory=False, api_
       )
 
     if result.returncode != 0:
+      error_stdout = ""
       if temp_file_path.exists():
+        with temp_file_path.open("rb") as err_file:
+          error_stdout = err_file.read(20480).decode("utf-8", errors="replace").strip()
         temp_file_path.unlink()
-      raise RuntimeError(f"gosso failed with code {result.returncode}. Stderr: {result.stderr.strip()}")
+      error_msg = f"gosso failed with code {result.returncode}."
+      if result.stderr:
+        error_msg += f"\nStderr:\n{result.stderr.strip()}"
+      if error_stdout:
+        error_msg += f"\nStdout:\n{error_stdout}"
+      raise RuntimeError(error_msg)
 
     # Determine actual filename
     final_output_path = resolve_output_path(

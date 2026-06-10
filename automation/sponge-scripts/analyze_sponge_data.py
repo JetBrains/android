@@ -133,6 +133,10 @@ def run_gosso_command(gosso_args: List[str], timeout: int = 180) -> Any:
       raise
   else:
     logger.error(f"gosso command failed with exit code {result.returncode}")
+    if result.stderr:
+      logger.error(f"stderr:\n{result.stderr}")
+    if result.stdout:
+      logger.error(f"stdout:\n{result.stdout}")
     raise subprocess.CalledProcessError(result.returncode, command, output=result.stdout, stderr=result.stderr)
 
 def get_invocation_status_attributes(invocation_id: str, api_key: Optional[str]) -> Dict[str, Any]:

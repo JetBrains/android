@@ -14,6 +14,7 @@
 
 import logging
 import os
+import re
 import subprocess
 import sys
 import urllib.error
@@ -86,7 +87,39 @@ def get_clean_opener():
         or os.environ.get("CURL_CA_BUNDLE")
     )
     if ca_bundle and os.path.exists(ca_bundle):
-      context.load_verify_locations(cafile=ca_bundle)
+      try:
+        context.load_verify_locations(cafile=ca_bundle)
+      except (FileNotFoundError, ssl.SSLError) as e:
+        logger.warning(f"Failed to load configured CA bundle from {ca_bundle}: {e}")
+    # For macOS developer machines, internal root certificates might be stored in the system keychain
+    if sys.platform == "darwin" and not ca_bundle:
+      loaded_any = False
+      for key_chain_candidate in [
+          "/System/Library/Keychains/SystemRootCertificates.keychain",
+          "/Library/Keychains/System.keychain",
+          "~/Library/Keychains/login.keychain-db",
+          "~/Library/Keychains/login.keychain"
+      ]:
+        key_chain_path = os.path.expanduser(key_chain_candidate)
+        if os.path.exists(key_chain_path):
+          try:
+            key_chain_out = subprocess.run(
+                ["security", "find-certificate", "-a", "-p", key_chain_path],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=15
+            ).stdout
+            # Extract only pure PEM certificate blocks to prevent OpenSSL parsing errors
+            pems = re.findall(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", key_chain_out, re.DOTALL)
+            if pems:
+              context.load_verify_locations(cadata="\n".join(pems))
+              loaded_any = True
+          except Exception as e:
+            logger.debug(f"Failed to extract certificates from keychain {key_chain_path}: {e}")
+      if not loaded_any:
+        logger.warning("Could not automatically load SSL root certificates from macOS system keychains. If you encounter SSL verification errors, please set SSL_CERT_FILE.")
+
     handlers.append(urllib.request.HTTPSHandler(context=context))
   except Exception:
     pass
