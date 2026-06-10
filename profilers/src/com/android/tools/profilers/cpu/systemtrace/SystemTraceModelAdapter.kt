@@ -88,17 +88,11 @@ data class ProcessModel(
    * also have no information on the main thread it returns "<PID>" instead.
    */
   fun getSafeProcessName(): String {
-    if (name.isNotBlank() && !name.startsWith("<")) {
-      return name
-    }
-
-    // Fallback to the main thread name
-    val mainThreadName = getMainThread()?.name ?: ""
-    return if (mainThreadName.isNotBlank()) {
-      mainThreadName
-    } else {
-      "<$id>"
-    }
+    return when {
+      name.isNotBlank() && !name.startsWith("<") -> name
+      // Fallback to the main thread name
+      else -> getMainThread()?.name?.takeIf { it.isNotBlank() && !it.startsWith("<") }
+    } ?: "Process $id"
   }
 }
 

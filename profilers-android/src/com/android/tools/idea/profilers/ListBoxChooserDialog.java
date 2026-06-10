@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -91,7 +92,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
   }
 
   private void updateActivePresentation() {
-    myActivePresentation.setText(myPresentationAdapter.apply(mySelectedOption));
+    myActivePresentation.setText(StringUtil.escapeXmlEntities(myPresentationAdapter.apply(mySelectedOption)), false);
   }
 
   @NotNull
@@ -174,7 +175,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
 
     private SelectTargetAction(T option) {
       myOption = option;
-      String name = myPresentationAdapter.apply(option);
+      String name = StringUtil.escapeXmlEntities(myPresentationAdapter.apply(option));
       Presentation presentation = getTemplatePresentation();
       presentation.setText(name, false);
     }
