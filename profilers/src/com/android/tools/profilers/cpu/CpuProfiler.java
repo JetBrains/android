@@ -74,8 +74,12 @@ public class CpuProfiler implements StudioProfiler {
     assert !profilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
     long traceId = profilers.getSession().getStartTimestamp();
     profilers.getIdeServices().runAsync(
-      () -> CpuCaptureStage.create(profilers, new ImportedConfiguration(), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN,
-                                   traceId),
+      () -> {
+        ImportedConfiguration config = new ImportedConfiguration();
+        CpuCaptureMetadata metadata = new CpuCaptureMetadata(config);
+        metadata.setCpuProfilerEntryPoint(CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN);
+        return CpuCaptureStage.create(profilers, config, metadata, traceId);
+      },
       captureStage -> {
         if (captureStage != null) {
           profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));
@@ -159,7 +163,7 @@ public class CpuProfiler implements StudioProfiler {
   public void stopProfiling(@NotNull Common.Session session) {
     List<TraceInfo> traces = getTraceInfoFromSession(profilers.getClient(), session);
 
-    TraceInfo mostRecentTrace = traces.isEmpty() ? null : traces.get(traces.size() - 1);
+    TraceInfo mostRecentTrace = traces.isEmpty() ? null : traces.getLast();
     if (mostRecentTrace != null && mostRecentTrace.getToTimestamp() == -1) {
       stopTracing(profilers,
                   session,

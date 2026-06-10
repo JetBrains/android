@@ -488,13 +488,14 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
       getStudioProfilers().getIdeServices().runAsync(
         () -> {
           myRecordingOptionsModel.setLoading(true);
-          return CpuCaptureStage.create(getStudioProfilers(), ProfilingConfiguration.fromProto(
-            myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration(), isTraceboxEnabled), myEntryPoint, traceId);
+          Trace.TraceInfo traceInfo = myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo();
+          ProfilingConfiguration config = ProfilingConfiguration.fromProto(traceInfo.getConfiguration(), isTraceboxEnabled);
+          return CpuCaptureStage.create(getStudioProfilers(), config, getCpuCaptureMetadata(config, traceInfo), traceId);
         },
         stage -> {
           myRecordingOptionsModel.setLoading(false);
-          CpuTraceInfo traceInfo = myCompletedTraceIdToInfoMap.get(traceId);
-          ProfilingConfiguration config = ProfilingConfiguration.fromProto(traceInfo.getTraceInfo().getConfiguration(), isTraceboxEnabled);
+          Trace.TraceInfo traceInfo = myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo();
+          ProfilingConfiguration config = ProfilingConfiguration.fromProto(traceInfo.getConfiguration(), isTraceboxEnabled);
           ProfilerTaskType taskType = config.getTraceType().toTaskType();
 
           boolean openInEditor = ProfilerInEditorUtils.isEditorEnabled(getStudioProfilers().getIdeServices().getFeatureConfig(), taskType);
@@ -609,6 +610,17 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
     myRecordingOptionsModel.clearConfigurations();
     // Add custom configs.
     myProfilerConfigModel.getCustomProfilingConfigurationsDeviceFiltered().forEach(this::addConfiguration);
+  }
+
+  private CpuCaptureMetadata getCpuCaptureMetadata(ProfilingConfiguration config, Trace.TraceInfo traceInfo) {
+    CpuCaptureMetadata metadata = new CpuCaptureMetadata(config);
+    metadata.setCpuProfilerEntryPoint(myEntryPoint);
+    if (traceInfo.getStopStatus().getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
+      metadata.setCaptureDurationMs(TimeUnit.NANOSECONDS.toMillis(traceInfo.getToTimestamp() - traceInfo.getFromTimestamp()));
+      metadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(traceInfo.getStopStatus().getStoppingDurationNs()));
+    }
+
+    return metadata;
   }
 
   private RecordingOption addConfiguration(ProfilingConfiguration config) {

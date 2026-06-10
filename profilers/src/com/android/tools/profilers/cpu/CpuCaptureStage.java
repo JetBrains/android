@@ -208,7 +208,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
   @VisibleForTesting
   @Nullable
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull ProfilingConfiguration configuration, long traceId) {
-    return create(profilers, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, traceId);
+    CpuCaptureMetadata metadata = new CpuCaptureMetadata(configuration);
+    metadata.setCpuProfilerEntryPoint(CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN);
+    return create(profilers, configuration, metadata, traceId);
   }
 
   /**
@@ -219,7 +221,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   @Nullable
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers,
                                        @NotNull ProfilingConfiguration configuration,
-                                       CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
+                                       @NotNull CpuCaptureMetadata captureMetadata,
                                        long traceId) {
     File captureFile;
 
@@ -236,7 +238,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }
 
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
-    return new CpuCaptureStage(profilers, configuration, entryPoint, captureFile, traceId, captureProcessNameHint,
+    return new CpuCaptureStage(profilers, configuration, captureMetadata, captureFile, traceId, captureProcessNameHint,
                                profilers.getSession().getPid());
   }
 
@@ -259,7 +261,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
                          long traceId,
                          @Nullable String captureProcessNameHint,
                          int captureProcessIdHint) {
-    this(profilers, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, captureFile, traceId, captureProcessNameHint,
+    this(profilers, configuration, new CpuCaptureMetadata(configuration), captureFile, traceId, captureProcessNameHint,
          captureProcessIdHint);
   }
 
@@ -269,14 +271,14 @@ public class CpuCaptureStage extends Stage<Timeline> {
    */
   public CpuCaptureStage(@NotNull StudioProfilers profilers,
                          @NotNull ProfilingConfiguration configuration,
-                         CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
+                         @NotNull CpuCaptureMetadata captureMetadata,
                          @NotNull File captureFile,
                          long traceId,
                          @Nullable String captureProcessNameHint,
                          int captureProcessIdHint) {
     super(profilers);
     myCpuCaptureHandler = new CpuCaptureHandler(
-      profilers, captureFile, traceId, configuration, entryPoint, captureProcessNameHint, captureProcessIdHint);
+      profilers, captureFile, traceId, configuration, captureMetadata, captureProcessNameHint, captureProcessIdHint);
     getMultiSelectionModel().addDependency(this)
       .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, this::onSelectionChanged)
       .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED, this::onActiveSelectionChanged);

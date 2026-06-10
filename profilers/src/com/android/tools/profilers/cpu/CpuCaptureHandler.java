@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
-import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -25,7 +24,6 @@ import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +53,7 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
                            @NotNull ProfilingConfiguration configuration,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
-    this(profilers, captureFile, traceId, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, captureProcessNameHint,
+    this(profilers, captureFile, traceId, configuration, new CpuCaptureMetadata(configuration), captureProcessNameHint,
          captureProcessIdHint);
   }
 
@@ -63,7 +61,7 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
                            @NotNull File captureFile,
                            long traceId,
                            @NotNull ProfilingConfiguration configuration,
-                           CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
+                           @NotNull CpuCaptureMetadata captureMetadata,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
     myCaptureParser = new CpuCaptureParser(profilers);
@@ -74,16 +72,7 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
     myCaptureProcessIdHint = captureProcessIdHint;
     myCaptureProcessNameHint = captureProcessNameHint;
 
-    CpuCaptureMetadata metadata = new CpuCaptureMetadata(configuration);
-    metadata.setCpuProfilerEntryPoint(entryPoint);
-
-    Trace.TraceInfo traceInfo = CpuProfiler.getTraceInfoFromId(profilers, traceId);
-    if (traceInfo.getStopStatus().getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
-      metadata.setCaptureDurationMs(TimeUnit.NANOSECONDS.toMillis(traceInfo.getToTimestamp() - traceInfo.getFromTimestamp()));
-      metadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(traceInfo.getStopStatus().getStoppingDurationNs()));
-    }
-
-    myCaptureParser.trackCaptureMetadata(traceId, metadata);
+    myCaptureParser.trackCaptureMetadata(traceId, captureMetadata);
   }
 
   /**
