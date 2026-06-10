@@ -301,6 +301,9 @@ public final class VectorAsset extends BaseAsset {
   public static Document parseXml(@NotNull String xmlFileContent, @com.android.annotations.Nullable StringBuilder errorLog) {
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
       factory.setIgnoringComments(true);
       DocumentBuilder builder = factory.newDocumentBuilder();
       return builder.parse(new InputSource(new StringReader(xmlFileContent)));
