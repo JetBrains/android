@@ -2810,6 +2810,12 @@ public final class StudioFlags {
                     "Enable next edit/action prediction debug settings",
                     "Enable next edit/action prediction debug settings");
 
+  public static final Flag<Boolean> GEMINI_NEXT_PREDICTION_ENABLE_FOR_GOOGLE_ONE = new BooleanFlag(
+    STUDIOBOT, "gemini.next.prediction.enable.for.google.one",
+    "Enable Next Edit Prediction for Google One subscribers",
+    "If enabled, Next Edit Prediction is enabled for Google One subscribers (users on the default model)."
+  );
+
   public static final Flag<Boolean> STUDIOBOT_AGENT_EXPERIMENTAL_BUILD_PROMPT =
     new BooleanFlag(STUDIOBOT, "agent.experimental.build.prompt",
                     "Enable build-related instructions in the prompt",
