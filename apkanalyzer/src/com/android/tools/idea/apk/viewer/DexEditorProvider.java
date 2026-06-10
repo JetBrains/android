@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -31,7 +32,7 @@ final class DexEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return "dex".equalsIgnoreCase(file.getExtension());
+    return TrustedProjects.isProjectTrusted(project) && "dex".equalsIgnoreCase(file.getExtension());
   }
 
   @Override

@@ -25,6 +25,7 @@ import com.android.tools.profilers.ProfilerFormat
 // cannot be imported here. This is permanent, not a pending merge step.
 // import com.android.tools.sherlock.common.system.editor.PerfettoEditorStateManager
 // import com.android.tools.sherlock.common.system.editor.PerfettoFileEditorState
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
@@ -59,6 +60,8 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
   // }
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
+    if (!TrustedProjects.isProjectTrusted(project)) return false
+
     // Fail fast if extension is not supported
     val isProfilerCaptureFile =
       (file.fileType is CpuCaptureFileType ||

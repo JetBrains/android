@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.capture;
 
 import com.android.tools.idea.profilers.capture.unified.UnifiedProfilerEditorProvider;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -34,6 +35,8 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
+    if (!TrustedProjects.isProjectTrusted(project)) return false;
+
     // We check extensions by FileTypes first. we shouldn't check further for non-profiler types
     String extension = file.getExtension();
     FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(file);

@@ -18,6 +18,7 @@ package com.android.tools.idea.editors;
 
 import com.android.SdkConstants;
 import com.android.utils.SdkUtils;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -32,7 +33,7 @@ public class NinePatchEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return SdkUtils.endsWithIgnoreCase(file.getPath(), SdkConstants.DOT_9PNG);
+    return TrustedProjects.isProjectTrusted(project) && SdkUtils.endsWithIgnoreCase(file.getPath(), SdkConstants.DOT_9PNG);
   }
 
   @Override
