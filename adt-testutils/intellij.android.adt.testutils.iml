@@ -44,5 +44,6 @@
     <orderEntry type="module" module-name="intellij.libraries.opentest4j" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.test" scope="TEST" />
   </component>
 </module>

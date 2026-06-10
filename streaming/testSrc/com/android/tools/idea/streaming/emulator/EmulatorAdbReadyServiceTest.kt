@@ -20,7 +20,7 @@ import com.android.adblib.DeviceInfo
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
-import com.android.testutils.delayUntilCondition
+import com.android.testutils.awaitCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -51,7 +51,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 private const val SETTINGS_BUTTON_TEXT = "Device UI Shortcuts"
-private const val ITERATION_DELAY_MS = 5L
 private val TIMEOUT = 10.seconds
 
 class EmulatorAdbReadyServiceTest {
@@ -87,19 +86,19 @@ class EmulatorAdbReadyServiceTest {
     assertThat(isReadyForAdbCommands(project, serialNumber2)).isFalse()
 
     deviceHandle1.connectToMockDevice(serialNumber1)
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { isReadyForAdbCommands(project, serialNumber1) }
+    awaitCondition(TIMEOUT) { isReadyForAdbCommands(project, serialNumber1) }
     assertThat(isReadyForAdbCommands(project, serialNumber2)).isFalse()
 
     deviceHandle2.connectToMockDevice(serialNumber2)
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { isReadyForAdbCommands(project, serialNumber2) }
+    awaitCondition(TIMEOUT) { isReadyForAdbCommands(project, serialNumber2) }
     assertThat(isReadyForAdbCommands(project, serialNumber1)).isTrue()
 
     deviceHandle1.disconnect()
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { !isReadyForAdbCommands(project, serialNumber1) }
+    awaitCondition(TIMEOUT) { !isReadyForAdbCommands(project, serialNumber1) }
     assertThat(isReadyForAdbCommands(project, serialNumber2)).isTrue()
 
     deviceHandle2.disconnect()
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { !isReadyForAdbCommands(project, serialNumber2) }
+    awaitCondition(TIMEOUT) { !isReadyForAdbCommands(project, serialNumber2) }
     assertThat(isReadyForAdbCommands(project, serialNumber1)).isFalse()
   }
 
@@ -127,7 +126,7 @@ class EmulatorAdbReadyServiceTest {
     val deviceHandle = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
     deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
     deviceHandle.connectToMockDevice(serialNumber)
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { isReadyForAdbCommands(project, serialNumber) }
+    awaitCondition(TIMEOUT) { isReadyForAdbCommands(project, serialNumber) }
 
     val panel = createWindowPanel()
     val ui = runInEdtAndGet { createUi(panel, emulator) }

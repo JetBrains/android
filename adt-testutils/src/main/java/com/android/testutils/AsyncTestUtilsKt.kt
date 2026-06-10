@@ -17,6 +17,7 @@
 
 package com.android.testutils
 
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.EDT
 import com.intellij.util.ui.UIUtil
@@ -30,6 +31,8 @@ import kotlin.time.toDurationUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
@@ -57,6 +60,29 @@ fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
 @Throws(TimeoutException::class)
 fun waitForCondition(timeout: Long, timeUnit: TimeUnit, condition: () -> Boolean) {
   waitForCondition(timeout.toDuration(timeUnit.toDurationUnit()), condition)
+}
+
+/** Waits until the given condition is satisfied while processing events. */
+suspend fun awaitCondition(timeout: Duration, condition: () -> Boolean) {
+  if (EDT.isCurrentThreadEdt()) {
+    withContext(Dispatchers.Unconfined) { doAwaitCondition(timeout, withContext(Dispatchers.EDT) { condition }) }
+  } else {
+    doAwaitCondition(timeout, condition)
+  }
+}
+
+private suspend fun doAwaitCondition(timeout: Duration, condition: () -> Boolean) {
+  val timeoutMillis = timeout.inWholeMilliseconds
+  val deadline = System.currentTimeMillis() + timeoutMillis
+  var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
+  while (waitUnit > 0) {
+    if (condition()) {
+      return
+    }
+    delay(waitUnit.milliseconds)
+    waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
+  }
+  throw TimeoutException()
 }
 
 /**
@@ -121,3 +147,6 @@ fun <R> retryUntilPassing(timeout: Duration, block: () -> R): R {
   } while (System.nanoTime() - startNanos < timeoutNanos)
   lastError?.let { throw AssertionError("Expected state not reached before timeout", lastError) } ?: throw TimeoutException()
 }
+
+/** Similar to [runTest] but with [Dispatchers.EDT] context. */
+fun runTestInEdt(testBody: suspend TestScope.() -> Unit) = runTest { withContext(Dispatchers.EDT) { testBody() } }
