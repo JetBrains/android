@@ -44,20 +44,20 @@ interface HtmlLinkManager {
 
   fun createEditClassPathUrl(): String = URL_EDIT_CLASSPATH
 
-  fun createOpenClassUrl(className: String): String = "$URL_OPEN_CLASS$className"
+  fun createOpenClassUrl(className: String): String = "$URL_OPEN_CLASS${enc(className)}"
 
   fun createCommandLink(command: CommandLink): String
 
   fun createActionLink(action: Action): String
 
-  fun createShowTagUrl(tag: String): String = "$URL_SHOW_TAG$tag"
+  fun createShowTagUrl(tag: String): String = "$URL_SHOW_TAG${enc(tag)}"
 
-  fun createNewClassUrl(className: String): String = "$URL_CREATE_CLASS$className"
+  fun createNewClassUrl(className: String): String = "$URL_CREATE_CLASS${enc(className)}"
 
   fun createOpenStackUrl(className: String, methodName: String, fileName: String, lineNumber: Int): String =
-    "$URL_OPEN$className#$methodName;$fileName:$lineNumber"
+    "$URL_OPEN${enc(className)}#${enc(methodName)};${enc(fileName)}:$lineNumber"
 
-  fun createReplaceTagsUrl(from: String, to: String): String = "$URL_REPLACE_TAGS$from/$to"
+  fun createReplaceTagsUrl(from: String, to: String): String = "$URL_REPLACE_TAGS${enc(from)}/${enc(to)}"
 
   private fun enc(s: String) = URLEncoder.encode(s, StandardCharsets.UTF_8.name())
 
@@ -78,11 +78,11 @@ interface HtmlLinkManager {
 
   fun createIgnoreFragmentsUrl(): String = URL_ACTION_IGNORE_FRAGMENTS
 
-  fun createAssignFragmentUrl(id: String?): String = "$URL_ASSIGN_FRAGMENT_URL${(id ?: "")}"
+  fun createAssignFragmentUrl(id: String?): String = "$URL_ASSIGN_FRAGMENT_URL${enc(id ?: "")}"
 
-  fun createPickLayoutUrl(activityName: String): String = "$URL_ASSIGN_LAYOUT_URL$activityName"
+  fun createPickLayoutUrl(activityName: String): String = "$URL_ASSIGN_LAYOUT_URL${enc(activityName)}"
 
-  fun createAssignLayoutUrl(activityName: String, layout: String): String = "$URL_ASSIGN_LAYOUT_URL$activityName:$layout"
+  fun createAssignLayoutUrl(activityName: String, layout: String): String = "$URL_ASSIGN_LAYOUT_URL${enc(activityName)}:${enc(layout)}"
 
   companion object {
     /**

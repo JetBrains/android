@@ -107,11 +107,11 @@ class WearTileRenderErrorContributorTest {
         "Possible related stack trace elements are:<DL>" +
         "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContextKt#tileLayout;TileServiceWithWrongUseOfContext.kt:92\">com.example.tile.TileServiceWithWrongUseOfContextKt.tileLayout(TileServiceWithWrongUseOfContext.kt:92)</A>" +
         "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContextKt#tile;TileServiceWithWrongUseOfContext.kt:85\">com.example.tile.TileServiceWithWrongUseOfContextKt.tile(TileServiceWithWrongUseOfContext.kt:85)</A>" +
-        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContextKt#access${'$'}tile;TileServiceWithWrongUseOfContext.kt:1\">com.example.tile.TileServiceWithWrongUseOfContextKt.access${'$'}tile(TileServiceWithWrongUseOfContext.kt:1)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContextKt#access%24tile;TileServiceWithWrongUseOfContext.kt:1\">com.example.tile.TileServiceWithWrongUseOfContextKt.access${'$'}tile(TileServiceWithWrongUseOfContext.kt:1)</A>" +
         "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext#tileWithWrongContext;TileServiceWithWrongUseOfContext.kt:59\">com.example.tile.TileServiceWithWrongUseOfContext.tileWithWrongContext(TileServiceWithWrongUseOfContext.kt:59)</A>" +
-        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext#access${'$'}tileWithWrongContext;TileServiceWithWrongUseOfContext.kt:36\">com.example.tile.TileServiceWithWrongUseOfContext.access${'$'}tileWithWrongContext(TileServiceWithWrongUseOfContext.kt:36)</A>" +
-        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1#invoke;TileServiceWithWrongUseOfContext.kt:48\">com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1.invoke(TileServiceWithWrongUseOfContext.kt:48)</A>" +
-        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1#invoke;TileServiceWithWrongUseOfContext.kt:47\">com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1.invoke(TileServiceWithWrongUseOfContext.kt:47)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext#access%24tileWithWrongContext;TileServiceWithWrongUseOfContext.kt:36\">com.example.tile.TileServiceWithWrongUseOfContext.access${'$'}tileWithWrongContext(TileServiceWithWrongUseOfContext.kt:36)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext%24preview2%241#invoke;TileServiceWithWrongUseOfContext.kt:48\">com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1.invoke(TileServiceWithWrongUseOfContext.kt:48)</A>" +
+        "<DD>-&nbsp;<A HREF=\"open:com.example.tile.TileServiceWithWrongUseOfContext%24preview2%241#invoke;TileServiceWithWrongUseOfContext.kt:47\">com.example.tile.TileServiceWithWrongUseOfContext${'$'}preview2${'$'}1.invoke(TileServiceWithWrongUseOfContext.kt:47)</A>" +
         "</DL><BR/>" +
         "<A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
