@@ -31,6 +31,7 @@ import java.lang.reflect.Method
 import java.util.Arrays
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
 import java.util.function.Consumer
 
 /**
@@ -65,10 +66,11 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
   var applyObserversRef: WeakReference<MutableCollection<*>?>? = null
   var globalWriteObserversRef: WeakReference<MutableCollection<*>?>? = null
   var toRunTrampolinedRef: WeakReference<MutableCollection<*>?>? = null
+  // After render clean-up. Dispose the GapWorker and FontRequestWorker caches for all projects.
+  clearGapWorkerCache(classLoader)
+  clearFontRequestWorker(classLoader)
+
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
-    // After render clean-up. Dispose the GapWorker cache.
-    clearGapWorkerCache(classLoader)
-    clearFontRequestWorker(classLoader)
     clearCompositions(classLoader)
     try {
       val composeViewAdapter: Class<*> = classLoader.loadClass(CLASS_COMPOSE_VIEW_ADAPTER)
@@ -227,15 +229,45 @@ private fun clearFontRequestWorker(classLoader: ModuleClassLoader) {
 
   try {
     val fontRequestWorker: Class<*> = classLoader.loadClass(FONT_REQUEST_WORKER_FQN)
+
+    // Safety check to ensure we only modify classes loaded by the ModuleClassLoader itself
+    if (fontRequestWorker.classLoader !== classLoader) {
+      LOG.debug("FontRequestWorker loaded by parent classloader, skipping clean-up to avoid affecting IDE state")
+      return
+    }
+
     val pendingRepliesField = fontRequestWorker.getDeclaredField("PENDING_REPLIES")
     pendingRepliesField.isAccessible = true
-    val pendingReplies = pendingRepliesField[fontRequestWorker]
-    // Clear the SimpleArrayMap
-    pendingReplies.javaClass.getMethod("clear").invoke(pendingReplies)
+    val pendingReplies = pendingRepliesField[null]
+    if (pendingReplies != null) {
+      // Clear the SimpleArrayMap
+      try {
+        pendingReplies.javaClass.getMethod("clear").invoke(pendingReplies)
+      } catch (e: Exception) {
+        LOG.debug("Failed to clear PENDING_REPLIES map", e)
+      }
+    }
+
+    // Clear Typeface cache
+    try {
+      val resetMethod = fontRequestWorker.getDeclaredMethod("resetTypefaceCache")
+      resetMethod.isAccessible = true
+      resetMethod.invoke(null)
+    } catch (e: Exception) {
+      LOG.debug("Failed to reset Typeface cache", e)
+    }
+
+    // Shut down the executor service to cancel hanging tasks
+    try {
+      val executorField = fontRequestWorker.getDeclaredField("DEFAULT_EXECUTOR_SERVICE")
+      executorField.isAccessible = true
+      val executor = executorField[null] as? ExecutorService
+      executor?.shutdownNow()
+    } catch (e: Exception) {
+      LOG.debug("Failed to shutdown FontRequestWorker executor", e)
+    }
   } catch (ex: ReflectiveOperationException) {
-    // If the FontRequestWorker does not exist or the PENDING_REPLIES does not exist anymore,
-    // ignore.
-    LOG.debug("Unable to dispose the PENDING_REPLIES", ex)
+    LOG.debug("Unable to dispose the FontRequestWorker", ex)
   }
 }
 
@@ -251,16 +283,22 @@ private fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
 
   try {
     val gapWorkerClass = classLoader.loadClass(GAP_WORKER_CLASS_NAME)
+
+    if (gapWorkerClass.classLoader !== classLoader) {
+      LOG.debug("GapWorker loaded by parent classloader, skipping clean-up")
+      return
+    }
+
     val gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker")
     gapWorkerField.isAccessible = true
 
     // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
     RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
       try {
-        val gapWorkerFieldValue = gapWorkerField[null] as ThreadLocal<*>
-        gapWorkerFieldValue.set(null)
+        val gapWorkerFieldValue = gapWorkerField[null] as? ThreadLocal<*>
+        gapWorkerFieldValue?.set(null)
         LOG.debug("GapWorker was cleared")
-      } catch (e: IllegalAccessException) {
+      } catch (e: Exception) {
         LOG.debug(e)
       }
     }
