@@ -170,7 +170,12 @@ public class AndroidJavaDocRenderer {
     }
     builder.addHtml("<br/>");
     if (!StringUtil.isEmpty(doc)) {
-      builder.addHtml(doc);
+      ResourceReference resourceReference = def.getResourceReference();
+      if (resourceReference != null && ResourceNamespace.ANDROID.equals(resourceReference.getNamespace())) {
+        builder.addHtml(doc);
+      } else {
+        builder.add(doc);
+      }
       builder.addHtml("<br/>");
     }
     builder.addHtml("<hr/>");
