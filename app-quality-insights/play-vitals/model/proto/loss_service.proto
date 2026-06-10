@@ -44,7 +44,7 @@ service LossService {
 //     identifier is 'deviceBrand/device', where deviceBrand corresponds
 //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
 //     google/coral.
-//  * `deviceType`
+//  * `formFactor`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
 //  * `languageCode`
@@ -107,7 +107,7 @@ message QueryLossMetricSetRequest {
   //     identifier is 'deviceBrand/device', where deviceBrand corresponds
   //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
   //     google/coral.
-  //  * `deviceType`
+  //  * `formFactor`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
   //  * `languageCode`

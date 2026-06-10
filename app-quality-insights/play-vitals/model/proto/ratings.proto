@@ -39,7 +39,7 @@ option java_package = "com.google.play.developer.reporting";
 //  * `deviceBrand`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     unique identifier of the user's device brand, e.g., google.
-//  * `deviceType`
+//  * `formFactor`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
 //  * `languageCode`
@@ -100,7 +100,7 @@ message QueryAverageRatingsMetricSetRequest {
   //  * `deviceBrand`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     unique identifier of the user's device brand, e.g., google.
-  //  * `deviceType`
+  //  * `formFactor`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
   //  * `languageCode`
@@ -180,7 +180,7 @@ message QueryAverageRatingsMetricSetResponse {
 //
 // **Supported dimensions:**
 //
-//  * `deviceType`
+//  * `formFactor`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
 //  * `regionCode`
@@ -219,7 +219,7 @@ message QueryGooglePlayRatingMetricSetRequest {
 
   // **Supported dimensions:**
   //
-  //  * `deviceType`
+  //  * `formFactor`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
   //  * `regionCode`
