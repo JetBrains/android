@@ -42,6 +42,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -484,7 +485,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     val deviceState =
       fakeAdbRule.connectDevice(
-        deviceId = "test_device_$api",
+        deviceId = "test_device_${api}_${UUID.randomUUID()}",
         manufacturer = "Google",
         deviceModel = "Pixel7",
         release = "11.0.0",
@@ -501,7 +502,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     }
 
     try {
-      val device = AndroidDebugBridge.getBridge()!!.devices.single()
+      val device = AndroidDebugBridge.getBridge()!!.devices.single { it.serialNumber == deviceState.deviceId }
       val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
       val watchFaceApp =
         createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName), activitiesName = emptyList())
