@@ -59,8 +59,7 @@ class StudioSettingsSyncAction(private val delegate: AnAction) : DumbAwareAction
     }
 
     // No user is authorized for this feature. Trigger a blocking login flow.
-    // The onboarding wizard will be shown automatically as a post-login action.
-    feature.logInBlocking()
+    feature.logInBlocking().email?.let { showWizard(it) }
   }
 
   override fun update(e: AnActionEvent) {
