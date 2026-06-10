@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.AudioPacket
+import com.android.emulator.control.CameraList
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.DisplayMode
@@ -443,6 +444,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     emulatorControllerStub.getMicrophoneState(
       EMPTY_PROTO,
       DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetMicrophoneStateMethod()),
+    )
+  }
+
+  /** Retrieves the list of video cameras connected to the host machine. */
+  fun getHostCameras(streamObserver: StreamObserver<CameraList>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      log.info("getHostCameras()")
+    }
+    emulatorControllerStub.getHostCameras(
+      EMPTY_PROTO,
+      DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetHostCamerasMethod()),
     )
   }
 

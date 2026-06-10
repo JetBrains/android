@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.BatteryState
+import com.android.emulator.control.CameraList
 import com.android.emulator.control.CameraNotification
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.DisplayConfiguration
@@ -261,6 +262,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
 
   var displayMode = config.displayModes.firstOrNull { it.width == config.displayWidth && it.height == config.displayHeight }
+  var hostCameras: CameraList = CameraList.getDefaultInstance()
   val avdName: String
     get() = config.avdName
 
@@ -833,6 +835,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         val response = VmRunState.newBuilder().setState(VmRunState.RunState.RUNNING).build()
         sendResponse(responseObserver, response)
       }
+    }
+
+    override fun getHostCameras(request: Empty, responseObserver: StreamObserver<CameraList>) {
+      executor.execute { sendResponse(responseObserver, hostCameras) }
     }
 
     override fun setVmState(request: VmRunState, responseObserver: StreamObserver<Empty>) {
