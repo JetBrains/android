@@ -218,6 +218,7 @@ class OptionsPanel : JComponent() {
     val name = propertyInfo.value.toString()
     val headerPanel = JPanel(VerticalFlowLayout())
     val headerLabel = JLabel(name)
+    headerLabel.putClientProperty("html.disable", true)
     headerLabel.font = headerLabel.font.deriveFont(Font.BOLD)
     headerLabel.setSize(100, 100)
     headerPanel.add(headerLabel)
