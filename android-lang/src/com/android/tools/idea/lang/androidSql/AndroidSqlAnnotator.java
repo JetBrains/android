@@ -28,6 +28,7 @@ public class AndroidSqlAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element,
                        @NotNull AnnotationHolder holder) {
+    if (holder.isBatchMode()) return;
     IElementType type = element.getNode().getElementType();
 
     // Some identifiers were added after lexing time, make sure they are all highlighted properly.

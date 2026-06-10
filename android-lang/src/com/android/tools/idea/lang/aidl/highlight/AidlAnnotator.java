@@ -40,6 +40,7 @@ public class AidlAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (holder.isBatchMode()) return;
     if (element instanceof AidlAnnotationElement) {
       holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
         .textAttributes(DefaultLanguageHighlighterColors.METADATA)

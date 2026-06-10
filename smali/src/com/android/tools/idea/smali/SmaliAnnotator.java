@@ -40,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class SmaliAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (holder.isBatchMode()) return;
     //System.out.println(element);
     if (element instanceof LeafPsiElement) {
       ASTNode node = element.getNode();
