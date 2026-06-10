@@ -33,7 +33,11 @@ import java.io.ByteArrayOutputStream
 import java.io.DataInput
 import java.io.DataOutput
 import java.io.StringReader
+import javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING
 import javax.xml.bind.JAXBContext
+import javax.xml.parsers.SAXParserFactory
+import javax.xml.transform.sax.SAXSource
+import org.xml.sax.InputSource
 
 /** File based index for the parts of navigation xml files relevant to generating Safe Args classes. */
 class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
@@ -62,7 +66,27 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
   private val jaxbDeserializer
     get() = jaxbContext.createUnmarshaller()
 
-  override fun getVersion() = 11
+  /**
+   * Creates a [SAXSource] with DTDs and external entities disabled.
+   *
+   * The indexer is run even on an untrusted project, so the source XML files have to be assumed to be hostile.
+   */
+  private fun createSafeSaxSource(inputSource: InputSource): SAXSource {
+    val hardenedXmlReader =
+      SAXParserFactory.newInstance()
+        .apply {
+          this.isNamespaceAware = true
+          setFeature(FEATURE_SECURE_PROCESSING, true)
+          setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+          setFeature("http://xml.org/sax/features/external-general-entities", false)
+          setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+        }
+        .newSAXParser()
+        .xmlReader
+    return SAXSource(hardenedXmlReader, inputSource)
+  }
+
+  override fun getVersion() = 12
 
   override fun dependsOnFileContent() = true
 
@@ -92,7 +116,10 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
       override fun read(`in`: DataInput): NavXmlData {
         val inBytes = ByteArray(`in`.readInt())
         `in`.readFully(inBytes)
-        val rootNav = ByteArrayInputStream(inBytes).use { bytes -> jaxbDeserializer.unmarshal(bytes) as NavNavigationData }
+        val rootNav =
+          ByteArrayInputStream(inBytes).use { bytes ->
+            jaxbDeserializer.unmarshal(createSafeSaxSource(InputSource(bytes))) as NavNavigationData
+          }
         return NavXmlData(rootNav)
       }
     }
@@ -105,7 +132,7 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
         if (!text.contains("<navigation")) return null
 
         return try {
-          val rootNav = jaxbDeserializer.unmarshal(StringReader(text.toString())) as NavNavigationData
+          val rootNav = jaxbDeserializer.unmarshal(createSafeSaxSource(InputSource(StringReader(text.toString())))) as NavNavigationData
           NavXmlData(rootNav)
         }
         // Normally we'd just catch explicit exceptions, like UnmarshalException, but JAXB also
