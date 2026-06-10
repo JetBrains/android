@@ -89,10 +89,12 @@ class SettingsSyncFeature : LoginFeatureWithOnboarding {
 
   override val onLoginCompleted: LoginCompletedCallback
     get() = LoginCompletedCallback { user, loginType ->
+      if (StudioFlags.ENABLE_SETTINGS_SYNC_ONBOARDING_WIZARD.get()) return@LoginCompletedCallback
+
       when (loginType) {
         GoogleLoginPluginEvent.LoginType.FEATURE_LOGIN -> {
           // Help user onboard when "allowing" feature in the Google Accounts settings page.
-          runInEdt { BackupAndSyncWizardProvider.create().createDialog(user).showAndGet() }
+          runInEdt { BackupAndSyncWizardProvider.create().createDialog(user).show() }
         }
         else -> Unit
       }
