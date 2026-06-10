@@ -18,6 +18,7 @@ package com.google.idea.blaze.android.project
 import com.android.tools.idea.projectsystem.ProjectSystemService.Companion.projectSystemOpenProjectTask
 import com.google.idea.blaze.base.project.BazelProjectSystemId
 import com.google.idea.blaze.base.settings.Blaze
+import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
@@ -25,6 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
 import com.intellij.util.application
 import icons.BlazeIcons
+import java.util.Optional
 import javax.swing.Icon
 
 /** Allows directly opening a project (`File` -> `Open folder` in UI). */
@@ -46,7 +48,11 @@ class BazelProjectOpenProcessor : ProjectOpenProcessor() {
   }
 
   private fun checkIfProjectFile(file: VirtualFile): Boolean {
-    return file.path.contains(BLAZEPROJECT) || file.path.contains(BAZELPROJECT)
+    if (!file.path.contains(BLAZEPROJECT) && !file.path.contains(BAZELPROJECT)) {
+      return false
+    }
+    val basePath = file.parent?.path ?: return false
+    return BlazeImportSettingsManager.loadImportSettings(basePath, name, Optional.empty(), Optional.empty()).isPresent
   }
 
   override suspend fun openProjectAsync(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
