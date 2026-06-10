@@ -19,6 +19,8 @@ import com.android.tools.idea.apk.ApkFacet
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.OSAgnosticPathUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.pom.Navigatable
 import java.nio.file.Paths
@@ -43,6 +45,15 @@ internal class ApkMappingNavigable(private val project: Project) : NavSource {
       .mapNotNull {
         val pathTailAfterPrefix = location.fileName!!.substring(it.originalPath.length)
         val newFileName = Paths.get(it.localPath, pathTailAfterPrefix).toString()
+
+        if (!FileUtil.isAncestor(it.localPath, newFileName, false)) {
+          return@mapNotNull null
+        }
+
+        if (OSAgnosticPathUtil.isUncPath(FileUtil.toSystemDependentName(newFileName))) {
+          return@mapNotNull null
+        }
+
         fileSystem.findFileByPath(newFileName)
       }
       .filter { it.exists() }
