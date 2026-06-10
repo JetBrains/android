@@ -97,7 +97,7 @@ class RuleDataTest {
       add(RuleVariable("NEW_VALUE", "new-value"))
     }
     val rule = RuleData(1, "rule1", true)
-    rule.headerRuleTableModel.items =
+    rule.headerRuleTableModel.setItems(
       buildList {
           add(HeaderAddedRuleData("\${HEADER}", "\${VALUE}"))
           add(
@@ -112,6 +112,7 @@ class RuleDataTest {
           )
         }
         .toMutableList()
+    )
 
     val transformations = rule.toProto(variables).transformationList
     val added = transformations[0].headerAdded
@@ -133,12 +134,13 @@ class RuleDataTest {
       add(RuleVariable("NEW_TEXT", "new-text"))
     }
     val rule = RuleData(1, "rule1", true)
-    rule.bodyRuleTableModel.items =
+    rule.bodyRuleTableModel.setItems(
       buildList {
           add(BodyReplacedRuleData("\${BODY}"))
           add(RuleData.BodyModifiedRuleData("\${OLD_TEXT}", isRegex = false, "\${NEW_TEXT}"))
         }
         .toMutableList()
+    )
 
     val transformations = rule.toProto(variables).transformationList
     val replaced = transformations[0].bodyReplaced

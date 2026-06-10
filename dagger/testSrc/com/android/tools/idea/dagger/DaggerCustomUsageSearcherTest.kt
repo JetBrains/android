@@ -35,7 +35,7 @@ import org.junit.Assert
 
 class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
-  private fun findAllUsages(targetElement: PsiElement): MutableSet<Usage> {
+  private fun findAllUsages(targetElement: PsiElement): Set<Usage> {
     val usagesManager = (FindManager.getInstance(project) as FindManagerImpl).findUsagesManager
     val handler = usagesManager.getFindUsagesHandler(targetElement, false)
     Assert.assertNotNull("Cannot find handler for: $targetElement", handler)

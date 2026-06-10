@@ -120,7 +120,7 @@ internal class RuleTableWithWarning(
       val selectedItem = table.selectedObject
       val replaceIndex = model.items.indexOf(selectedItem)
       if (replaceIndex != -1) {
-        model.items = model.items.map { if (it == selectedItem) newItem else it }
+        model.setItems(model.items.map { if (it == selectedItem) newItem else it }.toMutableList())
         model.fireTableRowsUpdated(replaceIndex, replaceIndex)
         val tableIndex = table.convertRowIndexToView(replaceIndex)
         table.selectionModel.setSelectionInterval(tableIndex, tableIndex)

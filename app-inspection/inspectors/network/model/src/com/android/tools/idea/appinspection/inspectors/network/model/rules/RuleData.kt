@@ -246,7 +246,7 @@ class RuleData(
 
     // For PersistentStateComponent
     @XCollection(elementTypes = [HeaderAddedRuleData::class, HeaderReplacedRuleData::class])
-    override fun getItems(): MutableList<TransformationRuleData> {
+    override fun getItems(): List<TransformationRuleData> {
       return super.getItems()
     }
 
@@ -257,7 +257,7 @@ class RuleData(
     }
 
     fun copyFrom(other: HeaderRulesTableModel) {
-      items = other.items.toMutableList()
+      setItems(other.items.toMutableList())
     }
   }
 
@@ -344,14 +344,14 @@ class RuleData(
 
     // For PersistentStateComponent
     @XCollection(elementTypes = [BodyModifiedRuleData::class, BodyReplacedRuleData::class])
-    override fun getItems(): MutableList<TransformationRuleData> = super.getItems()
+    override fun getItems(): List<TransformationRuleData> = super.getItems()
 
     // For PersistentStateComponent
     @XCollection(elementTypes = [BodyModifiedRuleData::class, BodyReplacedRuleData::class])
     override fun setItems(items: MutableList<TransformationRuleData>) = super.setItems(items)
 
     fun copyFrom(other: BodyRulesTableModel) {
-      items = other.items.toMutableList()
+      setItems(other.items.toMutableList())
     }
   }
 

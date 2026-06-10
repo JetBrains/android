@@ -163,13 +163,13 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     element: PsiElement,
     searchScope: SearchScope,
     searchInCommentsAndStrings: Boolean
-  ): MutableCollection<PsiReference> {
+  ): Collection<PsiReference> {
     val resourceElement = (element as? ResourceReferencePsiElement)
                           ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
     val contextElement = resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
                          ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
     val resourceScope = ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceElement.resourceReference, contextElement)
-    val found = super.findReferences(element, searchScope.intersectWith(resourceScope), searchInCommentsAndStrings)
+    val found = super.findReferences(element, searchScope.intersectWith(resourceScope), searchInCommentsAndStrings).toMutableList()
 
     // Add any file based resources not found in references search
     val fileResources =

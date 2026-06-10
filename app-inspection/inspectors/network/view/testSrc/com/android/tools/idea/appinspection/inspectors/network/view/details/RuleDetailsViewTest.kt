@@ -1442,8 +1442,8 @@ class RuleDetailsViewTest {
     rule.criteria.query = "\${STRING}"
     rule.statusCodeRuleData.findCode = "\${NUM}"
     rule.statusCodeRuleData.newCode = "\${NUM}"
-    rule.headerRuleTableModel.items = mutableListOf(HeaderAddedRuleData("\${STRING}", "\${STRING}"))
-    rule.bodyRuleTableModel.items = mutableListOf(RuleData.BodyReplacedRuleData("\${STRING}"))
+    rule.headerRuleTableModel.setItems(mutableListOf(HeaderAddedRuleData("\${STRING}", "\${STRING}")))
+    rule.bodyRuleTableModel.setItems(mutableListOf(RuleData.BodyReplacedRuleData("\${STRING}")))
     ruleDetailsView.selectedRule = rule
     ruleDetailsView.validateRule(rule)
 

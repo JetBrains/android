@@ -215,7 +215,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     private fun doGetDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
       ProgressManager.checkCanceled()
 
-      val data: MutableMap<String, AndroidManifestRawText> = SlowOperations.knownIssue("b/391099838").use {
+      val data: Map<String, AndroidManifestRawText> = SlowOperations.knownIssue("b/391099838").use {
         FileBasedIndex.getInstance().getFileData(NAME, manifestFile, project)
       }
       check(data.values.size <= 1)
