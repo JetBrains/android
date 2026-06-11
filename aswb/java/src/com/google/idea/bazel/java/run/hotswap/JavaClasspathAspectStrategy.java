@@ -20,9 +20,9 @@ import com.google.idea.blaze.base.model.BazelVersionCompat;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import java.io.File;
 import java.util.Arrays;
 import javax.annotation.Nullable;
@@ -76,10 +76,8 @@ public interface JavaClasspathAspectStrategy {
     }
 
     private static File findAspectDirectory() {
-      IdeaPluginDescriptor plugin =
-          PluginManager.getPlugin(
-              PluginManager.getPluginByClassName(BlazeBuildOutputs.class.getName()));
-      return new File(plugin.getPath(), "aspect");
+      PluginDescriptor plugin = PluginManager.getPluginByClass(BlazeBuildOutputs.class);
+      return plugin.getPluginPath().resolve("aspect").toFile();
     }
   }
 }
