@@ -33,6 +33,7 @@ import org.jetbrains.annotations.VisibleForTesting
 private const val CAPACITY = 2
 /** How many copies of the same classloader the hatchery maintains */
 private const val COPIES = 1
+private const val DEFAULT_MAX_REQUESTS_SIZE = 20
 
 /** Contains all the information that was used to create a [StudioModuleClassLoader]. */
 data class StudioModuleClassLoaderCreationContext(
@@ -150,9 +151,14 @@ private data class Request(
 }
 
 /** A data structure responsible for replenishing and providing on demand [StudioModuleClassLoader]s ready to use */
-class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private val copies: Int = COPIES, parentDisposable: Disposable) {
+class ModuleClassLoaderHatchery(
+  private val capacity: Int = CAPACITY,
+  private val copies: Int = COPIES,
+  private val maxRequestsSize: Int = DEFAULT_MAX_REQUESTS_SIZE,
+  parentDisposable: Disposable,
+) {
   // Requests for ModuleClassLoaders type that hatchery does not know how to create
-  private val requests = mutableSetOf<Request>()
+  private val requests = LinkedHashSet<Request>()
   // Clutches of different ModuleClassLoader types
   private val storage = LinkedList<Clutch>()
 
@@ -181,6 +187,9 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
         return clutch.retrieve()
       }
     // If there is no compatible clutch we remember the request and will create one when we have an appropriate donor
+    if (requests.size >= maxRequestsSize) {
+      requests.remove(requests.first())
+    }
     requests.add(Request(parent, projectTransformations, nonProjectTransformations))
     return null
   }

@@ -17,6 +17,7 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.rendering.classloading.toClassTransform
 import com.android.tools.rendering.classloading.useWithClassLoader
@@ -148,5 +149,19 @@ class ModuleClassLoaderHatcheryTest {
       val retrieved = hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform)
       assertNotNull(retrieved)
     }
+  }
+
+  @Test
+  fun `hatchery limits the number of pending requests`() {
+    val hatchery = ModuleClassLoaderHatchery(capacity = 1, copies = 1, maxRequestsSize = 5, parentDisposable = project.testRootDisposable)
+
+    // Request many unique configurations
+    repeat(50) { i ->
+      val projectTransform = toClassTransform({ TestClassVisitorWithId("project-$i") })
+      hatchery.requestClassLoader(null, projectTransform, ClassTransform.identity)
+    }
+
+    // Verify that the size of pending requests is bounded to the configured limit
+    assertEquals(5, hatchery.getRequestsSizeForTesting())
   }
 }
