@@ -26,7 +26,10 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeRight
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.idea.compose.preview.BackNavigationEdge
+import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
+import com.android.tools.idea.compose.preview.TestComposeViewAdapterViewObj
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -74,15 +77,15 @@ class NavigationControlsPanelUiTest {
 
     // Verify Dropdown selection triggers onEdgeDropdownPress
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).assertIsDisplayed().assertIsEnabled().performClick()
-    composeTestRule.onNodeWithText(BackNavigationEdge.RIGHT_EDGE.visibleName).assertIsDisplayed().performClick()
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed().performClick()
     assertEquals(1, edgeDropdownPressCallCount)
-    composeTestRule.onNodeWithText(BackNavigationEdge.RIGHT_EDGE.visibleName).assertIsDisplayed()
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed()
 
     // Verify Progress slider triggers start, progress and track callbacks
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.progressSlider).assertIsDisplayed().assertIsEnabled().performTouchInput {
       swipeRight()
     }
-    assertEquals(BackNavigationEdge.RIGHT_EDGE, backPressStartCalledWithEdge)
+    assertEquals(BackNavigationEdge.EDGE_RIGHT, backPressStartCalledWithEdge)
     assertTrue("Progress callback should be called", backPressProgressCallCount > 0)
     assertEquals(1, backPressTrackProgressCallCount)
 
@@ -134,5 +137,53 @@ class NavigationControlsPanelUiTest {
 
     // Verify the slider resets back to 0.0f
     composeTestRule.onNodeWithText(message("action.navigate.back.predictive.back.progress", 0.0f)).assertIsDisplayed()
+  }
+
+  @Test
+  fun testNavigationControlsContentEdgeDropdownPressCancelsBackPress() {
+    var edgeDropdownPressTracked = false
+    var cancelledCalled = false
+
+    val tracker =
+      object : InteractivePreviewUsageTracker {
+        override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {}
+
+        override fun logStartupTime(timeMs: Int, peers: Int) {}
+
+        override fun trackNavigationPanelProgressPress() {}
+
+        override fun trackNavigationPanelBackPress() {}
+
+        override fun trackNavigationPanelVisibilityChange(isShown: Boolean) {}
+
+        override fun trackNavigationPanelEdgeDropdownPress() {
+          edgeDropdownPressTracked = true
+        }
+      }
+
+    val composeViewAdapterObjFake = TestComposeViewAdapterViewObj(onBackPressCancelledCallback = { cancelledCalled = true })
+
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    val controller =
+      InteractivePreviewNavigationController(usageTrackerProvider = { tracker }, fpsUpdater = fpsUpdater).apply {
+        updateObjects(null, composeViewAdapterObjFake)
+      }
+
+    composeTestRule.setContent { NavigationControlsContent(interactivePreviewNavigationController = controller, fpsUpdater = fpsUpdater) }
+
+    // Verify initially dropdown shows "Left"
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_LEFT.visibleName).assertIsDisplayed()
+
+    // Click on the edge dropdown to select "Right"
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).assertIsDisplayed().performClick()
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed().performClick()
+
+    // Verify dropdown has updated to "Right"
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed()
+
+    // Assert that both edge tracking and back press cancellation are triggered correctly
+    assertTrue("Edge dropdown press tracking should be triggered", edgeDropdownPressTracked)
+    assertTrue("Back press cancellation should be triggered", cancelledCalled)
   }
 }

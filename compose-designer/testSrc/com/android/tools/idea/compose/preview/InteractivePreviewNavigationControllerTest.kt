@@ -20,11 +20,15 @@ import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.flow.MutableSharedFlow
+import org.junit.Rule
 import org.junit.Test
 
 class InteractivePreviewNavigationControllerTest {
+
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun testBackPressCompletedFromViewAdapterObj() {
@@ -43,8 +47,8 @@ class InteractivePreviewNavigationControllerTest {
     val composeViewAdapterObjFake = TestComposeViewAdapterViewObj(onBackPressStartedCallback = { startedEdge = it })
     val controller = InteractivePreviewNavigationController({ InteractiveNopTracker() }, fpsUpdater = MutableSharedFlow())
     controller.updateObjects(null, composeViewAdapterObjFake)
-    controller.backPressStart(BackNavigationEdge.LEFT_EDGE)
-    assertThat(startedEdge).isEqualTo(BackNavigationEdge.LEFT_EDGE.name)
+    controller.backPressStart(BackNavigationEdge.EDGE_LEFT)
+    assertThat(startedEdge).isEqualTo(BackNavigationEdge.EDGE_LEFT.name)
   }
 
   @Test
@@ -60,9 +64,9 @@ class InteractivePreviewNavigationControllerTest {
       )
     val controller = InteractivePreviewNavigationController({ InteractiveNopTracker() }, fpsUpdater = MutableSharedFlow())
     controller.updateObjects(null, composeViewAdapterObjFake)
-    controller.backPressProgress(0.5f, BackNavigationEdge.RIGHT_EDGE)
+    controller.backPressProgress(0.5f, BackNavigationEdge.EDGE_RIGHT)
     assertThat(progressValue).isEqualTo(0.5f)
-    assertThat(progressEdge).isEqualTo(BackNavigationEdge.RIGHT_EDGE.name)
+    assertThat(progressEdge).isEqualTo(BackNavigationEdge.EDGE_RIGHT.name)
   }
 
   @Test
@@ -103,9 +107,9 @@ class InteractivePreviewNavigationControllerTest {
       TestNavigationEventDispatcherObj(canBackPress = true, onBackPressStartedCallback = { startedEdge = it })
     val controller = InteractivePreviewNavigationController({ InteractiveNopTracker() }, fpsUpdater = MutableSharedFlow())
     controller.updateObjects(localNavigationEventDispatcherObj, composeViewAdapterObjFake)
-    controller.backPressStart(BackNavigationEdge.LEFT_EDGE)
+    controller.backPressStart(BackNavigationEdge.EDGE_LEFT)
     assertThat(controller.canBackPress()).isTrue()
-    assertThat(startedEdge).isEqualTo(BackNavigationEdge.LEFT_EDGE.name)
+    assertThat(startedEdge).isEqualTo(BackNavigationEdge.EDGE_LEFT.name)
   }
 
   @Test
@@ -145,10 +149,10 @@ class InteractivePreviewNavigationControllerTest {
       )
     val controller = InteractivePreviewNavigationController({ InteractiveNopTracker() }, fpsUpdater = MutableSharedFlow())
     controller.updateObjects(localNavigationEventDispatcherObj, composeViewAdapterObjFake)
-    controller.backPressProgress(0.5f, BackNavigationEdge.RIGHT_EDGE)
+    controller.backPressProgress(0.5f, BackNavigationEdge.EDGE_RIGHT)
     assertThat(controller.canBackPress()).isTrue()
     assertThat(progressValue).isEqualTo(0.5f)
-    assertThat(progressEdge).isEqualTo(BackNavigationEdge.RIGHT_EDGE.name)
+    assertThat(progressEdge).isEqualTo(BackNavigationEdge.EDGE_RIGHT.name)
   }
 
   @Test

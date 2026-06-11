@@ -32,13 +32,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 /** Enum representing the edge from which a back navigation gesture can be initiated. */
 enum class BackNavigationEdge(val visibleName: String) {
   /** Represents a back gesture initiated from the left edge of the screen. */
-  LEFT_EDGE("Left"),
+  EDGE_LEFT("Left"),
 
   /** Represents a back gesture initiated from the right edge of the screen. */
-  RIGHT_EDGE("Right"),
+  EDGE_RIGHT("Right"),
 
   /** Represents no specific edge for the back gesture. */
-  NONE("None"),
+  EDGE_NONE("None"),
 }
 
 /**
@@ -142,7 +142,7 @@ class InteractivePreviewNavigationController(
    *
    * @param edge The [BackNavigationEdge] of the device on which the progress is performed.
    */
-  fun backPressStart(edge: BackNavigationEdge = BackNavigationEdge.LEFT_EDGE) {
+  fun backPressStart(edge: BackNavigationEdge = BackNavigationEdge.EDGE_LEFT) {
     isBackGestureInProgress = true
     val resolvedMethod =
       onBackPressStartedMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_STARTED).also { onBackPressStartedMethod = it }
@@ -155,7 +155,7 @@ class InteractivePreviewNavigationController(
    * @param progress The progress of the gesture, from 0.0 to 1.0.
    * @param edge The [BackNavigationEdge] of the device on which the progress is performed.
    */
-  fun backPressProgress(progress: Float, edge: BackNavigationEdge = BackNavigationEdge.LEFT_EDGE) {
+  fun backPressProgress(progress: Float, edge: BackNavigationEdge = BackNavigationEdge.EDGE_LEFT) {
     // If we move progress back, to 0f we cancel the back press
     if (progress <= 0.0f) {
       backPressCancelled()
