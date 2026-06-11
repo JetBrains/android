@@ -43,8 +43,11 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
  * at the wrong time (e.g., before a session is fully initialized) will result in incorrect or stale telemetry.
  *
  * Use [createTaskTracker] to obtain an instance. If the task-based UX is disabled, a no-op [NullTaskTracker] will be returned.
+ *
+ * This class is strictly for generic lifecycle events. To add task-specific telemetry, define your methods as extension functions in your
+ * own feature package.
  */
-open class TaskTracker(private val profilers: StudioProfilers, private val taskMetadata: TaskMetadata) {
+open class TaskTracker private constructor(private val profilers: StudioProfilers, val taskMetadata: TaskMetadata) {
 
   /** Tracks the event where the user enters a task. */
   open fun trackTaskEntered() {
@@ -87,16 +90,6 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
     profilers.ideServices.featureTracker.trackTaskFailed(taskMetadata, metadata)
   }
 
-  /** Tracks a user interaction within an active LeakCanary task (e.g. clicking "Force Dump"). */
-  open fun trackLeakCanaryUiAction(uiAction: LeakCanaryUiAction) {
-    profilers.ideServices.featureTracker.trackLeakCanaryEvent(taskMetadata, uiAction)
-  }
-
-  /** Tracks the completion of a LeakCanary memory analysis, logging the specific leak metrics. */
-  open fun trackLeakCanaryAnalysis(leakAnalysis: LeakCanaryLeakAnalysis) {
-    profilers.ideServices.featureTracker.trackLeakCanaryEvent(taskMetadata, leakAnalysis)
-  }
-
   /**
    * A no-op implementation of [TaskTracker] used when task tracking is disabled or as a safe default value.
    *
@@ -125,10 +118,6 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
     override fun trackStopTaskFailed(metadata: TaskStopFailedMetadata) {}
 
     override fun trackProcessingTaskFailed(metadata: TaskProcessingFailedMetadata) {}
-
-    override fun trackLeakCanaryUiAction(uiAction: LeakCanaryUiAction) {}
-
-    override fun trackLeakCanaryAnalysis(leakAnalysis: LeakCanaryLeakAnalysis) {}
   }
 
   companion object {
