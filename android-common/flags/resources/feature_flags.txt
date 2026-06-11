@@ -114,6 +114,7 @@ logcat.export.import.enable=COMPLETE:2023
 logcat.ignore.studio.tags=COMPLETE:2023
 logcat.is.filter=COMPLETE:2022
 logcat.protobuf.enable=COMPLETE:2025
+marketing.data.collection.enabled=INTERNAL
 nele.background.displaylist=COMPLETE:2025
 nele.force.monochrome.adaptive.icon=COMPLETE:2025
 nele.layoutlib.native.memory.clean=COMPLETE:2025
