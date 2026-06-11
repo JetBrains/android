@@ -190,11 +190,11 @@ public class CpuProfiler implements StudioProfiler {
       Transport.FileResponse traceResponse = profilers.getClient().getTransportClient().getFile(traceRequest);
 
       // Atrace Format = [HEADER|ZlibData][HEADER|ZlibData]
-      // Systrace Expected format = [HEADER|ZlipData]
+      // Systrace Expected format = [HEADER|ZlibData]
       // As such exporting the file raw Systrace will only read the first header/data chunk.
       // Atrace captures come over as several parts combined into one file. As such we need an exporter
-      // to handle converting the format to a format that Systrace can support. The reason for the multi-part file
-      // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
+      // to handle converting the format to a format that Systrace can support. The reason for the multipart file
+      // is that Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
       // the individual dumps.
       if (TraceType.from(info.getConfiguration()) == TraceType.ATRACE) {
         File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", info.getTraceId()), ".trace", true);
@@ -205,20 +205,6 @@ public class CpuProfiler implements StudioProfiler {
       }
       else {
         FileUtil.copy(new FileInputStream(traceResponse.getFilePath()), outputStream);
-        if (TraceType.from(info.getConfiguration()) == TraceType.PERFETTO) {
-          // TODO (b/184681183): Uncomment this when we know what we want the user experience to be.
-          //PerfettoTrace.Trace trace = PerfettoTrace.Trace.newBuilder()
-          //  .addPacket(PerfettoTrace.TracePacket.newBuilder()
-          //               .setUiState(PerfettoTrace.UiState.newBuilder()
-          //               .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess
-          //                                      .newBuilder()
-          //                                      .setPid(profilers.getSession().getPid())
-          //                                      .build())
-          //                             .build())
-          //               .build())
-          //  .build();
-          //outputStream.write(trace.toByteArray());
-        }
       }
     }
     catch (IOException exception) {
