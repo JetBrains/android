@@ -125,4 +125,28 @@ class ModuleClassLoaderHatcheryTest {
       assertFalse(hatchery.incubateIfNeeded(creationContext, cloner))
     }
   }
+
+  @Test
+  fun `clutch retrieval handles GCed classloader gracefully`() {
+    val hatchery = ModuleClassLoaderHatchery(capacity = 1, copies = 2, parentDisposable = project.testRootDisposable)
+
+    StudioModuleClassLoaderManager.get().getPrivate(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { donor ->
+      val creationContext = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor)
+      val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader? = { d -> d.createClassLoader() }
+
+      // 1. Record the request
+      assertNull(hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+
+      // 2. Incubate a clutch with 2 copies
+      assertTrue(hatchery.incubateIfNeeded(creationContext, cloner))
+
+      // 3. Clear/dispose the first copy's classloader to simulate GC
+      hatchery.disposeFirstEggForTesting()
+
+      // 4. Request classloader. Under buggy code, sequence terminates and returns null.
+      // Under correct code, the second copy is successfully retrieved and returned.
+      val retrieved = hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform)
+      assertNotNull(retrieved)
+    }
+  }
 }

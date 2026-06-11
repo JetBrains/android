@@ -23,6 +23,7 @@ import java.util.LinkedList
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * How many different classloader types the hatchery stores. The current default is 2 with the idea of having:
@@ -89,13 +90,14 @@ private class Clutch(
 
   /** Checks if the clutch maintains the [StudioModuleClassLoader]s of this type. */
   fun isCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform) =
-    eggs.peek()?.isForCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
+    eggs.any { it.isForCompatible(parent, projectTransformations, nonProjectTransformations) }
 
   /**
    * If possible, returns a [StudioModuleClassLoader] from the clutch and transfers full ownership to the caller, otherwise returns null.
    */
   fun retrieve(): StudioModuleClassLoader? {
-    return generateSequence { eggs.poll()?.getClassLoader() }
+    return generateSequence { eggs.poll() }
+      .mapNotNull { preloader -> preloader.getClassLoader() }
       .firstOrNull {
         if (!it.isUserCodeUpToDate) {
           // This class loader can not be used, it's not up-to-date
@@ -108,6 +110,10 @@ private class Clutch(
         cloner(donor)?.let { newClassLoader -> eggs.add(StudioPreloader(newClassLoader, donor.classesToPreload)) }
         compatibleClassLoader
       }
+  }
+
+  fun disposeFirstEggForTesting() {
+    eggs.peek()?.dispose()
   }
 
   /** Should be called when the clutch is no longer needed to free all the resources. */
@@ -207,6 +213,16 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
   @Synchronized
   fun getStats(): List<Stats> {
     return storage.map { it.getStats() }
+  }
+
+  @VisibleForTesting
+  fun disposeFirstEggForTesting() {
+    storage.firstOrNull()?.disposeFirstEggForTesting()
+  }
+
+  @VisibleForTesting
+  fun getRequestsSizeForTesting(): Int {
+    return requests.size
   }
 
   @Synchronized
