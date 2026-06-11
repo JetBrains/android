@@ -26,9 +26,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.intui.markdown.bridge.styling.extensions.github.alerts.create
 import org.jetbrains.jewel.intui.markdown.bridge.styling.extensions.github.tables.create
 import org.jetbrains.jewel.markdown.extensions.MarkdownProcessorExtension
 import org.jetbrains.jewel.markdown.extensions.MarkdownRendererExtension
+import org.jetbrains.jewel.markdown.extensions.github.alerts.AlertStyling
+import org.jetbrains.jewel.markdown.extensions.github.alerts.GitHubAlertProcessorExtension
+import org.jetbrains.jewel.markdown.extensions.github.alerts.GitHubAlertRendererExtension
 import org.jetbrains.jewel.markdown.extensions.github.tables.GfmTableStyling
 import org.jetbrains.jewel.markdown.extensions.github.tables.GitHubTableProcessorExtension
 import org.jetbrains.jewel.markdown.extensions.github.tables.GitHubTableRendererExtension
@@ -42,7 +46,6 @@ import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.Code
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.Heading
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.HtmlBlock
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.Image
-import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.List
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.Paragraph
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling.ThematicBreak
 
@@ -86,7 +89,7 @@ interface MarkdownFactory {
     heading: Heading? = null,
     blockQuote: BlockQuote? = null,
     code: Code? = null,
-    list: List? = null,
+    list: MarkdownStyling.List? = null,
     image: Image? = null,
     thematicBreak: ThematicBreak? = null,
     htmlBlock: HtmlBlock? = null,
@@ -128,7 +131,7 @@ interface MarkdownFactory {
    */
   fun createBlockRenderer(
     styling: MarkdownStyling,
-    extensions: kotlin.collections.List<MarkdownRendererExtension> = getDefaultRenderExtensions(styling),
+    extensions: List<MarkdownRendererExtension> = getDefaultRenderExtensions(styling),
     inlineRenderer: InlineMarkdownRenderer = createInlineMarkdownRenderer(extensions),
   ): MarkdownBlockRenderer
 
@@ -138,16 +141,16 @@ interface MarkdownFactory {
    * @param extensions A list of [MarkdownRendererExtension] to customize rendering.
    * @return A new [InlineMarkdownRenderer] instance.
    */
-  fun createInlineMarkdownRenderer(extensions: kotlin.collections.List<MarkdownRendererExtension> = emptyList()): InlineMarkdownRenderer =
+  fun createInlineMarkdownRenderer(extensions: List<MarkdownRendererExtension> = emptyList()): InlineMarkdownRenderer =
     DefaultInlineMarkdownRenderer(extensions)
 }
 
 /** Default Markdown processors to use for Markdown documents. */
-fun getDefaultMarkdownProcessors(): kotlin.collections.List<MarkdownProcessorExtension> = listOf(GitHubTableProcessorExtension)
+fun getDefaultMarkdownProcessors(): List<MarkdownProcessorExtension> = listOf(GitHubTableProcessorExtension, GitHubAlertProcessorExtension)
 
 /** Default Markdown render extensions to use for Markdown documents, for the given style */
-fun getDefaultRenderExtensions(styling: MarkdownStyling): kotlin.collections.List<MarkdownRendererExtension> =
-  listOf(GitHubTableRendererExtension(GfmTableStyling.create(), styling))
+fun getDefaultRenderExtensions(styling: MarkdownStyling): List<MarkdownRendererExtension> =
+  listOf(GitHubTableRendererExtension(GfmTableStyling.create(), styling), GitHubAlertRendererExtension(AlertStyling.create(), styling))
 
 /**
  * CompositionLocal for providing a [MarkdownFactory] to the composition tree.

@@ -508,6 +508,7 @@ studio_plugin(
         "@intellij//:intellij.platform.jewel.foundation",
         "@intellij//:intellij.platform.jewel.ideLafBridge",
         "@intellij//:intellij.platform.jewel.markdown.core",
+        "@intellij//:intellij.platform.jewel.markdown.extensions.gfmAlerts",
         "@intellij//:intellij.platform.jewel.markdown.extensions.gfmTables",
         "@intellij//:intellij.platform.jewel.markdown.ideLafBridgeStyling",
         "@intellij//:intellij.platform.jewel.ui",
