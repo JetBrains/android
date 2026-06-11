@@ -300,6 +300,29 @@ class SessionsManagerTest {
   }
 
   @Test
+  fun testSetSessionWithStaleOngoingSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+    val device = Device.newBuilder().setDeviceId(1).setState(Device.State.ONLINE).build()
+    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+
+    // Start a session
+    beginSessionHelper(device, process)
+    val ongoingSession = myManager.selectedSession
+    assertThat(ongoingSession.endTimestamp).isEqualTo(Long.MAX_VALUE)
+
+    // Stop the session, updating the SessionsManager's stored session
+    endSessionHelper()
+    val finishedSession = myManager.selectedSession
+    assertThat(finishedSession.endTimestamp).isLessThan(Long.MAX_VALUE)
+
+    // Call setSession with the ongoingSession (which has endTimestamp = Long.MAX_VALUE, and is now stale)
+    myManager.setSession(ongoingSession)
+
+    // The selected session should be the up-to-date finished session, not the stale ongoing session.
+    assertThat(myManager.selectedSession).isEqualTo(finishedSession)
+  }
+
+  @Test
   fun testSetSession() {
     ideProfilerServices.enableTaskBasedUx(false)
 
