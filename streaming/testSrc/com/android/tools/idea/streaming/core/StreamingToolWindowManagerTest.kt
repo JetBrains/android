@@ -44,7 +44,6 @@ import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
@@ -63,7 +62,6 @@ import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.emulator.sendKeyEvent
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.override
 import com.android.tools.idea.testing.ui.FakeToolWindow
 import com.android.tools.idea.testing.ui.createFakeToolWindow
@@ -764,7 +762,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPairedAvdStarting() {
-    StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.overrideForTest(true, testRootDisposable)
     toolWindow.show()
 
     val avdRoot = emulatorRule.avdRoot

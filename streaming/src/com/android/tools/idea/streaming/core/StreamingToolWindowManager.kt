@@ -1219,7 +1219,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     return avds.filter {
       it.dataFolderPath !in runningAvdFolders &&
         findContentByAvdFolder(it.dataFolderPath) == null &&
-        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.get() || !it.isAiGlassesDevice)
+        (StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED.get() || !it.isAiGlassesDevice)
     }
   }
 
