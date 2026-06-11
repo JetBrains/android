@@ -2243,7 +2243,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.touchpad0.width=1543
           hw.touchpad0.height=297
           hw.screen=no-touch
-          hw.ledIndicators=0:INSIDE,1:OUTSIDE
+          hw.ledIndicators=yes
           """
           .trimIndent()
 
@@ -2356,7 +2356,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.touchpad0.width=1543
           hw.touchpad0.height=297
           hw.screen=no-touch
-          hw.ledIndicators=0:INSIDE,1:OUTSIDE
+          hw.ledIndicators=yes
           """
           .trimIndent()
 

@@ -16,10 +16,11 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.LedIndicator
+import com.intellij.ide.setToolTipText
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
-import com.intellij.ui.JBColor.border
+import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import java.awt.Color
 import java.awt.Dimension
@@ -35,10 +36,10 @@ import org.jetbrains.annotations.VisibleForTesting
 /** A panel displaying the state of LED indicators of an Intelligent Eyeware AVD. */
 internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable: Disposable) : JComponent() {
 
-  private val ledIndicators = emulator.emulatorConfig.ledIndicators
   private var ledStates = emptyMap<Int, Color?>()
 
   init {
+    setToolTipText(HtmlChunk.empty())
     val coroutineScope = parentDisposable.createCoroutineScope()
     val notificationReceiver = NotificationReceiver.forEmulator(emulator)
     coroutineScope.launch(Dispatchers.EDT) {
@@ -53,7 +54,7 @@ internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable:
     val size = JBUIScale.scale(INDICATOR_SIZE)
     val spacing = JBUIScale.scale(INDICATOR_SPACING)
     val width = size + JBUIScale.scale(2)
-    val height = ledIndicators.size * size + (ledIndicators.size - 1).coerceAtLeast(0) * spacing
+    val height = LedIndicator.entries.size * size + (LedIndicator.entries.size - 1).coerceAtLeast(0) * spacing
     return Dimension(width, height)
   }
 
@@ -70,16 +71,15 @@ internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable:
     val spacing = JBUIScale.scale(INDICATOR_SPACING)
     val x = (width - size) / 2
 
-    for (i in ledIndicators.indices) {
-      val indicator = ledIndicators[i]
-      val y = i * (size + spacing)
+    for (indicator in LedIndicator.entries) {
+      val y = (1 - indicator.ordinal) * (size + spacing)
       val color = ledStates[indicator.id]
 
       if (color != null) {
         g.color = color
         g.fillOval(x, y, size, size)
       }
-      g.color = border()
+      g.color = JBColor.border()
       g.drawOval(x, y, size, size)
     }
     g.dispose()
@@ -91,22 +91,24 @@ internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable:
     val x = (width - size) / 2
     if (event.x !in x..(x + size)) return null
     val y = event.y
-    val i = y / (size + spacing)
-    if (i in ledIndicators.indices) {
+    val i = 1 - y / (size + spacing)
+    if (i in LedIndicator.entries.indices) {
       val yInRow = y % (size + spacing)
       if (yInRow <= size) {
-        val indicator = ledIndicators[i]
-        return when (indicator.facing) {
-          LedIndicator.Facing.INSIDE -> "Inside LED"
-          else -> "Outside LED"
-        }
+        val indicator = LedIndicator.entries[i]
+        return indicator.displayName
       }
     }
     return null
   }
 
   companion object {
-    @VisibleForTesting const val INDICATOR_SIZE = 8
+    @VisibleForTesting const val INDICATOR_SIZE = 10
     @VisibleForTesting const val INDICATOR_SPACING = 12
+  }
+
+  private enum class LedIndicator(val id: Int, val displayName: String) {
+    INSIDE(0, "Inside LED"),
+    OUTSIDE(1, "Outside LED"),
   }
 }

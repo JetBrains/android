@@ -651,8 +651,8 @@ class EmulatorToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
 
     // Check appearance.
-    emulator.setLedState(0, Color.RED)
-    emulator.setLedState(1, Color.GREEN)
+    emulator.setLedState(0, Color.GREEN)
+    emulator.setLedState(1, Color.RED)
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(430, 450)
