@@ -2358,6 +2358,11 @@ public final class StudioFlags {
                     "Enable the quick edit support.",
                     "When enabled, the user can use Command + I and Command + K to quickly chat with agent and make changes inline.");
 
+  public static final Flag<Boolean> STUDIOBOT_RESTRICT_QUICK_EDIT_TOOLS =
+    new BooleanFlag(STUDIOBOT, "restrict.quick.edit.tools",
+                    "Enable the restrictive tools for quick edit.",
+                    "When enabled, the quick edit agent will use a highly-targeted restrictive toolset to reduce latency.");
+
   public static final Flag<Boolean> STUDIOBOT_USE_BM25_FOR_FIND_FILES =
     new BooleanFlag(STUDIOBOT, "use.bm25.find.files",
                     "Use BM25 for find_files tool",
