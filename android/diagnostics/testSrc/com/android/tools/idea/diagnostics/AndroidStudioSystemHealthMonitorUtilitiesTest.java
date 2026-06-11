@@ -17,15 +17,22 @@ package com.android.tools.idea.diagnostics;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.diagnostic.DefaultIdeaErrorLogger;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.TestActionEvent;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,6 +65,25 @@ public class AndroidStudioSystemHealthMonitorUtilitiesTest extends LightPlatform
     // Ditto for plugin exceptions (at least for our own plugins).
     var androidPlugin = Objects.requireNonNull(PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android")));
     assertThat(DefaultIdeaErrorLogger.findSubmitter(exception, androidPlugin)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
+  }
+
+  // Tests that AnAction invocations are logged as Studio usage events.
+  public void testActionInvocationMetricsLogged() throws Exception {
+    try (TestUsageTracker usageTracker = new com.android.tools.analytics.TestUsageTracker(new VirtualTimeScheduler())) {
+      UsageTracker.setWriterForTest(usageTracker);
+
+      var action = new EmptyAction();
+      var event = TestActionEvent.createTestEvent();
+      ActionUtil.performAction(action, event);
+
+      var usages = usageTracker.getUsages().stream()
+        .filter(u -> u.getStudioEvent().getKind() == AndroidStudioEvent.EventKind.STUDIO_UI_ACTION_STATS)
+        .toList();
+      assertThat(usages).hasSize(1);
+      assertThat(usages.getFirst().getStudioEvent().getUiActionStats().getActionClassName()).endsWith(EmptyAction.class.getSimpleName());
+    } finally {
+      UsageTracker.cleanAfterTesting();
+    }
   }
 }
 
