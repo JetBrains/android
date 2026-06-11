@@ -50,6 +50,7 @@ import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinDefinitionCache
 import com.android.tools.idea.avdmanager.RunningAvdTracker
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.io.grpc.CallCredentials
@@ -81,7 +82,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.util.Alarm
 import com.intellij.util.containers.DisposableWrapperList
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
 import java.io.IOException
@@ -94,7 +94,11 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 /** Controls a running Emulator. */
@@ -110,7 +114,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
   @Volatile private var defaultSkin: SkinDefinition? = null
   @Volatile private var postureSkins = emptyMap<PostureValue, SkinDefinition>()
-  private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+  private val coroutineScope = createCoroutineScope()
+  private var keepAliveJob: Job? = null
   private val connectionStateReference = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val emulatorState = AtomicReference(EmulatorState.RUNNING)
   private val connectionStateListeners = DisposableWrapperList<ConnectionStateListener>()
@@ -316,6 +321,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (connectionReference.compareAndSet(oldConnection, connection)) {
       inputEventSender = null
       connectivityStateWatcher.run()
+      keepAliveJob?.cancel()
       sendKeepAlive()
       oldConnection?.channel?.shutdown()
     } else {
@@ -340,7 +346,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   private fun sendShutdown() {
     if (emulatorState.compareAndSet(EmulatorState.SHUTDOWN_REQUESTED, EmulatorState.SHUTDOWN_SENT)) {
-      alarm.cancelAllRequests()
+      keepAliveJob?.cancel()
       val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
       setVmState(vmRunState)
       runningAvdTracker.shuttingDown(emulatorId.avdFolder)
@@ -749,6 +755,11 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   private fun sendKeepAlive() {
+    if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
+      sendShutdown()
+      return
+    }
+
     val responseObserver =
       object : EmptyStreamObserver<VmRunState>() {
 
@@ -756,8 +767,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
             sendShutdown()
           } else {
-            alarm.cancelAllRequests()
-            alarm.addRequest(::sendKeepAlive, KEEP_ALIVE_INTERVAL_MILLIS)
+            keepAliveJob?.cancel()
+            keepAliveJob =
+              coroutineScope.launch {
+                delay(KEEP_ALIVE_INTERVAL)
+                sendKeepAlive()
+              }
           }
         }
       }
@@ -995,5 +1010,5 @@ private const val TIMESTAMPUS_FIELD_TAG = Image.TIMESTAMPUS_FIELD_NUMBER shl 3 o
 private val EMPTY_REGISTRY = ExtensionRegistryLite.getEmptyRegistry()
 
 private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
-private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
+private val KEEP_ALIVE_INTERVAL = 2.minutes
 private val EMPTY_PROTO = Empty.getDefaultInstance()
