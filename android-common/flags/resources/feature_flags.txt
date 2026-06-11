@@ -255,6 +255,7 @@ studiobot.read.uri.tool=COMPLETE:2026
 studiobot.regenerate.chat.request.button.enabled=PREVIEW
 studiobot.remote.models.enabled=COMPLETE:2025
 studiobot.replace.text.tool.enabled=COMPLETE:2026
+studiobot.restrict.quick.edit.tools=INTERNAL
 studiobot.shell.tool=COMPLETE:2026
 studiobot.show.shimmer.placeholder=PREVIEW
 studiobot.show.thoughts=COMPLETE:2026
