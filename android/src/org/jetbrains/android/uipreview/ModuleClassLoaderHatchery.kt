@@ -130,15 +130,16 @@ private data class Request(
     if (other !is Request) {
       return false
     }
-    if (other.parent != null && this.parent != null && other.parent != this.parent) {
-      return false
-    }
-    return projectTransformations.id == other.projectTransformations.id &&
-      nonProjectTransformations.id == other.nonProjectTransformations.id
+    return (parent == other.parent) &&
+      (projectTransformations.id == other.projectTransformations.id) &&
+      (nonProjectTransformations.id == other.nonProjectTransformations.id)
   }
 
   override fun hashCode(): Int {
-    return projectTransformations.id.hashCode() xor nonProjectTransformations.id.hashCode()
+    var result = parent?.hashCode() ?: 0
+    result = 31 * result + projectTransformations.id.hashCode()
+    result = 31 * result + nonProjectTransformations.id.hashCode()
+    return result
   }
 }
 
