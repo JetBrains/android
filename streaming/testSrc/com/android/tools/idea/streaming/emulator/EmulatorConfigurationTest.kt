@@ -20,8 +20,6 @@ import com.android.emulator.control.Posture.PostureValue
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
-import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.LedIndicator
-import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.LedIndicator.Facing
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.google.common.jimfs.Jimfs
 import com.google.common.truth.Truth.assertThat
@@ -232,7 +230,7 @@ class EmulatorConfigurationTest {
     assertThat(config.displayModes).isEmpty()
     assertThat(config.postures).isEmpty()
     assertThat(config.touchpadSize).isEqualTo(Dimension(1543, 297))
-    assertThat(config.ledIndicators).containsExactly(LedIndicator(0, Facing.INSIDE), LedIndicator(1, Facing.OUTSIDE)).inOrder()
+    assertThat(config.hasLedIndicators).isTrue()
   }
 
   @Test
@@ -264,7 +262,7 @@ class EmulatorConfigurationTest {
     assertThat(config.postures).isEmpty()
     assertThat(config.touchpadSize).isEqualTo(Dimension(1543, 297))
     assertThat(config.dimmingLevels).isEmpty()
-    assertThat(config.ledIndicators).containsExactly(LedIndicator(0, Facing.INSIDE), LedIndicator(1, Facing.OUTSIDE)).inOrder()
+    assertThat(config.hasLedIndicators).isTrue()
   }
 
   @Test

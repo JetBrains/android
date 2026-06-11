@@ -45,7 +45,7 @@ class GlassesInputPanel(private val emulator: EmulatorController, parentDisposab
       }
     }
 
-    if (emulatorConfig.ledIndicators.isNotEmpty()) {
+    if (emulatorConfig.hasLedIndicators) {
       add(createHorizontalGlue())
       add(LedIndicatorPanel(emulator, parentDisposable))
     }

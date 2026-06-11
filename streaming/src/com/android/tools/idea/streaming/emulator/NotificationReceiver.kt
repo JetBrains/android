@@ -51,7 +51,7 @@ internal class NotificationReceiver private constructor(private val emulator: Em
   private val _displayConfigurations = MutableStateFlow<List<DisplayConfiguration>?>(null)
   val displayConfigurations: StateFlow<List<DisplayConfiguration>?> = _displayConfigurations.asStateFlow()
 
-  private val _ledStates = MutableStateFlow<Map<Int, Color?>>(emulatorConfig.ledIndicators.associate { it.id to null })
+  private val _ledStates = MutableStateFlow<Map<Int, Color?>>(emptyMap())
   val ledStates: StateFlow<Map<Int, Color?>> = _ledStates.asStateFlow()
 
   private val log = Logger.getInstance(NotificationReceiver::class.java)
