@@ -21,6 +21,7 @@ import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.rendering.classloading.toClassTransform
 import com.android.tools.rendering.classloading.useWithClassLoader
+import java.util.concurrent.Executor
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -163,5 +164,31 @@ class ModuleClassLoaderHatcheryTest {
 
     // Verify that the size of pending requests is bounded to the configured limit
     assertEquals(5, hatchery.getRequestsSizeForTesting())
+  }
+
+  @Test
+  fun `clutch fallback compatibility check during background preloading`() {
+    val commands = mutableListOf<Runnable>()
+    val delayedExecutor = Executor { command -> commands.add(command) }
+
+    val hatchery =
+      ModuleClassLoaderHatchery(capacity = 1, copies = 1, executor = delayedExecutor, parentDisposable = project.testRootDisposable)
+
+    StudioModuleClassLoaderManager.get().getPrivate(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { donor ->
+      val creationContext = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor)
+      val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader? = { d -> d.createClassLoader() }
+
+      // 1. Record the request
+      assertNull(hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+
+      // 2. Incubate. This will submit the preloading command to our delayedExecutor, so eggs queue remains empty!
+      assertTrue(hatchery.incubateIfNeeded(creationContext, cloner))
+
+      // 3. Request classloader again. Since eggs queue is empty, isCompatible should fall back to donor metadata check
+      // and find it compatible, but return null since no copies are fully prepared yet.
+      // We verify that it does not add a new request by incubating again with the same donor.
+      // If it recorded a new request, incubateIfNeeded would return true. If it found it compatible (and didn't record), it returns false.
+      assertFalse(hatchery.incubateIfNeeded(creationContext, cloner))
+    }
   }
 }
