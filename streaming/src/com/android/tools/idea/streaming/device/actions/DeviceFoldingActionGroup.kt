@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.core.findComponentForAction
+import com.android.tools.idea.streaming.core.htmlEscaped
 import com.android.tools.idea.streaming.device.DEVICE_MAIN_TOOLBAR_ID
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -65,7 +66,7 @@ internal class DeviceFoldingActionGroup : DefaultActionGroup(), DumbAware {
     val presentation = event.presentation
     presentation.isEnabledAndVisible = controller?.supportedFoldingStates?.isNotEmpty() ?: false
     val currentFoldingState = controller?.currentFoldingState
-    presentation.text = "${templatePresentation.text} (currently ${currentFoldingState?.name ?: "unknown state"})"
+    presentation.setText("${templatePresentation.text} (currently ${currentFoldingState?.name?.htmlEscaped() ?: "unknown state"})", false)
     currentFoldingState?.icon.let { presentation.icon = it }
   }
 
