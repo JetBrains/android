@@ -110,6 +110,15 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
   }
 
   override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<String>?): MethodVisitor {
+    if ("finalize" == name && "()V" == desc) {
+      val mv = super.visitMethod(access, name, desc, signature, exceptions)
+      mv.visitCode()
+      mv.visitInsn(Opcodes.RETURN)
+      mv.visitMaxs(0, 1)
+      mv.visitEnd()
+      return object : MethodVisitor(Opcodes.ASM9) {}
+    }
+
     if (
       ("onLayout" == name && "(ZIIII)V" == desc ||
         "onMeasure" == name && "(II)V" == desc ||
