@@ -105,4 +105,24 @@ class ModuleClassLoaderHatcheryTest {
       assertNull(hatchery.requestClassLoader(parent2, donor.projectClassesTransform, donor.nonProjectClassesTransform))
     }
   }
+
+  @Test
+  fun `hatchery does not mix null and non-null parent requests`() {
+    val hatchery = ModuleClassLoaderHatchery(1, 1, parentDisposable = project.testRootDisposable)
+    val parent = FirewalledResourcesClassLoader(null)
+
+    StudioModuleClassLoaderManager.get().getPrivate(parent, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { donor
+      ->
+      val creationContext = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor)
+      val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader? = { d -> d.createClassLoader() }
+
+      // 1. Request with null parent
+      assertNull(hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+
+      // 2. Try to incubate with a donor that has a non-null parent.
+      // Under buggy Request.equals contract, it would match and return true.
+      // Under correct contract, it should return false because they have different parent class loaders.
+      assertFalse(hatchery.incubateIfNeeded(creationContext, cloner))
+    }
+  }
 }
