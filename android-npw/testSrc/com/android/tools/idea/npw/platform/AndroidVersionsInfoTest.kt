@@ -32,7 +32,7 @@ import org.mockito.kotlin.mock
 class AndroidVersionsInfoTest {
   companion object {
     /** This is overridden in NewProjectWizardTestSuite, but we want to override it differently here. */
-    @get:ClassRule val compileSdkFlagRule: FlagRule<AndroidApiLevel> = FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(36, 1))
+    @get:ClassRule val compileSdkFlagRule: FlagRule<AndroidApiLevel> = FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(37))
   }
 
   /** For versions without an Android target, the Build API should be the highest known stable API */
