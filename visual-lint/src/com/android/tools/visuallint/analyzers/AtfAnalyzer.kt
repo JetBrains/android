@@ -29,6 +29,7 @@ import com.android.tools.visuallint.VisualLintConfiguration
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.tools.visuallint.VisualLintRenderResult
 import com.android.utils.HtmlBuilder
+import com.android.utils.XmlUtils
 import java.util.EnumSet
 
 /** [VisualLintAnalyzer] for issues coming from the Accessibility Testing Framework. */
@@ -145,9 +146,12 @@ fun ValidatorData.Issue.summarize() =
     }
   }
 
-fun ValidatorData.Issue.describe(): String =
-  if (mHelpfulUrl.isNullOrEmpty()) {
-    mMsg
-  } else {
-    """$mMsg<br><br>Learn more at <a href="$mHelpfulUrl">$mHelpfulUrl</a>"""
-  }
+fun ValidatorData.Issue.describe(): String {
+  // mMsg is ATF's getMessage(Locale.ENGLISH), which for DuplicateSpeakableTextCheck /
+  // RedundantDescriptionCheck / LinkPurposeUnclearCheck interpolates user-supplied
+  // contentDescription / text verbatim. The result is rendered as HTML in JBHtmlPane.
+  val msg = XmlUtils.toXmlTextValue(mMsg)
+  if (mHelpfulUrl.isNullOrEmpty()) return msg
+  val url = XmlUtils.toXmlAttributeValue(mHelpfulUrl)
+  return """$msg<br><br>Learn more at <a href="$url">${XmlUtils.toXmlTextValue(mHelpfulUrl)}</a>"""
+}
