@@ -38,6 +38,7 @@ import javax.swing.plaf.UIResource
  */
 class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
   init {
+    putClientProperty("html.disable", true)
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
     // This component is not editable. Taking focus would be confusing: b/147907441
