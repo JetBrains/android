@@ -97,7 +97,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
    * Or {@code null} if this is not a valid downloadable file.
    */
   @Nullable
-  public File getRelativeCachedMenuFile(@NotNull FontFamily family) {
+  public String getRelativeCachedMenuFile(@NotNull FontFamily family) {
     String menu = family.getMenu();
     if (!menu.startsWith(HTTPS_PROTOCOL_START)) {
       return null;
@@ -119,7 +119,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   }
 
   @Nullable
-  public File getRelativeFontFile(@NotNull FontDetail font) {
+  public String getRelativeFontFile(@NotNull FontDetail font) {
     String fontUrl = font.getFontUrl();
     if (!fontUrl.startsWith(HTTPS_PROTOCOL_START)) {
       return null;
@@ -277,15 +277,12 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     if (cachePath == null) {
       return null;
     }
-    return new File(cachePath, getRelativeCachedFont(authority, url).getPath());
+    return new File(cachePath, getRelativeCachedFont(authority, url));
   }
 
-  private static File getRelativeCachedFont(@NotNull String authority, @NotNull String menu) {
-    File providerPath = new File(authority);
-    File fontsPath = new File(providerPath, FONTS);
-    File fontPath = new File(fontsPath, getChildName(menu, 2, FONT));
-    File versionPath = new File(fontPath, getChildName(menu, 1, V1));
-    return new File(versionPath, getChildName(menu, 0, menu));
+  private static String getRelativeCachedFont(@NotNull String authority, @NotNull String menu) {
+    return authority + "/" + FONTS + "/" + getChildName(menu, 2, FONT) + "/" +
+           getChildName(menu, 1, V1) + "/" + getChildName(menu, 0, menu);
   }
 
   @NotNull
@@ -297,10 +294,16 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
       prevIndex = menu.lastIndexOf('/', lastIndex - 1);
       fromLast--;
     }
-    if (prevIndex < 0) {
+    String segment = prevIndex < 0 ? defaultName : menu.substring(prevIndex + 1, lastIndex);
+    // Harden against path-traversal: the resolved segment must be a single safe filename component.
+    if (segment.isEmpty() || segment.contains("..") ||
+        segment.indexOf('\\') >= 0 || segment.indexOf(':') >= 0) {
+      if (defaultName.contains("..") || defaultName.indexOf('\\') >= 0 || defaultName.indexOf(':') >= 0) {
+        return FONT;
+      }
       return defaultName;
     }
-    return menu.substring(prevIndex + 1, lastIndex);
+    return segment;
   }
 
   @NotNull

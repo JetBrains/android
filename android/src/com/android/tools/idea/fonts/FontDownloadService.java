@@ -127,15 +127,15 @@ public class FontDownloadService {
     return success;
   }
 
-  private boolean cachedFileExists(@NotNull File relativeCachedFile) {
-    File file = new File(myFontPath, relativeCachedFile.getPath());
+  private boolean cachedFileExists(@NotNull String relativeCachedPath) {
+    File file = new File(myFontPath, relativeCachedPath);
     return file.exists();
   }
 
   private void addFontFamily(@NotNull List<DownloadableFileDescription> files, @NotNull FontFamily fontFamily) {
-    File file = myCacheService.getRelativeCachedMenuFile(fontFamily);
-    if (file != null && !cachedFileExists(file)) {
-      files.add(createFileDescription(fontFamily.getMenu(), file));
+    String relativePath = myCacheService.getRelativeCachedMenuFile(fontFamily);
+    if (relativePath != null && !cachedFileExists(relativePath)) {
+      files.add(createFileDescription(fontFamily.getMenu(), relativePath));
     }
     if (!myDownloadMenuFontsOnly) {
       for (FontDetail font : fontFamily.getFonts()) {
@@ -145,14 +145,14 @@ public class FontDownloadService {
   }
 
   private void addFont(@NotNull List<DownloadableFileDescription> files, @NotNull FontDetail font) {
-    File file = myCacheService.getRelativeFontFile(font);
-    if (file != null && !cachedFileExists(file)) {
-      files.add(createFileDescription(font.getFontUrl(), file));
+    String relativePath = myCacheService.getRelativeFontFile(font);
+    if (relativePath != null && !cachedFileExists(relativePath)) {
+      files.add(createFileDescription(font.getFontUrl(), relativePath));
     }
   }
 
   @NotNull
-  private static DownloadableFileDescription createFileDescription(@NotNull String url, @NotNull File relativeFile) {
-    return DownloadableFileService.getInstance().createFileDescription(url, relativeFile.getPath());
+  private static DownloadableFileDescription createFileDescription(@NotNull String url, @NotNull String relativePath) {
+    return DownloadableFileService.getInstance().createFileDescription(url, relativePath);
   }
 }

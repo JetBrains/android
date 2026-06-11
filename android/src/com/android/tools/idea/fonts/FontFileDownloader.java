@@ -1,6 +1,7 @@
 // Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.fonts;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.intellij.concurrency.SensitiveProgressWrapper;
 import com.intellij.openapi.application.PathManager;
@@ -136,14 +137,21 @@ public class FontFileDownloader {
     }
   }
 
-  private static List<Pair<File, DownloadableFileDescription>> moveToDir(List<Pair<File, DownloadableFileDescription>> downloadedFiles,
-                                                                         final File targetDir) throws IOException {
+  @VisibleForTesting
+  static List<Pair<File, DownloadableFileDescription>> moveToDir(List<Pair<File, DownloadableFileDescription>> downloadedFiles,
+                                                                 final File targetDir) throws IOException {
     FileUtil.createDirectory(targetDir);
+    final File canonicalTargetDir = targetDir.getCanonicalFile();
     List<Pair<File, DownloadableFileDescription>> result = new ArrayList<>();
     for (Pair<File, DownloadableFileDescription> pair : downloadedFiles) {
       final DownloadableFileDescription description = pair.getSecond();
-      final String fileName = description.generateFileName(s -> !new File(targetDir, s).exists());
-      final File toFile = new File(targetDir, fileName);
+      final String fileName = description.generateFileName(s -> !new File(canonicalTargetDir, s).exists());
+      final File toFile = new File(canonicalTargetDir, fileName).getCanonicalFile();
+      if (!FileUtil.isAncestor(canonicalTargetDir, toFile, true)) {
+        LOG.warn("Refusing to write font outside cache: " + toFile);
+        FileUtil.delete(pair.getFirst());
+        continue;
+      }
       FileUtil.rename(pair.getFirst(), toFile);
       result.add(Pair.create(toFile, description));
     }
