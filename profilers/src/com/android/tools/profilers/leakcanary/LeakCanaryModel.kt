@@ -50,6 +50,7 @@ import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
 import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -970,5 +971,15 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
 
   override fun update(elapsedNs: Long) {
     _elapsedNs.value += elapsedNs
+  }
+
+  /** Tracks a user interaction within an active LeakCanary task (e.g. clicking "Force Dump"). */
+  private fun TaskTracker.trackLeakCanaryUiAction(uiAction: LeakCanaryUiAction) {
+    profilers.ideServices.featureTracker.trackLeakCanaryEvent(this.taskMetadata, uiAction)
+  }
+
+  /** Tracks the completion of a LeakCanary memory analysis, logging the specific leak metrics. */
+  private fun TaskTracker.trackLeakCanaryAnalysis(leakAnalysis: LeakCanaryLeakAnalysis) {
+    profilers.ideServices.featureTracker.trackLeakCanaryEvent(this.taskMetadata, leakAnalysis)
   }
 }

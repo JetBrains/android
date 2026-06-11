@@ -35,8 +35,8 @@ import com.android.tools.profilers.tasks.analytics.LeakCanaryStartErrorCode
 import com.android.tools.profilers.tasks.analytics.TaskAttachmentPoint
 import com.android.tools.profilers.tasks.analytics.TaskDataOrigin
 import com.android.tools.profilers.tasks.analytics.TaskMetadata
+import com.android.tools.profilers.tasks.analytics.TaskPreflightTracker
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
-import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCanaryTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
@@ -81,8 +81,8 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
 
   private var pendingArgs: LeakCanaryTaskArgs? = null
 
-  private fun createPreFlightTracker(): TaskTracker {
-    return TaskTracker(
+  private fun createPreFlightTracker(): TaskPreflightTracker {
+    return TaskPreflightTracker(
       profilers,
       TaskMetadata(
         ProfilerTaskType.LEAKCANARY,
@@ -212,9 +212,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   }
 
   /** Helper method to abort the broken task UI, log telemetry, present an error balloon, and cleanly terminate the session. */
-  private fun handleStartupFailure(tracker: TaskTracker, errorCode: LeakCanaryStartErrorCode, errorMessage: String) {
+  private fun handleStartupFailure(tracker: TaskPreflightTracker, errorCode: LeakCanaryStartErrorCode, errorMessage: String) {
     logger.error(errorMessage)
-    tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = errorCode))
+    tracker.trackPreflightCheckFailed(TaskStartFailedMetadata(leakCanaryStartStatus = errorCode))
     profilers.ideServices.showNotification(Notification(Notification.Severity.ERROR, "LeakCanary Task Failed", errorMessage, null))
     profilers.ideServices.mainExecutor.execute {
       profilers.sessionsManager.endCurrentSession()
@@ -367,7 +367,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   }
 
   /** Called when the verification process successfully finishes. Updates the UI state with the result. */
-  private fun updateStateToCompleted(processId: String, threshold: Int, tracker: TaskTracker) {
+  private fun updateStateToCompleted(processId: String, threshold: Int, tracker: TaskPreflightTracker) {
     profilers.ideServices.mainExecutor.execute {
       val found = threshold > 0
 
@@ -391,7 +391,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
           val errorCode =
             if (threshold == REFLECTION_FAILED_THRESHOLD) LeakCanaryStartErrorCode.UNKNOWN_ERROR
             else LeakCanaryStartErrorCode.LIBRARY_NOT_INSTALLED_TIMEOUT
-          tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = errorCode))
+          tracker.trackPreflightCheckFailed(TaskStartFailedMetadata(leakCanaryStartStatus = errorCode))
         }
 
         logger.info("PROFILER: Check finished for $processId. State: ${_checkState.value}")
@@ -522,7 +522,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       if (!attachAgentAndWait(profilers, streamId, process)) {
         logger.warn("PROFILER: Agent attachment failed or timed out for $processId")
         updateStateToTimeout(processId)
-        tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.AGENT_ATTACH_FAILED))
+        tracker.trackPreflightCheckFailed(TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.AGENT_ATTACH_FAILED))
         timer.cancel()
         return@execute
       }
@@ -535,7 +535,11 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
    * Starts a safety timer that will forcefully abort the verification process if it takes too long. This protects the UI from hanging if
    * the target app is frozen or unresponsive.
    */
-  private fun startSafetyTimer(processId: String, listenerRef: AtomicReference<TransportEventListener?>, tracker: TaskTracker): Timer {
+  private fun startSafetyTimer(
+    processId: String,
+    listenerRef: AtomicReference<TransportEventListener?>,
+    tracker: TaskPreflightTracker,
+  ): Timer {
     val timer = Timer()
     timer.schedule(
       object : TimerTask() {
@@ -543,7 +547,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
           if (isProcessLastChecked(processId) && isCheckInProgress.get()) {
             logger.info("PROFILER: Safety timeout for $processId. Failing check.")
             updateStateToTimeout(processId)
-            tracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.TRANSPORT_TIMEOUT))
+            tracker.trackPreflightCheckFailed(TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.TRANSPORT_TIMEOUT))
           }
           listenerRef.get()?.let { profilers.transportPoller.unregisterListener(it) }
           timer.cancel()
@@ -561,7 +565,7 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     processId: String,
     timer: Timer,
     listenerRef: AtomicReference<TransportEventListener?>,
-    tracker: TaskTracker,
+    tracker: TaskPreflightTracker,
   ) {
     val command =
       Commands.Command.newBuilder()
