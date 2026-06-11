@@ -880,6 +880,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySessionChangeListener.put(sessionType, listener);
   }
 
+  public void bringSelectedEditorToFront() {
+    if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myUnifiedTraceOpener.openUnifiedTrace(mySelectedSession, mySessionsManager.getSessionIdToSessionItems());
+    }
+  }
+
   private void selectedSessionChanged() {
     Common.Session newSession = mySessionsManager.getSelectedSession();
 
