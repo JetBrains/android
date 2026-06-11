@@ -77,6 +77,9 @@
         class="com.android.tools.idea.diagnostics.LastActionTracker$MyActionListener"
         topic="com.intellij.openapi.actionSystem.ex.AnActionListener" />
     <listener
+        class="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor$MyAnActionListener"
+        topic="com.intellij.openapi.actionSystem.ex.AnActionListener"/>
+    <listener
         class="com.android.tools.idea.startup.AndroidStudioAnalyticsImpl$MyDataSharingSettingsChangeListener"
         topic="com.intellij.ide.gdpr.DataSharingSettingsChangeListener"/>
   </applicationListeners>
