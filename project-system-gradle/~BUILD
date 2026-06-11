@@ -53,6 +53,9 @@ iml_module(
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
+        # Lightbuild templates need RepositoryUrlManager for resolving '+' dependencies,
+        # more information in b/523222095
+        "//tools/vendor/google/optional-plugins/project-system-lume:intellij.android.projectSystem.lume",
     ],
     # NOTE: If you are tempted to add to the above module_visibility list, please
     # first read  go/as-project-system-cleanup, and discuss with and get agreement
