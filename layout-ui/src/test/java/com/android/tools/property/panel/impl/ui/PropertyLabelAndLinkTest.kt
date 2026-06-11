@@ -102,4 +102,33 @@ class PropertyLabelAndLinkTest {
     assertThat(label.getClientProperty("html.disable")).isNull()
     assertThat(label.text).isEqualTo("<html><nobr>&lt;html&gt;evil&lt;/html&gt;</nobr></html>")
   }
+
+  @Test
+  fun testPropertyLinkHtmlDisablingInitially() {
+    val action =
+      object : AnAction() {
+        override fun actionPerformed(e: AnActionEvent) {}
+      }
+    val property = FakeLinkPropertyItem(ANDROID_URI, ATTR_ID, "<html>evil-value</html>", action)
+    val model = LinkPropertyEditorModel(property)
+    val propertyLink = PropertyLink(model)
+
+    val layout = propertyLink.layout as BorderLayout
+    val label = layout.getLayoutComponent(BorderLayout.WEST) as JBLabel
+    val link = layout.getLayoutComponent(BorderLayout.CENTER) as CommonHyperLinkLabel
+
+    // Immediately after construction, html should be disabled
+    assertThat(label.getClientProperty("html.disable")).isEqualTo(true)
+    assertThat(link.getClientProperty("html.disable")).isEqualTo(true)
+  }
+
+  @Test
+  fun testPropertyLabelHtmlDisablingInitially() {
+    val property = FakePropertyItem(ANDROID_URI, ATTR_ID, "<html>evil</html>")
+    val model = TextFieldPropertyEditorModel(property, editable = false)
+    val label = PropertyLabel(model)
+
+    // Immediately after construction, html should be disabled
+    assertThat(label.getClientProperty("html.disable")).isEqualTo(true)
+  }
 }

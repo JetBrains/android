@@ -35,10 +35,12 @@ import javax.swing.JPanel
 
 /** Editor for a property link consisting of a text field and a link */
 class PropertyLink(private val model: LinkPropertyEditorModel) : JPanel(BorderLayout()) {
-  private val label = JBLabel(model.value)
+  private val label = JBLabel()
   private val link = CommonHyperLinkLabel(showAsLink = true, strikeout = false)
 
   init {
+    label.putClientProperty("html.disable", true)
+    link.putClientProperty("html.disable", true)
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
     border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
