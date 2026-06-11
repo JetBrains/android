@@ -45,6 +45,7 @@ import fleet.util.logging.logger
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -70,6 +71,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   private val lastCheckedProcessId = AtomicReference<String?>(null)
   private val isCheckInProgress = AtomicBoolean(false)
   private val isPresent = AtomicBoolean(false)
+
+  // Cache to store process IDs (streamId:pid) that have successfully passed the LeakCanary presence check.
+  private val successfullyCheckedProcessIds = ConcurrentHashMap.newKeySet<String>()
 
   // UI state Flow - used to trigger UI redraws.
   private val _checkState = MutableStateFlow(LeakCanaryCheckState.IDLE)
@@ -315,6 +319,18 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = LeakCanaryTaskArgs(false, artifact as LeakCanarySessionArtifact)
 
   /**
+   * Instantly updates the state to 'PRESENT'. This marks the current process as active so that delayed background checks from previously
+   * clicked apps don't accidentally overwrite the UI.
+   */
+  private fun updateStateToCachedSuccess(processId: String) {
+    logger.info("LeakCanary check state: CACHED_SUCCESS for $processId")
+    lastCheckedProcessId.set(processId)
+    isPresent.set(true)
+    isCheckInProgress.set(false)
+    _checkState.value = LeakCanaryCheckState.PRESENT
+  }
+
+  /**
    * Resets the verification state variables to their initial defaults. This is used to cleanly abort and reset the check when the currently
    * selected device or process becomes invalid or unsupported.
    */
@@ -353,8 +369,14 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   /** Called when the verification process successfully finishes. Updates the UI state with the result. */
   private fun updateStateToCompleted(processId: String, threshold: Int, tracker: TaskTracker) {
     profilers.ideServices.mainExecutor.execute {
+      val found = threshold > 0
+
+      // Always cache successes, even if the user navigated away while the background check was running.
+      if (found) {
+        successfullyCheckedProcessIds.add(processId)
+      }
+
       if (isProcessLastChecked(processId)) {
-        val found = threshold > 0
         isPresent.set(found)
         isCheckInProgress.set(false)
 
@@ -416,7 +438,16 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
     }
 
     val streamId = profilers.getStreamId(device)
-    val processId = "${streamId}:${process.pid}"
+    val processId = "${streamId}:${process.pid}:${process.name}"
+
+    // If this process has already been successfully verified, instantly return success (null).
+    // We do not cache failures, as the app might initialize LeakCanary later in its lifecycle.
+    if (successfullyCheckedProcessIds.contains(processId)) {
+      if (!isProcessLastChecked(processId)) {
+        updateStateToCachedSuccess(processId)
+      }
+      return null
+    }
 
     // If the user selects a new process, or if a previous check timed out and cleared its ID,
     // lock the state to 'CHECKING' and immediately send off the background verification task.
@@ -472,8 +503,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
    * app to the foreground and reselecting it.
    */
   private fun verifyLeakCanaryPresenceAsync(device: Common.Device, process: Common.Process, streamId: Long) {
-    // Combine stream ID with PID to ensure global uniqueness, preventing false cache hits across multiple devices.
-    val processId = "${streamId}:${process.pid}"
+    // Combine stream ID with PID and process name to ensure global uniqueness,
+    // preventing false cache hits across multiple devices or PID reuse wrap-around.
+    val processId = "${streamId}:${process.pid}:${process.name}"
     logger.info("PROFILER: Starting LeakCanary check for $processId")
 
     updateStateToChecking(processId)
