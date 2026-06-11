@@ -56,7 +56,7 @@ option java_package = "com.google.play.developer.reporting";
 //  * `carrier`
 //    ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //    The mobile carrier or network of the user's device
-// (== resource_for v1beta1.ratings ==)
+// (== resource_for v1beta1.ratings.averageRating ==)
 message AverageRatingsMetricSet {
   // The resource name.
   string name = 1;
@@ -187,7 +187,7 @@ message QueryAverageRatingsMetricSetResponse {
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The country or region of the user's device, represented as a 2-letter
 //     Unicode CLDR region code (e.g. US for the United States).
-// (== resource_for v1beta1.googlePlayRating ==)
+// (== resource_for v1beta1.ratings.googlePlayRating ==)
 message GooglePlayRatingMetricSet {
   // The resource name.
   string name = 1;
