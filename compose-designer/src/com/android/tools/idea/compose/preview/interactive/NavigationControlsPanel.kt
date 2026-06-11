@@ -74,7 +74,10 @@ fun NavigationControlsContent(
       onBackPressStart = { interactivePreviewNavigationController.backPressStart(it) },
       onBackPressProgress = { progress, edge -> interactivePreviewNavigationController.backPressProgress(progress, edge) },
       onBackPressTrackProgress = { interactivePreviewNavigationController.trackNavigationProgressPress() },
-      onEdgeDropdownPress = { interactivePreviewNavigationController.trackEdgeDropdownPress() },
+      onEdgeDropdownPress = {
+        interactivePreviewNavigationController.trackEdgeDropdownPress()
+        interactivePreviewNavigationController.backPressCancelled()
+      },
       fpsUpdater = fpsUpdater,
       backPressCompletedFlow = interactivePreviewNavigationController.backPressCompletedFlow,
     )
@@ -113,7 +116,7 @@ fun NavigationControlsPanel(
 ) {
   var sliderPosition by remember { mutableFloatStateOf(0f) }
   var backStarted by remember { mutableStateOf(false) }
-  val selectedEdge = remember { mutableStateOf(BackNavigationEdge.LEFT_EDGE) }
+  val selectedEdge = remember { mutableStateOf(BackNavigationEdge.EDGE_LEFT) }
   val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
 
   LaunchedEffect(backPressCompletedFlow) {
