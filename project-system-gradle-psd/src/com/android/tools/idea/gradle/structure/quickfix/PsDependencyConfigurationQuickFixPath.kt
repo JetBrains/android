@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
-import java.io.Serializable
 
 enum class PsDependencyKind {
   LIBRARY,
@@ -45,7 +44,21 @@ data class PsDependencyConfigurationQuickFixPath(
   val dependencyKey: String,
   val oldConfigurationName: String,
   val newConfigurationName: String,
-) : PsQuickFix, Serializable {
+) : PsQuickFix {
+  override fun serialize(): String =
+    "DependencyConfiguration|${PsQuickFix.escape(moduleName)}|${dependencyKind.name}|${PsQuickFix.escape(dependencyKey)}|${PsQuickFix.escape(oldConfigurationName)}|${PsQuickFix.escape(newConfigurationName)}"
+
+  companion object {
+    init {
+      PsQuickFix.registerDeserializer("DependencyConfiguration", ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): PsDependencyConfigurationQuickFixPath {
+      if (args.size != 5) throw IllegalArgumentException("Invalid number of arguments")
+      return PsDependencyConfigurationQuickFixPath(args[0], PsDependencyKind.valueOf(args[1]), args[2], args[3], args[4])
+    }
+  }
+
   override val text = "Update $oldConfigurationName to $newConfigurationName"
 
   constructor(

@@ -36,6 +36,8 @@ class SuggestionsViewIssueRendererTest {
     object : PsQuickFix {
       override fun execute(context: PsContext): Unit = TODO("not implemented")
 
+      override fun serialize(): String = TODO("Not implemented")
+
       override val text = "text"
     }
   private val testIssuePath = TestPath("/PATH")
