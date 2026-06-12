@@ -57,7 +57,7 @@ data class SdkIndexLinkQuickFix(
   val version: String,
   // Non-serialized fields below
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
-  val eventReport: ((Project?) -> Unit) = { project -> logClickEvent(groupId, artifactId, version, project) },
+  val eventReport: ((String, String, String, Project?) -> Unit) = ::logClickEvent,
 ) : PsQuickFix {
   override fun serialize(): String =
     "SdkIndexLink|${PsQuickFix.escape(text)}|${PsQuickFix.escape(url)}|${PsQuickFix.escape(groupId)}|${PsQuickFix.escape(artifactId)}|${PsQuickFix.escape(version)}"
@@ -80,7 +80,7 @@ data class SdkIndexLinkQuickFix(
   @VisibleForTesting
   fun applyQuickfix(project: Project?) {
     browseFunction(url)
-    eventReport(project)
+    eventReport(groupId, artifactId, version, project)
   }
 }
 

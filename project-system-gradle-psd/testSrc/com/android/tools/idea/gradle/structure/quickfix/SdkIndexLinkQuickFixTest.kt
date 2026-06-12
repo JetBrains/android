@@ -31,7 +31,7 @@ class SdkIndexLinkQuickFixTest {
         artifactId = "firebase",
         "2.0.0",
         browseFunction = { browserCalled = true },
-        eventReport = { eventReportCalled = true },
+        eventReport = { _, _, _, _ -> eventReportCalled = true },
       )
     quickfix.applyQuickfix(null)
     assertThat(browserCalled).isTrue()
