@@ -34,13 +34,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
-import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationTarget
 import org.jetbrains.kotlin.analysis.api.diagnostics.KaDiagnostic
 import org.jetbrains.kotlin.analysis.api.diagnostics.KaDiagnosticWithPsi
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
 import org.jetbrains.kotlin.analysis.api.projectStructure.contextModule
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.facet.implementingModules
 import org.jetbrains.kotlin.idea.base.facet.platform.platform
 import org.jetbrains.kotlin.idea.base.projectStructure.toKaSourceModuleForProduction
@@ -61,7 +61,9 @@ internal class LiveEditCompilerForK2(private val project: Project,
                              inputs: Collection<LiveEditCompilerInput>) = runWithCompileLock {
     LOGGER.info("Using Live Edit K2 CodeGen")
     readActionPrebuildChecks(project, file)
-    val result = backendCodeGenForK2(file, module, applicationLiveEditServices.getKotlinCompilerConfiguration(file))
+    val result = backendCodeGenForK2(file, module) {
+      with(applicationLiveEditServices) { configureKotlinCompilationOptions(file) }
+    }
     return@runWithCompileLock result.output.map { OutputFileForKtCompiledFile(it) }
   }
 }
@@ -88,7 +90,7 @@ private fun getCompileTargetFile(original: KtFile, module: Module): KtFile {
 }
 
 @OptIn(KaExperimentalApi::class)
-fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerConfiguration): KaCompilationResult.Success {
+fun backendCodeGenForK2(file: KtFile, module: Module, configurator: KaCompilationOptionsBuilder.() -> Unit): KaCompilationResult.Success {
   if (ModuleUtilCore.findModuleForFile(file) != module) {
     throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
   }
@@ -104,14 +106,18 @@ fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerCon
 
   val substituteFile = getCompileTargetFile(file, module)
   analyze(substituteFile) {
-    val result = this@analyze.compile(substituteFile, configuration,
-                                      KaCompilerTarget.Jvm(isTestMode = false, compiledClassHandler = null, debuggerExtension = null)) {
-      // This is a lambda for `allowedErrorFilter` parameter. `compiler` API internally filters diagnostic errors with
-      // `allowedErrorFilter`. If `allowedErrorFilter(diagnosticError)` is true, the error will not be reported.
-      // Since we want to always report the diagnostic errors, we just return `false` here.
-      false
+    val options = createCompilationOptions {
+      target(KaCompilationTarget.JVM)
+      allowedErrorFilter {
+        // `compiler` API internally filters diagnostic errors with  `allowedErrorFilter`.
+        // If `allowedErrorFilter(diagnosticError)` is true, the error will not be reported.
+        // Since we want to always report the diagnostic errors, we just return `false` here.
+        false
+      }
+      configurator()
     }
-    when (result) {
+
+    when (val result = this@analyze.compile(substituteFile, options)) {
       is KaCompilationResult.Success -> return result
       is KaCompilationResult.Failure -> throw compilationError(result.errors.map{it.getErrorMessage()})
     }
