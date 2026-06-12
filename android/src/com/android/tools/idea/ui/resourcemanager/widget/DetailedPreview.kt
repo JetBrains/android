@@ -25,6 +25,7 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -34,10 +35,12 @@ import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellRenderer
 import kotlin.properties.Delegates
 
 private const val PREVIEW_BOTTOM_MARGIN = 10
@@ -118,29 +121,43 @@ class DetailedPreview : JPanel(null) {
     }
 
   private val metadataTable =
-    JBTable(tableModel).apply {
-      alignmentX = LEFT_ALIGNMENT
-      rowHeight = JBUI.scale(28)
-      rowMargin = JBUI.scale(8)
-      background = UIUtil.getPanelBackground()
-      setShowGrid(false)
-    }
+    object : JBTable(tableModel) {
+        override fun prepareRenderer(renderer: TableCellRenderer, row: Int, column: Int): Component {
+          val c = super.prepareRenderer(renderer, row, column)
+          (c as? JComponent)?.putClientProperty("html.disable", true)
+          return c
+        }
+      }
+      .apply {
+        alignmentX = LEFT_ALIGNMENT
+        rowHeight = JBUI.scale(28)
+        rowMargin = JBUI.scale(8)
+        background = UIUtil.getPanelBackground()
+        setShowGrid(false)
+      }
 
   private val valuesTable =
-    JBTable(valuesTableModel).apply {
-      alignmentX = LEFT_ALIGNMENT
-      fillsViewportHeight = false
-      tableHeader.reorderingAllowed = false
-      (tableHeader.defaultRenderer as? DefaultTableCellRenderer)?.let { headerRenderer ->
-        headerRenderer.horizontalAlignment = SwingConstants.LEFT
+    object : JBTable(valuesTableModel) {
+        override fun prepareRenderer(renderer: TableCellRenderer, row: Int, column: Int): Component {
+          val c = super.prepareRenderer(renderer, row, column)
+          (c as? JComponent)?.putClientProperty("html.disable", true)
+          return c
+        }
       }
-      setDefaultRenderer(String::class.java, I18nStringCellRenderer())
-      rowHeight = JBUI.scale(28)
-      rowMargin = JBUI.scale(8)
-      background = JBColor.white
-      showVerticalLines = true
-      showHorizontalLines = false
-    }
+      .apply {
+        alignmentX = LEFT_ALIGNMENT
+        fillsViewportHeight = false
+        tableHeader.reorderingAllowed = false
+        (tableHeader.defaultRenderer as? DefaultTableCellRenderer)?.let { headerRenderer ->
+          headerRenderer.horizontalAlignment = SwingConstants.LEFT
+        }
+        setDefaultRenderer(String::class.java, I18nStringCellRenderer())
+        rowHeight = JBUI.scale(28)
+        rowMargin = JBUI.scale(8)
+        background = JBColor.white
+        showVerticalLines = true
+        showHorizontalLines = false
+      }
 
   private val valuesContainer =
     JBScrollPane(valuesTable).apply {

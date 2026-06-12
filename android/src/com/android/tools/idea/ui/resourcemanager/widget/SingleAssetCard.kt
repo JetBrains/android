@@ -148,16 +148,22 @@ abstract class AssetView : JPanel(BorderLayout()) {
   /** Set the subtitle label of this card */
   var metadata: String by Delegates.observable("") { _, _, newValue -> thirdLineLabel.text = newValue }
 
-  protected val titleLabel = JBLabel().apply { font = PRIMARY_FONT }
+  protected val titleLabel =
+    JBLabel().apply {
+      font = PRIMARY_FONT
+      putClientProperty("html.disable", true)
+    }
   protected val secondLineLabel =
     JBLabel().apply {
       font = font.deriveFont(SECONDARY_FONT_SIZE)
       foreground = SECONDARY_FONT_COLOR
+      putClientProperty("html.disable", true)
     }
   protected val thirdLineLabel =
     JBLabel().apply {
       font = font.deriveFont(SECONDARY_FONT_SIZE)
       foreground = SECONDARY_FONT_COLOR
+      putClientProperty("html.disable", true)
     }
 
   abstract var selected: Boolean
