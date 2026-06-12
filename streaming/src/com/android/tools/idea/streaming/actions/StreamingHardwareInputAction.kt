@@ -52,7 +52,7 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
     val presentation = event.presentation
     val deviceType = getDeviceType(event)
-    if (deviceType == DeviceType.AI_GLASSES || deviceType == DeviceType.XR_HEADSET && isHandOrEyeTrackingEnabled(event)) {
+    if (deviceType == DeviceType.AI_GLASSES || deviceType == DeviceType.XR_HEADSET && isHandAndEyeTrackingEnabled(event)) {
       presentation.isEnabledAndVisible = false
       return
     }

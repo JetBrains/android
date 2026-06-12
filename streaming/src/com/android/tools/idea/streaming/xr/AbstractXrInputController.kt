@@ -103,7 +103,7 @@ internal abstract class AbstractXrInputController : Disposable {
     get() = floatArrayOf()
 
   @Volatile
-  var inputMode: XrInputMode = if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.MOUSE
+  var inputMode: XrInputMode = if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_TRACKING.get()) XrInputMode.HAND else XrInputMode.MOUSE
     @UiThread
     set(value) {
       if (field != value) {
