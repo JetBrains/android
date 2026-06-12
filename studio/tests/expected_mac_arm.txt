@@ -450,7 +450,6 @@ Android Studio.app/Contents/lib/externalProcess-rt.jar
 Android Studio.app/Contents/lib/forms_rt.jar
 Android Studio.app/Contents/lib/groovy.jar
 Android Studio.app/Contents/lib/idea_rt.jar
-Android Studio.app/Contents/lib/intellij-test-discovery.jar
 Android Studio.app/Contents/lib/javax.activation.jar
 Android Studio.app/Contents/lib/javax.annotation-api.jar
 Android Studio.app/Contents/lib/jaxb-api.jar
@@ -3188,6 +3187,7 @@ Android Studio.app/Contents/plugins/grazie/lib/tech.units-indriya.jar
 Android Studio.app/Contents/plugins/grazie/lib/tech.uom.lib-uom-lib-common.jar
 Android Studio.app/Contents/plugins/html-tools/lib/html-tools.jar
 Android Studio.app/Contents/plugins/java-coverage/lib/coverage-report.jar
+Android Studio.app/Contents/plugins/java-coverage/lib/intellij.libraries.test.discovery.jar
 Android Studio.app/Contents/plugins/java-coverage/lib/jacoco.jar
 Android Studio.app/Contents/plugins/java-coverage/lib/java-coverage-rt.jar
 Android Studio.app/Contents/plugins/java-coverage/lib/java-coverage.jar
@@ -3199,6 +3199,7 @@ Android Studio.app/Contents/plugins/java/lib/aether-dependency-resolver.jar
 Android Studio.app/Contents/plugins/java/lib/completion-ranking-java.jar
 Android Studio.app/Contents/plugins/java/lib/debugger-memory-agent.jar
 Android Studio.app/Contents/plugins/java/lib/ecj/eclipse.jar
+Android Studio.app/Contents/plugins/java/lib/intellij.libraries.test.discovery.jar
 Android Studio.app/Contents/plugins/java/lib/java-impl.jar
 Android Studio.app/Contents/plugins/java/lib/javac2.jar
 Android Studio.app/Contents/plugins/java/lib/jb-jdi.jar
