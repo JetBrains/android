@@ -215,17 +215,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
 
   @Volatile
-  var ledStates: Map<Int, LedIndicator> = emptyMap()
+  var ledStates: Map<LedIndicator.Facing, LedIndicator> = emptyMap()
     private set
 
-  fun setLedState(id: Int, color: Color?) {
+  fun setLedState(facing: LedIndicator.Facing, color: Color?) {
     val state = if (color != null) LedIndicator.State.ON else LedIndicator.State.OFF
-    val ledBuilder = LedIndicator.newBuilder().setId(id).setState(state)
+    val ledBuilder = LedIndicator.newBuilder().setId(facing.number + 1).setFacing(facing).setState(state)
     if (color != null) {
       ledBuilder.color = color.rgb
     }
     val led = ledBuilder.build()
-    ledStates = ledStates + (id to led)
+    ledStates = ledStates + (facing to led)
     notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setLedIndicator(led).build())
   }
 

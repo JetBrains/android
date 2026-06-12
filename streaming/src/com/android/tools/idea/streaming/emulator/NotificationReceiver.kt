@@ -51,8 +51,8 @@ internal class NotificationReceiver private constructor(private val emulator: Em
   private val _displayConfigurations = MutableStateFlow<List<DisplayConfiguration>?>(null)
   val displayConfigurations: StateFlow<List<DisplayConfiguration>?> = _displayConfigurations.asStateFlow()
 
-  private val _ledStates = MutableStateFlow<Map<Int, Color?>>(emptyMap())
-  val ledStates: StateFlow<Map<Int, Color?>> = _ledStates.asStateFlow()
+  private val _ledStates = MutableStateFlow<Map<LedIndicator.Facing, Color?>>(emptyMap())
+  val ledStates: StateFlow<Map<LedIndicator.Facing, Color?>> = _ledStates.asStateFlow()
 
   private val log = Logger.getInstance(NotificationReceiver::class.java)
   private val emulatorConfig
@@ -109,8 +109,8 @@ internal class NotificationReceiver private constructor(private val emulator: Em
         LedIndicator.State.ON -> Color(indicator.color)
         else -> null
       }
-    if (_ledStates.value[indicator.id] != color) {
-      _ledStates.value += (indicator.id to color)
+    if (_ledStates.value[indicator.facing] != color) {
+      _ledStates.value += (indicator.facing to color)
     }
   }
 

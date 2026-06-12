@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.emulator.control.LedIndicator as LedIndicatorMessage
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.intellij.ide.setToolTipText
 import com.intellij.openapi.Disposable
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /** A panel displaying the state of LED indicators of an Intelligent Eyeware AVD. */
 internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable: Disposable) : JComponent() {
 
-  private var ledStates = emptyMap<Int, Color?>()
+  private var ledStates = emptyMap<LedIndicatorMessage.Facing, Color?>()
 
   init {
     setToolTipText(HtmlChunk.empty())
@@ -73,7 +74,7 @@ internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable:
 
     for (indicator in LedIndicator.entries) {
       val y = (1 - indicator.ordinal) * (size + spacing)
-      val color = ledStates[indicator.id]
+      val color = ledStates[indicator.facing]
 
       if (color != null) {
         g.color = color
@@ -107,8 +108,8 @@ internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable:
     @VisibleForTesting const val INDICATOR_SPACING = 12
   }
 
-  private enum class LedIndicator(val id: Int, val displayName: String) {
-    INSIDE(0, "Inside LED"),
-    OUTSIDE(1, "Outside LED"),
+  private enum class LedIndicator(val facing: LedIndicatorMessage.Facing, val displayName: String) {
+    INSIDE(LedIndicatorMessage.Facing.INSIDE, "Inside LED"),
+    OUTSIDE(LedIndicatorMessage.Facing.OUTSIDE, "Outside LED"),
   }
 }
