@@ -55,6 +55,7 @@ class NavigationControlsPanelUiTest {
 
     composeTestRule.setContent {
       NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
         canBackPress = { canBackPressMutable.value },
         onBackPress = { backPressCallCount++ },
         onBackPressStart = { backPressStartCalledWithEdge = it },
@@ -110,6 +111,7 @@ class NavigationControlsPanelUiTest {
 
     composeTestRule.setContent {
       NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
         canBackPress = { true },
         onBackPress = {},
         onBackPressStart = {},
@@ -170,7 +172,13 @@ class NavigationControlsPanelUiTest {
         updateObjects(null, composeViewAdapterObjFake)
       }
 
-    composeTestRule.setContent { NavigationControlsContent(interactivePreviewNavigationController = controller, fpsUpdater = fpsUpdater) }
+    composeTestRule.setContent {
+      NavigationControlsContent(
+        interactivePreviewNavigationController = controller,
+        fpsUpdater = fpsUpdater,
+        isEdgeNavigationImplemented = { true },
+      )
+    }
 
     // Verify initially dropdown shows "Left"
     composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_LEFT.visibleName).assertIsDisplayed()
@@ -185,5 +193,30 @@ class NavigationControlsPanelUiTest {
     // Assert that both edge tracking and back press cancellation are triggered correctly
     assertTrue("Edge dropdown press tracking should be triggered", edgeDropdownPressTracked)
     assertTrue("Back press cancellation should be triggered", cancelledCalled)
+  }
+
+  @Test
+  fun testEdgeDropdownDisabledWhenShowEdgeNavigationIsFalse() {
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        isEdgeNavigationImplemented = { false },
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        fpsUpdater = fpsUpdater,
+      )
+    }
+
+    // Verify main panel is displayed
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.panel).assertIsDisplayed()
+    // Verify Back button is displayed
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.backButton).assertIsDisplayed()
+    // Verify Dropdown is displayed but disabled
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).assertIsDisplayed().assertIsNotEnabled()
   }
 }
