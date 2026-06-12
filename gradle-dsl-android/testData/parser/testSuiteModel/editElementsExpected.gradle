@@ -14,7 +14,7 @@ android {
           inputs com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS
           includeEngines 'test-engine-id'
           enginesDependencies('org.junit.platform:junit-platform-launcher')
-          enginesDependencies('org.junit.platform:junit-platform-engine:1.12.0')
+          enginesDependencies('org.junit.platform:junit-platform-engine:1.13.3')
           enginesDependencies(libs.junit)
         }
         targetVariants 'debug', 'release', 'freeDebug'

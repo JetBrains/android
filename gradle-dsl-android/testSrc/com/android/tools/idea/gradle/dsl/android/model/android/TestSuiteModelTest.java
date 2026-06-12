@@ -63,7 +63,7 @@ public class TestSuiteModelTest extends AndroidGradleFileModelTestCase {
     assertSize(3, engineDependencies);
     assertEquals("org.junit.platform:junit-platform-launcher", engineDependencies.get(0).getSpec().compactNotation());
     assertFalse(engineDependencies.get(0).isVersionCatalogDependency());
-    assertEquals("org.junit.platform:junit-platform-engine:1.12.0", engineDependencies.get(1).getSpec().compactNotation());
+    assertEquals("org.junit.platform:junit-platform-engine:1.13.3", engineDependencies.get(1).getSpec().compactNotation());
     assertFalse(engineDependencies.get(1).isVersionCatalogDependency());
     assertEquals("junit:junit:4.12", engineDependencies.get(2).getSpec().compactNotation());
     assertTrue(engineDependencies.get(2).isVersionCatalogDependency());
@@ -85,7 +85,7 @@ public class TestSuiteModelTest extends AndroidGradleFileModelTestCase {
     testSuite.useJunitEngine().addInput("com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS");
     testSuite.useJunitEngine().addIncludeEngine("test-engine-id");
     testSuite.useJunitEngine().addEngineDependency("org.junit.platform:junit-platform-launcher");
-    testSuite.useJunitEngine().addEngineDependency("org.junit.platform:junit-platform-engine:1.12.0");
+    testSuite.useJunitEngine().addEngineDependency("org.junit.platform:junit-platform-engine:1.13.3");
 
     // Add version catalog dependency with reference
     GradleVersionCatalogsModel catalogModels = getProjectBuildModel().getVersionCatalogsModel();
@@ -112,7 +112,7 @@ public class TestSuiteModelTest extends AndroidGradleFileModelTestCase {
     assertSize(3, engineDependencies);
     assertEquals("org.junit.platform:junit-platform-launcher", engineDependencies.get(0).getSpec().compactNotation());
     assertFalse(engineDependencies.get(0).isVersionCatalogDependency());
-    assertEquals("org.junit.platform:junit-platform-engine:1.12.0", engineDependencies.get(1).getSpec().compactNotation());
+    assertEquals("org.junit.platform:junit-platform-engine:1.13.3", engineDependencies.get(1).getSpec().compactNotation());
     assertFalse(engineDependencies.get(1).isVersionCatalogDependency());
     assertEquals("junit:junit:4.12", engineDependencies.get(2).getSpec().compactNotation());
     assertTrue(engineDependencies.get(2).isVersionCatalogDependency());
@@ -136,7 +136,7 @@ public class TestSuiteModelTest extends AndroidGradleFileModelTestCase {
     testSuiteModel.useJunitEngine().addInput("com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS");
     testSuiteModel.useJunitEngine().addIncludeEngine("test-engine-id");
     testSuiteModel.useJunitEngine().addEngineDependency("org.junit.platform:junit-platform-launcher");
-    testSuiteModel.useJunitEngine().addEngineDependency("org.junit.platform:junit-platform-engine:1.12.0");
+    testSuiteModel.useJunitEngine().addEngineDependency("org.junit.platform:junit-platform-engine:1.13.3");
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_SUITE_MODEL_PARSE_ELEMENTS);
@@ -155,7 +155,7 @@ public class TestSuiteModelTest extends AndroidGradleFileModelTestCase {
     assertSize(3, engineDependencies);
     assertEquals("org.junit.platform:junit-platform-launcher", engineDependencies.get(0).getSpec().compactNotation());
     assertFalse(engineDependencies.get(0).isVersionCatalogDependency());
-    assertEquals("org.junit.platform:junit-platform-engine:1.12.0", engineDependencies.get(1).getSpec().compactNotation());
+    assertEquals("org.junit.platform:junit-platform-engine:1.13.3", engineDependencies.get(1).getSpec().compactNotation());
     assertFalse(engineDependencies.get(1).isVersionCatalogDependency());
     assertEquals("junit:junit:4.12", engineDependencies.get(2).getSpec().compactNotation());
     assertTrue(engineDependencies.get(2).isVersionCatalogDependency());
