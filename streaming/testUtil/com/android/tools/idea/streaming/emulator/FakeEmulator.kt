@@ -2702,6 +2702,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         "android.emulation.control.EmulatorController/getDisplayConfigurations",
         "android.emulation.control.EmulatorController/streamNotification",
         "android.emulation.control.EmulatorController/getXrOptions",
+        "android.emulation.control.EmulatorController/getHostCameras",
       )
     val IGNORE_SCREENSHOT_CALL_FILTER = DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamScreenshot")
   }
