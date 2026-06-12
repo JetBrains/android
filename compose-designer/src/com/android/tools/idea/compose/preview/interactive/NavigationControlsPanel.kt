@@ -63,9 +63,11 @@ private val DEFAULT_SPACING = 8.dp
 fun NavigationControlsContent(
   interactivePreviewNavigationController: InteractivePreviewNavigationController,
   fpsUpdater: SharedFlow<Unit>,
+  isEdgeNavigationImplemented: suspend () -> Boolean,
 ) {
   Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
     NavigationControlsPanel(
+      isEdgeNavigationImplemented = isEdgeNavigationImplemented,
       canBackPress = { interactivePreviewNavigationController.canBackPress() },
       onBackPress = {
         interactivePreviewNavigationController.backPressCompleted()
@@ -93,6 +95,7 @@ fun NavigationControlsContent(
  * - A slider to simulate predictive back progress.
  *
  * @param modifier The modifier to be applied to this Composable.
+ * @param isEdgeNavigationImplemented A callback returning whether the back navigation edge represents an implemented capability.
  * @param canBackPress A callback that returns whether back navigation is currently available.
  * @param onBackPress A callback invoked when the back button is clicked.
  * @param onBackPressStart A callback invoked when a predictive back gesture starts.
@@ -105,6 +108,7 @@ fun NavigationControlsContent(
 @Composable
 fun NavigationControlsPanel(
   modifier: Modifier = Modifier,
+  isEdgeNavigationImplemented: suspend () -> Boolean,
   canBackPress: () -> Boolean,
   onBackPress: () -> Unit,
   onBackPressStart: (BackNavigationEdge) -> Unit,
@@ -116,6 +120,7 @@ fun NavigationControlsPanel(
 ) {
   var sliderPosition by remember { mutableFloatStateOf(0f) }
   var backStarted by remember { mutableStateOf(false) }
+  val showEdgeNavigation by produceState(false, isEdgeNavigationImplemented) { value = isEdgeNavigationImplemented() }
   val selectedEdge = remember { mutableStateOf(BackNavigationEdge.EDGE_LEFT) }
   val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
 
@@ -147,7 +152,12 @@ fun NavigationControlsPanel(
           Text(text = message("action.navigate.back.button.text"), maxLines = 1, softWrap = false)
         }
       }
-      DropDownAction(message("action.navigate.back.navigation.edge.label"), selectedEdge, onEdgeDropdownPress)
+      DropDownAction(
+        label = message("action.navigate.back.navigation.edge.label"),
+        selectedEdge = selectedEdge,
+        enabled = showEdgeNavigation,
+        onEdgeDropdownPress = onEdgeDropdownPress,
+      )
     }
     Row(
       modifier =
@@ -192,15 +202,22 @@ fun NavigationControlsPanel(
  */
 @OptIn(ExperimentalJewelApi::class)
 @Composable
-private fun DropDownAction(label: String, selectedEdge: MutableState<BackNavigationEdge>, onEdgeDropdownPress: () -> Unit) =
+private fun DropDownAction(
+  label: String,
+  selectedEdge: MutableState<BackNavigationEdge>,
+  enabled: Boolean,
+  onEdgeDropdownPress: () -> Unit,
+) =
   FlowRow(
     modifier = Modifier.widthIn(min = 220.dp),
     verticalArrangement = Arrangement.spacedBy(DEFAULT_SPACING, Alignment.CenterVertically),
     horizontalArrangement = Arrangement.spacedBy(DEFAULT_SPACING),
   ) {
-    Text(text = label, modifier = Modifier.padding(vertical = DEFAULT_SPACING), maxLines = 1, softWrap = false)
+    val labelColor = if (enabled) JewelTheme.globalColors.text.normal else JewelTheme.globalColors.text.disabled
+    Text(text = label, modifier = Modifier.padding(vertical = DEFAULT_SPACING), color = labelColor, maxLines = 1, softWrap = false)
     Dropdown(
       modifier = Modifier.testTag(NavigationControlsPanelTestTags.edgeDropdown).widthIn(min = 100.dp),
+      enabled = enabled,
       menuContent = {
         for (edge in BackNavigationEdge.entries) {
           selectableItem(
