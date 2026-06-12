@@ -6,7 +6,7 @@ android {
           inputs += listOf(com.android.build.api.dsl.AgpTestSuiteInputParameters.TESTED_APKS)
           includeEngines += listOf("test-engine-id")
           enginesDependencies("org.junit.platform:junit-platform-launcher")
-          enginesDependencies("org.junit.platform:junit-platform-engine:1.12.0")
+          enginesDependencies("org.junit.platform:junit-platform-engine:1.13.3")
           enginesDependencies(libs.junit)
         }
         assets {}
