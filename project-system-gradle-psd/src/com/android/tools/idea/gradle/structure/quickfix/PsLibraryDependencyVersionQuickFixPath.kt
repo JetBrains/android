@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
+import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex.logUpdateLibraryVersionFixApplied
 
 data class PsLibraryDependencyVersionQuickFixPath(
   val moduleName: String,
@@ -27,8 +28,7 @@ data class PsLibraryDependencyVersionQuickFixPath(
   val version: String,
   val updateVariable: Boolean? = null,
   val addVersionInText: Boolean = false,
-  // Non-serialized fields below
-  val onUpdate: (() -> Unit)? = null,
+  val forSdkIndex: Boolean = false,
 ) : PsQuickFix {
   override fun serialize(): String {
     val updateVariableStr =
@@ -37,7 +37,7 @@ data class PsLibraryDependencyVersionQuickFixPath(
         false -> "false"
         null -> "null"
       }
-    return "LibraryDependencyVersion|${PsQuickFix.escape(moduleName)}|${PsQuickFix.escape(dependency)}|${PsQuickFix.escape(configurationName)}|${PsQuickFix.escape(version)}|$updateVariableStr|$addVersionInText"
+    return "LibraryDependencyVersion|${PsQuickFix.escape(moduleName)}|${PsQuickFix.escape(dependency)}|${PsQuickFix.escape(configurationName)}|${PsQuickFix.escape(version)}|$updateVariableStr|$addVersionInText|$forSdkIndex"
   }
 
   companion object {
@@ -46,7 +46,7 @@ data class PsLibraryDependencyVersionQuickFixPath(
     }
 
     fun deserialize(args: List<String>): PsLibraryDependencyVersionQuickFixPath {
-      if (args.size != 6) throw IllegalArgumentException("Invalid number of arguments: ${args.size}")
+      if (args.size != 7) throw IllegalArgumentException("Invalid number of arguments: ${args.size}")
       val updateVariable =
         when (args[4]) {
           "true" -> true
@@ -54,7 +54,15 @@ data class PsLibraryDependencyVersionQuickFixPath(
           "null" -> null
           else -> throw IllegalArgumentException("Invalid boolean? value: ${args[4]}")
         }
-      return PsLibraryDependencyVersionQuickFixPath(args[0], args[1], args[2], args[3], updateVariable, args[5].toBoolean())
+      return PsLibraryDependencyVersionQuickFixPath(
+        args[0],
+        args[1],
+        args[2],
+        args[3],
+        updateVariable,
+        args[5].toBoolean(),
+        args[6].toBoolean(),
+      )
     }
   }
 
@@ -78,7 +86,7 @@ data class PsLibraryDependencyVersionQuickFixPath(
     version: String,
     updateVariable: Boolean? = null,
     addVersionInText: Boolean = false,
-    onUpdate: (() -> Unit)? = null,
+    forSdkIndex: Boolean = false,
   ) : this(
     dependency.parent.name,
     dependency.spec.compactNotation(),
@@ -86,7 +94,7 @@ data class PsLibraryDependencyVersionQuickFixPath(
     version,
     updateVariable,
     addVersionInText,
-    onUpdate,
+    forSdkIndex,
   )
 
   override fun execute(context: PsContext) {
@@ -94,8 +102,14 @@ data class PsLibraryDependencyVersionQuickFixPath(
     val spec = PsArtifactDependencySpec.create(dependency)
     if (module != null && spec != null) {
       module.setLibraryDependencyVersion(spec, configurationName, version, updateVariable ?: false)
+      if (forSdkIndex) {
+        val group = spec.group
+        val oldVersion = spec.version
+        if (group != null && oldVersion != null) {
+          logUpdateLibraryVersionFixApplied(group, spec.name, oldVersion, version, null)
+        }
+      }
     }
-    onUpdate?.invoke()
   }
 
   override fun toString(): String = "$dependency ($configurationName)"
