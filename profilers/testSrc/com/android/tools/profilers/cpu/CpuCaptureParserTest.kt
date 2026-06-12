@@ -635,7 +635,7 @@ class CpuCaptureParserTest {
   fun parsingNonExistentFilesCompletesExceptionally() {
     val parser = CpuCaptureParser(myProfilers)
 
-    val nonExistentFile = File("")
+    val nonExistentFile = File(temporaryFolder.root, "non-existent-file")
     assertThat(nonExistentFile.exists()).isFalse()
 
     val futureCapture = parser.parseForTest(nonExistentFile)
