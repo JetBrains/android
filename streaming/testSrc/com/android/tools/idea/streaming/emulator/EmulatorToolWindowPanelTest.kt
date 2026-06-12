@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.DisplayConfiguration
+import com.android.emulator.control.LedIndicator
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
 import com.android.mockito.kotlin.whenever
@@ -651,8 +652,8 @@ class EmulatorToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
 
     // Check appearance.
-    emulator.setLedState(0, Color.GREEN)
-    emulator.setLedState(1, Color.RED)
+    emulator.setLedState(LedIndicator.Facing.INSIDE, Color.GREEN)
+    emulator.setLedState(LedIndicator.Facing.OUTSIDE, Color.RED)
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(430, 450)
