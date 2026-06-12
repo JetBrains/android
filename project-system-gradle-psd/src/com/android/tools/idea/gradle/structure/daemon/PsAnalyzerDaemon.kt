@@ -305,14 +305,6 @@ private fun generateUpdateFixesForSdkIndex(
   return if (versionToUpdateTo != null) {
     val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
     val valueIsReference = versionValue is ParsedValue.Set.Parsed && versionValue.dslText is DslText.Reference
-    val onUpdateCallback: (() -> Unit)? =
-      if (dependencySpec.version != null)
-        ({
-          sdkIndex.logUpdateLibraryVersionFixApplied(groupId, artifactId, dependency.version.toString(), versionToUpdateTo.toString(), null)
-        })
-      else {
-        null
-      }
     if (valueIsReference) {
       listOf(
         PsLibraryDependencyVersionQuickFixPath(
@@ -320,25 +312,18 @@ private fun generateUpdateFixesForSdkIndex(
           versionToUpdateTo.toString(),
           updateVariable = true,
           addVersionInText = true,
-          onUpdate = onUpdateCallback,
+          forSdkIndex = true,
         ),
         PsLibraryDependencyVersionQuickFixPath(
           dependency,
           versionToUpdateTo.toString(),
           updateVariable = false,
           addVersionInText = true,
-          onUpdate = onUpdateCallback,
+          forSdkIndex = true,
         ),
       )
     } else {
-      listOf(
-        PsLibraryDependencyVersionQuickFixPath(
-          dependency,
-          versionToUpdateTo.toString(),
-          addVersionInText = true,
-          onUpdate = onUpdateCallback,
-        )
-      )
+      listOf(PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), addVersionInText = true, forSdkIndex = true))
     }
   } else {
     listOf()
