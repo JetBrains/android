@@ -1267,6 +1267,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_AND_EYE_TRACKING = new BooleanFlag(
     EMBEDDED_EMULATOR, "xr.hand.and.eye.tracking", "Enable hand and eye tracking input modes for XR AVDs",
     "Enables hand and eye tracking input modes for XR AVDs");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_CAMERA_ENVIRONMENT = new BooleanFlag(
+    EMBEDDED_EMULATOR, "camera.environment", "Enable Camera Environment",
+    "Enables displaying host cameras in the environment menu for AI Glasses");
   public static final Flag<Boolean> RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME = new BooleanFlag(
     EMBEDDED_EMULATOR, "hide.tool.window.name", "Hide Tool Window Name",
     "Hides the name of the Running Devices window when it contains any device tabs");

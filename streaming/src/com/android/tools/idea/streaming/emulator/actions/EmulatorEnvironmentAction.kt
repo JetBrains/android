@@ -22,6 +22,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.EnvironmentsUpdater
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.protobuf.Empty
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.SuspendingStreamObserver
 import com.intellij.ide.util.PropertiesComponent
@@ -110,7 +111,7 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
   class RecentCustom(val filePath: Path) : EmulatorEnvironmentAction() {
 
     init {
-      templatePresentation.text = "    ${filePath.fileName}"
+      templatePresentation.text = "${filePath.fileName}"
       templatePresentation.description = filePath.toString()
     }
 
@@ -123,6 +124,18 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     }
   }
 
+  class Camera(val cameraName: String, val cameraId: String) : EmulatorEnvironmentAction() {
+
+    init {
+      templatePresentation.text = cameraName
+      templatePresentation.description = "Use host camera $cameraName"
+    }
+
+    override suspend fun prepareEnvironment(project: Project?): Environment {
+      return Environment.newBuilder().putEnvironment("scene.mode", "webcam:$cameraId").build()
+    }
+  }
+
   abstract class BuiltInImage(val environmentFileName: String) : EmulatorEnvironmentAction() {
     override suspend fun prepareEnvironment(project: Project?): Environment {
       val imageFile = EnvironmentsUpdater.getInstance().getUpdatedFile(environmentFileName)
@@ -132,10 +145,15 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
 
   companion object {
     // TODO: Remove emulator version check after 2026-09-01.
-    val emulatorSupported
+    private val emulatorSupported
       get() =
         ApplicationManager.getApplication().isUnitTestMode ||
           AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 4) } ?: false
+
+    fun isApplicable(event: AnActionEvent): Boolean = getEmulatorConfig(event)?.let { isApplicable(it) } ?: false
+
+    fun isApplicable(emulatorConfiguration: EmulatorConfiguration): Boolean =
+      emulatorSupported && emulatorConfiguration.deviceType == DeviceType.AI_GLASSES
 
     private const val RECENT_FILES_KEY = "EmulatorEnvironmentAction.recentFiles"
 
