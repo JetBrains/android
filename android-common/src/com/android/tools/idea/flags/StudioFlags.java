@@ -2666,6 +2666,12 @@ public final class StudioFlags {
                     "When enabled, 'gradle_build' tool is replaced with a smarter version that can calculate required tasks from provided context.");
 
 
+  public static final Flag<Boolean> STUDIOBOT_GRADLE_PROJECT_INFO_TOOL =
+    new BooleanFlag(STUDIOBOT, "include.gradle.project.info.tool",
+                    "Use Gradle Project Info Tool in Agent",
+                    "When enabled, bunch of gradle project structure tools replaced with single `get_gradle_project_info` tool that provides all needed information for a gradle project.");
+
+
   public static final Flag<Boolean> STUDIOBOT_SUGGESTION_SMART_GROUPING_ENABLED =
     new BooleanFlag(STUDIOBOT, "suggestion.smart.grouping.enabled",
                     "Enable smart grouping of suggestions that are accepted or rejected together",
