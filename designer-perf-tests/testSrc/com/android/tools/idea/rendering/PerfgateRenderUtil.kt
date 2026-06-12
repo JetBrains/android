@@ -193,13 +193,13 @@ internal class ClassLoadCountMeasurement(metric: Metric) : MetricMeasurementAdap
     else null // No render time available
 }
 
-/** A [MetricMeasurement] that measures the render time of a render. */
-internal class ClassAverageLoadTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
+/** A [MetricMeasurement] that measures the average class load time of a render in microseconds. */
+internal class ClassAverageLoadTimeUsMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) =
     if (result.stats.totalClassLoadDurationMs != -1L && result.stats.classesFound > 0)
-      MetricSample(Instant.now().toEpochMilli(), result.stats.totalClassLoadDurationMs / result.stats.classesFound)
+      MetricSample(Instant.now().toEpochMilli(), (result.stats.totalClassLoadDurationMs * 1000) / result.stats.classesFound)
     else null // No render time available
 }
 
