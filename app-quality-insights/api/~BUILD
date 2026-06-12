@@ -15,6 +15,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "@intellij//:intellij.platform.vcs.impl",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
     ],
