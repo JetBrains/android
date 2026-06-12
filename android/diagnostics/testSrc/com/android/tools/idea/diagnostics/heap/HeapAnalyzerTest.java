@@ -271,8 +271,9 @@ public class HeapAnalyzerTest {
     Assert.assertEquals("F", componentStats.get(1).getCluster().getLabel());
     // JDK17 : F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
     // JDK21 : F, WeakReference, ReferenceQueue$Null
-    Assert.assertEquals(javaVersion() > 17 ? 3 : 4, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals(javaVersion() > 17 ? 80 : 96, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
+    // JDK25 : F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
+    Assert.assertEquals(javaVersion() == 21 ? 3 : 4, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(javaVersion() == 21 ? 80 : 96, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
     checkObjectsUntagged(new Object[]{f, f.myWeakString});
   }
 
@@ -1078,14 +1079,14 @@ public class HeapAnalyzerTest {
     Assert.assertEquals(1, statistics.totalStats.getPlatformObjectsSelfStats().getObjectsCount());
     Assert.assertEquals(32, statistics.totalStats.getPlatformObjectsSelfStats().getTotalSizeInBytes());
 
-    Assert.assertEquals(javaVersion() >= 21 ? 7 : 5, statistics.totalStats.getPlatformRetainedObjectsStats().getObjectsCount());
-    Assert.assertEquals(javaVersion() >= 21 ? 176 : 120, statistics.totalStats.getPlatformRetainedObjectsStats().getTotalSizeInBytes());
+    Assert.assertEquals(javaVersion() == 21 ? 7 : 5, statistics.totalStats.getPlatformRetainedObjectsStats().getObjectsCount());
+    Assert.assertEquals(javaVersion() == 21 ? 176 : 120, statistics.totalStats.getPlatformRetainedObjectsStats().getTotalSizeInBytes());
 
     Assert.assertEquals(1, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats().getObjectsCount());
     Assert.assertEquals(32, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
       .getTotalSizeInBytes());
-    Assert.assertEquals(javaVersion() >= 21 ? 7 : 5, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats().getObjectsCount());
-    Assert.assertEquals(javaVersion() >= 21 ? 176 : 120, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+    Assert.assertEquals(javaVersion() == 21 ? 7 : 5, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats().getObjectsCount());
+    Assert.assertEquals(javaVersion() == 21 ? 176 : 120, statistics.getComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
 
     Assert.assertEquals(0, statistics.getComponentStats().get(2).getOwnedClusterStat().getPlatformObjectsSelfStats().getObjectsCount());
@@ -1099,9 +1100,9 @@ public class HeapAnalyzerTest {
       .getObjectsCount());
     Assert.assertEquals(32, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
       .getTotalSizeInBytes());
-    Assert.assertEquals(javaVersion() >= 21 ? 7 : 5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+    Assert.assertEquals(javaVersion() == 21 ? 7 : 5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getObjectsCount());
-    Assert.assertEquals(javaVersion() >= 21 ? 176 : 120, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+    Assert.assertEquals(javaVersion() == 21 ? 176 : 120, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
   }
 
