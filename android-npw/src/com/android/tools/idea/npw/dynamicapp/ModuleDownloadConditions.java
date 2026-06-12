@@ -36,6 +36,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.help.HelpManager;
+import javax.swing.event.HyperlinkEvent;
 
 public class ModuleDownloadConditions {
   private static final String myLinkUrl = AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/conditional-delivery";
@@ -69,6 +71,11 @@ public class ModuleDownloadConditions {
     }, null);
     myFeatureHelpLink.setHyperlinkTarget(myLinkUrl);
     myFeatureHelpLink.setHtmlText("<html><a>Learn more</a> about supported conditions, such as device features and user country</html>");
+    myFeatureHelpLink.addHyperlinkListener(e -> {
+      if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        HelpManager.getInstance().invokeHelp(myLinkUrl);
+      }
+    });
   }
 
   public void init(@NotNull Project project,

@@ -31,6 +31,7 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.help.HelpManager
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.ContextHelpLabel
@@ -64,7 +65,8 @@ class ConfigureModuleDownloadOptionsStep(model: DynamicFeatureModel) :
       text(
         "Dynamic feature modules can be delivered on-demand, included at install time," +
           "<br>or included conditionally based on device features or user country." +
-          " <a href='https://developer.android.com/studio/projects/dynamic-delivery/overview'>Learn more</a>"
+          " <a href='https://developer.android.com/studio/projects/dynamic-delivery/overview'>Learn more</a>",
+        action = { event -> BrowserUtil.browse(event.url) },
       )
     }
 
@@ -102,7 +104,7 @@ class ConfigureModuleDownloadOptionsStep(model: DynamicFeatureModel) :
           "Enable Fusing if you want this module to be available to devices running Android 4.4 (API level 20) and lower.",
           "Learn more",
         ) {
-          BrowserUtil.browse(linkUrl)
+          HelpManager.getInstance().invokeHelp(linkUrl)
         }
       )
     }
@@ -142,7 +144,7 @@ class ConfigureModuleDownloadOptionsStep(model: DynamicFeatureModel) :
 
   override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
 
-  override fun getComponent(): JComponent = validatorPanel
+  public override fun getComponent(): JComponent = validatorPanel
 
   override fun getPreferredFocusComponent(): JComponent? = featureTitle
 
