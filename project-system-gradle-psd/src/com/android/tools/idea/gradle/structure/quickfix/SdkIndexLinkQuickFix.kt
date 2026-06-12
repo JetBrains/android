@@ -23,14 +23,27 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SdkIndexLibraryDetails
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
-import java.io.Serializable
 import org.jetbrains.annotations.VisibleForTesting
 
 data class SdkIndexLinkQuickFixNoLog(
   override val text: String,
   val url: String,
+  // Non-serialized fields below
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
-) : PsQuickFix, Serializable {
+) : PsQuickFix {
+  override fun serialize(): String = "SdkIndexLinkNoLog|${PsQuickFix.escape(text)}|${PsQuickFix.escape(url)}"
+
+  companion object {
+    init {
+      PsQuickFix.registerDeserializer("SdkIndexLinkNoLog", ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): SdkIndexLinkQuickFixNoLog {
+      if (args.size != 2) throw IllegalArgumentException("Invalid number of arguments")
+      return SdkIndexLinkQuickFixNoLog(args[0], args[1])
+    }
+  }
+
   override fun execute(context: PsContext) {
     browseFunction(url)
   }
@@ -42,9 +55,24 @@ data class SdkIndexLinkQuickFix(
   val groupId: String,
   val artifactId: String,
   val version: String,
+  // Non-serialized fields below
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
   val eventReport: ((Project?) -> Unit) = { project -> logClickEvent(groupId, artifactId, version, project) },
-) : PsQuickFix, Serializable {
+) : PsQuickFix {
+  override fun serialize(): String =
+    "SdkIndexLink|${PsQuickFix.escape(text)}|${PsQuickFix.escape(url)}|${PsQuickFix.escape(groupId)}|${PsQuickFix.escape(artifactId)}|${PsQuickFix.escape(version)}"
+
+  companion object {
+    init {
+      PsQuickFix.registerDeserializer("SdkIndexLink", ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): SdkIndexLinkQuickFix {
+      if (args.size != 5) throw IllegalArgumentException("Invalid number of arguments")
+      return SdkIndexLinkQuickFix(args[0], args[1], args[2], args[3], args[4])
+    }
+  }
+
   override fun execute(context: PsContext) {
     applyQuickfix(context.project.ideProject)
   }

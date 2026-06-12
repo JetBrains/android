@@ -139,6 +139,19 @@ fun analyzeProductFlavors(model: PsAndroidModule, pathRenderer: PsPathRenderer):
   }
 
 data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix {
+  override fun serialize(): String = "MissingBuildType|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(buildTypeName)}"
+
+  companion object {
+    init {
+      PsQuickFix.registerDeserializer("MissingBuildType", ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): PsMissingBuildTypeQuickFix {
+      if (args.size != 2) throw IllegalArgumentException("Invalid number of arguments")
+      return PsMissingBuildTypeQuickFix(args[0], args[1])
+    }
+  }
+
   constructor(module: PsAndroidModule, buildType: PsBuildType) : this(module.gradlePath, buildType.name)
 
   override val text: String
@@ -154,6 +167,19 @@ data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTyp
 }
 
 data class PsMissingBuildTypeFallbackQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix {
+  override fun serialize(): String = "MissingBuildTypeFallback|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(buildTypeName)}"
+
+  companion object {
+    init {
+      PsQuickFix.registerDeserializer("MissingBuildTypeFallback", ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): PsMissingBuildTypeFallbackQuickFix {
+      if (args.size != 2) throw IllegalArgumentException("Invalid number of arguments")
+      return PsMissingBuildTypeFallbackQuickFix(args[0], args[1])
+    }
+  }
+
   constructor(buildType: PsBuildType) : this(buildType.parent.gradlePath, buildType.name)
 
   override val text: String
@@ -172,6 +198,19 @@ data class PsMissingBuildTypeFallbackQuickFix(val moduleGradlePath: String, val 
 }
 
 data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val newDimensionName: String) : PsQuickFix {
+  override fun serialize(): String = "MissingFlavorDimension|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(newDimensionName)}"
+
+  companion object {
+    init {
+      PsQuickFix.registerDeserializer("MissingFlavorDimension", ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): PsMissingFlavorDimensionQuickFix {
+      if (args.size != 2) throw IllegalArgumentException("Invalid number of arguments")
+      return PsMissingFlavorDimensionQuickFix(args[0], args[1])
+    }
+  }
+
   constructor(module: PsAndroidModule, dimension: PsFlavorDimension) : this(module.gradlePath, dimension.name)
 
   override val text: String
@@ -187,6 +226,20 @@ data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val ne
 }
 
 data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dimension: String, val productFlavorName: String) : PsQuickFix {
+  override fun serialize(): String =
+    "MissingProductFlavor|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(dimension)}|${PsQuickFix.escape(productFlavorName)}"
+
+  companion object {
+    init {
+      PsQuickFix.registerDeserializer("MissingProductFlavor", ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): PsMissingProductFlavorQuickFix {
+      if (args.size != 3) throw IllegalArgumentException("Invalid number of arguments")
+      return PsMissingProductFlavorQuickFix(args[0], args[1], args[2])
+    }
+  }
+
   constructor(
     module: PsAndroidModule,
     productFlavor: PsProductFlavor,
@@ -206,6 +259,20 @@ data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dime
 
 data class PsMissingProductFlavorFallbackQuickFix(val moduleGradlePath: String, val dimension: String, val productFlavorName: String) :
   PsQuickFix {
+  override fun serialize(): String =
+    "MissingProductFlavorFallback|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(dimension)}|${PsQuickFix.escape(productFlavorName)}"
+
+  companion object {
+    init {
+      PsQuickFix.registerDeserializer("MissingProductFlavorFallback", ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): PsMissingProductFlavorFallbackQuickFix {
+      if (args.size != 3) throw IllegalArgumentException("Invalid number of arguments")
+      return PsMissingProductFlavorFallbackQuickFix(args[0], args[1], args[2])
+    }
+  }
+
   constructor(
     productFlavor: PsProductFlavor
   ) : this(productFlavor.parent.gradlePath, productFlavor.effectiveDimension.orEmpty(), productFlavor.name)
