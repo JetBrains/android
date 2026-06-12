@@ -117,6 +117,14 @@ message QueryAverageRatingsMetricSetRequest {
   //  * `carrier`
   //    ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //    The mobile carrier or network of the user's device
+  //
+  //  **Supported multi-dimensional queries per metric:**
+  //
+  //  * `dailyAverageRating`: Supports querying with any combination of
+  //    dimensions.
+  //  * `lifetimeAverageRating`: Supports single-dimension queries OR
+  //    combinations restricted exclusively to: formFactor, deviceBrand, and
+  //    deviceModel.
   repeated string dimensions = 3;
 
   // Metrics to aggregate.
