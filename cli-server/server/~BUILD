@@ -11,6 +11,7 @@ iml_module(
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:mockito",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
