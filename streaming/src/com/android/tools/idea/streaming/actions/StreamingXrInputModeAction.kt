@@ -49,10 +49,11 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
 
   override fun update(event: AnActionEvent) {
     super.update(event)
+    val isHandAndEyeTrackingEnabled = isHandAndEyeTrackingEnabled(event)
     event.presentation.isEnabledAndVisible =
       getDeviceType(event) == DeviceType.XR_HEADSET &&
-        (inputMode != XrInputMode.HAND || (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() && isEmulator(event))) &&
-        (inputMode != XrInputMode.EYE || (StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get() && isEmulator(event)))
+        (inputMode != XrInputMode.HAND || isHandAndEyeTrackingEnabled) &&
+        (inputMode != XrInputMode.EYE || isHandAndEyeTrackingEnabled)
     event.presentation.enableRichTooltip(this)
   }
 
@@ -68,7 +69,7 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
 
     override fun update(event: AnActionEvent) {
       super.update(event)
-      if (!isHandOrEyeTrackingEnabled(event)) {
+      if (!isHandAndEyeTrackingEnabled(event)) {
         event.presentation.isEnabledAndVisible = false
       }
     }
@@ -88,12 +89,12 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
 
     override fun update(event: AnActionEvent) {
       super.update(event)
-      if (isHandOrEyeTrackingEnabled(event)) {
+      if (isHandAndEyeTrackingEnabled(event)) {
         event.presentation.isEnabledAndVisible = false
       }
     }
   }
 }
 
-internal fun isHandOrEyeTrackingEnabled(event: AnActionEvent): Boolean =
-  isEmulator(event) && (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() || StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get())
+internal fun isHandAndEyeTrackingEnabled(event: AnActionEvent): Boolean =
+  isEmulator(event) && StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_TRACKING.get()

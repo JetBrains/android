@@ -37,8 +37,8 @@ class StreamingKeymapExtension : KeymapExtension {
 
     for (action in ActionsTreeUtil.getActions(ACTION_GROUP)) {
       if (
-        action is StreamingXrInputModeAction.InteractionHand && !StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() ||
-          action is StreamingXrInputModeAction.InteractionEye && !StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get()
+        (action is StreamingXrInputModeAction.InteractionHand || action is StreamingXrInputModeAction.InteractionEye) &&
+          !StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_TRACKING.get()
       ) {
         continue
       }
