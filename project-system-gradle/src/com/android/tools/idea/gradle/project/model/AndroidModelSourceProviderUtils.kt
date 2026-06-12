@@ -142,7 +142,6 @@ private fun GradleAndroidModelData.collectAllProvidersFor(artifactSelector: Arti
 fun convertVersion(api: IdeApiVersion, targets: Array<IAndroidTarget>?): AndroidVersion {
   val codename = api.codename
   if (codename != null) {
-    // TODO studio-merge
     val version = SdkVersionUtil.getVersion(codename, targets)
     return version ?: AndroidVersion(api.apiLevel, codename)
   }

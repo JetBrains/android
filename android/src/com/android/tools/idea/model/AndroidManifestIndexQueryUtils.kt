@@ -128,7 +128,6 @@ fun AndroidFacet.queryMinSdkAndTargetSdkFromManifestIndex() = queryManifestIndex
     if (minSdkLevel != null && targetSdkLevel != null) return@forEach
   }
 
-  // TODO studio-merge
   val minSdk = SdkVersionUtil.getVersion(minSdkLevel, null) ?: AndroidVersion.DEFAULT
   val targetSdk = SdkVersionUtil.getVersion(targetSdkLevel, null) ?: minSdk
 
