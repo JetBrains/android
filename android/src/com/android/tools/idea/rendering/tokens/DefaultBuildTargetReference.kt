@@ -39,6 +39,8 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Path
 import org.jetbrains.android.facet.AndroidRootUtil
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.idea.base.util.module
 
@@ -115,6 +117,10 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
       }
 
       override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration = CompilerConfiguration.create()
+
+      @KaExperimentalApi
+      override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {}
+
       override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")
       override fun getRuntimeVersionString(): String = DEFAULT_RUNTIME_VERSION
     }

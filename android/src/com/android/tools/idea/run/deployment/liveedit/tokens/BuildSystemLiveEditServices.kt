@@ -21,6 +21,7 @@ import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getToken
+import com.android.tools.idea.run.deployment.liveedit.configureCommonKotlinCompilationOptions
 import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -32,6 +33,9 @@ import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.K1Deprecation
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
@@ -112,7 +116,13 @@ interface ApplicationLiveEditServices {
   fun getCompilationDependencies(file: PsiFile): CompilationDependencies?
 
   fun getClassContent(file: VirtualFile, className: String): ClassContent?
+
+  @K1Deprecation
   fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration
+
+  @KaExperimentalApi
+  fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile)
+
   fun getDesugarConfigs(): DesugarConfigs
   fun getRuntimeVersionString(): String
 
@@ -141,6 +151,11 @@ interface ApplicationLiveEditServices {
 
     override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
       return getCompilerConfiguration(ktFile.module!!, ktFile)
+    }
+
+    @KaExperimentalApi
+    override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {
+      configureCommonKotlinCompilationOptions(ktFile.module!!, ktFile)
     }
 
     override fun getDesugarConfigs() = DesugarConfigs.NotKnown("Desugar config not set up in unit tests yet.")
@@ -175,6 +190,12 @@ interface ApplicationLiveEditServices {
     override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
       return ktFile.module?.let { module -> getCompilerConfiguration(module, ktFile) }
              ?: error("Cannot get kotlin compiler configuration for $ktFile")
+    }
+
+    @KaExperimentalApi
+    override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {
+      val module = ktFile.module ?: error("Cannot get a module for $ktFile")
+      configureCommonKotlinCompilationOptions(module, ktFile)
     }
 
     override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")

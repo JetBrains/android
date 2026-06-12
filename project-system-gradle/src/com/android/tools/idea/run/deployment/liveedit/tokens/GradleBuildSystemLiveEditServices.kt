@@ -28,11 +28,15 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleClassFileFinder
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.run.deployment.liveedit.configureLanguageVersionSettings
+import com.android.tools.idea.run.deployment.liveedit.configureModuleName
 import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.Companion.DEFAULT_RUNTIME_VERSION
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.cli.create
@@ -114,6 +118,13 @@ internal class GradleApplicationLiveEditServices(private val module: Module): Ap
       setOptions(ktFile.languageVersionSettings)
     }
     return compilerConfiguration
+  }
+
+  @KaExperimentalApi
+  override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {
+    val module = ktFile.module ?: return
+    configureModuleName(module)
+    configureLanguageVersionSettings(ktFile.languageVersionSettings)
   }
 
   override fun getDesugarConfigs() =

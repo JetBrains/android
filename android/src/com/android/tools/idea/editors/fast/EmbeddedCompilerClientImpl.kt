@@ -20,11 +20,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
-import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
+import com.android.tools.idea.run.deployment.liveedit.configureCommonKotlinCompilationOptions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.k2.OutputFileForKtCompiledFile
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
-import com.android.tools.idea.run.deployment.liveedit.readActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.application.readAction
@@ -124,10 +123,10 @@ class EmbeddedCompilerClientImpl private constructor(
           inputs.forEach { inputFile ->
             if (inputFile.virtualFile in filesAlreadyCompiled) return@forEach
 
-            val configuration = getCompilerConfiguration(moduleForAllInputs, inputFile)
-
             @OptIn(KaExperimentalApi::class)
-          val result = backendCodeGenForK2(inputFile, moduleForAllInputs, configuration)
+            val result = backendCodeGenForK2(inputFile, moduleForAllInputs) {
+              configureCommonKotlinCompilationOptions(moduleForAllInputs, inputFile)
+            }
             log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
             @OptIn(KaExperimentalApi::class)
           addIfNotDuplicated(pathToCompileOutput, result.output.map { OutputFileForKtCompiledFile(it) })
