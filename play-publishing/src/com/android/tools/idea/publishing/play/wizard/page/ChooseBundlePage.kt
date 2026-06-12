@@ -16,8 +16,8 @@
 package com.android.tools.idea.publishing.play.wizard.page
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
@@ -39,10 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
@@ -62,17 +59,12 @@ import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
 // AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
+// import com.google.gct.login2.ui.GoogleLoginUserRow
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
-// AND-142 JetBrains patch (Google Play Publishing): icons.GoogleLoginIcons is tools/vendor/google/login, which this repository does not
-// carry, and com.intellij.util.ui.ImageUtil was only used by the avatar fallback that goes with it.
-// import com.intellij.util.ui.ImageUtil
-// import icons.GoogleLoginIcons
-import java.awt.geom.Ellipse2D
-import java.awt.image.BufferedImage
 import java.nio.file.Path
 import kotlin.io.path.Path
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -182,48 +174,15 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
     FileChooserDescriptor(true, false, false, false, false, false).withFileFilter { it.extension?.lowercase() == "aab" }
   }
 
-  // AND-142 JetBrains patch (Google Play Publishing): the avatar is built from the signed in user and from the fallback icon in
-  // tools/vendor/google/login, which this repository does not carry.
-  // val avatarPainter =
-  //   remember(user) {
-  //     val icon =
-  //       user?.picture?.let { src ->
-  //         val width = 64
-  //         val height = 64
-  //         val dest = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-  //         val g2d = dest.createGraphics()
-  //         g2d.clip(Ellipse2D.Float(0f, 0f, width.toFloat(), height.toFloat()))
-  //         g2d.drawImage(src, 0, 0, width, height, null)
-  //         g2d.dispose()
-  //         dest
-  //       }
-  //         ?: run {
-  //           val fallbackIcon = GoogleLoginIcons.LOGGED_IN_FALLBACK_USER_AVATAR
-  //           val width = fallbackIcon.iconWidth
-  //           val height = fallbackIcon.iconHeight
-  //           val image = ImageUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB)
-  //           val g = image.createGraphics()
-  //           fallbackIcon.paintIcon(null, g, 0, 0)
-  //           g.dispose()
-  //           image
-  //         }
-  //     icon.toPainter()
-  //   }
-
   Column(modifier = Modifier.fillMaxSize()) {
     PlayPublishingWizardHeader(subtitle = "Choose App Bundle")
     Column(modifier = Modifier.weight(1f).padding(24.dp).focusTarget()) {
       // User Info
-      // AND-142 JetBrains patch (Google Play Publishing): the signed in account and its avatar come from tools/vendor/google/login, which
-      // this repository does not carry.
-      // Row(verticalAlignment = Alignment.CenterVertically) {
-      //   Image(painter = avatarPainter, contentDescription = null, modifier = Modifier.size(24.dp).clip(RoundedCornerShape(12.dp)))
-      //   Spacer(modifier = Modifier.width(8.dp))
+      // AND-142 JetBrains patch (Google Play Publishing): the signed in account row comes from
+      // com.google.gct.login2.ui.GoogleLoginUserRow in tools/vendor/google/login, which this repository does not carry.
+      // Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
       //   Text("Signed in as: ", style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp))
-      //   Text(
-      //     text = user?.email ?: throw IllegalStateException("Logged in user not found"),
-      //     style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold),
-      //   )
+      //   GoogleLoginUserRow(user = user ?: throw IllegalStateException("Logged in user not found"))
       // }
       //
       // Spacer(modifier = Modifier.height(24.dp))
