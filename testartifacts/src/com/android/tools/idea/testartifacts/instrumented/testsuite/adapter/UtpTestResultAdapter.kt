@@ -171,7 +171,6 @@ private class AndroidDeviceResolver(private val artifactFileResolver: ArtifactFi
         deviceInfo.displayName(),
         deviceInfo.avdName,
         deviceType,
-        // TODO studio-merge
         SdkVersionUtil.getVersion(deviceInfo.apiLevel, null) ?: AndroidVersion.DEFAULT,
       )
       .apply {

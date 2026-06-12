@@ -137,7 +137,6 @@ public class MergedManifestSnapshotFactory {
     String valueString = getAttributeValue(usesSdk, ANDROID_URI, attribute);
     if (valueString != null) {
       // TODO: Pass in platforms if we have them
-      // TODO studio-merge
       AndroidVersion version = SdkVersionUtil.getVersion(valueString, null);
       if (version != null) {
         return version;
