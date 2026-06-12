@@ -2116,6 +2116,20 @@ public final class StudioFlags {
                     "Enable Agent Tabs",
                     "Enables opening the Agent UI as Editor Tabs.");
 
+  public enum CompletionGhostTextHintStyle {
+    NONE,
+    NEXT_LINE,
+    CARET_POPUP,
+    BOTTOM_LEFT_OVERLAY,
+    SAME_LINE,
+  }
+
+  public static final EnumFlag<CompletionGhostTextHintStyle> STUDIOBOT_COMPLETION_GHOST_TEXT_HINT_STYLE =
+    new EnumFlag<>(STUDIOBOT, "completion.ghost.style",
+                   "Presentation style for cyclic expansion word-based completion ghost hint",
+                   "The presentation style of cyclic expansion ghost hint: NONE (do not show hint), NEXT_LINE (inline new-line layout), CARET_POPUP (floating popup under caret), BOTTOM_LEFT_OVERLAY (floating popup below bottom-left of query box), SAME_LINE (same line inline).",
+                   CompletionGhostTextHintStyle.NONE);
+
   // a debug flag for the timeline to show *all* steps. This is NOT to be enabled in feature_flags.txt
   // This is to be manually enabled only.
   public static final Flag<Boolean> STUDIOBOT_TIMELINE_DEBUG_MODE =
@@ -2173,6 +2187,12 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "show.thoughts",
                     "Shows thoughts in the timeline",
                     "When enabled, thoughts will be shown in the timeline for models that support thinking."
+    );
+
+  public static final Flag<Boolean> STUDIOBOT_SHOW_FILE_ICONS_IN_LINKS =
+    new BooleanFlag(STUDIOBOT, "show.file.icons.in.links",
+                    "Show file icons next to local file links",
+                    "When enabled, standard platform file type icons will be shown inline next to local file hyperlinks in chat and artifact views."
     );
 
   public static final Flag<Boolean> STUDIOBOT_CODE_SEARCH_PAGINATION_ENABLED =
@@ -2860,6 +2880,11 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "permission.model",
                     "Enable new permission model",
                     "Enables the permission model which offers granular permission grants and denials");
+
+  public static final Flag<Boolean> STUDIOBOT_AGENT_PERMISSION_MODES_ENABLED =
+    new BooleanFlag(STUDIOBOT, "agent.permission.modes",
+                    "Enable agent permission modes",
+                    "Enables the agent execution modes (Safe, Supervision, Unrestricted) and corresponding settings UI");
 
   public static final Flag<Boolean> STUDIOBOT_REMOVE_REDUNDANT_TOOL_CALLS =
     new BooleanFlag(STUDIOBOT, "context.compression.prunecalls",
