@@ -110,8 +110,7 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
             dependency.path,
             PsIssueType.PROJECT_ANALYSIS,
             PsIssue.Severity.ERROR,
-            // TODO(b/120551319): Uncomment as a secondary fix when "add missing dimension strategy" is implemented.
-            null, // PsMissingFlavorDimensionQuickFix(sourceModule, targetDimension)
+            PsMissingFlavorDimensionQuickFix(sourceModule, targetDimension),
           )
         }
     }
