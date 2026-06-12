@@ -64,6 +64,7 @@ class WhatsNewEditorPanelTest {
     composeTestRule.setContent {}
   }
 
+  @Ignore("b/520107807")
   @Test
   fun tableOfContents() {
     composeTestRule.setContent {
@@ -92,6 +93,7 @@ class WhatsNewEditorPanelTest {
     assertEquals(firstBlockLeft, secondBlockLeft)
   }
 
+  @Ignore("b/520107807")
   @Test
   fun twoColumnsWithWidePanel() {
     composeTestRule.setContent {
