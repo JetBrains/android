@@ -27,16 +27,17 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
-import kotlin.time.Clock
+import kotlinx.datetime.Clock
 
 /** Builds a LocalEmulatorProvisionerPlugin with its dependencies provided by Studio. */
 class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
   override val isEnabled: Boolean
     get() = true
 
-  override fun create(coroutineScope: CoroutineScope, project: Project) =
+  override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin =
     create(coroutineScope, AdbLibService.getSession(project), project)
 
+  @Suppress("DEPRECATION")
   fun create(
     coroutineScope: CoroutineScope,
     adbSession: AdbSession,
