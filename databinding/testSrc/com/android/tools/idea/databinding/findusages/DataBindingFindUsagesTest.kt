@@ -232,6 +232,77 @@ class DataBindingFindUsagesTest() {
   }
 
   @Test
+  fun assertFindUsagesOfViewIdInKotlin() {
+    val layoutFile =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+            <Button
+                android:id="@+id/but${caret}ton"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" />
+        </LinearLayout>
+      </layout>
+    """
+          .trimIndent(),
+      )
+
+    fixture.addFileToProject(
+      "src/kotlin/test/db/MainActivity.kt",
+      // language=kotlin
+      """
+      package test.db
+
+      import android.app.Activity
+      import android.os.Bundle
+      import test.db.databinding.ActivityMainBinding
+
+      class MainActivity : Activity() {
+          override fun onCreate(savedInstanceState: Bundle?) {
+              super.onCreate(savedInstanceState)
+              val binding = ActivityMainBinding.inflate(layoutInflater)
+              println(binding.button.id)
+          }
+      }
+      """
+        .trimIndent(),
+    )
+
+    fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
+    val presentation = getUsagePresentationAtCursor()
+
+    assertThat(presentation)
+      .isEqualTo(
+        """
+        <root> (2)
+         ID Resource
+          @id/button
+         Usages in Project Files (2)
+          Receiver (1)
+           app (1)
+            kotlin.test.db (1)
+             MainActivity.kt (1)
+              MainActivity (1)
+               onCreate (1)
+                11println(binding.button.id)
+          Resource declaration in Android resources XML (1)
+           app (1)
+            res/layout (1)
+             activity_main.xml (1)
+              7android:id="@+id/button"
+
+        """
+          .trimIndent()
+      )
+  }
+
+  @Test
   fun duplicateIdInTwoLayoutFiles() {
     val layoutFile1 =
       fixture.addFileToProject(
