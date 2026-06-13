@@ -85,6 +85,13 @@ import org.jetbrains.android.augment.StyleableAttrLightField
 class ResourceReferencePsiElement(val delegate: PsiElement, val resourceReference: ResourceReference, val writable: Boolean = false) :
   FakePsiElement() {
 
+  init {
+    // Since ResourceReferencePsiElement is a virtual/fake element, custom usage searchers rely on RESOURCE_CONTEXT_ELEMENT to locate the
+    // target module/facet. Initializing it with the delegate ensures a reliable fallback context is always available. Note that we
+    // initialize it with `delegate`, but it can be overwritten with a proper PSI element after creation like PSI file.
+    putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, delegate)
+  }
+
   override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
 
   override fun getPresentableText(): String = resourceReference.resourceUrl.toString()
