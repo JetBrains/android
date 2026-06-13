@@ -194,6 +194,8 @@ jvm_library(
         "//android/preview-fast-compile:preview-fast-compile_test_lib",
         "//libraries/fastutil",
         "//libraries/fastutil:fastutil_test_lib",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.testFramework` end
