@@ -259,6 +259,8 @@ jvm_library(
         "//platform/code-style-api:codeStyle",
         "//platform/code-style-api:codeStyle_test_lib",
         "//platform/ide-core",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.common.tests` end
