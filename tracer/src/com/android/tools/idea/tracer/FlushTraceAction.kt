@@ -32,7 +32,7 @@ import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
+class FlushTraceAction : DumbAwareAction("Flush and Reset Perfetto Trace") {
   override fun update(e: AnActionEvent) {
     val featureEnabled = StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get()
     e.presentation.isVisible = featureEnabled
@@ -45,11 +45,11 @@ class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
     val project = e.project ?: return
     val log = thisLogger()
 
-    runWithModalProgressBlocking(project, "Flushing Trace") {
+    runWithModalProgressBlocking(project, "Flushing and Resetting Trace") {
       val virtualFile =
         withContext(Dispatchers.IO) {
           val path = AndroidxTracerService.getInstance().flush()
-          log.info("Perfetto Traces are flushed to ${path.absolutePathString()}.")
+          log.info("Perfetto trace flushed and reset. Flushed trace available at ${path.absolutePathString()}.")
           VirtualFileManager.getInstance().refreshAndFindFileByNioPath(path)
         }
 
@@ -66,7 +66,7 @@ class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
           val notification =
             Notification(
               "Android",
-              "Trace flushed",
+              "Trace flushed and reset",
               "A Perfetto trace has been created at: ${virtualFile.path}",
               NotificationType.INFORMATION,
             )
