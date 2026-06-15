@@ -30,12 +30,14 @@ data class SdkIndexLinkQuickFixNoLog(
   val url: String,
   // Non-serialized fields below
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
-) : PsQuickFix {
-  override fun serialize(): String = "SdkIndexLinkNoLog|${PsQuickFix.escape(text)}|${PsQuickFix.escape(url)}"
+) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, text, url)
 
   companion object {
+    private const val NAME = "SdkIndexLinkNoLog"
+
     init {
-      PsQuickFix.registerDeserializer("SdkIndexLinkNoLog", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): SdkIndexLinkQuickFixNoLog {
@@ -58,13 +60,14 @@ data class SdkIndexLinkQuickFix(
   // Non-serialized fields below
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
   val eventReport: ((String, String, String, Project?) -> Unit) = ::logClickEvent,
-) : PsQuickFix {
-  override fun serialize(): String =
-    "SdkIndexLink|${PsQuickFix.escape(text)}|${PsQuickFix.escape(url)}|${PsQuickFix.escape(groupId)}|${PsQuickFix.escape(artifactId)}|${PsQuickFix.escape(version)}"
+) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, text, url, groupId, artifactId, version)
 
   companion object {
+    private const val NAME = "SdkIndexLink"
+
     init {
-      PsQuickFix.registerDeserializer("SdkIndexLink", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): SdkIndexLinkQuickFix {

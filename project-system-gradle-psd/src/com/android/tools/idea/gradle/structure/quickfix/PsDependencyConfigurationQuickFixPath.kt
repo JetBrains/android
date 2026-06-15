@@ -44,13 +44,14 @@ data class PsDependencyConfigurationQuickFixPath(
   val dependencyKey: String,
   val oldConfigurationName: String,
   val newConfigurationName: String,
-) : PsQuickFix {
-  override fun serialize(): String =
-    "DependencyConfiguration|${PsQuickFix.escape(moduleName)}|${dependencyKind.name}|${PsQuickFix.escape(dependencyKey)}|${PsQuickFix.escape(oldConfigurationName)}|${PsQuickFix.escape(newConfigurationName)}"
+) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, moduleName, dependencyKind.name, dependencyKey, oldConfigurationName, newConfigurationName)
 
   companion object {
+    private const val NAME = "DependencyConfiguration"
+
     init {
-      PsQuickFix.registerDeserializer("DependencyConfiguration", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): PsDependencyConfigurationQuickFixPath {

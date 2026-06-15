@@ -24,13 +24,14 @@ data class PsLibraryDependencyPlusQuickFixPath(
   val dependencyGroup: String?,
   val dependencyName: String,
   val configurationName: String,
-) : PsQuickFix {
-  override fun serialize(): String =
-    "LibraryDependencyPlus|${PsQuickFix.escape(moduleName)}|${PsQuickFix.escape(dependencyGroup ?: "")}|${PsQuickFix.escape(dependencyName)}|${PsQuickFix.escape(configurationName)}"
+) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, moduleName, dependencyGroup ?: "", dependencyName, configurationName)
 
   companion object {
+    private const val NAME = "LibraryDependencyPlus"
+
     init {
-      PsQuickFix.registerDeserializer("LibraryDependencyPlus", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): PsLibraryDependencyPlusQuickFixPath {

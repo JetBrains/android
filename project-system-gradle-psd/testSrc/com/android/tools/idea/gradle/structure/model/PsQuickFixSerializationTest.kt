@@ -21,27 +21,31 @@ import com.android.tools.idea.gradle.structure.daemon.analysis.PsMissingBuildTyp
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsMissingFlavorDimensionQuickFix
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsMissingProductFlavorFallbackQuickFix
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsMissingProductFlavorQuickFix
+import com.android.tools.idea.gradle.structure.model.PsQuickFix.Companion.deserialize
+import com.android.tools.idea.gradle.structure.model.PsQuickFix.Companion.escape
+import com.android.tools.idea.gradle.structure.model.PsQuickFix.Companion.splitEscaped
+import com.android.tools.idea.gradle.structure.model.PsQuickFix.NoOpPsQuickFix
 import com.android.tools.idea.gradle.structure.quickfix.PsDependencyConfigurationQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.PsDependencyKind
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyPlusQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.SdkIndexLinkQuickFix
 import com.android.tools.idea.gradle.structure.quickfix.SdkIndexLinkQuickFixNoLog
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 /** Tests for [PsQuickFix] serialization */
 class PsQuickFixSerializationTest {
-  data class TestQuickFix(val arg1: String, val arg2: String) : PsQuickFix {
+  data class TestQuickFix(val arg1: String, val arg2: String) : PsQuickFix() {
     override val text: String = ""
 
     override fun execute(context: PsContext) {}
 
-    override fun serialize(): String = "TEST|${PsQuickFix.escape(arg1)}|${PsQuickFix.escape(arg2)}"
+    override fun serializedInfo() = listOf("TEST", arg1, arg2)
 
     companion object {
       init {
-        PsQuickFix.registerDeserializer("TEST", ::deserialize)
+        registerDeserializer("TEST", ::deserialize)
       }
 
       fun deserialize(args: List<String>): TestQuickFix {
@@ -53,39 +57,39 @@ class PsQuickFixSerializationTest {
 
   @Test
   fun testEscape() {
-    Truth.assertThat(PsQuickFix.escape("")).isEqualTo("")
-    Truth.assertThat(PsQuickFix.escape("abc")).isEqualTo("abc")
-    Truth.assertThat(PsQuickFix.escape("a|b")).isEqualTo("a\\|b")
-    Truth.assertThat(PsQuickFix.escape("a\\b")).isEqualTo("a\\\\b")
-    Truth.assertThat(PsQuickFix.escape("|")).isEqualTo("\\|")
-    Truth.assertThat(PsQuickFix.escape("\\")).isEqualTo("\\\\")
-    Truth.assertThat(PsQuickFix.escape("\\|")).isEqualTo("\\\\\\|")
-    Truth.assertThat(PsQuickFix.escape("||\\")).isEqualTo("\\|\\|\\\\")
+    assertThat(escape("")).isEqualTo("")
+    assertThat(escape("abc")).isEqualTo("abc")
+    assertThat(escape("a|b")).isEqualTo("a\\|b")
+    assertThat(escape("a\\b")).isEqualTo("a\\\\b")
+    assertThat(escape("|")).isEqualTo("\\|")
+    assertThat(escape("\\")).isEqualTo("\\\\")
+    assertThat(escape("\\|")).isEqualTo("\\\\\\|")
+    assertThat(escape("||\\")).isEqualTo("\\|\\|\\\\")
   }
 
   @Test
   fun testSplitEscaped() {
-    Truth.assertThat(PsQuickFix.splitEscaped("")).isEqualTo(listOf(""))
-    Truth.assertThat(PsQuickFix.splitEscaped("abc")).isEqualTo(listOf("abc"))
-    Truth.assertThat(PsQuickFix.splitEscaped("a|b")).isEqualTo(listOf("a", "b"))
-    Truth.assertThat(PsQuickFix.splitEscaped("a\\b")).isEqualTo(listOf("ab"))
-    Truth.assertThat(PsQuickFix.splitEscaped("|")).isEqualTo(listOf("", ""))
-    Truth.assertThat(PsQuickFix.splitEscaped("\\")).isEqualTo(listOf("\\"))
-    Truth.assertThat(PsQuickFix.splitEscaped("\\|")).isEqualTo(listOf("|"))
-    Truth.assertThat(PsQuickFix.splitEscaped("||\\")).isEqualTo(listOf("", "", "\\"))
+    assertThat(splitEscaped("")).isEqualTo(listOf(""))
+    assertThat(splitEscaped("abc")).isEqualTo(listOf("abc"))
+    assertThat(splitEscaped("a|b")).isEqualTo(listOf("a", "b"))
+    assertThat(splitEscaped("a\\b")).isEqualTo(listOf("ab"))
+    assertThat(splitEscaped("|")).isEqualTo(listOf("", ""))
+    assertThat(splitEscaped("\\")).isEqualTo(listOf("\\"))
+    assertThat(splitEscaped("\\|")).isEqualTo(listOf("|"))
+    assertThat(splitEscaped("||\\")).isEqualTo(listOf("", "", "\\"))
   }
 
   @Test
   fun testEscapeSplitEscaped() {
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape(""))).isEqualTo(listOf(""))
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape("abc"))).isEqualTo(listOf("abc"))
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape("a|b"))).isEqualTo(listOf("a|b"))
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape("a\\b"))).isEqualTo(listOf("a\\b"))
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape("a\\|b"))).isEqualTo(listOf("a\\|b"))
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape("|"))).isEqualTo(listOf("|"))
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape("\\"))).isEqualTo(listOf("\\"))
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape("\\|"))).isEqualTo(listOf("\\|"))
-    Truth.assertThat(PsQuickFix.splitEscaped(PsQuickFix.escape("||\\"))).isEqualTo(listOf("||\\"))
+    assertThat(splitEscaped(escape(""))).isEqualTo(listOf(""))
+    assertThat(splitEscaped(escape("abc"))).isEqualTo(listOf("abc"))
+    assertThat(splitEscaped(escape("a|b"))).isEqualTo(listOf("a|b"))
+    assertThat(splitEscaped(escape("a\\b"))).isEqualTo(listOf("a\\b"))
+    assertThat(splitEscaped(escape("a\\|b"))).isEqualTo(listOf("a\\|b"))
+    assertThat(splitEscaped(escape("|"))).isEqualTo(listOf("|"))
+    assertThat(splitEscaped(escape("\\"))).isEqualTo(listOf("\\"))
+    assertThat(splitEscaped(escape("\\|"))).isEqualTo(listOf("\\|"))
+    assertThat(splitEscaped(escape("||\\"))).isEqualTo(listOf("||\\"))
   }
 
   @Test
@@ -104,15 +108,16 @@ class PsQuickFixSerializationTest {
 
     for (original in testCases) {
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
   }
 
   @Test
   fun testDeserializeInvalid() {
-    Truth.assertThat(PsQuickFix.deserialize("INVALID|a|b")).isInstanceOf(PsQuickFix.NoOpPsQuickFix::class.java)
-    Truth.assertThat(PsQuickFix.deserialize("TEST|a")).isInstanceOf(PsQuickFix.NoOpPsQuickFix::class.java) // Not enough args
+    assertThat(deserialize("INVALID|a|b")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize("TEST|a")).isInstanceOf(NoOpPsQuickFix::class.java) // Not enough args
+    assertThat(deserialize("TEST|a|b|c")).isInstanceOf(NoOpPsQuickFix::class.java) // Too many args
   }
 
   @Test
@@ -125,9 +130,12 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -140,9 +148,12 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -155,9 +166,12 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -170,9 +184,12 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -185,9 +202,12 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -200,9 +220,12 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -215,9 +238,12 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -232,9 +258,12 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -243,9 +272,12 @@ class PsQuickFixSerializationTest {
       listOf(SdkIndexLinkQuickFixNoLog("text1", "url1"), SdkIndexLinkQuickFixNoLog("text|2", "url\\2"), SdkIndexLinkQuickFixNoLog("", ""))
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 
   @Test
@@ -258,8 +290,11 @@ class PsQuickFixSerializationTest {
       )
     testCases.forEach { original ->
       val serialized = original.serialize()
-      val deserialized = PsQuickFix.deserialize(serialized)
-      Truth.assertThat(deserialized).isEqualTo(original)
+      val deserialized = deserialize(serialized)
+      assertThat(deserialized).isEqualTo(original)
     }
+    val valid = testCases[0].serialize()
+    assertThat(deserialize("$valid|foo")).isInstanceOf(NoOpPsQuickFix::class.java)
+    assertThat(deserialize(valid.substringBeforeLast('|'))).isInstanceOf(NoOpPsQuickFix::class.java)
   }
 }

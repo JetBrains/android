@@ -138,12 +138,14 @@ fun analyzeProductFlavors(model: PsAndroidModule, pathRenderer: PsPathRenderer):
       }
   }
 
-data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix {
-  override fun serialize(): String = "MissingBuildType|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(buildTypeName)}"
+data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, moduleGradlePath, buildTypeName)
 
   companion object {
+    private const val NAME = "MissingBuildType"
+
     init {
-      PsQuickFix.registerDeserializer("MissingBuildType", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): PsMissingBuildTypeQuickFix {
@@ -166,12 +168,14 @@ data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTyp
   }
 }
 
-data class PsMissingBuildTypeFallbackQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix {
-  override fun serialize(): String = "MissingBuildTypeFallback|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(buildTypeName)}"
+data class PsMissingBuildTypeFallbackQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, moduleGradlePath, buildTypeName)
 
   companion object {
+    private const val NAME = "MissingBuildTypeFallback"
+
     init {
-      PsQuickFix.registerDeserializer("MissingBuildTypeFallback", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): PsMissingBuildTypeFallbackQuickFix {
@@ -197,12 +201,14 @@ data class PsMissingBuildTypeFallbackQuickFix(val moduleGradlePath: String, val 
   }
 }
 
-data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val newDimensionName: String) : PsQuickFix {
-  override fun serialize(): String = "MissingFlavorDimension|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(newDimensionName)}"
+data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val newDimensionName: String) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, moduleGradlePath, newDimensionName)
 
   companion object {
+    private const val NAME = "MissingFlavorDimension"
+
     init {
-      PsQuickFix.registerDeserializer("MissingFlavorDimension", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): PsMissingFlavorDimensionQuickFix {
@@ -225,13 +231,15 @@ data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val ne
   }
 }
 
-data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dimension: String, val productFlavorName: String) : PsQuickFix {
-  override fun serialize(): String =
-    "MissingProductFlavor|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(dimension)}|${PsQuickFix.escape(productFlavorName)}"
+data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dimension: String, val productFlavorName: String) :
+  PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, moduleGradlePath, dimension, productFlavorName)
 
   companion object {
+    private const val NAME = "MissingProductFlavor"
+
     init {
-      PsQuickFix.registerDeserializer("MissingProductFlavor", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): PsMissingProductFlavorQuickFix {
@@ -258,13 +266,14 @@ data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dime
 }
 
 data class PsMissingProductFlavorFallbackQuickFix(val moduleGradlePath: String, val dimension: String, val productFlavorName: String) :
-  PsQuickFix {
-  override fun serialize(): String =
-    "MissingProductFlavorFallback|${PsQuickFix.escape(moduleGradlePath)}|${PsQuickFix.escape(dimension)}|${PsQuickFix.escape(productFlavorName)}"
+  PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, moduleGradlePath, dimension, productFlavorName)
 
   companion object {
+    private const val NAME = "MissingProductFlavorFallback"
+
     init {
-      PsQuickFix.registerDeserializer("MissingProductFlavorFallback", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): PsMissingProductFlavorFallbackQuickFix {

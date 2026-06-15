@@ -29,20 +29,24 @@ data class PsLibraryDependencyVersionQuickFixPath(
   val updateVariable: Boolean? = null,
   val addVersionInText: Boolean = false,
   val forSdkIndex: Boolean = false,
-) : PsQuickFix {
-  override fun serialize(): String {
-    val updateVariableStr =
-      when (updateVariable) {
-        true -> "true"
-        false -> "false"
-        null -> "null"
-      }
-    return "LibraryDependencyVersion|${PsQuickFix.escape(moduleName)}|${PsQuickFix.escape(dependency)}|${PsQuickFix.escape(configurationName)}|${PsQuickFix.escape(version)}|$updateVariableStr|$addVersionInText|$forSdkIndex"
-  }
+) : PsQuickFix() {
+  override fun serializedInfo() =
+    listOf(
+      NAME,
+      moduleName,
+      dependency,
+      configurationName,
+      version,
+      updateVariable.toString(),
+      addVersionInText.toString(),
+      forSdkIndex.toString(),
+    )
 
   companion object {
+    private const val NAME = "LibraryDependencyVersion"
+
     init {
-      PsQuickFix.registerDeserializer("LibraryDependencyVersion", ::deserialize)
+      registerDeserializer(NAME, ::deserialize)
     }
 
     fun deserialize(args: List<String>): PsLibraryDependencyVersionQuickFixPath {
@@ -52,7 +56,7 @@ data class PsLibraryDependencyVersionQuickFixPath(
           "true" -> true
           "false" -> false
           "null" -> null
-          else -> throw IllegalArgumentException("Invalid boolean? value: ${args[4]}")
+          else -> throw IllegalArgumentException("Invalid Boolean? value: ${args[4]}")
         }
       return PsLibraryDependencyVersionQuickFixPath(
         args[0],
