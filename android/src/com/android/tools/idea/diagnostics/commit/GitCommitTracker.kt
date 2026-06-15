@@ -33,6 +33,10 @@ class GitCommitTracker(private val trackedPath: String, private val intervalMinu
     private const val INITIAL_DELAY_MINUTES = 1L
     private const val INTERVAL_IN_MINUTES = 30L
     private const val COMMAND_TIMEOUT_SECONDS = 5L
+
+    // Harden against hostile repo-local .git/config (gpg.program, fsmonitor, hooksPath, …).
+    private val command =
+      listOf("git", "-c", "log.showSignature=false", "-c", "gpg.program=", "-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null")
   }
 
   private var trackingJob: ScheduledFuture<*>? = null
@@ -50,9 +54,9 @@ class GitCommitTracker(private val trackedPath: String, private val intervalMinu
 
   data class CommitInfo(val authorTimestamp: Long, val commitTimestamp: Long, val type: CommitType, val first: Boolean)
 
-  private fun runProcessWithTimeout(command: List<String>): String? {
+  private fun runGitProcessWithTimeout(parameters: List<String>): String? {
     val timeoutSeconds = COMMAND_TIMEOUT_SECONDS
-    val processBuilder = ProcessBuilder(command)
+    val processBuilder = ProcessBuilder(command + parameters)
     processBuilder.directory(File(trackedPath))
 
     val process = processBuilder.start()
@@ -155,8 +159,8 @@ class GitCommitTracker(private val trackedPath: String, private val intervalMinu
 
   private fun getUserGitInfo(): String? {
     try {
-      val command = listOf("git", "config", "user.email")
-      val output = runProcessWithTimeout(command) ?: return null
+      val parameters = listOf("config", "user.email")
+      val output = runGitProcessWithTimeout(parameters) ?: return null
       val userName = output.trim()
       if (userName.isNotEmpty()) return userName
     } catch (_: Exception) {}
@@ -173,8 +177,8 @@ class GitCommitTracker(private val trackedPath: String, private val intervalMinu
           branchFilter = "--branches"
         }
         CommitType.REMOTE -> {
-          val gitCommand = listOf("git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
-          branchFilter = runProcessWithTimeout(gitCommand)?.trim() ?: return null
+          val parameters = listOf("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+          branchFilter = runGitProcessWithTimeout(parameters)?.trim() ?: return null
           if (branchFilter.startsWith("-") || branchFilter.isEmpty()) {
             return null
           }
@@ -184,14 +188,14 @@ class GitCommitTracker(private val trackedPath: String, private val intervalMinu
         }
       }
 
-      val gitCommand = mutableListOf("git", "log", branchFilter, "--author=$userName", "--pretty=%at %ct")
+      val parameters = mutableListOf("log", branchFilter, "--author=$userName", "--pretty=%at %ct")
       if (lastCommitTimestamp != null) {
-        gitCommand.addAll(listOf("--since=${lastCommitTimestamp + 1}", "-n", "10"))
+        parameters.addAll(listOf("--since=${lastCommitTimestamp + 1}", "-n", "10"))
       } else {
-        gitCommand.addAll(listOf("-n", "1"))
+        parameters.addAll(listOf("-n", "1"))
       }
 
-      val output = runProcessWithTimeout(gitCommand) ?: return null
+      val output = runGitProcessWithTimeout(parameters) ?: return null
       val commits = mutableListOf<CommitInfo>()
       output.lines().forEach { line ->
         if (line.isNotBlank()) {

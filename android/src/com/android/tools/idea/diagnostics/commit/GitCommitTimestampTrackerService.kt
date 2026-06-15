@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.commit
 
 import com.android.tools.idea.serverflags.ServerFlagService
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
@@ -76,6 +77,7 @@ class GitCommitTimestampTrackerService(private val project: Project) : Disposabl
 
   fun startTracking() {
     if (!ServerFlagService.instance.getBoolean("diagnostics/commit_timestamp", false)) return
+    if (!TrustedProjects.isProjectTrusted(project)) return
     checkAndTrackGitRepository(project)
   }
 }
