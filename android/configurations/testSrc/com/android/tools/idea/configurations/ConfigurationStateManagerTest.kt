@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations
 
+import com.intellij.ide.trustedProjects.TrustedProjects
 import org.jetbrains.android.AndroidTestCase
 
 class ConfigurationStateManagerTest : AndroidTestCase() {
@@ -89,5 +90,35 @@ class ConfigurationStateManagerTest : AndroidTestCase() {
     val retrievedState3 = requireNotNull(manager.getConfigurationState(file))
     assertEquals("@style/Theme.Dialog", retrievedState3.theme)
     assertEquals("land", retrievedState3.deviceState)
+  }
+
+  fun testLoadStateUntrustedProject() {
+    assertNotNull(project)
+    val manager = StudioConfigurationStateManager.get(project)
+    val file = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout.xml")
+    val configState = ConfigurationFileState()
+    configState.theme = "@style/Theme.Holo.Light"
+    manager.setConfigurationState(file, configState)
+
+    val state = requireNotNull(manager.state)
+
+    // Reset manager state
+    manager.loadState(ConfigurationStateManager.State())
+    assertNull(manager.getConfigurationState(file))
+
+    val wasTrusted = TrustedProjects.isProjectTrusted(project)
+    try {
+      TrustedProjects.setProjectTrusted(project, false)
+      manager.loadState(state)
+      // State should NOT be loaded because project is untrusted
+      assertNull(manager.getConfigurationState(file))
+
+      TrustedProjects.setProjectTrusted(project, true)
+      manager.loadState(state)
+      // State SHOULD be loaded because project is trusted
+      assertNotNull(manager.getConfigurationState(file))
+    } finally {
+      TrustedProjects.setProjectTrusted(project, wasTrusted)
+    }
   }
 }
