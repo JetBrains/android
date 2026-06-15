@@ -31,6 +31,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.xml.XmlFile
@@ -314,8 +315,39 @@ private object StringResourceWriterImpl : StringResourceWriter {
   override fun setAttribute(project: Project, attribute: String, value: String?, items: Collection<ResourceItem>): Boolean =
     items.modify(project, "Setting attribute $attribute") { it.setAttribute(attribute, value) }
 
-  override fun delete(project: Project, items: Collection<ResourceItem>): Boolean =
-    items.modify(project, "Deleting resources", XmlTag::delete)
+  override fun delete(project: Project, items: Collection<ResourceItem>): Boolean {
+    if (items.isEmpty()) return false
+    val tags = items.mapNotNull { getItemTag(project, it) }
+    val fileToTagMap = tags.groupBy { it.containingFile }
+    if (fileToTagMap.isEmpty()) return true
+
+    WriteCommandAction.writeCommandAction(project, fileToTagMap.keys).withName("Deleting resources").withGlobalUndo().run<
+      IncorrectOperationException
+    > {
+      for ((psiFile, tagList) in fileToTagMap) {
+        val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
+        if (document == null) {
+          // If the file is only in-memory (e.g. in tests) and has no associated Document,
+          // fall back to standard PSI-based deletion and continue.
+          tagList.forEach(XmlTag::delete)
+          continue
+        }
+
+        // Deleting tags one-by-one using XmlTag.delete() triggers expensive formatting and
+        // AST-rebuild operations on each call, leading to O(N^2) complexity and UI thread freezes.
+        // Instead, we perform direct string deletions on the underlying Document and commit
+        // the changes once.
+        //
+        // Sort tags in descending order of startOffset so that deleting earlier elements
+        // does not shift the offsets of the remaining elements.
+        for (tag in tagList.sortedByDescending { it.textRange.startOffset }) {
+          document.deleteString(tag.textRange.startOffset, tag.textRange.endOffset)
+        }
+        PsiDocumentManager.getInstance(project).commitDocument(document)
+      }
+    }
+    return true
+  }
 
   /**
    * Runs the given [modification] on the [XmlTag] for each [ResourceItem] in `this` [Collection].

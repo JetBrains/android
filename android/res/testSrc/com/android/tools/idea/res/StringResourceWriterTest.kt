@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.intellij.BundleBase
 import com.intellij.ide.IdeBundle
@@ -40,6 +41,7 @@ import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.EdtRule
@@ -67,6 +69,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 
 /**
  * Tests the [StringResourceWriter].
@@ -318,6 +324,46 @@ class StringResourceWriterTest {
 
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
     assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isFalse()
+  }
+
+  @Test
+  fun delete_multiple_same_file() {
+    val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)!!
+    val psiFile = PsiManager.getInstance(project).findFile(file)!!
+
+    (2..4).forEach { assertThat(psiFile.text).contains("<string name=\"key$it\">Key $it fr</string>") }
+
+    val item2 = getResourceItem("key2", FRENCH_LOCALE)
+    val item3 = getResourceItem("key3", FRENCH_LOCALE)
+
+    assertThat(stringResourceWriter.delete(project, listOf(item2, item3))).isTrue()
+
+    assertThat(psiFile.text).contains("<string name=\"key4\">Key 4 fr</string>")
+    assertThat(psiFile.text).doesNotContain("key2")
+    assertThat(psiFile.text).doesNotContain("key3")
+  }
+
+  @Test
+  fun delete_multiple_same_file_no_document() {
+    val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)!!
+    val psiFile = PsiManager.getInstance(project).findFile(file)!!
+
+    (2..4).forEach { assertThat(psiFile.text).contains("<string name=\"key$it\">Key $it fr</string>") }
+
+    val item2 = getResourceItem("key2", FRENCH_LOCALE)
+    val item3 = getResourceItem("key3", FRENCH_LOCALE)
+
+    val originalManager = PsiDocumentManager.getInstance(project)
+    val spyDocumentManager = spy(originalManager)
+    doReturn(null).whenever(spyDocumentManager).getDocument(any())
+
+    project.registerServiceInstance(PsiDocumentManager::class.java, spyDocumentManager, projectRule.testRootDisposable)
+
+    assertThat(stringResourceWriter.delete(project, listOf(item2, item3))).isTrue()
+
+    assertThat(psiFile.text).contains("<string name=\"key4\">Key 4 fr</string>")
+    assertThat(psiFile.text).doesNotContain("key2")
+    assertThat(psiFile.text).doesNotContain("key3")
   }
 
   @Test
