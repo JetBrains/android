@@ -39,6 +39,7 @@ object ReformatUtil {
         .filterNot { it.name.startsWith("gradlew") }
         .forEach {
           val virtualFile = StandardFileSystems.local().findFileByPath(it.absolutePath)!!
+          virtualFile.refresh(false, false)
           reformatAndRearrange(project, virtualFile, keepDocumentLocked = true)
           FileDocumentManager.getInstance().run { getDocument(virtualFile)?.let { document -> saveDocument(document) } }
         }
