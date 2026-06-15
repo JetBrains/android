@@ -14,7 +14,12 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
-    runtime_deps = ["//android/android-plugin/descriptor"],
+    runtime_deps = [
+        # do not sort,
+        "//android/android-plugin/descriptor",
+        "//platform/problemsView/plugin",
+        "//platform/problemsView/ui",
+    ],
 )
 
 jvm_library(
@@ -31,6 +36,8 @@ jvm_library(
         ":descriptor",
         "@lib//:studio-test-platform",
         "//android/android-plugin/descriptor:descriptor_test_lib",
+        "//platform/problemsView/plugin:plugin_test_lib",
+        "//platform/problemsView/ui:ui_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.design-plugin.descriptor` end

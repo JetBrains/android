@@ -9,5 +9,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.plugin.descriptor" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.problemView.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.problemView.ui" scope="RUNTIME" />
   </component>
 </module>

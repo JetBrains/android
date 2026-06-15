@@ -27,11 +27,12 @@
   <depends>org.jetbrains.kotlin</depends>
   <depends>com.intellij.java</depends>
   <dependencies>
-    <module name="intellij.spellchecker"/>
-  </dependencies>
-
-  <dependencies>
     <module name="intellij.libraries.grpc"/>
+    <module name="intellij.spellchecker"/>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+    <plugin id="intellij.problemView.plugin"/>
+    <module name="intellij.platform.problemView.ui"/>
+    <!-- endregion -->
   </dependencies>
 
   <change-notes><![CDATA[
