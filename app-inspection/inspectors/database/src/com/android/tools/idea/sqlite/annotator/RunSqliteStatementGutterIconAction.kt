@@ -37,6 +37,7 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.event.MouseEvent
+import java.lang.Boolean.TRUE
 import javax.swing.DefaultListCellRenderer
 import javax.swing.Icon
 import javax.swing.JList
@@ -125,6 +126,10 @@ class RunSqliteStatementGutterIconAction(
   }
 
   private class SqliteQueryListCellRenderer : DefaultListCellRenderer() {
+    init {
+      putClientProperty("html.disable", TRUE)
+    }
+
     companion object {
       private val cellInsets = JBUI.insets(2, 6)
     }

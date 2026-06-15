@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.util.concurrent.CancellationException
 
 @AnyThread
@@ -30,7 +31,7 @@ internal fun notifyError(message: String, t: Throwable?) {
   var errorMessage = message
   t?.message?.let { errorMessage += ": " + t.message }
 
-  val notification = Notification("Database Inspector", "Database inspector", errorMessage, NotificationType.WARNING)
+  val notification = Notification("Database Inspector", "Database inspector", escapeXmlEntities(errorMessage), NotificationType.WARNING)
 
   Notifications.Bus.notify(notification)
 }
