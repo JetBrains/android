@@ -32,6 +32,7 @@ import com.android.build.attribution.ui.warnIconHtml
 import com.android.build.attribution.ui.withPluralization
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.utils.HtmlBuilder
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -136,7 +137,7 @@ class TaskViewDetailPagesFactory(val model: TasksDataPageModel, val actionHandle
               }
             beginTable()
             addTableRow(warnIconHtml, linkToTask)
-            addTableRow("", "Type: ${task.taskType}<BR/>Duration: ${task.executionTime.durationStringHtml()}")
+            addTableRow("", "Type: ${escapeXmlEntities(task.taskType)}<BR/>Duration: ${task.executionTime.durationStringHtml()}")
             endTable()
             task.issues.forEach { issue ->
               val description = "${issue.explanation}\n${linksHandler.externalLink("Learn more", issue.helpLink)}".replace("\n", "<BR/>")

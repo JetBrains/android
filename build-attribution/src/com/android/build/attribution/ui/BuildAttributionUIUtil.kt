@@ -203,7 +203,7 @@ class HtmlLinksHandler(val actionHandlers: ViewActionHandlers) : HyperlinkListen
 
   fun actionLink(text: String, actionId: String, action: Runnable): String {
     registeredLinkActions[actionId] = action
-    return "<a href='$actionId'>$text</a>"
+    return "<a href='${StringUtil.escapeXmlEntities(actionId)}'>${StringUtil.escapeXmlEntities(text)}</a>"
   }
 
   override fun hyperlinkUpdate(hyperlinkEvent: HyperlinkEvent?) {
