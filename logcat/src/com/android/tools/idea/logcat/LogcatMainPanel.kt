@@ -154,6 +154,7 @@ import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.panel
@@ -1023,7 +1024,7 @@ constructor(
               return
             }
           }
-          contentComponent.toolTipText = if (filterHint?.isElided() == true) filterHint.text else null
+          contentComponent.toolTipText = if (filterHint?.isElided() == true) escapeXmlEntities(filterHint.text) else null
 
           contentComponent.cursor = textCursor
         }
