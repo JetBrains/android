@@ -107,6 +107,10 @@ class FontEditor implements FileEditor {
     myRootPanel.setBackground(UIUtil.getTextFieldBackground());
     myRootPanel.setBorder(BORDER);
     myFontNameLabel = new JLabel();
+    // Font.getFontName() returns the TTF/OTF SFNT `name` table NameID 4 verbatim — an
+    // arbitrary Unicode string under the font author's control. Disable Swing-HTML so a
+    // "<html>…" font name cannot trigger a BasicHTML URL fetch from the IDE JVM (b/509616129).
+    myFontNameLabel.putClientProperty("html.disable", true);
     myTextArea = createTextArea();
 
     myCurrentFontSize = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(10f);
