@@ -22,6 +22,7 @@ import re
 import subprocess
 import sys
 from typing import Any, Dict, List, Optional, Tuple
+import uuid
 
 from auth_utils import check_uplink_health, get_access_token, get_minimal_env
 from download_sponge_artifact import download_file
@@ -85,6 +86,25 @@ TARGET_FILENAMES = {
     for config in FILE_CONFIGS.values()
     if "target_filename" in config
 }
+
+def is_valid_invocation_id(invocation_id: str) -> bool:
+  """Validates that the given string is a valid Sponge invocation ID (UUID)."""
+  if not isinstance(invocation_id, str):
+    return False
+  try:
+    uuid_obj = uuid.UUID(invocation_id)
+    # Ensures it is in the canonical hyphenated format
+    return str(uuid_obj) == invocation_id.lower()
+  except ValueError:
+    return False
+
+
+def valid_invocation_id_arg(val: str) -> str:
+  """Argparse type for validating a Sponge Invocation ID."""
+  if not is_valid_invocation_id(val):
+    raise argparse.ArgumentTypeError(f"Invalid Sponge Invocation ID: '{val}'. Expected a valid UUID.")
+  return val
+
 
 def sanitize_filename(name: str) -> str:
   """Sanitizes a string for use in a filename."""
@@ -354,6 +374,9 @@ def fetch_api_key(gcp_project: str, secret_name: str, access_token: Optional[str
 
 
 def analyze_sponge_data(invocation_id: str, api_key: Optional[str] = None) -> Dict[str, Any]:
+  if not is_valid_invocation_id(invocation_id):
+    raise ValueError(f"Invalid Sponge Invocation ID: '{invocation_id}'. Expected a valid UUID.")
+
   # Master output that collects everything first
   output = {
     "invocationId": invocation_id,
@@ -523,7 +546,11 @@ def run_failure_grouper(failed_json_path: str) -> None:
 
 def main():
   parser = argparse.ArgumentParser(description="Fetch Sponge Invocation Data directly via API")
-  parser.add_argument("invocation_id", help="The Sponge Invocation ID (UUID)")
+  parser.add_argument(
+      "invocation_id",
+      type=valid_invocation_id_arg,
+      help="The Sponge Invocation ID (UUID)",
+  )
   parser.add_argument(
       "--gcp-project",
       default=os.environ.get("STUDIO_GCP_PROJECT", DEFAULT_GCP_PROJECT),
@@ -547,7 +574,7 @@ def main():
   parser.add_argument(
       "--use-default-loas-project",
       action="store_true",
-      help="Use default LOAS project for authentication instead of fetching an API key via gcloud"
+      help="Use default LOAS project for metadata authentication (bypassing GCP Secret Manager). Note: gcloud is still required to fetch an access token for downloading logs."
   )
   args = parser.parse_args()
 
@@ -564,10 +591,12 @@ def main():
     logger.error("Uplink health check failed. Exiting.")
     sys.exit(1)
   try:
+    # We always need a GCP access token to download logs from RBE (remotebuildexecution.googleapis.com).
+    # Even if --use-default-loas-project is set, RBE is a public GCP API and strictly requires a GCP
+    # OAuth2 token. Therefore, we must always fetch the access token via gcloud.
+    access_token = get_access_token()
     api_key = None
-    access_token = None
     if not args.use_default_loas_project:
-      access_token = get_access_token()
       api_key = fetch_api_key(args.gcp_project, args.secret_name, access_token=access_token)
     output = analyze_sponge_data(args.invocation_id, api_key)
   except Exception as e:
