@@ -36,15 +36,15 @@ class DependencyViewIssueRendererTest {
 
   companion object {
     private fun createFix(text: String): PsQuickFix =
-      object : PsQuickFix {
+      object : PsQuickFix() {
         override val text = text
 
-        override fun serialize(): String =
+        override fun serializedInfo() =
           when (text) {
-            "QUICK_FIX" -> "FIX|1"
-            "QUICK_FIX2" -> "FIX|2"
-            else -> "FIX|0"
-          }
+            "QUICK_FIX" -> "1"
+            "QUICK_FIX2" -> "2"
+            else -> "0"
+          }.let { listOf("FIX", it) }
 
         override fun execute(context: PsContext): Unit = TODO("not implemented")
       }

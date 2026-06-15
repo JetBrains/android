@@ -27,6 +27,7 @@ import com.intellij.ui.JBColor.GRAY
 import com.intellij.ui.JBColor.RED
 import java.awt.Color
 import javax.swing.Icon
+import org.jetbrains.annotations.VisibleForTesting
 
 interface PsIssue {
   val text: String
@@ -52,29 +53,33 @@ interface PsIssue {
   }
 }
 
-interface PsQuickFix {
-  val text: String
+abstract class PsQuickFix {
+  abstract val text: String
 
-  fun execute(context: PsContext)
+  abstract fun execute(context: PsContext)
 
-  fun serialize(): String
+  fun serialize(): String = serializedInfo().joinToString("|") { escape(it) }
 
-  object NoOpPsQuickFix : PsQuickFix {
+  abstract fun serializedInfo(): List<String>
+
+  object NoOpPsQuickFix : PsQuickFix() {
     override val text: String = ""
 
     override fun execute(context: PsContext) {}
 
-    override fun serialize(): String = "NO_OP"
+    override fun serializedInfo() = listOf("NO_OP")
   }
 
   companion object {
     private val LOG = Logger.getInstance(PsQuickFix::class.java)
     private val deserializers: MutableMap<String, (List<String>) -> PsQuickFix> = mutableMapOf()
 
+    @VisibleForTesting
     fun escape(value: String): String {
       return value.replace("\\", "\\\\").replace("|", "\\|")
     }
 
+    @VisibleForTesting
     fun splitEscaped(data: String): List<String> {
       val result = mutableListOf<String>()
       var currentSegment = StringBuilder()
