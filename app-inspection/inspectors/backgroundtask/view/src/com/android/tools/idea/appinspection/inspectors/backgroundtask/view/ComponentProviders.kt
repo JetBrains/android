@@ -27,6 +27,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -50,7 +52,7 @@ interface ComponentProvider<T> {
  * for simple cases.
  */
 class ToStringProvider<T> : ComponentProvider<T> {
-  override fun convert(data: T) = JBLabel(data.toString())
+  override fun convert(data: T) = JBLabel(escapeXmlEntities(data.toString()))
 }
 
 /** Provides a component that represents a class name which can be navigated to. */
@@ -96,7 +98,9 @@ class EnqueuedAtProvider(
         add(JBLabel("Unavailable"))
         add(Box.createHorizontalStrut(5))
         val icon = JLabel(StudioIcons.Common.HELP)
-        HelpTooltip().setDescription("Enqueue location is only known for workers started after opening the inspector.").installOn(icon)
+        HelpTooltip()
+          .setDescription(HtmlChunk.text("Enqueue location is only known for workers started after opening the inspector."))
+          .installOn(icon)
         add(icon)
       }
     } else {
@@ -157,7 +161,7 @@ class IdListProvider(
                 .apply {
                   icon = entry.icon()
                   if (work.tagsCount > 0) {
-                    toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+                    toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"${escapeXmlEntities(it)}\"" }}</html>"
                   }
                 }
             mixedLabel.add(actionLink)
@@ -251,8 +255,10 @@ object OutputDataProvider : ComponentProvider<WorkInfo> {
         JPanel(VerticalFlowLayout(0, 0)).apply {
           protoData.entriesList.forEach { pair ->
             val pairPanel = JPanel(HorizontalLayout(0))
-            pairPanel.add(JLabel("${pair.key} = "))
-            pairPanel.add(JLabel("\"${pair.value}\"").apply { foreground = BackgroundTaskInspectorColors.DATA_VALUE_TEXT_COLOR })
+            pairPanel.add(JLabel("${escapeXmlEntities(pair.key)} = "))
+            pairPanel.add(
+              JLabel("\"${escapeXmlEntities(pair.value)}\"").apply { foreground = BackgroundTaskInspectorColors.DATA_VALUE_TEXT_COLOR }
+            )
             add(pairPanel)
           }
         }
