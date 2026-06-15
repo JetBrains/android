@@ -7,8 +7,8 @@
 # Comments can be added on the same line as a flag with a #.
 #
 # All flag entries must be sorted.
-adb.wifi.v2.device.manager.enable=PREVIEW
-adb.wifi.v2.dialog.enable=PREVIEW
+adb.wifi.v2.device.manager.enable=COMPLETE:2026
+adb.wifi.v2.dialog.enable=COMPLETE:2026
 agp.test.suites.enabled=PREVIEW
 android.cli.enable.bundled.cli.in.agent=COMPLETE:2026
 android.cli.enable.integration.server=COMPLETE:2026
