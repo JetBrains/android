@@ -159,7 +159,7 @@
     <orderEntry type="module" module-name="kotlin.gradle.gradle-java" />
     <orderEntry type="module" module-name="intellij.kotlin.gradle.tooling.impl" />
     <orderEntry type="module" module-name="intellij.kotlin.projectWizard.core" />
-    <orderEntry type="module" module-name="kotlin.refactorings.common" />
+    <orderEntry type="module" module-name="intellij.kotlin.refactorings.base" />
     <orderEntry type="module" module-name="intellij.kotlin.gradle.codeInsight.common" />
     <orderEntry type="module" module-name="intellij.kotlin.gradle.codeInsight.toml" />
     <orderEntry type="module" module-name="intellij.kotlin.highlighting.minimal" />
