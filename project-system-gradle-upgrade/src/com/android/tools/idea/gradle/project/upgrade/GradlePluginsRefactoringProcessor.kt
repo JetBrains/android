@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_8_9
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_9_1_0
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_9_3_1
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_9_4_1
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_9_5_0
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_FOR_DEV
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
@@ -162,6 +163,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0 -> Version.parse("2.2.10")
         VERSION_9_3_1 -> Version.parse("2.2.10")
         VERSION_9_4_1 -> Version.parse("2.2.10")
+        VERSION_9_5_0 -> Version.parse("2.2.10")
         VERSION_FOR_DEV -> Version.parse(AGP_BUILT_IN_KOTLIN_VERSION)
       }
 
@@ -186,6 +188,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("2.9.6")
       }
 
@@ -209,6 +212,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("1.6.1.0")
       }
 
@@ -231,6 +235,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("2.5.2")
       }
 
@@ -253,6 +258,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("2.1.1")
       }
 
@@ -275,6 +281,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("2.0.0")
       }
 
@@ -297,6 +304,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("0.10.4")
       }
 
@@ -319,6 +327,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("4.3.10")
       }
 
@@ -341,6 +350,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("2.57.2")
       }
 
@@ -363,6 +373,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("0.9.0")
       }
 
@@ -385,6 +396,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("1.2.4")
       }
 
@@ -408,6 +420,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("2.3.2")
       }
 
@@ -430,6 +443,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_1_0,
         VERSION_9_3_1,
         VERSION_9_4_1,
+        VERSION_9_5_0,
         VERSION_FOR_DEV -> Version.parse("2.7.2")
       }
 
