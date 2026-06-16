@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tracer
 
+import androidx.compose.runtime.InternalComposeTracingApi
 import androidx.tracing.AbstractTraceSink
 import androidx.tracing.AtomicBoolean
 import androidx.tracing.DelicateTracingApi
@@ -33,6 +34,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import java.nio.file.Path
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,9 +50,12 @@ class AndroidxTracerService(internal val serviceScope: CoroutineScope) {
   // This is set just once for this service
   private val serviceInitialized = AtomicBoolean(false)
 
-  @Volatile private var currentSession: TraceSession = TraceSession.Disabled
-  private val compositionTracer = StudioCompositionTracer { currentSession.driver }
-  private val jvmMetricsTracer = JvmMetricsTracer(serviceScope) { currentSession.driver.tracer }
+  private val disabledDriver = TraceDriver(EmptyTraceSink(), false)
+
+  val perfettoFile = PathManager.getTempDir().toFile().createPerfettoFile()
+  val driver: AtomicReference<TraceDriver> = AtomicReference(disabledDriver)
+  private val compositionTracer = StudioCompositionTracer { driver.get() }
+  private val jvmMetricsTracer = JvmMetricsTracer(serviceScope) { driver.get().tracer }
 
   fun initializeService() {
     if (serviceInitialized.getAndSet(true)) {
@@ -60,59 +65,40 @@ class AndroidxTracerService(internal val serviceScope: CoroutineScope) {
     serviceScope.launch { initializeTracing() }
   }
 
-  @Synchronized
   fun initializeTracing() {
-    val tracingEnabled = isTracingEnabled()
-    currentSession = if (tracingEnabled) createTraceSession() else TraceSession.Disabled
-    thisLogger().info("Tracing Driver initialized and ${if (tracingEnabled) "enabled" else "disabled"}.")
+    val enableTracing = isTracingEnabled()
+    val currentDriver =
+      if (enableTracing) {
+        val sink = TraceSink(sequenceId = 1, bufferedSink = perfettoFile.appendingSink().buffer(), coroutineContext = Dispatchers.IO)
+        TraceDriver(sink, true) {
+          addAttribute("application_version", ApplicationInfo.getInstance().strictVersion)
+          addAttribute("trace_created_at", ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")))
+        }
+      } else {
+        disabledDriver
+      }
 
-    val compositionTracingEnabled = PropertiesComponent.getInstance().getBoolean(COMPOSITION_TRACING_ENABLED_KEY, false)
-    setCompositionTracingEnabled(compositionTracingEnabled && tracingEnabled)
-    jvmMetricsTracer.setTracingEnabled(tracingEnabled)
+    driver.set(currentDriver)
+    thisLogger().info("Tracing Driver initialized and ${if (isTracingEnabled()) "enabled" else "disabled"}.")
+
+    initializeCompositionTracing()
+    jvmMetricsTracer.setTracingEnabled(enableTracing)
   }
 
-  internal fun setCompositionTracingEnabled(enabled: Boolean) {
+  @OptIn(InternalComposeTracingApi::class)
+  internal fun initializeCompositionTracing() {
+    val enabled = PropertiesComponent.getInstance().getBoolean(COMPOSITION_TRACING_ENABLED_KEY, false)
     compositionTracer.setTracingEnabled(enabled)
   }
 
-  @Synchronized
-  fun flush(reset: Boolean = true): Path =
-    when (val current = currentSession) {
-      is TraceSession.Enabled -> {
-        current.driver.flush()
-        if (reset) {
-          // Publish the new session before closing the old driver so other threads don't
-          // observe currentSession pointing at a closed driver.
-          currentSession = createTraceSession()
-          current.driver.close()
-        }
-        current.traceFile
-      }
-      is TraceSession.Disabled -> error("Tracing is disabled")
-    }
-
-  private fun createTraceSession(): TraceSession.Enabled {
-    val traceFile = PathManager.getTempDir().toFile().createPerfettoFile().toPath()
-    return TraceSession.Enabled(traceFile = traceFile, driver = createTraceDriver(traceFile))
-  }
-
-  private fun createTraceDriver(traceFile: Path): TraceDriver {
-    val sink = TraceSink(sequenceId = 1, bufferedSink = traceFile.toFile().appendingSink().buffer(), coroutineContext = Dispatchers.IO)
-    return TraceDriver(sink, true) {
-      addAttribute("application_version", ApplicationInfo.getInstance().strictVersion)
-      addAttribute("trace_created_at", ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")))
-    }
+  fun flush(): Path {
+    driver.get().flush()
+    return perfettoFile.toPath()
   }
 
   companion object {
     fun getInstance(): AndroidxTracerService = service()
   }
-}
-
-private sealed class TraceSession(open val driver: TraceDriver) {
-  data class Enabled(val traceFile: Path, override val driver: TraceDriver) : TraceSession(driver)
-
-  data object Disabled : TraceSession(TraceDriver(EmptyTraceSink(), false))
 }
 
 private class EmptyTraceSink : AbstractTraceSink() {
