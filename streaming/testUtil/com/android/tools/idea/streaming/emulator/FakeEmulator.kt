@@ -2073,7 +2073,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           """
           .trimIndent()
 
-      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
+      val advancedFeatures = "XrHandAndEyePointers = on\n"
+
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties, advancedFeatures)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
@@ -2178,7 +2180,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           """
           .trimIndent()
 
-      val advancedFeatures = "XrDimming = on\n"
+      val advancedFeatures =
+        """
+        XrDimming = on
+        XrHandAndEyePointers = on
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties, advancedFeatures)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
