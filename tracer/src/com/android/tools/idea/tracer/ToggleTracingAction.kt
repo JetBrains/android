@@ -29,7 +29,7 @@ class ToggleTracingAction : ToggleAction("Enable Tracing"), DumbAware {
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     PropertiesComponent.getInstance().setValue(TRACING_ENABLED_KEY, state, false)
-    AndroidxTracerService.getInstance().initializeTracing()
+    StudioTracingController.initializeTracing()
   }
 
   override fun update(e: AnActionEvent) {
