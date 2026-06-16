@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.uisettings.actions
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
-import com.android.adblib.DevicePropertyNames
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.actions.updateAndGetActionPresentation
@@ -93,7 +93,7 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testWearControls() {
-    val view = connectDeviceAndCreateView(isWear = true)
+    val view = connectDeviceAndCreateView(deviceType = DeviceType.WEAR)
     executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
     val panel = dialog.content
@@ -131,15 +131,8 @@ class DeviceUiSettingsActionTest {
     return popupRule.fakePopupFactory.getNextPopup()
   }
 
-  private fun connectDeviceAndCreateView(apiLevel: Int = 33, isWear: Boolean = false): DeviceView {
-    val device =
-      agentRule.connectDevice(
-        "Pixel 8",
-        apiLevel,
-        Dimension(1344, 2992),
-        screenDensity = 480,
-        additionalDeviceProperties = if (isWear) mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "watch") else emptyMap(),
-      )
+  private fun connectDeviceAndCreateView(apiLevel: Int = 33, deviceType: DeviceType = DeviceType.HANDHELD): DeviceView {
+    val device = agentRule.connectDevice("Pixel 8", apiLevel, Dimension(1344, 2992), screenDensity = 480, deviceType = deviceType)
     val view = createDeviceView(device, testRootDisposable)
     waitForConnection(view)
     return view

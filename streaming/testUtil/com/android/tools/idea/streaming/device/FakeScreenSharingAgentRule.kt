@@ -148,6 +148,7 @@ class FakeScreenSharingAgentRule : TestRule {
     model: String,
     apiLevel: Int,
     displaySize: Dimension,
+    deviceType: DeviceType = DeviceType.HANDHELD,
     foldedSize: Dimension? = null,
     roundDisplay: Boolean = false,
     screenDensity: Int? = null,
@@ -180,6 +181,7 @@ class FakeScreenSharingAgentRule : TestRule {
         roundDisplay = roundDisplay,
         foldedSize = foldedSize,
         screenDensity = screenDensity,
+        deviceType = deviceType,
       )
     devices.add(device)
     return device
@@ -204,12 +206,13 @@ class FakeScreenSharingAgentRule : TestRule {
     val serialNumber: String,
     val displaySize: Dimension,
     val deviceState: DeviceState,
+    val deviceType: DeviceType = DeviceType.HANDHELD,
     val roundDisplay: Boolean = false,
     foldedSize: Dimension? = null,
     private val screenDensity: Int? = null,
   ) {
     val agent: FakeScreenSharingAgent =
-      FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
+      FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize, deviceType = deviceType)
     var hostPort: Int? = null
     val configuration: DeviceConfiguration = DeviceConfiguration(createDeviceProperties())
     val handle: DeviceHandle = FakeDeviceHandle(this)
@@ -217,6 +220,7 @@ class FakeScreenSharingAgentRule : TestRule {
     private fun createDeviceProperties(): DeviceProperties {
       return DeviceProperties.build {
         readCommonProperties(deviceState.properties)
+        deviceType = this@FakeDevice.deviceType
         populateDeviceInfoProto("FakeDevicePlugin", serialNumber, deviceState.properties, "fakeConnectionId")
         readAdbSerialNumber(serialNumber)
         icon =

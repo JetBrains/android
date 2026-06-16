@@ -16,11 +16,11 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
-import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.annotations.concurrency.UiThread
 import com.android.fakeadbserver.DeviceState as FakeDeviceState
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.sdklib.AndroidVersionUtil
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -123,6 +123,7 @@ class FakeScreenSharingAgent(
   private val fakeDeviceState: FakeDeviceState,
   private val roundDisplay: Boolean = false,
   private val foldedSize: Dimension? = null,
+  val deviceType: DeviceType = DeviceType.HANDHELD,
 ) : Disposable {
 
   private val executor =
@@ -194,7 +195,7 @@ class FakeScreenSharingAgent(
   private val deviceStateIdentifier: Int
     get() = deviceState?.id ?: -1
 
-  private val isXrHeadset: Boolean = fakeDeviceState.properties[RO_BUILD_CHARACTERISTICS]?.contains("xr") == true
+  private val isXrHeadset: Boolean = deviceType == DeviceType.XR_HEADSET
   @Volatile var xrPassthroughCoefficient: Float = 0F
   @Volatile var xrEnvironment: XrEnvironment = XrEnvironment.LIVING_ROOM_DAY
 
