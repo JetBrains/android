@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.exportSignedPackage
+package com.android.tools.idea.publishing
 
 import com.android.tools.idea.googleapis.GoogleApiKeyProvider
 import com.google.api.client.http.HttpTransport

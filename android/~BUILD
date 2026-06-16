@@ -226,6 +226,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/app-publishing:intellij.android.app-publishing",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/android-lang:intellij.android.lang",
         "//tools/analytics-library/crash:analytics-crash",

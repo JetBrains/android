@@ -12043,6 +12043,8 @@ jvm_library(
         "//android/android-adb:adb_test_lib",
         "//android/project-system-gradle:projectSystem-gradle",
         "//android/project-system-gradle:projectSystem-gradle_test_lib",
+        "//android/app-publishing",
+        "//android/app-publishing:app-publishing_test_lib",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/android-lang:lang",
