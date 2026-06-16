@@ -54,6 +54,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.RowFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
@@ -153,6 +154,7 @@ public class ResourceTablePanel {
     resourceTypesPanel.add(ScrollPaneFactory.createScrollPane(myTypesList), BorderLayout.CENTER);
 
     myResourceTypeTable = new JBTable();
+    myResourceTypeTable.setDefaultRenderer(Object.class, getDefaultTableCellRenderer());
     myResourceTypeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     myResourceTypeTable.getEmptyText().setText("No resource type selected.");
 
@@ -193,6 +195,13 @@ public class ResourceTablePanel {
   }
 
   public JComponent getRootComponent() { return myContainer; }
+
+  @NotNull
+  private static DefaultTableCellRenderer getDefaultTableCellRenderer() {
+    DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+    renderer.putClientProperty("html.disable", Boolean.TRUE);
+    return renderer;
+  }
 
   private static class ResourceFilter extends RowFilter<Object, Object> {
 
