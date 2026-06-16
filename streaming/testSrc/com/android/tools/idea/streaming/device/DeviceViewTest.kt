@@ -16,8 +16,8 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
-import com.android.adblib.DevicePropertyNames
 import com.android.mockito.kotlin.whenever
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.GoldenImageRule
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.testutils.waitForCondition
@@ -402,7 +402,7 @@ internal class DeviceViewTest {
         Dimension(384, 384),
         roundDisplay = true,
         abi = "armeabi-v7a",
-        additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"),
+        deviceType = DeviceType.WEAR,
       )
 
     createDeviceView(100, 150, retinaMode = true)
@@ -1206,13 +1206,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testXrMouseInput() {
-    device =
-      agentRule.connectDevice(
-        "XR Headset",
-        34,
-        Dimension(2560, 2558),
-        additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,xr"),
-      )
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), deviceType = DeviceType.XR_HEADSET)
     createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
 
@@ -1239,13 +1233,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testXrZoom() {
-    device =
-      agentRule.connectDevice(
-        "XR Headset",
-        34,
-        Dimension(2560, 2558),
-        additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,xr"),
-      )
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), deviceType = DeviceType.XR_HEADSET)
     createDeviceView(200, 300)
     waitForFrame()
 

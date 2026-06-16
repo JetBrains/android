@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
-import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.GoldenImageRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.createTestEvent
@@ -226,13 +226,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testWearToolbarActions() {
-    device =
-      agentRule.connectDevice(
-        "Pixel Watch",
-        30,
-        Dimension(454, 454),
-        additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"),
-      )
+    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454), deviceType = DeviceType.WEAR)
     panel.createContent(false)
     assertThat(panel.primaryDisplayView).isNotNull()
 
@@ -291,8 +285,7 @@ class DeviceToolWindowPanelTest {
     StudioFlags.DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH.overrideForTest(true, testRootDisposable)
     // Move XR buttons to the Running Devices toolbar to check its appearance.
     service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
-    device =
-      agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), deviceType = DeviceType.XR_HEADSET)
     panel.createContent(false)
     val displayView = panel.primaryDisplayView ?: fail()
 
@@ -359,8 +352,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testXrKeyboardNavigation() {
-    device =
-      agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), deviceType = DeviceType.XR_HEADSET)
     panel.createContent(false)
     val displayView = panel.primaryDisplayView ?: fail()
 
@@ -442,8 +434,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testXrMouseViewRotation() {
-    device =
-      agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), deviceType = DeviceType.XR_HEADSET)
     panel.createContent(false)
     val displayView = panel.primaryDisplayView ?: fail()
 
@@ -470,8 +461,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testXrMouseMovementInSpace() {
-    device =
-      agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), deviceType = DeviceType.XR_HEADSET)
     panel.createContent(false)
     val displayView = panel.primaryDisplayView ?: fail()
 
