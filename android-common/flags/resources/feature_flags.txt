@@ -177,6 +177,7 @@ studiobot.agent.editor.tab.enabled=PREVIEW
 studiobot.agent.experimental.build.prompt=PREVIEW
 studiobot.agent.mode=COMPLETE:2025
 studiobot.agent.notifications=COMPLETE:2026
+studiobot.agent.permission.modes=INTERNAL
 studiobot.agent.plan.tool.enabled=INTERNAL
 studiobot.agent.query.status.banner.enabled=COMPLETE:2025
 studiobot.agent.v2.telemetry.enabled=COMPLETE:2026
