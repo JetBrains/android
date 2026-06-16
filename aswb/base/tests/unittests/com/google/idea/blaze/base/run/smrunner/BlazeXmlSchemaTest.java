@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
+import javax.xml.stream.XMLStreamException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -210,6 +211,28 @@ public class BlazeXmlSchemaTest {
 
     TestCase testCase = parsed.testSuites.get(0).testCases.get(0);
     assertThat(BlazeXmlSchema.getErrorContent(testCase.errors.get(0))).isNull();
+  }
+
+  @Test
+  public void testDtdIsIgnoredOrThrows() {
+    try {
+      parseXml(
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+          "<!DOCTYPE testsuites [",
+          "  <!ENTITY xxe SYSTEM \"file:///etc/passwd\">",
+          "]>",
+          "<testsuites>",
+          "  <testsuite name=\"&xxe;\">",
+          "  </testsuite>",
+          "</testsuites>");
+      org.junit.Assert.fail("Expected XMLStreamException due to DTD configuration");
+    } catch (RuntimeException e) {
+      assertThat(e.getCause()).isInstanceOf(Exception.class);
+      assertThat(
+              e.getCause() instanceof javax.xml.bind.JAXBException
+                  || e.getCause() instanceof XMLStreamException)
+          .isTrue();
+    }
   }
 
   private static TestSuite parseXml(String... lines) {
