@@ -17,10 +17,8 @@ package com.android.tools.idea.streaming.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.core.STREAMING_DEVICE_ID_KEY
-import com.android.tools.idea.streaming.emulator.actions.isEmulator
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -96,5 +94,4 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
   }
 }
 
-internal fun isHandAndEyeTrackingEnabled(event: AnActionEvent): Boolean =
-  isEmulator(event) && StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_TRACKING.get()
+internal fun isHandAndEyeTrackingEnabled(event: AnActionEvent): Boolean = getXrInputController(event)?.isHandAndEyeInputSupported ?: false

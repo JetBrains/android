@@ -68,6 +68,7 @@ private constructor(
   val touchpadSize: Dimension? = null,
   val dimmingLevels: FloatArray = floatArrayOf(),
   val hasLedIndicators: Boolean = false,
+  val handAndEyeInputSupported: Boolean = false,
 ) {
 
   val displayWidth: Int
@@ -255,6 +256,15 @@ private constructor(
           else -> false
         }
 
+      val handAndEyeInputSupported =
+        when (deviceType) {
+          DeviceType.XR_HEADSET -> {
+            val features = systemImageFeatures ?: readSystemImageFeatures(systemImageDir).also { systemImageFeatures = it }
+            features["XrHandAndEyePointers"] == "on"
+          }
+          else -> false
+        }
+
       return EmulatorConfiguration(
         avdFolder = avdFolder,
         avdName = avdName,
@@ -274,6 +284,7 @@ private constructor(
         touchpadSize = touchpadSize,
         dimmingLevels = dimmingLevels,
         hasLedIndicators = hasLedIndicators,
+        handAndEyeInputSupported = handAndEyeInputSupported,
       )
     }
 

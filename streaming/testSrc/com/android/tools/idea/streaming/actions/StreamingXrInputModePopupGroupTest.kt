@@ -65,7 +65,7 @@ class StreamingXrInputModePopupGroupTest {
   @Before
   fun setUp() {
     testRootDisposable = Disposer.newDisposable()
-    StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_TRACKING.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_INPUT.overrideForTest(true, testRootDisposable)
   }
 
   @After

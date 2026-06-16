@@ -1261,9 +1261,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_DESKTOP_SDK37PLUS_AVD = new BooleanFlag(
     EMBEDDED_EMULATOR, "allow.desktop.sdk37plus", "Allow Desktop AVD (SDK 37+) to run embedded",
     "Enables running a Desktop AVD (SDK 37+) in the Running Devices tool window");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_AND_EYE_TRACKING = new BooleanFlag(
-    EMBEDDED_EMULATOR, "xr.hand.and.eye.tracking", "Enable hand and eye tracking input modes for XR AVDs",
-    "Enables hand and eye tracking input modes for XR AVDs");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_AND_EYE_INPUT = new BooleanFlag(
+    EMBEDDED_EMULATOR, "xr.hand.and.eye.input", "Enable hand and eye input modes for XR AVDs",
+    "Enables hand and eye input modes for XR AVDs");
   public static final Flag<Boolean> EMBEDDED_EMULATOR_CAMERA_ENVIRONMENT = new BooleanFlag(
     EMBEDDED_EMULATOR, "camera.environment", "Enable Camera Environment",
     "Enables displaying host cameras in the environment menu for AI Glasses");
