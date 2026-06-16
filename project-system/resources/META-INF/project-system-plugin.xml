@@ -41,6 +41,8 @@
                     interface="com.android.tools.idea.projectsystem.AndroidIconProviderProjectToken"/>
     <extensionPoint qualifiedName="org.jetbrains.android.facet.resourceFolderManagerToken"
                     interface="org.jetbrains.android.facet.ResourceFolderManagerToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.androidShowStructureSettingsActionToken"
+                    interface="com.android.tools.idea.projectsystem.AndroidShowStructureSettingsActionToken"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSyncModificationTracker"/>
