@@ -271,10 +271,6 @@ open class ProfilersTestBase {
     studio.executeAction("Android.StopJavaKotlinAllocationsTask")
   }
 
-  protected fun setRecordingTypeToSampling(studio: AndroidStudio) {
-    studio.executeAction("Android.SetRecordingTypeToSampling")
-  }
-
   protected fun setRecordingTypeToTracing(studio: AndroidStudio) {
     studio.executeAction("Android.SetRecordingTypeToTracing")
   }
