@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Timed
@@ -28,7 +28,7 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 data class IssueToggled(val issue: IssueId, val issueState: IssueState, private val isUndo: Boolean = false) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,

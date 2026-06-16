@@ -18,8 +18,8 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
+import com.android.tools.idea.insights.AppInsightsCrashControllerImpl
 import com.android.tools.idea.insights.AppInsightsModel
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
@@ -180,7 +180,7 @@ class VitalsConfigurationManager(
 
   private inner class ComponentLoader {
     private val clientDeferred = CompletableDeferred<AppInsightsClient>()
-    private val controllerDeferred = CompletableDeferred<AppInsightsProjectLevelControllerImpl>()
+    private val controllerDeferred = CompletableDeferred<AppInsightsCrashControllerImpl>()
 
     suspend fun getClient() = clientDeferred.await()
 
@@ -224,7 +224,7 @@ class VitalsConfigurationManager(
 
         val codeContextResolver = CodeContextResolverImpl(project)
         val vitalsController =
-          AppInsightsProjectLevelControllerImpl(
+          AppInsightsCrashControllerImpl(
               provider = VitalsInsightsProvider,
               uiScope,
               Dispatchers.Default,

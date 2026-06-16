@@ -18,10 +18,10 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
@@ -48,7 +48,7 @@ private const val EMPTY_COMBOBOX_MESSAGE = "No variants available."
 private const val FAILURE_COMBOBOX_MESSAGE = "Failed to load variants."
 private const val OFFLINE_COMBOBOX_MESSAGE = "Not available offline."
 
-class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable) :
+class VariantComboBox(flow: Flow<AppInsightsCrashState>, parentDisposable: Disposable) :
   CommonComboBox<Row, DefaultCommonComboBoxModel<Row>>(DefaultCommonComboBoxModel<Row>("All variants").apply { editable = false }),
   Disposable {
   private var isDisabledIndex = false
@@ -181,7 +181,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
 }
 
 @VisibleForTesting
-fun AppInsightsIssue.toVariantRow(size: Int) =
+fun AppInsightsCrash.toVariantRow(size: Int) =
   VariantRow("All${if (size > 1) " ($size variants)" else ""}", issueDetails.eventsCount, issueDetails.impactedDevicesCount, null)
 
 @VisibleForTesting fun IssueVariant.toVariantRow() = VariantRow(id.takeLast(4), eventsCount, impactedDevicesCount, this)

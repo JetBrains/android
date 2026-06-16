@@ -18,7 +18,7 @@ package com.android.tools.idea.insights.ui.insight
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
@@ -49,7 +49,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class InsightDisclaimerPanel(
-  private val controller: AppInsightsProjectLevelController,
+  private val controller: AppInsightsCrashController,
   scope: CoroutineScope,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
 ) : JPanel(VerticalLayout(0)) {

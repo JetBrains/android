@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.InsightFeedback
@@ -46,7 +46,7 @@ import kotlinx.coroutines.flow.stateIn
 const val INSIGHT_TOOLBAR = "InsightToolbarPanel"
 
 class InsightToolbarPanel(
-  controller: AppInsightsProjectLevelController,
+  controller: AppInsightsCrashController,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   private val onSubmitFeedback: (InsightFeedback) -> Unit,

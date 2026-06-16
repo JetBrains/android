@@ -30,7 +30,7 @@ import com.android.tools.idea.insights.model.event.EventData
 import com.android.tools.idea.insights.model.event.Log
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueDetails
@@ -100,7 +100,7 @@ val SAMPLE_KEYS = listOf(CustomKey("CSRF_TOKEN", "screen_view"), CustomKey("RAY_
 val SAMPLE_LOGS = listOf(Log(FAKE_10_HOURS_AGO, "fake_log", mapOf("key" to "value")))
 
 val ISSUE1 =
-  AppInsightsIssue(
+  AppInsightsCrash(
     IssueDetails(
       IssueId("1234"),
       "Issue1",
@@ -199,7 +199,7 @@ val ISSUE1_DETAILS =
   )
 
 val ISSUE2 =
-  AppInsightsIssue(
+  AppInsightsCrash(
     IssueDetails(
       IssueId("2345"),
       "Issue2",
@@ -309,7 +309,7 @@ val ISSUE2 =
   )
 
 val ISSUE3 =
-  AppInsightsIssue(
+  AppInsightsCrash(
     IssueDetails(
       IssueId("6789"),
       "Issue3",
@@ -426,4 +426,4 @@ val AI_INSIGHT_WITH_CODE_CONTEXT =
 fun IssueDetails.zeroCounts() = copy(impactedDevicesCount = 0, eventsCount = 0)
 
 // Used for testing cached issues because their counts are zeroed out.
-fun AppInsightsIssue.zeroCounts() = copy(issueDetails = issueDetails.zeroCounts())
+fun AppInsightsCrash.zeroCounts() = copy(issueDetails = issueDetails.zeroCounts())

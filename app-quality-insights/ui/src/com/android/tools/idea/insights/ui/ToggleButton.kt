@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.model.connection.ConnectionMode
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.IssueState
 import javax.swing.JButton
 
@@ -48,11 +48,11 @@ import javax.swing.JButton
 @Suppress("FunctionName")
 fun ToggleButton(
   withIssue: ((ToggleButtonState) -> Unit) -> Unit,
-  onOpen: (AppInsightsIssue) -> Unit,
-  onClose: (AppInsightsIssue) -> Unit,
+  onOpen: (AppInsightsCrash) -> Unit,
+  onClose: (AppInsightsCrash) -> Unit,
 ): JButton {
   val button = JButton("").apply { isOpaque = false }
-  var activeIssue: AppInsightsIssue? = null
+  var activeIssue: AppInsightsCrash? = null
   withIssue { state ->
     activeIssue = state.issue
     when (state.issue.state) {
@@ -91,6 +91,6 @@ fun ToggleButton(
 
 data class ToggleButtonEnabledState(val permission: Permission, val mode: ConnectionMode)
 
-data class ToggleButtonState(val issue: AppInsightsIssue, val buttonState: ToggleButtonEnabledState) {
+data class ToggleButtonState(val issue: AppInsightsCrash, val buttonState: ToggleButtonEnabledState) {
   fun shouldBeEnabled() = buttonState.mode == ConnectionMode.ONLINE && buttonState.permission == Permission.FULL
 }

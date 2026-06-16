@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
@@ -28,7 +28,7 @@ import com.intellij.openapi.diagnostic.Logger
 
 class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,
@@ -72,7 +72,7 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
       .also { trackEventFetched(tracker, it.newState, state.currentEvents is LoadingState.Loading) }
   }
 
-  private fun trackEventFetched(tracker: AppInsightsTracker, state: AppInsightsState, isFirstFetch: Boolean) {
+  private fun trackEventFetched(tracker: AppInsightsTracker, state: AppInsightsCrashState, isFirstFetch: Boolean) {
     val appId = state.connections.selected?.appId ?: return
     val issue = state.selectedIssue ?: return
 

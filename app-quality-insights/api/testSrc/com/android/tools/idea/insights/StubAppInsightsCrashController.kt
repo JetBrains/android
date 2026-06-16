@@ -24,7 +24,7 @@ import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueVariant
 import com.android.tools.idea.insights.model.issue.SignalType
@@ -36,21 +36,24 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import org.mockito.Mockito.mock
 
-open class StubAppInsightsProjectLevelController(
+open class StubAppInsightsCrashController(
   override val provider: InsightsProvider = FakeInsightsProvider(),
-  override val state: Flow<AppInsightsState> = emptyFlow(),
+  override val state: Flow<AppInsightsCrashState> = emptyFlow(),
   override val coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   private val retrieveInsights: (PsiFile) -> List<AppInsight> = { _ -> emptyList() },
   override val aiInsightToolkit: AiInsightToolkit = FakeAiInsightToolkit(mock()),
-) : AppInsightsProjectLevelController {
+  override val connections: StateFlow<Selection<Connection>> = MutableStateFlow(Selection.emptySelection()),
+) : AppInsightsCrashController {
   override val project: Project = mock()
 
   override fun refresh() {}
 
-  override fun selectIssue(value: AppInsightsIssue?, selectionSource: IssueSelectionSource) {}
+  override fun selectIssue(value: AppInsightsCrash?, selectionSource: IssueSelectionSource) {}
 
   override fun selectVersions(values: Set<Version>) {}
 
@@ -66,7 +69,7 @@ open class StubAppInsightsProjectLevelController(
 
   override fun insightsInFile(file: PsiFile) = retrieveInsights(file)
 
-  override fun revertToSnapshot(state: AppInsightsState) {}
+  override fun revertToSnapshot(state: AppInsightsCrashState) {}
 
   override fun selectSignal(value: SignalType) {}
 
@@ -76,11 +79,11 @@ open class StubAppInsightsProjectLevelController(
 
   override fun previousEvent() {}
 
-  override fun openIssue(issue: AppInsightsIssue) {}
+  override fun openIssue(issue: AppInsightsCrash) {}
 
-  override fun closeIssue(issue: AppInsightsIssue) {}
+  override fun closeIssue(issue: AppInsightsCrash) {}
 
-  override fun addNote(issue: AppInsightsIssue, message: String) {}
+  override fun addNote(issue: AppInsightsCrash, message: String) {}
 
   override fun deleteNote(note: Note) {}
 

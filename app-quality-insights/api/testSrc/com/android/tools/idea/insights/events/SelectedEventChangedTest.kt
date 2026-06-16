@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.EventMovement
@@ -53,7 +53,7 @@ class SelectedEventChangedTest {
   @Test
   fun `get next event`() {
     val state =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Loading,
@@ -69,7 +69,7 @@ class SelectedEventChangedTest {
   @Test
   fun `get previous event`() {
     val state =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Loading,
@@ -85,7 +85,7 @@ class SelectedEventChangedTest {
   @Test
   fun `get next or previous event when none are available results in noop`() {
     val state =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Loading,
@@ -107,7 +107,7 @@ class SelectedEventChangedTest {
   @Test
   fun `next event triggers ListEvents action when token exists`() {
     val state =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),

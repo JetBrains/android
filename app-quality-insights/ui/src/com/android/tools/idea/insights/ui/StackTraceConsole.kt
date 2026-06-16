@@ -17,12 +17,12 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.stacktrace.Blames
 import com.android.tools.idea.insights.model.stacktrace.Frame
@@ -82,12 +82,12 @@ private val LINE_0_REGEX = Regex("\\((.*):0\\)")
 data class StackTraceConsoleState(
   val connection: Connection? = null,
   val mode: ConnectionMode? = null,
-  val issue: AppInsightsIssue? = null,
+  val issue: AppInsightsCrash? = null,
   val event: Event? = null,
 )
 
 class StackTraceConsole(
-  private val controller: AppInsightsProjectLevelController,
+  private val controller: AppInsightsCrashController,
   private val project: Project,
   private val tracker: AppInsightsTracker,
 ) : Disposable {
@@ -203,7 +203,7 @@ class StackTraceConsole(
     DumbService.getInstance(project).smartInvokeLater { synchronized(CONSOLE_LOCK) { consoleView.rehighlightHyperlinksAndFoldings() } }
   }
 
-  private fun printStack(issue: AppInsightsIssue, event: Event, connection: Connection?, consoleView: ConsoleViewImpl) {
+  private fun printStack(issue: AppInsightsCrash, event: Event, connection: Connection?, consoleView: ConsoleViewImpl) {
     if (event == currentEvent) {
       return
     }

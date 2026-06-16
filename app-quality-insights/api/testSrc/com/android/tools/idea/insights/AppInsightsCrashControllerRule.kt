@@ -39,7 +39,7 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -76,7 +76,7 @@ import org.mockito.kotlin.spy
 
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 
-class AppInsightsProjectLevelControllerRule(
+class AppInsightsCrashControllerRule(
   private val projectProvider: () -> Project,
   private val provider: InsightsProvider,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
@@ -100,9 +100,9 @@ class AppInsightsProjectLevelControllerRule(
   private lateinit var scope: CoroutineScope
   lateinit var clock: FakeClock
   lateinit var client: TestAppInsightsClient
-  lateinit var controller: AppInsightsProjectLevelController
+  lateinit var controller: AppInsightsCrashController
   private lateinit var connections: MutableSharedFlow<List<Connection>>
-  private lateinit var internalState: Channel<AppInsightsState>
+  private lateinit var internalState: Channel<AppInsightsCrashState>
   lateinit var tracker: AppInsightsTracker
   private lateinit var cache: AppInsightsCache
 
@@ -124,7 +124,7 @@ class AppInsightsProjectLevelControllerRule(
     fakeAiInsightContributor = FakeAiInsightContributor()
     ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(fakeAiInsightContributor), disposable)
     controller =
-      AppInsightsProjectLevelControllerImpl(
+      AppInsightsCrashControllerImpl(
         provider,
         scope,
         Dispatchers.Default,
@@ -166,7 +166,7 @@ class AppInsightsProjectLevelControllerRule(
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     insightState: LoadingState.Done<AiInsight> = LoadingState.Ready(DEFAULT_AI_INSIGHT),
     isTransitionToOnlineMode: Boolean = false,
-  ): AppInsightsState {
+  ): AppInsightsCrashState {
     client.completeIssuesCallWith(state)
     if (isTransitionToOnlineMode) {
       assertThat(consumeNext().mode == ConnectionMode.ONLINE).isTrue()
@@ -214,7 +214,7 @@ class AppInsightsProjectLevelControllerRule(
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION),
     insightState: LoadingState.Done<AiInsight> = LoadingState.Ready(DEFAULT_AI_INSIGHT),
-  ): AppInsightsState {
+  ): AppInsightsCrashState {
     connections.emit(connectionsState)
     val loadingState = consumeWhile { it.connections.items != connectionsState }
     assertThat(loadingState.connections).isEqualTo(Selection(connectionsState.firstOrNull(), connectionsState))
@@ -228,7 +228,7 @@ class AppInsightsProjectLevelControllerRule(
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
 
-  suspend fun consumeWhile(condition: (AppInsightsState) -> Boolean): AppInsightsState {
+  suspend fun consumeWhile(condition: (AppInsightsCrashState) -> Boolean): AppInsightsCrashState {
     var state = consumeNext()
     while (condition(state)) {
       state = consumeNext()
@@ -236,18 +236,18 @@ class AppInsightsProjectLevelControllerRule(
     return state
   }
 
-  private suspend fun consumeLoading(): AppInsightsState {
+  private suspend fun consumeLoading(): AppInsightsCrashState {
     return internalState.receiveWithTimeout().also { assertThat(it.issues).isInstanceOf(LoadingState.Loading::class.java) }
   }
 
-  suspend fun refreshAndConsumeLoadingState(): AppInsightsState {
+  suspend fun refreshAndConsumeLoadingState(): AppInsightsCrashState {
     controller.refresh()
     return consumeLoading()
   }
 
-  fun revertToSnapshot(state: AppInsightsState) = controller.revertToSnapshot(state)
+  fun revertToSnapshot(state: AppInsightsCrashState) = controller.revertToSnapshot(state)
 
-  fun selectIssue(value: AppInsightsIssue?, source: IssueSelectionSource) = controller.selectIssue(value, source)
+  fun selectIssue(value: AppInsightsCrash?, source: IssueSelectionSource) = controller.selectIssue(value, source)
 
   fun selectVersions(values: Set<Version>) = controller.selectVersions(values)
 

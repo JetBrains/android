@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
@@ -24,7 +24,7 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.events.actions.Action
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.note.Note
 import com.android.tools.idea.insights.model.note.NoteId
@@ -37,7 +37,7 @@ import java.util.UUID
 
 data class AddNoteRequested(val issueId: IssueId, val message: String, val clock: Clock) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,
@@ -69,7 +69,7 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
 
 data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Failure) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,
@@ -98,7 +98,7 @@ data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Fa
 
 data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,
@@ -131,16 +131,16 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
   }
 }
 
-internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementNotesCount(issueId: IssueId) =
-  applyUpdate(issueId, AppInsightsIssue::incrementNotesCount)
+internal fun LoadingState<Timed<Selection<AppInsightsCrash>>>.incrementNotesCount(issueId: IssueId) =
+  applyUpdate(issueId, AppInsightsCrash::incrementNotesCount)
 
-internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.decrementNotesCount(issueId: IssueId) =
-  applyUpdate(issueId, AppInsightsIssue::decrementNotesCount)
+internal fun LoadingState<Timed<Selection<AppInsightsCrash>>>.decrementNotesCount(issueId: IssueId) =
+  applyUpdate(issueId, AppInsightsCrash::decrementNotesCount)
 
-private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.applyUpdate(
+private fun LoadingState<Timed<Selection<AppInsightsCrash>>>.applyUpdate(
   issueId: IssueId,
-  update: (AppInsightsIssue) -> AppInsightsIssue,
-): LoadingState<Timed<Selection<AppInsightsIssue>>> = map { timed ->
+  update: (AppInsightsCrash) -> AppInsightsCrash,
+): LoadingState<Timed<Selection<AppInsightsCrash>>> = map { timed ->
   timed.copy(
     value =
       timed.value.copy(

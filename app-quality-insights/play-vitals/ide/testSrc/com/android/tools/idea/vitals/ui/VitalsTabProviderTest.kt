@@ -23,7 +23,7 @@ import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
-import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
+import com.android.tools.idea.insights.StubAppInsightsCrashController
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.ServiceUnsupportedPanel
 import com.android.tools.idea.testing.disposable
@@ -100,7 +100,7 @@ class VitalsTabProviderTest {
 
     delayUntilCondition(200) { tabPanel.components.firstOrNull().toString().contains("placeholderContent") }
     val stubController =
-      object : StubAppInsightsProjectLevelController() {
+      object : StubAppInsightsCrashController() {
         override val project = projectRule.project
       }
 
@@ -122,7 +122,7 @@ class VitalsTabProviderTest {
   @Test
   fun `controller is refreshed after reauthentication`() = runTest {
     val controller =
-      object : StubAppInsightsProjectLevelController() {
+      object : StubAppInsightsCrashController() {
         var refreshCount = 0
         override val project = projectRule.project
 
@@ -176,7 +176,7 @@ class VitalsTabProviderTest {
 
   @Test
   fun `service restored when deprecation data changes from UNSUPPORTED to SUPPORTED`() = runTest {
-    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
+    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsCrashController())
     deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.UNSUPPORTED) }
 
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
@@ -191,7 +191,7 @@ class VitalsTabProviderTest {
 
   @Test
   fun `service restored when deprecation data changes from UNSUPPORTED to DEPRECATED`() = runTest {
-    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
+    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsCrashController())
     deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.UNSUPPORTED) }
 
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
@@ -207,7 +207,7 @@ class VitalsTabProviderTest {
 
   @Test
   fun `deprecation banner hidden when deprecation data changes from DEPRECATED TO SUPPORTED`() = runTest {
-    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
+    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsCrashController())
     deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.DEPRECATED) }
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }

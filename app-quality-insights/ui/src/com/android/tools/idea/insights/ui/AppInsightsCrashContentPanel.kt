@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.event.Event
@@ -41,8 +41,8 @@ val AI_INSIGHT_TOOLKIT_KEY = DataKey.create<AiInsightToolkit>("AiInsightToolkit"
 val APP_INSIGHTS_TRACKER_KEY = DataKey.create<AppInsightsTracker>("AppInsightsTracker")
 val SELECTED_APP_ID_KEY = DataKey.create<String>("SelectedAppId")
 
-class AppInsightsContentPanel(
-  projectController: AppInsightsProjectLevelController,
+class AppInsightsCrashContentPanel(
+  projectController: AppInsightsCrashController,
   project: Project,
   parentDisposable: Disposable,
   cellRenderer: AppInsightsTableCellRenderer,
@@ -52,13 +52,13 @@ class AppInsightsContentPanel(
   workBenchFactory: (Disposable) -> WorkBench<AppInsightsToolWindowContext> = { WorkBench(project, name, null, it) },
   createCenterPanel: () -> PanelWithHeaderComponent,
 ) : JPanel(BorderLayout()), Disposable {
-  private val issuesTableView: AppInsightsIssuesTableView
+  private val issuesTableView: AppInsightsCrashesTableView
   private val centerPanel: PanelWithHeaderComponent = createCenterPanel()
 
   init {
     Disposer.register(parentDisposable, this)
-    val issuesModel = AppInsightsIssuesTableModel(cellRenderer)
-    issuesTableView = AppInsightsIssuesTableView(issuesModel, projectController, cellRenderer, tableMouseListener)
+    val issuesModel = AppInsightsCrashesTableModel(cellRenderer)
+    issuesTableView = AppInsightsCrashesTableView(issuesModel, projectController, cellRenderer, tableMouseListener)
     Disposer.register(this, issuesTableView)
     val mainContentPanel = JPanel(BorderLayout())
     mainContentPanel.add(centerPanel)

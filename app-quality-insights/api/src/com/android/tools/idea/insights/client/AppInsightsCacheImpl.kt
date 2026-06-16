@@ -19,7 +19,7 @@ import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.model.common.Interval
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -35,7 +35,7 @@ private const val MAXIMUM_ISSUES_CACHE_SIZE = 1000L
 private const val MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE = 20L
 
 private data class IssueDetailsValue(val issueDetails: IssueDetails, val sampleEvents: SortedSet<Event>, val state: IssueState) {
-  fun toIssue(insightsProvider: InsightsProvider) = AppInsightsIssue(issueDetails, sampleEvents.first(), insightsProvider, state)
+  fun toIssue(insightsProvider: InsightsProvider) = AppInsightsCrash(issueDetails, sampleEvents.first(), insightsProvider, state)
 }
 
 private data class CacheValue(val issueDetails: IssueDetailsValue?, val notes: List<Note>?)
@@ -54,7 +54,7 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
   }
 
   // TODO(b/249297282): Fetch top issues for "default" filter in the background
-  override fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>? {
+  override fun getTopIssues(request: IssueRequest): List<AppInsightsCrash>? {
     val allIssues = compositeIssuesCache.getIfPresent(request.connection)?.asMap()?.values ?: return null
     return allIssues
       .asSequence()
@@ -66,7 +66,7 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
           cachedIssue.issueDetails.matchErrorType(request.filters.eventTypes) &&
             cachedIssue.issueDetails.matchSignalType(request.filters.signal)
         ) {
-          AppInsightsIssue(cachedIssue.issueDetails, matchingEvent, source, cachedIssue.state)
+          AppInsightsCrash(cachedIssue.issueDetails, matchingEvent, source, cachedIssue.state)
         } else {
           null
         }
@@ -86,12 +86,12 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
       .toList()
   }
 
-  override fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsIssue> {
+  override fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsCrash> {
     val cache = compositeIssuesCache.getIfPresent(connection)?.asMap() ?: return emptyList()
     return issueIds.mapNotNull { cache[it]?.let { cacheValue -> cacheValue.issueDetails?.toIssue(source) } }
   }
 
-  override fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>) {
+  override fun populateIssues(connection: Connection, issues: List<AppInsightsCrash>) {
     val issuesCache = getOrCreateIssuesCache(connection).asMap()
     issues.forEach { newIssue ->
       issuesCache.compute(newIssue.issueDetails.id) { _, oldValue ->
@@ -144,7 +144,7 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
     compositeIssuesCache.getIfPresent(connection)?.invalidate(issueId)
   }
 
-  private fun IssueDetailsValue?.reconcileWith(issue: AppInsightsIssue): IssueDetailsValue {
+  private fun IssueDetailsValue?.reconcileWith(issue: AppInsightsCrash): IssueDetailsValue {
     if (this == null) {
       return issue.toNewIssueDetailsValue()
     }
@@ -175,7 +175,7 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
     return result
   }
 
-  private fun AppInsightsIssue.toNewIssueDetailsValue(): IssueDetailsValue =
+  private fun AppInsightsCrash.toNewIssueDetailsValue(): IssueDetailsValue =
     IssueDetailsValue(issueDetails, TreeSet(comparator).apply { add(sampleEvent) }, state)
 
   private fun Event.matchInterval(interval: Interval): Boolean {

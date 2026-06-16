@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights.analytics
 
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
@@ -84,7 +84,7 @@ private val ISSUE_RESPONSE =
 
 class AppInsightsTrackerTest {
   private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule)
 
@@ -238,7 +238,7 @@ class AppInsightsTrackerTest {
   fun `track events fetched`() = runBlocking {
     val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     var testState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -263,7 +263,7 @@ class AppInsightsTrackerTest {
   fun `track crash view`() = runBlocking {
     val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     val testState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -301,7 +301,7 @@ class AppInsightsTrackerTest {
   fun `track insight fetch`() = runBlocking {
     val context = CodeContextData(listOf(CodeContext("path", "dklsjfsds")))
     val testState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),

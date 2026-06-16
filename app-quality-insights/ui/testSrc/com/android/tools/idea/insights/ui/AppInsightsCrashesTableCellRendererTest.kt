@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.FakeInsightsProvider
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -32,7 +32,7 @@ import javax.swing.table.TableColumn
 import org.junit.Test
 import org.mockito.kotlin.mock
 
-class AppInsightsIssuesTableCellRendererTest {
+class AppInsightsCrashesTableCellRendererTest {
 
   @Test
   fun testIcons() {
@@ -57,9 +57,9 @@ class AppInsightsIssuesTableCellRendererTest {
       )
 
     table.columnModel.addColumn(TableColumn(0).apply { width = 200 })
-    fun getIcons(issue: AppInsightsIssue): Collection<Icon> {
+    fun getIcons(issue: AppInsightsCrash): Collection<Icon> {
       val renderer =
-        AppInsightsIssuesTableCellRenderer.getTableCellRendererComponent(
+        AppInsightsCrashesTableCellRenderer.getTableCellRendererComponent(
           table,
           issue,
           selected = false,
@@ -75,18 +75,18 @@ class AppInsightsIssuesTableCellRendererTest {
         }
       }
     }
-    assertThat(getIcons(AppInsightsIssue(detailsTemplate, mock(), FakeInsightsProvider())))
+    assertThat(getIcons(AppInsightsCrash(detailsTemplate, mock(), FakeInsightsProvider())))
       .containsExactly(StudioIcons.AppQualityInsights.FATAL)
 
-    assertThat(getIcons(AppInsightsIssue(detailsTemplate.copy(fatality = FailureType.NON_FATAL), mock(), FakeInsightsProvider())))
+    assertThat(getIcons(AppInsightsCrash(detailsTemplate.copy(fatality = FailureType.NON_FATAL), mock(), FakeInsightsProvider())))
       .containsExactly(StudioIcons.AppQualityInsights.NON_FATAL)
 
-    assertThat(getIcons(AppInsightsIssue(detailsTemplate.copy(notesCount = 4), mock(), FakeInsightsProvider())))
+    assertThat(getIcons(AppInsightsCrash(detailsTemplate.copy(notesCount = 4), mock(), FakeInsightsProvider())))
       .containsExactly(StudioIcons.AppQualityInsights.FATAL_WITH_NOTE)
 
     assertThat(
         getIcons(
-          AppInsightsIssue(
+          AppInsightsCrash(
             detailsTemplate.copy(signals = setOf(SignalType.SIGNAL_FRESH, SignalType.SIGNAL_REGRESSED)),
             mock(),
             FakeInsightsProvider(),

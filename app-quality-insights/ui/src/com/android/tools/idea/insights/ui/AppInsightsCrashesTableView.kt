@@ -18,8 +18,8 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.NoDevicesSelectedException
@@ -28,7 +28,7 @@ import com.android.tools.idea.insights.NoTypesSelectedException
 import com.android.tools.idea.insights.NoVersionsSelectedException
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
@@ -58,9 +58,9 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 @Suppress("DialogTitleCapitalization")
-class AppInsightsIssuesTableView(
-  model: AppInsightsIssuesTableModel,
-  private val controller: AppInsightsProjectLevelController,
+class AppInsightsCrashesTableView(
+  model: AppInsightsCrashesTableModel,
+  private val controller: AppInsightsCrashController,
   private val renderer: AppInsightsTableCellRenderer,
   tableMouseListener: MouseListener?,
 ) : Disposable {
@@ -76,7 +76,7 @@ class AppInsightsIssuesTableView(
 
     tableMouseListener?.let { table.addMouseListener(tableMouseListener) }
 
-    TableSpeedSearch.installOn(table) { if (it is AppInsightsIssue) convertToSearchText(it) else it.toString() }
+    TableSpeedSearch.installOn(table) { if (it is AppInsightsCrash) convertToSearchText(it) else it.toString() }
     tableHeader = table.tableHeader
     tableHeader.reorderingAllowed = false
     tableHeader.preferredSize = Dimension(0, commonToolbarHeight())
@@ -130,7 +130,7 @@ class AppInsightsIssuesTableView(
                 // value.
                 // To avoid this we suppress the change listener since as the model change was the
                 // source of this event,
-                // and we don't need to fire an issue change event.
+                // and we don't need to fire a crash change event.
                 suppressListener(table) { table.selection = listOfNotNull(issues.value.value.selected) }
                 table.scrollRectToVisible(table.getCellRect(table.selectedRow, 0, true))
               } else {
@@ -234,11 +234,11 @@ class AppInsightsIssuesTableView(
 
   override fun dispose() = Unit
 
-  inner class IssuesTableView(model: AppInsightsIssuesTableModel) : TableView<AppInsightsIssue>(model) {
+  inner class IssuesTableView(model: AppInsightsCrashesTableModel) : TableView<AppInsightsCrash>(model) {
     val tableEmptyText = AppInsightsStatusText(this) { (isEmpty && !loadingPanel.isLoading).also { updateTimer(it) } }
 
     // This is required to force the spinner icon to animate in the status text.
-    private val repaintTimer = TimerUtil.createNamedTimer("AppInsightsIssuesTableView", 10) { repaint() }
+    private val repaintTimer = TimerUtil.createNamedTimer("AppInsightsCrashesTableView", 10) { repaint() }
 
     init {
       selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -297,7 +297,7 @@ class AppInsightsIssuesTableView(
           clear()
           appendText(failure.message ?: revertibleCause?.message ?: "An unknown failure occurred", EMPTY_STATE_TITLE_FORMAT)
           if (cause.snapshot != null) {
-            appendSecondaryText("Go Back", EMPTY_STATE_LINK_FORMAT) { controller.revertToSnapshot(cause.snapshot as AppInsightsState) }
+            appendSecondaryText("Go Back", EMPTY_STATE_LINK_FORMAT) { controller.revertToSnapshot(cause.snapshot as AppInsightsCrashState) }
           }
         }
       }
@@ -305,6 +305,6 @@ class AppInsightsIssuesTableView(
   }
 
   companion object {
-    val LOGGER = Logger.getInstance(AppInsightsIssuesTableView::class.java)
+    val LOGGER = Logger.getInstance(AppInsightsCrashesTableView::class.java)
   }
 }

@@ -127,7 +127,7 @@ class VitalsIntegrationTest {
 
       // Verify the issues table is displayed.
       studio.waitForComponent(
-        ComponentMatchersBuilder().apply { addSwingClassRegexMatch(".*AppInsightsIssuesTableView\\\$IssuesTableView$") }
+        ComponentMatchersBuilder().apply { addSwingClassRegexMatch(".*AppInsightsCrashesTableView\\\$IssuesTableView$") }
       )
 
       // Verify the stack trace panel is displayed.

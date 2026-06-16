@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -38,7 +38,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class DetailsTabbedPaneTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   @get:Rule val edtRule = EdtRule()
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(controllerRule)

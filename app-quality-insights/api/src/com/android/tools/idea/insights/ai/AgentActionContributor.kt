@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ai
 
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -28,7 +28,7 @@ data class AgentAction(
 )
 
 interface AgentActionContributor {
-  fun provideActions(event: Event, issue: AppInsightsIssue, project: Project): List<AgentAction>
+  fun provideActions(event: Event, issue: AppInsightsCrash, project: Project): List<AgentAction>
 
   companion object {
     val EP_NAME = ExtensionPointName<AgentActionContributor>("com.android.tools.idea.insights.ai.agentActionContributor")

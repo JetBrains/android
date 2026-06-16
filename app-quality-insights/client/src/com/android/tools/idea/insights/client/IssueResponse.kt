@@ -19,10 +19,10 @@ import com.android.tools.idea.insights.model.common.WithCount
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 
 data class IssueResponse(
-  val issues: List<AppInsightsIssue>,
+  val issues: List<AppInsightsCrash>,
   val versions: List<WithCount<Version>>,
   val devices: List<WithCount<Device>>,
   val operatingSystems: List<WithCount<OperatingSystemInfo>>,

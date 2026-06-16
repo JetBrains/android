@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
@@ -40,5 +40,5 @@ class IssuesPerFileIndexTest {
     assertThat(secondIssuesPerFileName.isEmpty).isTrue()
   }
 
-  private fun createIssues(issues: List<AppInsightsIssue>) = LoadingState.Ready(Selection(null, issues))
+  private fun createIssues(issues: List<AppInsightsCrash>) = LoadingState.Ready(Selection(null, issues))
 }

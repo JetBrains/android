@@ -17,6 +17,7 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -164,7 +165,8 @@ class VitalsConfigurationManagerTest {
       Disposer.register(projectRule.testRootDisposable, configManager)
       configManager.refreshConfiguration()
 
-      val state = configManager.configuration.filterIsInstance<AppInsightsModel.Authenticated>().first().controller.state
+      val controller = configManager.configuration.filterIsInstance<AppInsightsModel.Authenticated>().first().controller
+      val state = (controller as AppInsightsCrashController).state
       state.first { it.connections.selected == null }
       projectRule.project.service<AppInsightsFilterSelector>().selectedAppId.value = APP_CONNECTION1.appId
       state.first { it.connections.selected?.appId == APP_CONNECTION1.appId }

@@ -14,7 +14,7 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueVariant
@@ -56,8 +56,8 @@ data class Filters(
 
 data class Timed<out V>(val value: V, val time: Instant)
 
-/** Represents the App Insights state model. */
-data class AppInsightsState(
+/** Represents the App Insights crash state model. */
+data class AppInsightsCrashState(
   /** Available Connections. */
   val connections: Selection<Connection>,
 
@@ -65,30 +65,30 @@ data class AppInsightsState(
   val filters: Filters,
 
   /** Data whose state depends on the above selections and is loaded asynchronously over the network. */
-  val issues: LoadingState<Timed<Selection<AppInsightsIssue>>>,
+  val issues: LoadingState<Timed<Selection<AppInsightsCrash>>>,
 
-  /** Issue variants associated with the currently selected issue. */
+  /** Crash variants associated with the currently selected crash. */
   val currentIssueVariants: LoadingState<Selection<IssueVariant>?> = LoadingState.Ready(null),
 
-  /** Issue details whose state depends on the above selection and is loaded asynchronously over the network. */
+  /** Crash details whose state depends on the above selection and is loaded asynchronously over the network. */
   val currentIssueDetails: LoadingState<DetailedIssueStats?> = LoadingState.Ready(null),
 
-  /** List of events associated with the current issue. */
+  /** List of events associated with the current crash. */
   val currentEvents: LoadingState<DynamicEventGallery?> = LoadingState.Ready(null),
 
-  /** Notes whose state depends on the issue selection and is loaded asynchronously over the network. */
+  /** Notes whose state depends on the crash selection and is loaded asynchronously over the network. */
   val currentNotes: LoadingState<List<Note>?> = LoadingState.Ready(null),
 
   /** Access level of the currently logged-in user has on the insights API */
   val permission: Permission = Permission.NONE,
   val mode: ConnectionMode = ConnectionMode.ONLINE,
 
-  /** AI generated insight whose state depends on the issue selection and is loaded asynchronously over the network. */
+  /** AI generated insight whose state depends on the crash selection and is loaded asynchronously over the network. */
   val currentInsight: LoadingState<AiInsight?> = LoadingState.Ready(null),
   /** Set of currently disabled actions */
   val disabledActions: Set<KClass<out Action>> = emptySet(),
 ) {
-  val selectedIssue: AppInsightsIssue?
+  val selectedIssue: AppInsightsCrash?
     get() = if (issues is LoadingState.Ready) issues.value.value.selected else null
 
   val selectedVariant: IssueVariant?
@@ -98,29 +98,29 @@ data class AppInsightsState(
     get() = (currentEvents as? LoadingState.Ready)?.value?.selected
 
   /** Returns a new state with a new [TimeIntervalFilter] selected. */
-  fun selectTimeInterval(value: TimeIntervalFilter?): AppInsightsState = copy(filters = filters.withTimeInterval(value))
+  fun selectTimeInterval(value: TimeIntervalFilter?): AppInsightsCrashState = copy(filters = filters.withTimeInterval(value))
 
   /** Returns a new state with the specified [Version]s selected. */
-  fun selectVersions(value: Set<Version>): AppInsightsState = copy(filters = filters.withVersions(value))
+  fun selectVersions(value: Set<Version>): AppInsightsCrashState = copy(filters = filters.withVersions(value))
 
-  fun selectDevices(value: Set<Device>): AppInsightsState = copy(filters = filters.withDevices(value))
+  fun selectDevices(value: Set<Device>): AppInsightsCrashState = copy(filters = filters.withDevices(value))
 
-  fun selectOperatingSystems(value: Set<OperatingSystemInfo>): AppInsightsState = copy(filters = filters.withOperatingSystems(value))
+  fun selectOperatingSystems(value: Set<OperatingSystemInfo>): AppInsightsCrashState = copy(filters = filters.withOperatingSystems(value))
 
-  fun selectSignal(value: SignalType): AppInsightsState = copy(filters = filters.withSignal(value))
+  fun selectSignal(value: SignalType): AppInsightsCrashState = copy(filters = filters.withSignal(value))
 
-  fun selectVisibilityType(value: VisibilityType): AppInsightsState = copy(filters = filters.withVisibilityType(value))
+  fun selectVisibilityType(value: VisibilityType): AppInsightsCrashState = copy(filters = filters.withVisibilityType(value))
 
   /** Returns a new state with a new [Fatality] toggled. */
-  fun toggleFatality(value: FailureType): AppInsightsState = copy(filters = filters.withFatalityToggle(value))
+  fun toggleFatality(value: FailureType): AppInsightsCrashState = copy(filters = filters.withFatalityToggle(value))
 
-  /** Returns a new state with a new [FirebaseConnection] selected. */
-  fun selectConnection(value: Connection?): AppInsightsState = copy(connections = connections.select(value))
+  /** Returns a new state with a new [Connection] selected. */
+  fun selectConnection(value: Connection?): AppInsightsCrashState = copy(connections = connections.select(value))
 
   fun toEmptyTransition() = StateTransition(this, Action.NONE)
 }
 
-fun AppInsightsState.toIssueRequest(clock: Clock): IssueRequest? {
+fun AppInsightsCrashState.toIssueRequest(clock: Clock): IssueRequest? {
   val selectedConnection = connections.selected ?: return null
   val selectedTimeInterval = filters.timeInterval.selected ?: return null
 

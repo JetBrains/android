@@ -26,7 +26,7 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventData
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -95,10 +95,10 @@ class AppInsightsCacheTest {
 
   @Test
   fun `getTopIssues respects filters and returns top issues sorted by event count`() {
-    val populateIssues = mutableListOf<AppInsightsIssue>()
+    val populateIssues = mutableListOf<AppInsightsCrash>()
     for (i in 0 until 5) {
       var issue =
-        AppInsightsIssue(
+        AppInsightsCrash(
           IssueDetails(
             IssueId("$i"),
             "Issue${i}",
@@ -215,7 +215,7 @@ class AppInsightsCacheTest {
       testEvent.copy(eventData = testEvent.eventData.copy(eventTime = testEvent.eventData.eventTime.plus(Duration.ofDays(1))))
     val evenMoreRecentEvent = testEvent.copy(eventData = testEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(2))))
     val issue =
-      AppInsightsIssue(
+      AppInsightsCrash(
         IssueDetails(
           IssueId("1"),
           "Issue1",
@@ -279,7 +279,7 @@ class AppInsightsCacheTest {
   @Test
   fun `populate and get notes from cache`() {
     val issue =
-      AppInsightsIssue(
+      AppInsightsCrash(
         IssueDetails(
           IssueId("1"),
           "Issue1",
@@ -371,7 +371,7 @@ class AppInsightsCacheTest {
   @Test
   fun `getEvent filters on interval, device, and operating system`() {
     val issue =
-      AppInsightsIssue(
+      AppInsightsCrash(
         IssueDetails(
           IssueId("1"),
           "Issue1",

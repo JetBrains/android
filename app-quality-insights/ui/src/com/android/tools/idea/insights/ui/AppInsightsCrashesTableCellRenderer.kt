@@ -18,7 +18,7 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.TRUNCATE_START
 import com.android.tools.idea.insights.icon
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
@@ -32,7 +32,7 @@ import java.awt.GridBagLayout
 import javax.swing.JPanel
 import javax.swing.JTable
 
-object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
+object AppInsightsCrashesTableCellRenderer : AppInsightsTableCellRenderer {
 
   private val renderer = SimpleColoredComponent().apply { isOpaque = false }
   private val leftPanel =
@@ -78,7 +78,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
     viewRowIndex: Int,
     viewColumnIndex: Int,
   ): Component {
-    val issue = value as AppInsightsIssue
+    val issue = value as AppInsightsCrash
     renderer.removeAll()
     renderer.clear()
     val foreground = if (selected) table.selectionForeground else table.foreground

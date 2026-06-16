@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.persistence
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -37,7 +37,7 @@ class AppInsightsSettings : PersistentStateComponent<AppInsightsSettings> {
     XmlSerializerUtil.copyBean(state, this)
   }
 
-  fun setTabSetting(tabId: String, state: AppInsightsState) {
+  fun setTabSetting(tabId: String, state: AppInsightsCrashState) {
     tabSettings[tabId] = state.toFilterSettings()
   }
 
