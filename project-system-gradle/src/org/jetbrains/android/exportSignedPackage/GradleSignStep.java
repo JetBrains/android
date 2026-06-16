@@ -38,6 +38,8 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.TitledSeparator;
+import com.android.tools.idea.publishing.AdiClient;
+import com.android.tools.idea.publishing.RegistrationState;
 import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
