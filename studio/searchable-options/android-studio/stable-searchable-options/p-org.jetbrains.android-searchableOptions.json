@@ -19,7 +19,11 @@
       "path": "SDK Platforms"
     },
     {
-      "hit": "Hide Obsolete Packages",
+      "hit": "Hide incompatible system images",
+      "path": "SDK Platforms"
+    },
+    {
+      "hit": "Hide obsolete packages",
       "path": "SDK Platforms"
     },
     {
@@ -31,7 +35,7 @@
       "path": "SDK Platforms"
     },
     {
-      "hit": "Show Package Details",
+      "hit": "Show package details",
       "path": "SDK Platforms"
     },
     {
@@ -39,7 +43,7 @@
       "path": "SDK Tools"
     },
     {
-      "hit": "Hide Obsolete Packages",
+      "hit": "Hide obsolete packages",
       "path": "SDK Tools"
     },
     {
@@ -51,7 +55,7 @@
       "path": "SDK Tools"
     },
     {
-      "hit": "Show Package Details",
+      "hit": "Show package details",
       "path": "SDK Tools"
     },
     {

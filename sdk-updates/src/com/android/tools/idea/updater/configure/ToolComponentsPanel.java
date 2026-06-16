@@ -131,10 +131,10 @@ public class ToolComponentsPanel {
     myToolsLoadingPanel.add(new JBLabel("Looking for updates..."));
     myToolsLoadingPanel.add(new AsyncProcessIcon("Loading..."));
 
-    myHideObsoletePackagesCheckbox = new JCheckBox("Hide Obsolete Packages");
+    myHideObsoletePackagesCheckbox = new JCheckBox("Hide obsolete packages");
     myHideObsoletePackagesCheckbox.setSelected(true);
 
-    myToolsDetailsCheckbox = new JCheckBox("Show Package Details");
+    myToolsDetailsCheckbox = new JCheckBox("Show package details");
     myToolsDetailsCheckbox.setSelected(propertiesComponent.getBoolean(TOOLS_DETAILS_CHECKBOX_SELECTED, false));
     myToolsDetailsCheckbox.addActionListener(e -> {
       propertiesComponent.setValue(TOOLS_DETAILS_CHECKBOX_SELECTED, myToolsDetailsCheckbox.isSelected());

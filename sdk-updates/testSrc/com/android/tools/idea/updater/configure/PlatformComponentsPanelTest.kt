@@ -18,6 +18,7 @@ package com.android.tools.idea.updater.configure
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.impl.meta.TypeDetails
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.Abi
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.google.common.collect.ImmutableMultimap
 import com.intellij.ide.util.PropertiesComponent
@@ -29,6 +30,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 /** Tests for the node tree inside the [PlatformComponentsPanel] */
 class PlatformComponentsPanelTest {
@@ -178,6 +180,73 @@ class PlatformComponentsPanelTest {
        Android 5.0 ("Lollipop")
         android-21
         android-21
+      """
+        .trimIndent(),
+      panel.myPlatformDetailsRootNode.asString(),
+    )
+  }
+
+  @Test
+  fun testHideIncompatibleSystemImages_selected() {
+    whenever(propertiesComponent.getBoolean("updater.configure.hide.incompatible.system.images.checkbox.selected", true)).thenReturn(true)
+
+    val panel = PlatformComponentsPanel(propertiesComponent)
+    panel.setConfigurable(myConfigurable)
+
+    val sysImgTypeDetails = AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType()
+    sysImgTypeDetails.setAbi(Abi.ARMEABI_V7A.toString())
+
+    val remoteIncompatible = createRemotePackage("sysimg-incompatible-remote", 1, typeDetails = sysImgTypeDetails as TypeDetails)
+    val localIncompatible = createLocalPackage("sysimg-incompatible-local", 1, typeDetails = sysImgTypeDetails as TypeDetails)
+
+    panel.setPackages(
+      ImmutableMultimap.of(
+        AndroidVersion(30),
+        UpdatablePackage(remoteIncompatible),
+        AndroidVersion(30),
+        UpdatablePackage(localIncompatible),
+      )
+    )
+
+    assertEquals(
+      """
+      Root
+       Android 11.0 ("R")
+        sysimg-incompatible-local
+      """
+        .trimIndent(),
+      panel.myPlatformDetailsRootNode.asString(),
+    )
+  }
+
+  @Test
+  fun testHideIncompatibleSystemImages_deselected() {
+    whenever(propertiesComponent.getBoolean("updater.configure.hide.incompatible.system.images.checkbox.selected", true)).thenReturn(false)
+
+    val panel = PlatformComponentsPanel(propertiesComponent)
+    panel.setConfigurable(myConfigurable)
+
+    val sysImgTypeDetails = AndroidSdkHandler.sysImgModule.createLatestFactory().createSysImgDetailsType()
+    sysImgTypeDetails.setAbi(Abi.ARMEABI_V7A.toString())
+
+    val remoteIncompatible = createRemotePackage("sysimg-incompatible-remote", 1, typeDetails = sysImgTypeDetails as TypeDetails)
+    val localIncompatible = createLocalPackage("sysimg-incompatible-local", 1, typeDetails = sysImgTypeDetails as TypeDetails)
+
+    panel.setPackages(
+      ImmutableMultimap.of(
+        AndroidVersion(30),
+        UpdatablePackage(remoteIncompatible),
+        AndroidVersion(30),
+        UpdatablePackage(localIncompatible),
+      )
+    )
+
+    assertEquals(
+      """
+      Root
+       Android 11.0 ("R")
+        sysimg-incompatible-local
+        sysimg-incompatible-remote
       """
         .trimIndent(),
       panel.myPlatformDetailsRootNode.asString(),

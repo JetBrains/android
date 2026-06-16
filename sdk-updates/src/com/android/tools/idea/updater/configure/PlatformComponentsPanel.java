@@ -20,6 +20,9 @@ import static java.util.Comparator.naturalOrder;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.utils.ComputerArchUtilsKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -55,12 +58,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PlatformComponentsPanel {
   private static final String PLATFORM_DETAILS_CHECKBOX_SELECTED = "updater.configure.platform.details.checkbox.selected";
+  private static final String HIDE_INCOMPATIBLE_SYSTEM_IMAGES_CHECKBOX_SELECTED = "updater.configure.hide.incompatible.system.images.checkbox.selected";
 
   private final TreeTableView myPlatformSummaryTable;
   private final TreeTableView myPlatformDetailTable;
   private final JPanel myPlatformPanel;
   private final JCheckBox myPlatformDetailsCheckbox;
   private final JCheckBox myHideObsoletePackagesCheckbox;
+  private final JCheckBox myHideIncompatibleSystemImagesCheckbox;
   private final JPanel myPlatformLoadingPanel;
   private final JPanel myRootPanel;
   private boolean myModified;
@@ -120,11 +125,18 @@ public class PlatformComponentsPanel {
     myPlatformLoadingPanel.add(platformLoadingLabel);
     myPlatformLoadingPanel.add(new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText()));
 
-    myHideObsoletePackagesCheckbox = new JCheckBox("Hide Obsolete Packages");
+    myHideObsoletePackagesCheckbox = new JCheckBox("Hide obsolete packages");
     myHideObsoletePackagesCheckbox.setSelected(true);
     myHideObsoletePackagesCheckbox.addActionListener(e -> updatePlatformItems());
 
-    myPlatformDetailsCheckbox = new JCheckBox("Show Package Details");
+    myHideIncompatibleSystemImagesCheckbox = new JCheckBox("Hide incompatible system images");
+    myHideIncompatibleSystemImagesCheckbox.setSelected(propertiesComponent.getBoolean(HIDE_INCOMPATIBLE_SYSTEM_IMAGES_CHECKBOX_SELECTED, true));
+    myHideIncompatibleSystemImagesCheckbox.addActionListener(e -> {
+      propertiesComponent.setValue(HIDE_INCOMPATIBLE_SYSTEM_IMAGES_CHECKBOX_SELECTED, myHideIncompatibleSystemImagesCheckbox.isSelected());
+      updatePlatformItems();
+    });
+
+    myPlatformDetailsCheckbox = new JCheckBox("Show package details");
     myPlatformDetailsCheckbox.setSelected(propertiesComponent.getBoolean(PLATFORM_DETAILS_CHECKBOX_SELECTED, false));
     myPlatformDetailsCheckbox.addActionListener(e -> {
       propertiesComponent.setValue(PLATFORM_DETAILS_CHECKBOX_SELECTED, myPlatformDetailsCheckbox.isSelected());
@@ -132,6 +144,7 @@ public class PlatformComponentsPanel {
     });
 
     final JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, JBUI.scale(10), 0));
+    checkboxPanel.add(myHideIncompatibleSystemImagesCheckbox);
     checkboxPanel.add(myHideObsoletePackagesCheckbox);
     checkboxPanel.add(myPlatformDetailsCheckbox);
 
@@ -172,6 +185,13 @@ public class PlatformComponentsPanel {
         RepoPackage pkg = info.getRepresentative();
         if (pkg.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
           continue;
+        }
+        if (myHideIncompatibleSystemImagesCheckbox.isSelected()) {
+          if (pkg.getTypeDetails() instanceof DetailsTypes.SysImgDetailsType details
+              && !isCompatibleAbi(Abi.getEnum(details.getAbi()))
+              && !info.hasLocal()) {
+            continue;
+          }
         }
         PackageNodeModel model = new PackageNodeModel(info, false);
         myStates.add(model);
@@ -240,6 +260,7 @@ public class PlatformComponentsPanel {
     myPlatformDetailTable.setEnabled(enabled);
     myPlatformSummaryTable.setEnabled(enabled);
     myPlatformDetailsCheckbox.setEnabled(enabled);
+    myHideIncompatibleSystemImagesCheckbox.setEnabled(enabled);
   }
 
   public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
@@ -248,4 +269,13 @@ public class PlatformComponentsPanel {
   }
 
   public JComponent getRootComponent() { return myRootPanel; }
+
+  private static boolean isCompatibleAbi(@NotNull Abi abi) {
+    return switch (ComputerArchUtilsKt.getOsArchitecture()) {
+      case X86_64 -> abi == Abi.X86_64 || abi == Abi.X86;
+      case ARM, X86_ON_ARM -> abi == Abi.ARM64_V8A;
+      // The emulator doesn't run on 32-bit x86 or other architectures.
+      default -> false;
+    };
+  }
 }
