@@ -22,7 +22,7 @@
       <action internal="true" id="Android.FlushTrace" class="com.android.tools.idea.tracer.FlushTraceAction"/>
     </group>
   </actions>
-  <extensions defaultExtensionNs="com.intellij">
-    <backgroundPostStartupActivity implementation="com.android.tools.idea.tracer.TraceInitializer" />
-  </extensions>
+  <applicationListeners>
+    <listener class="com.android.tools.idea.tracer.StudioTracingController" topic="com.intellij.ide.AppLifecycleListener" />
+  </applicationListeners>
 </idea-plugin>

@@ -20,10 +20,10 @@ jvm_library(
     runtime_deps = ["//android/android:core"],
     deps = [
         # do not sort,
+        "//android/android-common:common",
         "@lib//:kotlin-stdlib",
         "@lib//:studio-platform-provided",
         "//android/adt-ui-compose",
-        "//android/android-common:common",
         "//libraries/guava",
         "//libraries/jetbrains/annotations",
         "//platform/analysis-api:analysis",
@@ -49,10 +49,10 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":tracer",
+        "//android/android-common:common_test_lib",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//android/adt-ui-compose:adt-ui-compose_test_lib",
-        "//android/android-common:common_test_lib",
         "//android/android:core_test_lib",
         "//libraries/guava:guava_test_lib",
         "//libraries/jetbrains/annotations:annotations_test_lib",

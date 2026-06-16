@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tracer
 
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import kotlinx.coroutines.CoroutineScope
 
-class TraceInitializer : ProjectActivity {
-  override suspend fun execute(project: Project) {
-    AndroidxTracerService.getInstance().initializeService()
-  }
-}
+@Service(Service.Level.APP) class StudioTracingAppScopeService(val scope: CoroutineScope)
+
+val studioTracingScope: CoroutineScope
+  get() = service<StudioTracingAppScopeService>().scope
