@@ -20,6 +20,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.Constraints
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.JobInfo
 import com.android.tools.adtui.ui.HideablePanel
+import com.android.tools.adtui.util.disableHtml
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTracker
@@ -52,7 +53,7 @@ interface ComponentProvider<T> {
  * for simple cases.
  */
 class ToStringProvider<T> : ComponentProvider<T> {
-  override fun convert(data: T) = JBLabel(escapeXmlEntities(data.toString()))
+  override fun convert(data: T) = JBLabel(data.toString()).disableHtml()
 }
 
 /** Provides a component that represents a class name which can be navigated to. */
@@ -63,11 +64,12 @@ class ClassNameProvider(
 ) : ComponentProvider<String> {
   override fun convert(data: String): JComponent {
     return ActionLink(data) {
-      scope.launch {
-        ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(data))
-        tracker.trackJumpedToSource()
+        scope.launch {
+          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(data))
+          tracker.trackJumpedToSource()
+        }
       }
-    }
+      .disableHtml()
   }
 }
 
@@ -106,11 +108,12 @@ class EnqueuedAtProvider(
     } else {
       val frame0 = data.getFrames(0)
       ActionLink("${frame0.fileName} (${frame0.lineNumber})") {
-        scope.launch {
-          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
-          tracker.trackJumpedToSource()
+          scope.launch {
+            ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
+            tracker.trackJumpedToSource()
+          }
         }
-      }
+        .disableHtml()
     }
   }
 }
@@ -133,7 +136,7 @@ object StringListProvider : ComponentProvider<List<String>> {
  */
 class EntryIdProvider(private val selectEntry: (BackgroundTaskEntry) -> Unit) : ComponentProvider<BackgroundTaskEntry> {
   override fun convert(data: BackgroundTaskEntry): JComponent {
-    return ActionLink(data.className) { selectEntry(data) }.apply { icon = data.icon() }
+    return ActionLink(data.className) { selectEntry(data) }.apply { icon = data.icon() }.disableHtml()
   }
 }
 
@@ -170,7 +173,7 @@ class IdListProvider(
             }
             add(mixedLabel)
           } else {
-            add(JBLabel(id))
+            add(JBLabel(id).disableHtml())
           }
         }
       }
@@ -255,9 +258,9 @@ object OutputDataProvider : ComponentProvider<WorkInfo> {
         JPanel(VerticalFlowLayout(0, 0)).apply {
           protoData.entriesList.forEach { pair ->
             val pairPanel = JPanel(HorizontalLayout(0))
-            pairPanel.add(JLabel("${escapeXmlEntities(pair.key)} = "))
+            pairPanel.add(JBLabel("${pair.key} = ").disableHtml())
             pairPanel.add(
-              JLabel("\"${escapeXmlEntities(pair.value)}\"").apply { foreground = BackgroundTaskInspectorColors.DATA_VALUE_TEXT_COLOR }
+              JBLabel("\"${pair.value}\"").disableHtml().apply { foreground = BackgroundTaskInspectorColors.DATA_VALUE_TEXT_COLOR }
             )
             add(pairPanel)
           }

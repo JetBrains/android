@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.util.disableHtml
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
@@ -158,7 +159,7 @@ class WorkDependencyGraphView(
   }
 
   private fun createLabel(work: WorkInfo): JLabel {
-    val label = JBLabel(work.workerClassName.substringAfterLast('.'), SwingConstants.CENTER)
+    val label = JBLabel(work.workerClassName.substringAfterLast('.'), SwingConstants.CENTER).disableHtml()
     label.icon = work.state.icon()
     label.background = GRAPH_LABEL_BACKGROUND_COLOR
     label.isOpaque = true
