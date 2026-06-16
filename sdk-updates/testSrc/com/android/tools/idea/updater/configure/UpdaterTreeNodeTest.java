@@ -132,6 +132,17 @@ public class UpdaterTreeNodeTest {
   }
 
   @Test
+  public void testDetailsTreeNodeObsoleteStatusString() throws Exception {
+    // Installed package with remote package (not obsolete)
+    DetailsTreeNode node = createMultiVersionChild(true, true, "1");
+    assertEquals("Installed", node.getStatusString());
+
+    // Installed package without remote package (obsolete)
+    node = createMultiVersionChild(true, false, "1");
+    assertEquals("Installed (Obsolete)", node.getStatusString());
+  }
+
+  @Test
   public void testDetailsTreeNodeListener() throws Exception {
     UpdatablePackage updatablePackage = new UpdatablePackage(new FakePackage.FakeLocalPackage("foo"));
     ChangeListener listener = Mockito.mock(ChangeListener.class);
