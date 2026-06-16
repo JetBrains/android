@@ -470,7 +470,7 @@ class AndroidRunConfigurationExecutor(
     }
   }
 
-  inner class HiddenRunContentDescriptor(existingRunContentDescriptor: RunContentDescriptor) :
+  class HiddenRunContentDescriptor(existingRunContentDescriptor: RunContentDescriptor) :
     RunContentDescriptor(
       existingRunContentDescriptor.executionConsole,
       existingRunContentDescriptor.processHandler,
@@ -480,7 +480,7 @@ class AndroidRunConfigurationExecutor(
     override fun isHiddenContent() = true
 
     init {
-      Disposer.register(project, this)
+      Disposer.register(existingRunContentDescriptor, this)
     }
   }
 
