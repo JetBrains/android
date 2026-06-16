@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.actions
 
-import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.AndroidShowStructureSettingsActionToken
+import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ShowStructureSettingsAction
 import com.intellij.ide.trustedProjects.TrustedProjects.isProjectTrusted
 import com.intellij.idea.ActionsBundle
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.options.ex.SingleConfigurableEditor
-import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
 
 /** Displays the "Project Structure" dialog. */
 class AndroidShowStructureSettingsAction : ShowStructureSettingsAction() {
@@ -51,29 +48,19 @@ class AndroidShowStructureSettingsAction : ShowStructureSettingsAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    var project = e.getProject()
-    if (project == null && IdeInfo.getInstance().isAndroidStudio()) {
-      project = ProjectManager.getInstance().getDefaultProject()
-      showReadOnlyIdeaProjectStructure(project)
-      return
+    if (!AndroidShowStructureSettingsActionToken.executeAction(e)) {
+      super.actionPerformed(e)
     }
-
-    if (project != null && project.getProjectSystem() is GradleProjectSystem) {
-      showAndroidProjectStructure(project)
-      return
-    }
-
-    super.actionPerformed(e)
   }
 }
 
-private fun showReadOnlyIdeaProjectStructure(project: Project) {
-  object : SingleConfigurableEditor(project, ProjectStructureConfigurable.getInstance(project), SettingsDialog.DIMENSION_KEY) {
-    override fun createActions() = arrayOf(cancelAction)
-    override fun getStyle() = DialogStyle.COMPACT
-  }.show()
+class AndroidShowStructureSettingsActionGradleToken : AndroidShowStructureSettingsActionToken<GradleProjectSystem>, GradleToken {
+  override fun show(project: Project): Boolean {
+    showAndroidProjectStructure(project)
+    return true
+  }
 }
 
 private fun showAndroidProjectStructure(project: Project) {
-  com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.getInstance(project).show()
+  ProjectStructureConfigurable.getInstance(project).show()
 }
