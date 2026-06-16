@@ -19,6 +19,7 @@ import com.android.tools.idea.util.absoluteInProject
 import com.android.tools.idea.util.relativeToProject
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.OSAgnosticPathUtil.isUncPath
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
@@ -51,7 +52,10 @@ internal class BackupFileHistory(private val project: Project) {
   }
 
   private fun List<String>.filterValid() =
-    map { Path.of(it).absoluteInProject(project) }
+    asSequence()
+      .filterNot { isUncPath(it) }
+      .map { Path.of(it).absoluteInProject(project) }
       .filter { it.exists() && !it.isDirectory() }
       .map { it.relativeToProject(project).pathString }
+      .toList()
 }

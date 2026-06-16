@@ -21,6 +21,7 @@ import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.RestoreAppAction.Config.Browse
 import com.android.tools.idea.backup.RestoreAppAction.Config.File
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.trustedProjects.TrustedProjects.isProjectTrusted
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
@@ -65,6 +66,6 @@ internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = Ac
   }
 
   companion object {
-    fun showGroup(project: Project) = BackupFileHistory(project).getFileHistory().isNotEmpty()
+    fun showGroup(project: Project) = isProjectTrusted(project) && BackupFileHistory(project).getFileHistory().isNotEmpty()
   }
 }
