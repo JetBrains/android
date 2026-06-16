@@ -55,6 +55,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.text.StringUtil
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.File
@@ -158,7 +159,7 @@ open class HeapDumpCaptureObject(
     snapshot.computeRetainedSizes()
     hasNativeAllocations = nativeRegistryPostProcessor.hasNativeAllocations
     hasLoaded = true
-    val heapSetMappings = snapshot.heaps.associateWith { HeapSet(this, it.name, it.id) }
+    val heapSetMappings = snapshot.heaps.associateWith { HeapSet(this, StringUtil.escapeXmlEntities(it.name), it.id) }
     val addInstanceToRightHeap: (HeapSet, Long, InstanceObject) -> Unit =
       AllHeapSet(this, heapSetMappings.values.toTypedArray()).let { superHeap ->
         superHeap.clearClassifierSets() // forces sub-classifier creation
