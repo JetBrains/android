@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
@@ -25,18 +25,18 @@ import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 
-class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) : ListTableModel<AppInsightsIssue>() {
+class AppInsightsCrashesTableModel(renderer: AppInsightsTableCellRenderer) : ListTableModel<AppInsightsCrash>() {
   init {
     columnInfos =
       arrayOf(
-        object : ColumnInfo<AppInsightsIssue, AppInsightsIssue>("Issues") {
-          override fun valueOf(item: AppInsightsIssue) = item
+        object : ColumnInfo<AppInsightsCrash, AppInsightsCrash>("Issues") {
+          override fun valueOf(item: AppInsightsCrash) = item
 
-          override fun getComparator(): Comparator<AppInsightsIssue> {
-            return Comparator.comparing { issue -> issue.issueDetails.getDisplayTitle().toList().joinToString(".") }
+          override fun getComparator(): Comparator<AppInsightsCrash> {
+            return Comparator.comparing { crash -> crash.issueDetails.getDisplayTitle().toList().joinToString(".") }
           }
 
-          override fun getRenderer(item: AppInsightsIssue) = renderer
+          override fun getRenderer(item: AppInsightsCrash) = renderer
         },
         FormattedNumberColumnInfo("Events") { it.issueDetails.eventsCount },
         FormattedNumberColumnInfo("Users") { it.issueDetails.impactedDevicesCount },
@@ -44,17 +44,17 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) : List
     isSortable = true
   }
 
-  private inner class FormattedNumberColumnInfo(name: String, private val selector: (AppInsightsIssue) -> Long) :
-    ColumnInfo<AppInsightsIssue, String>(name) {
-    override fun valueOf(item: AppInsightsIssue): String = selector(item).formatNumberToPrettyString()
+  private inner class FormattedNumberColumnInfo(name: String, private val selector: (AppInsightsCrash) -> Long) :
+    ColumnInfo<AppInsightsCrash, String>(name) {
+    override fun valueOf(item: AppInsightsCrash): String = selector(item).formatNumberToPrettyString()
 
-    override fun getComparator(): Comparator<AppInsightsIssue> {
+    override fun getComparator(): Comparator<AppInsightsCrash> {
       return Comparator.comparingInt { selector(it).toInt() }
     }
 
     override fun getMaxStringValue() = items.maxOfOrNull { selector(it) }?.formatNumberToPrettyString()
 
-    override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer = NumberColumnRenderer
+    override fun getRenderer(item: AppInsightsCrash?): TableCellRenderer = NumberColumnRenderer
   }
 }
 

@@ -21,13 +21,13 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AI_INSIGHT_WITH_CODE_CONTEXT
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
+import com.android.tools.idea.insights.StubAppInsightsCrashController
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
@@ -72,7 +72,7 @@ class InsightDisclaimerPanelTestWithoutAgent {
   private lateinit var insightFlow: MutableStateFlow<LoadingState<AiInsight?>>
   private val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
   private val state =
-    AppInsightsState(
+    AppInsightsCrashState(
       Selection(conn, listOf(conn)),
       TEST_FILTERS,
       LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -106,7 +106,7 @@ class InsightDisclaimerPanelTestWithoutAgent {
     val disclaimerPanel =
       createDisclaimerPanel(
         controller =
-          object : StubAppInsightsProjectLevelController(state = MutableStateFlow(state)) {
+          object : StubAppInsightsCrashController(state = MutableStateFlow(state)) {
             override fun refreshInsight(regenerateWithContext: Boolean, forceGenerateNewInsight: Boolean) {
               refreshInsightCalled.complete(regenerateWithContext)
             }
@@ -129,7 +129,7 @@ class InsightDisclaimerPanelTestWithoutAgent {
   @Test
   fun `enable context prompt disclaimer is shown when context sharing setting is off and current insight's experiment is unknown`() =
     runTest {
-      val disclaimerPanel = createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
+      val disclaimerPanel = createDisclaimerPanel(StubAppInsightsCrashController(state = MutableStateFlow(state)))
       insightFlow.update { LoadingState.Ready(DEFAULT_AI_INSIGHT) }
       waitForCondition(2.seconds) { disclaimerPanel.isVisible }
     }
@@ -138,7 +138,7 @@ class InsightDisclaimerPanelTestWithoutAgent {
   fun `project mismatch panel shown when context enabled and project different from connection`() = runTest {
     doReturn(false).whenever(conn).isMatchingProject()
     insightFlow.update { LoadingState.Ready(AI_INSIGHT_WITH_CODE_CONTEXT) }
-    createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
+    createDisclaimerPanel(StubAppInsightsCrashController(state = MutableStateFlow(state)))
 
     val textPane = fakeUi.findComponent<JTextPane> { it.isVisible } ?: fail("JTextPane not found")
     // TextPane text contains html tags. Clean up the spacing in order to match the expected text
@@ -150,7 +150,7 @@ class InsightDisclaimerPanelTestWithoutAgent {
   }
 
   private fun createDisclaimerPanel(
-    controller: AppInsightsProjectLevelController = StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
+    controller: AppInsightsCrashController = StubAppInsightsCrashController(state = MutableStateFlow(state))
   ) = InsightDisclaimerPanel(controller, scope, insightFlow).also { fakeUi = FakeUi(it) }
 
   private fun clickOnLink() =
@@ -168,7 +168,7 @@ class InsightDisclaimerPanelTestWithAgent {
   private lateinit var insightFlow: MutableStateFlow<LoadingState<AiInsight?>>
   private val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
   private val state =
-    AppInsightsState(
+    AppInsightsCrashState(
       Selection(conn, listOf(conn)),
       TEST_FILTERS,
       LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -200,7 +200,7 @@ class InsightDisclaimerPanelTestWithAgent {
   fun `project mismatch panel shown when context enabled and project different from connection`() = runTest {
     doReturn(false).whenever(conn).isMatchingProject()
     insightFlow.update { LoadingState.Ready(AI_INSIGHT_WITH_CODE_CONTEXT) }
-    createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
+    createDisclaimerPanel(StubAppInsightsCrashController(state = MutableStateFlow(state)))
 
     val textPane = fakeUi.findComponent<JTextPane> { it.isVisible } ?: fail("JTextPane not found")
     // TextPane text contains html tags. Clean up the spacing in order to match the expected text
@@ -212,7 +212,7 @@ class InsightDisclaimerPanelTestWithAgent {
   }
 
   private fun createDisclaimerPanel(
-    controller: AppInsightsProjectLevelController = StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
+    controller: AppInsightsCrashController = StubAppInsightsCrashController(state = MutableStateFlow(state))
   ) = InsightDisclaimerPanel(controller, scope, insightFlow).also { fakeUi = FakeUi(it) }
 
   private fun clickOnLink() =

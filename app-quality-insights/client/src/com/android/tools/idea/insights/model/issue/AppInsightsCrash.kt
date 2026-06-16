@@ -18,8 +18,8 @@ package com.android.tools.idea.insights.model.issue
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.model.event.Event
 
-/** Represents discovered issue, including one representative event for it. */
-data class AppInsightsIssue(
+/** Represents discovered crash, including one representative event for it. */
+data class AppInsightsCrash(
   val issueDetails: IssueDetails,
   val sampleEvent: Event,
   val source: InsightsProvider,

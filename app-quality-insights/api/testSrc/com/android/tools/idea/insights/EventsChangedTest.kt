@@ -31,7 +31,7 @@ class EventsChangedTest {
   fun `loading events for the first time`() {
     val eventList = listOf(Event("event1"))
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -48,7 +48,7 @@ class EventsChangedTest {
   @Test
   fun `loading new page of events appends to previous list of events`() {
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Loading,
@@ -66,7 +66,7 @@ class EventsChangedTest {
   @Test
   fun `propagate failure to get event to state`() {
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),

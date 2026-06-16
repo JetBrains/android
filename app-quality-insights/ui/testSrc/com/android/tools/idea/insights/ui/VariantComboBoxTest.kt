@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.testutils.delayUntilCondition
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE_VARIANT
 import com.android.tools.idea.insights.LoadingState
@@ -40,11 +40,11 @@ class VariantComboBoxTest {
   @Test
   fun `selection of header row is disabled in combobox`() =
     runBlocking(Dispatchers.EDT) {
-      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val flow = MutableSharedFlow<AppInsightsCrashState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
       flow.emit(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -69,11 +69,11 @@ class VariantComboBoxTest {
   @Test
   fun `combo box shows disabled text when no variants are available`() =
     runBlocking(Dispatchers.EDT) {
-      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val flow = MutableSharedFlow<AppInsightsCrashState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
       flow.emit(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -87,11 +87,11 @@ class VariantComboBoxTest {
   @Test
   fun `combo box shows disabled text when variants fail to load`() =
     runBlocking(Dispatchers.EDT) {
-      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val flow = MutableSharedFlow<AppInsightsCrashState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
       flow.emit(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -105,11 +105,11 @@ class VariantComboBoxTest {
   @Test
   fun `combo box shows offline text when AQI is offline`() =
     runBlocking(Dispatchers.EDT) {
-      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val flow = MutableSharedFlow<AppInsightsCrashState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
       flow.emit(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -123,11 +123,11 @@ class VariantComboBoxTest {
   @Test
   fun `combo box shows loading text when in between requests`() =
     runBlocking(Dispatchers.EDT) {
-      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val flow = MutableSharedFlow<AppInsightsCrashState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
       flow.emit(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -141,14 +141,14 @@ class VariantComboBoxTest {
   @Test
   fun `combo box shows selection of variants when they exist`() =
     runBlocking(Dispatchers.EDT) {
-      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val flow = MutableSharedFlow<AppInsightsCrashState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
       val variant1 = ISSUE_VARIANT
       val variant2 = ISSUE_VARIANT.copy(id = "variant2")
 
       flow.emit(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -172,14 +172,14 @@ class VariantComboBoxTest {
   @Test
   fun `combo box title is shortened`() =
     runBlocking(Dispatchers.EDT) {
-      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val flow = MutableSharedFlow<AppInsightsCrashState>(1)
       val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
       val variant1 = ISSUE_VARIANT
       val variant2 = ISSUE_VARIANT.copy(id = "variant2")
 
       flow.emit(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
@@ -190,7 +190,7 @@ class VariantComboBoxTest {
       delayUntilCondition(200) { (comboBox.model.selectedItem as? VariantRow)?.name == "All" }
 
       flow.emit(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection.emptySelection(),
           filters = TEST_FILTERS,
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),

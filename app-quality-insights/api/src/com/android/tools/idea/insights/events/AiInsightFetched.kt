@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
@@ -26,7 +26,7 @@ import com.android.tools.idea.insights.events.actions.Action
 
 data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsight>) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,

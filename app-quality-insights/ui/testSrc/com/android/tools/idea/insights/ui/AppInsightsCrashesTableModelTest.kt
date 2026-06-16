@@ -20,18 +20,18 @@ import com.android.tools.idea.insights.ISSUE2
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class AppInsightsIssuesTableModelTest {
+class AppInsightsCrashesTableModelTest {
 
   @Test
   fun `model creates correct column infos`() {
-    val model = AppInsightsIssuesTableModel(AppInsightsIssuesTableCellRenderer)
+    val model = AppInsightsCrashesTableModel(AppInsightsCrashesTableCellRenderer)
 
     assertThat(model.columnCount).isEqualTo(3)
 
     with(model.columnInfos[0]) {
       assertThat(valueOf(ISSUE1)).isEqualTo(ISSUE1)
       assertThat(comparator!!.compare(ISSUE1, ISSUE2)).isEqualTo(0)
-      assertThat(getRenderer(ISSUE1)).isEqualTo(AppInsightsIssuesTableCellRenderer)
+      assertThat(getRenderer(ISSUE1)).isEqualTo(AppInsightsCrashesTableCellRenderer)
     }
 
     with(model.columnInfos[1]) {
@@ -47,7 +47,7 @@ class AppInsightsIssuesTableModelTest {
 
   @Test
   fun `sorts issues column by display title`() {
-    val model = AppInsightsIssuesTableModel(AppInsightsIssuesTableCellRenderer)
+    val model = AppInsightsCrashesTableModel(AppInsightsCrashesTableCellRenderer)
 
     val crash1 = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(subtitle = "stack.Crash1"))
     val crash2 = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(subtitle = "Stack.Crash2"))

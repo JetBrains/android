@@ -77,7 +77,7 @@ class AppInsightsFilterSelector(val project: Project, val scope: CoroutineScope)
   /**
    * Starts collecting connection information from all tab providers.
    *
-   * This method launches a coroutine that combines the states of all authenticated [AppInsightsModel]s and updates the [filters] flow
+   * This method launches a coroutine that combines the connections of all authenticated controllers and updates the [filters] flow
    * accordingly.
    */
   fun startCollection() {
@@ -95,11 +95,12 @@ class AppInsightsFilterSelector(val project: Project, val scope: CoroutineScope)
           _filters.value = emptyList()
           return@collectLatest
         }
-        combine(controllers.map { controller -> controller.state.map { state -> controller.provider.source to state } }) { sourceStatePairs
-            ->
-            val sourceConnectionPairs = sourceStatePairs.flatMap { (source, state) -> state.connections.items.map { source to it } }
+        combine(
+            controllers.map { controller -> controller.connections.map { connections -> controller.provider.source to connections } }
+          ) { sourceConnectionPairs ->
+            val flatPairs = sourceConnectionPairs.flatMap { (source, connections) -> connections.items.map { source to it } }
             val filters =
-              sourceConnectionPairs
+              flatPairs
                 .groupBy { (_, connection) -> connection.appId }
                 .map { (appId, sourceConnectionPairsForApp) ->
                   val representativeConnection = sourceConnectionPairsForApp.first().second

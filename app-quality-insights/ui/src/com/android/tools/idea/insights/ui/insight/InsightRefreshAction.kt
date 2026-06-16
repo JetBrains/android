@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class InsightRefreshAction(private val controller: AppInsightsProjectLevelController) : AnAction() {
+class InsightRefreshAction(private val controller: AppInsightsCrashController) : AnAction() {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 

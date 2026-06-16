@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.inspection
 
 import com.android.tools.idea.insights.AppInsight
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analytics.AppInsightsPerformanceTracker
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.AnnotationResult
@@ -130,8 +131,13 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
 
         when (val model = configurationManager.configuration.value) {
           is AppInsightsModel.Authenticated -> {
-            model.controller.insightsInFile(file).also {
-              logger.debug("Found ${it.size} ${model.controller.provider.displayName} insights for ${file.name}")
+            val controller = model.controller
+            if (controller is AppInsightsCrashController) {
+              controller.insightsInFile(file).also {
+                logger.debug("Found ${it.size} ${controller.provider.displayName} insights for ${file.name}")
+              }
+            } else {
+              emptyList()
             }
           }
           AppInsightsModel.Unauthenticated -> {

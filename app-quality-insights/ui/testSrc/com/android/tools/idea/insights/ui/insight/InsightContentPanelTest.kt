@@ -21,8 +21,8 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
@@ -104,7 +104,7 @@ class InsightContentPanelTest {
   private val secondaryText: String
     get() = insightContentPanel.emptyStateText.secondaryComponent.toString()
 
-  private val mockController = mock<AppInsightsProjectLevelController>()
+  private val mockController = mock<AppInsightsCrashController>()
 
   private val mockAiInsightToolkit = mock<AiInsightToolkit>()
 
@@ -117,7 +117,7 @@ class InsightContentPanelTest {
   fun setup() = runBlocking {
     doReturn(
         flowOf(
-          AppInsightsState(
+          AppInsightsCrashState(
             Selection(CONNECTION1, listOf(CONNECTION1)),
             TEST_FILTERS,
             LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),

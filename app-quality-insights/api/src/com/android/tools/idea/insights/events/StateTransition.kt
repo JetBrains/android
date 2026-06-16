@@ -15,6 +15,6 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 
-data class StateTransition<TAction>(val newState: AppInsightsState, val action: TAction)
+data class StateTransition<TAction>(val newState: AppInsightsCrashState, val action: TAction)

@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
@@ -78,7 +78,7 @@ class IssuesChangedTest {
 
   @Test
   fun `empty issues result in no action`() {
-    val currentState = AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading)
+    val currentState = AppInsightsCrashState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading)
     val event =
       IssuesChanged(
         LoadingState.Ready(IssueResponse(emptyList(), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
@@ -98,7 +98,7 @@ class IssuesChangedTest {
   fun `transition selects previously selected issue and triggers action`() {
     val clock = FakeClock()
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
@@ -131,7 +131,7 @@ class IssuesChangedTest {
   fun `transition selects first issue in response when none matches the currently selected issue`() {
     val clock = FakeClock()
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
@@ -163,12 +163,12 @@ class IssuesChangedTest {
 
   @Test
   fun `issues changed maintains the ALL state of filters if they are currently ALL`() {
-    val currentState = AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading)
+    val currentState = AppInsightsCrashState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading)
     val event =
       IssuesChanged(
         LoadingState.Ready(IssueResponse(listOf(ISSUE1), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
         FakeClock(),
-        AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading),
+        AppInsightsCrashState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading),
         FetchSource.REFRESH,
       )
 
@@ -199,12 +199,12 @@ class IssuesChangedTest {
         selectionOf(SignalType.SIGNAL_REGRESSED),
         selectionOf(VisibilityType.USER_PERCEIVED),
       )
-    val currentState = AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), currentFilters, LoadingState.Loading)
+    val currentState = AppInsightsCrashState(Selection(CONNECTION1, listOf(CONNECTION1)), currentFilters, LoadingState.Loading)
     val event =
       IssuesChanged(
         LoadingState.Ready(IssueResponse(listOf(ISSUE1), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
         FakeClock(),
-        AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading),
+        AppInsightsCrashState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading),
         FetchSource.REFRESH,
       )
 
@@ -227,7 +227,7 @@ class IssuesChangedTest {
   fun `provider that does not support multiple events updates event immediately, and does not include variants and notes actions`() {
     val clock = FakeClock()
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),

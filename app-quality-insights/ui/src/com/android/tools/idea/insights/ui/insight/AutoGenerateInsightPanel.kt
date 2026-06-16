@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.GenerateInsightsAction.Action
@@ -46,7 +46,7 @@ private const val NO_MODEL_CARD = "NO_MODEL_CARD"
 private const val AUTO_GENERATE_DISABLED = "AUTO_GENERATE_DISABLED"
 
 class AutoGenerateInsightPanel(
-  private val controller: AppInsightsProjectLevelController,
+  private val controller: AppInsightsCrashController,
   private val tracker: AppInsightsTracker,
   parentDisposable: Disposable,
 ) : JPanel(), Disposable {

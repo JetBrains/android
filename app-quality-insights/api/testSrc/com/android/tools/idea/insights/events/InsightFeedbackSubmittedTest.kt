@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
@@ -41,7 +41,7 @@ class InsightFeedbackSubmittedTest {
     val tracker = mock<AppInsightsTracker>()
     val cache = AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER)
     val startingState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),

@@ -20,7 +20,7 @@ import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -73,7 +73,7 @@ class StateHolder<T>(value: T) : Closeable {
 class ToggleButtonTest {
 
   private val issue =
-    AppInsightsIssue(
+    AppInsightsCrash(
       IssueDetails(
         IssueId("1234"),
         "Issue1",

@@ -31,7 +31,7 @@ open class TimeoutException : Exception()
 
 object CancellableTimeoutException : TimeoutException()
 
-data class RevertibleException(val snapshot: AppInsightsState? = null, override val cause: Throwable? = null) : Exception()
+data class RevertibleException(val snapshot: AppInsightsCrashState? = null, override val cause: Throwable? = null) : Exception()
 
 fun <T> LoadingState<T>.isCancellableTimeoutException(): Boolean {
   if (this is LoadingState.UnknownFailure) {

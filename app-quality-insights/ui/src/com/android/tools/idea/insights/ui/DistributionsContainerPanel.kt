@@ -17,7 +17,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.intellij.ui.ScrollPaneFactory
@@ -47,7 +47,7 @@ private const val EMPTY_DETAILS_LABEL = "Detailed stats unavailable."
 private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
 
-class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<AppInsightsState>) : JPanel(CardLayout()) {
+class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<AppInsightsCrashState>) : JPanel(CardLayout()) {
   private val deviceDistributionPanel =
     DistributionPanel().apply { border = BorderFactory.createCompoundBorder(JBUI.Borders.empty(0, 9), border) }
   private val osDistributionPanel =

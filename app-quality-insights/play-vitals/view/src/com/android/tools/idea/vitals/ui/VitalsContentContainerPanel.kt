@@ -17,10 +17,10 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
-import com.android.tools.idea.insights.ui.AppInsightsContentPanel
-import com.android.tools.idea.insights.ui.AppInsightsIssuesTableCellRenderer
+import com.android.tools.idea.insights.ui.AppInsightsCrashContentPanel
+import com.android.tools.idea.insights.ui.AppInsightsCrashesTableCellRenderer
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowDefinition
 import com.android.tools.idea.insights.ui.DistributionToolWindow
 import com.android.tools.idea.insights.ui.insight.InsightToolWindow
@@ -46,7 +46,7 @@ private const val GET_STARTED = "get_started"
 private const val VITALS_WORKBENCH_NAME = "AQI_VITALS"
 
 class VitalsContentContainerPanel(
-  projectController: AppInsightsProjectLevelController,
+  projectController: AppInsightsCrashController,
   project: Project,
   tracker: AppInsightsTracker,
   parentDisposable: Disposable,
@@ -98,7 +98,14 @@ class VitalsContentContainerPanel(
       }
 
     add(
-      AppInsightsContentPanel(projectController, project, this, AppInsightsIssuesTableCellRenderer, VITALS_WORKBENCH_NAME, toolWindowList) {
+      AppInsightsCrashContentPanel(
+        projectController,
+        project,
+        this,
+        AppInsightsCrashesTableCellRenderer,
+        VITALS_WORKBENCH_NAME,
+        toolWindowList,
+      ) {
         VitalsIssueDetailsPanel(projectController, project, this, tracker)
       },
       MAIN_CARD,

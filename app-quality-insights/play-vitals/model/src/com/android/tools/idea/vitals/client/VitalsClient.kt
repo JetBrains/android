@@ -32,7 +32,7 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -162,7 +162,7 @@ class VitalsClient(
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
-  private suspend fun fetchIssues(request: IssueRequest, fetchEventsForAllIssues: Boolean = false): List<AppInsightsIssue> =
+  private suspend fun fetchIssues(request: IssueRequest, fetchEventsForAllIssues: Boolean = false): List<AppInsightsCrash> =
     coroutineScope {
       val topIssues = grpcClient.listTopIssues(request.connection, request.filters)
 
@@ -189,7 +189,7 @@ class VitalsClient(
             cachedSampleEvents[issueDetails]
               ?: fetchedErrorReportMap[issueDetails.sampleEvent]
               ?: grpcClient.searchErrorReportByIssueId(request.connection, request.filters, issueDetails.id, stackTraceGroupParser)
-          AppInsightsIssue(issueDetails, event, source = VitalsInsightsProvider)
+          AppInsightsCrash(issueDetails, event, source = VitalsInsightsProvider)
         }
         .also { cache.populateIssues(request.connection, it) }
     }

@@ -17,14 +17,14 @@ package com.android.tools.idea.insights.inspection
 
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.AppInsightsModel
-import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.InsightsProvider.Source
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
+import com.android.tools.idea.insights.StubAppInsightsCrashController
 import com.android.tools.idea.insights.TestConnection
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
@@ -74,9 +74,10 @@ open class TabProvider(
       override val configuration: StateFlow<AppInsightsModel> =
         MutableStateFlow<AppInsightsModel>(
           AppInsightsModel.Authenticated(
-            StubAppInsightsProjectLevelController(
+            StubAppInsightsCrashController(
               provider = insightsProvider,
-              state = MutableStateFlow(AppInsightsState(Selection(null, connections), mock(), LoadingState.Loading)),
+              state = MutableStateFlow(AppInsightsCrashState(Selection(null, connections), mock(), LoadingState.Loading)),
+              connections = MutableStateFlow(Selection(null, connections)),
             )
           )
         )

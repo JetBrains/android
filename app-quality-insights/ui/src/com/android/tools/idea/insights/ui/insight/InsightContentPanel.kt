@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -72,7 +72,7 @@ private const val DEFAULT_LOADING_TEXT = "Fetching issue data..."
 
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
-  private val controller: AppInsightsProjectLevelController,
+  private val controller: AppInsightsCrashController,
   scope: CoroutineScope,
   currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
   private val tracker: AppInsightsTracker,

@@ -29,7 +29,7 @@ import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.android.tools.idea.insights.model.issue.SignalType
@@ -53,11 +53,11 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 
-class AppInsightsProjectLevelControllerTest {
+class AppInsightsCrashControllerTest {
 
   private val projectRule = ProjectRule()
   private val executorsRule = AndroidExecutorsRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(controllerRule)!!
 
@@ -73,7 +73,7 @@ class AppInsightsProjectLevelControllerTest {
     val model = controllerRule.consumeNext()
     assertThat(model)
       .isEqualTo(
-        AppInsightsState(
+        AppInsightsCrashState(
           Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
           TEST_FILTERS,
           LoadingState.Loading,
@@ -94,7 +94,7 @@ class AppInsightsProjectLevelControllerTest {
 
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
-        AppInsightsState(
+        AppInsightsCrashState(
           connections = Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
           filters =
             TEST_FILTERS.copy(
@@ -1089,7 +1089,7 @@ class AppInsightsProjectLevelControllerTest {
   }
 
   @Test
-  fun `enter offline mode puts AppInsightsState into offline mode`() = runBlocking {
+  fun `enter offline mode puts AppInsightsCrashState into offline mode`() = runBlocking {
     // discard initial loading state, already tested above
     controllerRule.consumeInitialState(
       LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
@@ -1117,7 +1117,7 @@ class AppInsightsProjectLevelControllerTest {
   }
 
   @Test
-  fun `refresh performs a hard fetch and puts AppInsightsState in online mode if successful`() = runBlocking {
+  fun `refresh performs a hard fetch and puts AppInsightsCrashState in online mode if successful`() = runBlocking {
     // discard initial loading state, already tested above
     controllerRule.consumeInitialState(
       LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
@@ -1225,7 +1225,7 @@ class AppInsightsProjectLevelControllerTest {
     model = controllerRule.consumeNext()
     assertThat(model.filters.visibilityType.selected).isEqualTo(VisibilityType.USER_PERCEIVED)
     assertThat(model.issues).isInstanceOf(LoadingState.Ready::class.java)
-    assertThat(model.issues.map { it.value }).isEqualTo(LoadingState.Ready(Selection<AppInsightsIssue>(null, emptyList())))
+    assertThat(model.issues.map { it.value }).isEqualTo(LoadingState.Ready(Selection<AppInsightsCrash>(null, emptyList())))
 
     verify(client).listTopOpenIssues(argThat { filters.visibilityType == VisibilityType.USER_PERCEIVED }, any(), any(), any())
     return@runBlocking
@@ -1381,4 +1381,4 @@ class AppInsightsProjectLevelControllerTest {
   }
 }
 
-private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.selected() = (this as LoadingState.Ready).value.value.selected!!
+private fun LoadingState<Timed<Selection<AppInsightsCrash>>>.selected() = (this as LoadingState.Ready).value.value.selected!!

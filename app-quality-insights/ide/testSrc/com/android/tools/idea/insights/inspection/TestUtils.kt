@@ -19,7 +19,7 @@ import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
@@ -36,11 +36,11 @@ import org.mockito.kotlin.mock
 
 data class LineToInsights(val line: Int, val insights: List<AppInsight>)
 
-internal fun buildIssue(appVcsInfo: AppVcsInfo): AppInsightsIssue {
-  return AppInsightsIssue(issueDetails = mock(), sampleEvent = Event(appVcsInfo = appVcsInfo), source = FakeInsightsProvider())
+internal fun buildIssue(appVcsInfo: AppVcsInfo): AppInsightsCrash {
+  return AppInsightsCrash(issueDetails = mock(), sampleEvent = Event(appVcsInfo = appVcsInfo), source = FakeInsightsProvider())
 }
 
-internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight {
+internal fun buildAppInsight(frame: Frame, issue: AppInsightsCrash): AppInsight {
   return AppInsight(
     line = frame.line.toInt() - 1,
     issue = issue,

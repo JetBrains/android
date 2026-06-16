@@ -56,7 +56,7 @@ import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.android.tools.idea.insights.model.issue.IssueVariant
@@ -78,19 +78,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
-private val LOG = Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
+private val LOG = Logger.getInstance(AppInsightsCrashControllerImpl::class.java)
 
-private data class ProjectState(val currentState: AppInsightsState, val lastGoodState: AppInsightsState?)
+private data class ProjectState(val currentState: AppInsightsCrashState, val lastGoodState: AppInsightsCrashState?)
 
-class AppInsightsProjectLevelControllerImpl(
+class AppInsightsCrashControllerImpl(
   override val provider: InsightsProvider,
   override val coroutineScope: CoroutineScope,
   dispatcher: CoroutineDispatcher,
@@ -105,9 +107,10 @@ class AppInsightsProjectLevelControllerImpl(
   private val defaultFilters: Filters,
   override val aiInsightToolkit: AiInsightToolkit,
   private val cache: AppInsightsCache,
-) : AppInsightsProjectLevelController {
+) : AppInsightsCrashController {
 
-  override val state: SharedFlow<AppInsightsState>
+  override val state: SharedFlow<AppInsightsCrashState>
+  override val connections: StateFlow<Selection<Connection>>
 
   private val dispatcherScope = CoroutineScope(coroutineScope.coroutineContext + dispatcher)
 
@@ -136,7 +139,7 @@ class AppInsightsProjectLevelControllerImpl(
   init {
     val initialState =
       ProjectState(
-        AppInsightsState(
+        AppInsightsCrashState(
           Selection.emptySelection(),
           defaultFilters,
           LoadingState.Loading,
@@ -172,6 +175,8 @@ class AppInsightsProjectLevelControllerImpl(
         .map { it.currentState }
         .distinctUntilChanged()
         .shareIn(dispatcherScope, started = flowStart, replay = 1)
+
+    connections = state.map { it.connections }.stateIn(coroutineScope, SharingStarted.Eagerly, Selection.emptySelection())
   }
 
   override fun selectVersions(values: Set<Version>) {
@@ -206,11 +211,11 @@ class AppInsightsProjectLevelControllerImpl(
     emit(FatalityToggleChanged(value))
   }
 
-  override fun openIssue(issue: AppInsightsIssue) {
+  override fun openIssue(issue: AppInsightsCrash) {
     emit(IssueToggled(issue.id, IssueState.OPENING))
   }
 
-  override fun closeIssue(issue: AppInsightsIssue) {
+  override fun closeIssue(issue: AppInsightsCrash) {
     emit(IssueToggled(issue.id, IssueState.CLOSING))
   }
 
@@ -218,7 +223,7 @@ class AppInsightsProjectLevelControllerImpl(
     emit(EnterOfflineMode)
   }
 
-  override fun addNote(issue: AppInsightsIssue, message: String) {
+  override fun addNote(issue: AppInsightsCrash, message: String) {
     emit(AddNoteRequested(issue.id, message, clock))
   }
 
@@ -246,7 +251,7 @@ class AppInsightsProjectLevelControllerImpl(
     emit(IntervalChanged(value))
   }
 
-  override fun selectIssue(value: AppInsightsIssue?, selectionSource: IssueSelectionSource) {
+  override fun selectIssue(value: AppInsightsCrash?, selectionSource: IssueSelectionSource) {
     emit(SelectedIssueChanged(value, selectionSource))
   }
 
@@ -254,7 +259,7 @@ class AppInsightsProjectLevelControllerImpl(
     emit(ExplicitRefresh)
   }
 
-  override fun revertToSnapshot(state: AppInsightsState) {
+  override fun revertToSnapshot(state: AppInsightsCrashState) {
     emit(ResetSnapshot(state))
   }
 
@@ -271,7 +276,7 @@ class AppInsightsProjectLevelControllerImpl(
 
     logIssues(issues, file)
 
-    val selectIssueCallback = { issue: AppInsightsIssue -> selectIssue(issue, IssueSelectionSource.INSPECTION) }
+    val selectIssueCallback = { issue: AppInsightsCrash -> selectIssue(issue, IssueSelectionSource.INSPECTION) }
 
     return issues.map { issueInFrame ->
       AppInsight(

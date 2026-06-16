@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
@@ -41,8 +41,7 @@ private const val EMPTY_CARD = "empty"
  *
  * Shows the insight if it is available; otherwise shows [AppInsightsStatusText] with appropriate message
  */
-class InsightMainPanel(controller: AppInsightsProjectLevelController, tracker: AppInsightsTracker, parentDisposable: Disposable) :
-  JPanel() {
+class InsightMainPanel(controller: AppInsightsCrashController, tracker: AppInsightsTracker, parentDisposable: Disposable) : JPanel() {
 
   private val scope = controller.coroutineScope.createChildScope(parentDisposable = parentDisposable)
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
 import com.android.tools.idea.insights.ISSUE1
@@ -38,7 +38,7 @@ class SelectedIssueVariantChangedTest {
   @Test
   fun `variant selection causes state to update`() {
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
@@ -63,7 +63,7 @@ class SelectedIssueVariantChangedTest {
   @Test
   fun `variant deselection causes state to update`() {
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
@@ -86,7 +86,7 @@ class SelectedIssueVariantChangedTest {
   @Test
   fun `same variant selected results in noop`() {
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),

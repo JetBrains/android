@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 
 fun transitionEvent(provider: InsightsProvider, event: Event) =
   if (provider.supportsMultipleEvents) {
@@ -31,7 +31,7 @@ fun transitionEvent(provider: InsightsProvider, event: Event) =
     LoadingState.Ready(DynamicEventGallery(listOf(event), 0, ""))
   }
 
-fun actionsForSelectedIssue(provider: InsightsProvider, issue: AppInsightsIssue) =
+fun actionsForSelectedIssue(provider: InsightsProvider, issue: AppInsightsCrash) =
   Action.FetchDetails(issue.id) and
     if (provider.supportsMultipleEvents) {
       Action.FetchIssueVariants(issue.id) and Action.FetchNotes(issue.id) and Action.ListEvents(issue.id, null, null)
@@ -39,7 +39,7 @@ fun actionsForSelectedIssue(provider: InsightsProvider, issue: AppInsightsIssue)
       Action.FetchInsight(issue.id, null, issue.issueDetails.fatality, issue.sampleEvent)
     }
 
-fun AppInsightsTracker.trackEventView(state: AppInsightsState) {
+fun AppInsightsTracker.trackEventView(state: AppInsightsCrashState) {
   val issueId = state.selectedIssue?.id?.value ?: return
   val eventId = state.selectedEvent?.name ?: return
   val appId = state.connections.selected?.appId ?: return

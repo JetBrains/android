@@ -16,8 +16,8 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AgentActionContributor
 import com.android.tools.idea.insights.ai.AiInsight
@@ -36,7 +36,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class InsightLinksPanel(
-  private val controller: AppInsightsProjectLevelController,
+  private val controller: AppInsightsCrashController,
   currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
   tracker: AppInsightsTracker,
   parentDisposable: Disposable,
@@ -59,7 +59,7 @@ class InsightLinksPanel(
   }
 }
 
-private fun createLinks(event: Event, state: AppInsightsState, project: Project, tracker: AppInsightsTracker): List<HyperlinkLabel> =
+private fun createLinks(event: Event, state: AppInsightsCrashState, project: Project, tracker: AppInsightsTracker): List<HyperlinkLabel> =
   AgentActionContributor.EP_NAME.extensions.flatMap { ex ->
     val issue = state.selectedIssue ?: return@flatMap emptyList()
     ex.provideActions(event, issue, project).map { action ->

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
@@ -39,7 +39,7 @@ const val CRASH = "CRASH"
 const val DISTINCT_USERS = "distinctUsers"
 
 fun createIssueRequest(connection: VitalsConnection = TEST_CONNECTION_1, clock: Clock) =
-  AppInsightsState(
+  AppInsightsCrashState(
       Selection(connection, listOf(connection)),
       TEST_FILTERS,
       LoadingState.Loading,

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.NOTE1
@@ -48,7 +48,7 @@ class ErrorBalloonTest {
 
   private val projectRule = ProjectRule()
   private val controllerRule =
-    AppInsightsProjectLevelControllerRule(projectRule) { msg, hyperlinkListener ->
+    AppInsightsCrashControllerRule(projectRule) { msg, hyperlinkListener ->
       AppInsightsToolWindowFactory.showBalloon(projectRule.project, MessageType.ERROR, msg, hyperlinkListener)
     }
 

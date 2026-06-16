@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.persistence
 
 import com.android.ide.common.util.enumValueOfOrNull
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.TimeIntervalFilter
@@ -141,7 +141,7 @@ internal fun OperatingSystemInfo.toSetting() = OperatingSystemSetting(displayVer
 
 internal fun Version.toSetting() = VersionSetting(buildVersion, displayVersion, displayName, tracks.map { it.name })
 
-internal fun AppInsightsState.toFilterSettings() =
+internal fun AppInsightsCrashState.toFilterSettings() =
   InsightsFilterSettings(
     connections.selected?.toSetting(),
     filters.timeInterval.selected?.name,

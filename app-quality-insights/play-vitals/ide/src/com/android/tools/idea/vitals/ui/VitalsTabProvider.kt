@@ -18,6 +18,7 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
@@ -132,7 +133,10 @@ class VitalsTabProvider : AppInsightsTabProvider {
                 shouldRefresh = false
                 appInsightsModel.controller.refresh()
               }
-              tabPanel.setComponent(VitalsTab(appInsightsModel.controller, project, Clock.systemDefaultZone(), tracker, activeTabFlow))
+              val crashController =
+                appInsightsModel.controller as? AppInsightsCrashController
+                  ?: error("Expected AppInsightsCrashController but got ${appInsightsModel.controller::class.simpleName}")
+              tabPanel.setComponent(VitalsTab(crashController, project, Clock.systemDefaultZone(), tracker, activeTabFlow))
             }
             is AppInsightsModel.InitializationFailed -> {
               tabPanel.setComponent(initializationFailedComponent(configManager))

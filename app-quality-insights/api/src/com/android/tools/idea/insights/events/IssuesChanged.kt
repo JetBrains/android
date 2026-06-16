@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
@@ -44,11 +44,11 @@ import java.time.Clock
 data class IssuesChanged(
   val issues: LoadingState.Done<IssueResponse>,
   private val clock: Clock,
-  private val previousGoodState: AppInsightsState?,
+  private val previousGoodState: AppInsightsCrashState?,
   private val source: FetchSource,
 ) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,

@@ -38,6 +38,6 @@ sealed class AppInsightsModel {
    */
   data object InitializationFailed : AppInsightsModel()
 
-  /** When the user is signed in, we pass in [AppInsightsProjectLevelController] which manages App Insights state data. */
+  /** When the user is signed in, we pass in [controller] which manages App Insights state data. */
   data class Authenticated(val controller: AppInsightsProjectLevelController) : AppInsightsModel()
 }

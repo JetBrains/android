@@ -17,7 +17,7 @@ package com.android.tools.idea.vitals.client.grpc
 
 import com.android.tools.idea.insights.client.toProtoTimestamp
 import com.android.tools.idea.insights.model.event.EventData
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueAnnotation
 import com.android.tools.idea.insights.model.issue.IssueDetails
@@ -46,11 +46,11 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
 
   private val reportDatabase = ConcurrentHashMap<String, ErrorReport>()
 
-  fun addIssue(issue: AppInsightsIssue) {
+  fun addIssue(issue: AppInsightsCrash) {
     addIssueWithCustomStackTrace(issue, issue.sampleEvent.eventData, issue.sampleEvent.stacktraceGroup.toRawString())
   }
 
-  fun addIssueWithCustomStackTrace(issue: AppInsightsIssue, eventData: EventData, stacktrace: String) {
+  fun addIssueWithCustomStackTrace(issue: AppInsightsCrash, eventData: EventData, stacktrace: String) {
     val errorIssue = issue.issueDetails.toErrorIssue()
     val errorReport = eventToProto(issue, eventData, stacktrace)
     database[issue.id.value] = Cluster(errorIssue, errorReport)
@@ -83,7 +83,7 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
       }
       .build()
 
-  private fun eventToProto(issue: AppInsightsIssue, eventData: EventData, stacktrace: String): ErrorReport =
+  private fun eventToProto(issue: AppInsightsCrash, eventData: EventData, stacktrace: String): ErrorReport =
     ErrorReport.newBuilder()
       .apply {
         name = issue.sampleEvent.name

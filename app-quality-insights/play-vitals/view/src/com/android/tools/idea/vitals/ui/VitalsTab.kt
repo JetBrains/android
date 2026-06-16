@@ -19,7 +19,7 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.concurrency.mapState
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.connection.ConnectionMode
@@ -64,7 +64,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class VitalsTab(
-  private val projectController: AppInsightsProjectLevelController,
+  private val projectController: AppInsightsCrashController,
   private val project: Project,
   clock: Clock,
   tracker: AppInsightsTracker,

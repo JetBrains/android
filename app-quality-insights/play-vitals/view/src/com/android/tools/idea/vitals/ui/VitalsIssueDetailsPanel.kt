@@ -21,7 +21,7 @@ import com.android.tools.adtui.common.WrappedFlowLayout
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource.PLAY_VITALS
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -31,7 +31,7 @@ import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.VisibilityType
 import com.android.tools.idea.insights.toCrashType
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
@@ -102,7 +102,7 @@ data class VitalsDetailsState(
   val selectedConnection: Connection?,
   val selectedTimeInterval: TimeIntervalFilter?,
   val selectedVersion: Set<Version>,
-  val selectedIssue: AppInsightsIssue?,
+  val selectedIssue: AppInsightsCrash?,
   val connectionMode: ConnectionMode,
   val selectedOsVersion: Set<OperatingSystemInfo>,
   val selectedDevices: Set<Device>,
@@ -145,7 +145,7 @@ private val DefaultVitalsDetailsState =
   VitalsDetailsState(null, null, emptySet(), null, ConnectionMode.ONLINE, emptySet(), emptySet(), null)
 
 class VitalsIssueDetailsPanel(
-  controller: AppInsightsProjectLevelController,
+  controller: AppInsightsCrashController,
   private val project: Project,
   parentDisposable: Disposable,
   private val tracker: AppInsightsTracker,
@@ -334,7 +334,7 @@ class VitalsIssueDetailsPanel(
       add(verticalScaledStrut())
     }
 
-  private fun updateBodySection(issue: AppInsightsIssue) {
+  private fun updateBodySection(issue: AppInsightsCrash) {
     deviceLabel.text = issue.sampleEvent.eventData.device.displayName
     eventIdLabel.text = "Event ${issue.sampleEvent.name.shortenEventId()}"
     affectedApiLevelsLabel.text =

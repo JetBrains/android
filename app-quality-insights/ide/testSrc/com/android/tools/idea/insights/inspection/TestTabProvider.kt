@@ -20,7 +20,7 @@ import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
-import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
+import com.android.tools.idea.insights.StubAppInsightsCrashController
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.intellij.openapi.project.Project
@@ -38,7 +38,7 @@ open class TestTabProvider(displayName: String) : AppInsightsTabProvider {
 
   private val modelFlow =
     MutableStateFlow<AppInsightsModel>(
-      AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController(retrieveInsights = { _ -> fakeInsights }))
+      AppInsightsModel.Authenticated(StubAppInsightsCrashController(retrieveInsights = { _ -> fakeInsights }))
     )
 
   private val configManager: AppInsightsConfigurationManager =

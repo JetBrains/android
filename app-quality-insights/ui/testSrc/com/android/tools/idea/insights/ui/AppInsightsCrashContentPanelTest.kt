@@ -22,7 +22,7 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.adtui.workbench.WorkBenchManager
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -45,10 +45,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
-class AppInsightsContentPanelTest {
+class AppInsightsCrashContentPanelTest {
 
   private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
 
@@ -80,11 +80,11 @@ class AppInsightsContentPanelTest {
     val propertiesComponent = PropertiesComponent.getInstance()
     assertThat(propertiesComponent.isValueSet("$name.workbench.toolwindow.order.updated")).isFalse()
 
-    AppInsightsContentPanel(
+    AppInsightsCrashContentPanel(
       controllerRule.controller,
       projectRule.project,
       projectRule.disposable,
-      AppInsightsIssuesTableCellRenderer,
+      AppInsightsCrashesTableCellRenderer,
       name,
       fakeToolWindowList,
       null,
@@ -99,11 +99,11 @@ class AppInsightsContentPanelTest {
     assertThat(workBench.showToolWindowCounter).isEqualTo(1)
     assertThat(workBench.restoreDefaultLayoutCounter).isEqualTo(1)
 
-    AppInsightsContentPanel(
+    AppInsightsCrashContentPanel(
       controllerRule.controller,
       projectRule.project,
       projectRule.disposable,
-      AppInsightsIssuesTableCellRenderer,
+      AppInsightsCrashesTableCellRenderer,
       name,
       fakeToolWindowList,
       null,

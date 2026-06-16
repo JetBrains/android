@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.ui.actions.ToggleIssueAction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -26,7 +26,7 @@ import java.awt.event.MouseEvent
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 
-class IssueTableMouseListener(private val controller: AppInsightsProjectLevelController) : MouseAdapter() {
+class CrashTableMouseListener(private val controller: AppInsightsCrashController) : MouseAdapter() {
   private val appInsightState = controller.state.stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
 
   override fun mouseReleased(e: MouseEvent) = handleMouseClick(e)
@@ -38,7 +38,7 @@ class IssueTableMouseListener(private val controller: AppInsightsProjectLevelCon
       val table = e.component as? TableView<*> ?: return
       val row = table.rowAtPoint(e.point)
       if (row < 0) return
-      val issue = table.getRow(row) as? AppInsightsIssue ?: return
+      val issue = table.getRow(row) as? AppInsightsCrash ?: return
       val state = appInsightState.value ?: return
       val toggleIssueAction = ToggleIssueAction(controller, state, issue)
       ActionManager.getInstance()

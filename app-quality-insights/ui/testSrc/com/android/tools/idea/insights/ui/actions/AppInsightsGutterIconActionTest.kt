@@ -20,7 +20,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.insights.AppInsight
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.analysis.Cause
@@ -47,7 +47,7 @@ private val FRAME2 = ISSUE2.sampleEvent.stacktraceGroup.exceptions.first().stack
 @RunWith(value = Parameterized::class)
 class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
   private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
   private val popupRule = JBPopupRule()
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule).around(popupRule)!!

@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 
 object InsightToolWindow {
   fun create(
-    projectController: AppInsightsProjectLevelController,
+    projectController: AppInsightsCrashController,
     parentDisposable: Disposable,
     tabVisibility: Flow<Boolean>,
     tracker: AppInsightsTracker,
@@ -72,7 +72,7 @@ object InsightToolWindow {
 }
 
 private class InsightToolWindowContent(
-  projectController: AppInsightsProjectLevelController,
+  projectController: AppInsightsCrashController,
   parentDisposable: Disposable,
   tracker: AppInsightsTracker,
   visibilityFlow: Flow<Boolean>,

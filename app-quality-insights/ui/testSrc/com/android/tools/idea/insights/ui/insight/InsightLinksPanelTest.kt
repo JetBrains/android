@@ -17,8 +17,8 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
@@ -59,13 +59,13 @@ class InsightLinksPanelTest {
 
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
 
-  private val controller: AppInsightsProjectLevelController = mock()
+  private val controller: AppInsightsCrashController = mock()
   private val tracker: AppInsightsTracker = mock()
   private val contributor: AgentActionContributor = mock()
   private val currentInsightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
   private val stateFlow =
     MutableStateFlow(
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),

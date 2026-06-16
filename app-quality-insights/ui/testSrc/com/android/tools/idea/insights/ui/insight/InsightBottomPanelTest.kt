@@ -19,7 +19,7 @@ import com.android.flags.junit.FlagRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
@@ -54,7 +54,7 @@ import org.mockito.kotlin.whenever
 @RunsInEdt
 class InsightBottomPanelTest {
   private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   @get:Rule
   val ruleChain: RuleChain =

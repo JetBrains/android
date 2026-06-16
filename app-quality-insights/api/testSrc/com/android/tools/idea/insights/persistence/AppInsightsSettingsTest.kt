@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights.persistence
 
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.CONNECTION2
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
@@ -49,7 +49,7 @@ private val operatingSystem = WithCount(0, OperatingSystemInfo("Android Api 23",
 
 class AppInsightsSettingsTest {
   private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule)
 
@@ -207,7 +207,7 @@ class AppInsightsSettingsTest {
         listOf(DEFAULT_FETCHED_OSES),
         DEFAULT_FETCHED_PERMISSIONS,
       )
-  ): AppInsightsState {
+  ): AppInsightsCrashState {
     controllerRule.client.completeIssuesCallWith(LoadingState.Ready(issueResponse))
     return controllerRule.consumeNext()
   }

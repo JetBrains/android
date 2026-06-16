@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.ToolContent
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -27,7 +27,7 @@ object DistributionToolWindow {
   fun create(
     name: String,
     scope: CoroutineScope,
-    state: Flow<AppInsightsState>,
+    state: Flow<AppInsightsCrashState>,
     tabVisibility: Flow<Boolean>,
   ): AppInsightsToolWindowDefinition {
     return AppInsightsToolWindowDefinition("Details", StudioIcons.AppQualityInsights.DETAILS, name, tabVisibility) {
@@ -36,7 +36,8 @@ object DistributionToolWindow {
   }
 }
 
-private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppInsightsState>) : ToolContent<AppInsightsToolWindowContext> {
+private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppInsightsCrashState>) :
+  ToolContent<AppInsightsToolWindowContext> {
   private val component = JPanel(BorderLayout())
 
   init {

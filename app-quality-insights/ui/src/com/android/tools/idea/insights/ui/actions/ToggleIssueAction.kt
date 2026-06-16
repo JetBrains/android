@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.model.connection.ConnectionMode
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ToggleIssueAction(
-  private val controller: AppInsightsProjectLevelController,
-  private val state: AppInsightsState,
-  private val issue: AppInsightsIssue,
+  private val controller: AppInsightsCrashController,
+  private val state: AppInsightsCrashState,
+  private val issue: AppInsightsCrash,
 ) : AnAction() {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -58,9 +58,9 @@ class ToggleIssueAction(
     }
   }
 
-  private fun AppInsightsState.shouldEnableAction() = permission == Permission.FULL && mode == ConnectionMode.ONLINE
+  private fun AppInsightsCrashState.shouldEnableAction() = permission == Permission.FULL && mode == ConnectionMode.ONLINE
 
-  private fun AppInsightsState.getActionDescription() =
+  private fun AppInsightsCrashState.getActionDescription() =
     when {
       permission != Permission.FULL -> "You don't have the necessary permissions to open/close issues."
       mode != ConnectionMode.ONLINE -> "AQI is offline."

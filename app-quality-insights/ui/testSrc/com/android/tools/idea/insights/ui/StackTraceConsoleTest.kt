@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.ISSUE3
@@ -51,7 +51,7 @@ import org.junit.rules.RuleChain
 
 class StackTraceConsoleTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   private val fetchState = LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL))
 
