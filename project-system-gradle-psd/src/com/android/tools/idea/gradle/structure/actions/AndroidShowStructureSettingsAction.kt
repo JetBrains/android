@@ -23,8 +23,11 @@ import com.intellij.ide.actions.ShowStructureSettingsAction
 import com.intellij.ide.trustedProjects.TrustedProjects.isProjectTrusted
 import com.intellij.idea.ActionsBundle
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.options.ex.SingleConfigurableEditor
+import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
 
 /** Displays the "Project Structure" dialog. */
 class AndroidShowStructureSettingsAction : ShowStructureSettingsAction() {
@@ -51,7 +54,7 @@ class AndroidShowStructureSettingsAction : ShowStructureSettingsAction() {
     var project = e.getProject()
     if (project == null && IdeInfo.getInstance().isAndroidStudio()) {
       project = ProjectManager.getInstance().getDefaultProject()
-      showAndroidProjectStructure(project)
+      showReadOnlyIdeaProjectStructure(project)
       return
     }
 
@@ -62,6 +65,13 @@ class AndroidShowStructureSettingsAction : ShowStructureSettingsAction() {
 
     super.actionPerformed(e)
   }
+}
+
+private fun showReadOnlyIdeaProjectStructure(project: Project) {
+  object : SingleConfigurableEditor(project, ProjectStructureConfigurable.getInstance(project), SettingsDialog.DIMENSION_KEY) {
+    override fun createActions() = arrayOf(cancelAction)
+    override fun getStyle() = DialogStyle.COMPACT
+  }.show()
 }
 
 private fun showAndroidProjectStructure(project: Project) {
