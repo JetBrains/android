@@ -29,7 +29,8 @@ public class CommonMenuItem extends JMenuItem implements PropertyChangeListener 
   private boolean myActionSelected;
 
   public CommonMenuItem(CommonAction action) {
-    super(action);
+    putClientProperty("html.disable", Boolean.TRUE);
+    setAction(action);
     myActionSelected = action.isSelected();
     action.addPropertyChangeListener(this);
   }

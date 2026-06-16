@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -110,12 +111,14 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
       panel.add(infoLabel, new TabularLayout.Constraint(0, titleColumnCount++));
     }
 
-    JLabel sessionName = new JLabel(getArtifact().getName());
+    JLabel sessionName = new JLabel();
+    sessionName.putClientProperty("html.disable", Boolean.TRUE);
+    sessionName.setText(getArtifact().getName());
     sessionName.setBorder(LABEL_PADDING);
     sessionName.setFont(STATUS_FONT);
     sessionName.setForeground(StandardColors.TEXT_COLOR);
     // Display a tooltip in case there isn't enough space to show the full name in the session's panel.
-    sessionName.setToolTipText(getArtifact().getName());
+    sessionName.setToolTipText(StringUtil.escapeXmlEntities(getArtifact().getName()));
     // Install context menu on the session name - because setting the tooltip text consumes the mouse event which prevents Swing from
     // invoking the context menu from the container underneath.
     installContextMenus(sessionName);

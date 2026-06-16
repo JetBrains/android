@@ -392,7 +392,7 @@ class TransportServiceProxy(
       // TODO: Set this to the applications actual start time.
       val newProcess =
         Common.Process.newBuilder()
-          .setName(description)
+          .setName(StringUtil.escapeXmlEntities(description))
           .setPid(client.pid)
           .setDeviceId(transportDevice.deviceId)
           .setState(Common.Process.State.ALIVE)
