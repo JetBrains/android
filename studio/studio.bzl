@@ -1296,7 +1296,6 @@ def android_studio_configuration(
     _vm_options = vm_options + [
         "-Dflags.configuration.level=" + flag_level,
         "-Dflags.debug.enabled=" + ("true" if enable_debug_flags else "false"),
-        "-Djava.security.manager=allow",  # TODO(b/505889877): Remove once we use JBR 25 in Android Studio
     ]
     _android_studio_configuration(
         name = name,
