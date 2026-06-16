@@ -2987,6 +2987,13 @@ public final class StudioFlags {
     new BooleanFlag(STUDIO_LABS, "fakefeature", "Enable fake feature in StudioLabs.", "Enable this for testing.");
   // endregion STUDIO_LABS
 
+  // region SDK_MANAGER
+  private static final FlagGroup SDK_MANAGER = new FlagGroup(FLAGS, "sdk.manager", "SDK Manager");
+  public static final Flag<Boolean> SDK_MANAGER_SHOW_PACKAGE_DETAILS =
+    new BooleanFlag(SDK_MANAGER, "show.package.details", "Enable Show Package Details",
+                    "Enable a right-click menu and shortcut to show package details in the SDK Manager.");
+  // endregion SDK_MANAGER
+
   // region WEAR_RUN_CONFIGS_AUTOCREATE
   private static final FlagGroup WEAR_RUN_CONFIGS_AUTOCREATE =
     new FlagGroup(FLAGS, "wear.runconfigs.autocreate", "Autocreate Wear Run Configs");

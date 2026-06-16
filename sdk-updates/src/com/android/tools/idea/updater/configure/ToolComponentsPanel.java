@@ -284,5 +284,7 @@ public class ToolComponentsPanel {
 
   public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
     myConfigurable = configurable;
+    PackageDetailsPopup.addPackageDetailsPopup(myToolsSummaryTable);
+    PackageDetailsPopup.addPackageDetailsPopup(myToolsDetailTable);
   }
 }
