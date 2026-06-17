@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_MODELS_UPDATED_TOPIC
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModuleByFullName
@@ -75,6 +76,33 @@ data class GradleModuleHierarchyProviderTest(
           val provider = GradleModuleHierarchyProvider(project)
           // This case is handled by the AndroidViewProjectNode directly.
           assertThat(provider.forProject.submodules).isEmpty()
+        },
+        GradleModuleHierarchyProviderTest(name = "testCacheIsResetOnModelsUpdated", TestProject.SIMPLE_APPLICATION) { project ->
+          val provider = GradleModuleHierarchyProvider.getInstance(project)
+          val app = project.findAppModule()
+          val unitTest = ModuleManager.getInstance(project).modules.find { it.name.endsWith(".unitTest") }!!
+
+          // Initial state: unitTest is linked and thus NOT a submodule of app.
+          assertThat(provider.createForModule(app).submodules).isEmpty()
+
+          // Break linkage for unitTest
+          val originalData = unitTest.getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)
+          unitTest.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null)
+
+          // Fire topic - this should trigger reset and rebuild.
+          project.messageBus.syncPublisher(PROJECT_SYSTEM_MODELS_UPDATED_TOPIC).androidModelsUpdated()
+
+          // unitTest should now appear as a submodule of app (because it is no longer linked and shares the gradle path).
+          assertThat(provider.createForModule(app).submodules).contains(unitTest)
+
+          // Restore linkage
+          unitTest.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, originalData)
+
+          // Fire topic again
+          project.messageBus.syncPublisher(PROJECT_SYSTEM_MODELS_UPDATED_TOPIC).androidModelsUpdated()
+
+          // unitTest should be excluded again.
+          assertThat(provider.createForModule(app).submodules).isEmpty()
         },
       )
   }
