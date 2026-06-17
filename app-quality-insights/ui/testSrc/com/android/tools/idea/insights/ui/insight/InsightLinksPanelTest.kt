@@ -49,6 +49,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.timeout
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -126,8 +127,12 @@ class InsightLinksPanelTest {
     val link = fakeUi.findComponent<HyperlinkLabel> { it.text == "Action 1" }!!
     link.doClick()
 
+    waitForCondition(5.seconds) {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      actionCalled.contains("Action 1")
+    }
     assertThat(actionCalled).containsExactly("Action 1")
-    verify(tracker)
+    verify(tracker, timeout(2000))
       .logAgentAction(AppQualityInsightsUsageEvent.AgentActionDetails.ActionType.FIX, CONNECTION1.appId, ISSUE1.issueDetails.fatality)
   }
 }

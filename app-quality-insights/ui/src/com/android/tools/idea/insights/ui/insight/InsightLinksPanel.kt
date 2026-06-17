@@ -31,6 +31,7 @@ import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -41,16 +42,18 @@ class InsightLinksPanel(
   tracker: AppInsightsTracker,
   parentDisposable: Disposable,
 ) : JPanel(BorderLayout()) {
+  private val scope = parentDisposable.createCoroutineScope()
+
   init {
     val leftPanel = JPanel(HorizontalLayout(JBUI.scale(15)))
-    parentDisposable.createCoroutineScope().launch {
+    scope.launch {
       currentInsightFlow
         .filterReady()
         .combine(controller.state) { a, b -> a to b }
         .collect { (insight, state) ->
           leftPanel.removeAll()
           if (insight != null && state.selectedIssue != null) {
-            createLinks(insight.event, state, controller.project, tracker).forEach { leftPanel.add(it) }
+            createLinks(insight.event, state, controller.project, tracker, scope).forEach { leftPanel.add(it) }
           }
         }
     }
@@ -59,15 +62,23 @@ class InsightLinksPanel(
   }
 }
 
-private fun createLinks(event: Event, state: AppInsightsCrashState, project: Project, tracker: AppInsightsTracker): List<HyperlinkLabel> =
+private fun createLinks(
+  event: Event,
+  state: AppInsightsCrashState,
+  project: Project,
+  tracker: AppInsightsTracker,
+  scope: CoroutineScope,
+): List<HyperlinkLabel> =
   AgentActionContributor.EP_NAME.extensions.flatMap { ex ->
     val issue = state.selectedIssue ?: return@flatMap emptyList()
     ex.provideActions(event, issue, project).map { action ->
       HyperlinkLabel(action.name).apply {
         addHyperlinkListener {
-          action.action.invoke()
-          val connection = state.connections.selected ?: return@addHyperlinkListener
-          tracker.logAgentAction(action.metricsEvent, connection.appId, issue.issueDetails.fatality)
+          scope.launch {
+            action.action.invoke()
+            val connection = state.connections.selected ?: return@launch
+            tracker.logAgentAction(action.metricsEvent, connection.appId, issue.issueDetails.fatality)
+          }
         }
         isFocusable = true
       }
