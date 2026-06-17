@@ -61,13 +61,13 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.util.Screensh
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.accessibility.AccessibilityUtils
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.ui.JBColor
-import java.awt.Desktop
 import java.io.File
 import javax.accessibility.AccessibleRole
 import javax.swing.JComponent
@@ -409,7 +409,7 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
         modifier =
           modifier.clickable(enabled = File(path).exists(), interactionSource = interactionSource, indication = null) {
             try {
-              Desktop.getDesktop().open(File(path))
+              RevealFileAction.openFile(File(path))
             } catch (e: Exception) {
               LOG.warn("Failed to open file: $path", e)
             }
