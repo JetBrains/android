@@ -68,11 +68,20 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
   }
 
   fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): List<ModuleConfiguration> {
-    return (ideVariant.mainArtifact.compileClasspathCore.dependencies +
-        ideVariant.hostTestArtifacts.map { it.compileClasspathCore.dependencies }.flatten() +
-        ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspathCore?.dependencies.orEmpty() +
-        ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies.orEmpty())
-      .distinct()
+    // Use a sequence instead of list concatenation for memory efficiency
+    val allDependencies = sequence {
+      yieldAll(ideVariant.mainArtifact.compileClasspathCore.dependencies)
+      ideVariant.hostTestArtifacts.forEach { yieldAll(it.compileClasspathCore.dependencies) }
+      ideVariant.deviceTestArtifacts
+        .find { it.name == IdeArtifactName.ANDROID_TEST }
+        ?.compileClasspathCore
+        ?.dependencies
+        ?.let { yieldAll(it) }
+      ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies?.let { yieldAll(it) }
+    }
+
+    return allDependencies
+      .distinctBy { it.target }
       .mapNotNull { libraryResolver(it.target) as? IdePreResolvedModuleLibrary }
       .mapNotNull { moduleDependency ->
         val dependencyProject = moduleDependency.projectPath
@@ -85,6 +94,7 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
         }
       }
       .distinct()
+      .toList()
   }
 
   /**

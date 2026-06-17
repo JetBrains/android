@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ProductFlavor
 import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.ide.ProjectType
@@ -69,6 +70,14 @@ class AndroidProjectData(
   val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
 ) {
   var isSeen = false
+
+  val productFlavorsByDimensionAndName: Map<Pair<String, String>, ProductFlavor> by
+    lazy(LazyThreadSafetyMode.PUBLICATION) { androidDsl.productFlavors.associateBy { (it.dimension ?: "") to it.name } }
+
+  val productFlavorsByName: Map<String, ProductFlavor> by
+    lazy(LazyThreadSafetyMode.PUBLICATION) { androidDsl.productFlavors.associateBy { it.name } }
+
+  val buildTypesByName: Map<String, BuildType> by lazy(LazyThreadSafetyMode.PUBLICATION) { androidDsl.buildTypes.associateBy { it.name } }
 }
 
 /** Encapsulates the state of variant resolution across all projects during a sync phase. */
@@ -135,10 +144,8 @@ fun setupProjectsVariantsAndConsume(
 
   // Resolve the variants at this stage handling each level of priority at a time, and considering the declared project dependencies.
   projectsWithPriority.forEach { (priority, nextBatch) ->
-    val modulesToVisit = nextBatch.filter { !it.second.isSeen }
-    modulesToVisit
-      .takeIf { it.isNotEmpty() }
-      ?.forEach { (gradleProject, androidProjectContext) ->
+    nextBatch.forEach { (gradleProject, androidProjectContext) ->
+      if (!androidProjectContext.isSeen) {
         var selectedVariantNameModel: IdeBasicVariantNameImpl? = null
         try {
           androidProjectContext.isSeen = true
@@ -165,6 +172,7 @@ fun setupProjectsVariantsAndConsume(
             )
         }
       }
+    }
   }
 }
 
@@ -461,12 +469,10 @@ private fun resolveVariantAttributes(
     if (variantRequirement.flavorRequirements.containsKey(dimension)) {
       val flavorRequirement = variantRequirement.flavorRequirements[dimension]!!
       dimensionsToFlavors[dimension] =
-        androidProjectContext.androidDsl.productFlavors.firstOrNull {
-          it.name == flavorRequirement.productFlavor && it.dimension == dimension
-        }
+        androidProjectContext.productFlavorsByDimensionAndName[dimension to flavorRequirement.productFlavor]
           // Otherwise, pick the first existing matchingFallback.
-          ?: flavorRequirement.matchingFallbacks.firstNotNullOfOrNull { fallback ->
-            androidProjectContext.androidDsl.productFlavors.firstOrNull { it.name == fallback }
+          ?: flavorRequirement.matchingFallbacks.firstNotNullOfOrNull { fallbackFlavorName ->
+            androidProjectContext.productFlavorsByName[fallbackFlavorName]
           }
           // We have dimension matching between dependencies, but there is only one productFlavor in this project, so we do
           // not need to resolve any ambiguity and can pick the single product flavor
@@ -481,7 +487,8 @@ private fun resolveVariantAttributes(
       // in this case we do have some resolutionStrategy for this dimension, so use it.
       dimensionsToFlavors[dimension] =
         variantRequirement.missingDimensionStrategies[dimension]!!.requestedFlavors.firstNotNullOfOrNull { requestedFlavor ->
-          androidProjectContext.androidDsl.productFlavors.firstOrNull { it.name == requestedFlavor && it.dimension == dimension }
+          // find a productFlavor that matches the requirements (dimension and name).
+          androidProjectContext.productFlavorsByDimensionAndName[dimension to requestedFlavor]
           // And if we don't find any matching PF, we warn about it.
         }
           ?: throw IllegalStateException(
@@ -507,14 +514,10 @@ private fun resolveVariantAttributes(
 
   val buildTypeOrFallback =
     if (androidProjectContext.androidDsl.buildTypes.isNotEmpty()) {
-      androidProjectContext.androidDsl.buildTypes.singleOrNull { it.name == variantRequirement.variant.buildType }
+      androidProjectContext.buildTypesByName[variantRequirement.variant.buildType]
         ?: variantRequirement.buildTypeRequirement?.let { expectedBuildType ->
-          androidProjectContext.androidDsl.buildTypes.singleOrNull { it.name == expectedBuildType.buildType }
-            ?:
-            // This case means there isn't a buildType direct match , and need to check the fallbacks.
-            expectedBuildType.matchingFallbacks.firstNotNullOfOrNull { fallback ->
-              androidProjectContext.androidDsl.buildTypes.firstOrNull { it.name == fallback }
-            }
+          // This case means there isn't a buildType direct match , and need to check the fallbacks.
+          expectedBuildType.matchingFallbacks.firstNotNullOfOrNull { fallback -> androidProjectContext.buildTypesByName[fallback] }
         }
         ?: throw IllegalStateException(
           "Variant Conflict: Unresolved variant \"${variantRequirement.variant.name}\".\nCause: Could not resolve BuildTypes ambiguity for project: ${gradleProject.path}."
@@ -534,20 +537,22 @@ private fun verifyAllVariantAttributesMatch(
   currentVariant: BasicVariant,
   androidDsl: AndroidDsl,
 ): Boolean {
+  if (currentVariant.productFlavors.size != expectedVariantRequirement.variant.productFlavors.size) return false
+  if (currentVariant.buildType != expectedVariantRequirement.variant.buildType) return false
   val flavorsMatch = currentVariant.productFlavors.toSet() == expectedVariantRequirement.variant.productFlavors.toSet()
   val dimensionsMatch = androidDsl.flavorDimensions.toSet() == expectedVariantRequirement.flavorRequirements.keys.toSet()
-  val buildTypeMatch = currentVariant.buildType == expectedVariantRequirement.variant.buildType
 
-  return buildTypeMatch && dimensionsMatch && flavorsMatch
+  return dimensionsMatch && flavorsMatch
 }
 
 /** Verifies if all variant attributes (BuildType and all ProductFlavors) strictly match. */
 private fun verifyAllVariantAttributesMatch(expectedVariant: BasicVariant, currentVariant: BasicVariant): Boolean {
+  if (currentVariant.productFlavors.size != expectedVariant.productFlavors.size) return false
+  if (currentVariant.buildType != expectedVariant.buildType) return false
   // Heuristics caveat: This is not the best matching as it misses comparing the flavors by their dims as well instead of the names only.
   val flavorsMatch = currentVariant.productFlavors.toSet() == expectedVariant.productFlavors.toSet()
-  val buildTypeMatch = currentVariant.buildType == expectedVariant.buildType
 
-  return buildTypeMatch && flavorsMatch
+  return flavorsMatch
 }
 
 private fun getVariantRequirementAttributesInformation(
@@ -557,13 +562,14 @@ private fun getVariantRequirementAttributesInformation(
   androidProjectContext: AndroidProjectData,
   priority: Int,
 ): VariantRequirement {
-  // 1. Determine BuildType Requirements
+  // 1. Determine BuildType Requirements.
+  // If we already have a requirement from a consumer, propagate it directly without copying since the requirement model is immutable.
   val buildTypeRequirement =
     if (variantToPropagate?.buildTypeRequirement != null) {
-      variantToPropagate.buildTypeRequirement.copy()
+      variantToPropagate.buildTypeRequirement
     } else if (variantToPropagate == null) {
       val buildType =
-        androidProjectContext.androidDsl.buildTypes.singleOrNull { it.name == variant.buildType }
+        androidProjectContext.buildTypesByName[variant.buildType]
           ?: throw IllegalStateException(
             "Variant Conflict: Unable to resolve BuildType attribute for " +
               "variant \"${variant.name}\" for project: ${targetProjectId.gradleProjectPath}."
@@ -575,9 +581,10 @@ private fun getVariantRequirementAttributesInformation(
     } else null
 
   // 2. Determine Flavor Requirements. If we have a required variant from other consumer, then we prioritise it over local attributes.
+  // We don't need to copy as this is immutable now.
   val flavorRequirements =
     if (variantToPropagate != null && variantToPropagate.flavorRequirements.isNotEmpty()) {
-      variantToPropagate.flavorRequirements.mapValues { it.value.copy() }
+      variantToPropagate.flavorRequirements
     } else if (variantToPropagate == null) {
       androidProjectContext.androidDsl.productFlavors
         .filter { variant.productFlavors.contains(it.name) }
@@ -592,7 +599,7 @@ private fun getVariantRequirementAttributesInformation(
   // 3. Determine Strategies.
   val strategies =
     if (variantToPropagate != null && variantToPropagate.missingDimensionStrategies.isNotEmpty()) {
-      variantToPropagate.missingDimensionStrategies.mapValues { it.value.copy() }
+      variantToPropagate.missingDimensionStrategies
     } else if (variantToPropagate == null) {
       getMissingDimensionStrategyForCurrentProject(
         androidProjectContext.androidDsl,
@@ -695,9 +702,9 @@ data class ProductFlavorsAndFallbacks(
 data class ProjectBuildInfo(val gradleProjectPath: String, val rootBuildPath: File)
 
 data class MissingDimensionStrategies(
-  var requestedFlavors: List<String>,
-  var overridden: Boolean = false,
-  var priority: Int = Int.MAX_VALUE,
+  val requestedFlavors: List<String>,
+  val overridden: Boolean = false,
+  val priority: Int = Int.MAX_VALUE,
 )
 
 data class VariantAndPriority(val variant: BasicVariant, val priority: Int)
