@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.JdkUtils.overrideProjectGradleJdkPathWithVersion
@@ -46,6 +48,7 @@ import org.junit.runner.Description
  * To use it, simply set the path to the target project using the provided [fixture] (see [CodeInsightTestFixture.setTestDataPath]) and then
  * [load] the project.
  */
+@Deprecated("Use AndroidProjectRule.withIntegrationTestEnvironment instead")
 class AndroidGradleProjectRule(
   val workspaceRelativeTestDataPath: @SystemIndependent String = "tools/adt/idea/android/testData",
   val additionalRepositories: Collection<File> = listOf(),
@@ -92,6 +95,7 @@ class AndroidGradleProjectRule(
   fun findGradleModule(gradlePath: String): Module? = project.gradleModule(gradlePath)
 
   fun getModule(moduleName: String) = delegateTestCase.getModule(moduleName)
+
   fun getModuleByFullName(moduleName: String) = delegateTestCase.getModuleByFullName(moduleName)
 
   fun hasModule(moduleName: String) = delegateTestCase.hasModule(moduleName)
@@ -140,6 +144,14 @@ class AndroidGradleProjectRule(
     }
 
     GradleProjectImporter.withAfterCreate(afterCreate = ::afterCreate) {
+      // Test only problem:
+      // Asynchronous startup activities will likely be triggered before this, on an empty project, and therefore if any calls
+      // ProjectSystemService.getInstance(project).projectSystem they will both
+      //  (1) get the wrong answer (DefaultProjectSystem, rather than GradleProjectSystem)
+      //  (2) result in caching that incorrect answer for everyone else
+      // This manual override fixes (2). The general sequencing problem is fixed in the replacement fixture
+      // AndroidProjectRule.withIntegrationTestEnvironment.
+      ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
       if (preLoad != null) {
         val rootFile = delegateTestCase.prepareProjectForImport(projectPath, resolvedAgpVersion, ndkVersion, true)
 
@@ -182,6 +194,7 @@ class AndroidGradleProjectRule(
 
 private fun gradleModuleNotFound(gradlePath: String): Nothing = throw RuntimeException("No module with Gradle path: $gradlePath")
 
+@Deprecated("Use AndroidProjectRule.withIntegrationTestEnvironment instead")
 class EdtAndroidGradleProjectRule(private val projectRule: AndroidGradleProjectRule) :
   TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
   val project: Project
