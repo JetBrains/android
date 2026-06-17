@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project
 data class AgentAction(
   val name: String,
   val metricsEvent: AppQualityInsightsUsageEvent.AgentActionDetails.ActionType,
-  val action: () -> Unit,
+  val action: suspend () -> Unit,
 )
 
 interface AgentActionContributor {
