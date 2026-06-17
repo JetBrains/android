@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.ide
 
+import com.android.ide.common.xml.XmlDetector.isXml
 import com.android.tools.adtui.stdui.ContentType
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
 import com.android.tools.inspectors.common.api.ide.stacktrace.IntelliJStackTraceGroup
@@ -27,11 +28,9 @@ import com.google.gson.JsonObject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.io.ByteArrayInputStream
-import javax.xml.parsers.DocumentBuilderFactory
 
 class DefaultUiComponentsProvider(private val project: Project, private val parentDisposable: Disposable) : UiComponentsProvider {
   private val gson = Gson()
-  private val xml = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 
   override fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style, formatted: Boolean): DataViewer {
     return when {
@@ -62,7 +61,7 @@ class DefaultUiComponentsProvider(private val project: Project, private val pare
   private fun handleUnsupportedContentType(bytes: ByteArray, styleHint: DataViewer.Style, formatted: Boolean): DataViewer {
     return when {
       bytes.isJson() -> createViewer(bytes, ContentType.JSON, styleHint, formatted)
-      bytes.isXml() -> createViewer(bytes, ContentType.XML, styleHint, formatted)
+      isXml(String(bytes)) -> createViewer(bytes, ContentType.XML, styleHint, formatted)
       else -> IntellijDataViewer.createInvalidViewer()
     }
   }
@@ -76,17 +75,6 @@ class DefaultUiComponentsProvider(private val project: Project, private val pare
   private fun ByteArray.isJson(): Boolean {
     return try {
       ByteArrayInputStream(this).reader().use { gson.fromJson(it, JsonObject::class.java) != null }
-    } catch (_: Exception) {
-      false
-    }
-  }
-
-  // TODO(b/235501148): Detect partial XML. See LintSyntaxHighlighter#tokenizeXml() for a starting
-  // point.
-  private fun ByteArray.isXml(): Boolean {
-    return try {
-      ByteArrayInputStream(this).use { xml.parse(it) }
-      true
     } catch (_: Exception) {
       false
     }

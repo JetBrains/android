@@ -16,13 +16,14 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
 import com.android.tools.adtui.stdui.BorderlessTableCellRenderer
+import com.android.tools.adtui.util.disableHtml
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.intellij.openapi.util.NlsContexts.ColumnName
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
 
-private val simpleRenderer = BorderlessTableCellRenderer()
+private val simpleRenderer = BorderlessTableCellRenderer().disableHtml()
 private val sizeRenderer = SizeRenderer()
 private val timeRenderer = TimeRenderer()
 

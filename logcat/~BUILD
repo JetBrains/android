@@ -25,6 +25,7 @@ iml_module(
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/process-monitor:studio.android.sdktools.process-monitor",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/adt/idea/android-adb-ui:intellij.android.adb.ui",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",

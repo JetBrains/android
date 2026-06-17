@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
+import com.android.ide.common.xml.XmlDetector.isXml
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
@@ -34,14 +35,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.readText
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.ProjectScope
-import java.io.StringReader
 import javax.swing.JComponent
-import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.text.RegexOption.MULTILINE
-import org.xml.sax.InputSource
 
 private val GSON = Gson()
-private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 
 internal class GrpcDataComponentFactory(
   private val project: Project,
@@ -143,7 +140,7 @@ private fun ByteArray.getFileType(): FileType? {
   val string = decodeToString()
   return when {
     string.isJson() -> JsonFileType.INSTANCE
-    string.isXml() -> XmlFileType.INSTANCE
+    isXml(string) -> XmlFileType.INSTANCE
     else -> null
   }
 }
@@ -151,15 +148,6 @@ private fun ByteArray.getFileType(): FileType? {
 private fun String.isJson(): Boolean {
   return try {
     GSON.fromJson(this, JsonObject::class.java) != null
-  } catch (_: Exception) {
-    false
-  }
-}
-
-private fun String.isXml(): Boolean {
-  return try {
-    XML.parse(InputSource(StringReader(this)))
-    true
   } catch (_: Exception) {
     false
   }
