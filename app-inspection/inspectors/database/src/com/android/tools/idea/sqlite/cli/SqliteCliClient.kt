@@ -70,7 +70,7 @@ class SqliteCliArgs private constructor() {
 
     fun dump() = apply { args.add(SqliteCliArg(".dump")) }
 
-    fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump '$tableName'")) }
+    fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump ${tableName.quoted()}")) }
 
     fun headersOn() = apply { args.add(SqliteCliArg(".headers on")) }
 
@@ -101,7 +101,7 @@ object SqliteQueries {
   const val SELECT_TABLE_NAMES = "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
   const val SELECT_VIEW_NAMES = "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
 
-  fun selectTableContents(tableName: String) = "select * from '$tableName'"
+  fun selectTableContents(tableName: String) = "select * from ${tableName.quoted()}"
 }
 
 class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: CoroutineDispatcher) : SqliteCliClient {
@@ -202,4 +202,10 @@ private object ProcessExecutor {
 private fun String.ellipsize(maxLength: Int): String {
   val text = this
   return if (text.length <= maxLength) text else "${text.subSequence(0, maxLength - 3)}..."
+}
+
+/** Quote a table name for use as a single argument to a sqlite3 shell dot-command. */
+private fun String.quoted(): String {
+  require(none { it.code < 0x20 || it.code == 0x7f }) { "Table name contains control characters" }
+  return "'${replace("'", "''")}'"
 }

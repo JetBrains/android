@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.adtui.util.disableHtml
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
@@ -34,7 +35,9 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.text.HtmlChunk
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
@@ -43,6 +46,7 @@ import com.intellij.ui.PopupHandler
 import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
@@ -73,7 +77,6 @@ import javax.swing.JProgressBar
 import javax.swing.JTable
 import javax.swing.KeyStroke
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 import org.jetbrains.annotations.TestOnly
 
@@ -171,7 +174,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     tableActionsPanel.add(liveUpdatesCheckBox)
 
     HelpTooltip()
-      .setDescription(DatabaseInspectorBundle.message("action.live.updates.desc"))
+      .setDescription(HtmlChunk.text(DatabaseInspectorBundle.message("action.live.updates.desc")))
       .setLink(DatabaseInspectorBundle.message("learn.more")) {
         BrowserUtil.browse("https://d.android.com/r/studio-ui/db-inspector-help/live-updates")
       }
@@ -180,7 +183,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     exportButton.name = "export-button"
     exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
     exportButton.isEnabled = false
-    HelpTooltip().setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title")).installOn(exportButton)
+    HelpTooltip().setPlainTextTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title")).installOn(exportButton)
     tableActionsPanel.add(Box.createHorizontalStrut(4))
     tableActionsPanel.add(exportButton)
     exportButton.addActionListener { listeners.forEach { it.showExportToFileDialogInvoked() } }
@@ -498,8 +501,8 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
       viewRowIndex: Int,
       viewColumnIndex: Int,
     ): Component {
-      val columnNameLabel = DefaultTableCellRenderer()
-      val sortIcon = DefaultTableCellRenderer()
+      val columnNameLabel = JBLabel().disableHtml()
+      val sortIcon = JBLabel()
 
       if (viewColumnIndex == 0) {
         columnNameLabel.icon = null
@@ -539,7 +542,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
       val col = columnAtPoint(event.point)
       return when {
         row < 0 || col < 0 -> null
-        else -> getValueAt(row, col)?.toString()?.takeIf { it.length > MAX_CELL_TEXT }
+        else -> getValueAt(row, col)?.toString()?.takeIf { it.length > MAX_CELL_TEXT }?.let { escapeXmlEntities(it) }
       }
     }
   }
