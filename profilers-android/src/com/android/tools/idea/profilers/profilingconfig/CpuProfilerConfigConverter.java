@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.profilingconfig;
 
 import static com.android.tools.idea.run.profiler.CpuProfilerConfig.INSTRUMENTED_JAVA_CONFIG_NAME;
 import static com.android.tools.idea.run.profiler.CpuProfilerConfig.NATIVE_ALLOCATIONS_CONFIG_NAME;
-import static com.android.tools.idea.run.profiler.CpuProfilerConfig.SAMPLED_JAVA_CONFIG_NAME;
 import static com.android.tools.idea.run.profiler.CpuProfilerConfig.SAMPLED_NATIVE_CONFIG_NAME;
 import static com.android.tools.idea.run.profiler.CpuProfilerConfig.SYSTEM_TRACE_CONFIG_NAME;
 import static com.android.tools.profilers.cpu.config.ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB;
@@ -172,17 +171,10 @@ public class CpuProfilerConfigConverter {
   /**
    * Converts from a {@link ProfilerTaskType} to the respective {@link CpuProfilerConfig} technology name.
    */
-  public static String fromTaskTypeToConfigName(ProfilerTaskType taskType, @Nullable TaskHomeTabModel.TaskRecordingType recordingType) {
+  public static String fromTaskTypeToConfigName(ProfilerTaskType taskType) {
     String configName = "";
     switch (taskType) {
-      case JAVA_KOTLIN_METHOD_RECORDING -> {
-        if (recordingType == TaskHomeTabModel.TaskRecordingType.SAMPLED) {
-          configName = SAMPLED_JAVA_CONFIG_NAME;
-        }
-        else if (recordingType == TaskHomeTabModel.TaskRecordingType.INSTRUMENTED) {
-          configName = INSTRUMENTED_JAVA_CONFIG_NAME;
-        }
-      }
+      case JAVA_KOTLIN_METHOD_RECORDING -> configName = INSTRUMENTED_JAVA_CONFIG_NAME;
       case CALLSTACK_SAMPLE -> configName = SAMPLED_NATIVE_CONFIG_NAME;
       case SYSTEM_TRACE -> configName = SYSTEM_TRACE_CONFIG_NAME;
       case NATIVE_ALLOCATIONS -> configName = NATIVE_ALLOCATIONS_CONFIG_NAME;

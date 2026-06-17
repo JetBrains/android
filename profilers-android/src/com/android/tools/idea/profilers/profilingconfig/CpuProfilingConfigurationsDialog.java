@@ -28,7 +28,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
@@ -488,10 +487,6 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         myPopup.add(buildPopupMenuItem(
             CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
             name -> ArtInstrumentedConfiguration.create(name, StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get())
-        ));
-        myPopup.add(buildPopupMenuItem(
-            CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
-            name -> ArtSampledConfiguration.create(name, StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get())
         ));
       }
 

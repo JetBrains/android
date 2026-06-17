@@ -515,30 +515,4 @@ class TaskHomeTabTest {
 
     verifyDropdownOption()
   }
-
-  @Test
-  fun `test recording type dropdown appears for applicable tasks only`() {
-    ideProfilerServices.enableProfilerHomeTabV2(true)
-    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
-    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertDoesNotExist()
-    // Selecting a task that has recording types should now show the recording type dropdown
-    verifyTaskExistsAndSelect(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING, true)
-    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertExists().assertIsDisplayed()
-    // Selecting a task that does NOT have recording types should NOT show the recording type dropdown
-    verifyTaskExistsAndSelect(ProfilerTaskType.SYSTEM_TRACE, true)
-    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertDoesNotExist()
-  }
-
-  @Test
-  fun `test recording type dropdown appears for applicable tasks only (V2 disabled)`() {
-    ideProfilerServices.enableProfilerHomeTabV2(false)
-    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
-    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertDoesNotExist()
-    // Selecting a task that has recording types should now show the recording type dropdown
-    verifyTaskExistsAndSelect(ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING, false)
-    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertExists().assertIsDisplayed()
-    // Selecting a task that does NOT have recording types should NOT show the recording type dropdown
-    verifyTaskExistsAndSelect(ProfilerTaskType.SYSTEM_TRACE, false)
-    composeTestRule.onNodeWithTag("TaskRecordingTypeDropdown").assertDoesNotExist()
-  }
 }

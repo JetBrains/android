@@ -22,6 +22,7 @@ import java.util.Objects;
 
 public class CpuProfilerConfig {
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
+  @Deprecated
   public static final String SAMPLED_JAVA_CONFIG_NAME = "Java/Kotlin Method Sample (legacy)";
   public static final String INSTRUMENTED_JAVA_CONFIG_NAME = "Java/Kotlin Method Trace";
   public static final String SAMPLED_NATIVE_CONFIG_NAME = "Callstack Sample";
@@ -42,6 +43,9 @@ public class CpuProfilerConfig {
 
   /**
    * Default constructor to be used by {@link CpuProfilerConfigsState}.
+   * NOTE: This must remain SAMPLED_JAVA to ensure backwards compatibility with older
+   * cpuProfilingConfigs.xml files where the name/technology were omitted by the serializer.
+   * The deprecated defaults are scrubbed later in {@link CpuProfilerConfigsState#loadState}.
    */
   public CpuProfilerConfig() {
     myName = Technology.SAMPLED_JAVA.getName();
@@ -156,6 +160,7 @@ public class CpuProfilerConfig {
   }
 
   public enum Technology {
+    @Deprecated
     SAMPLED_JAVA {
       @NotNull
       @Override

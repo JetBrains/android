@@ -192,9 +192,9 @@ class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
   fun setupConfigWhenTaskBasedUxEnabled() {
     project = spy(MockProjectEx(disposableRule.disposable))
     configurations = getCpuProfilingDialogConfiguration(project)
-    // Contains task configurations SAMPLED_NATIVE, SAMPLED_JAVA, INSTRUMENTED_JAVA, NATIVE_ALLOCATIONS
+    // Contains task configurations SAMPLED_NATIVE, INSTRUMENTED_JAVA, NATIVE_ALLOCATIONS
     // ATRACE/PERFETTO will not be available since it doesn't have an editable fields
-    assertThat(configurations.configurationModel.size()).isEqualTo(4)
+    assertThat(configurations.configurationModel.size()).isEqualTo(3)
   }
 
   @Test
@@ -204,9 +204,9 @@ class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
     project = spy(MockProjectEx(disposableRule.disposable))
     configurations = getCpuProfilingDialogConfiguration(project)
 
-    // Contains at least 4 default configurations (and possibly more if there are user defined ones):
-    // SAMPLED_NATIVE, SAMPLED_JAVA, INSTRUMENTED_JAVA, SYSTEM_TRACE
-    assertThat(configurations.configurationModel.size()).isGreaterThan(3)
+    // Contains at least 3 default configurations (and possibly more if there are user defined ones):
+    // SAMPLED_NATIVE, INSTRUMENTED_JAVA, SYSTEM_TRACE
+    assertThat(configurations.configurationModel.size()).isGreaterThan(2)
   }
 
   @Test
@@ -221,8 +221,8 @@ class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
     val callbackCaptor = argumentCaptor<List<CpuProfilerConfig>>()
 
     verify(cpuProfilerStateSpy, times(1)).userConfigs = callbackCaptor.capture()
-    // All 4 from configuration model is resulted since default config is identified with name and tests have different name.
-    assertThat(callbackCaptor.firstValue.size).isEqualTo(4)
+    // All 3 from configuration model is resulted since default config is identified with name and tests have different name.
+    assertThat(callbackCaptor.firstValue.size).isEqualTo(3)
   }
 
   @Test

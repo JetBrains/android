@@ -29,7 +29,6 @@ class CpuProfilerConfigsStateTest {
         CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(),
         CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(),
         CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
-        CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
       )
       .inOrder()
   }
@@ -38,13 +37,12 @@ class CpuProfilerConfigsStateTest {
   fun testTaskConfigWhenItsEmpty() {
     val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
     // Default task configs added when task config is empty
-    assertThat(result.size).isEqualTo(6)
+    assertThat(result.size).isEqualTo(5)
     assertThat(result[0].name).isEqualTo("LeakCanary")
     assertThat(result[1].name).isEqualTo("Callstack Sample")
     assertThat(result[2].name).isEqualTo("Java/Kotlin Method Trace")
-    assertThat(result[3].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
-    assertThat(result[4].name).isEqualTo("Native Allocations")
-    assertThat(result[5].name).isEqualTo("System Trace")
+    assertThat(result[3].name).isEqualTo("Native Allocations")
+    assertThat(result[4].name).isEqualTo("System Trace")
   }
 
   @Test
@@ -52,14 +50,12 @@ class CpuProfilerConfigsStateTest {
     val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
     configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
     configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
-    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     myConfigsState.taskConfigs = configsToSave
     // Verify set task configs
     val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
-    assertThat(result.size).isEqualTo(3)
+    assertThat(result.size).isEqualTo(2)
     assertThat(result[0].name).isEqualTo("HelloTest1")
     assertThat(result[1].name).isEqualTo("HelloTest2")
-    assertThat(result[2].name).isEqualTo("HelloTest3")
   }
 
   @Test
@@ -69,13 +65,12 @@ class CpuProfilerConfigsStateTest {
     myConfigsState.taskConfigs = configsToSave
     // Verify task config
     val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
-    assertThat(result.size).isEqualTo(6)
+    assertThat(result.size).isEqualTo(5)
     assertThat(result[0].name).isEqualTo("LeakCanary")
     assertThat(result[1].name).isEqualTo("Callstack Sample")
     assertThat(result[2].name).isEqualTo("Java/Kotlin Method Trace")
-    assertThat(result[3].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
-    assertThat(result[4].name).isEqualTo("Native Allocations")
-    assertThat(result[5].name).isEqualTo("System Trace")
+    assertThat(result[3].name).isEqualTo("Native Allocations")
+    assertThat(result[4].name).isEqualTo("System Trace")
   }
 
   @Test
@@ -83,17 +78,15 @@ class CpuProfilerConfigsStateTest {
     val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
     configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
     configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
-    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
-    configsToSave.add(CpuProfilerConfig("HelloTest4", CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS))
-    configsToSave.add(CpuProfilerConfig("HelloTest5", CpuProfilerConfig.Technology.SYSTEM_TRACE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS))
+    configsToSave.add(CpuProfilerConfig("HelloTest4", CpuProfilerConfig.Technology.SYSTEM_TRACE))
     myConfigsState.taskConfigs = configsToSave
     var result = myConfigsState.savedTaskConfigsIfPresentOrDefault
-    assertThat(result.size).isEqualTo(5)
+    assertThat(result.size).isEqualTo(4)
     assertThat(result[0].name).isEqualTo("HelloTest1")
     assertThat(result[1].name).isEqualTo("HelloTest2")
     assertThat(result[2].name).isEqualTo("HelloTest3")
     assertThat(result[3].name).isEqualTo("HelloTest4")
-    assertThat(result[4].name).isEqualTo("HelloTest5")
 
     val configsToSaveNew: ArrayList<CpuProfilerConfig> = ArrayList()
     configsToSaveNew.add(CpuProfilerConfig("HelloTest10", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
@@ -111,17 +104,15 @@ class CpuProfilerConfigsStateTest {
     configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
     configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
     configsToSave.add(CpuProfilerConfig(CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS))
-    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
-    configsToSave.add(CpuProfilerConfig("HelloTest4", CpuProfilerConfig.Technology.SYSTEM_TRACE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SYSTEM_TRACE))
     myConfigsState.taskConfigs = configsToSave
     myConfigsState.taskConfigs[2].samplingRateBytes = 99912
     var result = myConfigsState.savedTaskConfigsIfPresentOrDefault
-    assertThat(result.size).isEqualTo(5)
+    assertThat(result.size).isEqualTo(4)
     assertThat(result[0].name).isEqualTo("HelloTest1")
     assertThat(result[1].name).isEqualTo("HelloTest2")
     assertThat(result[2].name).isEqualTo("Native Allocations")
     assertThat(result[3].name).isEqualTo("HelloTest3")
-    assertThat(result[4].name).isEqualTo("HelloTest4")
 
     assertThat(myConfigsState.nativeAllocationsConfigForTaskConfig.samplingRateBytes).isEqualTo(99912)
   }
@@ -145,8 +136,6 @@ class CpuProfilerConfigsStateTest {
 
   @Test
   fun getConfigByNameFromDefaultConfigs() {
-    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName())?.technology)
-      .isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
     assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName())?.technology)
       .isEqualTo(CpuProfilerConfig.Technology.SAMPLED_NATIVE)
     assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName())?.technology)
@@ -157,7 +146,7 @@ class CpuProfilerConfigsStateTest {
 
   @Test
   fun addUserConfig() {
-    val added = myConfigsState.addUserConfig(CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_JAVA))
+    val added = myConfigsState.addUserConfig(CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
     assertThat(added).isTrue()
     assertThat(myConfigsState.userConfigs).hasSize(1)
     assertThat(myConfigsState.userConfigs[0].name).isEqualTo("MyConfig")
@@ -165,7 +154,7 @@ class CpuProfilerConfigsStateTest {
 
   @Test
   fun addUserConfigWithDefaultName() {
-    val config = CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA)
+    val config = CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(), CpuProfilerConfig.Technology.SAMPLED_NATIVE)
     val added = myConfigsState.addUserConfig(config)
     assertThat(added).isFalse()
     assertThat(myConfigsState.userConfigs).hasSize(0)
@@ -173,7 +162,7 @@ class CpuProfilerConfigsStateTest {
 
   @Test
   fun addUserConfigWithDuplicatedName() {
-    val configSampled = CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_JAVA)
+    val configSampled = CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_NATIVE)
     assertThat(myConfigsState.addUserConfig(configSampled)).isTrue()
     val configInstrumented = CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
     assertThat(myConfigsState.addUserConfig(configInstrumented)).isFalse()
@@ -181,7 +170,7 @@ class CpuProfilerConfigsStateTest {
 
   @Test
   fun getConfigByNameCustomConfig() {
-    myConfigsState.userConfigs = listOf(CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_JAVA))
+    myConfigsState.userConfigs = listOf(CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
     assertThat(myConfigsState.getConfigByName("MyConfig")?.name).isEqualTo("MyConfig")
   }
 

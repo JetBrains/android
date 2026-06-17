@@ -56,12 +56,11 @@ class CpuProfilerConfigModelTest {
 
     // After updateProfilingConfigurations
     model!!.updateProfilingConfigurations()
-    assertThat(model!!.taskProfilingConfigurations).hasSize(5)
-    assertThat(model!!.taskProfilingConfigurations[0].name).isEqualTo(FakeIdeProfilerServices.ART_SAMPLED_CONFIG.name)
-    assertThat(model!!.taskProfilingConfigurations[1].name).isEqualTo(FakeIdeProfilerServices.ART_INSTRUMENTED_CONFIG.name)
-    assertThat(model!!.taskProfilingConfigurations[2].name).isEqualTo(FakeIdeProfilerServices.SIMPLEPERF_CONFIG.name)
-    assertThat(model!!.taskProfilingConfigurations[3].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_NATIVE_ALLOCATIONS_CONFIG.name)
-    assertThat(model!!.taskProfilingConfigurations[4].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_SYSTEM_TRACE_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations).hasSize(4)
+    assertThat(model!!.taskProfilingConfigurations[0].name).isEqualTo(FakeIdeProfilerServices.ART_INSTRUMENTED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[1].name).isEqualTo(FakeIdeProfilerServices.SIMPLEPERF_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[2].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_NATIVE_ALLOCATIONS_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[3].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_SYSTEM_TRACE_CONFIG.name)
   }
 
   @Test
@@ -72,12 +71,11 @@ class CpuProfilerConfigModelTest {
 
     // After updateProfilingConfigurations
     model!!.updateProfilingConfigurations()
-    assertThat(model!!.taskProfilingConfigurations).hasSize(5)
-    assertThat(model!!.taskProfilingConfigurations[0].name).isEqualTo(FakeIdeProfilerServices.ART_SAMPLED_CONFIG.name)
-    assertThat(model!!.taskProfilingConfigurations[1].name).isEqualTo(FakeIdeProfilerServices.ART_INSTRUMENTED_CONFIG.name)
-    assertThat(model!!.taskProfilingConfigurations[2].name).isEqualTo(FakeIdeProfilerServices.SIMPLEPERF_CONFIG.name)
-    assertThat(model!!.taskProfilingConfigurations[3].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_NATIVE_ALLOCATIONS_CONFIG.name)
-    assertThat(model!!.taskProfilingConfigurations[4].name).isEqualTo(FakeIdeProfilerServices.ATRACE_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations).hasSize(4)
+    assertThat(model!!.taskProfilingConfigurations[0].name).isEqualTo(FakeIdeProfilerServices.ART_INSTRUMENTED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[1].name).isEqualTo(FakeIdeProfilerServices.SIMPLEPERF_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[2].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_NATIVE_ALLOCATIONS_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[3].name).isEqualTo(FakeIdeProfilerServices.ATRACE_CONFIG.name)
   }
 
   @Test
@@ -86,42 +84,32 @@ class CpuProfilerConfigModelTest {
     model!!.updateProfilingConfigurations()
 
     var realConfigs = model!!.defaultProfilingConfigurations
-    assertThat(realConfigs).hasSize(2)
-    // First actual configuration should be ART Sampled
+    assertThat(realConfigs).hasSize(1)
+    // Actual configuration should be ART Instrumented
     assertThat(realConfigs[0].traceType).isEqualTo(TraceType.ART)
-    assertThat(realConfigs[0]).isInstanceOf(ArtSampledConfiguration::class.java)
-    assertThat(realConfigs[0].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
+    assertThat(realConfigs[0]).isInstanceOf(ArtInstrumentedConfiguration::class.java)
+    assertThat(realConfigs[0].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
     assertThat(isDefault(realConfigs[0])).isTrue()
-    // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs[1].traceType).isEqualTo(TraceType.ART)
-    assertThat(realConfigs[1]).isInstanceOf(ArtInstrumentedConfiguration::class.java)
-    assertThat(realConfigs[1].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
-    assertThat(isDefault(realConfigs[1])).isTrue()
 
     setDevice(AndroidVersion.VersionCodes.O)
     model!!.updateProfilingConfigurations()
 
     realConfigs = model!!.defaultProfilingConfigurations
 
-    assertThat(realConfigs).hasSize(4)
-    // First actual configuration should be ART Sampled
+    assertThat(realConfigs).hasSize(3)
+    // First actual configuration should be ART Instrumented
     assertThat(realConfigs[0].traceType).isEqualTo(TraceType.ART)
-    assertThat(realConfigs[0]).isInstanceOf(ArtSampledConfiguration::class.java)
-    assertThat(realConfigs[0].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
+    assertThat(realConfigs[0]).isInstanceOf(ArtInstrumentedConfiguration::class.java)
+    assertThat(realConfigs[0].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
     assertThat(isDefault(realConfigs[0])).isTrue()
-    // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs[1].traceType).isEqualTo(TraceType.ART)
-    assertThat(realConfigs[1]).isInstanceOf(ArtInstrumentedConfiguration::class.java)
-    assertThat(realConfigs[1].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
+    // Second actual configuration should be SIMPLEPERF
+    assertThat(realConfigs[1].traceType).isEqualTo(TraceType.SIMPLEPERF)
+    assertThat(realConfigs[1].name).isEqualTo(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME)
     assertThat(isDefault(realConfigs[1])).isTrue()
-    // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs[2].traceType).isEqualTo(TraceType.SIMPLEPERF)
-    assertThat(realConfigs[2].name).isEqualTo(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME)
+    // Third actual configuration should be ATRACE
+    assertThat(realConfigs[2].traceType).isEqualTo(TraceType.ATRACE)
+    assertThat(realConfigs[2].name).isEqualTo(FakeIdeProfilerServices.FAKE_ATRACE_NAME)
     assertThat(isDefault(realConfigs[2])).isTrue()
-    // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs[3].traceType).isEqualTo(TraceType.ATRACE)
-    assertThat(realConfigs[3].name).isEqualTo(FakeIdeProfilerServices.FAKE_ATRACE_NAME)
-    assertThat(isDefault(realConfigs[3])).isTrue()
   }
 
   @Test

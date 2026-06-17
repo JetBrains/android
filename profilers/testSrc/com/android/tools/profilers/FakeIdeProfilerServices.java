@@ -391,24 +391,23 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public List<ProfilingConfiguration> getTaskCpuProfilerConfigs(int apiLevel) {
     if (apiLevel >= AndroidVersion.VersionCodes.P) {
-      return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_NATIVE_ALLOCATIONS_CONFIG,
+      return ImmutableList.of(ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_NATIVE_ALLOCATIONS_CONFIG,
                               PERFETTO_SYSTEM_TRACE_CONFIG);
     }
     else {
-      return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_NATIVE_ALLOCATIONS_CONFIG,
+      return ImmutableList.of(ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_NATIVE_ALLOCATIONS_CONFIG,
                               ATRACE_CONFIG);
     }
   }
 
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
-    ProfilingConfiguration sampled = ArtSampledConfiguration.create(FAKE_ART_SAMPLED_NAME, getFeatureConfig().isMethodTraceInEditorEnabled());
     ProfilingConfiguration instrumented = ArtInstrumentedConfiguration.create(FAKE_ART_INSTRUMENTED_NAME, getFeatureConfig().isMethodTraceInEditorEnabled());
     if (apiLevel >= AndroidVersion.VersionCodes.P) {
-      return ImmutableList.of(sampled, instrumented, SIMPLEPERF_CONFIG, PERFETTO_SYSTEM_TRACE_CONFIG);
+      return ImmutableList.of(instrumented, SIMPLEPERF_CONFIG, PERFETTO_SYSTEM_TRACE_CONFIG);
     }
     else {
-      return ImmutableList.of(sampled, instrumented, SIMPLEPERF_CONFIG, ATRACE_CONFIG);
+      return ImmutableList.of(instrumented, SIMPLEPERF_CONFIG, ATRACE_CONFIG);
     }
   }
 
@@ -421,7 +420,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void enableStartupTask(@NotNull ProfilerTaskType taskType, @NotNull TaskHomeTabModel.TaskRecordingType recordingType) {
+  public void enableStartupTask(@NotNull ProfilerTaskType taskType) {
     // No-op.
   }
 

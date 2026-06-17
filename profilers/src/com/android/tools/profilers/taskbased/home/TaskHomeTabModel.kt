@@ -55,10 +55,6 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   private val _isPrevTaskStartDone = MutableStateFlow(true)
   val isPrevTaskStartDone = _isPrevTaskStartDone.asStateFlow()
 
-  /** This field is only used/matters when TaskHomeTabModel#doesTaskHaveRecordingTypes returns true. */
-  private val _taskRecordingType = MutableStateFlow(TaskRecordingType.INSTRUMENTED)
-  val taskRecordingType = _taskRecordingType.asStateFlow()
-
   /**
    * The user's selections made at the moment of clicking the start profiler task button. This state needs to be stored as performing a
    * startup task is an asynchronous operation, and therefore there is a non-zero amount of time in between the user clicking the start
@@ -67,19 +63,6 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
    * Note: Once the selection state is consumed for startup task purposes, the value is reset to null.
    */
   var selectionStateOnTaskEnter: SelectionStateOnTaskEnter? = null
-
-  /**
-   * Similar to `selectionStateOnTaskEnter`, `persistentStateOnTaskEnter` stores selection state in the task home tab on task enter.
-   * However, one fundamental difference is that this state persists and is never reset by the program automatically, while
-   * `selectionStateOnTaskEnter` is.
-   *
-   * Why this is needed: When executing a startup task, certain information needs to persist beyond the task's initial launch. For instance,
-   * during a Java/Kotlin Method Recording startup task, the `selectionStateOnTaskEnter` gets reset upon task initiation. However, to keep
-   * track of the recording type selected in the task metrics, we require the previously selected recording type for the current task.
-   * Therefore, the state of the recording type selection remains persistent and is never reset. Nevertheless, it can be modified or updated
-   * when another task is initiated.
-   */
-  var persistentStateOnTaskEnter = PersistentSelectionStateOnTaskEnter(null)
 
   val processListModel = ProcessListModel(profilers)
 
@@ -119,10 +102,6 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
   fun setProfilingProcessStartingPoint(profilingProcessStartingPoint: ProfilingProcessStartingPoint) {
     _profilingProcessStartingPoint.value = profilingProcessStartingPoint
-  }
-
-  fun setTaskRecordingType(recordingType: TaskRecordingType) {
-    _taskRecordingType.value = recordingType
   }
 
   fun resetSelectionStateAndClearStartupTaskConfigs() {
@@ -170,10 +149,6 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
   private fun setSelectionState() {
     selectionStateOnTaskEnter = SelectionStateOnTaskEnter(_profilingProcessStartingPoint.value, selectedTaskType)
-    // If the selected task has recording types, then the recording type selection is registered.
-    if (doesTaskHaveRecordingTypes(selectedTaskType)) {
-      persistentStateOnTaskEnter = PersistentSelectionStateOnTaskEnter(_taskRecordingType.value)
-    }
   }
 
   @VisibleForTesting
@@ -227,7 +202,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
             }
           }
         } else {
-          profilers.ideServices.enableStartupTask(selectedTaskType, _taskRecordingType.value)
+          profilers.ideServices.enableStartupTask(selectedTaskType)
           startTaskAction.run()
         }
       }
@@ -248,28 +223,13 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     val selectedStartupTaskType: ProfilerTaskType,
   )
 
-  data class PersistentSelectionStateOnTaskEnter(val recordingType: TaskRecordingType?)
-
   enum class ProfilingProcessStartingPoint {
     UNSPECIFIED,
     NOW,
     PROCESS_START,
   }
 
-  enum class TaskRecordingType {
-    // The INSTRUMENTED type is listed first as this is the default and recommended option. This ordering will be reflected in the
-    // recording type dropdown options order.
-    INSTRUMENTED,
-    SAMPLED,
-  }
-
   companion object {
     private const val WAIT_FOR_TASK_START_TIMEOUT_MS = 10000L
-
-    fun doesTaskHaveRecordingTypes(taskType: ProfilerTaskType) =
-      when (taskType) {
-        ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> true
-        else -> false
-      }
   }
 }

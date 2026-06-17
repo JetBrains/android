@@ -156,9 +156,9 @@ public class CpuProfilerConfigModel {
           defaultConfigs.stream().filter(pref -> pref instanceof SimpleperfConfiguration).findFirst().orElse(null);
       }
       else {
-        // Otherwise, we select ART sampled.
+        // Otherwise, we select ART instrumented.
         myProfilingConfiguration =
-          defaultConfigs.stream().filter(pref -> pref instanceof ArtSampledConfiguration).findFirst().orElse(null);
+          defaultConfigs.stream().filter(pref -> pref instanceof ArtInstrumentedConfiguration).findFirst().orElse(null);
       }
     }
   }

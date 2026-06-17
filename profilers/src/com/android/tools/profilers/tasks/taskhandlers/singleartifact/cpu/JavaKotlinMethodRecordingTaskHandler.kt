@@ -17,26 +17,14 @@ package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 
 class JavaKotlinMethodRecordingTaskHandler(private val sessionsManager: SessionsManager) : CpuTaskHandler(sessionsManager) {
   override fun getCpuRecordingConfig(): ProfilingConfiguration {
-    val taskHomeTabModel = sessionsManager.studioProfilers.taskHomeTabModel
-    val taskRecordingMode = taskHomeTabModel.taskRecordingType.value
     val inEditorEnabled = sessionsManager.studioProfilers.ideServices.featureConfig.isMethodTraceInEditorEnabled
-
-    return when (taskRecordingMode) {
-      TaskHomeTabModel.TaskRecordingType.SAMPLED -> {
-        ArtSampledConfiguration.create("Java/Kotlin Method Sample (legacy)", inEditorEnabled)
-      }
-      TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> {
-        ArtInstrumentedConfiguration.create("Java/Kotlin Method Trace", inEditorEnabled)
-      }
-    }
+    return ArtInstrumentedConfiguration.create("Java/Kotlin Method Trace", inEditorEnabled)
   }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) =

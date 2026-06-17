@@ -117,8 +117,7 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
     ImmutableList.Builder<CpuProfilerConfig> configs = new ImmutableList.Builder<CpuProfilerConfig>()
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA));
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA));
     return configs.build();
   }
 
@@ -128,7 +127,6 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.LEAKCANARY))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE));
     return configs.build();
@@ -156,5 +154,10 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   @Override
   public void loadState(@NotNull CpuProfilerConfigsState state) {
     XmlSerializerUtil.copyBean(state, this);
+    // Clean up deprecated SAMPLED_JAVA configurations loaded from older project files.
+    // Removing them here prevents them from appearing in the Task Settings UI and ensures they are
+    // overwritten and permanently removed from cpuProfilingConfigs.xml on the next save.
+    myUserConfigs.removeIf(config -> config.getTechnology() == CpuProfilerConfig.Technology.SAMPLED_JAVA);
+    myTaskConfigs.removeIf(config -> config.getTechnology() == CpuProfilerConfig.Technology.SAMPLED_JAVA);
   }
 }
