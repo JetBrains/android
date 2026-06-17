@@ -804,7 +804,7 @@
 +++Android Studio.app/Contents/license/freemarker-NOTICE
 +++Android Studio.app/Contents/license/gson-2.3-NOTICE
 +++Android Studio.app/Contents/license/hdrhistogram_license.txt
-+++Android Studio.app/Contents/license/icudt76l.dat.txt
++++Android Studio.app/Contents/license/icudt78l.dat.txt
 +++Android Studio.app/Contents/license/instantapps-api-NOTICE
 +++Android Studio.app/Contents/license/javacpp-NOTICE
 +++Android Studio.app/Contents/license/javahelp_license.txt
@@ -3170,7 +3170,7 @@
 +++Android Studio.app/Contents/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-tk.hyb
 +++Android Studio.app/Contents/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-uk.hyb
 +++Android Studio.app/Contents/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-und-ethi.hyb
-+++Android Studio.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt76l.dat
++++Android Studio.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt78l.dat
 +++Android Studio.app/Contents/plugins/design-tools/resources/layoutlib/data/keyboards/Generic.kcm
 +++Android Studio.app/Contents/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
 +++Android Studio.app/Contents/plugins/design-tools/resources/layoutlib/data/mac-arm/lib64/layoutlib_jni.dylib
@@ -4712,7 +4712,7 @@
 ---Android Studio Preview.app/Contents/license/freemarker-NOTICE
 ---Android Studio Preview.app/Contents/license/gson-2.3-NOTICE
 ---Android Studio Preview.app/Contents/license/hdrhistogram_license.txt
----Android Studio Preview.app/Contents/license/icudt76l.dat.txt
+---Android Studio Preview.app/Contents/license/icudt78l.dat.txt
 ---Android Studio Preview.app/Contents/license/instantapps-api-NOTICE
 ---Android Studio Preview.app/Contents/license/javacpp-NOTICE
 ---Android Studio Preview.app/Contents/license/javahelp_license.txt
@@ -7078,7 +7078,7 @@
 ---Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-tk.hyb
 ---Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-uk.hyb
 ---Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-und-ethi.hyb
----Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt76l.dat
+---Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt78l.dat
 ---Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/keyboards/Generic.kcm
 ---Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
 ---Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/mac-arm/lib64/layoutlib_jni.dylib
