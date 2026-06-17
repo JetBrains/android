@@ -35,6 +35,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.gradle.execution.GradleConsoleFilter
 
 /** A [HyperlinkDetector] that adds hyperlinks to an [Editor] */
 internal class EditorHyperlinkDetector(
@@ -64,7 +65,7 @@ internal class EditorHyperlinkDetector(
     ReadAction.nonBlocking<List<Filter>> { ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)) }
       .expireWith(parentDisposable)
       .finishOnUiThread(modalityState) { filters: List<Filter> ->
-        filters.forEach { filter.addFilter(it) }
+        filters.filterNot { it::class.java.name in IGNORE_FILTERS }.forEach { filter.addFilter(it) }
         filter.addFilter(SimpleFileLinkFilter(project))
       }
       .submit(executor)
@@ -84,5 +85,11 @@ internal class EditorHyperlinkDetector(
 
   override fun dispose() {
     isDisposed = true
+  }
+
+  companion object {
+    // These filters don't apply to Logcat output
+    @VisibleForTesting
+    internal val IGNORE_FILTERS = setOf(GradleConsoleFilter::class.java.name, "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter")
   }
 }
