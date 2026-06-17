@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
+import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector.Companion.IGNORE_FILTERS
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.testing.WaitForIndexRule
@@ -67,7 +68,7 @@ class EditorHyperlinkDetectorTest {
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    val expected = expectedFilters.map { it::class }
+    val expected = expectedFilters.filterNot { it::class.java.name in IGNORE_FILTERS }.map { it::class }
     waitForCondition { hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected) }
   }
 
@@ -91,7 +92,7 @@ class EditorHyperlinkDetectorTest {
   @Test
   fun usesCorrectFilters_containsSimpleFileLinkFilter() {
     val consoleFilters = ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
-    val expected = consoleFilters.map { it::class } + SimpleFileLinkFilter::class
+    val expected = consoleFilters.filterNot { it::class.java.name in IGNORE_FILTERS }.map { it::class } + SimpleFileLinkFilter::class
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 

@@ -40,6 +40,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
@@ -147,7 +148,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
             proguardFile = null,
           )
 
-        createNewTab(toolWindow, displayName ?: path.fileName.name, LogcatPanelConfig.toJson(config))
+        createNewTab(toolWindow, escapeXmlEntities(displayName ?: path.fileName.name), LogcatPanelConfig.toJson(config))
         toolWindow.activate(null)
       } finally {
         insideShowLogcatListener = false
