@@ -17,6 +17,8 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_MODELS_UPDATED_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -42,9 +44,8 @@ class GradleModuleHierarchyProvider @VisibleForTesting constructor(private val p
   init {
     // Project systems are not currently disposable and live until their project is disposed. Thus we subscribe to events for the
     // project lifetime.
-    project.messageBus
-      .connect()
-      .subscribe(
+    project.messageBus.connect().apply {
+      subscribe(
         ModuleRootListener.TOPIC,
         object : ModuleRootListener {
           // Typically should not take time, but may be slower if another thread is building the map (unlikely to occur unless project roots
@@ -53,6 +54,8 @@ class GradleModuleHierarchyProvider @VisibleForTesting constructor(private val p
           override fun rootsChanged(event: ModuleRootEvent) = reset()
         },
       )
+      subscribe(PROJECT_SYSTEM_MODELS_UPDATED_TOPIC, ProjectSystemSyncManager.AndroidModelsUpdatedListener { reset() })
+    }
   }
 
   val forProject =
