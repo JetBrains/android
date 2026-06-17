@@ -432,11 +432,11 @@ class ExportToFileController(
         rows.collectIndexed { ix, row ->
           // header
           if (ix == 0) {
-            writer.append(row.values.joinToString(delimiterString) { it.columnName })
+            writer.append(row.values.joinToString(delimiterString) { escapeCsvField(it.columnName) })
             writer.newLine()
           }
           // data
-          writer.append(row.values.joinToString(delimiterString) { it.value.asString })
+          writer.append(row.values.joinToString(delimiterString) { escapeCsvField(it.value.asString) })
           writer.newLine()
         }
       }
@@ -473,4 +473,35 @@ class ExportToFileController(
   }
 
   private data class TempExportedData(val tempFile: Path, val finalFileName: String)
+
+  companion object {
+    /** Characters that spreadsheet applications interpret as formula prefixes. */
+    private val FORMULA_PREFIXES = charArrayOf('=', '+', '-', '@', '\t', '\r')
+
+    /**
+     * Escapes a value for safe inclusion in a CSV field.
+     * 1. RFC 4180 compliant quoting: wraps the field in double quotes and escapes internal double quotes by doubling them.
+     * 2. Formula injection defense: prepends a single quote to values starting with characters that spreadsheet applications treat as
+     *    formula prefixes (=, +, -, @, tab, carriage return). The single quote is the standard spreadsheet "treat as text" escape (OWASP
+     *    recommendation).
+     */
+    @VisibleForTesting
+    fun escapeCsvField(value: String): String {
+      // Step 1: Defend against formula injection by prepending a single quote
+      // to values that start with formula trigger characters.
+      val sanitized =
+        if (value.isNotEmpty() && value[0] in FORMULA_PREFIXES) {
+          "'$value"
+        } else {
+          value
+        }
+
+      // Step 2: RFC 4180 compliant quoting.
+      // Escape internal double quotes by doubling them, then wrap in double quotes.
+      // We always quote to ensure delimiter chars, newlines, and quotes in values
+      // never corrupt the CSV structure.
+      val escaped = sanitized.replace("\"", "\"\"")
+      return "\"$escaped\""
+    }
+  }
 }

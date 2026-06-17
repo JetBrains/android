@@ -31,6 +31,7 @@ import com.android.tools.idea.sqlite.controllers.DumpCommand.DumpTable
 import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenario.ERROR
 import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenario.NOT_CALLED
 import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenario.SUCCESS
+import com.android.tools.idea.sqlite.controllers.ExportToFileController.Companion.escapeCsvField
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.mocks.CliDatabaseConnection
@@ -103,7 +104,6 @@ import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
-import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -608,6 +608,23 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     assertThat((1..5).map { nextConnectionId() }).isEqualTo((6..10).toList())
   }
 
+  @Test
+  fun testEscapeCsvField() {
+    // Standard value
+    assertThat(escapeCsvField("hello")).isEqualTo("\"hello\"")
+    // Double quotes
+    assertThat(escapeCsvField("hello \"world\"")).isEqualTo("\"hello \"\"world\"\"\"")
+    // Formula triggers
+    assertThat(escapeCsvField("=1+2")).isEqualTo("\"'=1+2\"")
+    assertThat(escapeCsvField("+1")).isEqualTo("\"'+1\"")
+    assertThat(escapeCsvField("-1")).isEqualTo("\"'-1\"")
+    assertThat(escapeCsvField("@abc")).isEqualTo("\"'@abc\"")
+    assertThat(escapeCsvField("\txyz")).isEqualTo("\"'\txyz\"")
+    assertThat(escapeCsvField("\rabc")).isEqualTo("\"'\rabc\"")
+    // Empty value
+    assertThat(escapeCsvField("")).isEqualTo("\"\"")
+  }
+
   private fun submitExportRequest(exportRequest: ExportRequest) = runDispatching {
     view.listeners.forEach { it.exportRequestSubmitted(exportRequest) }
   }
@@ -730,7 +747,8 @@ private typealias TwoColumnTable = List<Pair<String, String>>
 private data class Table(val name: String, val content: TwoColumnTable)
 
 private fun TwoColumnTable.toCsvOutputLines(delimiter: Char): List<String> =
-  listOf("$column1$delimiter$column2") + this.map { (v1, v2) -> "$v1$delimiter$v2" }
+  listOf("${escapeCsvField(column1)}$delimiter${escapeCsvField(column2)}") +
+    map { (v1, v2) -> "${escapeCsvField(v1)}$delimiter${escapeCsvField(v2)}" }
 
 /** Two columns with increasing numbers (and a non-ascii suffix) */
 private fun IntRange.toTwoColumnTable(): TwoColumnTable = this.map { "$it$nonAsciiSuffix" }.zipWithNext()
