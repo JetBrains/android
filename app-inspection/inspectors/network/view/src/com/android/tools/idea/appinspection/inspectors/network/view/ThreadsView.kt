@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.stdui.BorderlessTableCellRenderer
 import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.adtui.util.disableHtml
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
@@ -323,7 +324,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     }
 
     private fun newTooltipLabel(text: String): JLabel {
-      val label = JLabel(text)
+      val label = JLabel(text).disableHtml()
       label.foreground = TOOLTIP_TEXT
       label.font = TOOLTIP_BODY_FONT
       return label

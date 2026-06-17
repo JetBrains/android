@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/network/view:app-inspection.inspectors.network.view",
         "//tools/adt/idea/app-inspection/inspectors/network/model:app-inspection.inspectors.network.model",
         "//tools/base/flags:studio.android.sdktools.flags",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",

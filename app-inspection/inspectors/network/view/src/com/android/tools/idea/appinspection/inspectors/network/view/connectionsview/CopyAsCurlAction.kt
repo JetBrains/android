@@ -52,11 +52,11 @@ internal class CopyAsCurlAction(
         val encoder = Base64.getEncoder()
         append("echo -n ${encoder.encodeToString(payload.toByteArray())} | base64 -d | ")
       }
-      append("curl '${data.url}'")
+      append("curl ${data.url.quoted()}")
       if (data.method != "GET") {
-        appendLine("-X '${data.method}'")
+        appendLine("-X ${data.method.quoted()}")
       }
-      data.requestHeaders.forEach { header -> appendLine("-H '${header.key}: ${header.value.joinToString { it }}'") }
+      data.requestHeaders.forEach { header -> appendLine("-H ${"${header.key}: ${header.value.joinToString { it }}".quoted()}") }
       if (!payload.isEmpty) {
         if (payload.isValidUtf8) {
           appendLine("--data-raw '${payload.toStringUtf8()}'")
@@ -71,3 +71,5 @@ internal class CopyAsCurlAction(
 }
 
 private fun StringBuilder.appendLine(line: String) = append(" \\\r  $line")
+
+private fun String.quoted(): String = "'${replace("'", "'\\''").replace("\r", " ").replace("\n", " ")}'"

@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.android.tools.adtui.model.legend.FixedLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
+import com.android.tools.adtui.util.disableHtml
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionsStateChart
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkState
@@ -175,21 +176,21 @@ internal class OverviewTabContent : TabContent() {
 
       var row = 0
       myFieldsPanel.add(NoWrapBoldLabel("Request"), TabularLayout.Constraint(row, 0))
-      myFieldsPanel.add(JLabel(data.name), TabularLayout.Constraint(row, 2))
+      myFieldsPanel.add(label(data.name), TabularLayout.Constraint(row, 2))
       row++
       myFieldsPanel.add(NoWrapBoldLabel("Method"), TabularLayout.Constraint(row, 0))
-      myFieldsPanel.add(JLabel(data.method), TabularLayout.Constraint(row, 2))
+      myFieldsPanel.add(label(data.method), TabularLayout.Constraint(row, 2))
 
       row++
       myFieldsPanel.add(NoWrapBoldLabel("Status"), TabularLayout.Constraint(row, 0))
-      val statusCode = JLabel(data.status)
+      val statusCode = label(data.status)
       myFieldsPanel.add(statusCode, TabularLayout.Constraint(row, 2))
 
       val requestType = data.requestType
       if (requestType.isNotEmpty()) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Request type"), TabularLayout.Constraint(row, 0))
-        val contentTypeLabel = JLabel(requestType)
+        val contentTypeLabel = label(requestType)
         contentTypeLabel.name = ID_REQUEST_TYPE
         myFieldsPanel.add(contentTypeLabel, TabularLayout.Constraint(row, 2))
       }
@@ -198,7 +199,7 @@ internal class OverviewTabContent : TabContent() {
       if (requestSize > 0) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Request size"), TabularLayout.Constraint(row, 0))
-        val contentLengthLabel = JLabel(NumberFormatter.formatFileSize(requestSize.toLong()))
+        val contentLengthLabel = label(NumberFormatter.formatFileSize(requestSize.toLong()))
         contentLengthLabel.name = ID_REQUEST_SIZE
         myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
       }
@@ -207,7 +208,7 @@ internal class OverviewTabContent : TabContent() {
       if (responseType.isNotEmpty()) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Response type"), TabularLayout.Constraint(row, 0))
-        val contentTypeLabel = JLabel(responseType)
+        val contentTypeLabel = label(responseType)
         contentTypeLabel.name = ID_RESPONSE_TYPE
         myFieldsPanel.add(contentTypeLabel, TabularLayout.Constraint(row, 2))
       }
@@ -216,14 +217,14 @@ internal class OverviewTabContent : TabContent() {
       if (responseSize > 0) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Response size"), TabularLayout.Constraint(row, 0))
-        val contentLengthLabel = JLabel(NumberFormatter.formatFileSize(responseSize.toLong()))
+        val contentLengthLabel = label(NumberFormatter.formatFileSize(responseSize.toLong()))
         contentLengthLabel.name = ID_RESPONSE_SIZE
         myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
       }
 
       row++
       myFieldsPanel.add(NoWrapBoldLabel("Initiating thread"), TabularLayout.Constraint(row, 0))
-      val initiatingThreadLabel = JLabel(data.threads[0].name)
+      val initiatingThreadLabel = label(data.threads[0].name)
       initiatingThreadLabel.name = ID_INITIATING_THREAD
       myFieldsPanel.add(initiatingThreadLabel, TabularLayout.Constraint(row, 2))
       if (data.threads.size > 1) {
@@ -236,7 +237,7 @@ internal class OverviewTabContent : TabContent() {
         }
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Other threads"), TabularLayout.Constraint(row, 0))
-        val otherThreadsLabel = JLabel(otherThreadsBuilder.toString())
+        val otherThreadsLabel = label(otherThreadsBuilder.toString())
         otherThreadsLabel.name = ID_OTHER_THREADS
         myFieldsPanel.add(otherThreadsLabel, TabularLayout.Constraint(row, 2))
       }
@@ -303,3 +304,5 @@ internal class OverviewTabContent : TabContent() {
     }
   }
 }
+
+private fun label(text: String) = JLabel(text).disableHtml()

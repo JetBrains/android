@@ -16,16 +16,8 @@
 package com.android.tools.adtui.util
 
 import javax.swing.JButton
-import javax.swing.JComponent
 import javax.swing.JLabel
 
-fun JLabel.disableHtml(): JLabel = disableHtmlInternal()
+inline fun <reified T : JLabel> T.disableHtml(): T = apply { putClientProperty("html.disable", true) }
 
-fun JButton.disableHtml(): JButton = disableHtmlInternal()
-
-/**
- * Set `html.disable` for any component.
- *
- * This is private because not all components support it. Individual components should add functions as needed.
- */
-private inline fun <reified T : JComponent> JComponent.disableHtmlInternal(): T = apply { putClientProperty("html.disable", true) } as T
+inline fun <reified T : JButton> T.disableHtml(): T = apply { putClientProperty("html.disable", true) }
