@@ -93,4 +93,8 @@ public class MockExperimentService implements ExperimentService {
   public List<ExperimentValue> getOverrides(String key) {
     return ImmutableList.of(ExperimentValue.create("loader", key, experiments.get(key).toString()));
   }
+
+  public void clearExperiment(Experiment experiment) {
+    experiments.remove(experiment.getKey());
+  }
 }
