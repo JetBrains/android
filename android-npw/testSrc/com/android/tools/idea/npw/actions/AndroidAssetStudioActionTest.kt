@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.actions
 
 // Android Studio Merge: ignore vendor dependencies
 // import com.android.tools.asfp.projectSystem.AsfpProjectSystem
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -170,6 +169,7 @@ class AndroidAssetStudioActionTest {
   @Test
   fun testUpdateDisabledWithAsfpProjectSystem() {
     val project = projectRule.project
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(AsfpProjectSystem(project))
     projectRule.fixture.addFileToProject("AndroidManifest.xml", "<manifest package=\"com.example\"/>")
     val stringsVirtual = projectRule.fixture.addFileToProject("res/values/strings.xml", "<resources></resources>").virtualFile
 
@@ -197,8 +197,6 @@ class AndroidAssetStudioActionTest {
           .build()
 
       val event = AnActionEvent.createEvent(dataContext, null, "menu", ActionUiKind.POPUP, null)
-
-      ProjectSystemService.getInstance(project).replaceProjectSystemForTests(AsfpProjectSystem(project))
 
       action.update(event)
       assertThat(event.presentation.isVisible).isFalse()
