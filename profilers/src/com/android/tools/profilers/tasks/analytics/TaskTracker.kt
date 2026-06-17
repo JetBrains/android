@@ -20,14 +20,12 @@ import com.android.tools.profiler.proto.Common.Session
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
 import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
 /**
@@ -192,13 +190,7 @@ open class TaskTracker private constructor(private val profilers: StudioProfiler
           availableConfigs.filterIsInstance<SimpleperfConfiguration>().firstOrNull()
         }
         ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> {
-          val recordingType = profilers.taskHomeTabModel.persistentStateOnTaskEnter.recordingType
-          when (recordingType) {
-            TaskHomeTabModel.TaskRecordingType.SAMPLED -> availableConfigs.filterIsInstance<ArtSampledConfiguration>().firstOrNull()
-            TaskHomeTabModel.TaskRecordingType.INSTRUMENTED ->
-              availableConfigs.filterIsInstance<ArtInstrumentedConfiguration>().firstOrNull()
-            else -> null
-          }
+          availableConfigs.filterIsInstance<ArtInstrumentedConfiguration>().firstOrNull()
         }
         ProfilerTaskType.NATIVE_ALLOCATIONS -> {
           availableConfigs.filterIsInstance<PerfettoNativeAllocationsConfiguration>().firstOrNull()

@@ -79,8 +79,6 @@
     </action>
     <action id="Android.StopJavaKotlinAllocationsTask" class="com.android.tools.idea.profilers.actions.StopJavaKotlinAllocationsTaskAction">
     </action>
-    <action id="Android.SetRecordingTypeToTracing" class="com.android.tools.idea.profilers.actions.SetRecordingTypeToTracingAction">
-    </action>
     <action id="Android.SelectLastRecordingFromRecordingList" class="com.android.tools.idea.profilers.actions.SelectLastRecordingFromRecordingListAction">
     </action>
     <action id="Android.SetHideNewTaskPromptToTrue" class="com.android.tools.idea.profilers.actions.SetHideNewTaskPromptToTrueAction">

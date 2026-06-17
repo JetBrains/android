@@ -20,10 +20,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,7 +49,6 @@ import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabMod
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingActionGroup
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.ProfileablePreferredWarning
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.StartTaskError
-import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options.TaskRecordingTypeDropdown
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options.TaskStartingPointDropdown
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.foundation.theme.JewelTheme
@@ -105,7 +102,6 @@ fun TaskActionBar(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerCom
 @Composable
 fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val profilingProcessStartingPoint by taskHomeTabModel.profilingProcessStartingPoint.collectAsState()
-  val taskRecordingType by taskHomeTabModel.taskRecordingType.collectAsState()
 
   val taskGridModel = taskHomeTabModel.taskGridModel
   val selectedTaskType by taskGridModel.selectedTaskType.collectAsState()
@@ -157,10 +153,6 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
         selectedProcess.state == Common.Process.State.ALIVE,
         processStartDisabledReason,
       )
-      if (TaskHomeTabModel.doesTaskHaveRecordingTypes(selectedTaskType)) {
-        Spacer(modifier = Modifier.width(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP))
-        TaskRecordingTypeDropdown(taskRecordingType, taskHomeTabModel::setTaskRecordingType)
-      }
     }
 
     val isProfileablePreferredButNotPresent =

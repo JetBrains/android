@@ -44,7 +44,7 @@ public class ProfilerState {
   public static final String ENABLE_STARTUP_PROFILING_NAME = "android.profiler.startup.enabled";
 
   public boolean STARTUP_CPU_PROFILING_ENABLED = false;
-  public String STARTUP_CPU_PROFILING_CONFIGURATION_NAME = CpuProfilerConfig.Technology.SAMPLED_JAVA.getName();
+  public String STARTUP_CPU_PROFILING_CONFIGURATION_NAME = CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName();
 
   public boolean STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = false;
   public static final String STARTUP_MEMORY_PROFILING_NAME = "android.profiler.startup.native.memory.enabled";

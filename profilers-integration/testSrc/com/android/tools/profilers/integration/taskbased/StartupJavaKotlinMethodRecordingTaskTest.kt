@@ -23,7 +23,6 @@ class StartupJavaKotlinMethodRecordingTaskTest : ProfilersStartupTaskTestBase() 
 
   override fun selectTask(studio: AndroidStudio) {
     selectJavaKotlinMethodRecordingTask(studio)
-    setRecordingTypeToTracing(studio)
   }
 
   override fun verifyTaskStarted(studio: AndroidStudio) {

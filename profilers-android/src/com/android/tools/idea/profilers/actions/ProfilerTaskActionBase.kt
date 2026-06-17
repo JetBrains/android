@@ -40,10 +40,6 @@ abstract class ProfilerTaskActionBase : AnAction() {
     taskHomeTabModel.taskGridModel.onTaskSelection(profilerTask)
   }
 
-  protected fun selectRecordingType(project: Project, recordingType: TaskHomeTabModel.TaskRecordingType) {
-    getTaskHomeTabModel(project).setTaskRecordingType(recordingType)
-  }
-
   protected fun setProfilingProcessStartingPoint(
     project: Project,
     profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,

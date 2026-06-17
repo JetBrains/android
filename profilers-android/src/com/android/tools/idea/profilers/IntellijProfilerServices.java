@@ -49,7 +49,6 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.TaskRecordingType;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.annotations.VisibleForTesting;
@@ -393,7 +392,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void enableStartupTask(@NotNull ProfilerTaskType taskType, @NotNull TaskRecordingType recordingType) {
+  public void enableStartupTask(@NotNull ProfilerTaskType taskType) {
     // This method should only be called by tasks that can be run on startup.
     assert (isTaskSupportedOnStartup(taskType));
 
@@ -413,7 +412,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         else {
           profilerState.STARTUP_CPU_PROFILING_ENABLED = true;
           profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME =
-            CpuProfilerConfigConverter.fromTaskTypeToConfigName(taskType, recordingType);
+            CpuProfilerConfigConverter.fromTaskTypeToConfigName(taskType);
         }
       }
     }
