@@ -120,6 +120,11 @@ def _read_plugin_jars(ide_home: Path, product_info, platform_jars: set[str]):
         continue  # All jars are in the core classloader => no need for a separate target.
       for jar in jars:
         assert jar not in platform_jars, f"Plugin {id} somehow has a subset of its jars inside core, including {jar}"
+      if id == "intellij.libraries.objenesis" and id in plugins:
+        # The objenesis module is duplicated in two different CIDR plugins, which is technically allowed
+        # for private/internal modules. For now we just add one copy to the flat runtime classpath of dev builds.
+        # TODO(b/526687561): avoid generating Bazel targets for private modules.
+        continue
       assert id not in plugins, f"Duplicated plugin ID: {id}"
       plugins[id] = set(jars)
   return plugins
