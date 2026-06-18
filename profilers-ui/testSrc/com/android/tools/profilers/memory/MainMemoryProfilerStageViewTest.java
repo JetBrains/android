@@ -462,6 +462,32 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(fileContents).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
   }
 
+  @Test
+  public void testLoadHeapDumpFromProfFile() throws Exception {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+
+    // Create a temp file
+    String data = "random_string_~!@#$%^&*()_+";
+    File file = TransportServiceUtils.createTempFile("fake.heap.dump", ".prof",
+                                                     ByteString.copyFrom(data, Charset.defaultCharset()));
+    // Import heap dump from file
+    assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+
+    Common.Session session = sessionsManager.getSelectedSession();
+    long dumpTime = session.getStartTimestamp();
+    Transport.BytesRequest request = Transport.BytesRequest.newBuilder()
+      .setStreamId(session.getStreamId())
+      .setId(Long.toString(dumpTime))
+      .build();
+    Transport.FileResponse response = myProfilers.getClient().getTransportClient().getFile(request);
+    ByteString fileContents = ByteString.copyFrom(Files.readAllBytes(new File(response.getFilePath()).toPath()));
+    assertThat(fileContents).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
+  }
+
   @Ignore("b/277717905")
   @Test
   public void testLoadLegacyAllocationRecordsFromFile() throws Exception {
