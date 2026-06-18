@@ -41,6 +41,15 @@ class ParallelSyncMigrationActivity : ProjectActivity {
 
     suspend fun performMigrationCheck() {
       runInitialization {
+        // Avoid showing the dialog or running migration checks during tests or in headless environments
+        if (
+          ApplicationManager.getApplication().isUnitTestMode ||
+            ApplicationManager.getApplication().isHeadlessEnvironment ||
+            isRunningInE2ETests()
+        ) {
+          return@runInitialization
+        }
+
         if (!StudioFlags.SHOW_PARALLEL_SYNC_PROPERTY_MIGRATION_WINDOW.get()) return@runInitialization
 
         // Check if the user has opted out for THIS SPECIFIC project
@@ -65,6 +74,10 @@ class ParallelSyncMigrationActivity : ProjectActivity {
           }
         }
       }
+    }
+
+    private fun isRunningInE2ETests(): Boolean {
+      return java.lang.Boolean.getBoolean("studio.run.under.integration.test")
     }
   }
 
