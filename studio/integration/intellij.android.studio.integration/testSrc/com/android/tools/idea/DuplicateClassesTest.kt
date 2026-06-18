@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea
 
+import com.android.tools.asdriver.tests.AndroidStudioInstallation
 import com.android.tools.asdriver.tests.AndroidSystem
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.fail
@@ -27,7 +28,9 @@ import org.junit.Test
  * runtime.
  */
 class DuplicateClassesTest {
-  @get:Rule val system: AndroidSystem = AndroidSystem.standard()
+  @get:Rule
+  val system: AndroidSystem =
+    AndroidSystem.withCustomJdkForGradle(AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS, AndroidSystem.JdkVersion.JDK_25)
 
   @Before
   fun setup() {
