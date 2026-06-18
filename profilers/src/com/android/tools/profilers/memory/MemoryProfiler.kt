@@ -65,6 +65,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   init {
     this.profilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, ::agentStatusChanged)
     sessionsManager.registerImportHandler("hprof", Consumer(::importHprof))
+    sessionsManager.registerImportHandler("prof", Consumer(::importHprof))
     sessionsManager.registerImportHandler("alloc", Consumer(::importLegacyAllocations))
     sessionsManager.registerImportHandler("heapprofd", Consumer(::importHeapprofd))
     sessionsManager.registerImportHandler("asdb") { file -> ImportedSessionUtils.importAsdbTask(profilers, file) }
