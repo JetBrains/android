@@ -269,7 +269,7 @@ class WifiPairableDeviceProvisionerPlugin(
     override val androidRelease: String?,
     override val deviceType: DeviceType?,
     override val isVirtual: Boolean?,
-    override val emulatorType: EmulatorType?, // TODO studio-merge
+    override val emulatorType: EmulatorType?,
     override val isRemote: Boolean?,
     override val isDebuggable: Boolean?,
     override val isResizable: Boolean?,
@@ -309,7 +309,7 @@ class WifiPairableDeviceProvisionerPlugin(
           androidRelease = androidRelease,
           deviceType = deviceType,
           isVirtual = isVirtual,
-          emulatorType = emulatorType, // TODO studio-merge
+          emulatorType = emulatorType,
           isRemote = isRemote,
           isDebuggable = isDebuggable,
           isResizable = isResizable,
