@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-intellij.platform.recentFiles">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/intellij.platform.recentFiles.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/platform-recentFiles-plugin/lib/modules/intellij.platform.recentFiles.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

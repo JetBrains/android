@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-intellij.libraries.opencsv">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/intellij.libraries.opencsv.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/libraries-misc-plugin/lib/modules/intellij.libraries.opencsv.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

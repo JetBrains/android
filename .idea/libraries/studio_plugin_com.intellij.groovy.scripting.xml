@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="studio-plugin-com.intellij.groovy.scripting">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/groovy-scripting/lib/groovy-scripting.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/groovy-scripting/lib/intellij.libraries.groovy.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/groovy-scripting/lib/intellij.libraries.groovy.jsr223.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/groovy-scripting/lib/intellij.libraries.ivy.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

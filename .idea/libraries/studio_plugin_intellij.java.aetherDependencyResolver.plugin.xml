@@ -1,0 +1,27 @@
+<component name="libraryTable">
+  <library name="studio-plugin-intellij.java.aetherDependencyResolver.plugin">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/intellij.libraries.maven.resolver.provider.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/intellij.libraries.plexus.utils.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/java-aetherDependencyResolver-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-artifact.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-builder-support.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-model-builder.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-model.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-repository-metadata.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-api.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-connector-basic.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-impl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-named-locks.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-provider.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-spi.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-transport-file.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-transport-http.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java-aetherDependencyResolver-plugin/lib/maven-resolver-util.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

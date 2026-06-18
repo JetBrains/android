@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-intellij.grid.csv.core.impl">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/intellij.grid.csv.core.impl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/grid-core-plugin/lib/modules/intellij.grid.csv.core.impl.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

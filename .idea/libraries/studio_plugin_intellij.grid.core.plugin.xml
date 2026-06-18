@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="studio-plugin-intellij.grid.core.plugin">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/grid-core-plugin/lib/grid-core-plugin.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

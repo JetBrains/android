@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-intellij.libraries.commons.text">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/intellij.libraries.commons.text.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/libraries-misc-plugin/lib/modules/intellij.libraries.commons.text.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

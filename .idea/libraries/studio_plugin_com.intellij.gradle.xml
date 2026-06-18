@@ -1,10 +1,15 @@
 <component name="libraryTable">
   <library name="studio-plugin-com.intellij.gradle">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/gradle-api-9.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/gradle-api-9.6.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/gradle-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/gradle-tooling-extension-api.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/gradle-tooling-extension-impl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/gradle-tooling-proxy.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/groovy-ant.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/groovy.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/intellij.gradle.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-plugin/lib/intellij.gradle.settings.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

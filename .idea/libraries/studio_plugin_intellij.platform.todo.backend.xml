@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-intellij.platform.todo.backend">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/intellij.platform.todo.backend.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/platform-todo-plugin/lib/modules/intellij.platform.todo.backend.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

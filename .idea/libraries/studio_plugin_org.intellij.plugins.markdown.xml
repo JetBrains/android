@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-org.intellij.plugins.markdown">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/markdown/lib/markdown.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/markdown/lib/intellij.markdown.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

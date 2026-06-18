@@ -3,6 +3,7 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-java-plugin/lib/gradle-java-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-java-plugin/lib/gradle-jps.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/gradle-java-plugin/lib/intellij.gradle.java.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

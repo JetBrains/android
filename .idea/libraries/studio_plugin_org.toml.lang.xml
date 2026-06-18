@@ -1,6 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-org.toml.lang">
     <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/toml/lib/intellij.toml.core.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/toml/lib/toml.jar!/" />
     </CLASSES>
     <JAVADOC />

@@ -27,20 +27,24 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.configurationScript" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.copyright" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.dev" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.groovy.scripting" level="project" />
     <orderEntry type="module" scope="RUNTIME" module-name="intellij.java.syntax" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.java-i18n" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.java.ide" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.mermaid" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.modules.json" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.platform.acp" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.platform.images" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.eclipsekeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.netbeanskeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.visualstudiokeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.properties" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.tasks" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.performancePlugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.sh" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-hg4idea" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.bookmarks.plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.c.core" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.c.core.base" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.c.debugger" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.c.doxygen" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.c.testing" level="project" />
@@ -52,27 +56,37 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.clangd.core" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.clangd.legacyBridge" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.clangd.schema" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.core" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.debugger.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.debugger.core" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.debugger.dap" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.debugger.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.debugger.profiles" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.execution" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.lang.base" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.lang.base.icons" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.modulemap.language" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.projectModel" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.psi.base" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.runner" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.util" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.util.execution" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.util.serializer" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.util.ui" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cidr.workspaceModel" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.cmake.psi" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.compose.ide.plugin.gradleTooling.rt" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.compose.ide.plugin.shared" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.debugger.streams.backend" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.debugger.streams.core" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.debugger.streams.shared" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.editorconfig.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.editorconfig.backend.spellchecking" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.editorconfig.common" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.editorconfig.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.emojipicker" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.execution.serviceView.plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.git.commit.modal" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.completion" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.completion.kotlin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.completion.toml" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.java.coverage" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.java.groovy" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.java.groovy.ml" level="project" />
@@ -80,13 +94,13 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.java.performance" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.java.properties" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.java.toml" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.kotlin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.properties" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.gradle.toml" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grazie.java" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grazie.markdown" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grazie.properties" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid.core.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid.core.plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid.csv.core.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid.impl.ide" level="project" />
@@ -94,8 +108,10 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.groovy.ant" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.groovy.byteCodeViewer" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.groovy.copyright" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.groovy.dev" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.aetherDependencyResolver" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.aetherDependencyResolver.plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.analysis" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.analysis.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.backend" level="project" />
@@ -114,6 +130,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.execution.impl.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.execution.impl.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.featuresTrainer" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.ide.customization.training" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.impl.inspections" level="project" />
@@ -127,50 +144,80 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.promo" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.remoteServers" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.remoteServers.impl" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.resources" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.resources.en" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.structuralSearch" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.structureView" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.terminal" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.terminal.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.terminal.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.terminal.shared" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.typeMigration" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.uast" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.uast.ide" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.ui" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.unscramble" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.vcs" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.xml.dom.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.json.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.json.backend.regexp" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.json.networknt.wrapper" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.json.structureView" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.jsp" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.jsp.spi" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.jvm.analysis" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.jvm.analysis.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.jvm.analysis.quickFix" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.jvm.analysis.refactoring" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.kotlin.analysis.platform" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.kotlin.completion.ml" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.coil" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.commons.text" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.compose.foundation.desktop" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.compose.runtime.desktop" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.grpc" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.grpc.netty.shaded" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.jackson.dataformat.toml" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.jackson.dataformat.xml" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.jackson.datatype.jdk8" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.jackson.datatype.jsr310" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.javax.activation" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.jettison" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.jspecify" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.kotlinx.coroutines.guava" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.kotlinx.document.store.mvstore" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.lucene.common" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.maven.resolver.provider" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.microba" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.misc.plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.objenesis" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.opencsv" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.plexus.utils" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.skiko" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.xml.rpc" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.xstream" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.compose.preview" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.fenceInjection" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.fenceInjector.textMate" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.frontmatter" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.frontmatter.toml" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.frontmatter.yaml" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.images" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.java" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.jcef" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.model" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.spellchecker" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.markdown.xml" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.mermaid.markdown" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.navbar.plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.performanceTesting.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.performanceTesting.freezes" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.performanceTesting.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.performanceTesting.remoteDriver" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.performanceTesting.remoteDriver.compose" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.performanceTesting.remoteDriver.jcef" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.performanceTesting.vcs" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.acp" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.backend" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.bookmarks.backend" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.bookmarks.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.backend.workspace.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.bookmarks" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.buildScripts.downloader" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.buildView" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.buildView.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.buildView.frontend" level="project" />
@@ -199,10 +246,12 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.execution.serviceView" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.execution.serviceView.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.execution.serviceView.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.find" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.find.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.ide.impl.wsl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.images.copyright" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.images.jcef" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.images.xdebugger" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.inline.completion" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.inspect" level="project" />
@@ -223,7 +272,9 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.lang.impl.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.langInjection" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.langInjection.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.lsp.impl.structureView" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.lvcs.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.managed.cache" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.managed.cache.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.ml.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.monolith" level="project" />
@@ -234,6 +285,9 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.pluginManager.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.pluginManager.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.pluginManager.shared" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.problemsView.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.problemsView.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.problemsView.shared" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.progress.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.project.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.recentFiles" level="project" />
@@ -250,48 +304,69 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.searchEverywhere.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.searchEverywhere.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.settings.local" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.smRunner.vcs" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.smRunner" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.sqlite" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.statistics.devkit" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.structuralSearch" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.structureView" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.structureView.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.structureView.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.structureView.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.tasks" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.tasks.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.tasks.impl.bookmarks" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.tasks.impl.debugger" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.testRunner" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.todo" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.todo.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.uast" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.uast.ide" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.util.commonsLangV2Shim" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.dvcs" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.dvcs.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.dvcs.impl.shared" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl.debugger" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl.exec" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl.lang" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl.lang.actions" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl.lang.todo" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl.shared" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.log" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.log.graph" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.log.graph.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.log.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.log.impl.bookmarks" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.warmup" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.properties.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.properties.backend.psi" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.properties.copyright" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.recentFiles.plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.relaxng" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.repository.search.common" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.repository.search.completion" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.rml.dfa.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.settingsSync.core" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.sh.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.sh.copyright" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.sh.markdown" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.sh.python" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.sh.terminal" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.spellchecker" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.spellchecker.xml" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.tasks.bugzilla" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.tasks.jira" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.tasks.trac" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.structuralSearch.plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.structureView.plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.terminal.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.terminal.cloud" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.terminal.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.terminal.sh" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.testRunner.plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.textmate" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.textmate.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.textmate.common" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.textmate.core" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.textmate.joni" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.todo.plugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.toml.json" level="project" />
@@ -299,6 +374,8 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.git.coverage" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.git.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.git.localHistory" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.git.performanceTesting" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.git.shared" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.git.terminal" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.github.git" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.vcs.github.json" level="project" />
@@ -309,14 +386,16 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.webp" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.xml.emmet" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.xml.emmet.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.xml.emmet.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.xml.langInjection" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.xml.langInjection.xpath" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.xml.structureView" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.xml.structureView.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.yaml.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.editorconfig.editorconfigjetbrains" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.intellij.groovy" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.intellij.groovy.live.templates" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.intellij.plugins.markdown" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.debugger.streams" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.idea.reposearch" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.java.decompiler" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.github" level="project" />

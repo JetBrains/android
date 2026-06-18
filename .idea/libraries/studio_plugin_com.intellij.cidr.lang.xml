@@ -2,6 +2,7 @@
   <library name="studio-plugin-com.intellij.cidr.lang">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/c/lib/c.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/c/lib/objenesis.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
