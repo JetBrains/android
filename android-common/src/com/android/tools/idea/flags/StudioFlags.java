@@ -3000,6 +3000,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_FSTS =
     new BooleanFlag(GOOGLE_LOGIN, "enable.fsts", "Enable flexible scoped tokens",
                     "Enable flexible scoped tokens and disable feature selection UI");
+  public static final Flag<Boolean> ENABLE_STARTUP_SIGN_IN_DIALOG =
+    new BooleanFlag(GOOGLE_LOGIN, "enable.startup.sign.in.dialog", "Enable startup sign-in dialog",
+                    "Enable startup sign-in dialog for logged-out users to prompt them to sign in");
   // endregion Google Login
 
   // region Backup
