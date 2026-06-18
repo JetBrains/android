@@ -498,7 +498,6 @@ studio_plugin(
         "@intellij//:intellij.libraries.compose.runtime.desktop",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
-        "@intellij//:intellij.libraries.maven.resolver.provider",
         "@intellij//:intellij.libraries.skiko",
         "@intellij//:intellij.platform.debugger.impl.backend",
         "@intellij//:intellij.platform.debugger.impl.frontend",
