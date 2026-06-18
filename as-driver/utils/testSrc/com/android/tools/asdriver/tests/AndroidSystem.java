@@ -141,7 +141,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       system.setEnv("GRADLE_LOCAL_JAVA_HOME", javaHome);
       system.setEnv("JAVA_HOME", javaHome);
       system.setEnv("STUDIO_GRADLE_JDK", javaHome);
-      system.setEnv("STUDIO_JDK", javaHome);
+      system.setEnv("STUDIO_JDK", system.install.bundledJdkPath().toAbsolutePath().toString());
       system.install.addVmOption("-Dgradle.jvm=" + javaHome);
 
       return system;
