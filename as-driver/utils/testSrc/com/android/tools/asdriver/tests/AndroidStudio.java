@@ -46,14 +46,25 @@ public class AndroidStudio extends Ide {
 
   @Override
   public void close() throws Exception {
-    createVideos();
-    quitAndWaitForShutdown();
-    // We must terminate the process on close. If we don't and expect the test to gracefully terminate it always, it means
-    // that if the test has an assertEquals, when the assertion exception is thrown the try-catch will attempt to close
-    // this object that has not been asked to terminate, blocking forever until the test times out, swallowing the
-    // assertion information.
-    process.destroyForcibly();
-    waitForProcess();
+    java.util.List<ProcessHandle> descendants = new java.util.ArrayList<>();
+    if (process != null) {
+      process.descendants().forEach(descendants::add);
+    }
+    try {
+      createVideos();
+      quitAndWaitForShutdown();
+    } finally {
+      if (process != null) {
+        descendants.forEach(d -> {
+          String cmd = d.info().command().orElse("").toLowerCase();
+          if (!cmd.contains("restarter") && !cmd.contains("studio")) {
+            d.destroyForcibly();
+          }
+        });
+        process.destroyForcibly();
+        waitForProcess();
+      }
+    }
   }
 
   public void addBenchmark(Benchmark benchmark){
@@ -147,7 +158,11 @@ public class AndroidStudio extends Ide {
     }
     catch (Throwable t) {
       if (t.getMessage() == PAST_DEADLINE) {
-        install.getStdout().waitForMatchingLine(".*Exiting Studio.", 10, TimeUnit.SECONDS);
+        try {
+          install.getStdout().waitForMatchingLine(".*Exiting Studio.", 10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          TestLogger.log("Timed out waiting for 'Exiting Studio.'. Proceeding to forcefully kill processes.");
+        }
         return;
       }
       throw t;
