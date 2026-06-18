@@ -28,7 +28,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
 
 public class ThreadingCheckerTest {
-  public final AndroidSystem androidSystem = AndroidSystem.standard();
+  public final AndroidSystem androidSystem = AndroidSystem.withCustomJdkForGradle(AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS, AndroidSystem.JdkVersion.JDK_25);
   public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
