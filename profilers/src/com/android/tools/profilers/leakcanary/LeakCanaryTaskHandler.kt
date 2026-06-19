@@ -688,7 +688,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
               // The path where the agent expects to find its initial configuration data.
               .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
               // Needed by the on-device daemon to correctly locate the app's local data directory.
-              .setPackageName(process.packageName)
+              .setPackageName(
+                process.packageName.ifEmpty { process.name.substringBefore(":").ifEmpty { profilers.preferredProcessName ?: "" } }
+              )
               // Pass our strict 7-second timeout to the native C++ daemon. If the app is frozen in the
               // background, the daemon will honor this timeout and stop attempting to connect, preventing log spam.
               .setAttachTimeoutMs(AGENT_ATTACH_TIMEOUT_MS.toInt())
