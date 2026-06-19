@@ -27,7 +27,6 @@ import com.android.emulator.control.InputEvent as InputEventMessage
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.MouseEvent as MouseEventMessage
 import com.android.emulator.control.Posture.PostureValue
-import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Touch
 import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
@@ -35,8 +34,6 @@ import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils.ALPHA_MASK
-import com.android.tools.adtui.common.AdtUiCursorType
-import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinLayout
 import com.android.tools.adtui.util.rotatedByQuadrants
@@ -115,18 +112,14 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.wm.IdeGlassPaneUtil
-import com.intellij.openapi.wm.impl.IdeGlassPaneEx
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.containers.DisposableWrapperList
-import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
-import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Shape
@@ -148,15 +141,11 @@ import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_DOWN
-import java.awt.event.KeyEvent.VK_END
-import java.awt.event.KeyEvent.VK_HOME
 import java.awt.event.KeyEvent.VK_KP_DOWN
 import java.awt.event.KeyEvent.VK_KP_LEFT
 import java.awt.event.KeyEvent.VK_KP_RIGHT
 import java.awt.event.KeyEvent.VK_KP_UP
 import java.awt.event.KeyEvent.VK_LEFT
-import java.awt.event.KeyEvent.VK_PAGE_DOWN
-import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
@@ -176,7 +165,6 @@ import java.awt.image.SinglePixelPackedSampleModel
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.KeyStroke
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -384,10 +372,17 @@ internal class EmulatorView(
     lastModifiers = modifiers
 
     val cameraReadyToOperate = virtualSceneCameraActive && isFocusOwner && !isHardwareInputEnabled()
-    virtualSceneCameraOperating = cameraReadyToOperate && modifiers and SHIFT_DOWN_MASK != 0
+    if (cameraReadyToOperate && modifiers and SHIFT_DOWN_MASK != 0) {
+      if (virtualSceneCameraController == null) {
+        virtualSceneCameraController = VirtualSceneCameraController(this, this, emulator)
+      }
+    } else {
+      virtualSceneCameraController?.let { Disposer.dispose(it) }
+      virtualSceneCameraController = null
+    }
     virtualSceneCameraPrompt =
       when {
-        virtualSceneCameraOperating -> {
+        virtualSceneCameraController != null -> {
           val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
           "Move camera with $keys keys, rotate with mouse or arrow keys"
         }
@@ -407,19 +402,7 @@ internal class EmulatorView(
   private val virtualSceneCameraActive: Boolean
     get() = notificationReceiver.virtualSceneCameraActive.value
 
-  private var virtualSceneCameraOperating = false
-    set(value) {
-      if (field != value) {
-        field = value
-        if (value) {
-          startOperatingVirtualSceneCamera()
-        } else {
-          stopOperatingVirtualSceneCamera()
-        }
-      }
-    }
-
-  private var virtualSceneCameraVelocityController: VirtualSceneCameraVelocityController? = null
+  private var virtualSceneCameraController: VirtualSceneCameraController? = null
   override var xrInputController: EmulatorXrInputController? = null
     get() {
       if (field == null) {
@@ -496,7 +479,6 @@ internal class EmulatorView(
     isDisposed = true
     cancelScreenshotFeed()
     emulator.removeConnectionStateListener(this)
-    virtualSceneCameraOperating = false
     streamingSessionTracker.streamingEnded()
     stats?.let { Disposer.dispose(it) } // The stats object has to be disposed last.
   }
@@ -790,53 +772,6 @@ internal class EmulatorView(
     findNotificationHolderPanel()?.hideFadeOutNotification()
   }
 
-  private fun startOperatingVirtualSceneCamera() {
-    val glass = IdeGlassPaneUtil.find(this) as IdeGlassPaneEx
-    val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
-    val rootPane = glass.rootPane
-    val scale = PI / min(rootPane.width, rootPane.height)
-    UIUtil.setCursor(rootPane, cursor)
-    glass.setCursor(cursor, this)
-    val referencePoint = MouseInfo.getPointerInfo().location
-    val mouseListener =
-      object : MouseAdapter() {
-
-        override fun mouseMoved(event: MouseEvent) {
-          if (referencePoint != null) {
-            rotateVirtualSceneCamera(-(event.yOnScreen - referencePoint.y) * scale, (referencePoint.x - event.xOnScreen) * scale)
-            referencePoint.setLocation(event.xOnScreen, event.yOnScreen)
-            event.consume()
-          }
-        }
-
-        override fun mouseDragged(event: MouseEvent) {
-          mouseMoved(event)
-        }
-
-        override fun mouseEntered(event: MouseEvent) {
-          glass.setCursor(cursor, this)
-        }
-      }
-
-    val velocityController = VirtualSceneCameraVelocityController(emulator, EmulatorSettings.getInstance().cameraVelocityControls.keys)
-    virtualSceneCameraVelocityController = velocityController
-    glass.addMousePreprocessor(mouseListener, velocityController)
-    glass.addMouseMotionPreprocessor(mouseListener, velocityController)
-  }
-
-  private fun stopOperatingVirtualSceneCamera() {
-    virtualSceneCameraVelocityController?.let(Disposer::dispose)
-    virtualSceneCameraVelocityController = null
-    val glass = IdeGlassPaneUtil.find(this) as IdeGlassPaneEx
-    glass.setCursor(null, this)
-    UIUtil.setCursor(glass.rootPane, null)
-  }
-
-  private fun rotateVirtualSceneCamera(rotationX: Double, rotationY: Double) {
-    val cameraRotation = RotationRadian.newBuilder().setX(rotationX.toFloat()).setY(rotationY.toFloat()).build()
-    emulator.rotateVirtualSceneCamera(cameraRotation)
-  }
-
   internal fun displayModeChanged(displayModeId: DisplayModeValue) {
     val displayMode = emulatorConfig.displayModes.find { it.displayModeId == displayModeId } ?: return
     requestScreenshotFeed(displayMode.displaySize, displayOrientationQuadrants)
@@ -938,7 +873,7 @@ internal class EmulatorView(
         return
       }
 
-      if (virtualSceneCameraOperating) {
+      if (virtualSceneCameraController != null) {
         return
       }
 
@@ -957,6 +892,9 @@ internal class EmulatorView(
 
     override fun keyPressed(event: KeyEvent) {
       updateCameraPromptAndMultiTouchFeedback(event)
+      if (!isConnected) {
+        return
+      }
       if (isHardwareInputEnabled()) {
         hardwareInput.forwardEvent(event)
         return
@@ -964,26 +902,7 @@ internal class EmulatorView(
       if (xrInputController?.keyPressed(event) == true) {
         return
       }
-      if (!isConnected) {
-        return
-      }
-
-      if (virtualSceneCameraOperating) {
-        when (event.keyCode) {
-          VK_LEFT,
-          VK_KP_LEFT -> rotateVirtualSceneCamera(0.0, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-          VK_RIGHT,
-          VK_KP_RIGHT -> rotateVirtualSceneCamera(0.0, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-          VK_UP,
-          VK_KP_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
-          VK_DOWN,
-          VK_KP_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
-          VK_HOME -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-          VK_END -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-          VK_PAGE_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-          VK_PAGE_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-          else -> virtualSceneCameraVelocityController?.keyPressed(event.keyCode)
-        }
+      if (virtualSceneCameraController?.keyPressed(event) == true) {
         return
       }
 
@@ -1003,7 +922,7 @@ internal class EmulatorView(
       if (xrInputController?.keyReleased(event) == true) {
         return
       }
-      virtualSceneCameraVelocityController?.keyReleased(event.keyCode)
+      virtualSceneCameraController?.keyReleased(event)
     }
 
     private fun hostKeyStrokeToEmulatorKeyStroke(hostKeyCode: Int, modifiers: Int): EmulatorKeyStroke? {
@@ -1140,7 +1059,7 @@ internal class EmulatorView(
         return
       }
       updateMultiTouchMode(event)
-      if (!virtualSceneCameraOperating && (currentButtons and BUTTON_MASK) != 0) {
+      if (virtualSceneCameraController == null && (currentButtons and BUTTON_MASK) != 0) {
         sendMouseEvent(event.x, event.y, currentButtons, drag = true)
       }
     }
@@ -1153,7 +1072,7 @@ internal class EmulatorView(
       updateMultiTouchMode(event)
       if (
         isInsideDisplayAndMouseInputSupported(event) &&
-          !virtualSceneCameraOperating &&
+          virtualSceneCameraController == null &&
           !multiTouchMode &&
           (currentButtons and BUTTON_MASK) == 0
       ) {
@@ -1660,9 +1579,6 @@ internal class EmulatorView(
 internal const val DISPLAY_MODE_PROPERTY = "displayMode"
 
 private var emulatorOutOfDateNotificationShown = false
-
-private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES = 5
-private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN = VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES * PI / 180
 
 private val ZERO_POINT = Point()
 private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK)
