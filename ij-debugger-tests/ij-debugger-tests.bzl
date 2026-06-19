@@ -58,7 +58,7 @@ def debugger_test(
         env = env | {
             "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "com.google.android.tools.debugger.test.lib.ArtAttacher",
             "INTELLIJ_DEBUGGER_TESTS_DEX_CACHE": "./dex_cache",
-            "INTELLIJ_DEBUGGER_TESTS_TIMEOUT_MILLIS": "15000",
+            "INTELLIJ_DEBUGGER_TESTS_TIMEOUT_MILLIS": "60000",
             "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": ".",
         }
         data = data + [

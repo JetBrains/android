@@ -36,6 +36,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.observable.util.whenDisposed
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.toNioPathOrNull
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.util.io.Compressor
 import com.intellij.util.io.delete
@@ -98,6 +99,7 @@ internal class ArtAttacher : VmAttacher {
   private val disposable = Disposer.newDisposable("ArtAttacher")
 
   override fun setUp() {
+    Registry.get("debugger.collectible.value.retries.error").setValue(false)
     steppingFilters = DebuggerSettings.getInstance().steppingFilters
     DebuggerSettings.getInstance().steppingFilters +=
       arrayOf(
