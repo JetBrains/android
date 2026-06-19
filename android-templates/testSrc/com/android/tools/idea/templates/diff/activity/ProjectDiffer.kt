@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.diff.activity
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.smartDiffAgpVersion
 import com.android.tools.idea.wizard.template.Template
 import com.google.common.truth.Truth
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.containers.isEmpty
 import java.io.File
 import java.nio.charset.MalformedInputException
@@ -52,6 +53,7 @@ class ProjectDiffer(template: Template, goldenDirName: String) :
  * instructions on how to run the tests and generate the golden files
  */
 private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: String = "") {
+  PlatformTestUtil.flushAllPendingVFSUpdates()
   val goldenFiles = getNonEmptyDirEntries(goldenDir, printPrefix)
   goldenFiles.removeAll(FILES_TO_IGNORE)
 
