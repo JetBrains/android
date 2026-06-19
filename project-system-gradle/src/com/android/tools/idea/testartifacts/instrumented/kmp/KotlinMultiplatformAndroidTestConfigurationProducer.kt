@@ -46,7 +46,6 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.classes.KtFakeLightMethod
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
-import org.jetbrains.kotlin.asJava.toFakeLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.base.facet.implementingModules
 import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
@@ -58,6 +57,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
+import org.jetbrains.kotlin.util.asFakePsiClass
 
 /**
  * A [com.intellij.execution.actions.RunConfigurationProducer] implementation for [AndroidTestRunConfiguration] in multiplatform modules.
@@ -264,7 +264,7 @@ private class KotlinMultiplatformAndroidTestConfigurator(
         else -> psi
       }
     val owner = leaf?.getParentOfType<KtDeclaration>(false) as? KtClassOrObject ?: return null
-    return owner.toLightClass() ?: owner.toFakeLightClass()
+    return owner.toLightClass() ?: owner.asFakePsiClass()
   }
 
   /**
