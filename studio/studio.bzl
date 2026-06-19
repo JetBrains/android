@@ -10,7 +10,7 @@ load("//tools/base/bazel:expand_template.bzl", "expand_template_ex")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
-load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
+load("//tools/base/bazel:utils.bzl", "dir_archive", "endswith_glob", "is_release")
 
 PluginInfo = provider(
     doc = "Info for IntelliJ plugins, including those built by the studio_plugin rule",
@@ -97,13 +97,8 @@ def _zipper(ctx, desc, map, out, deps = []):
         mnemonic = "zipper",
     )
 
-def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = []):
-    """Creates a ZIP out while preserving symlinks.
-
-    Note: This action needs to run outside the sandbox to capture an accurate
-    representation of the workspace filesystem. Otherwise, files inside the
-    sandbox are created as symbolic links, and the output ZIP would only
-    contain entries which are sandbox symlinks."""
+def _lnzipper(ctx, desc, filemap, out, attrs = {}, deps = []):
+    """Creates a ZIP out while preserving symlinks."""
     files = []
     fileargs = []
     for zip_path, f in filemap:
@@ -111,9 +106,7 @@ def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = [
         attr = ("[" + attrs[zip_path] + "]") if zip_path in attrs else ""
         fileargs.append("%s%s=%s\n" % (zip_path, attr, f.path if f else ""))
 
-    lnzipper_options = "-ca"
-    if keep_symlink:
-        lnzipper_options += "s"
+    lnzipper_options = "-c"
     if ctx.attr.compress:
         lnzipper_options += "C"
 
@@ -124,7 +117,6 @@ def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = [
         inputs = files + [argfile] + deps,
         outputs = [out],
         executable = ctx.executable._lnzipper,
-        execution_requirements = {"no-sandbox": "true", "no-remote": "true", "cpu:16": ""},
         resource_set = _lnzipper_resources,
         arguments = args,
         progress_message = "lnzipping %s" % desc,
@@ -788,19 +780,56 @@ def _stamp_plugin(ctx, platform, platform_files, files, overwrite_plugin_version
 
 def _get_external_attributes(all_files):
     attrs = {}
-    for zip_path, file in all_files.items():
-        # Source files are checked in with the right permissions.
-        # For generated files we default to -rw-r--r--
-        if not file.is_source:
-            attrs[zip_path] = "644"
-        if zip_path.endswith(".app/Contents/Info.plist"):
+    # Source files permissions are lost in RBE. We must define exactly what permissions we want
+    # LnZipper uses default permision unless changed here.
+    # Default permission is -rw-r--r--
+
+    executables = [
+        "jbr/bin/*",
+        "jbr/lib/jexec",
+        "jbr/lib/jspawnhelper",
+        "Contents/jbr/Contents/Home/bin/*",
+        "Contents/jbr/Contents/Home/lib/jspawnhelper",
+        "plugins/Kotlin/kotlinc/bin/*",
+        "bin/clangd",
+        "plugins/android-ndk/resources/lldb/bin/*",
+        "plugins/android-ndk/resources/lldb/android/*/lldb-server",
+        "plugins/android/resources/simpleperf/*/simpleperf",
+        "plugins/android/resources/simpleperf/*/libsimpleperf_report.so",
+        "plugins/android/resources/simpleperf/*/libsimpleperf_report.dylib",
+        "plugins/android/resources/perfetto/*/perfetto",
+        "plugins/android/resources/perfetto/*/traced",
+        "plugins/android/resources/perfetto/*/traced_probes",
+        "plugins/android/resources/perfetto/*/libperfetto.so",
+        "plugins/android/resources/trace_processor_daemon/trace_processor_daemon",
+        "plugins/android/resources/trace_processor_server/trace-processor",
+        "plugins/gemini/resources/llamacpp/llama-server",
+        "plugins/gemini/resources/llamacpp/libggml*",
+        "plugins/gemini/resources/llamacpp/libllama*",
+        "plugins/gemini/resources/llamacpp/libmtmd*",
+        "plugins/android/resources/native/libimage_converter.dylib",
+        "bin/format.sh",
+        "bin/fsnotifier",
+        "bin/game-tools.sh",
+        "bin/inspect.sh",
+        "bin/ltedit.sh",
+        "bin/profiler.sh",
+        "bin/restarter",
+        "bin/studio",
+        "bin/studio.sh",
+        "Contents/MacOS/studio",
+        "Contents/bin/printenv",
+        "lib/pty4j/darwin/pty4j-unix-spawn-helper",
+    ]
+    for zip_path in all_files:
+        if zip_path.endswith("Info.plist"):
             attrs[zip_path] = "664"
-        if (zip_path.endswith("/bin/studio.sh") or
-            zip_path.endswith("/bin/game-tools.sh") or
-            zip_path.endswith("/bin/studio64.exe") or
-            zip_path.endswith("/bin/studio.bat") or
-            zip_path.endswith("/bin/game-tools.bat")):
-            attrs[zip_path] = "775"
+        else:
+            for exc in executables:
+                if endswith_glob(zip_path, exc):
+                    attrs[zip_path] = "755"
+                    break
+
     return attrs
 
 def _android_studio_os(ctx, platform, added_plugins, out):
@@ -876,7 +905,7 @@ def _android_studio_os(ctx, platform, added_plugins, out):
         _produce_manifest(ctx, LINUX, platform_files)
 
     attrs = _get_external_attributes(all_files)
-    _lnzipper(ctx, out.basename, all_files.items(), out, attrs = attrs, keep_symlink = platform == MAC_ARM)
+    _lnzipper(ctx, out.basename, all_files.items(), out, attrs = attrs)
     return all_files
 
 def _studio_runner(ctx, name, target_to_file, out):
