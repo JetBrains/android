@@ -2758,6 +2758,11 @@ public final class StudioFlags {
                     "Replace the query box with the pending ask user tool call or permisisons request.",
                     "When true, the query box UI will be completely replaced with the pending ask user tool call or permissions request instead of rendering them in the timeline.");
 
+  public static final Flag<Boolean> STUDIOBOT_CONVERSATION_SEARCH_ENABLED =
+    new BooleanFlag(STUDIOBOT, "conversation.search.enabled",
+                    "Enable past conversation search",
+                    "Enables a conversational search feature inside the Studio Bot tool window to allow users to search their historical chat histories.");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
