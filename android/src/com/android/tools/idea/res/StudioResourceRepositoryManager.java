@@ -51,6 +51,7 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
@@ -808,19 +809,14 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
     // Gather all the results.
     ImmutableMap.Builder<ExternalAndroidLibrary, AarResourceRepository> map = ImmutableMap.builder();
-    for (Map.Entry<ExternalAndroidLibrary, Future<AarResourceRepository>> entry : futures.entrySet()) {
-      try {
-        map.put(entry.getKey(), entry.getValue().get());
+    try {
+      for (Map.Entry<ExternalAndroidLibrary, Future<AarResourceRepository>> entry : futures.entrySet()) {
+        map.put(entry.getKey(), ProgressIndicatorUtils.awaitWithCheckCanceled(entry.getValue()));
       }
-      catch (ExecutionException e) {
-        cancelPendingTasks(futures.values());
-        Throwables.throwIfUnchecked(e.getCause());
-        throw new UncheckedExecutionException(e.getCause());
-      }
-      catch (InterruptedException e) {
-        cancelPendingTasks(futures.values());
-        throw new ProcessCanceledException(e);
-      }
+    }
+    catch (Throwable t) {
+      cancelPendingTasks(futures.values());
+      throw t;
     }
 
     return map.build();
