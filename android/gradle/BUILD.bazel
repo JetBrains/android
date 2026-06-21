@@ -45,7 +45,8 @@ jvm_library(
         "@lib//:gradle",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
-        "@lib//:junit4",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
         "//libraries/commons/lang3",
         "//libraries/commons/lang3:lang3_test_lib",
         "@lib//:jetbrains-annotations",
@@ -177,8 +178,6 @@ jvm_library(
         "//platform/code-style-api:codeStyle_test_lib",
         "//platform/util/concurrency",
         "//platform/util/concurrency:concurrency_test_lib",
-        "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.gradle` end

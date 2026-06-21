@@ -41,7 +41,7 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="library" scope="TEST" name="intellij-test-framework" level="project" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="truth-java8-extension" level="project" />
     <orderEntry type="module" scope="TEST" module-name="android.sdktools.analytics-testing"  />

@@ -212,7 +212,8 @@ jvm_library(
         "@lib//:gradle",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
-        "@lib//:junit4",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
         "@lib//:jetbrains-annotations",
         "//libraries/mockito",
         "//libraries/mockito:mockito_test_lib",
@@ -301,8 +302,6 @@ jvm_library(
         "//platform/lang-api:lang_test_lib",
         "//platform/lang-core",
         "//platform/lang-core:lang-core_test_lib",
-        "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.psd.tests` end

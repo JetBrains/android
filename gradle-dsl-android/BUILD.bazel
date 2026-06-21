@@ -122,7 +122,8 @@ jvm_library(
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/gradle-dsl:gradle-dsl-testutils",
         "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
-        "@lib//:junit4",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
         "//android/project-system-gradle-models:projectSystem-gradle-models",
         "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
         "@lib//:truth",
@@ -130,8 +131,6 @@ jvm_library(
         "//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags_test_lib",
         "//android/gradle-dsl-flags",
         "//android/gradle-dsl-flags:gradle-dsl-flags_test_lib",
-        "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.android.tests` end

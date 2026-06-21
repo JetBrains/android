@@ -38,7 +38,7 @@
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.hdr.histogram" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.aalto.xml" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.asm.tools" />
