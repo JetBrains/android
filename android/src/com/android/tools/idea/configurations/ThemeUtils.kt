@@ -131,7 +131,7 @@ fun <T> Module.safeQueryManifestIndex(manifestIndexQueryAction: (AndroidFacet) -
       )
     }
   } catch (e: MainManifestIndexNotReadyException) {
-    logManifestIndexQueryError(e)
+    thisLogger().info("Manifest was not ready", e)
   } catch (e: IndexNotReadyException) {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
     //  We need to refactor the callers of this to require a *smart*
