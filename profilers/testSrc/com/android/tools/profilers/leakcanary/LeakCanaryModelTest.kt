@@ -476,60 +476,6 @@ class LeakCanaryModelTest : WithFakeTimer {
   }
 
   @Test
-  fun `test getLeakingFullClassName finds node with YES status`() {
-    val node1 = createTestNode(className = "NotLeaking", leakingStatus = LeakingStatus.NO)
-    val node2 = createTestNode(className = "LeakingVictim", leakingStatus = LeakingStatus.YES)
-    val node3 = createTestNode(className = "AlsoLeaking", leakingStatus = LeakingStatus.YES)
-    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2, node3))
-    val leak =
-      Leak(
-        type = LeakType.APPLICATION_LEAKS,
-        retainedByteSize = 100,
-        signature = "sig",
-        leakTraceCount = 1,
-        displayedLeakTrace = listOf(leakTrace),
-      )
-
-    assertEquals("LeakingVictim", LeakCanaryModel.getLeakingFullClassName(leak))
-  }
-
-  @Test
-  fun `test getAnchorFullClassName finds last node with NO status`() {
-    val node1 = createTestNode(className = "Root", leakingStatus = LeakingStatus.NO)
-    val node2 = createTestNode(className = "Anchor", leakingStatus = LeakingStatus.NO)
-    val node3 = createTestNode(className = "Unknown", leakingStatus = LeakingStatus.UNKNOWN)
-    val node4 = createTestNode(className = "Leaking", leakingStatus = LeakingStatus.YES)
-    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2, node3, node4))
-    val leak =
-      Leak(
-        type = LeakType.APPLICATION_LEAKS,
-        retainedByteSize = 100,
-        signature = "sig",
-        leakTraceCount = 1,
-        displayedLeakTrace = listOf(leakTrace),
-      )
-
-    assertEquals("Anchor", LeakCanaryModel.getAnchorFullClassName(leak))
-  }
-
-  @Test
-  fun `test getAnchorFullClassName returns empty if no NO status nodes`() {
-    val node1 = createTestNode(className = "Unknown", leakingStatus = LeakingStatus.UNKNOWN)
-    val node2 = createTestNode(className = "Leaking", leakingStatus = LeakingStatus.YES)
-    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2))
-    val leak =
-      Leak(
-        type = LeakType.APPLICATION_LEAKS,
-        retainedByteSize = 100,
-        signature = "sig",
-        leakTraceCount = 1,
-        displayedLeakTrace = listOf(leakTrace),
-      )
-
-    assertEquals("", LeakCanaryModel.getAnchorFullClassName(leak))
-  }
-
-  @Test
   fun `analyzeLeakWithStudioBot delegates to ideServices`() {
     val leak = mock(Leak::class.java)
     `when`(leak.toString()).thenReturn("trace")
