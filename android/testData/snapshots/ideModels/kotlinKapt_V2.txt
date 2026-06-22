@@ -1731,7 +1731,7 @@ MODULE                        : MainActivity.javaLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 24
                     moduleName                    : javaLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -1749,7 +1749,7 @@ MODULE                        : MainActivity.javaLib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLib/build/classes/kotlin/test
-                    jvmTarget                     : 21
+                    jvmTarget                     : 24
                     moduleName                    : javaLib_test
                     noReflect                     : true
                     noStdlib                      : true

@@ -134,7 +134,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -307,7 +307,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/commonMain [-]
@@ -362,7 +362,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:commonMain]
@@ -419,7 +419,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.app.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -477,7 +477,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.app.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -561,7 +561,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.app.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -713,7 +713,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.app.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -954,7 +954,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1063,7 +1063,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/src/commonMain
@@ -1118,7 +1118,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:commonMain]
@@ -1175,7 +1175,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -1233,7 +1233,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -1317,7 +1317,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -1434,7 +1434,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5

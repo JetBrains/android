@@ -590,7 +590,7 @@ PROJECT                       : MainActivity
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/javaLib/build/generated/source/kapt/main [-]
@@ -654,7 +654,7 @@ PROJECT                       : MainActivity
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:javaLib:main]

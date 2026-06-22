@@ -1320,7 +1320,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/kmpJvmOnly/src/commonMain
@@ -1378,7 +1378,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpJvmOnly:commonMain, :kmpJvmOnly:jvmMain]
@@ -1437,7 +1437,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : Kotlin_Multiplatform.kmpJvmOnly.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -1499,7 +1499,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : Kotlin_Multiplatform.kmpJvmOnly.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -2036,7 +2036,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]
@@ -2125,7 +2125,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : build-logic.lib-foo.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -2217,7 +2217,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : build-logic.lib-foo.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -2283,7 +2283,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/commonMain [-]
@@ -2338,7 +2338,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]

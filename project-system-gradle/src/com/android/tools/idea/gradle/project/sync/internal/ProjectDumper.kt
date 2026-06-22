@@ -286,12 +286,12 @@ class ProjectDumper(
     } ?: this
   }
 
-  private val javaVersionRegex = Regex("(ms|homebrew|jbr|corretto)-(21|17|11|1\\.8)")
+  private val javaVersionRegex = Regex("(ms|homebrew|jbr|corretto)-(25|21|17|11|1\\.8)")
 
   fun String.replaceJdkName(): String = replaceJavaVersionLikeMatch(javaVersionRegex, 2, "JDK_NAME")
 
   private val jdkVersionRegex =
-    Regex("(Microsoft OpenJDK|Homebrew OpenJDK|JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17]|21)\\.0\\.[0-9]+( - aarch64)?")
+    Regex("(Microsoft OpenJDK|Homebrew OpenJDK|JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17]|21|25)\\.0\\.[0-9]+( - aarch64)?")
 
   fun String.replaceJdkVersion(): String {
     return replaceJavaVersionLikeMatch(jdkVersionRegex, 3, "JDK_VERSION").replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
@@ -300,7 +300,8 @@ class ProjectDumper(
   fun String.replaceJdkPath(): String {
     if (!StudioPathManager.isRunningFromSources()) return this
     return when (this) {
-      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() -> "<JDK_PATH>"
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr25").toString() -> "<JDK_PATH>"
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() -> "<JDK_PATH-21>"
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString() -> "<JDK_PATH-17>"
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString() -> "<JDK_PATH-11>"
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() -> "<JDK_PATH-1_8>"

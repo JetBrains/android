@@ -147,6 +147,7 @@ iml_module(
             "data": [
                 "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk/jbr-next:jdk_runtime_files",
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
                 "//tools/base/build-system:gradle-distrib",
@@ -209,6 +210,7 @@ iml_module(
                 "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/jdk:jdk21",
+                "//prebuilts/studio/jdk/jbr25:jdk_runtime_files",
                 "//tools/base/build-system:declarative_gradle_runtime",
                 "//tools/base/build-system:declarative_android_gradle_plugin.zip",
                 "//tools/base/firebase/testlab/testlab-gradle-plugin:maven_dependencies",
@@ -624,7 +626,9 @@ iml_module(
             "tags": ["ci:studio-win"],
             # Note: we do not include AGP/Gradle artifacts in this test target, to enforce the separation between tests which require Gradle
             # to run (in split targets above) and this catch-all target.
-            "data": [],
+            "data": [
+                "//prebuilts/studio/jdk/jbr-next:jdk_runtime_files",
+            ],
         },
     },
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
@@ -741,6 +745,7 @@ generate_old_agp_tests_from_list(
             timeout = "long",
             agp_version = AGP_7_4,
             data = [
+                "//prebuilts/studio/jdk/jbr-next:jdk_runtime_files",
                 "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/sdk:build-tools/30.0.3",
