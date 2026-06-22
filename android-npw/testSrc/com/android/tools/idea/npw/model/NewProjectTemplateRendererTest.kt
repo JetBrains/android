@@ -139,14 +139,27 @@ class NewProjectTemplateRendererTest {
 
   @Test
   fun `Given gradle version with toolchain as default and defined default criteria When create project Then Foojay plugin and Daemon JVM criteria are defined`() {
-    GradleDefaultJvmCriteriaStore.daemonJvmCriteria = GradleDaemonJvmCriteria("17", "tencent".toJvmVendor())
+    val embeddedKey = "embedded.jdk.path"
+    val originalEmbeddedPath = System.getProperty(embeddedKey)
+    try {
+      System.setProperty(embeddedKey, "prebuilts/studio/jdk/jdk17")
 
-    // Using version of Gradle that doesn't generate the download URLs when executing updateDaemonJvm task that's
-    // because 'foojay-resolver' plugin requires to access 'api.foojay.io' host which will fail when running from bazel
-    val render = createNewProjectTemplateRender("8.11.1", removeFoojayPlugin = true, dslLanguage = GROOVY)
-    multiTemplateRenderer.requestRender(render)
+      GradleDefaultJvmCriteriaStore.daemonJvmCriteria = GradleDaemonJvmCriteria("17", "tencent".toJvmVendor())
 
-    assertBasicGradleDaemonJvmCriteria(17, "tencent")
+      // Using version of Gradle that doesn't generate the download URLs when executing updateDaemonJvm task that's
+      // because 'foojay-resolver' plugin requires to access 'api.foojay.io' host which will fail when running from bazel
+      // This also requires using JDK 17 as the used Gradle version is incompatible with 25
+      val render = createNewProjectTemplateRender("8.11.1", removeFoojayPlugin = true, dslLanguage = GROOVY)
+      multiTemplateRenderer.requestRender(render)
+
+      assertBasicGradleDaemonJvmCriteria(17, "tencent")
+    } finally {
+      if (originalEmbeddedPath != null) {
+        System.setProperty(embeddedKey, originalEmbeddedPath)
+      } else {
+        System.clearProperty(embeddedKey)
+      }
+    }
   }
 
   private fun createNewProjectTemplateRender(
