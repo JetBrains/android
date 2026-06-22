@@ -134,6 +134,7 @@ public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDepe
                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                   false));
     myGroupIdLabel = new JBLabel();
+    myGroupIdLabel.putClientProperty("html.disable", Boolean.TRUE);
     Font myGroupIdLabelFont = UIManager.getFont("Tree.font");
     if (myGroupIdLabelFont != null) myGroupIdLabel.setFont(myGroupIdLabelFont);
     myMainPanel.add(myGroupIdLabel, new GridConstraints(0, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
@@ -141,6 +142,7 @@ public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDepe
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
                                                         null, null, 0, false));
     myArtifactNameLabel = new JBLabel();
+    myArtifactNameLabel.putClientProperty("html.disable", Boolean.TRUE);
     Font myArtifactNameLabelFont = UIManager.getFont("Tree.font");
     if (myArtifactNameLabelFont != null) myArtifactNameLabel.setFont(myArtifactNameLabelFont);
     myMainPanel.add(myArtifactNameLabel, new GridConstraints(1, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
