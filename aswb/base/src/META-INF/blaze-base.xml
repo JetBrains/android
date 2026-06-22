@@ -449,7 +449,6 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.TestTargetHeuristic" interface="com.google.idea.blaze.base.run.TestTargetHeuristic"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.ProjectDataDirectoryValidator" interface="com.google.idea.blaze.base.wizard2.ProjectDataDirectoryValidator"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.FileStringParser" interface="com.google.idea.blaze.base.run.filter.FileResolver"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.BlazeGuard" interface="com.google.idea.blaze.base.execution.BazelGuard"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BlazeTestEventsHandler" interface="com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.AttributeSpecificStringLiteralReferenceProvider" interface="com.google.idea.blaze.base.lang.buildfile.references.AttributeSpecificStringLiteralReferenceProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.EventLogger" interface="com.google.idea.blaze.base.logging.EventLogger"/>
