@@ -121,4 +121,17 @@ class ConfigurationStateManagerTest : AndroidTestCase() {
       TrustedProjects.setProjectTrusted(project, wasTrusted)
     }
   }
+
+  fun testLoadStateWithNullProjectState() {
+    assertNotNull(project)
+    val manager = StudioConfigurationStateManager.get(project) as StudioConfigurationStateManager
+    assertNotNull(manager)
+
+    val state = ConfigurationStateManager.State()
+    assertNull(state.projectState)
+
+    manager.loadState(state)
+    assertNotNull(manager.projectState)
+    assertNotNull(manager.projectState.deviceIds)
+  }
 }
