@@ -441,6 +441,7 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
         writer.append(String.format("-Didea.disposer.debug=on%n"));
         // BLeak requires more memory since it's keeping track of various live objects
         writer.append(String.format("-Xmx4G%n"));
+        writer.append(String.format("--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED%n"));
       }
       catch (IOException ignored) {
         throw new IllegalStateException("BLeak JVMTI agent not found");

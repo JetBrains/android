@@ -72,8 +72,8 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
             obj.toString()
           }
         if (s.length > 100) s.take(97) + "..." else s
-      } catch (e: NullPointerException) {
-        "[NPE in toString]"
+      } catch (e: Throwable) {
+        "[Error in toString: ${e.javaClass.simpleName}]"
       }
 
   private fun Collection<Any>.uniqueByIdentity(): List<Any> {
