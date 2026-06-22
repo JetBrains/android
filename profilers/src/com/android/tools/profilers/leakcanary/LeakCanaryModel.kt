@@ -934,39 +934,6 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     }
 
     private const val KEY_LEAKCANARY_BANNER_DO_NOT_SHOW = "leakcanary.banner.donotshow"
-
-    /**
-     * Extracts the class name of the node that is actually leaking (LeakingStatus.YES).
-     *
-     * @param leak The Leak object.
-     * @return The fully qualified class name of the leaking object, or an empty string if not found.
-     */
-    @JvmStatic
-    fun getLeakingFullClassName(leak: Leak?): String {
-      if (leak?.displayedLeakTrace == null || leak.displayedLeakTrace.isEmpty()) {
-        return ""
-      }
-      val leakTrace = leak.displayedLeakTrace.first()
-      return leakTrace.nodes.find { it.leakingStatus == LeakingStatus.YES }?.className ?: ""
-    }
-
-    /**
-     * Extracts the class name of the "Anchor" node. This is the last node in the trace that is marked as NO (not leaking) before the chain
-     * of UNKNOWN or YES nodes begins. This node usually holds the reference that causes the leak.
-     *
-     * @param leak The Leak object.
-     * @return The fully qualified class name of the anchor object, or an empty string if not found.
-     */
-    @JvmStatic
-    fun getAnchorFullClassName(leak: Leak?): String {
-      if (leak?.displayedLeakTrace == null || leak.displayedLeakTrace.isEmpty()) {
-        return ""
-      }
-      val leakTrace = leak.displayedLeakTrace.first()
-      // Find the last index of a node that is explicitly NOT leaking.
-      val lastNoIndex = leakTrace.nodes.indexOfLast { it.leakingStatus == LeakingStatus.NO }
-      return if (lastNoIndex != -1) leakTrace.nodes[lastNoIndex].className else ""
-    }
   }
 
   override fun update(elapsedNs: Long) {
