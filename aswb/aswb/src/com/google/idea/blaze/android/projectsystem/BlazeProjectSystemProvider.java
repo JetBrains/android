@@ -19,6 +19,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider;
 import com.google.idea.blaze.base.project.BazelProjectSystemId;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.project.Project;
 import java.util.Optional;
 
@@ -38,9 +39,10 @@ public class BlazeProjectSystemProvider implements AndroidProjectSystemProvider 
 
   @Override
   public boolean isApplicable(Project project) {
-    return BlazeImportSettingsManager.loadImportSettings(
-            project.getBasePath(), project.getName(), Optional.empty(), Optional.empty())
-        .isPresent();
+    return TrustedProjects.isProjectTrusted(project)
+        && BlazeImportSettingsManager.loadImportSettings(
+                project.getBasePath(), project.getName(), Optional.empty(), Optional.empty())
+            .isPresent();
   }
 
   @Override

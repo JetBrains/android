@@ -19,12 +19,16 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsSc
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.settings.BazelImportSettingsManager
 import com.google.idea.blaze.base.settings.Blaze
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 
 /** Syncs the project upon startup. */
 class BlazeSyncStartupActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
+    if (!TrustedProjects.isProjectTrusted(project)) {
+      return
+    }
     if (!Blaze.isBlazeProject(project)) {
       return
     }
