@@ -272,6 +272,8 @@ object TaskBasedUxStrings {
       StartTaskSelectionErrorCode.LEAKCANARY_REFLECTION_FAILED ->
         "Studio's LeakCanary integration library failed to attach. Required internal APIs are missing from the compiled app."
       StartTaskSelectionErrorCode.TASK_HAS_DEBUGGER_ATTACHED -> TASK_HAS_DEBUGGER_ATTACHED_MESSAGE
+      StartTaskSelectionErrorCode.LEAKCANARY_NOT_SUPPORTED_FOR_PCC ->
+        "LeakCanary profiling is not supported for apps containing Private Compute Core (PCC) components."
       StartTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
 

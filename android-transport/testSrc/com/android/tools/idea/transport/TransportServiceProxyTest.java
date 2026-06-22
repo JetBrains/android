@@ -409,6 +409,32 @@ public class TransportServiceProxyTest {
     assertThat(profilerDevice.getArtVersionCode()).isEqualTo(0L);
   }
 
+  @Test
+  public void testUidRetrievedFromDevice() throws Exception {
+    IDevice mockDevice = createMockDevice(30, new Client[0]);
+    Client client1 = createMockClient(1, "test1", "name1");
+    doAnswer(invocation -> {
+      Object[] args = invocation.getArguments();
+      String command = (String)args[0];
+      if (command.equals("cat /proc/1/status")) {
+        byte[] bytes = "Uid:\t30005\t30005\t30005\t30005\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        ((IShellOutputReceiver)args[1]).addOutput(bytes, 0, bytes.length);
+        ((IShellOutputReceiver)args[1]).flush();
+      }
+      return null;
+    }).when(mockDevice).executeShellCommand(org.mockito.ArgumentMatchers.startsWith("cat /proc/"), any(IShellOutputReceiver.class), org.mockito.ArgumentMatchers.anyLong(), any(java.util.concurrent.TimeUnit.class));
+
+    when(mockDevice.getClients()).thenReturn(new Client[]{client1});
+    Common.Device transportDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportDevice,
+                                startNamedChannel("testUidRetrievedFromDevice", new FakeTransportService()),
+                                new LinkedBlockingDeque<>(), new HashMap<>());
+    Map<Integer, Common.Process> cachedProcesses = proxy.getCachedProcesses();
+    Common.Process process1 = cachedProcesses.get(1);
+    assertThat(process1.getUid()).isEqualTo(30005);
+  }
+
   /**
    * @param uniqueName Name should be unique across tests.
    */

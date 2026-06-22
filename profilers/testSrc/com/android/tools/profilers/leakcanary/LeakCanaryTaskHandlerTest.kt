@@ -245,6 +245,14 @@ class LeakCanaryTaskHandlerTest : WithFakeTimer {
       leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess)!!.startTaskSelectionErrorCode,
       StartTaskSelectionErrorCode.TASK_HAS_DEBUGGER_ATTACHED,
     )
+
+    ideProfilerServices.setDebuggerAttached(false)
+    val pccProcess = TaskHandlerTestUtils.createProcess(isProfileable = false).toBuilder().setUid(35000).build()
+    assertNotNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, pccProcess))
+    assertEquals(
+      leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, pccProcess)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.LEAKCANARY_NOT_SUPPORTED_FOR_PCC,
+    )
   }
 
   @Test

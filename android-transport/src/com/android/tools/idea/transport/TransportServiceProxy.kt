@@ -392,6 +392,7 @@ class TransportServiceProxy(
           .takeIf { SAFE_ABI_NAME.matches(it) } ?: ""
 
       // TODO: Set this to the applications actual start time.
+      val uid = ddmlibDevice.getUid(client.pid)
       val newProcess =
         Common.Process.newBuilder()
           .setName(StringUtil.escapeXmlEntities(description))
@@ -402,6 +403,7 @@ class TransportServiceProxy(
           .setAbiCpuArch(processAbiCpuArch)
           .setExposureLevel(level)
           .setPackageName(client.packageName.takeIf { SAFE_PROCESS_NAME.matches(it) } ?: "")
+          .setUid(uid)
           .build()
       synchronized(cachedProcesses) { cachedProcesses[client.pid] = newProcess }
       // New pipeline event - create a ProcessStarted event for each process.
@@ -504,6 +506,34 @@ class TransportServiceProxy(
         log.debug("Failed to check ART package version from device $device", e)
       }
       return 0L
+    }
+
+    fun IDevice.getUid(pid: Int): Int {
+      var uid = 0
+      try {
+        executeShellCommand(
+          "cat /proc/$pid/status",
+          object : MultiLineReceiver() {
+            override fun processNewLines(lines: Array<String>) {
+              for (line in lines) {
+                if (line.startsWith("Uid:")) {
+                  val parts = line.split("\\s+".toRegex())
+                  if (parts.size >= 2) {
+                    uid = parts[1].toIntOrNull() ?: 0
+                  }
+                }
+              }
+            }
+
+            override fun isCancelled() = false
+          },
+          2,
+          java.util.concurrent.TimeUnit.SECONDS,
+        )
+      } catch (e: Exception) {
+        log.warn("Failed to get uid for $pid", e)
+      }
+      return uid
     }
 
     private fun IDevice.getId(bootId: String) =
