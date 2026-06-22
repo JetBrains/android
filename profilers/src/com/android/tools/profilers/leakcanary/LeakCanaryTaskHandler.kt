@@ -432,6 +432,11 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
       updateStateToIdle()
       return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
     }
+    if (process.uid in FIRST_PCC_UID..LAST_PCC_UID) {
+      logger.info("LeakCanary unsupported: Process ${process.pid} is a PCC process")
+      updateStateToIdle()
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_NOT_SUPPORTED_FOR_PCC)
+    }
     // Bypass LeakCanary presence check in testing mode because tests use dummy apps.
     if (profilers.ideServices.featureConfig.isTestingModeEnabled) {
       return null
@@ -635,6 +640,9 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager) : Sing
   }
 
   companion object {
+    const val FIRST_PCC_UID = 30000
+    const val LAST_PCC_UID = 39999
+
     // Total timeout for the entire check sequence: Agent Attach + Broadcast Round Trip.
     // Derived from: Agent Attach (7s) + Broadcast (3s) + Buffer (4s) = 14s.
     private const val LEAKCANARY_CHECK_TIMEOUT_MS = 14000L

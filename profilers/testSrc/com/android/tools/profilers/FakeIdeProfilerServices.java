@@ -531,6 +531,17 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return myDebuggerAttached;
   }
 
+  private boolean myIsPccApp = false;
+
+  public void setIsPccApp(boolean isPccApp) {
+    myIsPccApp = isPccApp;
+  }
+
+  @Override
+  public boolean isPccApp(@NotNull String packageName) {
+    return myIsPccApp;
+  }
+
   @Override
   public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) { }
 

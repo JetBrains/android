@@ -200,6 +200,21 @@ class StartTaskSelectionVerificationTest {
     val x = error
   }
 
+  @Test
+  fun testLeakCanaryTaskUnsupportedForPccApp() {
+    ideProfilerServices.setIsPccApp(true)
+    myProfilers.preferredProcessName = "fake.name"
+    val error =
+      getStartTaskError(
+        ProfilerTaskType.LEAKCANARY,
+        createDeviceSelection(true),
+        createProcessSelection(true, isAlive = false, name = "fake.name"),
+        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
+        myProfilers,
+      )
+    assertEquals(StartTaskSelectionErrorCode.LEAKCANARY_NOT_SUPPORTED_FOR_PCC, error.startTaskSelectionErrorCode)
+  }
+
   private fun createDeviceSelection(isValid: Boolean, isRunning: Boolean = false, featureLevel: Int = 0) =
     if (isValid) createProfilerDeviceSelection(featureLevel, isRunning) else null
 
