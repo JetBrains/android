@@ -37,6 +37,7 @@ import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
 import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.guessProjectDir
@@ -214,8 +215,10 @@ class NewProjectTemplateRendererTest {
   private fun assertFoojayPlugin(isApplied: Boolean) {
     assertEquals(
       isApplied,
-      ProjectBuildModel.get(projectRule.project).projectSettingsModel!!.plugins().declaredProperties.any {
-        it.valueAsString()!!.contains(FOOJAY_RESOLVER_CONVENTION_NAME)
+      runReadActionBlocking {
+        ProjectBuildModel.get(projectRule.project).projectSettingsModel!!.plugins().declaredProperties.any {
+          it.valueAsString()!!.contains(FOOJAY_RESOLVER_CONVENTION_NAME)
+        }
       },
     )
   }
@@ -242,7 +245,8 @@ class NewProjectTemplateRendererTest {
   }
 
   private fun withGradleSettings(action: StringBuilder.() -> Unit) {
-    val gradleSettings = getTopLevelBuildScriptSettingsPsiFile(projectRule.project, projectBasePath)?.virtualFile?.toIoFile()
+    val gradleSettings =
+      runReadActionBlocking { getTopLevelBuildScriptSettingsPsiFile(projectRule.project, projectBasePath) }?.virtualFile?.toIoFile()
     val gradleSettingsBuilder = StringBuilder(gradleSettings!!.readText())
 
     action.invoke(gradleSettingsBuilder)
