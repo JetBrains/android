@@ -754,6 +754,15 @@ class MavenClassRegistryTest {
           },
           {
             "groupId": "androidx.activity",
+            "artifactId": "activity-jvm",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.activity",
             "artifactId": "activity-jvmstubs",
             "version": "1.1.0",
             "ktxTargets": [
@@ -818,6 +827,7 @@ class MavenClassRegistryTest {
         mapOf(
           "androidx.activity:activity-android" to "androidx.activity:activity",
           "androidx.activity:activity-desktop" to "androidx.activity:activity",
+          "androidx.activity:activity-jvm" to "androidx.activity:activity",
           "androidx.activity:activity-jvmstubs" to "androidx.activity:activity",
           "androidx.activity:activity-linuxx64stubs" to "androidx.activity:activity",
           "androidx.different.version:foo-desktop" to null,
