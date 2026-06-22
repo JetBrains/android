@@ -56,6 +56,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
+import org.jetbrains.kotlin.statistics.metrics.StringListMetrics
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
@@ -184,7 +185,7 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
     return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.KOTLIN_GRADLE_PERFORMANCE_EVENT
       kotlinGradlePerformanceEvent = KotlinGradlePerformance.newBuilder().apply {
-        data.getString(StringMetrics.USE_FIR)?.let { useFir = firUsage(it) }
+        data.getString(StringListMetrics.USE_FIR)?.let { useFir = firUsage(it) }
         data.getString(StringMetrics.KOTLIN_API_VERSION)?.let { kotlinApiVersion = it }
         data.getString(StringMetrics.KOTLIN_COMPILER_VERSION)?.let { kotlinCompilerVersion = it }
         data.getString(StringMetrics.KOTLIN_LANGUAGE_VERSION)?.let { kotlinLanguageVersion = it }
@@ -207,6 +208,10 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
   }
 
   private fun Map<String, Any>.getString(metric: StringMetrics): String? {
+    return this[metric.toString().lowercase(Locale.getDefault())] as? String
+  }
+
+  private fun Map<String, Any>.getString(metric: StringListMetrics): String? {
     return this[metric.toString().lowercase(Locale.getDefault())] as? String
   }
 
