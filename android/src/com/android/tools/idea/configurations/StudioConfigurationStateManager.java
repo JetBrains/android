@@ -107,7 +107,8 @@ public class StudioConfigurationStateManager implements ConfigurationStateManage
 
   @Override
   public void loadState(@NotNull ConfigurationStateManager.State state) {
-    myProjectState = state.getProjectState();
+    ConfigurationProjectState loadedProjectState = state.getProjectState();
+    myProjectState = loadedProjectState != null ? loadedProjectState : new ConfigurationProjectState();
 
     synchronized (myFileToState) {
       myFileToState.clear();
