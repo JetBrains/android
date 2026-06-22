@@ -29,14 +29,11 @@ import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
-import com.google.idea.blaze.base.execution.BazelGuard;
-import com.google.idea.blaze.base.execution.ExecutionDeniedException;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
-import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.execution.ExecutionException;
@@ -66,9 +63,7 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
   private static final Logger logger = Logger.getInstance(AbstractLocalInvoker.class);
 
   protected AbstractLocalInvoker(
-    Project project,
-    BuildSystem buildSystem,
-    Supplier<List<String>> invokeCommand) {
+      Project project, BuildSystem buildSystem, Supplier<List<String>> invokeCommand) {
     super(project, buildSystem, invokeCommand);
   }
 
@@ -86,16 +81,10 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
 
   private BuildEventStreamProvider createBuildEventStreamProvider(
       BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException {
-    try {
-      performGuardCheck(project, blazeContext);
-    } catch (ExecutionDeniedException e) {
-      throw new BuildException(e.getMessage(), e);
-    }
     File outputFile = BuildEventProtocolUtils.createTempOutputFile();
     blazeCommandBuilder.addBlazeFlags(BuildEventProtocolUtils.getBuildFlags(outputFile));
     BuildResult buildResult =
-        issueBuild(
-            blazeCommandBuilder, WorkspaceRoot.fromProject(project), blazeContext);
+        issueBuild(blazeCommandBuilder, WorkspaceRoot.fromProject(project), blazeContext);
     if (!buildResult.equals(BuildResult.SUCCESS)) {
       blazeContext.setHasError();
       IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(blazeContext);
@@ -109,53 +98,46 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
 
   @Override
   public final ProcessHandler invokeAsProcessHandler(
-    BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext, BuildSystem.BuildEventStreamConsumer<Unit> consumer)
-    throws BuildException {
-    try {
-      performGuardCheck(project, blazeContext);
-    } catch (ExecutionDeniedException e) {
-      throw new BuildException(e.getMessage(), e);
-    }
+      BlazeCommand.Builder blazeCommandBuilder,
+      BlazeContext blazeContext,
+      BuildSystem.BuildEventStreamConsumer<Unit> consumer)
+      throws BuildException {
     File outputFile = BuildEventProtocolUtils.createTempOutputFile();
     blazeCommandBuilder.addBlazeFlags(BuildEventProtocolUtils.getBuildFlags(outputFile));
     try {
       final var environment = new HashMap<String, String>();
       maybeAddAndroidHome(environment::put);
-      final var command = ImmutableList.<String>builder()
-        .addAll(getInvokeCommand())
-        .addAll(blazeCommandBuilder.build().toArgumentList())
-        .build();
-      return LocalInvokerHelper.getScopedProcessHandler(project, command, WorkspaceRoot.fromProject(project),
-                                                        environment, () -> {
-          try {
-            final BuildEventStreamProvider buildEventStreamProvider;
-            buildEventStreamProvider = getBepStream(outputFile);
+      final var command =
+          ImmutableList.<String>builder()
+              .addAll(getInvokeCommand())
+              .addAll(blazeCommandBuilder.build().toArgumentList())
+              .build();
+      return LocalInvokerHelper.getScopedProcessHandler(
+          project,
+          command,
+          WorkspaceRoot.fromProject(project),
+          environment,
+          () -> {
             try {
-              consumer.consume(buildEventStreamProvider);
+              final BuildEventStreamProvider buildEventStreamProvider;
+              buildEventStreamProvider = getBepStream(outputFile);
+              try {
+                consumer.consume(buildEventStreamProvider);
+              } finally {
+                buildEventStreamProvider.close();
+              }
+            } catch (BuildException e) {
+              throw new RuntimeException(e);
             }
-            finally {
-              buildEventStreamProvider.close();
-            }
-          }
-          catch (BuildException e) {
-            throw new RuntimeException(e);
-          }
-        });
-    }
-    catch (ExecutionException e) {
+          });
+    } catch (ExecutionException e) {
       throw new BuildException(e);
     }
   }
 
   @Override
-  public final InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
-    try {
-      performGuardCheck(project, blazeContext);
-    } catch (ExecutionDeniedException e) {
-      logger.error(e);
-      return null;
-    }
-
+  public final InputStream invokeQuery(
+      BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     BlazeCommand blazeCommand = blazeCommandBuilder.build();
     try (Closer closer = Closer.create()) {
       Path tempFile =
@@ -164,30 +146,28 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
       OutputStream out = closer.register(Files.newOutputStream(tempFile));
       WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
       boolean isUnitTestMode = ApplicationManager.getApplication().isUnitTestMode();
-      ExternalTask.Builder builder = ExternalTask.builder(workspaceRoot)
-        .args(getInvokeCommand())
-        .args(blazeCommand.toArgumentList());
+      ExternalTask.Builder builder =
+          ExternalTask.builder(workspaceRoot)
+              .args(getInvokeCommand())
+              .args(blazeCommand.toArgumentList());
       builder
-        .context(blazeContext)
-        .stdout(out)
-        .stderr(
-          LineProcessingOutputStream.of(
-            line -> {
-              // errors are expected, so limit logging to info level
-              if (isUnitTestMode) {
-                // This is essential output in bazel-in-bazel tests if they fail.
-                System.out.println(line.stripTrailing());
-              }
-              Logger.getInstance(this.getClass()).info(line.stripTrailing());
-              blazeContext.output(PrintOutput.output(line.stripTrailing()));
-              return true;
-            }))
-        .ignoreExitCode(true);
+          .context(blazeContext)
+          .stdout(out)
+          .stderr(
+              LineProcessingOutputStream.of(
+                  line -> {
+                    // errors are expected, so limit logging to info level
+                    if (isUnitTestMode) {
+                      // This is essential output in bazel-in-bazel tests if they fail.
+                      System.out.println(line.stripTrailing());
+                    }
+                    Logger.getInstance(this.getClass()).info(line.stripTrailing());
+                    blazeContext.output(PrintOutput.output(line.stripTrailing()));
+                    return true;
+                  }))
+          .ignoreExitCode(true);
       maybeAddAndroidHome(builder::environmentVar);
-      int retVal =
-          builder
-              .build()
-              .run();
+      int retVal = builder.build().run();
       SyncQueryStatsScope.fromContext(blazeContext)
           .ifPresent(stats -> stats.setBazelExitCode(retVal));
       BazelExitCodeException.throwIfFailed(
@@ -202,14 +182,8 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
 
   @Override
   @Nullable
-  public final InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
-    try {
-      performGuardCheck(project, blazeContext);
-    } catch (ExecutionDeniedException e) {
-      logger.error(e);
-      return null;
-    }
-
+  public final InputStream invokeInfo(
+      BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     BlazeCommand blazeCommand = blazeCommandBuilder.build();
     try (Closer closer = Closer.create()) {
       Path tmpFile =
@@ -219,19 +193,13 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
       OutputStream stderr =
           closer.register(
               LineProcessingOutputStream.of(new PrintOutputLineProcessor(blazeContext)));
-      ExternalTask.Builder builder = ExternalTask.builder(WorkspaceRoot.fromProject(project))
-        .args(getInvokeCommand())
-        .args(blazeCommand.toArgumentList());
-      builder
-        .context(blazeContext)
-        .stdout(out)
-        .stderr(stderr)
-        .ignoreExitCode(true);
+      ExternalTask.Builder builder =
+          ExternalTask.builder(WorkspaceRoot.fromProject(project))
+              .args(getInvokeCommand())
+              .args(blazeCommand.toArgumentList());
+      builder.context(blazeContext).stdout(out).stderr(stderr).ignoreExitCode(true);
       maybeAddAndroidHome(builder::environmentVar);
-      int exitCode =
-          builder
-              .build()
-              .run();
+      int exitCode = builder.build().run();
       BazelExitCodeException.throwIfFailed(blazeCommand, exitCode);
       return new BufferedInputStream(
           Files.newInputStream(tmpFile, StandardOpenOption.DELETE_ON_CLOSE));
@@ -242,38 +210,35 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
   }
 
   private BuildResult issueBuild(
-      BlazeCommand.Builder blazeCommandBuilder,
-      WorkspaceRoot workspaceRoot,
-      BlazeContext context) {
+      BlazeCommand.Builder blazeCommandBuilder, WorkspaceRoot workspaceRoot, BlazeContext context) {
     BlazeCommand blazeCommand = blazeCommandBuilder.build();
-    ExternalTask.Builder builder = ExternalTask.builder(workspaceRoot)
-      .args(getInvokeCommand())
-      .args(blazeCommand.toArgumentList());
+    ExternalTask.Builder builder =
+        ExternalTask.builder(workspaceRoot)
+            .args(getInvokeCommand())
+            .args(blazeCommand.toArgumentList());
     builder
-      .context(context)
-      .stdout(LineProcessingOutputStream.of(new PrintOutputLineProcessor(context)))
-      .stderr(
-        LineProcessingOutputStream.of(
-          BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context)))
-      .ignoreExitCode(true);
+        .context(context)
+        .stdout(LineProcessingOutputStream.of(new PrintOutputLineProcessor(context)))
+        .stderr(
+            LineProcessingOutputStream.of(
+                BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context)))
+        .ignoreExitCode(true);
     maybeAddAndroidHome(builder::environmentVar);
-    int retVal =
-        builder
-            .build()
-            .run();
+    int retVal = builder.build().run();
     return BuildResult.fromExitCode(retVal);
   }
 
   private void maybeAddAndroidHome(BiConsumer<String, String> addVariable) {
     if (getType().needsAndroidHome) {
-      // Bazel native toolchains by default relies on the local OS and environment. Configure the Android environment with the current
+      // Bazel native toolchains by default relies on the local OS and environment. Configure the
+      // Android environment with the current
       // Android Studio settings unless already configured in the outer environment.
       final var env = com.intellij.util.EnvironmentUtil.getEnvironmentMap();
       String androidHome = env.get("ANDROID_HOME");
       String androidNdkHome = env.get("ANDROID_NDK_HOME");
-      if ( Strings.isNullOrEmpty(androidHome)) {
+      if (Strings.isNullOrEmpty(androidHome)) {
         File androidSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
-        androidHome = androidSdkPath != null ? androidSdkPath.toString(): null;
+        androidHome = androidSdkPath != null ? androidSdkPath.toString() : null;
       }
       if (Strings.isNullOrEmpty(androidNdkHome)) {
         File androidNdkPath = IdeSdks.getInstance().getAndroidNdkPath();
@@ -288,28 +253,13 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
     }
   }
 
-  private BuildEventStreamProvider getBepStream(File outputFile)
-    throws GetArtifactsException {
+  private BuildEventStreamProvider getBepStream(File outputFile) throws GetArtifactsException {
     try {
       return BuildEventStreamProvider.fromInputStream(
           new BufferedInputStream(new FileInputStream(outputFile)));
     } catch (FileNotFoundException e) {
       logger.warn(e);
       throw new GetArtifactsException(e.getMessage());
-    }
-  }
-
-  private void performGuardCheck(Project project, BlazeContext context)
-      throws ExecutionDeniedException {
-    try {
-      BazelGuard.checkExtensionsIsExecutionAllowed(project);
-    } catch (ExecutionDeniedException e) {
-      IssueOutput.error(
-              "Can't invoke "
-                  + Blaze.buildSystemName(project)
-                  + " because the project is not trusted")
-          .submit(context);
-      throw e;
     }
   }
 }

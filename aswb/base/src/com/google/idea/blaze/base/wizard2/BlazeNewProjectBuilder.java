@@ -18,33 +18,22 @@ package com.google.idea.blaze.base.wizard2;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.logging.EventLoggingService;
-import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.ProjectViewStorageManager;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
-import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
-import com.google.idea.blaze.base.qsync.QuerySync;
-import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
-import com.intellij.openapi.project.Project;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** Contains the state to build a new project throughout the new project wizard process. */
@@ -214,15 +203,7 @@ public final class BlazeNewProjectBuilder {
     } catch (IOException e) {
       throw new BlazeProjectCommitException("Could not create project view file", e);
     }
-  }
-
-  /**
-   * Commits the project data. This method mustn't fail, because the project has already been
-   * created.
-   */
-  void commitToProject(Project project) {
-    BlazeWizardUserSettingsStorage.getInstance().commit(userSettings);
-    EventLoggingService.getInstance()
-        .log(new GenericEvent(project, getClass(), "blaze-project-created", ImmutableMap.copyOf(userSettings.values)));
+    TrustedProjects.setProjectTrusted(Path.of(projectDataDirectory), true);
+    TrustedProjects.setProjectTrusted(workspaceRoot.path(), true);
   }
 }
