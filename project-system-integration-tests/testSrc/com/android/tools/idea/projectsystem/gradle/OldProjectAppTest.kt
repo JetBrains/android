@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.asdriver.tests.AndroidProject
+import com.android.tools.asdriver.tests.AndroidStudioInstallation
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.idea.sdk.IdeSdks
@@ -25,7 +26,10 @@ import org.junit.Test
 
 class OldProjectAppTest {
 
-  @JvmField @Rule var system: AndroidSystem = AndroidSystem.standard()
+  @JvmField
+  @Rule
+  var system: AndroidSystem =
+    AndroidSystem.withCustomJdkForGradle(AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS, AndroidSystem.JdkVersion.JDK_25)
 
   @Test
   fun `Given old app configured with JDK 11 and compatible gradle version When open project with recent studio Then gradle sync succeed`() {
