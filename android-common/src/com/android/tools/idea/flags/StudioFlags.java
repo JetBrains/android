@@ -3287,6 +3287,13 @@ public final class StudioFlags {
       "Set Play Publishing server address",
       "androidpublisher.googleapis.com"
     );
+  public static final Flag<Boolean> PLAY_PUBLISHING_BUILD_MENU_ACTION =
+    new BooleanFlag(
+      PLAY_PUBLISHING,
+      "play.publishing.build.menu.action",
+      "Enable Play Publishing Build Menu Action",
+      "When enabled, the Publish submenu is shown in the Build menu."
+    );
   // endregion Play Publishing
 
   // region Android CLI

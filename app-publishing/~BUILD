@@ -11,6 +11,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/.idea/libraries:google-api-client",
     ],
@@ -25,9 +26,11 @@ iml_module(
     test_deps = [
         "//tools/adt/idea/app-publishing:intellij.android.app-publishing",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",

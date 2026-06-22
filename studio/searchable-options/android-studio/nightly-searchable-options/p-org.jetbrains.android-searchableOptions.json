@@ -1407,6 +1407,10 @@
       "path": "ActionManager"
     },
     {
+      "hit": "Publish",
+      "path": "ActionManager"
+    },
+    {
       "hit": "Pulls out style-related attributes from layout and extract them as a new style",
       "path": "ActionManager"
     },
