@@ -58,6 +58,7 @@ public abstract class JarDependencyDetailsForm implements ConfigurationDependenc
                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                      0, false));
     myNameText = new JBLabel();
+    myNameText.putClientProperty("html.disable", Boolean.TRUE);
     Font myNameTextFont = UIManager.getFont("Tree.font");
     if (myNameTextFont != null) myNameText.setFont(myNameTextFont);
     myMainPanel.add(myNameText, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
