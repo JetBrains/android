@@ -22,7 +22,8 @@ enum class JavaVersionLts(val languageLevel: LanguageLevel) {
   JDK_1_8(LanguageLevel.JDK_1_8),
   JDK_11(LanguageLevel.JDK_11),
   JDK_17(LanguageLevel.JDK_17),
-  JDK_21(LanguageLevel.JDK_21);
+  JDK_21(LanguageLevel.JDK_21),
+  JDK_25(LanguageLevel.JDK_25);
 
   companion object {
     fun isLtsVersion(javaVersion: JavaVersion): Boolean {

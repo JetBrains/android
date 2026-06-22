@@ -121,7 +121,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -277,7 +277,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -403,7 +403,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -611,7 +611,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
@@ -701,7 +701,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
@@ -792,7 +792,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]

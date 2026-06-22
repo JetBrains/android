@@ -121,7 +121,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -291,7 +291,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -417,7 +417,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -646,7 +646,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -763,7 +763,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AVFAudio | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -999,7 +999,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -1412,7 +1412,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)/Native (general)
+            Platform                      : JVM (25)/Native (general)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/src/commonMain
@@ -1420,7 +1420,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
         BUILD_TASKS
@@ -1468,7 +1468,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)/Native (general)
+            Platform                      : JVM (25)/Native (general)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:module2:commonMain]
@@ -1477,7 +1477,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -1527,7 +1527,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | ios_arm64 [=]
         LIBRARY                       : Kotlin/Native: AVFAudio | ios_arm64 [=]
@@ -1758,7 +1758,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | ios_arm64 [=]
             Scope                         : Test
@@ -2185,7 +2185,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AVFAudio | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2412,7 +2412,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | ios_simulator_arm64 [=]
         LIBRARY                       : Kotlin/Native: AVFAudio | ios_simulator_arm64 [=]
@@ -2643,7 +2643,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | ios_simulator_arm64 [=]
             Scope                         : Test
@@ -3073,7 +3073,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -3489,7 +3489,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | ios_x64 [=]
         LIBRARY                       : Kotlin/Native: AVFAudio | ios_x64 [=]
@@ -3720,7 +3720,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | ios_x64 [=]
             Scope                         : Test
@@ -4158,7 +4158,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -4262,7 +4262,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Kotlin/Native: AVFAudio | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4497,7 +4497,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Kotlin/Native: ARKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -4929,7 +4929,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5

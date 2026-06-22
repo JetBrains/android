@@ -33,7 +33,7 @@ class ProjectJdkTableUtilsTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun `test Given ProjectTableJdk containing multiple entries When finding an existing and valid one Then expected entry is returned`() {
+  fun `test Given ProjectTableJdk containing multiple entries When finding an existing and valid one Then JDK21 entry is returned`() {
     val jdk21 = IdeSdks.getInstance().getOrCreateJdk(JdkConstants.JDK_21_PATH.asPath())!!
     runWriteActionAndWait {
       ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk9())
@@ -45,6 +45,21 @@ class ProjectJdkTableUtilsTest : LightPlatformTestCase() {
       assertEquals(jdk21.name, it?.name)
       assertEquals(jdk21.homePath, it?.homePath)
       assertEquals(jdk21.versionString, it?.versionString)
+    }
+  }
+
+  fun `test Given ProjectTableJdk containing multiple entries When finding an existing and valid one Then JDK25 entry is returned`() {
+    val jdk25 = IdeSdks.getInstance().getOrCreateJdk(JdkConstants.JDK_25_PATH.asPath())!!
+    runWriteActionAndWait {
+      ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk9())
+      ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk17())
+    }
+
+    ProjectJdkTableUtils.findProjectTableJdkWithVersion(25).also {
+      assertNotNull(it)
+      assertEquals(jdk25.name, it?.name)
+      assertEquals(jdk25.homePath, it?.homePath)
+      assertEquals(jdk25.versionString, it?.versionString)
     }
   }
 

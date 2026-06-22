@@ -2212,7 +2212,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/common/build/classes/kotlin/jvm/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:common
                     noReflect                     : true
                     noStdlib                      : true
@@ -2294,7 +2294,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/common/build/classes/kotlin/jvm/test
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:common_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -2367,7 +2367,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/desktop/build/classes/kotlin/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:desktop
                     noReflect                     : true
                     noStdlib                      : true
@@ -2392,7 +2392,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/desktop/build/classes/kotlin/test
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:desktop_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -3438,7 +3438,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:feature-a_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -3457,7 +3457,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:feature-a_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -3477,7 +3477,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:feature-a_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -3960,7 +3960,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:feature-b_debug
                     noReflect                     : true
                     noStdlib                      : true
@@ -4034,7 +4034,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:feature-b_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -4110,7 +4110,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:feature-b_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -4192,7 +4192,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:javaLibrary
                     noReflect                     : true
                     noStdlib                      : true
@@ -4217,7 +4217,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/test
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:javaLibrary_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -4242,7 +4242,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/testEnv
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:javaLibrary_testEnv
                     noReflect                     : true
                     noStdlib                      : true
@@ -4370,7 +4370,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies.kmp-java:sample
                     noReflect                     : true
                     noStdlib                      : true
@@ -4452,7 +4452,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies.kmp-java:sample_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -5258,7 +5258,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -5277,7 +5277,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -5297,7 +5297,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true

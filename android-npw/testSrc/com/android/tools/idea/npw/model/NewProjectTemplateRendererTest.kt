@@ -115,7 +115,7 @@ class NewProjectTemplateRendererTest {
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(true)
-    assertGradleDaemonJvmCriteria(21)
+    assertGradleDaemonJvmCriteria(25)
   }
 
   @Test
@@ -124,7 +124,7 @@ class NewProjectTemplateRendererTest {
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(true)
-    assertGradleDaemonJvmCriteria(21)
+    assertGradleDaemonJvmCriteria(25)
   }
 
   @Test

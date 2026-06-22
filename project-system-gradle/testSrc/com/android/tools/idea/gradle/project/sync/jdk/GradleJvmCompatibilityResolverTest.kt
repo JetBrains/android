@@ -37,7 +37,7 @@ class GradleJvmCompatibilityResolverTest : LightPlatformTestCase() {
       assertEquals(expectedGradleVersion, gradleVersion)
       assertEquals(JavaVersion.compose(17), minimumSupportedJavaVersion)
       assertEquals(JavaVersion.compose(25), maximumSupportedJavaVersion)
-      assertEquals(JavaVersion.compose(21), recommendedJavaVersion)
+      assertEquals(JavaVersion.compose(25), recommendedJavaVersion)
     }
   }
 }
