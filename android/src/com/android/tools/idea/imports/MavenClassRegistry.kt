@@ -33,7 +33,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.name.FqName
 
-private val KOTLIN_ARTIFACT_PLATFORM_SUFFIXES = Regex("-(android|desktop|jvmstubs|linuxx64stubs)$", RegexOption.IGNORE_CASE)
+private val KOTLIN_ARTIFACT_PLATFORM_SUFFIXES = Regex("-(android|desktop|jvm|jvmstubs|linuxx64stubs)$", RegexOption.IGNORE_CASE)
 
 /**
  * Registry contains [lookup] extracted by reading indices from [GMavenIndexRepository].
