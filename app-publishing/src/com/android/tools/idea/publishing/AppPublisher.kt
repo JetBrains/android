@@ -19,10 +19,18 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 interface AppPublisher {
-  // Publisher ID.
+  /** The unique identifier of the app publisher. */
   val id: String
 
-  /** Determines if the publisher is available. */
+  /** The user-facing display name of this publisher. */
+  val displayName: String
+
+  /**
+   * Determines if the publisher is available.
+   *
+   * This method must remain fast, non-blocking, and free of heavy computations since it is queried frequently by the action system to
+   * determine menu visibility.
+   */
   fun isAvailable(): Boolean
 
   /**

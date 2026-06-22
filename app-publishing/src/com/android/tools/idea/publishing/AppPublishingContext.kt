@@ -16,7 +16,7 @@
 package com.android.tools.idea.publishing
 
 data class AppPublishingContext(
-  val artifactPath: String,
+  val artifactPath: String?,
   // Android Developer Verification status of the package name.
   val isRegistered: Boolean?,
   val publishingSource: AppPublishingSource,

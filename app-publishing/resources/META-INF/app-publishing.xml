@@ -17,4 +17,10 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.publishing.appPublisher" interface="com.android.tools.idea.publishing.AppPublisher" />
   </extensionPoints>
+
+  <actions>
+    <group id="Android.PublishActionGroup" class="com.android.tools.idea.publishing.PublishActionGroup" popup="true" text="Publish">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="Android.GenerateSignedApk"/>
+    </group>
+  </actions>
 </idea-plugin>

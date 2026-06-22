@@ -27,6 +27,8 @@ class PlayAppPublisher : AppPublisher {
 
   override val id: String = PLAY_PUBLISHER_ID
 
+  override val displayName: String = PLAY_PUBLISHER_ID
+
   override fun isAvailable(): Boolean = StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.get()
 
   override fun publishApp(project: Project, context: AppPublishingContext) {
