@@ -131,6 +131,7 @@ class ModuleDependenciesForm {
                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                   false));
     myModulesLabel = new JBLabel();
+    myModulesLabel.putClientProperty("html.disable", Boolean.TRUE);
     myMainPanel.add(myModulesLabel, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
