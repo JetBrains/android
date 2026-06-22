@@ -48,8 +48,15 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     PsModule selectedModule = myBasePerspective.getSelectedModule();
-    presentation.setIcon(selectedModule != null ? selectedModule.getIcon() : ANDROID_MODULE);
-    presentation.setText(selectedModule != null ? selectedModule.getName() : null);
+    if (selectedModule == null) {
+      presentation.setIcon(ANDROID_MODULE);
+      presentation.setText((String) null);
+    } else {
+      presentation.setIcon(selectedModule.getIcon());
+      String name = selectedModule.getName();
+      if (name.startsWith("<")) name = "\u200B" + name; // defeat BasicHTML with the power of Zero-width Space
+      presentation.setText(name);
+    }
   }
 
   @NotNull
