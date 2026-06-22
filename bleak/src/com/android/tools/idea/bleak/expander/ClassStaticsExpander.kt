@@ -63,14 +63,16 @@ class ClassStaticsExpander : Expander() {
   }
 
   companion object {
-    private val Unsafe_shouldBeInitialized = Unsafe::class.java.getDeclaredMethod("shouldBeInitialized", Class::class.java)
-    private val unsafe: Unsafe
+    private val Unsafe_shouldBeInitialized: java.lang.reflect.Method
+    private val unsafe: Any
 
     init {
+      val clazz = Class.forName("jdk.internal.misc.Unsafe")
+      Unsafe_shouldBeInitialized = clazz.getDeclaredMethod("shouldBeInitialized", Class::class.java)
       Unsafe_shouldBeInitialized.isAccessible = true
-      val theUnsafeField = Unsafe::class.java.getDeclaredField("theUnsafe")
+      val theUnsafeField = clazz.getDeclaredField("theUnsafe")
       theUnsafeField.isAccessible = true
-      unsafe = theUnsafeField.get(null) as Unsafe
+      unsafe = theUnsafeField.get(null)!!
     }
 
     private fun Class<*>.isInitialized(): Boolean {
