@@ -34,8 +34,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.google.idea.bazel.cpp.CompilerVersionChecker"
                         serviceImplementation="com.google.idea.bazel.cpp.CompilerVersionCheckerImpl"/>
-    <applicationService serviceInterface="com.google.idea.bazel.cpp.CompilerWrapperProvider"
-                        serviceImplementation="com.google.idea.bazel.cpp.CompilerWrapperProviderImpl"/>
   </extensions>
   <extensions defaultExtensionNs="com.google.idea.blaze.qsync">
     <QuerySyncListenerProvider implementation="com.google.idea.bazel.cpp.qsync.CcProjectModelUpdater$Provider" />
