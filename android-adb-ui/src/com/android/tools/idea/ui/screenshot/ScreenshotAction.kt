@@ -33,6 +33,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages.showErrorDialog
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.ide.progress.withModalProgress
 import com.intellij.util.ExceptionUtil.getMessage
@@ -109,7 +110,7 @@ class ScreenshotAction :
             throw e
           }
           val cause = getMessage(e) ?: e.javaClass.name
-          val message = message("screenshot.error.generic", cause)
+          val message = message("screenshot.error.generic", escapeXmlEntities(cause))
           thisLogger().error(message, e)
           ApplicationManager.getApplication().invokeLater { showErrorDialog(project, message, message("screenshot.action.title")) }
         }
