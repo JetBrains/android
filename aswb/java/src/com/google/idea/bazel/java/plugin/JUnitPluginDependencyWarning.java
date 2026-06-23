@@ -82,8 +82,8 @@ public class JUnitPluginDependencyWarning implements StartupActivity, DumbAware 
             buildSystem + " Plugin Error",
             buildSystem + " plugin dependencies are missing",
             message,
-            NotificationType.ERROR,
-            listener);
+            NotificationType.ERROR);
+    notification.setListener(listener);
     notification.setImportant(true);
 
     // Adds an error item to the 'Event Log' tab.

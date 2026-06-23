@@ -37,7 +37,6 @@ import com.intellij.execution.configurations.coverage.CoverageEnabledConfigurati
 import com.intellij.execution.testframework.AbstractTestProxy;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -58,7 +57,7 @@ import javax.annotation.Nullable;
 public class BlazeCoverageEngine extends CoverageEngine {
 
   public static BlazeCoverageEngine getInstance() {
-    return Extensions.findExtension(EP_NAME, BlazeCoverageEngine.class);
+    return EP_NAME.findExtension(BlazeCoverageEngine.class);
   }
 
   @Override

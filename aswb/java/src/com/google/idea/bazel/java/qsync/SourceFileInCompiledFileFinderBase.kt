@@ -16,6 +16,7 @@
 package com.google.idea.bazel.java.qsync
 
 import com.intellij.openapi.vfs.JarFileSystem
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -26,8 +27,8 @@ import java.nio.file.Path
 abstract class SourceFileInCompiledFileFinderBase(clsFile: PsiFile) : SourceFileFinderBase(clsFile) {
 
   override fun convertToVirtualFile(path: Path): VirtualFile? {
-    val localFile = JarFileSystem.getInstance().findLocalVirtualFileByPath(path.toString()) ?: return null
-    return JarFileSystem.getInstance().getJarRootForLocalFile(localFile) ?: localFile
+    val localFile = LocalFileSystem.getInstance().findFileByNioFile(path) ?: return null
+    return JarFileSystem.getInstance().getJarRootForLocalFile(localFile)
   }
 
   override fun getMatchingPsiFile(vf: VirtualFile): Set<PsiFile> {
