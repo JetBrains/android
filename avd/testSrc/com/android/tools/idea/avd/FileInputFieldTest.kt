@@ -43,8 +43,8 @@ import com.intellij.testFramework.LightVirtualFile
 import java.awt.Component
 import java.nio.file.Path
 import javax.swing.JComponent
-import org.jetbrains.jewel.foundation.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.foundation.LocalComponent
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain

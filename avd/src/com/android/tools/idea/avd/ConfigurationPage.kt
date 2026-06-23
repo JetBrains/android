@@ -67,8 +67,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.jewel.foundation.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.foundation.LocalComponent
 
 private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
   return image.androidVersion.apiLevel >= SdkVersionInfo.LOWEST_ACTIVE_API && DeviceSystemImageMatcher.matches(device.deviceProfile, image)
