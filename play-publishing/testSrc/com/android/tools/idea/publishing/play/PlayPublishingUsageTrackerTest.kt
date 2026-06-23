@@ -523,7 +523,7 @@ class PlayPublishingUsageTrackerTest {
   ): TestComposeWizard {
     val wizard = TestComposeWizard {
       getOrCreateState { state }
-      ChooseBundlePage { appMetadata() }
+      ChooseBundlePage(shouldExtractMetadata = { true }) { appMetadata() }
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard

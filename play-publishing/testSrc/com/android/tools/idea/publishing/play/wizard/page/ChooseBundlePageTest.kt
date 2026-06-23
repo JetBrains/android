@@ -32,15 +32,21 @@ import com.android.tools.idea.publishing.play.client.FakePlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
+import com.google.common.truth.Truth.assertThat
 // AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -189,6 +195,7 @@ class ChooseBundlePageTest {
     // Test version code
     composeTestRule.onNodeWithTag("VersionCodeRow").assert(hasAnyChild(hasText("Version code")) and hasAnyChild(hasText("—")))
 
+    composeTestRule.onNodeWithText("Failed to parse metadata", substring = true).assertIsDisplayed()
     composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
     composeTestRule.onNodeWithText("Previous").assertIsNotEnabled()
   }
@@ -206,7 +213,7 @@ class ChooseBundlePageTest {
 
     wizard.performAction(wizard.nextAction)
     // Page stack size goes from 1 to 2
-    assert(wizard.pageStackSize() == 2)
+    assertThat(wizard.pageStackSize()).isEqualTo(2)
     composeTestRule.onNodeWithText("Create release").assertIsDisplayed()
   }
 
@@ -222,7 +229,7 @@ class ChooseBundlePageTest {
     composeTestRule.onNodeWithText("Next").assertIsEnabled()
 
     wizard.performAction(wizard.nextAction)
-    assert(wizard.pageStackSize() == 2)
+    assertThat(wizard.pageStackSize()).isEqualTo(2)
     composeTestRule.onNodeWithText("Create new app").assertIsDisplayed()
   }
 
@@ -249,13 +256,111 @@ class ChooseBundlePageTest {
     composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
   }
 
+  @Test
+  fun testAppUnsignedShowsErrorBanner() {
+    createWizard { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3", isSigned = false) }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("App is unsigned.", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+  }
+
+  @Test
+  fun testAppDebugBuildShowsErrorBanner() {
+    createWizard { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3", isDebug = true, isSigned = true) }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Build type is incorrect.", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+  }
+
+  @Test
+  fun testShouldExtractMetadataReturnsFalse() {
+    createWizard(shouldExtractMetadata = { false }) { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithTag("PackageNameRow").assert(hasAnyChild(hasText("Package name")) and hasAnyChild(hasText("—")))
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+  }
+
+  @Test
+  fun testInvalidPathThrowsException() {
+    val state = PlayPublishingWizardState(bundlePath = "\u0000")
+    createWizard(state) { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithTag("PackageNameRow").assert(hasAnyChild(hasText("Package name")) and hasAnyChild(hasText("—")))
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+  }
+
+  @Test
+  fun testDefaultBundlePathFromProject() {
+    val projectDir = projectRule.project.guessProjectDir()?.toNioPathOrNull()
+    if (projectDir != null) {
+      Files.createDirectories(projectDir.resolve("app"))
+    }
+    val state = PlayPublishingWizardState(bundlePath = null)
+    createWizard(state) { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    val expectedPath =
+      projectRule.project.guessProjectDir()?.toNioPathOrNull()?.resolve("app")?.toAbsolutePath()?.toString()
+        ?: projectRule.project.guessProjectDir()?.path
+        ?: ""
+    composeTestRule.onNodeWithText(expectedPath).assertIsDisplayed()
+    assertThat(state.bundlePath).isEqualTo(expectedPath)
+  }
+
+  @Test
+  fun testDefaultBundlePathFromProject_noAppDirectory() {
+    projectRule.project.guessProjectDir()?.toNioPathOrNull()?.resolve("app")?.toFile()?.deleteRecursively()
+    val state = PlayPublishingWizardState(bundlePath = null)
+    createWizard(state) { AppMetadata("Fake App", "com.fake.app", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    val expectedPath =
+      projectRule.project.guessProjectDir()?.toNioPathOrNull()?.toAbsolutePath()?.toString()
+        ?: projectRule.project.guessProjectDir()?.path
+        ?: ""
+    composeTestRule.onNodeWithText(expectedPath).assertIsDisplayed()
+    assertThat(state.bundlePath).isEqualTo(expectedPath)
+  }
+
+  @Test
+  fun testShouldExtractMetadataConditions() = runBlocking {
+    val tempDir = Files.createTempDirectory("test_bundle")
+    try {
+      val nonExistentFile = tempDir.resolve("non_existent.aab")
+      assertThat(shouldExtractMetadata(nonExistentFile)).isFalse()
+
+      val directory = tempDir.resolve("some_dir.aab")
+      Files.createDirectory(directory)
+      assertThat(shouldExtractMetadata(directory)).isFalse()
+
+      val wrongExtension = tempDir.resolve("app.apk")
+      Files.createFile(wrongExtension)
+      assertThat(shouldExtractMetadata(wrongExtension)).isFalse()
+
+      val validBundle = tempDir.resolve("app.aab")
+      Files.createFile(validBundle)
+      assertThat(shouldExtractMetadata(validBundle)).isTrue()
+
+      val validBundleUppercase = tempDir.resolve("app2.AAB")
+      Files.createFile(validBundleUppercase)
+      assertThat(shouldExtractMetadata(validBundleUppercase)).isTrue()
+    } finally {
+      tempDir.toFile().deleteRecursively()
+    }
+  }
+
   private fun createWizard(
     state: PlayPublishingWizardState = PlayPublishingWizardState(bundlePath = "/some/fake/path"),
+    shouldExtractMetadata: suspend (Path) -> Boolean = { true },
     appMetadata: () -> AppMetadata,
   ): TestComposeWizard {
     val wizard = TestComposeWizard {
       getOrCreateState { state }
-      ChooseBundlePage { appMetadata() }
+      ChooseBundlePage(shouldExtractMetadata = shouldExtractMetadata) { appMetadata() }
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard

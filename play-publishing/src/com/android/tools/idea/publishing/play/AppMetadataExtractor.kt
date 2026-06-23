@@ -26,12 +26,22 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.extension
 import kotlin.io.path.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.w3c.dom.Element
 
-data class AppMetadata(val appName: String?, val packageName: String?, val versionCode: String?, val versionName: String?)
+data class AppMetadata(
+  val appName: String?,
+  val packageName: String?,
+  val versionCode: String?,
+  val versionName: String?,
+  val isDebug: Boolean = false,
+  val isSigned: Boolean = true,
+)
+
+private val SIGNING_EXTENSIONS = setOf("rsa", "dsa", "ec")
 
 suspend fun extractAppMetadata(path: Path): AppMetadata =
   withContext(Dispatchers.IO) {
@@ -53,9 +63,23 @@ suspend fun extractAppMetadata(path: Path): AppMetadata =
         packageName = manifestData.getPackage(),
         versionCode = manifestData.versionCode?.toString(),
         versionName = manifestData.versionName,
+        // If debuggable is missing, it implies the build was meant for release.
+        isDebug = manifestData.debuggable ?: false,
+        isSigned = isSigned(archive),
       )
     }
   }
+
+internal fun isSigned(archive: Archive): Boolean {
+  val metaInf = archive.contentRoot.resolve("META-INF")
+  if (Files.notExists(metaInf) || !Files.isDirectory(metaInf)) {
+    return false
+  }
+
+  return Files.list(metaInf).use { entries ->
+    entries.anyMatch { Files.isRegularFile(it) && it.extension.lowercase() in SIGNING_EXTENSIONS }
+  }
+}
 
 private fun extractAndDecodeManifest(archive: Archive): String {
   val manifestPath = archive.contentRoot.resolve("base/manifest/AndroidManifest.xml")
