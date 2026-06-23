@@ -49,6 +49,7 @@ class AndroidStudioProjectActivity : ProjectActivity {
 
     suspend fun performStartupActivity() {
       runInitialization {
+        project.service<AndroidIdeSdksInitializationStartupActivity.StartupService>().awaitInitialization()
         // Disable all settings sections that we don't want to be present in Android Studio.
         // See AndroidStudioPreferences for a full list.
         AndroidStudioPreferences.unregisterUnnecessaryExtensions(project)
