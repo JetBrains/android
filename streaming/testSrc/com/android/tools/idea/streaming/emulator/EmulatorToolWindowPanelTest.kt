@@ -708,6 +708,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryDisplayView ?: fail()
+
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
 
     // Check appearance.

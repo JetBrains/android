@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager
+package com.android.tools.idea.avd
 
 import com.android.sdklib.internal.avd.AvdManager.Companion.ENVIRONMENTS_DIR
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -24,17 +24,23 @@ import com.android.utils.FileUtils
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 
+@Suppress("LightServiceMigrationCode")
 class EnvironmentsUpdater : Disposable {
 
-  private val destinationUpToDate: Deferred<Unit>
+  private val environments: Deferred<List<EnvironmentImage>>
   private val sourceDir: Path
   private val destinationDir: Path
+
+  @Volatile
+  var environmentsList: List<EnvironmentImage>? = null
+    private set
 
   init {
     sourceDir =
@@ -46,16 +52,26 @@ class EnvironmentsUpdater : Disposable {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     destinationDir = sdkHandler.location?.resolve(ENVIRONMENTS_DIR) ?: throw RuntimeException("Unable to get SDK location")
 
-    destinationUpToDate = createCoroutineScope().async(Dispatchers.IO) { updateDirectory(sourceDir, destinationDir) }
+    environments =
+      createCoroutineScope().async(Dispatchers.IO) {
+        try {
+          updateDirectory(sourceDir, destinationDir)
+        } catch (e: Exception) {
+          thisLogger().warn("Error updating environment images in $destinationDir", e)
+        }
+        try {
+          val list = EnvironmentImageScanner.scanEnvironments(destinationDir)
+          environmentsList = list
+          list
+        } catch (e: Exception) {
+          thisLogger().warn("Error loading environment images from $destinationDir", e)
+          emptyList()
+        }
+      }
   }
 
-  /**
-   * Waits until the image or video file is updated in the "environments" subdirectory of Android SDK. Returns an absolute path of the
-   * updated file.
-   */
-  suspend fun getUpdatedFile(fileName: String): Path {
-    destinationUpToDate.await()
-    return destinationDir.resolve(fileName)
+  suspend fun getEnvironments(): List<EnvironmentImage> {
+    return environments.await()
   }
 
   override fun dispose() {}

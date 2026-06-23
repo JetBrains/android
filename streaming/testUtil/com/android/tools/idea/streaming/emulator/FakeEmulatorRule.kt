@@ -124,6 +124,11 @@ class FakeEmulatorRule : TestRule {
       return super.getAvds(true) // Always refresh in tests.
     }
 
+    override fun findAvdWithFolder(avdFolder: Path): AvdInfo? {
+      super.getAvds(true) // Refresh AVDs in tests.
+      return super.findAvdWithFolder(avdFolder)
+    }
+
     override suspend fun startAvd(project: Project?, avd: AvdInfo, forceLaunchInToolWindow: Boolean, bootMode: BootMode): IDevice {
       val emulator =
         emulators.firstOrNull { it.avdFolder == avd.dataFolderPath } ?: throw IllegalArgumentException("Unknown AVD: ${avd.id}")

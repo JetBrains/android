@@ -18,7 +18,7 @@
     <deviceProvisioner implementation="com.android.tools.idea.avd.LocalEmulatorProvisionerFactory"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.avdmanager.EnvironmentsUpdater"/>
+    <applicationService serviceImplementation="com.android.tools.idea.avd.EnvironmentsUpdater"/>
     <notificationGroup id="Glasses Pairing" displayType="BALLOON" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.avd.glassespairing.GlassesPairingManagerStartupActivity"/>
   </extensions>

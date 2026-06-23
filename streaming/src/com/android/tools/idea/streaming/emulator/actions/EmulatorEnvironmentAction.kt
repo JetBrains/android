@@ -19,7 +19,6 @@ import com.android.emulator.control.Environment
 import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.avdmanager.EnvironmentsUpdater
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
@@ -78,12 +77,6 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     override suspend fun prepareEnvironment(project: Project?): Environment = Environment.newBuilder().build()
   }
 
-  class IndoorStudyDarkImage : BuiltInImage("indoor-study-dark.jpg")
-
-  class OutdoorCityBrightImage : BuiltInImage("outdoor-city-bright.jpg")
-
-  class OutdoorNatureBrightImage : BuiltInImage("outdoor-nature-bright.jpg")
-
   open class Custom : EmulatorEnvironmentAction() {
 
     private var filePath: String? = null
@@ -136,11 +129,15 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     }
   }
 
-  abstract class BuiltInImage(val environmentFileName: String) : EmulatorEnvironmentAction() {
-    override suspend fun prepareEnvironment(project: Project?): Environment {
-      val imageFile = EnvironmentsUpdater.getInstance().getUpdatedFile(environmentFileName)
-      return Environment.newBuilder().putEnvironment("scene.mode", "imagefile:${imageFile.toSystemIndependentString()}").build()
+  class BuiltInImage(val environmentPath: Path, title: String) : EmulatorEnvironmentAction() {
+
+    init {
+      templatePresentation.text = title
+      templatePresentation.description = "Select $title environment"
     }
+
+    override suspend fun prepareEnvironment(project: Project?): Environment =
+      Environment.newBuilder().putEnvironment("scene.mode", "imagefile:${environmentPath.toSystemIndependentString()}").build()
   }
 
   companion object {

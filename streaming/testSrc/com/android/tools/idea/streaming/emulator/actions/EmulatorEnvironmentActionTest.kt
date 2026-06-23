@@ -20,7 +20,8 @@ import com.android.emulator.control.CameraList
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.createTestEvent
 import com.android.tools.adtui.actions.executeAction
-import com.android.tools.idea.avdmanager.EnvironmentsUpdater
+import com.android.tools.idea.avd.EnvironmentImage
+import com.android.tools.idea.avd.EnvironmentsUpdater
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
@@ -52,8 +53,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -99,20 +98,29 @@ class EmulatorEnvironmentActionTest {
   @Test
   fun testBuiltInEnvironments() {
     val environmentsUpdater = mock<EnvironmentsUpdater>()
-    runBlocking {
-      doAnswer { Path.of("/Sdk/environments/${it.getArgument<String>(0)}") }.whenever(environmentsUpdater).getUpdatedFile(any())
-    }
+    val list =
+      listOf(
+        EnvironmentImage(Path.of("/Sdk/environments/outdoor-nature-bright.jpg"), "Outdoor Nature Bright", false),
+        EnvironmentImage(Path.of("/Sdk/environments/indoor-study-dark.jpg"), "Indoor Study Dark", true),
+        EnvironmentImage(Path.of("/Sdk/environments/outdoor-city-bright.jpg"), "Outdoor City Bright", false),
+      )
+    runBlocking { whenever(environmentsUpdater.getEnvironments()).thenReturn(list) }
     ApplicationManager.getApplication().replaceService(EnvironmentsUpdater::class.java, environmentsUpdater, testRootDisposable)
+
+    val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
+    val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+    group.update(event)
+    val children = group.getChildren(event)
+
     val environments = listOf("indoor-study-dark", "outdoor-city-bright", "outdoor-nature-bright")
-    for (environment in environments) {
-      val actionId = "android.emulator.environment.${environment.replace('-', '.')}"
-      val action = ActionManager.getInstance().getAction(actionId)
+    for (i in environments.indices) {
+      val action = children[i]
       executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
       val call = emulator.getNextGrpcCall(2.seconds)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
       assertThat(shortDebugString(call.request))
-        .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:/Sdk/environments/$environment.jpg\" }")
+        .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:/Sdk/environments/${environments[i]}.jpg\" }")
     }
   }
 
@@ -272,5 +280,19 @@ class EmulatorEnvironmentActionTest {
 
     camerasGroup.update(event)
     assertThat(event.presentation.isVisible).isFalse()
+  }
+
+  @Test
+  fun testBuiltInImageActionPresentationText() {
+    val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
+    val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+    group.update(event)
+    val children = group.getChildren(event)
+
+    val indoorAction = children.firstOrNull() as? EmulatorEnvironmentAction.BuiltInImage
+    assertThat(indoorAction).isNotNull()
+    assertThat(indoorAction!!.environmentPath.fileName.toString()).isEqualTo("indoor-study-dark.jpg")
+    assertThat(indoorAction.templatePresentation.text).isEqualTo("Indoor Study Dark")
+    assertThat(indoorAction.templatePresentation.description).isEqualTo("Select Indoor Study Dark environment")
   }
 }

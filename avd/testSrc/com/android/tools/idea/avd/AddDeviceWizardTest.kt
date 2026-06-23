@@ -44,7 +44,6 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
-import com.android.tools.idea.avdmanager.EnvironmentsUpdater
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.AndroidSdksImpl
