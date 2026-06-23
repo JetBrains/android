@@ -118,7 +118,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
       val project =
         projectRef.get()
           ?: run {
-            Logger.getInstance(StudioRenderSecurityManager::class.java).warn("getNavGraphResolver for disposed project")
+            Logger.getInstance(StudioEnvironmentContext::class.java).warn("getNavGraphResolver for disposed project")
             return@NavGraphResolver null
           }
       getStartDestLayoutId(navGraph, project, resourceResolver)
