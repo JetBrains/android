@@ -50,6 +50,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -152,10 +153,13 @@ final class ConsoleView implements Disposable {
 
   @Nullable
   private RangeHighlighter findRangeForHyperlink(HyperlinkInfo link) {
-    Map<RangeHighlighter, HyperlinkInfo> links = consoleView.getHyperlinks().getHyperlinks();
-    for (Map.Entry<RangeHighlighter, HyperlinkInfo> entry : links.entrySet()) {
-      if (Objects.equals(link, entry.getValue())) {
-        return entry.getKey();
+    Editor editor = consoleView.getEditor();
+    if (editor == null) {
+      return null;
+    }
+    for (RangeHighlighter highlighter : editor.getMarkupModel().getAllHighlighters()) {
+      if (Objects.equals(link, EditorHyperlinkSupport.getHyperlinkInfo(highlighter))) {
+        return highlighter;
       }
     }
     return null;
