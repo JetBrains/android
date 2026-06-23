@@ -2505,7 +2505,6 @@
 +++Android Studio Nightly.app/Contents/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 +++Android Studio Nightly.app/Contents/plugins/android/resources/app-inspection/network-inspector.jar
 +++Android Studio Nightly.app/Contents/plugins/android/resources/app-inspection/sqlite-inspection.jar
-+++Android Studio Nightly.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/default-background-1.png
 +++Android Studio Nightly.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/indoor-study-dark.jpg
 +++Android Studio Nightly.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/outdoor-city-bright.jpg
 +++Android Studio Nightly.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/outdoor-nature-bright.jpg
@@ -6411,7 +6410,6 @@
 ---Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 ---Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/network-inspector.jar
 ---Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/sqlite-inspection.jar
----Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/default-background-1.png
 ---Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/indoor-study-dark.jpg
 ---Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/outdoor-city-bright.jpg
 ---Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/ai_glasses_device/outdoor-nature-bright.jpg
