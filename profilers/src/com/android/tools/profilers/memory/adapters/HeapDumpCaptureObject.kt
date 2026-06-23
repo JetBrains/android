@@ -81,7 +81,8 @@ open class HeapDumpCaptureObject(
 
   @get:VisibleForTesting val classDb = ClassDb()
 
-  @Volatile private var hasLoaded = false
+  @Volatile private var hasInstancesLoaded = false
+  @Volatile private var isFullyLoaded = false
 
   @Volatile private var isLoadingError = false
   var hasNativeAllocations = false
@@ -116,12 +117,12 @@ open class HeapDumpCaptureObject(
 
   override fun saveToFile(outputStream: OutputStream) = saveHeapDumpToFile(client, _session, heapDumpInfo, outputStream, featureTracker)
 
-  override fun getHeapSets() = if (hasLoaded) _heapSets.values else emptyList()
+  override fun getHeapSets() = if (hasInstancesLoaded) _heapSets.values else emptyList()
 
   override fun getHeapSet(heapId: Int) = _heapSets.getOrDefault(heapId, null)
 
   override fun getInstances(): Stream<InstanceObject> =
-    if (hasLoaded) heapSets.find { it is AllHeapSet }!!.instancesStream else Stream.empty()
+    if (hasInstancesLoaded) heapSets.find { it is AllHeapSet }!!.instancesStream else Stream.empty()
 
   override fun getStartTimeNs() = heapDumpInfo.startTime
 
@@ -158,7 +159,6 @@ open class HeapDumpCaptureObject(
     val snapshot = Snapshot.createSnapshot(buffer!!, proguardMap ?: ProguardMap(), listOf(nativeRegistryPostProcessor))
     snapshot.computeRetainedSizes()
     hasNativeAllocations = nativeRegistryPostProcessor.hasNativeAllocations
-    hasLoaded = true
     val heapSetMappings = snapshot.heaps.associateWith { HeapSet(this, StringUtil.escapeXmlEntities(it.name), it.id) }
     val addInstanceToRightHeap: (HeapSet, Long, InstanceObject) -> Unit =
       AllHeapSet(this, heapSetMappings.values.toTypedArray()).let { superHeap ->
@@ -195,6 +195,7 @@ open class HeapDumpCaptureObject(
         _heapSets.put(heap.id, heapSet)
       }
     }
+    hasInstancesLoaded = true
     // Run analysis after all instances are loaded into instanceIndex
     bitmapDuplicationAnalyzer.analyze(allInstances)
     bitmapDuplicationFilter = BitmapDuplicationInstanceFilter(bitmapDuplicationAnalyzer.getDuplicateInstances())
@@ -206,6 +207,7 @@ open class HeapDumpCaptureObject(
         activityFragmentLeakFilter,
         bitmapDuplicationFilter,
       )
+    isFullyLoaded = true
   }
 
   private fun addInstance(heapSet: HeapSet, id: Long, instObj: InstanceObject) {
@@ -214,7 +216,7 @@ open class HeapDumpCaptureObject(
     heapSet.addDeltaInstanceObject(instObj)
   }
 
-  override fun isDoneLoading() = hasLoaded || isLoadingError
+  override fun isDoneLoading() = isFullyLoaded || isLoadingError
 
   override fun isError() = isLoadingError
 
@@ -237,7 +239,7 @@ open class HeapDumpCaptureObject(
       )
     else listOf(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE)
 
-  open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex.get(instance.id) else null
+  open fun findInstanceObject(instance: Instance) = if (hasInstancesLoaded) instanceIndex.get(instance.id) else null
 
   fun createClassObjectInstance(classObj: ClassObj, isTransient: Boolean = false): InstanceObject {
     // The ClassEntry associated with this InstanceObject should be for the class it represents
