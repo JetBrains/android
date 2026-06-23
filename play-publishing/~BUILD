@@ -28,6 +28,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
+        "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",

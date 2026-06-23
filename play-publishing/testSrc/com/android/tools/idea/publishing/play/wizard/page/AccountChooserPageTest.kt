@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.publishing.play.wizard.page
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.flags.junit.FlagRule
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 // AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
@@ -30,19 +36,23 @@ import com.google.common.truth.Truth.assertThat
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
 // import com.google.gct.login2.fstLoginFeature
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
+import com.intellij.util.application
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class AccountChooserPageTest {
   private val edtRule = EdtRule()
-  private val applicationRule = ApplicationRule()
+  private val projectRule = ProjectRule()
   private val flagsRule = FlagRule(StudioFlags.ENABLE_FSTS, true)
   private val disposableRule = DisposableRule()
   private val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
@@ -54,7 +64,7 @@ class AccountChooserPageTest {
   @get:Rule
   val ruleChain: RuleChain =
     RuleChain.outerRule(edtRule)
-      .around(applicationRule)
+      .around(projectRule)
       .around(flagsRule)
       .around(disposableRule)
       // .around(loginFeatureRule)
@@ -63,9 +73,14 @@ class AccountChooserPageTest {
 
   @Test
   fun testLoggedOutPageContent() {
+    // AND-142 JetBrains patch (Google Play Publishing): android-common.xml is not loaded in this test JVM, so the
+    // DevServicesDeprecationDataProvider application service the page reads is registered here, the same way the
+    // notification group is registered in PlayPublishingUsageTrackerTest. Drop this once the descriptor is loaded.
+    replaceDeprecationService(DevServicesDeprecationStatus.SUPPORTED)
+
     val wizard = TestComposeWizard { AccountChooserPage() }
 
-    composeTestRule.setContent { wizard.Content() }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
 
     composeTestRule.onNodeWithText("Publish your Android app for testing").assertIsDisplayed()
     composeTestRule.onNodeWithText("Publish your application directly to Google Play Store from Android Studio.").assertIsDisplayed()
@@ -97,7 +112,7 @@ class AccountChooserPageTest {
   //
   //   val wizard = TestComposeWizard { AccountChooserPage() }
   //
-  //   composeTestRule.setContent { wizard.Content() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
   //
   //   composeTestRule
   //     .onNodeWithText(
@@ -115,7 +130,7 @@ class AccountChooserPageTest {
   //
   //   val wizard = TestComposeWizard { AccountChooserPage() }
   //
-  //   composeTestRule.setContent { wizard.Content() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
   //
   //   wizard.performAction(wizard.nextAction)
   //   assertThat(wizard.pageStackSize()).isEqualTo(2)
@@ -125,7 +140,7 @@ class AccountChooserPageTest {
   // fun testNextActionWhenLoggedOut() {
   //   val wizard = TestComposeWizard { AccountChooserPage() }
   //
-  //   composeTestRule.setContent { wizard.Content() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
   //
   //   wizard.performAction(wizard.nextAction)
   //   waitForCondition(1.seconds) { fstLoginFeature.isLoggedIn() }
@@ -142,7 +157,7 @@ class AccountChooserPageTest {
   //
   //   val wizard = TestComposeWizard { AccountChooserPage() }
   //
-  //   composeTestRule.setContent { wizard.Content() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
   //
   //   // Dropdown and active user are displayed
   //   composeTestRule.onNodeWithText("Google account:").assertIsDisplayed()
@@ -163,7 +178,7 @@ class AccountChooserPageTest {
   //
   //   val wizard = TestComposeWizard { AccountChooserPage() }
   //
-  //   composeTestRule.setContent { wizard.Content() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
   //
   //   // Open dropdown and switch to user1@google.com
   //   composeTestRule.onNodeWithText("user2@google.com").performClick()
@@ -181,7 +196,7 @@ class AccountChooserPageTest {
   //
   //   val wizard = TestComposeWizard { AccountChooserPage() }
   //
-  //   composeTestRule.setContent { wizard.Content() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
   //
   //   // Open dropdown and select "Sign in with a new account"
   //   composeTestRule.onNodeWithText("user@google.com").performClick()
@@ -210,7 +225,7 @@ class AccountChooserPageTest {
   //   StudioFlags.ENABLE_FSTS.overrideForTest(true, disposableRule.disposable)
   //
   //   var wizard = TestComposeWizard { AccountChooserPage() }
-  //   composeTestRule.setContent { wizard.Content() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
   //
   //   composeTestRule
   //     .onNodeWithText(
@@ -222,7 +237,7 @@ class AccountChooserPageTest {
   //   loginUsersRule.setActiveUser("user_with_fst@google.com", features = listOf(loginFeatureRule.ENFORCED, loginFeatureRule.FST))
   //
   //   wizard = TestComposeWizard { AccountChooserPage() }
-  //   composeTestRule.setContent { wizard.Content() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
   //
   //   composeTestRule
   //     .onNodeWithText(
@@ -238,4 +253,103 @@ class AccountChooserPageTest {
   //     .onNodeWithText("Signing in to Android Studio is required. You will be redirected to the web to sign in as the next step.")
   //     .assertIsDisplayed()
   // }
+
+  // AND-142 JetBrains patch (Google Play Publishing): the account dropdown and the enabled next action this test asserts on both need
+  // com.google.gct.login2 from tools/vendor/google/login, which this repository does not carry. The deprecated
+  // banner half of it is covered by testDeprecationWarningBannerAndInfoBannerBothVisible below.
+  // @Test
+  // fun testDeprecationWarningBannerAndDropdownVisible() {
+  //   replaceDeprecationService(DevServicesDeprecationStatus.DEPRECATED)
+  //   loginUsersRule.setActiveUser("user@google.com")
+  //
+  //   val wizard = TestComposeWizard { AccountChooserPage() }
+  //   composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+  //
+  //   composeTestRule.onNodeWithText("Play Publishing service is DEPRECATED.").assertIsDisplayed()
+  //   composeTestRule.onNodeWithText("Deprecation Header").assertDoesNotExist()
+  //
+  //   composeTestRule.onNodeWithText("Update Android Studio").assertIsDisplayed()
+  //   composeTestRule.onNodeWithText("More info").assertIsDisplayed()
+  //
+  //   // Google account dropdown should be visible
+  //   composeTestRule.onNodeWithText("Google account:").assertIsDisplayed()
+  //   composeTestRule.onNodeWithText("user@google.com").assertIsDisplayed()
+  //
+  //   // Next action should be enabled
+  //   assertThat(wizard.nextAction.enabled).isTrue()
+  // }
+
+  @Test
+  fun testDeprecationWarningBannerCanBeDismissed() {
+    replaceDeprecationService(DevServicesDeprecationStatus.DEPRECATED)
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // The deprecation banner this test drives does not read the signed-in account, so the test runs without it.
+    // loginUsersRule.setActiveUser("user@google.com")
+
+    val wizard = TestComposeWizard { AccountChooserPage() }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+
+    // Banner is visible initially
+    composeTestRule.onNodeWithText("Play Publishing service is DEPRECATED.").assertIsDisplayed()
+
+    // Dismiss the banner
+    composeTestRule.onNodeWithContentDescription("Dismiss").performClick()
+
+    // Banner should be hidden
+    composeTestRule.onNodeWithText("Play Publishing service is DEPRECATED.").assertDoesNotExist()
+  }
+
+  @Test
+  fun testDeprecationUnsupportedErrorBannerAndDropdownHidden() {
+    replaceDeprecationService(DevServicesDeprecationStatus.UNSUPPORTED)
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // The deprecation banner this test drives does not read the signed-in account, so the test runs without it.
+    // loginUsersRule.setActiveUser("user@google.com")
+
+    val wizard = TestComposeWizard { AccountChooserPage() }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+
+    composeTestRule.onNodeWithText("Play Publishing service is UNSUPPORTED.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Unsupported Header").assertDoesNotExist()
+
+    composeTestRule.onNodeWithText("Update Android Studio").assertIsDisplayed()
+    composeTestRule.onNodeWithText("More info").assertIsDisplayed()
+
+    // Google account dropdown should NOT be visible
+    composeTestRule.onNodeWithText("Google account:").assertDoesNotExist()
+    composeTestRule.onNodeWithText("user@google.com").assertDoesNotExist()
+
+    // Next action should be disabled
+    assertThat(wizard.nextAction.enabled).isFalse()
+  }
+
+  @Test
+  fun testDeprecationWarningBannerAndInfoBannerBothVisible() {
+    replaceDeprecationService(DevServicesDeprecationStatus.DEPRECATED)
+
+    val wizard = TestComposeWizard { AccountChooserPage() }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+
+    // Warning banner shown because service is DEPRECATED
+    composeTestRule.onNodeWithText("Play Publishing service is DEPRECATED.").assertIsDisplayed()
+
+    // Info banner shown because user is logged out
+    composeTestRule
+      .onNodeWithText("Signing in to Android Studio is required. You will be redirected to the web to sign in as the next step.")
+      .assertIsDisplayed()
+  }
+
+  private fun replaceDeprecationService(status: DevServicesDeprecationStatus) {
+    val mockDeprecationProvider = mock<DevServicesDeprecationDataProvider>()
+    val deprecationData =
+      DevServicesDeprecationData(
+        header = "Deprecation Header",
+        description = "Play Publishing service is $status.",
+        moreInfoUrl = "https://google.com",
+        showUpdateAction = true,
+        status = status,
+      )
+    whenever(mockDeprecationProvider.getCurrentDeprecationData("play/publishing", "Google Play Publishing")).thenReturn(deprecationData)
+    application.replaceService(DevServicesDeprecationDataProvider::class.java, mockDeprecationProvider, disposableRule.disposable)
+  }
 }
