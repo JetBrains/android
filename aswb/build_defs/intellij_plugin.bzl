@@ -226,9 +226,9 @@ def _intellij_plugin_jar_impl(ctx):
     jar_file = _package_meta_inf_files(ctx, final_plugin_xml_file, module_to_merged_xmls)
     files = depset([jar_file])
 
-    return DefaultInfo(
+    return [DefaultInfo(
         files = files,
-    )
+    )]
 
 _intellij_plugin_jar = rule(
     implementation = _intellij_plugin_jar_impl,
