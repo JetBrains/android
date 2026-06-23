@@ -102,12 +102,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiNameHelper;
+import com.intellij.psi.PsiRecursiveElementWalkingVisitor;
 import com.intellij.psi.PsiTreeChangeAdapter;
 import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.impl.PsiTreeChangeEventImpl;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlComment;
@@ -546,10 +546,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository<Virt
       addIds((XmlTag)element, items, result);
     }
 
-    Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(element, XmlTag.class);
-    for (XmlTag tag : xmlTags) {
-      addIds(tag, items, result);
-    }
+    element.accept(new PsiRecursiveElementWalkingVisitor() {
+      @Override
+      public void visitElement(@NotNull PsiElement visitedElement) {
+        if (visitedElement != element && visitedElement instanceof XmlTag) {
+          addIds((XmlTag)visitedElement, items, result);
+        }
+        super.visitElement(visitedElement);
+      }
+    });
   }
 
   private void addIds(@NotNull XmlTag tag,
