@@ -89,6 +89,7 @@ class ExistingProjectModelData(
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty()
+  override val modelId = StringValueProperty("")
   override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
   override val sourceProjectType = ObjectValueProperty(SourceProjectType.UNKNOWN)

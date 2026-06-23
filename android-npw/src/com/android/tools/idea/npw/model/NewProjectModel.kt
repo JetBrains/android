@@ -134,6 +134,7 @@ interface ProjectModelData {
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
   val prompt: StringProperty
+  val modelId: StringProperty
   val displayText: StringProperty
   val sourceProjectType: ObjectValueProperty<SourceProjectType>
   val importSourcePath: StringProperty
@@ -158,6 +159,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     ObjectValueProperty(findAndroidStudioLocalMavenRepoPaths().map { it.toURI().toURL() })
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty("")
+  override val modelId = StringValueProperty("")
   override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
   override val userSkillDirectories: ObjectValueProperty<List<File>> = ObjectValueProperty(listOf())
@@ -218,7 +220,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
                       importProjectType = sourceProjectType.get().importProjectType,
                     )
                 } else {
-                  GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
+                  GeminiPluginApi.getInstance()
+                    .launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get(), modelId.get().takeIf { it.isNotBlank() })
                 }
               }
             }
@@ -283,7 +286,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
                       importProjectType = sourceProjectType.get().importProjectType,
                     )
                 } else {
-                  GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
+                  GeminiPluginApi.getInstance()
+                    .launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get(), modelId.get().takeIf { it.isNotBlank() })
                 }
               }
             }
