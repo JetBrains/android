@@ -87,7 +87,7 @@ constructor(
 
   private val javaArtifactInfos: List<JavaArtifactInfo> by lazy {
     val file = clsFile.containingFile.virtualFile
-    val jar = JarFileSystem.getInstance().getLocalVirtualFileFor(file) ?: return@lazy emptyList()
+    val jar = JarFileSystem.getInstance().getVirtualFileForJar(file) ?: return@lazy emptyList()
 
     var jarPath = jar.toNioPath()
     if (!jarPath.startsWith(projectPath)) {

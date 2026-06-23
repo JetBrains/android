@@ -97,7 +97,7 @@ public class BlazeJavaAbstractTestCaseConfigurationProducer
   private static PsiMethod getTestMethod(ConfigurationContext context) {
     PsiElement psi = context.getPsiLocation();
     if (psi instanceof PsiMethod
-        && AnnotationUtil.isAnnotated((PsiMethod) psi, JUnitUtil.TEST_ANNOTATION, false)) {
+        && AnnotationUtil.isAnnotated((PsiMethod) psi, JUnitUtil.TEST_ANNOTATION, AnnotationUtil.CHECK_TYPE)) {
       return (PsiMethod) psi;
     }
     List<PsiMethod> selectedMethods = TestMethodSelectionUtil.getSelectedMethods(context);
