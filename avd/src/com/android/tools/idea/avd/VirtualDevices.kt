@@ -21,7 +21,7 @@ import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.uniquifyAvdFolder
 import com.android.sdklib.internal.avd.uniquifyAvdName
 import com.android.tools.idea.adddevicedialog.FormFactors
-import com.android.tools.idea.avdmanager.EnvironmentsUpdater
+import java.nio.file.Path
 
 internal class VirtualDevices(private val avdManager: AvdManager) {
   internal suspend fun add(device: VirtualDevice): AvdInfo {
@@ -30,9 +30,15 @@ internal class VirtualDevices(private val avdManager: AvdManager) {
     avdBuilder.avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(device.name))
     avdBuilder.avdFolder = avdManager.uniquifyAvdFolder(avdBuilder.avdName)
     if (device.formFactor == FormFactors.AI_GLASSES) {
-      avdBuilder.environment = EnvironmentsUpdater.getInstance().getUpdatedFile("indoor-study-dark.jpg")
+      avdBuilder.environment = getDefaultEnvironmentFile()
     }
 
     return avdManager.createAvd(avdBuilder)
+  }
+
+  private suspend fun getDefaultEnvironmentFile(): Path {
+    val environments = EnvironmentsUpdater.getInstance().getEnvironments()
+    val defaultImage = environments.find { it.isDefault } ?: environments.firstOrNull() ?: throw RuntimeException("No environments found")
+    return defaultImage.path
   }
 }

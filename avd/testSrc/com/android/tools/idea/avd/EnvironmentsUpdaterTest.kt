@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager
+package com.android.tools.idea.avd
 
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.recordExistingFile
+import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import java.nio.file.Files
+import kotlinx.coroutines.runBlocking
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [EnvironmentsUpdater]. */
 class EnvironmentsUpdaterTest {
+
+  @get:Rule val applicationRule = ApplicationRule()
+
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testUpdateDirectory() {
@@ -53,5 +68,27 @@ class EnvironmentsUpdaterTest {
 
     // Verify it was overwritten by the newer source.
     assertThat(Files.readAllBytes(destDir.resolve("file1.txt"))).isEqualTo("v1_newer".toByteArray())
+  }
+
+  @Test
+  fun testGetEnvironments() = runBlocking {
+    val tempSdkDir = Files.createTempDirectory("sdk")
+    val mockSdks = mock<AndroidSdks>()
+    val mockHandler = mock<AndroidSdkHandler>()
+    whenever(mockHandler.location).thenReturn(tempSdkDir)
+    whenever(mockSdks.tryToChooseSdkHandler()).thenReturn(mockHandler)
+
+    val app = ApplicationManager.getApplication()
+    app.registerServiceInstance(AndroidSdks::class.java, mockSdks, disposableRule.disposable)
+
+    val updater = EnvironmentsUpdater()
+    Disposer.register(disposableRule.disposable, updater)
+
+    val list = updater.getEnvironments()
+    assertThat(list).isNotEmpty()
+    val defaultEnv = list.find { it.isDefault }
+    assertThat(defaultEnv).isNotNull()
+    assertThat(defaultEnv!!.path.fileName.toString()).isEqualTo("indoor-study-dark.jpg")
+    assertThat(defaultEnv.title).isEqualTo("Indoor Study Dark")
   }
 }
