@@ -66,6 +66,7 @@ public class BlazeQueryParser {
           "java_mutable_proto_library",
           "java_proto_library",
           "java_stubby_library",
+          "jvm_import",
           "kt_grpc_library_helper",
           "kt_proto_library_helper", // Underlying rule for kt_jvm_lite_proto_library and
           // kt_jvm_proto_library
