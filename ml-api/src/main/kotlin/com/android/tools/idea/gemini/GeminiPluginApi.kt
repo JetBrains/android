@@ -83,7 +83,7 @@ interface GeminiPluginApi {
   fun generate(project: Project, prompt: LlmPrompt): Flow<String> = emptyFlow()
 
   /** Launches the New Project agent with the given prompt in the given project, which should already contain at least a skeleton. */
-  fun launchNewProjectAgent(project: Project, prompt: String, imageAttachments: Collection<VirtualFile>) {}
+  fun launchNewProjectAgent(project: Project, prompt: String, imageAttachments: Collection<VirtualFile>, modelId: String? = null) {}
 
   /** Launches the Import Project agent with the given prompt in the given project, which should already contain at least a skeleton. */
   fun launchImportProjectAgent(
