@@ -382,12 +382,14 @@ class TransportServiceProxy(
       // 64-bit or 32-bit and its cpu arch. Old devices of 32-bit do not have the application data, fall back to device's abi cpu arch.
       // TODO: Remove when moving process discovery.
       val processAbiCpuArch =
-        client.abi.let { abi ->
-          when {
-            abi != null && ")" in abi -> abi.substring(abi.indexOf('(') + 1, abi.indexOf(')'))
-            else -> Abi.getEnum(ddmlibDevice.abis[0])!!.cpuArch
+        client.abi
+          .let { abi ->
+            when {
+              abi != null && ")" in abi -> abi.substring(abi.indexOf('(') + 1, abi.indexOf(')'))
+              else -> Abi.getEnum(ddmlibDevice.abis[0])!!.cpuArch
+            }
           }
-        }
+          .takeIf { SAFE_ABI_NAME.matches(it) } ?: ""
 
       // TODO: Set this to the applications actual start time.
       val newProcess =
@@ -399,7 +401,7 @@ class TransportServiceProxy(
           .setStartTimestampNs(timestampNs)
           .setAbiCpuArch(processAbiCpuArch)
           .setExposureLevel(level)
-          .setPackageName(client.packageName)
+          .setPackageName(client.packageName.takeIf { SAFE_PROCESS_NAME.matches(it) } ?: "")
           .build()
       synchronized(cachedProcesses) { cachedProcesses[client.pid] = newProcess }
       // New pipeline event - create a ProcessStarted event for each process.
@@ -439,7 +441,8 @@ class TransportServiceProxy(
     private const val EMULATOR = "Emulator"
     const val PRE_LOLLIPOP_FAILURE_REASON = "Pre-Lollipop devices are not supported."
     private val ART_VERSION_CODE_REGEX = Regex("package:com\\.google\\.android\\.art versionCode:(\\d+)")
-    private val SAFE_PROCESS_NAME = Regex("[a-zA-Z0-9._:]+")
+    private val SAFE_PROCESS_NAME = Regex("[a-zA-Z0-9._:-]+")
+    private val SAFE_ABI_NAME = Regex("[a-zA-Z0-9._:-]+")
 
     /**
      * Converts an [IDevice] object into a [Common.Device].
