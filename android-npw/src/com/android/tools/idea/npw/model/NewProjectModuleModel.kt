@@ -29,6 +29,7 @@ import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateFlag
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_PROJECT
 import java.io.File
 import java.util.Locale
@@ -105,7 +106,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
       when {
         hasCompanionApp.get() -> getModuleName(formFactor.get())
         // we don't allow watch faces to have a companion app
-        newRenderTemplate.valueOrNull?.category == TODO("TODO: android-merge; needs a cherry-pick of a commit replacing Category.WatchFace") -> "watchface"
+        newRenderTemplate.valueOrNull?.flags?.contains(TemplateFlag.WatchFace) == true -> "watchface"
         else -> SdkConstants.APP_PREFIX
       }
 

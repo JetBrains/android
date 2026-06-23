@@ -44,6 +44,7 @@ import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
+import com.android.tools.idea.wizard.template.TemplateFlag
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -175,7 +176,7 @@ private constructor(
         category = newTemplate.category
         isCompose = newTemplate.constraints.contains(TemplateConstraint.Compose)
         isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3)
-        isWatchFace = false // TODO: android-merge; needs a cherry-pick of a commit adapting to the new way to test for a watch project
+        isWatchFace = newTemplate.flags.contains(TemplateFlag.WatchFace)
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value
