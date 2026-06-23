@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import icons.StudioIconsCompose
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -161,6 +162,10 @@ fun JourneyScreenshot(modifier: Modifier, path: String, onImageDoubleClicked: ((
   var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
   var isLoading by remember { mutableStateOf(true) }
   var error by remember { mutableStateOf(false) }
+  if (ScreenshotTestUtils.isNetworkPath(path)) {
+    ScreenshotError(modifier, path)
+    return
+  }
   val file = File(path)
   val interactionSource = remember { MutableInteractionSource() }
   val isHovered by interactionSource.collectIsHoveredAsState()

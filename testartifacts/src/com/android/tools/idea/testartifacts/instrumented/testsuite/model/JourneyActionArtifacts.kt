@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.android.tools.journeys.proto.ArtifactType
 import com.android.tools.journeys.proto.Interaction
 import com.android.tools.journeys.proto.Step
 import com.android.tools.journeys.proto.Turn
+import com.intellij.openapi.project.Project
 import java.util.Base64
 
 data class JourneyActionArtifacts(
@@ -35,18 +37,20 @@ data class JourneyActionArtifacts(
      * Base64 encoded string of a `Step` proto. This `Step` proto contains a list of `Turn` objects, each representing an action within a
      * test journey. `JourneyActionArtifacts` objects are then created from the `Turn` objects within the `Step` proto.
      *
+     * @param project used to contain `Artifact.uri` under the project root. Passing null disables screenshot rendering for that call-site
+     *   (the artifact is still listed, with `screenshotImage == null`).
      * @param additionalTestArtifacts A map of key-value pairs representing additional test artifacts.
      * @return A list of [JourneyActionArtifacts] parsed from the input map, or an empty list if no valid journey artifacts are found. The
      *   returned list is ordered by the sequence of turns in the `Step` proto.
      */
-    fun parseFromAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>): List<JourneyActionArtifacts> {
+    fun parseFromAdditionalTestArtifacts(project: Project?, additionalTestArtifacts: Map<String, String>): List<JourneyActionArtifacts> {
       val encodedJourneyStepResult = additionalTestArtifacts["Journeys.Step"] ?: return emptyList()
       val journeyStepResult = decodeStepResult(encodedJourneyStepResult)
       return journeyStepResult.turnsList.map {
         JourneyActionArtifacts(
           it.description?.nullIfEmpty(),
           it.reasoning?.nullIfEmpty(),
-          getScreenshot(it),
+          ScreenshotTestUtils.containUnderProjectRoot(project, getScreenshot(it)),
           it.interactionsList.map { interaction -> formatInteraction(interaction) },
         )
       }

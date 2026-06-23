@@ -22,19 +22,29 @@ import com.android.tools.journeys.proto.Result
 import com.android.tools.journeys.proto.Status
 import com.android.tools.journeys.proto.Step
 import com.android.tools.journeys.proto.Turn
+import com.intellij.openapi.project.Project
+import java.nio.file.Paths
 import java.util.Base64
 import junit.framework.TestCase.assertTrue
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class JourneyActionArtifactsTest {
+
+  private val project = mock<Project>().apply { whenever(basePath).thenReturn("/path/to/project") }
+
+  private fun expectedPath(relativePath: String): String {
+    return Paths.get("/path/to/project", relativePath).toAbsolutePath().normalize().toString()
+  }
 
   @Test
   fun parseFromAdditionalTestArtifacts_returnsEmptyListWhenNoJourneyArtifactsPresent() {
     val additionalTestArtifacts = mapOf<String, String>()
 
-    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
+    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(project, additionalTestArtifacts)
 
     assert(artifacts.isEmpty())
   }
@@ -70,20 +80,20 @@ class JourneyActionArtifactsTest {
 
     val additionalTestArtifacts = mapOf("Journeys.Step" to encodeStep(step))
 
-    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
+    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(project, additionalTestArtifacts)
 
     assertEquals(3, artifacts.size)
-    assertEquals("path/to/screenshot/1", artifacts[0].screenshotImage)
+    assertEquals(expectedPath("path/to/screenshot/1"), artifacts[0].screenshotImage)
     assertEquals("Description 1", artifacts[0].description)
     assertEquals("Reasoning 1", artifacts[0].reasoning)
     assertEquals(listOf("Click (SUCCEEDED)", "Swipe (SUCCEEDED)"), artifacts[0].interactions)
 
-    assertEquals("path/to/screenshot/2", artifacts[1].screenshotImage)
+    assertEquals(expectedPath("path/to/screenshot/2"), artifacts[1].screenshotImage)
     assertEquals("Description 2", artifacts[1].description)
     assertEquals("Reasoning 2", artifacts[1].reasoning)
     assertEquals(listOf("Click (SUCCEEDED)"), artifacts[1].interactions)
 
-    assertEquals("path/to/screenshot/3", artifacts[2].screenshotImage)
+    assertEquals(expectedPath("path/to/screenshot/3"), artifacts[2].screenshotImage)
     assertEquals("Description 3", artifacts[2].description)
     assertEquals("Reasoning 3", artifacts[2].reasoning)
     assertEquals(listOf("Click (FAILED)"), artifacts[2].interactions)
@@ -104,7 +114,7 @@ class JourneyActionArtifactsTest {
 
     val additionalTestArtifacts = mapOf("Journeys.Step" to encodeStep(step))
 
-    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
+    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(project, additionalTestArtifacts)
 
     assertEquals(2, artifacts.size)
 
@@ -115,7 +125,7 @@ class JourneyActionArtifactsTest {
 
     assertNull(artifacts[1].description)
     assertEquals("Reasoning 2", artifacts[1].reasoning)
-    assertEquals("path/to/screenshot/2", artifacts[1].screenshotImage)
+    assertEquals(expectedPath("path/to/screenshot/2"), artifacts[1].screenshotImage)
     assertTrue(artifacts[1].interactions.isEmpty())
   }
 
@@ -131,10 +141,37 @@ class JourneyActionArtifactsTest {
 
     val additionalTestArtifacts = mapOf("Journeys.Step" to encodeStep(step))
 
-    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
+    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(project, additionalTestArtifacts)
 
     assertEquals(1, artifacts.size)
     assertNull(artifacts[0].screenshotImage)
+  }
+
+  @Test
+  fun parseFromAdditionalTestArtifacts_dropsInvalidScreenshotPaths() {
+    val step =
+      Step.newBuilder()
+        .setInitialization(Step.Initialization.newBuilder().setPromptText("Prompt").build())
+        .addAllTurns(
+          listOf(
+            buildTurn("Description 1", "Reasoning 1", listOf(buildArtifact(ArtifactType.SCREENSHOT, "../../etc/passwd")), emptyList()),
+            buildTurn(
+              "Description 2",
+              "Reasoning 2",
+              listOf(buildArtifact(ArtifactType.SCREENSHOT, "\\\\attacker.evil\\share\\image.png")),
+              emptyList(),
+            ),
+          )
+        )
+        .build()
+
+    val additionalTestArtifacts = mapOf("Journeys.Step" to encodeStep(step))
+
+    val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(project, additionalTestArtifacts)
+
+    assertEquals(2, artifacts.size)
+    assertNull(artifacts[0].screenshotImage)
+    assertNull(artifacts[1].screenshotImage)
   }
 
   private fun buildTurn(description: String?, reasoning: String?, artifacts: List<Artifact>, interactions: List<Interaction>): Turn {

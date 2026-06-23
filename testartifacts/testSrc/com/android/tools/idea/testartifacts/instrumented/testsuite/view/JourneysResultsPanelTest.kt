@@ -19,6 +19,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -35,6 +37,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.verifyNoInteractions
 
 @RunsInEdt
 class JourneysResultsPanelTest {
@@ -74,6 +77,28 @@ class JourneysResultsPanelTest {
     } finally {
       imageFile.delete()
       newDir.delete()
+    }
+  }
+
+  @Test
+  fun openImageInEditor_rejectsOutOfProjectFile() {
+    val mockFileEditorManager = mock(FileEditorManager::class.java)
+    projectRule.project.replaceService(FileEditorManager::class.java, mockFileEditorManager, disposableRule.disposable)
+
+    val tempFile = createTempScreenshotFile()
+    try {
+      val panel = JourneysResultsPanel(projectRule.project)
+
+      val oldTestDialog = TestDialogManager.setTestDialog(TestDialog.OK)
+      try {
+        panel.openImageInEditor(tempFile)
+      } finally {
+        TestDialogManager.setTestDialog(oldTestDialog)
+      }
+
+      verifyNoInteractions(mockFileEditorManager)
+    } finally {
+      tempFile.delete()
     }
   }
 
