@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.meshgradient
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import com.intellij.openapi.project.Project
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.SyntaxTraverser
 import java.util.Locale
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -52,7 +52,7 @@ class MeshGradientPsiManager(private val project: Project) {
 
   /** Finds the first [KtCallExpression] for "MeshGradientPainter" in the file. */
   fun findMeshPainterCall(file: KtFile): KtCallExpression? {
-    return PsiTreeUtil.findChildrenOfType(file, KtCallExpression::class.java).firstOrNull { it.isValidMeshGradientCall() }
+    return SyntaxTraverser.psiTraverser(file).filter(KtCallExpression::class.java).firstOrNull { it.isValidMeshGradientCall() }
   }
 
   /** Parses the [KtCallExpression] of MeshGradientPainter to extract rows, cols, and vertices. */
@@ -91,7 +91,7 @@ class MeshGradientPsiManager(private val project: Project) {
   private fun parseVertices(body: KtBlockExpression): List<ParsedVertex> {
     val vertices = mutableListOf<ParsedVertex>()
     val setVertexCalls =
-      PsiTreeUtil.findChildrenOfType(body, KtCallExpression::class.java).filter { it.calleeExpression?.text == FUN_SET_VERTEX }
+      SyntaxTraverser.psiTraverser(body).filter(KtCallExpression::class.java).filter { it.calleeExpression?.text == FUN_SET_VERTEX }
 
     for (call in setVertexCalls) {
       val args = call.valueArguments
@@ -290,7 +290,8 @@ class MeshGradientPsiManager(private val project: Project) {
   }
 
   private fun findSetVertexCall(body: KtBlockExpression, row: Int, col: Int): KtCallExpression? {
-    return PsiTreeUtil.findChildrenOfType(body, KtCallExpression::class.java)
+    return SyntaxTraverser.psiTraverser(body)
+      .filter(KtCallExpression::class.java)
       .filter { it.calleeExpression?.text == FUN_SET_VERTEX }
       .firstOrNull { call ->
         val args = call.valueArguments
