@@ -49,6 +49,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages.showErrorDialog
 import com.intellij.openapi.util.io.FileUtilRt.getExtension
 import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.IdeFocusManager
@@ -396,7 +397,7 @@ class ScreenshotViewer(
           throw e
         } catch (e: Throwable) {
           val cause = getMessage(e) ?: e.javaClass.name
-          val message = message("screenshot.error.generic", cause)
+          val message = message("screenshot.error.generic", escapeXmlEntities(cause))
           thisLogger().error(message, e)
           ApplicationManager.getApplication().invokeLater { showErrorDialog(project, message, message("screenshot.action.title")) }
         }
