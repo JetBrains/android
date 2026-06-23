@@ -63,7 +63,6 @@ import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.icons.AllIcons
-import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionButtonComponent
@@ -628,8 +627,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
             if (!panel.hasContent) {
               // The panel became visible - create its content.
               panel.createContent(deviceFrameVisible, savedUiState.remove(panel.id))
-              // Synchronize toolbar visibility across panels.
-              ToggleToolbarAction.setToolbarVisible(toolWindow, PropertiesComponent.getInstance(project), null)
             }
           }
           else {

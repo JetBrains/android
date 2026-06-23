@@ -443,7 +443,8 @@ jvm_library(
         "@lib//:gradle",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
-        "@lib//:junit4",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
         "//libraries/assertj-core",
         "//libraries/assertj-core:assertj-core_test_lib",
         "//libraries/icu4j",
@@ -694,8 +695,6 @@ jvm_library(
         "//platform/util/concurrency",
         "//platform/util/concurrency:concurrency_test_lib",
         "@lib//:equalsverifier",
-        "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` end

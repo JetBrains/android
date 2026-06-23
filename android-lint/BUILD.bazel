@@ -238,7 +238,8 @@ jvm_library(
         "@lib//:gradle",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
-        "@lib//:junit4",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
         "@lib//:jetbrains-annotations",
         "@lib//:kotlinc-kotlin-compiler-common",
         "//libraries/mockito",
@@ -334,8 +335,6 @@ jvm_library(
         "//android/gradle-dsl-flags",
         "//android/gradle-dsl-flags:gradle-dsl-flags_test_lib",
         "@lib//:mockito-kotlin",
-        "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.lint.tests` end
