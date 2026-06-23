@@ -10,12 +10,12 @@ def _runtime_classpath_impl(target, ctx):
       outputs and actions.
 
     Returns:
-      A struct with only the output_groups provider.
+      OutputGroupInfo provider.
     """
     ctx = ctx  # unused argument
-    return struct(output_groups = {
-        "runtime_classpath": _get_runtime_jars(target),
-    })
+    return [OutputGroupInfo(
+        runtime_classpath = _get_runtime_jars(target),
+    )]
 
 def _get_runtime_jars(target):
     if JavaInfo not in target:

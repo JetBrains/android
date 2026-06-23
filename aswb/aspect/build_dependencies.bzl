@@ -1007,7 +1007,7 @@ TOOLCHAINS_ASPECTS = IDE_KOTLIN.toolchains_aspects + IDE_JAVA_PROTO.toolchains_a
 
 def collect_dependencies(parameters):
     def _impl(target, ctx):
-        return _collect_dependencies_impl(target, ctx, parameters)
+        return [_collect_dependencies_impl(target, ctx, parameters)]
 
     return aspect(
         implementation = _impl,
