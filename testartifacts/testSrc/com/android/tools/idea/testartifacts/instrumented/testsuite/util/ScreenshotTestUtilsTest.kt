@@ -18,13 +18,17 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.util
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.calculateMatchPercentage
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import java.awt.image.BufferedImage
 import java.io.File
+import java.nio.file.Paths
 import javax.imageio.ImageIO
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ScreenshotTestUtilsTest {
 
@@ -154,5 +158,71 @@ class ScreenshotTestUtilsTest {
     val image = BufferedImage(100, 50, BufferedImage.TYPE_INT_RGB)
     ImageIO.write(image, format, file)
     return file
+  }
+
+  @Test
+  fun testContainUnderProjectRoot_validRelativePath() {
+    val project = mock<Project>()
+    whenever(project.basePath).thenReturn("/path/to/project")
+    val result = ScreenshotTestUtils.containUnderProjectRoot(project, "screenshots/image.png")
+    val expected = Paths.get("/path/to/project", "screenshots/image.png").toAbsolutePath().normalize().toString()
+    assertThat(result).isEqualTo(expected)
+  }
+
+  @Test
+  fun testContainUnderProjectRoot_escapingRelativePath() {
+    val project = mock<Project>()
+    whenever(project.basePath).thenReturn("/path/to/project")
+    val result = ScreenshotTestUtils.containUnderProjectRoot(project, "../../etc/passwd")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testContainUnderProjectRoot_absolutePathOutside() {
+    val project = mock<Project>()
+    whenever(project.basePath).thenReturn("/path/to/project")
+    val result = ScreenshotTestUtils.containUnderProjectRoot(project, "/etc/passwd")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testContainUnderProjectRoot_uncPath() {
+    val project = mock<Project>()
+    whenever(project.basePath).thenReturn("/path/to/project")
+    val result = ScreenshotTestUtils.containUnderProjectRoot(project, "\\\\attacker.evil\\share\\image.png")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testContainUnderProjectRoot_networkPath() {
+    val project = mock<Project>()
+    whenever(project.basePath).thenReturn("/path/to/project")
+    val result = ScreenshotTestUtils.containUnderProjectRoot(project, "//attacker.evil/share/image.png")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testContainUnderProjectRoot_nullOrEmpty() {
+    val project = mock<Project>()
+    whenever(project.basePath).thenReturn("/path/to/project")
+    assertThat(ScreenshotTestUtils.containUnderProjectRoot(project, null)).isNull()
+    assertThat(ScreenshotTestUtils.containUnderProjectRoot(project, "")).isNull()
+  }
+
+  @Test
+  fun testContainUnderProjectRoot_nullProject() {
+    assertThat(ScreenshotTestUtils.containUnderProjectRoot(null, "screenshots/image.png")).isNull()
+  }
+
+  @Test
+  fun testIsNetworkPath() {
+    assertThat(ScreenshotTestUtils.isNetworkPath("\\\\attacker.evil\\share\\image.png")).isTrue()
+    assertThat(ScreenshotTestUtils.isNetworkPath("//attacker.evil/share/image.png")).isTrue()
+    assertThat(ScreenshotTestUtils.isNetworkPath("  \\\\attacker.evil\\share\\image.png")).isTrue()
+    assertThat(ScreenshotTestUtils.isNetworkPath("  //attacker.evil/share/image.png")).isTrue()
+    assertThat(ScreenshotTestUtils.isNetworkPath("screenshots/image.png")).isFalse()
+    assertThat(ScreenshotTestUtils.isNetworkPath("/absolute/local/path/image.png")).isFalse()
+    assertThat(ScreenshotTestUtils.isNetworkPath(null)).isFalse()
+    assertThat(ScreenshotTestUtils.isNetworkPath("")).isFalse()
   }
 }

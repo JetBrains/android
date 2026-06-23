@@ -394,7 +394,7 @@ open class DetailsViewContentView(
         }
         .submit(AppExecutorUtil.getAppExecutorService())
 
-    val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
+    val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(project, additionalTestArtifacts)
     myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
   }
