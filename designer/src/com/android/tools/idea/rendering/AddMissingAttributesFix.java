@@ -42,10 +42,11 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -68,19 +69,13 @@ public class AddMissingAttributesFix extends StudioHtmlLinkManager.StudioCommand
 
   @NotNull
   public static List<SmartPsiElementPointer<XmlTag>> findViewsMissingSizes(@NotNull XmlFile file, @Nullable ResourceResolver resolver) {
-    final List<SmartPsiElementPointer<XmlTag>> missing = new ArrayList<>();
-    ApplicationManager.getApplication().runReadAction(() -> {
-      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
-      for (XmlTag tag : xmlTags) {
-        if (requiresSize(tag)) {
-          if (!definesWidth(tag, resolver) || !definesHeight(tag, resolver)) {
-            missing.add(SmartPointerManager.createPointer(tag));
-          }
-        }
-      }
-    });
-
-    return missing;
+    return ApplicationManager.getApplication().runReadAction((Computable<List<SmartPsiElementPointer<XmlTag>>>)() ->
+      SyntaxTraverser.psiTraverser(file)
+          .filter(XmlTag.class)
+          .filter(tag -> requiresSize(tag) && (!definesWidth(tag, resolver) || !definesHeight(tag, resolver)))
+          .map(tag -> SmartPointerManager.createPointer(tag))
+          .toList()
+    );
   }
 
 

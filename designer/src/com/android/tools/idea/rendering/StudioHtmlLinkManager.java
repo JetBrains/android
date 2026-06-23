@@ -106,8 +106,8 @@ import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.util.ClassUtil;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -389,14 +389,10 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     final String tagName = decodedTag;
 
     XmlTag first = ApplicationManager.getApplication().runReadAction((Computable<XmlTag>)() -> {
-      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
-      for (XmlTag tag : xmlTags) {
-        if (tagName.equals(tag.getName())) {
-          return tag;
-        }
-      }
-
-      return null;
+      return SyntaxTraverser.psiTraverser(file)
+          .filter(XmlTag.class)
+          .filter(tag -> tagName.equals(tag.getName()))
+          .first();
     });
 
     if (first != null) {
@@ -722,7 +718,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     }
 
     WriteCommandAction.writeCommandAction(module.getProject(), file).withName("Assign Fragment").run(()-> {
-        Collection<XmlTag> tags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+        Iterable<XmlTag> tags = SyntaxTraverser.psiTraverser(file).filter(XmlTag.class);
         for (XmlTag tag : tags) {
           if (!isFragmentTag(tag.getName())) {
             continue;
@@ -813,7 +809,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
 
     WriteCommandAction.writeCommandAction(project, file).withName("Assign Preview Layout").run(() -> {
       IdeResourcesUtil.ensureNamespaceImported(file, TOOLS_URI, null);
-      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+      Iterable<XmlTag> xmlTags = SyntaxTraverser.psiTraverser(file).filter(XmlTag.class);
       for (XmlTag tag : xmlTags) {
         if (isFragmentTag(tag.getName())) {
           String name = tag.getAttributeValue(ATTR_CLASS);
@@ -845,14 +841,10 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     final String value = URLDecoder.decode(valueEncoded, StandardCharsets.UTF_8);
 
     XmlAttribute first = ApplicationManager.getApplication().runReadAction((Computable<XmlAttribute>)() -> {
-      Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
-      for (XmlAttribute attribute : attributes) {
-        if (attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue())) {
-          return attribute;
-        }
-      }
-
-      return null;
+      return SyntaxTraverser.psiTraverser(file)
+          .filter(XmlAttribute.class)
+          .filter(attribute -> attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue()))
+          .first();
     });
 
     if (first != null) {
@@ -878,7 +870,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     final String newValue = URLDecoder.decode(newValueEncoded, StandardCharsets.UTF_8);
 
     WriteCommandAction.writeCommandAction(module.getProject(), file).withName("Set Attribute Value").run(() -> {
-      Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
+      Iterable<XmlAttribute> attributes = SyntaxTraverser.psiTraverser(file).filter(XmlAttribute.class);
       int oldValueLen = oldValue.length();
       for (XmlAttribute attribute : attributes) {
         if (attributeName.equals(attribute.getLocalName())) {
