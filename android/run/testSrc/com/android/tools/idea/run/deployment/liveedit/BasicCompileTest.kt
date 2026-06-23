@@ -560,4 +560,37 @@ class BasicCompileTest {
       )
     }
   }
+
+  @Test
+  fun `add and remove private static method`() {
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
+          private fun foo() = 1
+          private fun bar() = 2
+        """,
+      )
+
+    val cache = projectRule.initialCache(listOf(file))
+
+    projectRule.modifyKtFile(
+      file,
+      """
+        private fun bar() = 2
+    """,
+    )
+
+    compile(file, cache)
+
+    projectRule.modifyKtFile(
+      file,
+      """
+        private fun bar() = 2
+        private fun baz() = 3
+    """,
+    )
+
+    compile(file, cache)
+  }
 }
