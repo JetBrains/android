@@ -24,6 +24,10 @@ message StudioPushNotification {
         MODEL_PROVIDER_SETTINGS = 2;
         PROMPT_LIBRARY_SETTINGS = 3;
         MCP_SERVERS_SETTINGS = 4;
+        // Screen for Code Completion settings.
+        CODE_COMPLETION_SETTINGS = 5;
+        // General AI settings page.
+        AI_GENERAL_SETTINGS = 6;
       }
       // Screen where the user needs to be redirected to.
       optional UiScreen ui_screen = 1;
@@ -35,6 +39,12 @@ message StudioPushNotification {
     oneof action {
       BrowseAction browse_action = 2;
       OpenUiAction openui_action = 3;
+      // Executes a specific IntelliJ Platform command by its ID.
+      // This allows triggering IDE UI actions defined elsewhere instead of
+      // defining them in this proto. This can be used to open tool-windows and
+      // IDE settings by providing the ID. Prefer using this over the UiScreen
+      // enum in OpenUiAction.
+      string ui_screen_id = 4;
     }
   }
   // A spec for showing a push notification as an IntelliJ notification -
@@ -108,11 +118,34 @@ message StudioPushNotification {
       optional google.protobuf.Timestamp shown_after = 1;
       optional google.protobuf.Timestamp shown_before = 2;
     }
+
+    // Requirements based on a user's past interaction with a specific feature.
+    message FeatureUsage {
+      enum Feature {
+        FEATURE_UNKNOWN = 0;
+        NEW_PROJECT_AGENT = 1;  // User used the New Project wizard
+        AGENT_WINDOW = 2;       // User interacted with Agent Window
+        CODE_COMPLETION = 3;    // User accepted or triggered Code Completion
+      }
+      // The specific feature to monitor.
+      optional Feature feature = 1;
+      // If set, the notification is shown only if the user has NOT used
+      // the specified feature within the last 'days_since_last_use' days.
+      // A value of 0 means "never used".
+      optional int32 days_since_last_use = 2;
+      // If set, the notification is shown based on the setting status of the
+      // feature. True if the setting must be enabled, false if it must be
+      // disabled.
+      optional bool setting_enabled = 3;
+    }
+
     // Note: The AS version conditions are already part of the server flag
     // definition.
     oneof condition {
       ModelProviderType model_provider_type = 1;
       DateCondition date_condition = 2;
+      FeatureUsage feature_usage =
+              3;  // Segment by feature usage or its settings
     }
   }
 
