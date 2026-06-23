@@ -65,6 +65,7 @@ firebasetestlab.direct.access.show.outage.notifications=COMPLETE:2025
 firebasetestlab.direct.access=COMPLETE:2024
 google.login.combined.login.use.compose.flow=PREVIEW
 google.login.enable.fsts=PREVIEW
+google.login.enable.startup.sign.in.dialog=PREVIEW
 google.login.show.marketing.dialog=COMPLETE:2025
 google.login.use.1p.login.ui=COMPLETE:2025
 google.play.sdk.index.show.sdk.index.deprecation.issues=COMPLETE:2025
