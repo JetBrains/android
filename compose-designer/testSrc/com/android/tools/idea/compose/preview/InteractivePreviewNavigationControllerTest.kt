@@ -212,4 +212,11 @@ class InteractivePreviewNavigationControllerTest {
     assertThat(controller.getBottomPanelComponent()).isNull()
     assertThat(panelUpdated).isTrue()
   }
+
+  @Test
+  fun testBackNavigationEdgeVisibleNames() {
+    assertThat(BackNavigationEdge.EDGE_LEFT.visibleName).isEqualTo("Swipe Left")
+    assertThat(BackNavigationEdge.EDGE_RIGHT.visibleName).isEqualTo("Swipe Right")
+    assertThat(BackNavigationEdge.EDGE_NONE.visibleName).isEqualTo("None")
+  }
 }
