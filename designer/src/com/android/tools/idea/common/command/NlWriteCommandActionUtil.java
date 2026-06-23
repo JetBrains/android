@@ -21,8 +21,10 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +50,9 @@ public final class NlWriteCommandActionUtil {
       runnable.run();
       cleanUp(components);
     };
-    WriteCommandAction.runWriteCommandAction(model.getProject(), name, groupId, withCleanUp, model.getFile());
+    NonProjectFileWritingAccessProvider.disableChecksDuring(() ->
+      WriteCommandAction.runWriteCommandAction(model.getProject(), name, groupId, withCleanUp, model.getFile())
+    );
   }
 
   public static <T> T compute(@NotNull NlComponent component, @NotNull String name, @NotNull Computable<T> computable) {
@@ -62,7 +66,11 @@ public final class NlWriteCommandActionUtil {
       cleanUp(components);
       return result;
     };
-    return WriteCommandAction.writeCommandAction(model.getProject(), model.getFile()).withName(name).compute(() -> withCleanUp.compute());
+    AtomicReference<T> resultRef = new AtomicReference<>();
+    NonProjectFileWritingAccessProvider.disableChecksDuring(() ->
+      resultRef.set(WriteCommandAction.writeCommandAction(model.getProject(), model.getFile()).withName(name).compute(withCleanUp::compute))
+    );
+    return resultRef.get();
   }
 
   @NotNull

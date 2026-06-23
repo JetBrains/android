@@ -287,7 +287,7 @@ public final class NlComponentTest extends LayoutTestCase {
     // Change the XML tag content before the transaction is committed and remove one tag
     textViewXmlTag.setAttribute("android:layout_width", "300dp");
     textViewXmlTag.setAttribute("android:layout_height", "900dp");
-    assertTrue(NlWriteCommandActionUtil.compute(textView, "update", () -> transaction.commit()));
+    assertTrue(NlWriteCommandActionUtil.compute(textView, "update", transaction::commit));
     assertTrue(transaction.isComplete());
     assertTrue(transaction.isSuccessful());
 
