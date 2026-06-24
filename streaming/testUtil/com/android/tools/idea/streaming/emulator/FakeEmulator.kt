@@ -697,6 +697,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       executor.execute {
         environment.clear()
         environment.putAll(request.environmentMap)
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun getEnvironment(request: Empty, responseObserver: StreamObserver<Environment>) {
+      executor.execute {
+        val response = Environment.newBuilder().putAllEnvironment(environment).build()
+        sendResponse(responseObserver, response)
       }
     }
 

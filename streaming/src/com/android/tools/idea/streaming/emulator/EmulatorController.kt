@@ -637,6 +637,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Retrieves the current environment configuration for AI glasses. */
+  fun getEnvironment(streamObserver: StreamObserver<Environment>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      log.info("getEnvironment()")
+    }
+    emulatorControllerStub.getEnvironment(
+      EMPTY_PROTO,
+      DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetEnvironmentMethod()),
+    )
+  }
+
   /**
    * Lists existing snapshots. Only the snapshots compatible with the running emulator are returned.
    *
