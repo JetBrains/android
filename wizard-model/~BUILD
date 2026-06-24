@@ -13,6 +13,8 @@ iml_module(
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    exports = ["//tools/adt/idea/observable:intellij.android.observable"],
+    # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
