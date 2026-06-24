@@ -24,6 +24,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.EmulatorType
 import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.sdklib.internal.avd.AvdInfo
@@ -1583,8 +1584,8 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
   }
 
   val deviceSerialNumber = serialNumber
-  when {
-    isLocalEmulator(deviceSerialNumber) -> { // Local virtual device.
+  if (properties.emulatorType == EmulatorType.GOLDFISH) {
+    if (isLocalEmulator(deviceSerialNumber)) { // Local virtual device.
       if (!StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
         return false
       }
@@ -1593,8 +1594,7 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
       if (emulator == null || emulator.emulatorId.isEmbedded) {
         return false
       }
-    }
-    properties.isVirtual == true -> { // Remote virtual device.
+    } else { // Remote virtual device.
       if (!StudioFlags.DEVICE_MIRRORING_REMOTE_EMULATORS.get()) {
         return false
       }
