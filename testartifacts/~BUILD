@@ -73,6 +73,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core.tests",
         "@intellij//:Coverage",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
         "@intellij//:org.jetbrains.plugins.gradle",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/execution/common:intellij.android.execution.common",
