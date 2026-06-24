@@ -75,6 +75,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/.idea/libraries:asm-tools",
