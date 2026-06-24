@@ -61,7 +61,7 @@ internal class DeviceNamePropertiesFetcherTest {
   ): DeviceNamePropertiesFetcher {
     return DeviceNamePropertiesFetcher(
       myDisposable,
-      object : FutureCallback<DeviceNameProperties?> {
+      object : FutureCallback<DeviceNameProperties> {
         var successCount = 0
 
         override fun onFailure(t: Throwable) {
@@ -69,7 +69,7 @@ internal class DeviceNamePropertiesFetcherTest {
           failureLatch.countDown()
         }
 
-        override fun onSuccess(properties: DeviceNameProperties?) {
+        override fun onSuccess(properties: DeviceNameProperties) {
           result.set(ResultType.SUCCESS)
           successLatch[successCount++].countDown()
         }
@@ -189,10 +189,10 @@ internal class DeviceNamePropertiesFetcherTest {
   fun getDeviceUnauthorized() {
     val d =
       createDevice(
-        Futures.immediateFuture(null),
-        Futures.immediateFuture(null),
-        Futures.immediateFuture(null),
-        Futures.immediateFuture(null),
+        Futures.immediateFuture("someManufacturer"),
+        Futures.immediateFuture("someModel"),
+        Futures.immediateFuture("someBuild"),
+        Futures.immediateFuture("someApiLevel"),
       )
     val result = AtomicReference<ResultType>()
     val countDownLatch = CountDownLatch(1)
@@ -201,7 +201,7 @@ internal class DeviceNamePropertiesFetcherTest {
     assertNull(deviceProperties.buildVersion)
     countDownLatch.await(2, TimeUnit.SECONDS)
     deviceProperties = deviceNamePropertiesProvider.get(d)
-    assertNull(deviceProperties.buildVersion)
+    assertEquals(deviceProperties.buildVersion, "someBuild")
     assertEquals(ResultType.SUCCESS, result.get())
   }
 

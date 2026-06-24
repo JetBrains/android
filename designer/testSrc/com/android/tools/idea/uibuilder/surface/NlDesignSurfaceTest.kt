@@ -158,17 +158,17 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     designSurface.setModel(model)
     val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
     val dataContext = DataContext.EMPTY_CONTEXT
-    val button = model.treeReader.find("cuteLittleButton")
-    designSurface.selectionModel.setSelection(listOfNotNull(button))
+    val button = checkNotNull(model.treeReader.find("cuteLittleButton"))
+    designSurface.selectionModel.setSelection(listOf(button))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
     val button2 = model.treeReader.find("cuteLittleButton2")
-    assertNotNull(button2)
-    designSurface.selectionModel.setSelection(listOfNotNull(button2))
+    checkNotNull(button2)
+    designSurface.selectionModel.setSelection(listOf(button2))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
     val button3 = model.treeReader.find("cuteLittleButton3")
-    assertNotNull(button3)
+    checkNotNull(button3)
   }
 
   /** Cut a component and check that the id of the new component has been conserved */
@@ -188,8 +188,8 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     designSurface.setModel(model)
     val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
     val dataContext = DataContext.EMPTY_CONTEXT
-    val button = model.treeReader.find("cuteLittleButton")
-    designSurface.selectionModel.setSelection(listOfNotNull(button))
+    val button = checkNotNull(model.treeReader.find("cuteLittleButton"))
+    designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
     assertComponentWithId(model, "cuteLittleButton")

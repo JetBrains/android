@@ -176,7 +176,7 @@ fun mergeResourceFile(
             if (newChild.prevSibling is XmlText && prependElements[0] is XmlText) {
               prependElements.removeAt(0)
               // If we're adding something we'll need a newline/indent after it
-              if (prependElements.isNotEmpty() && indent != null) {
+              if (indent != null && prependElements.isNotEmpty()) {
                 prependElements.add(indent)
               }
             }
