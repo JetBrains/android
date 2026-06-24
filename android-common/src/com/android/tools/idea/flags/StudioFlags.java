@@ -2392,6 +2392,11 @@ public final class StudioFlags {
                     "Enable the restrictive tools for quick edit.",
                     "When enabled, the quick edit agent will use a highly-targeted restrictive toolset to reduce latency.");
 
+  public static final Flag<Boolean> STUDIOBOT_IS_QUICK_EDIT_WORKLOG_ENABLED =
+    new BooleanFlag(STUDIOBOT, "quick.edit.worklog.enabled",
+                    "Enable the worklog in quick-edit.",
+                    "When enabled, the UI to view the detailed work-log of the tasks being done by the agent when using quick-edit is visible.");
+
   public static final Flag<Boolean> STUDIOBOT_USE_BM25_FOR_FIND_FILES =
     new BooleanFlag(STUDIOBOT, "use.bm25.find.files",
                     "Use BM25 for find_files tool",
