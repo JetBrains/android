@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.util.text.HtmlChunk
 
 /**
  * Enables action tooltip that includes the name of the action, the shortcut if any, and the additional text that, if not provided, defaults
@@ -31,8 +32,8 @@ fun Presentation.enableRichTooltip(action: AnAction, detailText: String? = descr
   putClientProperty(
     ActionButton.CUSTOM_HELP_TOOLTIP,
     HelpTooltip().apply {
-      @Suppress("DialogTitleCapitalization") setTitle(text)
-      setDescription(detailText)
+      text?.let { setTitle(HtmlChunk.text(it)) }
+      detailText?.let { setDescription(HtmlChunk.text(it)) }
       val shortcut = KeymapUtil.getFirstKeyboardShortcutText(action.shortcutSet)
       if (shortcut.isNotEmpty()) {
         setShortcut(shortcut)
