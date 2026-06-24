@@ -7,9 +7,17 @@ iml_module(
     iml_files = ["intellij.android.app-quality-insights.play-policy.ide.iml"],
     resources = ["resources"],
     test_class = "com.android.tools.idea.play.PlayPolicyTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:truth",
@@ -24,10 +32,14 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "//tools/base/flags:studio.android.sdktools.flags",
+        "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/lint:intellij.lint",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/android:intellij.android.core",
+        "//tools/vendor/google/play-client/metadata:intellij.android.play-client.metadata",
+        "//tools/vendor/google/login:google-login",
     ],
 )
