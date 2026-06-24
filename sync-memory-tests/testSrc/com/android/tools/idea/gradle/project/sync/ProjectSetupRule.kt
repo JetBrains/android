@@ -24,10 +24,12 @@ import com.android.tools.idea.gradle.util.GradleProperties
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.tests.IdeaTestSuiteBase
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.containers.map2Array
 import java.io.File
 import java.nio.file.Paths
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
 import org.junit.rules.ExternalResource
 
 private const val DIRECTORY = "benchmark"
@@ -149,11 +151,34 @@ class ProjectSetupRuleImpl(
             subscribe = { connection -> listeners.forEach { connection.subscribe(GRADLE_SYNC_TOPIC, it) } },
             // TODO(b/449111235): Properly set up databinding dependencies for AGP 8.13 benchmarks
             expectedSyncIssues = if (project.useAgp813) setOf(TYPE_UNRESOLVED_DEPENDENCY) else emptySet(),
+            onProjectCreated = {
+              if (project.useAgp813) {
+                disableKtsSyncForProject()
+              }
+            },
           )
         }
-      ) {
-        body(it)
+      ) { project ->
+        body(project)
       }
+  }
+
+  /**
+   * Disables Kotlin scripting contributors that trigger expensive model requests during sync. This is necessary for large benchmarks to
+   * avoid OOM in the Gradle Daemon. This is only done for 8.13 benchmark where resilient sync isn't optimised.
+   */
+  private fun disableKtsSyncForProject() {
+    val area = ApplicationManager.getApplication().extensionArea
+
+    val contributorsExtension = area.getExtensionPoint(GradleSyncContributor.EP_NAME)
+    val targets =
+      contributorsExtension.extensionList.filter { extension -> extension.javaClass.name.contains("KotlinDslScriptSyncContributor") }
+
+    for (target in targets) {
+      try {
+        contributorsExtension.unregisterExtension(target)
+      } catch (_: Exception) {}
+    }
   }
 
   companion object : IdeaTestSuiteBase() {
