@@ -16,6 +16,8 @@
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.actions.disableRichTooltip
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -31,9 +33,11 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener) : TreeMenuIt
 
   override fun getText(numOfNodes: Int): String {
     val selectionText = if (isActionSelected) "off" else "on"
-    val buttonText = "Turn $selectionText package filter"
-    return if (!shouldBeEnabled) "<html>$buttonText<br>Disabled due to no application IDs found</html>" else buttonText
+    return "Turn $selectionText package filter"
   }
+
+  override val description: String?
+    get() = if (!shouldBeEnabled) "Disabled due to no application IDs found" else null
 
   override val action: AnAction =
     object : ToggleAction() {
@@ -42,10 +46,16 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener) : TreeMenuIt
       override fun update(e: AnActionEvent) {
         val presentation = e.presentation
         presentation.text = text
+        presentation.description = description
         presentation.isEnabled = isEnabled
         presentation.isVisible = isVisible
         presentation.icon = icon
         Toggleable.setSelected(presentation, isSelected(e))
+        if (description != null) {
+          presentation.enableRichTooltip(this)
+        } else {
+          presentation.disableRichTooltip()
+        }
       }
 
       override fun actionPerformed(e: AnActionEvent) {

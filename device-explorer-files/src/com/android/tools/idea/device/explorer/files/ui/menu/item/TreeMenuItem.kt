@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.files.ui.menu.item
 
+import com.android.tools.idea.actions.disableRichTooltip
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -36,6 +38,9 @@ abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : Po
       return getText(nodes)
     }
 
+  override val description: String?
+    get() = null
+
   override val icon: Icon?
     get() = null
 
@@ -56,10 +61,16 @@ abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : Po
       override fun update(e: AnActionEvent) {
         val presentation = e.presentation
         presentation.text = text
+        presentation.description = description
         presentation.isEnabled = isEnabled
         presentation.isVisible = isVisible
         presentation.icon = icon
         Toggleable.setSelected(presentation, isSelected(e))
+        if (description != null) {
+          presentation.enableRichTooltip(this)
+        } else {
+          presentation.disableRichTooltip()
+        }
       }
 
       override fun actionPerformed(e: AnActionEvent) {

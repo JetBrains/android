@@ -23,12 +23,10 @@ import javax.swing.Icon
 class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     val processStr = if (numOfNodes > 1) "processes" else "process"
-    return if (context == MenuContext.Toolbar) {
-      "<html><b>Kill $processStr</b><br>Terminates the target VM</html>"
-    } else {
-      "Kill $processStr"
-    }
+    return "Kill $processStr"
   }
+
+  override val description = "Terminates the target VM"
 
   override val icon: Icon
     get() {

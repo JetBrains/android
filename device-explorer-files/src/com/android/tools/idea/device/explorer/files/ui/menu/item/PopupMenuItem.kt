@@ -22,6 +22,9 @@ import javax.swing.Icon
 /** A wrapper for creating popup menu items for a UI component. */
 interface PopupMenuItem : Runnable {
   val text: String
+  val description: String?
+    get() = null
+
   val icon: Icon?
   val isEnabled: Boolean
   val isVisible: Boolean
