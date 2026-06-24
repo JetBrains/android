@@ -2448,7 +2448,7 @@
 +++Android Studio.app/Contents/plugins/android/lib/manifest-merger.jar
 +++Android Studio.app/Contents/plugins/android/lib/memory-usage.jar
 +++Android Studio.app/Contents/plugins/android/lib/network_inspector_java_proto.jar
-+++Android Studio.app/Contents/plugins/android/lib/okio-jvm-3.9.0.jar
++++Android Studio.app/Contents/plugins/android/lib/okio-jvm-3.17.0.jar
 +++Android Studio.app/Contents/plugins/android/lib/opencensus-api-0.31.1.jar
 +++Android Studio.app/Contents/plugins/android/lib/opencensus-contrib-http-util-0.31.1.jar
 +++Android Studio.app/Contents/plugins/android/lib/org.eclipse.elk.alg.layered-0.3.0.jar
@@ -2485,13 +2485,13 @@
 +++Android Studio.app/Contents/plugins/android/lib/studio_cli_service_kt_proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 +++Android Studio.app/Contents/plugins/android/lib/traceprocessor_protos.jar
-+++Android Studio.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha06.jar
++++Android Studio.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha09.jar
 +++Android Studio.app/Contents/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
-+++Android Studio.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha06.jar
++++Android Studio.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha09.jar
 +++Android Studio.app/Contents/plugins/android/lib/transport_java_proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 +++Android Studio.app/Contents/plugins/android/lib/utp.jar
-+++Android Studio.app/Contents/plugins/android/lib/wire-runtime-jvm-6.0.0.jar
++++Android Studio.app/Contents/plugins/android/lib/wire-runtime-jvm-6.4.0.jar
 +++Android Studio.app/Contents/plugins/android/lib/wizard-template.jar
 +++Android Studio.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
 +++Android Studio.app/Contents/plugins/android/resources/android-cli/bin/android
@@ -6352,7 +6352,7 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/manifest-merger.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/memory-usage.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/network_inspector_java_proto.jar
----Android Studio Preview.app/Contents/plugins/android/lib/okio-jvm-3.9.0.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/okio-jvm-3.17.0.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/opencensus-api-0.31.1.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/opencensus-contrib-http-util-0.31.1.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.elk.alg.layered-0.3.0.jar
@@ -6389,13 +6389,13 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/studio_cli_service_kt_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/traceprocessor_protos.jar
----Android Studio Preview.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha06.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha09.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
----Android Studio Preview.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha06.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha09.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/transport_java_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
----Android Studio Preview.app/Contents/plugins/android/lib/wire-runtime-jvm-6.0.0.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/wire-runtime-jvm-6.4.0.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/resources/android-cli/bin/android

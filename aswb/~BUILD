@@ -84,7 +84,7 @@ studio_plugin(
         "//tools/base/annotations:annotations",
         "@maven//:com.google.auto.value.auto-value",
         "@maven//:com.google.auto.value.auto-value-annotations",
-        "@maven//:org.jspecify.jspecify",
+        "//prebuilts/tools/common/m2:jspecify-0.2.0",
         "@maven//:com.google.errorprone.error_prone_annotations",
     ],
     modules = {
