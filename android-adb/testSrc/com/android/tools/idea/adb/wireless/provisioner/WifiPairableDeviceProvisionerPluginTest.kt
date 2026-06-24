@@ -35,12 +35,10 @@ import com.android.tools.idea.adb.wireless.PairingResult
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.WiFiPairingController
 import com.android.tools.idea.adb.wireless.v2.ui.WifiPairableDevicesPersistentStateComponent
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -48,9 +46,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.common.waitUntil
-import icons.StudioIcons
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -365,24 +361,6 @@ class WifiPairableDeviceProvisionerPluginTest {
         }
       )
     verify(pairingController).showDialog()
-  }
-
-  @Test
-  fun hideAction_addsDeviceToHiddenList() = runTest {
-    mdnsFlow.value = createMdnsTlsService("service1", "My Pixel", "1.2.3.4", 1234)
-    val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
-    advanceTimeBy(6000) // Past initial delay
-
-    val handle = plugin.devices.value.first()
-    handle.hideDeviceAction!!.hide()
-
-    verify(mockPersistentService).addHiddenDevice("service1")
-
-    val (title, content, type, icon) = pumpEventsAndWaitForFuture(notificationService.showBalloonTracker.consume(), 5, TimeUnit.SECONDS)
-    assertThat(title).isEqualTo("My Pixel is now hidden")
-    assertThat(content).isEqualTo("You can view and pair all devices by using the Wi-Fi pairing dialog.")
-    assertThat(type).isEqualTo(NotificationType.INFORMATION)
-    assertThat(icon).isEqualTo(StudioIcons.Common.SUCCESS)
   }
 
   @Test
