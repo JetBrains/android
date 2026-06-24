@@ -44,24 +44,17 @@ class BuildDependenciesAction : BlazeProjectAction() {
     val presentation = e.presentation
     presentation.setIcon(AllIcons.Actions.Compile)
     presentation.setText(if (e.place == ActionPlaces.MAIN_MENU) "$NAME for Current File" else NAME)
-    val vfs =
-      e.getVirtualFiles()
-        ?: let {
-          presentation.setEnabled(false)
-          return
-        }
+    e.getVirtualFiles()
+      ?: let {
+        presentation.isEnabled = false
+        return
+      }
     val helper = BuildDependenciesHelper(project)
-    // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
-    // they should automatically trigger sync.
-    if (vfs.all { !helper.canEnableAnalysisFor(it) }) {
-      presentation.setEnabled(false)
-      return
-    }
     if (!helper.canEnableAnalysisNow()) {
-      presentation.setEnabled(false)
+      presentation.isEnabled = false
       return
     }
-    presentation.setEnabled(true)
+    presentation.isEnabled = true
   }
 
   override fun actionPerformedInBlazeProject(project: Project, e: AnActionEvent) {
