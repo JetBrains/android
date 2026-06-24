@@ -237,14 +237,16 @@
     <applicationService serviceInterface="com.google.idea.blaze.base.io.InputStreamProvider"
                         serviceImplementation="com.google.idea.blaze.base.io.InputStreamProviderImpl"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.io.FileOperationProvider"
-                        serviceImplementation="com.google.idea.blaze.base.io.FileOperationProvider"/>
+                        serviceImplementation="com.google.idea.blaze.base.io.FileOperationProvider"
+                        open="true"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.io.VirtualFileSystemProvider"
                         serviceImplementation="com.google.idea.blaze.base.io.VirtualFileSystemProviderImpl"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.command.info.BlazeInfoRunner"
                         serviceImplementation="com.google.idea.blaze.base.command.info.BlazeInfoRunnerImpl"/>
     <applicationService serviceImplementation="com.google.idea.blaze.base.model.primitives.Kind$ApplicationState"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.io.TempDirectoryProvider"
-                        serviceImplementation="com.google.idea.blaze.base.io.TempDirectoryProviderImpl"/>
+                        serviceImplementation="com.google.idea.blaze.base.io.TempDirectoryProviderImpl"
+                        open="true"/>
 
     <treeStructureProvider implementation="com.google.idea.blaze.base.treeview.BlazeTreeStructureProvider" id="blaze" order="last"/>
 
@@ -274,12 +276,15 @@
                     serviceImplementation="com.google.idea.blaze.base.sync.projectstructure.ModuleFinderImpl"/>
     <applicationService serviceImplementation="com.google.idea.blaze.base.sync.projectview.RelatedWorkspacePathFinder"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.prefetch.RemoteArtifactPrefetcher"
-                    serviceImplementation="com.google.idea.blaze.base.prefetch.DefaultPrefetcher"/>
+                    serviceImplementation="com.google.idea.blaze.base.prefetch.DefaultPrefetcher"
+                    open="true"/>
     <applicationService serviceImplementation="com.google.idea.blaze.base.wizard2.BlazeWizardUserSettingsStorage"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.wizard2.BlazeWizardOptionProvider"
-                        serviceImplementation="com.google.idea.blaze.base.wizard2.BazelWizardOptionProvider"/>
+                        serviceImplementation="com.google.idea.blaze.base.wizard2.BazelWizardOptionProvider"
+                        open="true"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.project.ExtendableBazelProjectCreator"
-                        serviceImplementation="com.google.idea.blaze.base.project.TrustAwareProjectCreator"/>
+                        serviceImplementation="com.google.idea.blaze.base.project.TrustAwareProjectCreator"
+                        open="true"/>
     <projectService serviceInterface="com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverProvider"
                     serviceImplementation="com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverProviderImpl"/>
     <projectService serviceInterface="com.google.idea.blaze.base.sync.projectview.WorkspaceFileFinder$Provider"
@@ -306,7 +311,8 @@
         order="first"/>
     <stepsBeforeRunProvider implementation="com.google.idea.blaze.base.run.BlazeBeforeRunTaskProvider"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.help.BlazeHelpHandler"
-                        serviceImplementation="com.google.idea.blaze.base.help.BlazeHelpHandlerImpl"/>
+                        serviceImplementation="com.google.idea.blaze.base.help.BlazeHelpHandlerImpl"
+                        open="true"/>
     <applicationService serviceInterface="com.google.idea.blaze.base.async.process.ExternalTaskProvider"
                         serviceImplementation="com.google.idea.blaze.base.async.process.ExternalTaskProvider$Impl"/>
 
