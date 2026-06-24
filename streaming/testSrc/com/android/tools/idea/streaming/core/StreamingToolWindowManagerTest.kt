@@ -211,7 +211,7 @@ class StreamingToolWindowManagerTest {
     val startPhoneAction = getAddDeviceAction(phone.avdName)
     assertThat(startPhoneAction.templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
     executeAction(startPhoneAction, toolWindow.component, project)
-    waitForCondition(2.seconds) { contentManager.contents.size == 2 }
+    waitForCondition(2.seconds) { contentManager.contents.size == 2 && toolWindow.isActive }
 
     // The Running Devices tool window is opened and activated when an embedded emulator is launched by a direct request.
     assertThat(toolWindow.isActive).isTrue()
