@@ -312,7 +312,7 @@ internal class VariantDiscovery(
             // The below is ignored for this model, but we need to set them regardless to avoid issues
             // Ideally we should have a separate set of parameters for each model, but that's currently not the case
             it.buildAllRuntimeClasspaths(addAdditionalArtifactsInModel = true)
-          }
+          }!!
 
         @Suppress("DEPRECATION") // Have to be backwards compatible here
         val modulesIdsByVariantName =
