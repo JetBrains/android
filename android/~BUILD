@@ -154,7 +154,6 @@ iml_module(
         "@intellij//:intellij.xml.emmet",
         "@intellij//:intellij.java.compiler",
         "@intellij//:intellij.java.compiler.impl",
-        "@intellij//:intellij.platform.diagnostic.freezes",
         "@intellij//:intellij.platform.diagnostic.freezeAnalyzer",
     ],
 )
