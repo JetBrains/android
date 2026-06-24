@@ -557,6 +557,15 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
+  @NotNull
+  public List<String> getFullNameParts() {
+    if (myElement != null) {
+      return myElement.getNameElement().fullNameParts();
+    }
+    return GradleNameElement.split(myName);
+  }
+
+  @Override
   public boolean isModified() {
     GradleDslElement element = myElement;
     if (element != null) {

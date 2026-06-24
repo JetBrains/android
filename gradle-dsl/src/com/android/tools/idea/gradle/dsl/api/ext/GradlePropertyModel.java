@@ -316,6 +316,12 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDs
   void rename(@NotNull List<String> hierarchicalName);
 
   /**
+   * @return the parts of the full name of this property.
+   */
+  @NotNull
+  List<String> getFullNameParts();
+
+  /**
    * @return whether or not this property has been modified since it was obtained from the file.
    */
   boolean isModified();
