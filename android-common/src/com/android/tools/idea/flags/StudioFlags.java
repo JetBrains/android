@@ -2492,7 +2492,7 @@ public final class StudioFlags {
     new EnumFlag<>(STUDIOBOT, "plan.mode",
                    "Select Studio Bot planning mode",
                    "Controls whether planning mode is disabled, uses v2 planning, or uses guided mode.",
-                   StudioBotPlanMode.V2);
+                   StudioBotPlanMode.GUIDED_MODE);
 
   public static final Flag<Boolean> STUDIOBOT_ASK_FOR_MORE_DETAIL_ENABLED =
     new BooleanFlag(STUDIOBOT, "ask.for.more.detail.enabled",
