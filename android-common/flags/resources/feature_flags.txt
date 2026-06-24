@@ -253,6 +253,7 @@ studiobot.prompt.library.rules=COMPLETE:2025
 studiobot.prompt.library=COMPLETE:2025
 studiobot.query.cyclic.expand=COMPLETE:2026
 studiobot.quick.edit.enabled=PREVIEW
+studiobot.quick.edit.worklog.enabled=INTERNAL
 studiobot.rag.use.lucindex=PREVIEW
 studiobot.read.outline.tool=COMPLETE:2026
 studiobot.read.uri.tool=COMPLETE:2026
