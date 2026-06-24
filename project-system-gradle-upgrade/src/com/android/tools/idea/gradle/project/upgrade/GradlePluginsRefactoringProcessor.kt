@@ -421,7 +421,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_9_3_1,
         VERSION_9_4_1,
         VERSION_9_5_0,
-        VERSION_FOR_DEV -> Version.parse("2.3.2")
+        VERSION_FOR_DEV -> Version.parse("2.3.6")
       }
 
     fun `androidx-room-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
