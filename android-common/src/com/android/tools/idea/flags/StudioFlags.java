@@ -1861,6 +1861,14 @@ public final class StudioFlags {
       "Enable Play Policy Insights"
     );
 
+  public static final Flag<Boolean> PLAY_POLICY_METADATA_EXPORT_ENABLED =
+    new BooleanFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.metadata.export.enabled",
+      "Play Policy Metadata Export",
+      "Enable Play Policy Metadata export via MetadataProvider"
+    );
+
   // Flag only for unplanned compatibility issues between Android Studio and lint libraries.
   public static final Flag<String> PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION =
     new StringFlag(

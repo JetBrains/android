@@ -24,9 +24,18 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.play.holdoutRatioProvider"
         interface="com.android.tools.idea.play.HoldoutRatioProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.play.metadataProvider"
+        interface="com.android.tools.idea.play.MetadataProvider"
+        area="IDEA_PROJECT"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.play">
     <holdoutRatioProvider implementation="com.android.tools.idea.play.HoldoutRatioProviderImpl"/>
+    <metadataProvider implementation="com.android.tools.idea.play.MetadataProviderImpl"/>
   </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <postStartupActivity implementation="com.android.tools.idea.play.PlayPolicyProjectActivity" />
+  </extensions>
+
 </idea-plugin>
