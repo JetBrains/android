@@ -1061,7 +1061,10 @@ public final class GroovyDslUtil {
 
   @NotNull
   static String quotePartIfNecessary(String part) {
-    if(!GROOVY_NORMAL_IDENTIFIER.matcher(part).matches()) {
+    // TODO(b/268533896): Potentially, other qualifiers need to be considered, like project.
+    if (part.startsWith("ext."))
+      return part;
+    else if(!GROOVY_NORMAL_IDENTIFIER.matcher(part).matches()) {
       // TODO(b/126937269): need to escape single quotes (and backslashes).  Also needs support from the parser
       return "\'" + part + "\'";
     }

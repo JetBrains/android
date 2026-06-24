@@ -238,6 +238,12 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  @NotNull
+  public List<String> getFullNameParts() {
+    return myRealModel.getFullNameParts();
+  }
+
+  @Override
   public boolean isModified() {
     return myRealModel.isModified();
   }

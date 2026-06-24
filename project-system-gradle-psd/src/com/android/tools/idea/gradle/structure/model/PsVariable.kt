@@ -90,7 +90,14 @@ class PsVariable(override val parent: PsModel, val scopePsVariables: PsVariables
   }
 
   fun setName(newName: String) {
-    property!!.rename(newName)
+    val currentParts = property!!.fullNameParts
+    if (currentParts.size > 1) {
+      val newParts = currentParts.toMutableList()
+      newParts[newParts.size - 1] = newName
+      property!!.rename(newParts)
+    } else {
+      property!!.rename(newName)
+    }
     refreshCollection()
     parent.isModified = true
   }
