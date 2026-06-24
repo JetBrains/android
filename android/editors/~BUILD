@@ -30,6 +30,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "@intellij//:com.intellij.properties",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
