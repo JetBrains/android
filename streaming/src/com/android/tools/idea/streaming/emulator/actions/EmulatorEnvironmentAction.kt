@@ -18,8 +18,10 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.Environment
 import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.avd.EnvironmentImageScanner.is360Image
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -73,6 +75,13 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
 
   protected fun Path.toSystemIndependentString(): String = toSystemIndependentName(this.toString())
 
+  protected suspend fun createImageEnvironmentMessage(path: Path): Environment {
+    val is360 = StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.get() && withContext(Dispatchers.IO) { is360Image(path) }
+    val pathStr = toSystemIndependentName(path.toString())
+    val mode = if (is360) "image360:$pathStr" else "imagefile:$pathStr"
+    return Environment.newBuilder().putEnvironment("scene.mode", mode).build()
+  }
+
   class None : EmulatorEnvironmentAction() {
     override suspend fun prepareEnvironment(project: Project?): Environment = Environment.newBuilder().build()
   }
@@ -82,18 +91,19 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     private var filePath: String? = null
 
     override suspend fun prepareEnvironment(project: Project?): Environment? {
-      return withContext(Dispatchers.EDT) {
-        val descriptor =
-          FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
-            .withExtensionFilter("Image files", "png", "jpg", "jpeg")
-            .withTitle("Select an Image File")
-            .withDescription("Select an image file to be used for environment")
-        val virtualFile = chooseFile(descriptor, project, null)
-        virtualFile?.let {
-          filePath = toSystemIndependentName(it.path)
-          Environment.newBuilder().putEnvironment("scene.mode", "imagefile:$filePath").build()
-        }
-      }
+      val virtualFile =
+        withContext(Dispatchers.EDT) {
+          val descriptor =
+            FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+              .withExtensionFilter("Image files", "png", "jpg", "jpeg")
+              .withTitle("Select an Image File")
+              .withDescription("Select an image file to be used for environment")
+          chooseFile(descriptor, project, null)
+        } ?: return null
+
+      filePath = toSystemIndependentName(virtualFile.path)
+      val path = Path.of(virtualFile.path)
+      return createImageEnvironmentMessage(path)
     }
 
     override fun onEnvironmentSet(environment: Environment) {
@@ -109,7 +119,7 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     }
 
     override suspend fun prepareEnvironment(project: Project?): Environment? {
-      return Environment.newBuilder().putEnvironment("scene.mode", "imagefile:${toSystemIndependentName(filePath.toString())}").build()
+      return createImageEnvironmentMessage(filePath)
     }
 
     override fun onEnvironmentSet(environment: Environment) {
@@ -136,8 +146,9 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
       templatePresentation.description = "Select $title environment"
     }
 
-    override suspend fun prepareEnvironment(project: Project?): Environment =
-      Environment.newBuilder().putEnvironment("scene.mode", "imagefile:${environmentPath.toSystemIndependentString()}").build()
+    override suspend fun prepareEnvironment(project: Project?): Environment {
+      return createImageEnvironmentMessage(environmentPath)
+    }
   }
 
   companion object {
