@@ -78,17 +78,17 @@ class ListenerCollection<T : Any> private constructor(private val myExecutor: Ex
    * Iterates over all the listeners in the given [Executor]. This method returns a [ListenableFuture] to know when the processing has
    * finished.
    */
-  fun forEach(runOnListener: Consumer<T>): ListenableFuture<Void?> {
+  fun forEach(runOnListener: Consumer<T>): ListenableFuture<Unit> {
     val listeners: Set<T> = getUpToDateListeners()
 
     if (listeners.isEmpty()) {
-      return Futures.immediateFuture(null)
+      return Futures.immediateFuture(Unit)
     }
 
-    val future = SettableFuture.create<Void?>()
+    val future = SettableFuture.create<Unit>()
     myExecutor.execute {
       listeners.forEach(runOnListener)
-      future.set(null)
+      future.set(Unit)
     }
 
     return future

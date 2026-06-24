@@ -54,8 +54,8 @@ class ConsumerRulesInspectionTest(val projectType: IdeAndroidProjectType, val ex
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameters(name = "androidProjectType={0},extension={1}")
-    val data =
-      listOf<Array<Any>>(
+    val data: List<Array<Any>> =
+      listOf(
         arrayOf(IdeAndroidProjectType.PROJECT_TYPE_APP, ".pro"),
         arrayOf(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, ".pro"),
         arrayOf(IdeAndroidProjectType.PROJECT_TYPE_APP, ".keep"),

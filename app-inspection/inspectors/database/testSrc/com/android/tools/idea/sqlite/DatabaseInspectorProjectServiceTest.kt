@@ -48,6 +48,7 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.util.concurrency.EdtExecutorService
 import java.io.File
+import kotlin.io.path.createTempFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
@@ -275,7 +276,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     whenever(mockAndroidDebugBridge.devices).thenReturn(emptyArray())
     whenever(mockAdbService.getDebugBridge(any<File>())).thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
 
-    val tmpFile = kotlin.io.path.createTempFile().toFile()
+    val tmpFile = createTempFile().toFile()
     val adbFileProvider = AdbFileProvider { tmpFile }
     project.replaceService(AdbFileProvider::class.java, adbFileProvider, testRootDisposable)
   }
