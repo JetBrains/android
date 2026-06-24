@@ -251,10 +251,6 @@ class QuerySyncProject(
     }
   }
 
-  fun canEnableAnalysisFor(workspacePath: Path): Boolean {
-    return getProjectTargets(listOf(workspacePath)).isNotEmpty()
-  }
-
   fun isReadyForAnalysis(path: Path): Boolean {
     if (!path.startsWith(workspaceRoot.path())) {
       // Not in the workspace.

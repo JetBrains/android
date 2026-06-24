@@ -44,10 +44,6 @@ class BuildDependenciesForDirectReverseDepsAction : BlazeProjectAction() {
       return
     }
 
-    if (vfs.all { !helper.canEnableAnalysisFor(it) }) {
-      return
-    }
-
     val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(project, javaClass, e, ImmutableList.copyOf(vfs))
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs),

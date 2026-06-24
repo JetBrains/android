@@ -761,10 +761,6 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
   }
 
-  fun canEnableAnalysisFor(workspaceRelativePath: Path): Boolean {
-    return loadedProject?.canEnableAnalysisFor(workspaceRelativePath) ?: false
-  }
-
   fun operationInProgress(): Boolean = syncStatus.operationInProgress()
 
   fun currentOperation(): Optional<OperationType> = syncStatus.currentOperation()
