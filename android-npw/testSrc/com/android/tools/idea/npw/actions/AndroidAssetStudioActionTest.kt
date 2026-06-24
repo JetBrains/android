@@ -17,6 +17,8 @@ package com.android.tools.idea.npw.actions
 
 // Android Studio Merge: ignore vendor dependencies
 // import com.android.tools.asfp.projectSystem.AsfpProjectSystem
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -164,14 +166,19 @@ class AndroidAssetStudioActionTest {
     }
   }
 
-  // Android Studio Merge: ignore vendor dependencies - AsfpProjectSystem lives in vendor module asfp.base, which is not part of monorepo/cannot be compiled
-  /*
   @Test
-  fun testUpdateDisabledWithAsfpProjectSystem() {
+  fun testUpdateDisabledWithProjectSystemThatDisallowsFileCreation() {
     val project = projectRule.project
-    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(AsfpProjectSystem(project))
     projectRule.fixture.addFileToProject("AndroidManifest.xml", "<manifest package=\"com.example\"/>")
     val stringsVirtual = projectRule.fixture.addFileToProject("res/values/strings.xml", "<resources></resources>").virtualFile
+
+    val module = ModuleUtilCore.findModuleForFile(stringsVirtual, project)!!
+    val projectSystem = mock(AndroidProjectSystem::class.java)
+    val moduleSystem = mock(AndroidModuleSystem::class.java)
+    `when`(projectSystem.project).thenReturn(project)
+    `when`(projectSystem.allowsFileCreation()).thenReturn(false)
+    `when`(projectSystem.getModuleSystem(module)).thenReturn(moduleSystem)
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(projectSystem)
 
     ApplicationManager.getApplication().runReadAction {
       val action =
@@ -202,5 +209,49 @@ class AndroidAssetStudioActionTest {
       assertThat(event.presentation.isVisible).isFalse()
     }
   }
-  */
+
+  @Test
+  fun testUpdateDisabledWithProjectSystemWithoutTemplates() {
+    val project = projectRule.project
+    projectRule.fixture.addFileToProject("AndroidManifest.xml", "<manifest package=\"com.example\"/>")
+    val stringsVirtual = projectRule.fixture.addFileToProject("res/values/strings.xml", "<resources></resources>").virtualFile
+
+    val module = ModuleUtilCore.findModuleForFile(stringsVirtual, project)!!
+    val projectSystem = mock(AndroidProjectSystem::class.java)
+    val moduleSystem = mock(AndroidModuleSystem::class.java)
+    `when`(projectSystem.project).thenReturn(project)
+    `when`(projectSystem.allowsFileCreation()).thenReturn(true)
+    `when`(projectSystem.getModuleSystem(module)).thenReturn(moduleSystem)
+    `when`(moduleSystem.getModuleTemplates(stringsVirtual)).thenReturn(emptyList())
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(projectSystem)
+
+    ApplicationManager.getApplication().runReadAction {
+      val action =
+        object : AndroidAssetStudioAction("Test", "Test Description") {
+          override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard =
+            mock(ModelWizard::class.java)
+
+          override fun showWizard(wizard: ModelWizard, facet: AndroidFacet) {}
+
+          override val wizardMinimumSize: Dimension = Dimension(0, 0)
+          override val wizardPreferredSize: Dimension = Dimension(0, 0)
+        }
+
+      val ideView = mock(IdeView::class.java)
+      val psiDir = PsiManager.getInstance(project).findDirectory(stringsVirtual.parent)
+      `when`(ideView.directories).thenReturn(arrayOf(psiDir!!))
+
+      val dataContext =
+        SimpleDataContext.builder()
+          .add(CommonDataKeys.PROJECT, project)
+          .add(CommonDataKeys.VIRTUAL_FILE, stringsVirtual)
+          .add(LangDataKeys.IDE_VIEW, ideView)
+          .build()
+
+      val event = AnActionEvent.createEvent(dataContext, null, "menu", ActionUiKind.POPUP, null)
+
+      action.update(event)
+      assertThat(event.presentation.isVisible).isFalse()
+    }
+  }
 }
