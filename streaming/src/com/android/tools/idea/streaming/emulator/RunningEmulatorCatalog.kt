@@ -21,6 +21,7 @@ import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.sdklib.deviceprovisioner.RunningAvd
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.avdmanager.RunningAvdTracker
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
@@ -35,14 +36,21 @@ import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.Alarm
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import java.io.IOException
+import java.lang.ref.WeakReference
 import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.ClosedWatchServiceException
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
+import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
+import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
+import java.nio.file.StandardWatchEventKinds.OVERFLOW
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.regex.Pattern
 import kotlin.concurrent.read
@@ -50,12 +58,15 @@ import kotlin.concurrent.write
 import kotlin.io.path.deleteIfExists
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 /** Keeps track of Android Emulators running on the local machine under the current user account. */
 @Service(Service.Level.APP)
 class RunningEmulatorCatalog : Disposable.Parent {
-  // TODO: Use WatchService instead of polling.
   @Volatile var emulators: Set<EmulatorController> = ImmutableSet.of()
 
   private val fileNamePattern = Pattern.compile("pid_(\\d+).ini")
@@ -74,6 +85,91 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @GuardedBy("dataLock") private var pendingUpdateResults: MutableList<CompletableDeferred<Set<EmulatorController>>> = mutableListOf()
   @GuardedBy("dataLock") private var registrationDirectory: Path? = computeRegistrationDirectory()
   private var runningAvdTracker: RunningAvdTracker? = null
+
+  private val scope = createCoroutineScope()
+  @GuardedBy("dataLock") private var watchJob: Job? = null
+  @Volatile private var useWatchService = false
+
+  init {
+    startWatchService()
+  }
+
+  private fun startWatchService() {
+    synchronized(dataLock) {
+      watchJob?.cancel()
+      useWatchService = false
+      val directory = registrationDirectory ?: return
+
+      watchJob =
+        scope.launch(Dispatchers.IO) {
+          try {
+            Files.createDirectories(directory)
+          } catch (e: Exception) {
+            thisLogger().warn("Failed to create emulator registration directory $directory, falling back to polling", e)
+            return@launch
+          }
+
+          try {
+            val watchService = directory.fileSystem.newWatchService()
+            val cancellationHandler =
+              coroutineContext[Job]?.invokeOnCompletion {
+                try {
+                  watchService.close()
+                } catch (_: Exception) {}
+              }
+
+            try {
+              directory.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
+              useWatchService = true
+
+              // Run initial update safely through the alarm thread
+              scheduleUpdate(0)
+
+              while (isActive) {
+                val key = watchService.poll(1, TimeUnit.SECONDS) ?: continue
+                var needsUpdate = false
+                for (event in key.pollEvents()) {
+                  val kind = event.kind()
+                  if (kind == ENTRY_CREATE || kind == ENTRY_DELETE || kind == ENTRY_MODIFY || kind == OVERFLOW) {
+                    needsUpdate = true
+                  }
+                }
+                if (!key.reset()) {
+                  break
+                }
+                if (needsUpdate && isActive) {
+                  val delay =
+                    synchronized(dataLock) {
+                      // Don't allow updates to run too frequently.
+                      val minimumIntervalBetweenUpdates = lastUpdateDuration * 100
+                      val timeSinceLastUpdate = System.currentTimeMillis() - lastUpdateStartTime - lastUpdateDuration
+                      (minimumIntervalBetweenUpdates - timeSinceLastUpdate).coerceAtLeast(0)
+                    }
+                  scheduleUpdate(delay)
+                }
+              }
+            } finally {
+              cancellationHandler?.dispose()
+              try {
+                watchService.close()
+              } catch (_: Exception) {}
+            }
+          } catch (_: ClosedWatchServiceException) {
+            // Normal termination
+          } catch (_: InterruptedException) {
+            // Normal termination
+          } catch (e: Exception) {
+            thisLogger().warn("Error in emulator catalog WatchService, falling back to polling", e)
+            synchronized(dataLock) {
+              useWatchService = false
+              if (updateInterval != Long.MAX_VALUE) {
+                scheduleUpdate(updateInterval)
+              }
+            }
+          }
+        }
+    }
+  }
 
   /**
    * Adds a listener that will be notified when new emulators start and running emulators shut down. The [updateIntervalMillis] parameter
@@ -94,7 +190,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
       val newUpdateInterval = updateIntervalsByListener.object2LongEntrySet().minOf { it.longValue }
       if (newUpdateInterval != updateInterval) {
         updateInterval = newUpdateInterval
-        scheduleUpdate(updateInterval)
+        if (!useWatchService) {
+          scheduleUpdate(updateInterval)
+        }
       }
     }
   }
@@ -110,7 +208,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
           updateInterval = Long.MAX_VALUE
         } else {
           updateInterval = updateIntervalsByListener.object2LongEntrySet().minOf { it.longValue }
-          scheduleUpdate(updateInterval)
+          if (!useWatchService) {
+            scheduleUpdate(updateInterval)
+          }
         }
       }
     }
@@ -188,6 +288,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
                     emulator.loadEmulatorConfiguration()
                   }
                   created = true
+                  val processHandle = ProcessHandleProvider.getProcessHandle(emulatorId.pid)
+                  val catalogRef = WeakReference(this@RunningEmulatorCatalog)
+                  processHandle?.onExit()?.thenAccept { catalogRef.get()?.updateNow() }
                 }
                 if (!isDisposing) {
                   newEmulators[emulator.emulatorId] = emulator
@@ -219,7 +322,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
         for (result in updateResults) {
           result.complete(emulators)
         }
-        if (!isDisposing) {
+        if (!isDisposing && !useWatchService) {
           scheduleUpdate(updateInterval)
         }
       }
@@ -263,7 +366,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
         for (result in updateResults) {
           result.completeExceptionally(e)
         }
-        if (!isDisposing) {
+        if (!isDisposing && !useWatchService) {
           // TODO: Implement exponential backoff for retries.
           scheduleUpdate(updateInterval)
         }
@@ -368,6 +471,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
   override fun beforeTreeDispose() {
     isDisposing = true
 
+    synchronized(dataLock) { watchJob?.cancel() }
+
     // Shut down all embedded Emulators.
     synchronized(dataLock) {
       val runningAvds = serviceIfCreated<RunningAvdTracker>()?.runningAvds ?: emptyMap()
@@ -398,6 +503,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
 
     updateLock.write {} // Make sure that previously running updates have finished.
+    startWatchService()
   }
 
   /**
