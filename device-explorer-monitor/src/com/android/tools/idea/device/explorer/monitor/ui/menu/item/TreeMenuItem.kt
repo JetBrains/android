@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
+import com.android.tools.idea.actions.disableRichTooltip
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -28,6 +30,9 @@ abstract class TreeMenuItem(protected val listener: DeviceMonitorActionsListener
       return getText(listener.numOfSelectedNodes)
     }
 
+  override val description: String?
+    get() = null
+
   override val icon: Icon?
     get() {
       return null
@@ -40,9 +45,15 @@ abstract class TreeMenuItem(protected val listener: DeviceMonitorActionsListener
       override fun update(e: AnActionEvent) {
         val presentation = e.presentation
         presentation.text = text
+        presentation.description = description
         presentation.isEnabled = isEnabled
         presentation.isVisible = isVisible
         presentation.icon = icon
+        if (description != null) {
+          presentation.enableRichTooltip(this)
+        } else {
+          presentation.disableRichTooltip()
+        }
       }
 
       override fun actionPerformed(e: AnActionEvent) {

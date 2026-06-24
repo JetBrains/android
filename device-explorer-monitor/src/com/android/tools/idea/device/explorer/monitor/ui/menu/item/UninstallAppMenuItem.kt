@@ -23,12 +23,10 @@ import icons.StudioIcons
 class UninstallAppMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     val appStr = if (numOfNodes > 1) "apps" else "app"
-    return if (context == Toolbar) {
-      "<html><b>Uninstall $appStr</b><br>Uninstalls application</html>"
-    } else {
-      "Uninstall $appStr"
-    }
+    return "Uninstall $appStr"
   }
+
+  override val description = "Uninstalls application"
 
   override val icon = StudioIcons.Common.DELETE
 
