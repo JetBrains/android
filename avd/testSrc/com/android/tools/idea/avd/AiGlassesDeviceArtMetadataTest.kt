@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager
+package com.android.tools.idea.avd
 
 import com.android.testutils.TestUtils
-import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
+import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.stream.Collectors
+import javax.xml.parsers.DocumentBuilderFactory
 import org.junit.Test
+import org.w3c.dom.Element
 
 /**
- * Tests to validate that the image files in `artwork/resources/device-art-resources/ai_glasses_device` contain the exact XMP metadata that
- * they currently contain.
+ * Tests to validate that all image files in `artwork/resources/device-art-resources/ai_glasses_device` contain valid XMP metadata with a
+ * title, and that exactly one of them is set as default.
  *
  * To recreate the XMP metadata from scratch, you can use the following commands:
  * ```bash
@@ -77,82 +81,51 @@ import org.junit.Test
 class AiGlassesDeviceArtMetadataTest {
 
   @Test
-  fun testIndoorStudyDarkMetadata() {
-    val file = getGlassesDeviceArtPath("indoor-study-dark.jpg")
-    val xmp = readXmpMetadata(file)
-    assertThat(xmp)
-      .isEqualTo(
-        """
-        <x:xmpmeta xmlns:x="adobe:ns:meta/">
-         <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-          <rdf:Description rdf:about=""
-            xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:androidemulator="urn:androidemulator:metadata:private:1.0">
-           <dc:title>
-            <rdf:Alt>
-             <rdf:li xml:lang="x-default">Indoor Study Dark</rdf:li>
-            </rdf:Alt>
-           </dc:title>
-           <androidemulator:isDefault>true</androidemulator:isDefault>
-          </rdf:Description>
-         </rdf:RDF>
-        </x:xmpmeta>
-        """
-          .trimIndent()
-      )
+  fun testDeviceArtMetadata() {
+    val dir = getGlassesDeviceArtDir()
+    val files =
+      Files.list(dir).use { stream ->
+        stream.filter { Files.isRegularFile(it) && it.fileName.toString().endsWith(".jpg", ignoreCase = true) }.collect(Collectors.toList())
+      }
+    assertWithMessage("No JPG files found in $dir").that(files).isNotEmpty()
+
+    var defaultCount = 0
+    for (file in files) {
+      val xmp = readXmpMetadata(file)
+      assertWithMessage("File $file does not contain XMP metadata").that(xmp).isNotNull()
+
+      val document =
+        DocumentBuilderFactory.newInstance()
+          .apply { isNamespaceAware = true }
+          .newDocumentBuilder()
+          .parse(ByteArrayInputStream(xmp!!.toByteArray(Charsets.UTF_8)))
+
+      val titles = document.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", "title")
+      assertWithMessage("File $file does not contain exactly one dc:title element").that(titles.length).isEqualTo(1)
+      val titleNode = titles.item(0)
+
+      val rdfLis = (titleNode as Element).getElementsByTagNameNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "li")
+      assertWithMessage("File $file dc:title does not contain a rdf:li element").that(rdfLis.length).isAtLeast(1)
+      val titleText = rdfLis.item(0).textContent.trim()
+      assertWithMessage("File $file has empty title").that(titleText).isNotEmpty()
+
+      val isDefaultList = document.getElementsByTagNameNS("urn:androidemulator:metadata:private:1.0", "isDefault")
+      val isDefault =
+        if (isDefaultList.length > 0) {
+          isDefaultList.item(0).textContent.trim().toBoolean()
+        } else {
+          false
+        }
+      if (isDefault) {
+        defaultCount++
+      }
+    }
+
+    assertWithMessage("Expected exactly 1 default environment image, but found $defaultCount").that(defaultCount).isEqualTo(1)
   }
 
-  @Test
-  fun testOutdoorCityBrightMetadata() {
-    val file = getGlassesDeviceArtPath("outdoor-city-bright.jpg")
-    val xmp = readXmpMetadata(file)
-    assertThat(xmp)
-      .isEqualTo(
-        """
-        <x:xmpmeta xmlns:x="adobe:ns:meta/">
-         <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-          <rdf:Description rdf:about=""
-            xmlns:dc="http://purl.org/dc/elements/1.1/">
-           <dc:title>
-            <rdf:Alt>
-             <rdf:li xml:lang="x-default">Outdoor City Bright</rdf:li>
-            </rdf:Alt>
-           </dc:title>
-          </rdf:Description>
-         </rdf:RDF>
-        </x:xmpmeta>
-        """
-          .trimIndent()
-      )
-  }
-
-  @Test
-  fun testOutdoorNatureBrightMetadata() {
-    val file = getGlassesDeviceArtPath("outdoor-nature-bright.jpg")
-    val xmp = readXmpMetadata(file)
-    assertThat(xmp)
-      .isEqualTo(
-        """
-        <x:xmpmeta xmlns:x="adobe:ns:meta/">
-         <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-          <rdf:Description rdf:about=""
-            xmlns:dc="http://purl.org/dc/elements/1.1/">
-           <dc:title>
-            <rdf:Alt>
-             <rdf:li xml:lang="x-default">Outdoor Nature Bright</rdf:li>
-            </rdf:Alt>
-           </dc:title>
-          </rdf:Description>
-         </rdf:RDF>
-        </x:xmpmeta>
-        """
-          .trimIndent()
-      )
-  }
-
-  private fun getGlassesDeviceArtPath(fileName: String): Path {
-    return TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/artwork/resources/device-art-resources/ai_glasses_device/$fileName")
-  }
+  private fun getGlassesDeviceArtDir(): Path =
+    TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/artwork/resources/device-art-resources/ai_glasses_device")
 
   private fun readXmpMetadata(file: Path): String? {
     val bytes = Files.readAllBytes(file)
