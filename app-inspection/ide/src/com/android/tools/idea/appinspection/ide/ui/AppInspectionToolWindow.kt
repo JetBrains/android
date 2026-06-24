@@ -29,7 +29,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
@@ -64,7 +63,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
             AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
             AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
           }
-        val notification = notificationGroup.createNotification(escapeXmlEntities(title), escapeXmlEntities(content), type)
+        val notification = notificationGroup.createNotification(title, content, type)
         if (action != null) {
           notification.addAction(action)
         }

@@ -60,6 +60,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -352,7 +353,7 @@ constructor(
           )
         )
         ideServices.showNotification(
-          e.message!!,
+          escapeXmlEntities(e.message!!),
           severity = AppInspectionIdeServices.Severity.ERROR,
           action =
             object : AnAction(AppInspectionBundle.message("notification.restart")) {
