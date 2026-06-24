@@ -46,8 +46,6 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
-import com.google.idea.blaze.qsync.project.TargetsToBuild
-import com.google.idea.blaze.qsync.project.pathToLabel
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.intellij.openapi.project.Project
 import java.io.IOException
@@ -158,42 +156,6 @@ class QuerySyncProject(
 
   fun readProjectStructureFromDirectory(context: Context<*>): ProjectStructureData? =
     projectStructureReader.read(context, workspaceRoot.path(), projectDefinition)
-
-  /**
-   * Returns the list of project targets related to the given workspace file.
-   *
-   * @param context Context
-   * @param workspaceRelativePaths Workspace relative file paths to find targets for. A path may be a path to a source file, directory or
-   *   BUILD file.
-   * @return Corresponding project targets. For a source file, this is the targets that build that file. For a BUILD file, it's the set or
-   *   targets defined in that file. For a directory, it's the set of all targets defined in all build packages within the directory
-   *   (recursively).
-   */
-  fun getProjectTargets(workspaceRelativePaths: Collection<Path>): Set<TargetsToBuild> {
-    val snapshot = snapshotHolder.current.getOrNull() ?: return emptySet()
-    return workspaceRelativePaths
-      .map { path ->
-        if (path.endsWith("BUILD") || path.endsWith("BUILD.bazel")) {
-          val packagePath = path.parent ?: Path.of("")
-          val packageLabel = Label.fromWorkspacePackageAndName("", packagePath, Label.PACKAGE_TARGET_NAME)
-          snapshot.staleGraph.getProjectTargetsForBuildPackage(packageLabel)
-        } else {
-          val packageLabel = Label.fromWorkspacePackageAndName("", path, Label.PACKAGE_TARGET_NAME)
-          val subpackagesTargets = snapshot.staleGraph.getProjectTargetsForBuildPackageWithSubpackages(packageLabel)
-          if (!subpackagesTargets.isEmpty()) {
-            subpackagesTargets
-          } else {
-            val sourceFileLabel = snapshot.projectStructureData.pathToLabel(path)
-            if (sourceFileLabel != null) {
-              snapshot.staleGraph.getProjectTargetsForSourceFile(sourceFileLabel)
-            } else {
-              TargetsToBuild.forUnknownSourceFile(path)
-            }
-          }
-        }
-      }
-      .toSet()
-  }
 
   /** Returns the set of targets with direct dependencies on `targets`. */
   fun getTargetsDependingOn(targets: Set<Label>): Set<Label> {

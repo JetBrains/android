@@ -61,6 +61,7 @@ import com.google.idea.blaze.qsync.project.SerializedProjectStructureAndQueryDat
 import com.google.idea.blaze.qsync.project.SnapshotDeserializer
 import com.google.idea.blaze.qsync.project.SnapshotSerializer
 import com.google.idea.blaze.qsync.project.TargetsToBuild
+import com.google.idea.blaze.qsync.project.getBuildPackage
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -238,6 +239,35 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   fun assertProjectLoaded() = checkNotNull(loadedProject) { "Project not loaded yet" }
 
+  val currentBuildGraphdata: BuildGraphData?
+    get() = currentSnapshot.map { it.staleGraph }.orElse(null)
+
+  @JvmOverloads
+  fun getBuildGraphDataFor(packages: Collection<Label>, context: BlazeContext): BuildGraphData? {
+    // TODO(xinruiy): implement later
+    return currentBuildGraphdata
+  }
+
+  @JvmOverloads
+  fun getBuildGraphDataForPaths(paths: Collection<Path>, context: BlazeContext): BuildGraphData? {
+    val projectStructureData = currentSnapshot.getOrNull()?.projectStructureData ?: return null
+
+    val packageLabels =
+      paths
+        .mapNotNull { path ->
+          projectStructureData.getBuildPackage(path)?.let { buildPkg ->
+            Label.fromWorkspacePackageAndName("", buildPkg.path, Label.PACKAGE_TARGET_NAME)
+          }
+        }
+        .toSet()
+
+    return if (packageLabels.isEmpty()) {
+      currentBuildGraphdata
+    } else {
+      getBuildGraphDataFor(packageLabels, context)
+    }
+  }
+
   val sourceToTargetMap: QuerySyncSourceToTargetMap
     get() = assertProjectLoaded().sourceToTargetMap
 
@@ -368,7 +398,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       applyProjectStructureChanges = false,
     ) { context ->
       assertProjectLoaded()
-      if (fileListener.hasModifiedBuildFiles() || getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
+      val projectTargets =
+        getBuildGraphDataForPaths(workspaceRelativePaths, context)?.let { graphData ->
+          workspaceRelativePaths.mapNotNull { path -> graphData.getProjectTargets(path) }.toSet()
+        } ?: emptySet()
+      if (fileListener.hasModifiedBuildFiles() || projectTargets.any { it.requiresQueryDataRefresh() }) {
         val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
         runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
       }
@@ -637,7 +671,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     //   DependencyTracker.getProjectTargets are now lost. They should probably be reported via
     //   an exception, or inside TargetsToBuild, so that the UI layer can decide how to display
     //   the messages.
-    return loadedProject!!.getProjectTargets(workspaceRelativePaths)
+    return currentBuildGraphdata?.let { graphData ->
+      workspaceRelativePaths.mapNotNull { path -> graphData.getProjectTargets(path) }.toSet()
+    } ?: emptySet()
   }
 
   @CanIgnoreReturnValue

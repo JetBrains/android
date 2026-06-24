@@ -100,6 +100,36 @@ interface BuildGraphData {
     vararg sourceTypes: ProjectTarget.SourceType,
   ): Map<Label, List<Path>>
 
+  /**
+   * Returns the project target related to the given workspace file.
+   *
+   * @param workspaceRelativePaths Workspace relative file paths to find targets for. A path may be a path to a source file, directory or
+   *   BUILD file.
+   * @return Corresponding project target. For a source file, this is the targets that build that file. For a BUILD file, it's the set or
+   *   targets defined in that file. For a directory, it's the set of all targets defined in all build packages within the directory
+   *   (recursively).
+   */
+  fun getProjectTargets(path: Path): TargetsToBuild {
+    if (path.endsWith("BUILD") || path.endsWith("BUILD.bazel")) {
+      val packagePath = path.parent ?: Path.of("")
+      val packageLabel = Label.fromWorkspacePackageAndName("", packagePath, Label.PACKAGE_TARGET_NAME)
+      return getProjectTargetsForBuildPackage(packageLabel)
+    } else {
+      val packageLabel = Label.fromWorkspacePackageAndName("", path, Label.PACKAGE_TARGET_NAME)
+      val subpackagesTargets = getProjectTargetsForBuildPackageWithSubpackages(packageLabel)
+      if (!subpackagesTargets.isEmpty()) {
+        return subpackagesTargets
+      } else {
+        val sourceFileLabel = sourceFileToLabel(path)
+        if (sourceFileLabel != null) {
+          return getProjectTargetsForSourceFile(sourceFileLabel)
+        } else {
+          return TargetsToBuild.forUnknownSourceFile(path)
+        }
+      }
+    }
+  }
+
   /** Returns the project targets defined in the given build package. */
   fun getProjectTargetsForBuildPackage(packageLabel: Label): TargetsToBuild
 
@@ -136,16 +166,20 @@ interface BuildGraphData {
   fun isAlwaysBuild(label: Label): Boolean
 
   companion object {
-    @JvmField
-    val EMPTY: BuildGraphData =
-      BuildGraphDataImpl.builder()
-        .build(
-          projectDefinitionTargetPatterns = TargetPatternCollection.create(emptyList()),
-          alwaysBuildRules = emptySet(),
-          supportedBuildRules = emptySet(),
-          protoRules = ProtoRules(emptySet(), emptySet()),
-        )
+    val EMPTY: BuildGraphData
+      get() = LazyEmpty.INSTANCE
   }
+}
+
+private object LazyEmpty {
+  val INSTANCE: BuildGraphData =
+    BuildGraphDataImpl.builder()
+      .build(
+        projectDefinitionTargetPatterns = TargetPatternCollection.create(emptyList()),
+        alwaysBuildRules = emptySet(),
+        supportedBuildRules = emptySet(),
+        protoRules = BuildGraphData.ProtoRules(emptySet(), emptySet()),
+      )
 }
 
 fun BuildGraphData.getJavaSourceFiles(): List<Path> {

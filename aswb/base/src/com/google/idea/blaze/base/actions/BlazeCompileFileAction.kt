@@ -41,16 +41,7 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
   }
 
   private fun isEnabled(project: Project, e: AnActionEvent): Boolean {
-    val vfs = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY)?.takeUnless { it.isEmpty() }?.toList() ?: return false
-    val querySyncManager = QuerySyncManager.getInstance(project)
-    return querySyncManager.getLoadedProject().isPresent &&
-      // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
-      // they should automatically trigger sync.
-      querySyncManager
-        .getTargetsToBuildByPaths(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs))
-        .asSequence()
-        .flatMap { it.targets }
-        .any()
+    return QuerySyncManager.getInstance(project).getLoadedProject().isPresent
   }
 
   override fun actionPerformedInBlazeProject(project: Project, e: AnActionEvent) {
