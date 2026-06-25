@@ -33,6 +33,7 @@ import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -96,7 +97,7 @@ internal class ScreenRecorder(private val project: Project, private val recordin
       val message =
         when (val cause = e.message) {
           null -> message("screenrecord.error")
-          else -> message("screenrecord.error.with.cause", cause)
+          else -> message("screenrecord.error.with.cause", escapeXmlEntities(cause))
         }
       showErrorDialog(message)
       return
