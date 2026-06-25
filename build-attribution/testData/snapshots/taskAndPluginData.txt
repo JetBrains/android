@@ -415,6 +415,9 @@ Plugin                        : org.gradle.plugin.devel.plugins.JavaGradlePlugin
 Plugin                        : org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : kotlin-kapt
+Plugin                        : org.jetbrains.kotlin.gradle.plugin.BuildMetricsPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.jetbrains.kotlin.gradle.plugin.BuildMetricsPlugin
 Plugin                        : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : kotlin-android
