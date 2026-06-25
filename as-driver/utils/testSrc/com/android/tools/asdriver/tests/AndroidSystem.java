@@ -126,6 +126,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       system.install.createFirstRunXml();
       system.install.setNewUi();
       system.install.createGeneralPropertiesXml();
+      system.install.setStartupLoginProperty();
 
       // Point JAVA_HOME to Studio bundled JRE
       final Path jdkDir;
