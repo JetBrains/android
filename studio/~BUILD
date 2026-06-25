@@ -158,6 +158,7 @@ studio_plugin(
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
         "//tools/adt/idea/testartifacts:libjourneys-java-proto",
         "//tools/vendor/google/marketing:chime_kt_proto",
+        "//tools/adt/idea/whats-new-assistant:whats-new-content",
     ],
     license_files = [
         "//prebuilts/r8:license",
