@@ -31,14 +31,16 @@ internal class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
     return withContext(Dispatchers.IO) {
       val documents = mutableListOf<Pair<Revision, String>>()
 
-      this@WhatsNewDocumentLoaderImpl.javaClass.getResourceAsStream("/v2/wna-markdown.zip")?.use { stream ->
+      val zipStream = this@WhatsNewDocumentLoaderImpl.javaClass.getResourceAsStream("/whats-new.zip")
+
+      zipStream?.use { stream ->
         ZipInputStream(stream).use { zipStream ->
           while (true) {
             val entry = zipStream.nextEntry ?: break
             val fileName = entry.name
 
             if (fileName.endsWith(".md")) {
-              val revisionStr = fileName.substringBeforeLast('.')
+              val revisionStr = fileName.substringAfterLast('/').substringBeforeLast('.')
               val revision = runCatching { Revision.parseRevision(revisionStr) }.getOrNull()
               if (revision != null) {
                 val content = zipStream.readBytes().toString(Charsets.UTF_8)
@@ -47,7 +49,7 @@ internal class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
             }
           }
         }
-      } ?: throw IllegalArgumentException("Cannot load wna-markdown.zip")
+      } ?: throw IllegalArgumentException("Cannot load whats-new.zip")
 
       documents.sortedByDescending { (revision, _) -> revision }.map { (revision, content) -> loadMarkdownDocument(revision, content) }
     }
