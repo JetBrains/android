@@ -46,10 +46,11 @@ internal class AdbFileLocationTracker : Supplier<File> {
    * convenience).
    */
   fun registerProject(project: Project): Boolean {
+    val projectProvider = AdbFileProvider.fromProject(project)
     synchronized(projectProviders) {
       return if (!projectProviders.contains(project)) {
         logger.info("Registering project to adblib channel provider: $project")
-        projectProviders[project] = AdbFileProvider.fromProject(project)
+        projectProviders[project] = projectProvider
         true
       } else {
         false
@@ -67,7 +68,8 @@ internal class AdbFileLocationTracker : Supplier<File> {
 
   override fun get(): File {
     // Go through projects first
-    val file = synchronized(projectProviders) { projectProviders.values.firstNotNullOfOrNull { it.get() } }
+    val projectProvidersSnapshot = synchronized(projectProviders) { projectProviders.values.toList() }
+    val file = projectProvidersSnapshot.firstNotNullOfOrNull { it.get() }
     // Then application if nothing found
     try {
       return file ?: applicationProvider.get() ?: throw IllegalStateException("ADB location has not been initialized")
