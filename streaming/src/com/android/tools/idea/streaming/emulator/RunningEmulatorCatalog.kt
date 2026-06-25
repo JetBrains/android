@@ -23,7 +23,6 @@ import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
-import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -33,7 +32,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil.getTempDirectory
 import com.intellij.openapi.util.text.StringUtil.parseInt
-import com.intellij.util.Alarm
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import java.io.IOException
 import java.lang.ref.WeakReference
@@ -56,10 +54,13 @@ import java.util.regex.Pattern
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.io.path.deleteIfExists
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
@@ -67,14 +68,16 @@ import org.jetbrains.annotations.TestOnly
 /** Keeps track of Android Emulators running on the local machine under the current user account. */
 @Service(Service.Level.APP)
 class RunningEmulatorCatalog : Disposable.Parent {
-  @Volatile var emulators: Set<EmulatorController> = ImmutableSet.of()
+  @Volatile var emulators: Set<EmulatorController> = setOf()
 
   private val fileNamePattern = Pattern.compile("pid_(\\d+).ini")
-  private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+  @GuardedBy("dataLock") private var updateJob: Job? = null
   @Volatile private var isDisposing = false
   /** This lock is held for reading while an update is running. */
   private val updateLock = ReentrantReadWriteLock()
-  private val dataLock = Object()
+  private val updateChannel = Channel<Unit>(Channel.CONFLATED)
+  @GuardedBy("dataLock") private var updateWorkerJob: Job? = null
+  private val dataLock = Any()
   @GuardedBy("dataLock") private var lastUpdateStartTime: Long = 0
   @GuardedBy("dataLock") private var lastUpdateDuration: Long = 0
   @GuardedBy("dataLock") private var nextScheduledUpdateTime: Long = Long.MAX_VALUE
@@ -91,6 +94,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @Volatile private var useWatchService = false
 
   init {
+    startUpdateWorker()
     startWatchService()
   }
 
@@ -171,6 +175,18 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
   }
 
+  private fun startUpdateWorker() {
+    synchronized(dataLock) {
+      updateWorkerJob?.cancel()
+      updateWorkerJob =
+        scope.launch(Dispatchers.IO) {
+          for (request in updateChannel) {
+            updateLock.read { update() }
+          }
+        }
+    }
+  }
+
   /**
    * Adds a listener that will be notified when new emulators start and running emulators shut down. The [updateIntervalMillis] parameter
    * determines the level of data freshness required by the listener. When called multiple times with the same listener, updates the update
@@ -224,11 +240,13 @@ class RunningEmulatorCatalog : Disposable.Parent {
       val updateTime = System.currentTimeMillis() + delay
       // Check if an update is already scheduled soon enough.
       if (nextScheduledUpdateTime > updateTime) {
-        if (nextScheduledUpdateTime != Long.MAX_VALUE) {
-          alarm.cancelAllRequests()
-        }
+        updateJob?.cancel()
         nextScheduledUpdateTime = updateTime
-        alarm.addRequest({ updateLock.read { update() } }, delay)
+        updateJob =
+          scope.launch(Dispatchers.IO) {
+            delay(delay.milliseconds)
+            updateChannel.trySend(Unit)
+          }
       }
     }
   }
@@ -243,7 +261,6 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
   }
 
-  @GuardedBy("updateLock.readLock()")
   private fun update() {
     if (isDisposing) return
 
@@ -290,7 +307,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
                   created = true
                   val processHandle = ProcessHandleProvider.getProcessHandle(emulatorId.pid)
                   val catalogRef = WeakReference(this@RunningEmulatorCatalog)
-                  processHandle?.onExit()?.thenAccept { catalogRef.get()?.updateNow() }
+                  processHandle?.onExit()?.thenAccept { @Suppress("DeferredResultUnused") catalogRef.get()?.updateNow() }
                 }
                 if (!isDisposing) {
                   newEmulators[emulator.emulatorId] = emulator
@@ -317,7 +334,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
         if (isDisposing) return
         lastUpdateStartTime = start
         lastUpdateDuration = System.currentTimeMillis() - start
-        emulators = ImmutableSet.copyOf(newEmulators.values)
+        emulators = newEmulators.values.toSet()
         listenersSnapshot = listeners
         for (result in updateResults) {
           result.complete(emulators)
@@ -471,7 +488,11 @@ class RunningEmulatorCatalog : Disposable.Parent {
   override fun beforeTreeDispose() {
     isDisposing = true
 
-    synchronized(dataLock) { watchJob?.cancel() }
+    synchronized(dataLock) {
+      watchJob?.cancel()
+      updateJob?.cancel()
+      updateWorkerJob?.cancel()
+    }
 
     // Shut down all embedded Emulators.
     synchronized(dataLock) {
@@ -499,6 +520,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
         Disposer.dispose(emulator)
       }
       emulators = emptySet()
+      updateJob?.cancel()
+      @Suppress("ControlFlowWithEmptyBody") while (updateChannel.tryReceive().isSuccess) {}
+      nextScheduledUpdateTime = Long.MAX_VALUE
       registrationDirectory = directory ?: computeRegistrationDirectory()
     }
 
@@ -602,8 +626,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     private fun getUid(): String? {
       try {
         val userName = System.getProperty("user.name")
-        val command = "id -u $userName"
-        val process = Runtime.getRuntime().exec(command)
+        val process = ProcessBuilder("id", "-u", userName).start()
         process.inputStream.use {
           val result = String(it.readBytes(), UTF_8).trim()
           if (result.isEmpty()) {
