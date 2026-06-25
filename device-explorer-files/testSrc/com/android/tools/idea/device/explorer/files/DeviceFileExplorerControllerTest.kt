@@ -872,7 +872,11 @@ class DeviceFileExplorerControllerTest {
     // Assert
     val message = pumpEventsAndWaitForFuture(futureMessageDialog)
     checkNotNull(message)
-    assertTrue(message.contains(UIBundle.message("create.new.folder.could.not.create.folder.error.message", newDirectoryName)))
+    assertTrue(
+      message.contains(
+        StringUtil.escapeXmlEntities(UIBundle.message("create.new.folder.could.not.create.folder.error.message", newDirectoryName))
+      )
+    )
 
     // Ensure entry does not exist in tree view
     val newChild =

@@ -60,6 +60,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.UIBundle
@@ -641,7 +642,7 @@ class DeviceFileExplorerControllerImpl(
       val message = createDeleteConfirmationMessage(fileEntries)
       val returnValue =
         Messages.showOkCancelDialog(
-          message,
+          escapeXmlEntities(message),
           UIBundle.message("delete.dialog.title"),
           ApplicationBundle.message("button.delete"),
           CommonBundle.getCancelButtonText(),
@@ -660,7 +661,7 @@ class DeviceFileExplorerControllerImpl(
           } catch (t: Throwable) {
             LOGGER.info("Error deleting file \"${fileEntry.fullPath}\"", t)
             val problemMessage = emptyToNull(ExceptionUtil.getRootCause(t).message) ?: "Error deleting file"
-            problems.add("${fileEntry.fullPath}: $problemMessage")
+            problems.add(escapeXmlEntities("${fileEntry.fullPath}: $problemMessage"))
           }
         }
         if (!problems.isEmpty()) {
@@ -820,7 +821,7 @@ class DeviceFileExplorerControllerImpl(
         } ?: message
 
       // Show error dialog
-      Messages.showMessageDialog(message, UIBundle.message("error.dialog.title"), Messages.getErrorIcon())
+      Messages.showMessageDialog(escapeXmlEntities(message), UIBundle.message("error.dialog.title"), Messages.getErrorIcon())
     }
 
     override fun uploadFilesInvoked(treeNode: DeviceFileEntryNode) {
