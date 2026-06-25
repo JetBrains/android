@@ -81,6 +81,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
 
   private static final String BOOT_COMPLETE_PROPERTY = "dev.bootcomplete";
   private static final String BOOT_COMPLETE_MESSAGE = "1";
+  private static final int MAX_AVD_DATA_WAIT_SECONDS = 10;
 
   private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
   private static final int DEVICE_PORT = 12389;
@@ -536,7 +537,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         if (BOOT_COMPLETE_MESSAGE.equals(state)) {
           try {
             // In case the device is an AVD, also wait for the AvdData#getName to be ready
-            myDevice.getAvdData().get(maxSeconds - i, TimeUnit.SECONDS);
+            myDevice.getAvdData().get(Math.min(MAX_AVD_DATA_WAIT_SECONDS, maxSeconds - i), TimeUnit.SECONDS);
           }
           catch (ExecutionException | java.util.concurrent.TimeoutException ignore) {
             // ignore
