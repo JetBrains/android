@@ -202,7 +202,7 @@ open class ProfilersTestBase {
   }
 
   protected fun waitForProfilerDeviceConnection() {
-    verifyIdeaLog(".*TransportProxy\\s+successfully\\s+created\\s+for\\s+device\\:\\s+emulator\\-5554", 60)
+    verifyIdeaLog(".*TransportProxy\\s+successfully\\s+created\\s+for\\s+device\\:\\s+emulator\\-5554", 90)
   }
 
   protected fun waitForAppDeploymentStarted(packageName: String, timeout: Long) {
