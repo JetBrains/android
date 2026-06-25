@@ -28,6 +28,7 @@ import com.android.tools.idea.compose.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.SimpleComposeAppPaths
+import com.android.tools.idea.compose.activateAndWaitForRender
 import com.android.tools.idea.compose.getPsiFile
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
@@ -51,23 +52,32 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.moveCaretLines
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.problems.ProblemListener
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.IndexingTestUtil
+import com.intellij.testFramework.VfsTestUtil
+import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.awt.BorderLayout
+import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
@@ -143,7 +153,7 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  fun `panel renders correctly first time`() = runBlocking {
+  fun `panel renders correctly first time and zoom-to-fit`() = runBlocking {
     withContext(Dispatchers.EDT) { fakeUi.layoutAndDispatchEvents() }
     delayUntilCondition(100, 5.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 5 }
 
@@ -175,6 +185,9 @@ class ComposePreviewRepresentationGradleTest {
       10.0,
       20,
     )
+
+    delayUntilCondition(delayPerIterationMs = 250) { !previewView.mainSurface.zoomController.canZoomToFit() }
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
   }
 
   @Test
@@ -828,5 +841,83 @@ class ComposePreviewRepresentationGradleTest {
           as LayoutlibSceneManager)
         .lastRenderQuality,
     )
+  }
+
+  @Test
+  fun `test do not zoom to fit with render error`() = runBlocking {
+    // Create a clean file containing a standard Preview that renders with an  error.
+    val newVirtualFile = runWriteActionAndWait {
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/src/main/java/google/simpleapplication/TestWithRenderError.kt",
+        """
+        package google.simpleapplication
+
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Composable
+        @Preview
+        fun PreviewWithError() {
+          error("Render error")
+        }
+        """
+          .trimIndent(),
+      )
+    }
+
+    val testFileWithRenderErrors: PsiFile = readAction { PsiManager.getInstance(project).findFile(newVirtualFile) }!!
+    projectRule.buildAndRefresh(failOnTimeout = false)
+
+    val testPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)
+    val testPreviewRepresentation = ComposePreviewRepresentation(testFileWithRenderErrors) { _, _, _, _, _, _ -> testPreviewView }
+    Disposer.register(fixture.testRootDisposable, testPreviewRepresentation)
+
+    testPreviewView.mainSurface.setDesignSurface()
+
+    // Perform Preview render
+    val fakeUi = setFakeUi(testPreviewView)
+    withContext(Dispatchers.EDT) {
+      fakeUi.layoutAndDispatchEvents()
+      testPreviewRepresentation.activateAndWaitForRender(fakeUi)
+    }
+
+    // Assert that there is a render error in the preview status
+    assertTrue(testPreviewRepresentation.status().hasRenderErrors)
+    assertInstanceOf<PreviewMode.Default>(testPreviewRepresentation.mode.value)
+
+    delayUntilCondition(delayPerIterationMs = 200) { testPreviewView.mainSurface.zoomController.canZoomToFit() }
+    assertTrue(testPreviewView.mainSurface.zoomController.canZoomToFit())
+
+    // Clean up and dispose of the temporary preview representation
+    runInEdtAndWait { Disposer.dispose(testPreviewRepresentation) }
+  }
+
+  private suspend fun NlDesignSurface.setDesignSurface() {
+    val designSurfaceZoomController = zoomController as DesignSurfaceZoomController
+    // Resets the zoom-to-fit settings
+    designSurfaceZoomController.resetZoomToFitSettings(shouldWaitForResize = true, shouldWaitForLayoutCreated = false)
+    // Simulate the creation of the new surface by
+    designSurfaceZoomController.notifyDesignSurfaceCreated()
+
+    // Simulate design surface resize event
+    designSurfaceZoomController.notifyDesignSurfaceResized(500, 500)
+  }
+
+  private suspend fun setFakeUi(testPreviewView: TestComposePreviewView): FakeUi {
+    return withContext(Dispatchers.EDT) {
+      FakeUi(
+        JPanel().apply {
+          layout = BorderLayout()
+          // We need to set a non-zero size for the parent panel so that the layout manager
+          // can give a non-zero size to the testPreviewView and its internal DesignSurface.
+          // Without this, the DesignSurface would have zero size, and zoom-to-fit calculations
+          // (which depend on the surface dimensions) would fail or be skipped.
+          size = Dimension(1000, 800)
+          add(testPreviewView, BorderLayout.CENTER)
+        },
+        true,
+      )
+    }
   }
 }
