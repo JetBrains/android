@@ -119,9 +119,9 @@ class SelectProcessAction(
 
   companion object {
     fun createDefaultProcessLabel(process: ProcessDescriptor): String {
-      val deviceName = process.device.buildDeviceName()
-      val processName = process.buildProcessName()
-      return escapeXmlEntities("$deviceName > $processName")
+      val deviceName = escapeXmlEntities(process.device.buildDeviceName())
+      val processName = escapeXmlEntities(process.buildProcessName())
+      return "$deviceName > $processName"
     }
 
     fun createCompactProcessLabel(process: ProcessDescriptor): String {
