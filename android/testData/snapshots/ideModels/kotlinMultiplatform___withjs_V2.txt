@@ -1887,10 +1887,10 @@ MODULE                        : kotlinMultiPlatform.jsModule
                         - unknownArgs                 : -target
                         - unknownArgs                 : -main
                         - unknownArgs                 : -ir-output-name
+                        - unknownArgs                 : -nopack
                         - unknownArgs                 : -ir-output-dir
                         - unknownArgs                 : -source-map
                         - unknownArgs                 : -source-map-embed-sources
-                        - unknownExtraFlags           : -Xir-produce-klib-dir
                         - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule
                         - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule
                     explicitApi                   : disable
@@ -2003,10 +2003,10 @@ MODULE                        : kotlinMultiPlatform.jsModule
                         - unknownArgs                 : -target
                         - unknownArgs                 : -main
                         - unknownArgs                 : -ir-output-name
+                        - unknownArgs                 : -nopack
                         - unknownArgs                 : -ir-output-dir
                         - unknownArgs                 : -source-map
                         - unknownArgs                 : -source-map-embed-sources
-                        - unknownExtraFlags           : -Xir-produce-klib-dir
                         - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test
                         - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule_test
                     explicitApi                   : disable

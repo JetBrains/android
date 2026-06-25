@@ -187,14 +187,17 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings)
-        .isEqualTo(
-          listOf(
-            IncompatiblePluginWarning(
-              plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-              currentVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS),
-              pluginInfo = kotlinPluginInfo(),
-            )
-          )
+        .containsExactly(
+          IncompatiblePluginWarning(
+            plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
+            currentVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS),
+            pluginInfo = kotlinPluginInfo(),
+          ),
+          IncompatiblePluginWarning(
+            plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.BuildMetricsPlugin"),
+            currentVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS),
+            pluginInfo = kotlinPluginInfo(),
+          ),
         )
     }
   }

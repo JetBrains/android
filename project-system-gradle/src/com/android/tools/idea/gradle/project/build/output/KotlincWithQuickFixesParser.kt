@@ -49,7 +49,9 @@ class KotlincWithQuickFixesParser : BuildOutputParser {
           messageConsumer.accept(addQuickfixes(it))
         }
       }
-    return myKotlinParser.parse(line, reader, wrappedConsumer)
+    val strippedLine = TaskPrefixStrippingBuildOutputInstantReader.stripPrefix(line)
+    val wrappedReader = TaskPrefixStrippingBuildOutputInstantReader(reader)
+    return myKotlinParser.parse(strippedLine, wrappedReader, wrappedConsumer)
   }
 
   private fun addQuickfixes(originalEvent: BuildEvent): BuildEvent {
@@ -70,5 +72,32 @@ class KotlincWithQuickFixesParser : BuildOutputParser {
       }
     }
     return originalEvent
+  }
+}
+
+// TODO: Remove this class once upstream KotlincOutputParser natively supports stripping Gradle task path prefixes.
+//  See https://youtrack.jetbrains.com/issue/KT-87256.
+class TaskPrefixStrippingBuildOutputInstantReader(private val delegate: BuildOutputInstantReader) : BuildOutputInstantReader {
+  override fun getParentEventId(): Any = delegate.parentEventId
+
+  override fun readLine(): String? {
+    val line = delegate.readLine() ?: return null
+    return stripPrefix(line)
+  }
+
+  override fun pushBack() {
+    delegate.pushBack()
+  }
+
+  override fun pushBack(numberOfLines: Int) {
+    delegate.pushBack(numberOfLines)
+  }
+
+  companion object {
+    private val PREFIX_REGEX = Regex("""^:\S+\s+([ewiv]:\s+.*)$""")
+
+    fun stripPrefix(line: String): String {
+      return PREFIX_REGEX.matchEntire(line)?.groups?.get(1)?.value ?: line
+    }
   }
 }
