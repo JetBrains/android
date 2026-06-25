@@ -1013,4 +1013,162 @@ class GlassesPairingStateManagerTest {
 
     scope.cancel()
   }
+
+  @Test
+  fun testOrphanGlassesWithZeroBondsNotAutoImported() = runTest {
+    val testDispatcher = UnconfinedTestDispatcher(testScheduler)
+    val scope = CoroutineScope(testDispatcher)
+
+    val mockService: DeviceProvisionerService = mock()
+    val mockProvisioner: DeviceProvisioner = mock()
+    whenever(mockService.deviceProvisioner).thenReturn(mockProvisioner)
+    projectRule.project.replaceService(DeviceProvisionerService::class.java, mockService, projectRule.project)
+
+    val phoneHandle = mock<StudioLocalEmulatorDeviceHandle>()
+    val phoneProperties =
+      DeviceProperties.buildForTest {
+        icon = EmptyIcon.DEFAULT
+        manufacturer = "Google"
+        model = "Pixel 9"
+        deviceType = DeviceType.HANDHELD
+        androidVersion = AndroidVersion(36, 1)
+        pairedGlassesInfos = emptyList()
+      }
+    val phoneState =
+      DeviceState.Connected(
+        properties = phoneProperties,
+        isTransitioning = false,
+        isReady = true,
+        status = "Connected",
+        connectedDevice = mock(),
+      )
+    whenever(phoneHandle.state).thenReturn(phoneState)
+    whenever(phoneHandle.id).thenReturn(DeviceId("Fake", false, "phone1"))
+
+    val glassesHandle = mock<StudioLocalEmulatorDeviceHandle>()
+    val glassesProperties =
+      DeviceProperties.buildForTest {
+        icon = EmptyIcon.DEFAULT
+        manufacturer = "Google"
+        model = "Audio glasses"
+        deviceType = DeviceType.AI_GLASSES
+        androidVersion = AndroidVersion(36, 1)
+      }
+    val glassesState =
+      DeviceState.Connected(
+        properties = glassesProperties,
+        isTransitioning = false,
+        isReady = true,
+        status = "Connected",
+        connectedDevice = mock(),
+      )
+    whenever(glassesHandle.state).thenReturn(glassesState)
+    whenever(glassesHandle.id).thenReturn(DeviceId("Fake", false, "glasses1"))
+
+    val devicesFlow = MutableStateFlow(listOf(phoneHandle, glassesHandle))
+    whenever(mockProvisioner.devices).thenReturn(devicesFlow)
+
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = "00:11:22:33:44:55"
+
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.TRULY_BONDED
+
+            override suspend fun getPairedDeviceCount(device: DeviceHandle): Int = 0 // 0 bonds!
+          },
+      )
+
+    val result = stateManager.reconcileState()
+
+    assertFalse(result) // Should NOT make changes (no auto-import)
+    verify(phoneHandle, never()).addPairedGlasses(any(), any())
+    verify(glassesHandle, never()).updatePairedPhone(any())
+
+    scope.cancel()
+  }
+
+  @Test
+  fun testRunningGlassesWithZeroBondsPrunesLinkage() = runTest {
+    val testDispatcher = UnconfinedTestDispatcher(testScheduler)
+    val scope = CoroutineScope(testDispatcher)
+
+    val mockService: DeviceProvisionerService = mock()
+    val mockProvisioner: DeviceProvisioner = mock()
+    whenever(mockService.deviceProvisioner).thenReturn(mockProvisioner)
+    projectRule.project.replaceService(DeviceProvisionerService::class.java, mockService, projectRule.project)
+
+    val phoneHandle = mock<StudioLocalEmulatorDeviceHandle>()
+    val phoneProperties =
+      DeviceProperties.buildForTest {
+        icon = EmptyIcon.DEFAULT
+        manufacturer = "Google"
+        model = "Pixel 9"
+        deviceType = DeviceType.HANDHELD
+        androidVersion = AndroidVersion(36, 1)
+        pairedGlassesInfos = listOf(PairedGlassesInfo(DeviceId("Fake", false, "glasses1"), "00:11:22:33:44:55"))
+      }
+    val phoneState =
+      DeviceState.Connected(
+        properties = phoneProperties,
+        isTransitioning = false,
+        isReady = true,
+        status = "Connected",
+        connectedDevice = mock(),
+      )
+    whenever(phoneHandle.state).thenReturn(phoneState)
+    whenever(phoneHandle.id).thenReturn(DeviceId("Fake", false, "phone1"))
+
+    val glassesHandle = mock<StudioLocalEmulatorDeviceHandle>()
+    val glassesProperties =
+      DeviceProperties.buildForTest {
+        icon = EmptyIcon.DEFAULT
+        manufacturer = "Google"
+        model = "Audio glasses"
+        deviceType = DeviceType.AI_GLASSES
+        androidVersion = AndroidVersion(36, 1)
+        pairedPhoneId = DeviceId("Fake", false, "phone1")
+      }
+    val glassesState =
+      DeviceState.Connected(
+        properties = glassesProperties,
+        isTransitioning = false,
+        isReady = true,
+        status = "Connected",
+        connectedDevice = mock(),
+      )
+    whenever(glassesHandle.state).thenReturn(glassesState)
+    whenever(glassesHandle.id).thenReturn(DeviceId("Fake", false, "glasses1"))
+
+    val devicesFlow = MutableStateFlow(listOf(phoneHandle, glassesHandle))
+    whenever(mockProvisioner.devices).thenReturn(devicesFlow)
+
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = "00:11:22:33:44:55"
+
+            // Even if phone says TRULY_BONDED (stale), glasses saying 0 bonds should trigger prune!
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.TRULY_BONDED
+
+            override suspend fun getPairedDeviceCount(device: DeviceHandle): Int = 0 // Glasses has 0 bonds!
+          },
+      )
+
+    val result = stateManager.reconcileState()
+
+    assertTrue(result) // Should make changes (prune)
+    verify(phoneHandle).removePairedGlasses(DeviceId("Fake", false, "glasses1"))
+    verify(glassesHandle).updatePairedPhone(null)
+
+    scope.cancel()
+  }
 }

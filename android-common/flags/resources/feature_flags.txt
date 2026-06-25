@@ -41,6 +41,7 @@ design.tools.assetstudio.dynamic.material.symbols=PREVIEW
 device.manager.ai.glasses.device.support.enabled=PREVIEW
 device.manager.ai.glasses.displayless.device.support.enabled=PREVIEW
 device.manager.ai.glasses.nested.device.view.enabled=PREVIEW
+device.manager.ai.glasses.pairing.details.enabled=PREVIEW
 device.manager.ai.glasses.pairing.reconciliation.enabled=PREVIEW
 device.manager.ai.glasses.phone.emulator.pairing.wizard.enabled=PREVIEW
 device.manager.desktop.preview.avd.enabled=PREVIEW

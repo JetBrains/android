@@ -1842,6 +1842,13 @@ public final class StudioFlags {
     "If enabled, runs a background loop to reconcile AI Glasses pairing states."
   );
 
+  public static final Flag<Boolean> AI_GLASSES_PAIRING_DETAILS_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "ai.glasses.pairing.details.enabled",
+    "Enable AI Glasses pairing details",
+    "If enabled, shows paired AI Glasses or companion Phones in the Device Manager details panel."
+  );
+
   public static final Flag<Boolean> EMULATOR_PREVIEW_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "emulator.preview.enabled",

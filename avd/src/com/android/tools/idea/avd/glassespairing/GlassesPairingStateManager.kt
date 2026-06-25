@@ -22,6 +22,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.avd.StudioLocalEmulatorDeviceHandle
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.utils.throwIfCancellation
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -30,7 +31,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.TimeSource
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -105,9 +105,8 @@ internal constructor(
                 var changesFound = false
                 try {
                   changesFound = reconcileState()
-                } catch (e: CancellationException) {
-                  throw e
                 } catch (e: Exception) {
+                  e.throwIfCancellation()
                   logger.warn("Reconciliation cycle failed", e)
                 }
                 val duration = startTime.elapsedNow().inWholeMilliseconds
@@ -160,12 +159,22 @@ internal constructor(
       // Phase 2: Probe running phones for active Bluetooth bonds with orphans to auto-import linkage
       if (orphanGlasses.isNotEmpty()) {
         for (glasses in orphanGlasses) {
+          val glassesBondCount =
+            try {
+              withTimeoutOrNull(2000L) { adbProber.getPairedDeviceCount(glasses) }
+            } catch (e: Exception) {
+              e.throwIfCancellation()
+              null
+            }
+          if (glassesBondCount == 0) {
+            logger.debug("Orphan glasses ${glasses.id} has 0 bonds, skipping auto-import.")
+            continue
+          }
           val mac =
             try {
               withTimeoutOrNull(2000L) { adbProber.getBluetoothAddress(glasses) }
-            } catch (e: CancellationException) {
-              throw e
             } catch (e: Exception) {
+              e.throwIfCancellation()
               logger.warn("Failed to fetch address for orphan glasses ${glasses.id}", e)
               continue
             } ?: continue
@@ -182,9 +191,8 @@ internal constructor(
                 anyChanges = true
                 return@withContext true
               }
-            } catch (e: CancellationException) {
-              throw e
             } catch (e: Exception) {
+              e.throwIfCancellation()
               logger.warn("Auto-import linkage probe failed for ${glasses.id} on ${phone.id}", e)
             }
           }
@@ -198,6 +206,29 @@ internal constructor(
         for (glassesInfo in properties.pairedGlassesInfos) {
           val mac = glassesInfo.mac
           val targetGlasses = emulatorDevices.find { it.id == glassesInfo.id }
+          if (targetGlasses != null && targetGlasses.state.isReady) {
+            val glassesBondCount =
+              try {
+                withTimeoutOrNull(2000L) { adbProber.getPairedDeviceCount(targetGlasses) }
+              } catch (e: Exception) {
+                e.throwIfCancellation()
+                null
+              }
+            if (glassesBondCount == 0) {
+              logger.info("Target glasses ${targetGlasses.id} has 0 bonds, pruning stale linkage on phone ${handle.id}.")
+              try {
+                handle.removePairedGlasses(glassesInfo.id)
+                if (targetGlasses.state.properties.pairedPhoneId == handle.id) {
+                  targetGlasses.updatePairedPhone(null)
+                }
+                anyChanges = true
+              } catch (e: Exception) {
+                e.throwIfCancellation()
+                logger.warn("Failed to prune stale linkage for glasses ${glassesInfo.id} on phone ${handle.id}", e)
+              }
+              continue
+            }
+          }
           if (targetGlasses == null) {
             // Target glasses AVD was deleted or missing, prune it
             try {
@@ -205,9 +236,8 @@ internal constructor(
               logger.info("Pruned references to deleted glasses ${glassesInfo.id} from phone ${handle.id}")
               GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.ORPHANED_PAIRING_PURGED)
               anyChanges = true
-            } catch (e: CancellationException) {
-              throw e
             } catch (e: Exception) {
+              e.throwIfCancellation()
               logger.warn("Failed to prune references to deleted glasses ${glassesInfo.id} from phone ${handle.id}", e)
             }
           } else if (mac == null) {
@@ -215,9 +245,8 @@ internal constructor(
               val bondCount =
                 try {
                   withTimeoutOrNull(2000L) { adbProber.getPairedDeviceCount(targetGlasses) }
-                } catch (e: CancellationException) {
-                  throw e
                 } catch (e: Exception) {
+                  e.throwIfCancellation()
                   logger.warn("Failed to get paired device count", e)
                   null
                 }
@@ -227,9 +256,8 @@ internal constructor(
                     handle.removePairedGlasses(glassesInfo.id)
                     logger.info("Glasses ${glassesInfo.id} has no paired devices on ADB, clearing local state.")
                     anyChanges = true
-                  } catch (e: CancellationException) {
-                    throw e
                   } catch (e: Exception) {
+                    e.throwIfCancellation()
                     logger.warn("Failed to remove paired glasses reference from phone ${handle.id}", e)
                   }
                 }
@@ -245,9 +273,8 @@ internal constructor(
                       logger.info("Updated MAC address for glasses ${glassesInfo.id} to $newMac on phone ${handle.id}")
                       anyChanges = true
                     }
-                  } catch (e: CancellationException) {
-                    throw e
                   } catch (e: Exception) {
+                    e.throwIfCancellation()
                     logger.warn("Failed to fetch address for glasses ${glassesInfo.id}", e)
                   }
                 }
@@ -265,9 +292,8 @@ internal constructor(
                 GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.RECONCILIATION_BOND_REMOVED)
                 anyChanges = true
               }
-            } catch (e: CancellationException) {
-              throw e
             } catch (e: Exception) {
+              e.throwIfCancellation()
               logger.warn("Check bond state failed for ${glassesInfo.id}", e)
             }
           }
@@ -286,9 +312,8 @@ internal constructor(
               handle.updatePairedPhone(null)
               logger.info("Pruned references to deleted/wiped phone $pairedPhoneId from glasses ${handle.id}")
               anyChanges = true
-            } catch (e: CancellationException) {
-              throw e
             } catch (e: Exception) {
+              e.throwIfCancellation()
               logger.warn("Failed to prune references to deleted/wiped phone $pairedPhoneId from glasses ${handle.id}", e)
             }
           }

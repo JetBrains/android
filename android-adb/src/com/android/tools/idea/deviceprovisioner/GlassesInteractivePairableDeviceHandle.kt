@@ -26,6 +26,8 @@ interface GlassesInteractivePairableDeviceHandle : DeviceHandle {
   /**
    * Launches a UI for pairing this glasses device.
    *
+   * @param parent The parent component used to anchor the UI.
+   * @param project The current project context.
    * @return true if pairing was completed or failed; false if pairing was canceled by the user
    */
   suspend fun pairGlasses(parent: Component?, project: Project?): Boolean

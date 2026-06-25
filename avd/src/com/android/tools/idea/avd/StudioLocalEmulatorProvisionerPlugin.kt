@@ -244,10 +244,9 @@ class StudioLocalEmulatorDeviceHandle(
 
   // Returning GlassesPairingResult instead of just the device handle allows
   // propagating the MAC address back to avoid race conditions.
-  internal var wizardProvider: suspend (Component?, Project?, Flow<List<DeviceHandle>>, DeviceHandle) -> GlassesPairingResult? =
-    { par, proj, flow, handle ->
-      GlassesPairingWizard.show(par, proj, flow, handle)
-    }
+  internal var wizardProvider:
+    suspend (Component?, Project?, Flow<List<DeviceHandle>>, DeviceHandle, DeviceHandle?) -> GlassesPairingResult? =
+    GlassesPairingWizard::show
 
   internal fun refreshDevicesAsync() {
     baseDeviceHandle.avdScanner.rescanAsync()
@@ -515,7 +514,7 @@ class StudioLocalEmulatorDeviceHandle(
   override suspend fun pairGlasses(parent: Component?, project: Project?): Boolean {
     val glassesHandle = this@StudioLocalEmulatorDeviceHandle
     logger.info("User initiated Glasses Pairing Wizard for ${glassesHandle.id}")
-    val result = withContext(edtDispatcher) { wizardProvider(parent, project, deviceHandleFlow, glassesHandle) }
+    val result = withContext(edtDispatcher) { wizardProvider(parent, project, deviceHandleFlow, glassesHandle, null) }
 
     if (result != null) {
       val pairedPhone = result.phone as? StudioLocalEmulatorDeviceHandle
@@ -551,18 +550,22 @@ class StudioLocalEmulatorDeviceHandle(
     GlassesPairingUsageTracker.log(GlassesPairingEvent.EventKind.UNPAIR_ACTION_CLICKED)
     val properties = state.properties
     val phoneId = properties.pairedPhoneId
+    val glassesId = this.id
 
     val phoneHandle = phoneId?.let { id -> deviceHandleFlow.value.find { it.id == id } }
-
-    // 1. If Phone is Online, send UNPAIR broadcast
-    if (phoneHandle != null) {
+    // Multi-tier MAC resolution: if the phone's host .ini lacks the glasses MAC, query the
+    // live glasses AVD directly via getBluetoothAddress() so the IDE can construct and dispatch
+    // the targeted UNPAIR broadcast intent to the companion app running on the phone.
+    val glassesMac =
+      phoneHandle?.state?.properties?.pairedGlassesInfos?.find { it.id == glassesId }?.mac
+        ?: state.connectedDevice?.let { dev -> with(AiGlassesPairing(dev.session)) { dev.getBluetoothAddress() } }
+    if (phoneHandle != null && glassesMac != null) {
       val phoneDevice = phoneHandle.state.connectedDevice
       if (phoneDevice != null) {
         try {
           val adbSession = phoneDevice.session
           val pairing = AiGlassesPairing(adbSession)
-          // TODO studio-merge
-          withContext(ioDispatcher) { with(pairing) { state.connectedDevice?.getBluetoothAddress()?.let { phoneDevice.sendUnpairCommand(it) } } }
+          withContext(ioDispatcher) { with(pairing) { phoneDevice.sendUnpairCommand(glassesMac) } }
         } catch (e: CancellationException) {
           throw e
         } catch (e: ShellCommandException) {

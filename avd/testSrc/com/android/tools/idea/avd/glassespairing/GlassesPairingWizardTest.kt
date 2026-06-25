@@ -636,6 +636,101 @@ class GlassesPairingWizardTest {
       UsageTracker.cleanAfterTesting()
     }
   }
+
+  @Test
+  fun testGlassesPairingWizard_withPreselectedPhone() = runTest {
+    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher())
+    val tracker = TestTracker()
+    UsageTracker.setWriterForTest(tracker)
+
+    try {
+      val phone =
+        FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+          "p1",
+          coroutineScope,
+          DeviceState.Connected(
+            properties =
+              DeviceProperties.buildForTest {
+                icon = EmptyIcon.DEFAULT
+                manufacturer = "Google"
+                model = "Pixel 9"
+                deviceType = DeviceType.HANDHELD
+                androidVersion = AndroidVersion(36, 1)
+              },
+            connectedDevice = mock<ConnectedDevice>(),
+            isTransitioning = false,
+            isReady = true,
+            status = "Online",
+          ),
+        )
+      val glasses =
+        FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+          "g1",
+          coroutineScope,
+          DeviceState.Connected(
+            properties =
+              DeviceProperties.buildForTest {
+                icon = EmptyIcon.DEFAULT
+                manufacturer = "Google"
+                model = "Audio glasses"
+                deviceType = DeviceType.AI_GLASSES
+                androidVersion = AndroidVersion(36, 1)
+              },
+            connectedDevice = mock<ConnectedDevice>(),
+            isTransitioning = false,
+            isReady = true,
+            status = "Online",
+          ),
+        )
+      val devicesFlow = MutableStateFlow(listOf(phone, glasses))
+
+      val pairingFlow = MutableStateFlow<PairingState>(PairingState.NotStarted)
+      var pairCalled = false
+      val pairer =
+        object : GlassesPairer {
+          override fun pair(g: DeviceHandle, p: DeviceHandle, project: Project?, onMacRetrieved: (String) -> Unit): Flow<PairingState> {
+            assertThat(g).isSameAs(glasses)
+            assertThat(p).isSameAs(phone)
+            pairCalled = true
+            return pairingFlow
+          }
+        }
+
+      val glassesWizard =
+        GlassesPairingWizard(
+          project = null,
+          coroutineScope = coroutineScope,
+          devicesFlow = devicesFlow,
+          glassesHandle = glasses,
+          initialPhoneHandle = phone,
+          pairer = pairer,
+          isCompatible = { true },
+        )
+      val wizard = TestComposeWizard { with(glassesWizard) { PreselectedPairingPage(phone) } }
+
+      composeTestRule.setContent { wizard.Content() }
+
+      composeTestRule.onNodeWithText("Select a device", substring = true).assertDoesNotExist()
+      composeTestRule.onNodeWithText("Preparing", substring = true).assertIsDisplayed()
+
+      yieldUntil { pairCalled }
+      assertThat(pairCalled).isTrue()
+
+      pairingFlow.value = PairingState.Pairing("Initiating pairing...")
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Establishing pairing...", substring = true).assertIsDisplayed()
+
+      pairingFlow.value = PairingState.Complete("Pixel 9", "Audio glasses")
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Successfully paired Pixel 9 with Audio glasses").assertIsDisplayed()
+
+      composeTestRule.onNodeWithText("Finish").assertIsEnabled().performClick()
+      wizard.awaitClose()
+    } finally {
+      coroutineScope.cancel()
+      UsageTracker.cleanAfterTesting()
+    }
+  }
 }
 
 private class TestWizardController : WizardController {

@@ -533,7 +533,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
       provisioner.devices.value.first { it.state.properties.deviceType == DeviceType.AI_GLASSES } as StudioLocalEmulatorDeviceHandle
 
     // Mock wizard to return the phone
-    glassesHandle.wizardProvider = { _, _, _, _ -> GlassesPairingResult(phoneHandle, "00:11:22:33:44:55") }
+    glassesHandle.wizardProvider = { _, _, _, _, _ -> GlassesPairingResult(phoneHandle, "00:11:22:33:44:55") }
     val expectedMac = "00:11:22:33:44:55"
 
     glassesHandle.pairGlasses(null, projectRule.project)
