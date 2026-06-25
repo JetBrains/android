@@ -37,6 +37,7 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -133,7 +134,7 @@ class DeviceCableMonitor : ProjectActivity {
   private fun createNotification(text: String = ""): Notification {
     return NotificationGroupManager.getInstance()
       .getNotificationGroup(NOTIFICATION_GROUP_ID)
-      .createNotification(text, NotificationType.WARNING)
+      .createNotification(escapeXmlEntities(text), NotificationType.WARNING)
       .setTitle("Connection speed warning")
       .addAction(BrowseNotificationAction("Learn more", "https://d.android.com/r/studio-ui/usb-check"))
       .setImportant(true)
