@@ -46,7 +46,7 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) : W
 
   @Composable
   fun Content() {
-    CompositionLocalProvider(LocalComponent provides component) {
+    CompositionLocalProvider(LocalComponent provides component, LocalWizardDialogScope provides this) {
       with(currentPageScope) { WizardPageScaffold(this@TestComposeWizard, currentPage) }
     }
   }

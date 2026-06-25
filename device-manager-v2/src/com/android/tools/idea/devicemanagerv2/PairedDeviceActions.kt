@@ -18,6 +18,8 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.devicemanagerv2.DeviceManagerUsageTracker.logDeviceManagerEvent
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.PHYSICAL_PAIR_DEVICE_ACTION
@@ -27,6 +29,7 @@ import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUA
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidPluginDisposable
@@ -69,7 +72,29 @@ class ViewPairedDevicesAction : DumbAwareAction("View Paired Device(s)") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updatePairedDeviceActionPresentation()
+    val properties = e.deviceRowData()?.handle?.state?.properties
+    if (properties == null) {
+      e.presentation.isEnabledAndVisible = false
+      return
+    }
+    val hasWearPairs = properties.wearPairingId?.let { WearPairingManager.getInstance().getPairsForDevice(it).isNotEmpty() } == true
+
+    val hasGlassesPairs =
+      if (StudioFlags.AI_GLASSES_PAIRING_DETAILS_ENABLED.get()) {
+        when (properties.deviceType) {
+          DeviceType.AI_GLASSES -> properties.pairedPhoneId != null
+          DeviceType.HANDHELD -> {
+            properties.pairedGlassesInfos.isNotEmpty() ||
+              (e.project?.service<DeviceProvisionerService>()?.deviceProvisioner?.devices?.value?.any {
+                it.state.properties.deviceType == DeviceType.AI_GLASSES &&
+                  it.state.properties.pairedPhoneId == e.deviceRowData()?.handle?.id
+              } == true)
+          }
+          else -> false
+        }
+      } else false
+
+    e.presentation.isEnabledAndVisible = hasWearPairs || hasGlassesPairs
   }
 
   override fun actionPerformed(e: AnActionEvent) {

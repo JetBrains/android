@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.device-manager-v2",
     srcs = ["src"],
     iml_files = ["intellij.android.device-manager-v2.iml"],
+    kotlin_use_compose = True,
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
@@ -48,5 +49,6 @@ iml_module(
         "//tools/adt/idea/avd:intellij.android.avd",
         "//tools/adt/idea/intellij.android.device",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
     ],
 )

@@ -43,13 +43,7 @@ internal data class PairedDeviceData(
 ) {
   companion object {
     fun create(handle: DeviceHandle, state: DeviceState, pairingState: WearPairingManager.PairingState) =
-      PairedDeviceData(
-        handle,
-        state.properties.title,
-        null, // TODO: use state.properties.icon once it exists
-        state.properties.androidVersion,
-        pairingState,
-      )
+      PairedDeviceData(handle, state.properties.title, state.properties.icon, state.properties.androidVersion, pairingState)
   }
 }
 

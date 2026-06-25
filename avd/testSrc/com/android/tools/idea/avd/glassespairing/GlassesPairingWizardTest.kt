@@ -28,6 +28,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.AbstractAvdScanner
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
@@ -43,6 +44,7 @@ import com.android.tools.analytics.UsageTrackerWriter
 import com.android.tools.idea.avd.glassespairing.LaunchState.Booting
 import com.android.tools.idea.avd.glassespairing.LaunchState.Launching
 import com.android.tools.idea.avd.glassespairing.LaunchState.Ready
+import com.android.tools.idea.deviceprovisioner.GlassesInteractivePairableDeviceHandle
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
@@ -155,6 +157,8 @@ class GlassesPairingWizardTest {
 
       // Verify selection event
       assertThat(tracker.events).contains(GlassesPairingEvent.EventKind.PAIRING_DEVICE_SELECTED)
+      assertThat(glassesWizard.phoneHandle).isEqualTo(phone)
+      assertThat(glassesWizard.glassesHandle).isEqualTo(glasses)
 
       composeTestRule.onNodeWithText("Next").performClick()
 
@@ -701,12 +705,12 @@ class GlassesPairingWizardTest {
           project = null,
           coroutineScope = coroutineScope,
           devicesFlow = devicesFlow,
-          glassesHandle = glasses,
+          initialGlassesHandle = glasses,
           initialPhoneHandle = phone,
           pairer = pairer,
           isCompatible = { true },
         )
-      val wizard = TestComposeWizard { with(glassesWizard) { PreselectedPairingPage(phone) } }
+      val wizard = TestComposeWizard { with(glassesWizard) { PreselectedPairingPage(glassesHandle = glasses, phoneHandle = phone) } }
 
       composeTestRule.setContent { wizard.Content() }
 
@@ -725,6 +729,141 @@ class GlassesPairingWizardTest {
       composeTestRule.onNodeWithText("Successfully paired Pixel 9 with Audio glasses").assertIsDisplayed()
 
       composeTestRule.onNodeWithText("Finish").assertIsEnabled().performClick()
+      wizard.awaitClose()
+    } finally {
+      coroutineScope.cancel()
+      UsageTracker.cleanAfterTesting()
+    }
+  }
+
+  @Test
+  fun testSelectGlassesPage_greysOutAlreadyPairedGlasses() = runTest {
+    val coroutineScope = CoroutineScope(UnconfinedTestDispatcher(testScheduler))
+    val tracker = TestTracker()
+    UsageTracker.setWriterForTest(tracker)
+
+    try {
+      val phone =
+        FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+          "p1",
+          coroutineScope,
+          DeviceState.Connected(
+            properties =
+              DeviceProperties.buildForTest {
+                icon = EmptyIcon.DEFAULT
+                manufacturer = "Google"
+                model = "Pixel 9"
+                deviceType = DeviceType.HANDHELD
+                androidVersion = AndroidVersion(36, 1)
+              },
+            connectedDevice = mock<ConnectedDevice>(),
+            isTransitioning = false,
+            isReady = true,
+            status = "Online",
+          ),
+        )
+
+      val pairedGlasses =
+        FakeGlassesInteractivePairableDeviceHandle(
+          FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+            "g1",
+            coroutineScope,
+            DeviceState.Connected(
+              properties =
+                DeviceProperties.buildForTest {
+                  icon = EmptyIcon.DEFAULT
+                  manufacturer = "Google"
+                  model = "Paired Glasses"
+                  deviceType = DeviceType.AI_GLASSES
+                  androidVersion = AndroidVersion(36, 1)
+                  pairedPhoneId = phone.id // Paired to the initiating phone
+                },
+              connectedDevice = mock<ConnectedDevice>(),
+              isTransitioning = false,
+              isReady = true,
+              status = "Online",
+            ),
+          )
+        )
+
+      val otherPairedGlasses =
+        FakeGlassesInteractivePairableDeviceHandle(
+          FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+            "g2",
+            coroutineScope,
+            DeviceState.Connected(
+              properties =
+                DeviceProperties.buildForTest {
+                  icon = EmptyIcon.DEFAULT
+                  manufacturer = "Google"
+                  model = "Other Paired Glasses"
+                  deviceType = DeviceType.AI_GLASSES
+                  androidVersion = AndroidVersion(36, 1)
+                  pairedPhoneId = DeviceId("Test", false, "other_phone") // Paired to a different phone
+                },
+              connectedDevice = mock<ConnectedDevice>(),
+              isTransitioning = false,
+              isReady = true,
+              status = "Online",
+            ),
+          )
+        )
+
+      val unpairedGlasses =
+        FakeGlassesInteractivePairableDeviceHandle(
+          FakeDeviceProvisionerPlugin.FakeDeviceHandle(
+            "g3",
+            coroutineScope,
+            DeviceState.Connected(
+              properties =
+                DeviceProperties.buildForTest {
+                  icon = EmptyIcon.DEFAULT
+                  manufacturer = "Google"
+                  model = "Unpaired Glasses"
+                  deviceType = DeviceType.AI_GLASSES
+                  androidVersion = AndroidVersion(36, 1)
+                  pairedPhoneId = null // Unpaired
+                },
+              connectedDevice = mock<ConnectedDevice>(),
+              isTransitioning = false,
+              isReady = true,
+              status = "Online",
+            ),
+          )
+        )
+
+      val devicesFlow = MutableStateFlow(listOf(phone, pairedGlasses, otherPairedGlasses, unpairedGlasses))
+
+      val glassesWizard =
+        GlassesPairingWizard(
+          project = null,
+          coroutineScope = coroutineScope,
+          devicesFlow = devicesFlow,
+          initialGlassesHandle = null, // Phone-First flow
+          initialPhoneHandle = phone, // Initiating phone is 'phone'
+          pairer = mock<GlassesPairer>(),
+          isCompatible = { true },
+        )
+      val wizard = TestComposeWizard { with(glassesWizard) { SelectGlassesPage() } }
+
+      composeTestRule.setContent { wizard.Content() }
+
+      // 1. Verify already paired glasses are greyed out and not selectable
+      composeTestRule.onNodeWithText("Already paired to this phone").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Google Paired Glasses").performClick()
+      composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+
+      // 2. Verify other paired glasses are selectable (repair flow)
+      composeTestRule.onNodeWithText("Google Other Paired Glasses").performClick()
+      composeTestRule.onNodeWithText("Next").assertIsEnabled()
+
+      // 3. Verify unpaired glasses are selectable
+      composeTestRule.onNodeWithText("Google Unpaired Glasses").performClick()
+      composeTestRule.onNodeWithText("Next").assertIsEnabled()
+      assertThat(glassesWizard.phoneHandle).isEqualTo(phone)
+      assertThat(glassesWizard.glassesHandle).isEqualTo(unpairedGlasses)
+
+      wizard.close()
       wizard.awaitClose()
     } finally {
       coroutineScope.cancel()
@@ -811,3 +950,17 @@ private class TestDeviceHandle(
 
 private fun createLaunchingState(phone: LaunchState, glasses: LaunchState) =
   PairingState.Launching(phoneName = "P", phoneLaunchState = phone, glassesName = "G", glassesLaunchState = glasses)
+
+private class FakeGlassesInteractivePairableDeviceHandle(
+  val delegate: DeviceHandle,
+  var pairEnabled: Boolean = true,
+  var unpairEnabled: Boolean = true,
+) : GlassesInteractivePairableDeviceHandle, DeviceHandle by delegate {
+  override fun isPairGlassesEnabled() = pairEnabled
+
+  override suspend fun pairGlasses(parent: java.awt.Component?, project: com.intellij.openapi.project.Project?) = true
+
+  override fun isUnpairGlassesEnabled() = unpairEnabled
+
+  override suspend fun unpairGlasses(parent: java.awt.Component?) {}
+}

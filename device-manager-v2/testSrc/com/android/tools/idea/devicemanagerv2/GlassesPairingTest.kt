@@ -16,12 +16,14 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.flags.junit.FlagRule
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.deviceprovisioner.GlassesInteractivePairableDeviceHandle
 import com.android.tools.idea.flags.StudioFlags
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -31,6 +33,8 @@ import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
 import java.awt.Component
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -206,5 +210,38 @@ class GlassesPairingTest {
     unpairAction.update(unpairEvent)
     assertFalse(unpairEvent.presentation.isVisible)
     assertFalse(unpairEvent.presentation.isEnabled)
+  }
+
+  @Test
+  fun testGlassesPairedDevicesFlow_indirectPairingsFromGlasses() = runBlocking {
+    val phoneHandle =
+      FakeDeviceHandle(
+        scope = this,
+        initialProperties =
+          DeviceProperties.buildForTest {
+            model = "Phone"
+            deviceType = DeviceType.HANDHELD
+            icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+          },
+      )
+    val glassesHandle =
+      FakeDeviceHandle(
+        scope = this,
+        initialProperties =
+          DeviceProperties.buildForTest {
+            model = "Glasses"
+            deviceType = DeviceType.AI_GLASSES
+            pairedPhoneId = phoneHandle.id
+            icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+          },
+      )
+
+    val flow = flowOf(listOf(phoneHandle, glassesHandle)).glassesPairedDevicesFlow()
+    val result = flow.first()
+
+    assertThat(result).containsKey(phoneHandle.id.toString())
+    val phonePairings = result[phoneHandle.id.toString()]!!
+    assertThat(phonePairings).hasSize(1)
+    assertThat(phonePairings[0].id).isEqualTo(glassesHandle.id.toString())
   }
 }

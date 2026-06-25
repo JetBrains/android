@@ -71,6 +71,7 @@ fun ObservablePairedDevicesList.pairedDevicesFlow(): Flow<ImmutableMap<String, I
       }
     }
 
+  trySend(pairedDevices)
   addDevicePairingStatusChangedListener(listener)
   awaitClose { removeDevicePairingStatusChangedListener(listener) }
 }

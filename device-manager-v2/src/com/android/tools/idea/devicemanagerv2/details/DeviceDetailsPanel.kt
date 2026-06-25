@@ -17,8 +17,10 @@ package com.android.tools.idea.devicemanagerv2.details
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.devicemanagerv2.DeviceManagerPanel
 import com.android.tools.idea.devicemanagerv2.PairingStatus
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
@@ -71,28 +73,43 @@ private constructor(val scope: CoroutineScope, heading: String, mainComponent: J
       deviceInfoPanel.trackDeviceProperties(scope, handle)
       deviceInfoPanel.trackDevicePowerAndStorage(scope, handle)
 
-      val pairedDevicesPanel =
-        handle.state.properties.wearPairingId?.let {
-          PairedDevicesPanel.create(
-            PairedDevicesPanel.StudioPairingManager(project),
-            scope,
-            Dispatchers.EDT,
-            handle,
-            devicesFlow,
-            pairedDevicesFlow,
-          )
+      val wearPairingId = handle.state.properties.wearPairingId
+      val isGlassesOrPhoneForGlasses =
+        StudioFlags.AI_GLASSES_PAIRING_DETAILS_ENABLED.get() &&
+          (handle.state.properties.deviceType == DeviceType.AI_GLASSES || handle.state.properties.deviceType == DeviceType.HANDHELD)
+
+      val pairingDelegates = buildList {
+        if (wearPairingId != null) {
+          add(WearPairingDelegate(project))
         }
-      val tabbedPane = pairedDevicesPanel?.let { createTabbedPane(deviceInfoPanel, pairedDevicesPanel) }
+        if (isGlassesOrPhoneForGlasses) {
+          add(GlassesPairingDelegate(project, devicesFlow))
+        }
+      }
+
+      val pairedDevicesPanel =
+        if (pairingDelegates.isNotEmpty()) {
+          PairedDevicesPanel.create(
+            pairingDelegates = pairingDelegates,
+            scope = scope,
+            uiContext = Dispatchers.EDT,
+            handle = handle,
+            devicesFlow = devicesFlow,
+          )
+        } else null
+
+      val tabbedPane =
+        pairedDevicesPanel?.let { panel ->
+          JBTabbedPane().apply {
+            tabComponentInsets = JBUI.emptyInsets()
+            insertTab("Device Info", null, JBScrollPane(deviceInfoPanel), null, DEVICE_INFO_TAB_INDEX)
+            insertTab("Paired Devices", null, JBScrollPane(panel), null, PAIRED_DEVICES_TAB_INDEX)
+          }
+        }
+
       val mainComponent = tabbedPane ?: JBScrollPane(deviceInfoPanel)
       return DeviceDetailsPanel(scope, handle.state.properties.title, mainComponent, tabbedPane)
     }
-
-    private fun createTabbedPane(deviceInfoPanel: DeviceInfoPanel, pairedDevicesPanel: PairedDevicesPanel) =
-      JBTabbedPane().apply {
-        tabComponentInsets = JBUI.emptyInsets()
-        insertTab("Device Info", null, JBScrollPane(deviceInfoPanel), null, DEVICE_INFO_TAB_INDEX)
-        insertTab("Paired Devices", null, JBScrollPane(pairedDevicesPanel), null, PAIRED_DEVICES_TAB_INDEX)
-      }
 
     private const val DEVICE_INFO_TAB_INDEX = 0
     private const val PAIRED_DEVICES_TAB_INDEX = 1

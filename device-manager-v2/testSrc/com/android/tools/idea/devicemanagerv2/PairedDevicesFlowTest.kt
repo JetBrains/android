@@ -52,6 +52,8 @@ class PairedDevicesFlowTest {
 
     backgroundScope.launch { list.pairedDevicesFlow().collect { output.send(it) } }
 
+    assertThat(output.receive()).isEmpty()
+
     val phone =
       PairingDevice(
         deviceID = "id1",
@@ -121,5 +123,21 @@ class PairedDevicesFlowTest {
       it["id1"].let { assertThat(it).hasSize(0) }
       it["id2"].let { assertThat(it).hasSize(0) }
     }
+  }
+
+  @Test
+  fun pairedDevicesFlow_emitsInitialStateWhenNoWearDevicesPaired() = runTest {
+    val output = Channel<ImmutableMap<String, ImmutableList<PairingStatus>>>()
+    val list =
+      object : ObservablePairedDevicesList {
+        override fun addDevicePairingStatusChangedListener(listener: WearPairingManager.PairingStatusChangedListener) {}
+
+        override fun removeDevicePairingStatusChangedListener(listener: WearPairingManager.PairingStatusChangedListener) {}
+      }
+
+    backgroundScope.launch { list.pairedDevicesFlow().collect { output.send(it) } }
+
+    val initialEmitted = output.receive()
+    assertThat(initialEmitted).isEmpty()
   }
 }

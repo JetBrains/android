@@ -31,6 +31,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceHandle
@@ -53,7 +57,12 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icon.IconKey
 
 @Stable
-internal data class DeviceRow(val handle: DeviceHandle, val state: DeviceState) {
+internal data class DeviceRow(
+  val handle: DeviceHandle,
+  val state: DeviceState,
+  val subtitle: String? = null,
+  val isEnabled: Boolean = true,
+) {
   val name: String = state.properties.title
   val icon: IconKey = state.properties.deviceType.toIcon()
   val androidVersion: AndroidVersion? = state.properties.androidVersion
@@ -85,7 +94,9 @@ internal fun DeviceList(
       state = state,
       onSelectedIndexesChange = { indices -> indices.singleOrNull()?.let { onSelectedDeviceChange(devices[it]) } },
     ) {
-      items(devices, key = { it.handle.id }) { DeviceRow(row = it, isSelected = isSelected, isFocused = isActive) }
+      items(items = devices, key = { it.handle.id }, selectable = { it.isEnabled }) {
+        DeviceRow(row = it, isSelected = isSelected, isFocused = isActive)
+      }
     }
 
     VerticalScrollbar(
@@ -97,26 +108,38 @@ internal fun DeviceList(
 
 @Composable
 private fun DeviceRow(row: DeviceRow, isSelected: Boolean, isFocused: Boolean) {
-  Row(Modifier.background(UIUtil.getListBackground(isSelected, isFocused).toComposeColor()).fillMaxWidth().padding(vertical = 4.dp)) {
+  val alphaModifier = if (row.isEnabled) Modifier else Modifier.alpha(0.5f)
+
+  Row(
+    Modifier.background(UIUtil.getListBackground(isSelected, isFocused).toComposeColor())
+      .fillMaxWidth()
+      .padding(vertical = 4.dp)
+      .semantics { if (!row.isEnabled) disabled() }
+  ) {
     if (row.isConnected) {
       Icon(
         key = StudioIconsCompose.Avd.StatusDecoratorOnline,
         contentDescription = "online",
-        Modifier.size(16.dp).align(Alignment.CenterVertically),
+        Modifier.size(16.dp).align(Alignment.CenterVertically).then(alphaModifier),
       )
     } else {
       Spacer(Modifier.size(16.dp).align(Alignment.CenterVertically))
     }
-    Icon(key = row.icon, contentDescription = null, Modifier.size(32.dp).padding(horizontal = 6.dp))
+    Icon(key = row.icon, contentDescription = null, Modifier.size(32.dp).padding(horizontal = 6.dp).then(alphaModifier))
     Column(Modifier.align(Alignment.CenterVertically).fillMaxWidth(), Arrangement.spacedBy(2.dp)) {
       with(row) {
-        Text(name)
-        if (androidVersion != null) {
-          Text(
-            androidVersion.toLabelText() + (abi?.cpuArch?.let { " | $it" } ?: ""),
-            color = JewelTheme.globalColors.text.info,
-            fontSize = LocalTextStyle.current.fontSize * 0.9,
-          )
+        val nameColor = if (row.isEnabled) Color.Unspecified else JewelTheme.globalColors.text.disabled
+        val detailsColor = if (row.isEnabled) JewelTheme.globalColors.text.info else JewelTheme.globalColors.text.disabled
+
+        Text(name, color = nameColor)
+        val detailsText =
+          when {
+            subtitle != null -> subtitle
+            androidVersion != null -> androidVersion.toLabelText() + (abi?.cpuArch?.let { " | $it" } ?: "")
+            else -> null
+          }
+        if (detailsText != null) {
+          Text(detailsText, color = detailsColor, fontSize = LocalTextStyle.current.fontSize * 0.9)
         }
       }
     }
