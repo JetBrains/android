@@ -57,7 +57,7 @@ class NewArtifactTrackerTest : BlazeTestCase() {
     object : BuildArtifactCache {
       val artifacts = mutableListOf<OutputArtifact>()
 
-      override fun addAll(artifacts: Collection<OutputArtifact>, context: Context<*>): ListenableFuture<out Any> {
+      override fun addAll(artifacts: Collection<OutputArtifact>, context: Context<*>): ListenableFuture<*> {
         this.artifacts.addAll(artifacts)
         return Futures.immediateFuture(null)
       }

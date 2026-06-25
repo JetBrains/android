@@ -78,6 +78,7 @@ def aswb_library(name, testonly = False, **kwargs):
         name = name,
         module_name = "{}_{}".format(native.package_name(), name).replace("/", "_"),
         testonly = testonly,
+        kotlin_version = "2.3",
         jvm_target = "21",
         lint_is_test_sources = testonly,
         stdlib = None,  # kotlin-stdlib already comes bundled in IntelliJ.

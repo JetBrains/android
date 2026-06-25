@@ -202,5 +202,5 @@ class PartialProjectRefreshTest {
     Truth.assertThat(applied.packagesWithErrors).containsExactly(Path.of("my/build/package1"), Path.of("my/build/package2"))
   }
 
-  private fun <T> listOf(vararg list: T): ImmutableList<T> = ImmutableList.copyOf(list)
+  private fun <T : Any> listOf(vararg list: T): ImmutableList<T> = ImmutableList.copyOf(list)
 }
