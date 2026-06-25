@@ -1093,10 +1093,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
       if (!hasRenderedAtLeastOnce.getAndSet(true)) {
         logComposePreviewLiteModeEvent(ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER)
       }
-      // If this render was triggered by a mode change, check if we have stored scale, if we do we
-      // try to restore it.
-      // Otherwise, we notify to surface to apply zoom-to-fit.
-      if (isPreviewModeChanging.getAndSet(false)) {
+      // If this render was triggered by a mode change and succeeded without errors, it restores the stored scale or triggers a zoom-to-fit.
+      // Zoom-to-fit is skipped on render errors to avoid incorrect scale calculations due to invalid preview sizes.
+      val hasNoRenderErrors = surface.sceneManagers.none { it.renderResult.isErrorResult(COMPOSE_VIEW_ADAPTER_FQN) }
+      if (hasNoRenderErrors && isPreviewModeChanging.getAndSet(false)) {
         launch(Dispatchers.EDT) {
           if (!surface.restorePreviousScale()) {
             surface.zoomController.zoomToFit()
