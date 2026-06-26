@@ -22,7 +22,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.util.containers.ContainerUtil
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.junit.Rule
 import org.junit.Test
 
