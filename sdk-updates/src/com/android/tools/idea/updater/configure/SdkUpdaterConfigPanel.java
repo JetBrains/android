@@ -32,7 +32,6 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
@@ -402,7 +401,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-        boolean useDeprecatedWizard = !StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED.get();
         SetupSdkApplicationService.getInstance().showSdkSetupWizard(
           mySdkLocationTextField.getText(),
           (sdkLocation) -> {
@@ -410,8 +408,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
             return null;
           },
           new SdkComponentInstaller(),
-          new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP, useDeprecatedWizard),
-          useDeprecatedWizard
+          new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP, false)
         );
       }
     });

@@ -125,7 +125,6 @@ class WelcomeScreenWizardTest {
   val chain =
     RuleChain(
       FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(35)),
-      FlagRule(StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED),
       sdkHandlerRule,
       projectRule,
       HeadlessDialogRule(),
