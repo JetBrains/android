@@ -857,6 +857,8 @@ iml_test(
     ],
     module = ":intellij.android.core.integration",
     tags = [
+        "noci:studio-linux",  # b/527291577
+        "noci:studio-win",  # b/527291577
         "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
