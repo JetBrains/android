@@ -50,10 +50,6 @@ import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
-import org.junit.runners.Parameterized.Parameter
-import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -63,16 +59,7 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
-@RunWith(Parameterized::class)
 class SetupSdkApplicationServiceTest {
-  companion object {
-    @JvmStatic
-    @Parameters(name = "isTestingLegacyWizard={0}")
-    fun parameters() = listOf(arrayOf(true), arrayOf(false))
-  }
-
-  @Parameter @JvmField var isTestingLegacyWizard: Boolean? = null
-
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
   private val sdkHandlerRule = AndroidSdkHandlerRule()
 
@@ -80,7 +67,6 @@ class SetupSdkApplicationServiceTest {
   val chain =
     RuleChain(
       FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(35)),
-      FlagRule(StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED),
       sdkHandlerRule,
       projectRule,
       HeadlessDialogRule(),
@@ -91,8 +77,6 @@ class SetupSdkApplicationServiceTest {
 
   @Before
   fun setUp() {
-    StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED.override(isTestingLegacyWizard == false)
-
     val fakeRepoManager =
       spy(
         FakeRepoManager(
@@ -127,7 +111,6 @@ class SetupSdkApplicationServiceTest {
           {},
           mockInstaller,
           mock(),
-          isTestingLegacyWizard == true
         )
       }
     ) {
@@ -193,7 +176,6 @@ class SetupSdkApplicationServiceTest {
           {},
           mockInstaller,
           mockTracker,
-          isTestingLegacyWizard == true
         )
       }
     ) {
