@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -32,6 +33,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 @RunsInEdt
 class UpdateScreenshotTestResultsListenerTest {
@@ -43,18 +45,23 @@ class UpdateScreenshotTestResultsListenerTest {
   @Test
   fun testOnTestCaseFinished_extractsDataCorrectly() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
+    `when`(dialog.project).thenReturn(projectRule.project)
     val listener = UpdateScreenshotTestResultsListener(dialog) { it.run() }
 
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
+    val refPath = File(projectRule.project.basePath, "ref.png").canonicalPath
+    val newPath = File(projectRule.project.basePath, "new.png").canonicalPath
+    val diffPath = File(projectRule.project.basePath, "diff.png").canonicalPath
+
     val artifacts =
       mutableMapOf(
         "PreviewScreenshot.methodName" to "testMethod",
         "PreviewScreenshot.previewName" to "preview1",
-        "PreviewScreenshot.refImagePath" to "/path/to/ref.png",
-        "PreviewScreenshot.newImagePath" to "/path/to/new.png",
-        "PreviewScreenshot.diffImagePath" to "/path/to/diff.png",
+        "PreviewScreenshot.refImagePath" to refPath,
+        "PreviewScreenshot.newImagePath" to newPath,
+        "PreviewScreenshot.diffImagePath" to diffPath,
         "PreviewScreenshot.diffPercent" to "0.05",
       )
 
@@ -82,9 +89,9 @@ class UpdateScreenshotTestResultsListenerTest {
     assertEquals("com.example.TestClass", details.className)
     assertEquals("testMethod", details.methodName)
     assertEquals("preview1", details.previewName)
-    assertEquals("/path/to/ref.png", details.destImagePath)
-    assertEquals("/path/to/new.png", details.srcImagePath)
-    assertEquals("/path/to/diff.png", details.diffImagePath)
+    assertEquals(refPath, details.destImagePath)
+    assertEquals(newPath, details.srcImagePath)
+    assertEquals(diffPath, details.diffImagePath)
     assertEquals("0.05", details.diffPercent)
   }
 
@@ -169,12 +176,15 @@ class UpdateScreenshotTestResultsListenerTest {
   @Test
   fun testOnTestCaseFinished_partialArtifacts() {
     val dialog = mock(UpdateReferenceImagesDialog::class.java)
+    `when`(dialog.project).thenReturn(projectRule.project)
     val listener = UpdateScreenshotTestResultsListener(dialog) { it.run() }
     val mockDevice = mock(AndroidDevice::class.java)
     val mockSuite = mock(AndroidTestSuite::class.java)
 
+    val refPath = File(projectRule.project.basePath, "ref.png").canonicalPath
+
     // Only method name and one image path are present
-    val artifacts = mutableMapOf("PreviewScreenshot.methodName" to "partialMethod", "PreviewScreenshot.refImagePath" to "/path/to/ref.png")
+    val artifacts = mutableMapOf("PreviewScreenshot.methodName" to "partialMethod", "PreviewScreenshot.refImagePath" to refPath)
 
     val testCase =
       AndroidTestCase(
@@ -195,7 +205,7 @@ class UpdateScreenshotTestResultsListenerTest {
     val details = captor.value
     assertEquals("partialMethod", details.methodName)
     assertEquals(" ", details.previewName) // Default
-    assertEquals("/path/to/ref.png", details.destImagePath)
+    assertEquals(refPath, details.destImagePath)
     assertEquals(null, details.srcImagePath) // Missing
     assertEquals("com.example.PartialClass.partialMethod. ", details.testId)
   }
