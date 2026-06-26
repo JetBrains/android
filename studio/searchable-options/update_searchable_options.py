@@ -70,7 +70,14 @@ def generate_searchable_options(work_dir, out_dir, ide_path, plugins):
     if id and id in content:
       for entry in content[id]:
         name = entry["file"]
-        shutil.move(os.path.join(options_dir, name), out_dir)
+        src_file = os.path.join(options_dir, name)
+        dst_file = os.path.join(out_dir, name)
+        with open(src_file, "r", encoding="utf-8") as sf:
+          lines = sf.readlines()
+        lines.sort()
+        with open(dst_file, "w", encoding="utf-8") as df:
+          df.writelines(lines)
+
 
   return plugin_list
 
