@@ -877,7 +877,7 @@ first_launch_test_data = [
 ]
 
 iml_test(
-    name = "FirstLaunchTest",
+    name = "FirstLaunchWizardTest",
     timeout = "moderate",
     data = first_launch_test_data,
     module = ":intellij.android.core.integration",
@@ -889,7 +889,7 @@ iml_test(
     tags_windows = [
         "block-network",
     ],
-    test_class = "com.android.tools.idea.FirstLaunchTest",
+    test_class = "com.android.tools.idea.FirstLaunchWizardTest",
 )
 
 maven_repository(

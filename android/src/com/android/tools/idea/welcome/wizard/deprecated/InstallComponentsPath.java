@@ -15,190 +15,19 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
-
-import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.observable.core.ObjectValueProperty;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.progress.StudioProgressRunner;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
-import com.android.tools.idea.welcome.SdkLocationUtils;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.AndroidSdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.AndroidVirtualDeviceSdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode;
-import com.android.tools.idea.welcome.install.SdkComponentInstaller;
-import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.InstallContext;
-import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode;
-import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.WizardException;
-import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
-import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
-import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Wizard path that manages component installation flow. It will prompt the user
- * for the components to install and for install parameters. On wizard
- * completion it will download and unzip component archives and will
- * perform component setup.
- */
-public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
-  @NotNull private final FirstRunWizardMode myMode;
-
-  // This will be different from the actual handler, since this will change as and when we change the path in the UI.
-  private final ObjectValueProperty<AndroidSdkHandler> myLocalHandlerProperty;
-  private final @NotNull FirstRunWizardTracker myTracker;
-
-  private SdkComponentTreeNode myComponentTree;
-  private final AbstractProgressStep myProgressStep;
-  @NotNull private final SdkComponentInstaller mySdkComponentInstaller;
-  private final boolean myInstallUpdates;
-  private SdkComponentsStep myComponentsStep;
-  @Nullable private LicenseAgreementStep myLicenseAgreementStep;
-
-  public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
-                               @NotNull File sdkLocation,
-                               @NotNull AbstractProgressStep progressStep,
-                               @NotNull SdkComponentInstaller sdkComponentInstaller,
-                               boolean installUpdates,
-                               @NotNull FirstRunWizardTracker tracker) {
-    myMode = mode;
-
-    // Create a new instance for use during installation
-    myLocalHandlerProperty = new ObjectValueProperty<>(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkLocation.toPath()));
-
-    myProgressStep = progressStep;
-    mySdkComponentInstaller = sdkComponentInstaller;
-    myInstallUpdates = installUpdates;
-    myTracker = tracker;
-  }
-
-  private SdkComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
-                                                   boolean createAvd) {
-    List<SdkComponentTreeNode> components = new ArrayList<>();
-    components.add(new AndroidSdkComponentTreeNode(myInstallUpdates));
-
-    AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
-    RepoManager sdkManager = localHandler.getRepoManager(new StudioLoggerProgressIndicator(getClass()));
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-                    new StudioProgressRunner(false, "Finding Available SDK Components", null),
-                    new StudioDownloader(), StudioSettingsController.getInstance());
-
-    Collection<RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages().values();
-    components.add(AndroidPlatformSdkComponentTreeNode.Companion.createSubtree(remotePackages, myInstallUpdates));
-
-    AehdSdkComponentTreeNode.InstallationIntention installationIntention =
-      myInstallUpdates ? AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES
-                                                    : AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES;
-    if (reason == FirstRunWizardMode.NEW_INSTALL && AehdSdkComponentTreeNode.InstallerInfo.canRun()) {
-      components.add(new AehdSdkComponentTreeNode(installationIntention));
-    }
-    if (createAvd) {
-      AndroidVirtualDeviceSdkComponentTreeNode avdCreator = new AndroidVirtualDeviceSdkComponentTreeNode(remotePackages, myInstallUpdates);
-      if (avdCreator.isAvdCreationNeeded(localHandler)) {
-        components.add(avdCreator);
-      }
-    }
-    return new SdkComponentCategoryTreeNode("Root", "Root node that is not supposed to appear in the UI", components);
-  }
-
-  @Override
-  protected void init() {
-    AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
-    File location = localHandler.getLocation().toFile();
-    assert location != null;
-
-    myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
-
-    myComponentTree = createComponentTree(myMode, !isChromeOSAndIsNotHWAccelerated() && myMode.shouldCreateAvd());
-    myComponentTree.updateState(localHandler);
-
-    Supplier<Collection<RemotePackage>> supplier = () -> {
-      Iterable<InstallableSdkComponentTreeNode> components = myComponentTree.getChildrenToInstall();
-      try {
-        return mySdkComponentInstaller.getPackagesToInstall(myLocalHandlerProperty.get(), components);
-      }
-      catch (SdkQuickfixUtils.PackageResolutionException e) {
-        Logger.getInstance(InstallComponentsPath.class).warn(e);
-        return null;
-      }
-    };
-    Supplier<List<String>> installRequests = () -> {
-      Collection<RemotePackage> remotePackages = supplier.get();
-      return remotePackages == null ? null : remotePackages.stream().map(it -> it.getPath()).collect(Collectors.toList());
-    };
-    myLicenseAgreementStep = new LicenseAgreementStep(myWizard.getDisposable(), installRequests, myLocalHandlerProperty::get, myTracker);
-
-    myComponentsStep = new SdkComponentsStep(
-      getProject(),
-      myComponentTree,
-      FirstRunWizard.KEY_CUSTOM_INSTALL,
-      WizardConstants.KEY_SDK_INSTALL_LOCATION,
-      myMode,
-      myLocalHandlerProperty,
-      myLicenseAgreementStep,
-      myWizard.getDisposable(),
-      myTracker
-    );
-    addStep(myComponentsStep);
-
-    if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier, myTracker));
-      addStep(myLicenseAgreementStep);
-    }
-  }
-
-  @NotNull
-  @Override
-  public String getPathName() {
-    return "Setup " + ApplicationNamesInfo.getInstance().getFullProductName() + " Components";
-  }
-
-  @Override
-  public void runLongOperation() throws WizardException {
-    if (myLicenseAgreementStep != null) {
-      myLicenseAgreementStep.performFinishingActions();
-    }
-
-    Collection<InstallableSdkComponentTreeNode> componentsToInstall = myComponentTree.getChildrenToInstall();
-    myTracker.trackSdkComponentsToInstall(componentsToInstall.stream().map(InstallableSdkComponentTreeNode::sdkComponentsMetricKind).toList());
-
-    AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
-    mySdkComponentInstaller.installComponents(
-      componentsToInstall,
-      new InstallContext(createTempDir(), myProgressStep),
-      myMode.getInstallerTimestamp(),
-      ModalityState.stateForComponent(myWizard.getContentPane()),
-      localHandler,
-      getDestination()
-    );
-  }
-
+public class InstallComponentsPath {
   /**
    * Returns the latest platform from a given list.
    *
@@ -234,31 +63,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       }
     }
     return latest;
-  }
-
-  @NotNull
-  private File getDestination() throws WizardException {
-    String destinationPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
-    assert destinationPath != null;
-
-    final File destination = new File(destinationPath);
-    if (destination.isFile()) {
-      throw new WizardException(String.format("Path %s does not point to a directory", destination));
-    }
-    return destination;
-  }
-
-  @Override
-  public boolean performFinishingActions() {
-    // Everything happens after wizard completion
-    return true;
-  }
-
-  public boolean shouldDownloadingComponentsStepBeShown() {
-    String path = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
-    assert path != null;
-
-    return SdkLocationUtils.isWritable(Paths.get(path));
   }
 
   public static File createTempDir() throws WizardException {

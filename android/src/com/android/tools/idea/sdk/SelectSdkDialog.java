@@ -17,17 +17,10 @@
 package com.android.tools.idea.sdk;
 
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.sdk.wizard.SetupSdkApplicationService;
 import com.android.tools.idea.ui.ApplicationUtils;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.install.SdkComponentInstaller;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
-import com.android.tools.idea.welcome.wizard.deprecated.ConsolidatedProgressStep;
-import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
-import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.dynamic.DynamicWizard;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
-import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.tools.sdk.SdkPaths.ValidationResult;
 import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.notification.Notification;
@@ -128,10 +121,15 @@ public class SelectSdkDialog extends DialogWrapper {
     mySdkTextFieldWithButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        createDownloadingComponentsStepDialog(finalSdkPath, s -> {
-          mySdkTextFieldWithButton.setText(s.getAbsolutePath());
-          validate();
-        });
+        SetupSdkApplicationService.getInstance().showSdkSetupWizard(
+          finalSdkPath != null ? finalSdkPath : "",
+          sdkLocation -> {
+            mySdkTextFieldWithButton.setText(sdkLocation.getAbsolutePath());
+            validate();
+            return null;
+          },
+          new SdkComponentInstaller(),
+          new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP, true));
       }
     });
   }
@@ -263,84 +261,4 @@ public class SelectSdkDialog extends DialogWrapper {
     return mySdkHome;
   }
 
-  public static void createDownloadingComponentsStepDialog(String sdkPath, Consumer<File> onFinish) {
-    DynamicWizard wizard = new DynamicWizard(null, null, "SDK Setup") {
-      @Override
-      public void init() {
-        FirstRunWizardTracker tracker = new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP, true);
-        DownloadingComponentsStep progressStep = new DownloadingComponentsStep(myHost.getDisposable(), myHost, tracker);
-
-        File location;
-        if (isEmpty(sdkPath)) {
-          location = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
-        }
-        else {
-          location = new File(sdkPath);
-        }
-
-        InstallComponentsPath path =
-          new InstallComponentsPath(FirstRunWizardMode.MISSING_SDK, location, progressStep, new SdkComponentInstaller(), false, tracker);
-
-        progressStep.setInstallComponentsPath(path);
-
-        addPath(path);
-        addPath(new SingleStepPath(progressStep));
-        super.init();
-      }
-
-      @Override
-      public void performFinishingActions() {
-        File sdkLocation = IdeSdks.getInstance().getAndroidSdkPath();
-
-        if (sdkLocation == null) {
-          return;
-        }
-
-        String stateSdkLocationPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
-        assert stateSdkLocationPath != null;
-
-        File stateSdkLocation = new File(stateSdkLocationPath);
-
-        if (!FileUtil.filesEqual(sdkLocation, stateSdkLocation)) {
-          File finalSdkLocation = sdkLocation;
-          ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> IdeSdks.getInstance().setAndroidSdkPath(finalSdkLocation));
-          sdkLocation = stateSdkLocation;
-        }
-
-        // Pick up changes done by the wizard.
-        onFinish.accept(sdkLocation);
-      }
-
-      @NotNull
-      @Override
-      protected String getProgressTitle() {
-        return "Setting up SDK...";
-      }
-
-      @Override
-      protected String getWizardActionDescription() {
-        return "Setting up SDK...";
-      }
-    };
-    wizard.init();
-    wizard.show();
-  }
-
-  private static final class DownloadingComponentsStep extends ConsolidatedProgressStep {
-    private InstallComponentsPath myInstallComponentsPath;
-
-    private DownloadingComponentsStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host, @NotNull FirstRunWizardTracker tracker) {
-      super(disposable, host, tracker);
-    }
-
-    private void setInstallComponentsPath(InstallComponentsPath installComponentsPath) {
-      setPaths(Collections.singletonList(installComponentsPath));
-      myInstallComponentsPath = installComponentsPath;
-    }
-
-    @Override
-    public boolean isStepVisible() {
-      return myInstallComponentsPath.shouldDownloadingComponentsStepBeShown();
-    }
-  }
 }

@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -68,26 +65,9 @@ class AndroidStudioWelcomeScreenProviderTest {
   }
 
   @Test
-  fun createWelcomeScreen_returnsOldWizard_whenNewWizardFlagFalse() {
+  fun createWelcomeScreen_returnsWizard() {
     whenever(mockAndroidStudioWelcomeScreenService.getWizardMode(any(), anyOrNull(), any()))
       .thenReturn(FirstRunWizardMode.NEW_INSTALL)
-    StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
-    val screen = AndroidStudioWelcomeScreenProvider().createWelcomeScreen(JRootPane())
-
-    assertTrue { screen is FirstRunWizardHost }
-  }
-
-  @Test
-  fun createWelcomeScreen_returnsNewWizard_whenNewWizardFlagTrue() {
-    whenever(mockAndroidStudioWelcomeScreenService.getWizardMode(any(), anyOrNull(), any()))
-      .thenReturn(FirstRunWizardMode.NEW_INSTALL)
-    StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.overrideForTest(
-      true,
-      projectRule.testRootDisposable,
-    )
     val screen = AndroidStudioWelcomeScreenProvider().createWelcomeScreen(JRootPane())
 
     assertTrue { screen is StudioFirstRunWelcomeScreen }

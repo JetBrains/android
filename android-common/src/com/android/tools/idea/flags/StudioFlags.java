@@ -2866,21 +2866,6 @@ public final class StudioFlags {
   );
   // endregion JOURNEYS_WITH_GEMINI
 
-  // region WIZARD_MIGRATION
-  private static final FlagGroup WIZARD_MIGRATION = new FlagGroup(
-    FLAGS,
-    "wizard.migration",
-    "Wizard Migration"
-  );
-
-  public static final Flag<Boolean> FIRST_RUN_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
-    WIZARD_MIGRATION,
-    "first.run.migrated.wizard.enabled",
-    "Migrated First Run Wizard Enabled",
-    "Show the migrated version of the welcome wizard when Studio first starts"
-  );
-  // endregion WIZARD_MIGRATION
-
   public static Boolean isBuildOutputShowsDownloadInfo() {
     // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
     // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.

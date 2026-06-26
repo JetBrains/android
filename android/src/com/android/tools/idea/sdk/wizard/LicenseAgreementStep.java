@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import static com.intellij.openapi.application.ex.ApplicationManagerEx.isInIntegrationTest;
+
 import com.android.repository.api.License;
 import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -144,7 +146,8 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     mySelectedByDefault = selectedByDefault;
 
     if (mySelectedByDefault) {
-      boolean isTesting = GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
+      boolean isTesting =
+        GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode() || isInIntegrationTest();
       if (!isTesting) {
         throw new IllegalStateException("Licenses can only be selected by default when running tests");
       }

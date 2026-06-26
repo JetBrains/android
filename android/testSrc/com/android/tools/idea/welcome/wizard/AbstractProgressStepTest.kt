@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.wizard.model.WizardModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -47,5 +48,7 @@ class AbstractProgressStepTest {
     progressIndicator.isIndeterminate = true
 
     assertThat(progressIndicator.isIndeterminate).isTrue()
+
+    Disposer.dispose(wizardModel)
   }
 }
