@@ -26,6 +26,7 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
@@ -54,19 +55,20 @@ object ScreenshotTestUtils {
   private val classToRootPathCache = ConcurrentHashMap<String, String>()
 
   /**
-   * Resolves a relative path to an absolute path based on the Gradle external root project path of the given class.
+   * Resolves a relative or absolute path to an absolute path based on the Gradle external root project path of the given class.
+   *
+   * This method performs validation to prevent directory traversal and rejects network/UNC paths outright.
    *
    * @param project The IntelliJ project.
    * @param className The fully qualified name of the test class.
-   * @param path The relative path to resolve.
-   * @return The absolute path, or the original path if it cannot be resolved.
+   * @param path The relative or absolute path to resolve.
+   * @return The resolved absolute path if it is safely contained under the computed root path; otherwise, returns null.
    */
   fun resolvePath(project: Project?, className: String?, path: String?): String? {
     if (path == null) return null
-    val file = File(path)
-    if (file.isAbsolute) return path
-    val p = project ?: return path
-    val basePath = p.basePath ?: return path
+    if (isNetworkPath(path)) return null
+    val p = project ?: return null
+    val basePath = p.basePath ?: return null
 
     val rootPath =
       if (className != null) {
@@ -99,7 +101,20 @@ object ScreenshotTestUtils {
         basePath
       }
 
-    return File(rootPath, path).absolutePath
+    return try {
+      val rootPathNio = File(rootPath).canonicalFile.toPath()
+      val resolvedPathNio = Paths.get(rootPath).resolve(path)
+      val resolvedCanonical = resolvedPathNio.toFile().canonicalFile.toPath()
+      if (resolvedCanonical.startsWith(rootPathNio)) {
+        resolvedCanonical.toString()
+      } else {
+        null
+      }
+    } catch (_: IOException) {
+      null
+    } catch (_: InvalidPathException) {
+      null
+    }
   }
 
   /** Returns true if the given [path] starts with obvious network or Windows UNC prefixes. */
@@ -120,16 +135,28 @@ object ScreenshotTestUtils {
   fun containUnderProjectRoot(project: Project?, raw: String?): String? {
     if (raw.isNullOrEmpty()) return null
     val base = project?.basePath ?: return null
-    val basePath = Paths.get(base).toAbsolutePath().normalize()
-    if (isNetworkPath(raw)) return null
-    val candidate =
+    val rootPathNio =
       try {
-        basePath.resolve(raw).normalize()
+        File(base).canonicalFile.toPath()
+      } catch (_: IOException) {
+        return null
       } catch (_: InvalidPathException) {
         return null
       }
-    if (!candidate.startsWith(basePath)) return null
-    return candidate.toString()
+    if (isNetworkPath(raw)) return null
+    return try {
+      val resolvedPathNio = Paths.get(base).resolve(raw)
+      val resolvedCanonical = resolvedPathNio.toFile().canonicalFile.toPath()
+      if (resolvedCanonical.startsWith(rootPathNio)) {
+        resolvedCanonical.toString()
+      } else {
+        null
+      }
+    } catch (_: IOException) {
+      null
+    } catch (_: InvalidPathException) {
+      null
+    }
   }
 
   /**

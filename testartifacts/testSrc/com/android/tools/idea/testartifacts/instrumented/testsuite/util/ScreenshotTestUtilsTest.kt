@@ -163,16 +163,18 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testContainUnderProjectRoot_validRelativePath() {
     val project = mock<Project>()
-    whenever(project.basePath).thenReturn("/path/to/project")
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
     val result = ScreenshotTestUtils.containUnderProjectRoot(project, "screenshots/image.png")
-    val expected = Paths.get("/path/to/project", "screenshots/image.png").toAbsolutePath().normalize().toString()
+    val expected = Paths.get(basePath, "screenshots/image.png").toFile().canonicalFile.toPath().toString()
     assertThat(result).isEqualTo(expected)
   }
 
   @Test
   fun testContainUnderProjectRoot_escapingRelativePath() {
     val project = mock<Project>()
-    whenever(project.basePath).thenReturn("/path/to/project")
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
     val result = ScreenshotTestUtils.containUnderProjectRoot(project, "../../etc/passwd")
     assertThat(result).isNull()
   }
@@ -180,7 +182,8 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testContainUnderProjectRoot_absolutePathOutside() {
     val project = mock<Project>()
-    whenever(project.basePath).thenReturn("/path/to/project")
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
     val result = ScreenshotTestUtils.containUnderProjectRoot(project, "/etc/passwd")
     assertThat(result).isNull()
   }
@@ -188,7 +191,8 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testContainUnderProjectRoot_uncPath() {
     val project = mock<Project>()
-    whenever(project.basePath).thenReturn("/path/to/project")
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
     val result = ScreenshotTestUtils.containUnderProjectRoot(project, "\\\\attacker.evil\\share\\image.png")
     assertThat(result).isNull()
   }
@@ -196,7 +200,8 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testContainUnderProjectRoot_networkPath() {
     val project = mock<Project>()
-    whenever(project.basePath).thenReturn("/path/to/project")
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
     val result = ScreenshotTestUtils.containUnderProjectRoot(project, "//attacker.evil/share/image.png")
     assertThat(result).isNull()
   }
@@ -204,7 +209,8 @@ class ScreenshotTestUtilsTest {
   @Test
   fun testContainUnderProjectRoot_nullOrEmpty() {
     val project = mock<Project>()
-    whenever(project.basePath).thenReturn("/path/to/project")
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
     assertThat(ScreenshotTestUtils.containUnderProjectRoot(project, null)).isNull()
     assertThat(ScreenshotTestUtils.containUnderProjectRoot(project, "")).isNull()
   }
@@ -224,5 +230,64 @@ class ScreenshotTestUtilsTest {
     assertThat(ScreenshotTestUtils.isNetworkPath("/absolute/local/path/image.png")).isFalse()
     assertThat(ScreenshotTestUtils.isNetworkPath(null)).isFalse()
     assertThat(ScreenshotTestUtils.isNetworkPath("")).isFalse()
+  }
+
+  @Test
+  fun testResolvePath_validRelativePath() {
+    val project = mock<Project>()
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
+    val result = ScreenshotTestUtils.resolvePath(project, null, "screenshots/image.png")
+    val expected = Paths.get(basePath, "screenshots/image.png").toFile().canonicalFile.toPath().toString()
+    assertThat(result).isEqualTo(expected)
+  }
+
+  @Test
+  fun testResolvePath_escapingRelativePath() {
+    val project = mock<Project>()
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
+    val result = ScreenshotTestUtils.resolvePath(project, null, "../../etc/passwd")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testResolvePath_absolutePathOutside() {
+    val project = mock<Project>()
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
+    val result = ScreenshotTestUtils.resolvePath(project, null, "/etc/passwd")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testResolvePath_uncPath() {
+    val project = mock<Project>()
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
+    val result = ScreenshotTestUtils.resolvePath(project, null, "\\\\attacker.evil\\share\\image.png")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testResolvePath_networkPath() {
+    val project = mock<Project>()
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
+    val result = ScreenshotTestUtils.resolvePath(project, null, "//attacker.evil/share/image.png")
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testResolvePath_null() {
+    val project = mock<Project>()
+    val basePath = tempFolder.root.canonicalPath
+    whenever(project.basePath).thenReturn(basePath)
+    assertThat(ScreenshotTestUtils.resolvePath(project, null, null)).isNull()
+  }
+
+  @Test
+  fun testResolvePath_nullProject() {
+    assertThat(ScreenshotTestUtils.resolvePath(null, null, "screenshots/image.png")).isNull()
   }
 }
