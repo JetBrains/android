@@ -28,7 +28,7 @@ import com.jetbrains.rd.util.getOrCreate
 import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.jetbrains.annotations.TestOnly
 
 /**
