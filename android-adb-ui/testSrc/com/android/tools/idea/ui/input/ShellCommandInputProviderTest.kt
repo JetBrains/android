@@ -73,15 +73,81 @@ internal class ShellCommandInputProviderTest {
   @Test
   fun textCommandEncodesSpaces() {
     var commandLine = getCommandLine("text", listOf("What", "is up", "people?"))
-    assertEquals("text What%sis%sup%speople?", commandLine)
+    assertEquals("text 'What%sis%sup%speople?'", commandLine)
 
     commandLine = getCommandLine("text", listOf("\"What is up people?\""))
-    assertEquals("text \"What is up people?\"", commandLine)
+    assertEquals("text 'What is up people?'", commandLine)
 
     commandLine = getCommandLine("text", listOf("'What is up people?'"))
     assertEquals("text 'What is up people?'", commandLine)
 
     commandLine = getCommandLine("text", listOf("\\\"What is up people?\\\""))
-    assertEquals("text \\\"What%sis%sup%speople?\\\"", commandLine)
+    assertEquals("text '\\\"What%sis%sup%speople?\\\"'", commandLine)
+  }
+
+  @Test
+  fun commandInjectionIsNeutralized() {
+    val commandLine =
+      getCommandLine("keyevent", listOf("66; uiautomator dump /data/local/tmp/uidump.xml && cat /data/local/tmp/uidump.xml"))
+    assertEquals("keyevent '66; uiautomator dump /data/local/tmp/uidump.xml && cat /data/local/tmp/uidump.xml'", commandLine)
+  }
+
+  @Test
+  fun singleQuoteIsEscaped() {
+    var commandLine = getCommandLine("keyevent", listOf("66'77"))
+    assertEquals("keyevent '66'\\''77'", commandLine)
+
+    commandLine = getCommandLine("text", listOf("hello'world"))
+    assertEquals("text 'hello'\\''world'", commandLine)
+  }
+
+  @Test
+  fun sourceIsEscaped() {
+    deviceServices.configureShellCommand(
+      deviceSelector = device,
+      command = "input 'touchscreen; injection' -d 5 motionevent DOWN 500 200",
+      stdout = "",
+      stderr = "Error: Invalid source 'touchscreen; injection'",
+      exitCode = 1,
+    )
+    val result = runBlockingWithTimeout {
+      shellInputProvider.input(
+        project = project,
+        serialNumber = serialNumber,
+        source = "touchscreen; injection",
+        displayID = 5,
+        command = "motionevent",
+        args = listOf("DOWN", "500", "200"),
+      )
+    }
+    assertEquals("Command exited with 1. Error: Invalid source 'touchscreen; injection'", result)
+  }
+
+  @Test
+  fun commandIsEscaped() {
+    deviceServices.configureShellCommand(
+      deviceSelector = device,
+      command = "input touchscreen -d 5 'tap; injection' 100 200",
+      stdout = "",
+      stderr = "Error: Invalid command 'tap; injection'",
+      exitCode = 1,
+    )
+    val result = runBlockingWithTimeout {
+      shellInputProvider.input(
+        project = project,
+        serialNumber = serialNumber,
+        source = "touchscreen",
+        displayID = 5,
+        command = "tap; injection",
+        args = listOf("100", "200"),
+      )
+    }
+    assertEquals("Command exited with 1. Error: Invalid command 'tap; injection'", result)
+  }
+
+  @Test
+  fun commandInjectionInCommandNameIsNeutralized() {
+    val commandLine = getCommandLine("tap; uiautomator dump", listOf("100", "200"))
+    assertEquals("'tap; uiautomator dump' 100 200", commandLine)
   }
 }

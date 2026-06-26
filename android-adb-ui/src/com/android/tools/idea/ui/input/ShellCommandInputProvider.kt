@@ -29,7 +29,10 @@ class ShellCommandInputProvider {
     val adbLibService = AdbLibService.getInstance(project)
 
     val shell =
-      adbLibService.session.deviceServices.shellCommand(deviceSelector, "input $source -d $displayID ${getCommandLine(command, args)}")
+      adbLibService.session.deviceServices.shellCommand(
+        deviceSelector,
+        "input ${escapeShellArg(source)} -d $displayID ${getCommandLine(command, args)}",
+      )
     val stdoutBuilder = StringBuilder()
     val stderrBuilder = StringBuilder()
     var exitCode = 0
@@ -51,17 +54,35 @@ class ShellCommandInputProvider {
 internal fun getCommandLine(command: String, args: List<String>): String {
   return when (command) {
     "text" -> {
-      if (args.size == 1) {
-        val arg = args.single()
-        if ((arg.startsWith('\'') && arg.endsWith('\'')) || (arg.startsWith('"') && arg.endsWith('"'))) {
-          "text $arg"
+      val processedArg =
+        if (args.size == 1) {
+          val arg = args.single()
+          if (arg.startsWith('\'') && arg.endsWith('\'') && arg.length >= 2) {
+            val content = arg.substring(1, arg.length - 1)
+            escapeShellArg(content)
+          } else if (arg.startsWith('"') && arg.endsWith('"') && arg.length >= 2) {
+            val content = arg.substring(1, arg.length - 1)
+            escapeShellArg(content)
+          } else {
+            escapeShellArg(arg.replace(" ", "%s"))
+          }
         } else {
-          "text ${arg.replace(" ", "%s")}"
+          escapeShellArg(args.joinToString(" ").replace(" ", "%s"))
         }
-      } else {
-        "text ${args.joinToString(" ").replace(" ", "%s")}"
-      }
+      "text $processedArg"
     }
-    else -> "$command ${args.joinToString(" ")}"
+    else -> {
+      val escapedArgs = args.map { escapeShellArg(it) }
+      "${escapeShellArg(command)} ${escapedArgs.joinToString(" ")}"
+    }
   }
+}
+
+/** Escapes an argument for a Unix shell to prevent command injection. */
+private fun escapeShellArg(arg: String): String {
+  if (arg.isEmpty()) return "''"
+  if (arg.all { it.isLetterOrDigit() || it == '_' || it == '.' || it == '/' || it == '-' }) {
+    return arg
+  }
+  return "'" + arg.replace("'", "'\\''") + "'"
 }
