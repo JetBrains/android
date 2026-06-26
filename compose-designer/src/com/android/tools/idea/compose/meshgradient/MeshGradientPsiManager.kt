@@ -18,15 +18,21 @@ package com.android.tools.idea.compose.meshgradient
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.SyntaxTraverser
+import com.intellij.psi.util.PsiTreeUtil
 import java.util.Locale
+import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaArgument
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 private const val FUN_MESH_PAINTER = "MeshGradientPainter"
 private const val FUN_SET_VERTEX = "setVertex"
@@ -43,6 +49,15 @@ private const val ARG_BLUE = "blue"
 private const val ARG_ALPHA = "alpha"
 
 private const val FORMAT_OFFSET = "Offset(%.4ff, %.4ff)"
+
+private val COLLECTION_LIST_MAP =
+  mapOf(
+    "kotlin.collections.listOf" to "listOf",
+    "kotlin.collections.arrayListOf" to "arrayListOf",
+    "kotlin.collections.mutableListOf" to "mutableListOf",
+  )
+
+private val COLLECTION_LIST_FUNCTIONS = COLLECTION_LIST_MAP.keys + COLLECTION_LIST_MAP.values
 
 class MeshGradientPsiManager(private val project: Project) {
 
@@ -112,35 +127,45 @@ class MeshGradientPsiManager(private val project: Project) {
   }
 
   private fun parseOffset(expr: KtExpression): Offset? {
-    val call = expr as? KtCallExpression ?: return null
-    if (call.calleeExpression?.text != FUN_OFFSET) return null
+    val resolvedExpr = resolveExpression(expr)
+    val call = getCallExpression(resolvedExpr) ?: return null
+    val calleeText = getQualifiedCalleeText(resolvedExpr) ?: return null
+
+    val supportedNames = getSupportedNames(expr, "androidx.compose.ui.geometry.Offset", FUN_OFFSET)
+    if (calleeText !in supportedNames) return null
 
     val xExpr = findArgumentExpression(call, ARG_X, 0) ?: return null
     val yExpr = findArgumentExpression(call, ARG_Y, 1) ?: return null
 
-    val x = xExpr.text.removeSuffix("f").removeSuffix("F").toFloatOrNull() ?: return null
-    val y = yExpr.text.removeSuffix("f").removeSuffix("F").toFloatOrNull() ?: return null
+    val resolvedXExpr = resolveExpression(xExpr)
+    val resolvedYExpr = resolveExpression(yExpr)
+
+    val x = resolvedXExpr.text.removeSuffix("f").removeSuffix("F").toFloatOrNull() ?: return null
+    val y = resolvedYExpr.text.removeSuffix("f").removeSuffix("F").toFloatOrNull() ?: return null
     return Offset(x, y)
   }
 
   private fun parseColor(expr: KtExpression): Color? {
-    if (expr is KtCallExpression) {
-      if (expr.calleeExpression?.text != FUN_COLOR) return null
-      val args = expr.valueArguments
+    val resolvedExpr = resolveExpression(expr)
+    val call = getCallExpression(resolvedExpr)
+    if (call != null) {
+      val calleeText = getQualifiedCalleeText(resolvedExpr) ?: return null
+      val supportedNames = getSupportedNames(expr, "androidx.compose.ui.graphics.Color", FUN_COLOR)
+      if (calleeText !in supportedNames) return null
+
+      val args = call.valueArguments
       if (args.isEmpty()) return null
 
       if (args.size == 1) {
-        // Single argument: hex or decimal Long/Int
         val argExpr = args[0].getArgumentExpression() ?: return null
         val text = argExpr.text.removeSuffix(".toInt()").removeSuffix(".toLong()")
         val longValue = parseLong(text) ?: return null
         return Color(longValue)
       } else if (args.size >= 3) {
-        // 3 or 4 arguments: RGB or RGBA
-        val rExpr = findArgumentExpression(expr, ARG_RED, 0) ?: return null
-        val gExpr = findArgumentExpression(expr, ARG_GREEN, 1) ?: return null
-        val bExpr = findArgumentExpression(expr, ARG_BLUE, 2) ?: return null
-        val aExpr = findArgumentExpression(expr, ARG_ALPHA, 3) // Optional
+        val rExpr = findArgumentExpression(call, ARG_RED, 0) ?: return null
+        val gExpr = findArgumentExpression(call, ARG_GREEN, 1) ?: return null
+        val bExpr = findArgumentExpression(call, ARG_BLUE, 2) ?: return null
+        val aExpr = findArgumentExpression(call, ARG_ALPHA, 3)
 
         val r = parseColorComponent(rExpr) ?: return null
         val g = parseColorComponent(gExpr) ?: return null
@@ -149,11 +174,12 @@ class MeshGradientPsiManager(private val project: Project) {
 
         return Color(r, g, b, a)
       }
-    } else if (expr is KtDotQualifiedExpression) {
-      // Constant like Color.Red
-      val text = expr.text
-      if (text.startsWith("Color.")) {
-        val colorName = text.removePrefix("Color.").uppercase()
+    } else if (resolvedExpr is KtDotQualifiedExpression) {
+      val text = resolvedExpr.text
+      val supportedNames = getSupportedNames(expr, "androidx.compose.ui.graphics.Color", FUN_COLOR)
+      val prefix = supportedNames.firstOrNull { text.startsWith("$it.") }
+      if (prefix != null) {
+        val colorName = text.removePrefix("$prefix.").uppercase()
         return mapConstantColor(colorName)
       }
     }
@@ -300,5 +326,147 @@ class MeshGradientPsiManager(private val project: Project) {
         val c = args[1].getArgumentExpression()?.text?.toIntOrNull()
         r == row && c == col
       }
+  }
+
+  private fun getQualifiedCalleeText(expr: KtExpression): String? {
+    if (expr is KtCallExpression) {
+      return expr.calleeExpression?.text
+    }
+    if (expr is KtDotQualifiedExpression) {
+      val selector = expr.selectorExpression
+      if (selector is KtCallExpression) {
+        val selectorCallee = selector.calleeExpression?.text ?: return null
+        return expr.receiverExpression.text + "." + selectorCallee
+      }
+    }
+    return null
+  }
+
+  private fun getCallExpression(expr: KtExpression): KtCallExpression? {
+    if (expr is KtCallExpression) return expr
+    if (expr is KtDotQualifiedExpression) {
+      val selector = expr.selectorExpression
+      if (selector is KtCallExpression) return selector
+    }
+    return null
+  }
+
+  private fun getSupportedNames(expr: KtExpression, fqn: String, defaultName: String): List<String> {
+    val file = expr.containingFile as? KtFile ?: return listOf(defaultName, fqn)
+    val importDirective = file.importDirectives.firstOrNull { it.importedFqName?.asString() == fqn }
+    val alias = importDirective?.aliasName
+    return if (alias != null) {
+      listOf(alias, fqn)
+    } else {
+      listOf(defaultName, fqn)
+    }
+  }
+
+  private fun isCollectionListFunction(expr: KtExpression, callee: String): Boolean {
+    if (callee in COLLECTION_LIST_FUNCTIONS) return true
+    val file = expr.containingFile as? KtFile ?: return false
+    val importDirective = file.importDirectives.firstOrNull { it.aliasName == callee } ?: return false
+    val fqn = importDirective.importedFqName?.asString() ?: return false
+    return fqn in COLLECTION_LIST_MAP.keys
+  }
+
+  private fun resolveExpression(expr: KtExpression): KtExpression {
+    var current = expr
+    val visited = mutableSetOf<KtExpression>()
+    while (true) {
+      if (!visited.add(current)) {
+        break
+      }
+      val unwrapped = unwrapRemember(current)
+      if (unwrapped != current) {
+        current = unwrapped
+        continue
+      }
+
+      if (current is KtSimpleNameExpression) {
+        val resolved = resolveLocalVariable(current)
+        if (resolved != null && resolved != current) {
+          current = resolved
+          continue
+        }
+      }
+
+      if (current is KtArrayAccessExpression) {
+        val resolved = resolveArrayAccess(current)
+        if (resolved != null && resolved != current) {
+          current = resolved
+          continue
+        }
+      }
+
+      break
+    }
+    return current
+  }
+
+  private fun unwrapRemember(expr: KtExpression): KtExpression {
+    val call = getCallExpression(expr)
+    if (call != null) {
+      val calleeText = getQualifiedCalleeText(expr)
+      val supportedNames = getSupportedNames(expr, "androidx.compose.runtime.remember", "remember")
+      if (calleeText in supportedNames) {
+        val lambdaArg = call.valueArguments.lastOrNull() as? KtLambdaArgument
+        val body = lambdaArg?.getLambdaExpression()?.bodyExpression
+        if (body != null) {
+          val lastStatement = PsiTreeUtil.getChildrenOfType(body, KtExpression::class.java)?.lastOrNull()
+          if (lastStatement != null) {
+            return unwrapRemember(lastStatement)
+          }
+        }
+      }
+    }
+    return expr
+  }
+
+  private fun resolveLocalVariable(nameExpr: KtSimpleNameExpression): KtExpression? {
+    val targetName = nameExpr.getReferencedName()
+    var current: PsiElement? = nameExpr
+    while (current != null) {
+      if (current is KtBlockExpression) {
+        val properties = PsiTreeUtil.getChildrenOfType(current, KtProperty::class.java)
+        val property = properties?.firstOrNull { it.name == targetName }
+        if (property != null) {
+          return property.initializer
+        }
+      }
+      if (current is KtClassBody || current is KtFile) {
+        val declarations = (current as? KtClassBody)?.declarations ?: (current as? KtFile)?.declarations
+        val property = declarations?.firstOrNull { it is KtProperty && it.name == targetName } as? KtProperty
+        if (property != null) {
+          return property.initializer
+        }
+      }
+      current = current.parent
+    }
+    return null
+  }
+
+  private fun resolveArrayAccess(arrayAccess: KtArrayAccessExpression): KtExpression? {
+    val arrayExpr = arrayAccess.arrayExpression ?: return null
+    val indexExprs = arrayAccess.indexExpressions
+    if (indexExprs.size != 1) return null
+    val indexExpr = indexExprs[0]
+
+    val resolvedIndexExpr = resolveExpression(indexExpr)
+    val index = resolvedIndexExpr.text.toIntOrNull() ?: return null
+
+    val resolvedArray = resolveExpression(arrayExpr)
+
+    val call = getCallExpression(resolvedArray)
+    if (call != null) {
+      val callee = getQualifiedCalleeText(resolvedArray)
+      if (callee != null && isCollectionListFunction(resolvedArray, callee)) {
+        val args = call.valueArguments
+        if (index in args.indices) {
+          return args[index].getArgumentExpression()
+        }
+      }
+    }
+    return null
   }
 }
