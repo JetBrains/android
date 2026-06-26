@@ -1666,6 +1666,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK = new BooleanFlag(
     COMPOSE, "interactive.preview.predictive.back", "Enable predictive back navigation in Interactive Preview",
     "When using navigation3, enables a bottom panel to interact with the predictive back feature.");
+
+  public static final Flag<Boolean> COMPOSE_DYNAMIC_PROTOTYPING_ENABLED = new BooleanFlag(
+    COMPOSE, "preview.dynamic.prototyping", "Enable Dynamic Compose Prototyping",
+    "Enables the agentic tool to prototype Compose UI in memory without modifying project files.");
   //endregion
 
   // region Wear surfaces
