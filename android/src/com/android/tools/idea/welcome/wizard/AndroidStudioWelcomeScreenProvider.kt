@@ -21,7 +21,6 @@ import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.install.SdkComponentInstaller
-import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
@@ -40,7 +39,6 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
       }
     }
 
-    val useNewWizard = StudioFlags.FIRST_RUN_MIGRATED_WIZARD_ENABLED.get()
     val wizardMode =
       AndroidStudioWelcomeScreenService.instance.getWizardMode(
         AndroidFirstRunPersistentData.getInstance(),
@@ -48,20 +46,18 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
         AndroidSdks.getInstance(),
       ) ?: return null
     val sdkComponentInstaller = SdkComponentInstaller()
-    val tracker = FirstRunWizardTracker(wizardMode.toMetricKind(), !useNewWizard)
-    return createWelcomeScreen(useNewWizard, wizardMode, sdkComponentInstaller, tracker)
+    val tracker = FirstRunWizardTracker(wizardMode.toMetricKind(), false)
+    return createWelcomeScreen(wizardMode, sdkComponentInstaller, tracker)
   }
 
   @VisibleForTesting
   fun createWelcomeScreen(
-    useNewWizard: Boolean,
     wizardMode: FirstRunWizardMode,
     sdkComponentInstaller: SdkComponentInstaller,
     tracker: FirstRunWizardTracker,
   ): WelcomeScreen {
     AndroidStudioWelcomeScreenService.instance.wizardWasShown = true
-    return if (useNewWizard) StudioFirstRunWelcomeScreen(wizardMode, sdkComponentInstaller, tracker)
-    else FirstRunWizardHost(wizardMode, sdkComponentInstaller, tracker)
+    return StudioFirstRunWelcomeScreen(wizardMode, sdkComponentInstaller, tracker)
   }
 
   override fun isAvailable(): Boolean {

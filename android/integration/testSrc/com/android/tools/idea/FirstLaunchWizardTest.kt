@@ -24,7 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
 
-class FirstLaunchNewWizardTest {
+class FirstLaunchWizardTest {
 
   @JvmField
   @Rule
@@ -33,7 +33,7 @@ class FirstLaunchNewWizardTest {
 
   @Test
   fun firstLaunchTest() {
-    system.installation.addVmOption("-Dwizard.migration.first.run.migrated.wizard.enabled=true")
+    system.installation.addVmOption("-Didea.is.integration.test=true")
     FirstLaunchTest.configureWizardFlags(system)
 
     system.runStudioWithoutProject().use { studio ->
