@@ -38,9 +38,7 @@ class EnvironmentsUpdater : Disposable {
   private val sourceDir: Path
   private val destinationDir: Path
 
-  @Volatile
-  var environmentsList: List<EnvironmentImage>? = null
-    private set
+  @Volatile private var environmentsList: List<EnvironmentImage>? = null
 
   init {
     sourceDir =
