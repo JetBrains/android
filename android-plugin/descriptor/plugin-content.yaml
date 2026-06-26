@@ -144,6 +144,21 @@
   module: intellij.android.streaming
   files:
   - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6/ffmpeg-6.jar
+- name: lib/ffmpeg-linux-x64-6.0-1.5.9.jar
+  library: ffmpeg-linux-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-linux-x86_64/6/ffmpeg-linux-x86_64-6.jar
+- name: lib/ffmpeg-macos-aarch64-6.0-1.5.9.jar
+  library: ffmpeg-macos-aarch64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-arm64/6/ffmpeg-macosx-arm64-6.jar
+- name: lib/ffmpeg-macos-x64-6.0-1.5.9.jar
+  library: ffmpeg-macos-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-x86_64/6/ffmpeg-macosx-x86_64-6.jar
 - name: lib/ffmpeg-windows-x64-6.0-1.5.9.jar
   library: ffmpeg-windows-x64
   module: intellij.android.streaming
@@ -180,6 +195,21 @@
   module: intellij.android.streaming
   files:
   - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp/1/javacpp-1.jar
+- name: lib/javacpp-linux-x64-1.5.9.jar
+  library: javacpp-linux-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-linux-x86_64/1/javacpp-linux-x86_64-1.jar
+- name: lib/javacpp-macos-aarch64-1.5.9.jar
+  library: javacpp-macos-aarch64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-arm64/1/javacpp-macosx-arm64-1.jar
+- name: lib/javacpp-macos-x64-1.5.9.jar
+  library: javacpp-macos-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-x86_64/1/javacpp-macosx-x86_64-1.jar
 - name: lib/javacpp-windows-x64-1.5.9.jar
   library: javacpp-windows-x64
   module: intellij.android.streaming
@@ -232,33 +262,3 @@
   files:
   - name: $MAVEN_REPOSITORY$/com/google/zxing/core/3/core-3.jar
   reason: <- intellij.android.adb
-- name: lib/ffmpeg-macos-x64-6.0-1.5.9.jar
-  library: ffmpeg-macos-x64
-  module: intellij.android.streaming
-  files:
-  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-x86_64/6/ffmpeg-macosx-x86_64-6.jar
-- name: lib/javacpp-macos-x64-1.5.9.jar
-  library: javacpp-macos-x64
-  module: intellij.android.streaming
-  files:
-  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-x86_64/1/javacpp-macosx-x86_64-1.jar
-- name: lib/ffmpeg-macos-aarch64-6.0-1.5.9.jar
-  library: ffmpeg-macos-aarch64
-  module: intellij.android.streaming
-  files:
-  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-arm64/6/ffmpeg-macosx-arm64-6.jar
-- name: lib/javacpp-macos-aarch64-1.5.9.jar
-  library: javacpp-macos-aarch64
-  module: intellij.android.streaming
-  files:
-  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-arm64/1/javacpp-macosx-arm64-1.jar
-- name: lib/ffmpeg-linux-x64-6.0-1.5.9.jar
-  library: ffmpeg-linux-x64
-  module: intellij.android.streaming
-  files:
-  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-linux-x86_64/6/ffmpeg-linux-x86_64-6.jar
-- name: lib/javacpp-linux-x64-1.5.9.jar
-  library: javacpp-linux-x64
-  module: intellij.android.streaming
-  files:
-  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-linux-x86_64/1/javacpp-linux-x86_64-1.jar

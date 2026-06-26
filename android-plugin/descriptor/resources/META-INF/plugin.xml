@@ -17,7 +17,6 @@
   </change-notes>
 
   <dependencies>
-    <!-- OS/ARCH-DEPENDENCY-PLACEHOLDER -->
     <plugin id="com.intellij.platform.images"/>
     <module name="intellij.java.backend"/>
     <plugin id="org.intellij.groovy.live.templates"/>
