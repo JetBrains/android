@@ -121,30 +121,37 @@ internal class EmulatorCameraActionGroup : DefaultActionGroup(), DumbAware {
 }
 
 private val EmulatorController.hostCameras: List<Camera>
-  get() = computeUserDataIfAbsent(CameraListFetcher.KEY) { CameraListFetcher(this) }.hostCameras
+  get() {
+    if (connectionState != EmulatorController.ConnectionState.CONNECTED) return emptyList()
+    return computeUserDataIfAbsent(CameraListFetcher.KEY) { CameraListFetcher(this) }.hostCameras
+  }
 
 private class CameraListFetcher(private val emulator: EmulatorController) {
 
   val hostCameras: List<Camera>
     get() {
-      // The getHostCameras call usually takes only few milliseconds.
-      val timeout = if (_hostCameras == null) 200.milliseconds else 20.milliseconds
+      val latch = CountDownLatch(1)
       val observer =
         object : EmptyStreamObserver<CameraList>() {
           override fun onNext(message: CameraList) {
             _hostCameras = message.camerasList
-            fetched.countDown()
+            latch.countDown()
+          }
+
+          override fun onError(t: Throwable) {
+            latch.countDown()
           }
         }
+      // The getHostCameras call usually takes only few milliseconds.
+      val timeout = if (_hostCameras == null) 200.milliseconds else 20.milliseconds
       emulator.getHostCameras(observer)
       try {
-        fetched.await(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
+        latch.await(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
       } catch (_: InterruptedException) {}
       return _hostCameras ?: emptyList()
     }
 
   @Volatile private var _hostCameras: List<Camera>? = null
-  private val fetched = CountDownLatch(1)
 
   companion object {
     val KEY = Key<CameraListFetcher>(CameraListFetcher::class.java.name)
