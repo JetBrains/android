@@ -28,10 +28,10 @@
   <depends>com.intellij.modules.json</depends>
 
   <change-notes><![CDATA[
-   This release contains updates from Android Studio Panda 1.
+    This release contains partial updates from Android Studio Panda 2, including support for Android Gradle Plugin 9.1.0.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2026/02/android-studio-panda-1-202531-now.html">Android Studio Panda 1</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2026/03/android-studio-panda-2-202532-now.html">Android Studio Panda 2</a>.]]>
   </change-notes>
 
 
