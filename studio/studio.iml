@@ -38,8 +38,8 @@
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="ios-lang" />
     <orderEntry type="module" module-name="optional-plugins" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.lume" />
-    <orderEntry type="module" module-name="intellij.android.lume.aiplugin" />
+    <orderEntry type="module" module-name="intellij.android.lightbuild.aiplugin" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.lightbuild" />
     <orderEntry type="module" module-name="intellij.android.smali" />
   </component>
 </module>

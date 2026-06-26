@@ -2691,14 +2691,14 @@ android-studio/plugins/junit/lib/junit6-rt.jar
 android-studio/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
-android-studio/plugins/lume-aiplugin/lib/aiplugin-lume.jar
+android-studio/plugins/lume-aiplugin/lib/aiplugin-lightbuild.jar
 android-studio/plugins/lume/lib/json-schema-validator-1.4.3.jar
 android-studio/plugins/lume/lib/kaml-jvm-0.61.0.jar
 android-studio/plugins/lume/lib/liblume-android-plugin.jar
 android-studio/plugins/lume/lib/liblume-ide-api-impl.jar
 android-studio/plugins/lume/lib/liblume-kotlin-plugin.jar
 android-studio/plugins/lume/lib/lume-ide-api.jar
-android-studio/plugins/lume/lib/project-system-lume.jar
+android-studio/plugins/lume/lib/project-system-lightbuild.jar
 android-studio/plugins/lume/lib/snakeyaml-engine-kmp-jvm-3.0.1.jar
 android-studio/plugins/lume/lib/urlencoder-lib-jvm-1.5.0.jar
 android-studio/plugins/lume/lib/workspace-model-dump.jar
