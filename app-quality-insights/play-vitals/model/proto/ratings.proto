@@ -22,10 +22,10 @@ option java_package = "com.google.play.developer.reporting";
 //
 //  * `dailyAverageRating` (`google.type.Decimal`): Average rating that your app
 //  receives each day.
-//  * `ratingsCount` (`google.type.Decimal`): The total number of ratings your
-//  app has received in the aggregation period.
 //  * `lifetimeAverageRating` (`google.type.Decimal`): Average rating that your
 //  app has received over its lifetime.
+//  * `ratingsCount` (`google.type.Decimal`): The total number of ratings your
+//  app has received in the aggregation period.
 //
 // **Supported dimensions:**
 //
@@ -124,11 +124,11 @@ message QueryAverageRatingsMetricSetRequest {
   //
   //  * `dailyAverageRating`: Supports querying with any combination of
   //    dimensions.
-  //  * `ratingsCount`: Supports querying with any combination of
-  //    dimensions.
   //  * `lifetimeAverageRating`: Supports single-dimension queries OR
   //    combinations restricted exclusively to: formFactor, deviceBrand, and
   //    deviceModel.
+  //  * `ratingsCount`: Supports querying with any combination of
+  //    dimensions.
   repeated string dimensions = 3;
 
   // Metrics to aggregate.
@@ -137,10 +137,10 @@ message QueryAverageRatingsMetricSetRequest {
   //
   //  * `dailyAverageRating` (`google.type.Decimal`): Average rating that your
   //  app receives each day.
-  //  * `ratingsCount` (`google.type.Decimal`): The total number of ratings your
-  //  app has received in the aggregation period.
   //  * `lifetimeAverageRating` (`google.type.Decimal`): Average rating that
   //  your app has received over its lifetime.
+  //  * `ratingsCount` (`google.type.Decimal`): The total number of ratings your
+  //  app has received in the aggregation period.
   //
   repeated string metrics = 4;
 
