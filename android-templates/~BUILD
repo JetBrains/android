@@ -109,6 +109,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model",
     ],
     test_friends = ["//tools/adt/idea/android-templates:intellij.android.templates"],
     test_srcs = ["testSrc"],

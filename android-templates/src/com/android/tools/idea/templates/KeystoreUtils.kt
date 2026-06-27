@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.utils.StdLogger
 import com.google.common.base.Strings
 import com.google.common.io.BaseEncoding
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import java.io.File
@@ -87,6 +88,9 @@ object KeystoreUtils {
    */
   @JvmStatic
   fun getDebugKeystore(facet: AndroidFacet): File {
+    if (!TrustedProjects.isProjectTrusted(facet.module.project)) {
+      return getOrCreateDefaultDebugKeystore()
+    }
     val gradleDebugKeystore = getGradleDebugKeystore(facet)
     if (gradleDebugKeystore != null) {
       return gradleDebugKeystore
