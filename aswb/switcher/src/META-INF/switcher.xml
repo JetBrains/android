@@ -1,7 +1,5 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <multiRoutingFileSystemBackend implementation="com.google.idea.switcher.VirtualSymlinkFileSystemBackend"/>
-    <applicationService serviceInterface="com.google.idea.switcher.WorkspaceMappingManager"
-                        serviceImplementation="com.google.idea.switcher.WorkspaceMappingManagerImpl"/>
   </extensions>
 </idea-plugin>

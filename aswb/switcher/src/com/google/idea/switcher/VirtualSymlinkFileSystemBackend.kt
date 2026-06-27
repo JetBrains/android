@@ -15,7 +15,6 @@
  */
 package com.google.idea.switcher
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.platform.eel.provider.MultiRoutingFileSystemBackend
 import java.io.IOException
@@ -87,11 +86,11 @@ interface WorkspaceMappingManager {
   }
 
   companion object {
-    fun getInstance(): WorkspaceMappingManager = ApplicationManager.getApplication().getService(WorkspaceMappingManager::class.java)
+    fun getInstance(): WorkspaceMappingManager = WorkspaceMappingManagerImpl
   }
 }
 
-class WorkspaceMappingManagerImpl : WorkspaceMappingManager {
+internal object WorkspaceMappingManagerImpl : WorkspaceMappingManager {
   override val switchesRoot: Path = PathManager.getSystemDir().resolve(SWITCHES_ROOT).toAbsolutePath().normalize()
   private val systemPrefixPath: String = switchesRoot.toString()
   private val _mappingChangeEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
