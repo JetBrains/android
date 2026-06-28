@@ -35,6 +35,8 @@
     <module name="intellij.java.analysis.impl"/>
     <module name="intellij.gradle.java.groovy"/>
     <module name="intellij.java.execution.impl"/>
+    <module name="intellij.platform.structureView"/>
+    <module name="intellij.xml.structureView"/>
     <module name="intellij.java.indexing"/>
     <module name="intellij.xml.emmet"/>
     <module name="intellij.java.debugger"/>
