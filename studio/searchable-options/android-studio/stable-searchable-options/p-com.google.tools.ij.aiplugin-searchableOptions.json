@@ -1,10 +1,838 @@
-{"id":"com.android.studio.ml.McpConfigurable","name":"MCP Servers","entries":[{"hit":"MCP Servers"}]}
-{"id":"com.android.studio.ml.bot.mainConfigurable","name":"AI","entries":[{"hit":"%"},{"hit":"AI"},{"hit":"Auto-compress at:"},{"hit":"Context Compression"},{"hit":"Enable Pre-Bundled Skills"},{"hit":"Gemini requires a signed-in Google account."},{"hit":"Percent:"},{"hit":"Sign in"},{"hit":"Skills"},{"hit":"Tokens:"}]}
-{"id":"com.android.studio.ml.editor","name":"Editor","entries":[{"hit":"1000 ms"},{"hit":"1250 ms"},{"hit":"1500 ms"},{"hit":"1750 ms"},{"hit":"2000 ms"},{"hit":"500 ms"},{"hit":"750 ms"},{"hit":"AI inline code completion"},{"hit":"AI next edit prediction"},{"hit":"Configure colors..."},{"hit":"Editor"},{"hit":"Enable AI predictions"},{"hit":"Enable AI smart rename suggestions"},{"hit":"Model:"},{"hit":"Request delay:"}]}
-{"id":"com.android.studio.ml.permissions","name":"Agent Permissions","entries":[{"hit":"\nAlways allowed URLs (none)"},{"hit":"\nAlways allowed files and folders (none)"},{"hit":"\nAlways allowed shell commands (none)"},{"hit":"\nBlocked URLs (none)"},{"hit":"\nBlocked folders (none)"},{"hit":"\nBlocked shell commands (none)"},{"hit":"\nLocked by administrator"},{"hit":"Access gitignored files"},{"hit":"Access sensitive files"},{"hit":"Agent Permissions"},{"hit":"Agent supervised"},{"hit":"Always allow"},{"hit":"Ask every time"},{"hit":"Automatically run safe shell commands"},{"hit":"Delete or rename files in the project"},{"hit":"Delete or rename files outside the project"},{"hit":"Don't allow"},{"hit":"Execute Command"},{"hit":"File Permissions"},{"hit":"Launching Commands"},{"hit":"Mode:"},{"hit":"Model Context Protocol (MCP)"},{"hit":"Modify connected devices"},{"hit":"More"},{"hit":"Network"},{"hit":"Other"},{"hit":"Read URL"},{"hit":"Read files in the project"},{"hit":"Read files outside the project"},{"hit":"Strict"},{"hit":"Unrestricted"},{"hit":"Use MCP"},{"hit":"Web Search"},{"hit":"Write executable files in the project"},{"hit":"Write executable files outside the project"},{"hit":"Write source files in the project"},{"hit":"Write source files outside the project"}]}
-{"id":"com.android.studio.ml.sandbox","name":"Agent Shell Sandbox","entries":[{"hit":"Agent Shell Sandbox"},{"hit":"Allow file access outside the sandbox if allowed by the Agent Permission settings"},{"hit":"Allow network access"},{"hit":"Anthropic Sandbox Runtime"},{"hit":"Apply sandbox to local MCP servers"},{"hit":"Bubblewrap (Linux)"},{"hit":"Built-in macOS sandbox (sandbox-exec)"},{"hit":"Custom wrapper command"},{"hit":"Docker container"},{"hit":"Docker image"},{"hit":"Don't require shell command confirmation when sandbox is enabled"},{"hit":"Sandbox"},{"hit":"Sandbox root directory"},{"hit":"Sandbox runtime path"},{"hit":"Show Command..."},{"hit":"Use sandbox for shell commands"},{"hit":"Wrapper command"}]}
-{"id":"com.android.studio.ml.templates","name":"Prompt Library","entries":[{"hit":"\nCreate a prompt by clicking the '+' button or select existing one"},{"hit":"IDE"},{"hit":"Project"},{"hit":"Prompt Library"},{"hit":"Scope:"}]}
-{"id":"preferences.keymap","name":"Keymap","entries":[{"hit":"AI","path":"ActionManager"},{"hit":"Add selected code as a snippet to Studio Bot Agent","path":"ActionManager"},{"hit":"Add to Chat","path":"ActionManager"},{"hit":"Analyze Thread Safety","path":"ActionManager"},{"hit":"Analyzes the thread safety state for the selected files.","path":"ActionManager"},{"hit":"Ask the agent to help merge conflicts in the current repository","path":"ActionManager"},{"hit":"Cancel Next Edit Prediction","path":"ActionManager"},{"hit":"Compose Preview","path":"ActionManager"},{"hit":"Cycle Through Active Chats","path":"ActionManager"},{"hit":"Displays the Next Edit Prediction status bar menu","path":"ActionManager"},{"hit":"Document Code","path":"ActionManager"},{"hit":"Explain Code","path":"ActionManager"},{"hit":"Explain with AI","path":"ActionManager"},{"hit":"Floating Code Toolbar","path":"ActionManager"},{"hit":"Generate AGENTS.md","path":"ActionManager"},{"hit":"Generate Code From Image","path":"ActionManager"},{"hit":"Generate Code…","path":"ActionManager"},{"hit":"Generate Jetpack Compose code from the attached image","path":"ActionManager"},{"hit":"Generate Preview for Composable","path":"ActionManager"},{"hit":"Generate README","path":"ActionManager"},{"hit":"Generates a README in markdown for the selected files.","path":"ActionManager"},{"hit":"Instantly loads the migration agent configured for resumption from disk artifacts.","path":"ActionManager"},{"hit":"Keep","path":"ActionManager"},{"hit":"Keep All","path":"ActionManager"},{"hit":"Keep all changes in this file","path":"ActionManager"},{"hit":"Keep this change","path":"ActionManager"},{"hit":"Merge Conflicts with Agent","path":"ActionManager"},{"hit":"Move or Accept Next Edit Prediction","path":"ActionManager"},{"hit":"New","path":"ActionManager"},{"hit":"New Agent Chat","path":"ActionManager"},{"hit":"New Agent Tab","path":"ActionManager"},{"hit":"Next Chat","path":"ActionManager"},{"hit":"Open inline AI editor","path":"ActionManager"},{"hit":"Open the Agent window","path":"ActionManager"},{"hit":"Opens the agent chat window, or cycles through the available agent tabs","path":"ActionManager"},{"hit":"Previous Chat","path":"ActionManager"},{"hit":"Prompt Library","path":"ActionManager"},{"hit":"Quick Edit","path":"ActionManager"},{"hit":"Resume Migration","path":"ActionManager"},{"hit":"Revert","path":"ActionManager"},{"hit":"Revert All","path":"ActionManager"},{"hit":"Revert all changes in this file","path":"ActionManager"},{"hit":"Revert this change","path":"ActionManager"},{"hit":"Review Commit with AI","path":"ActionManager"},{"hit":"Review Pending Changes with AI","path":"ActionManager"},{"hit":"Show Next Edit Prediction Menu","path":"ActionManager"},{"hit":"Start a code review of the selected commit(s) using the AI agent","path":"ActionManager"},{"hit":"Start a code review of your pending changes using the AI agent","path":"ActionManager"},{"hit":"Suggest Commit Message","path":"ActionManager"},{"hit":"Suggest Improvements","path":"ActionManager"},{"hit":"Suggest commit message by summarizing changes","path":"ActionManager"},{"hit":"Transform Selected Code…","path":"ActionManager"},{"hit":"Unsupported version: Update now","path":"ActionManager"},{"hit":"Update All Libraries with AI","path":"ActionManager"},{"hit":"Update Dependencies","path":"ActionManager"},{"hit":"Updates project dependencies","path":"ActionManager"}]}
-{"id":"reference.settingsdialog.IDE.editor.colors.com.google.tools.aiplugin.editor.predictionservices.configuration.NextEditPredictionColorsPage","name":"AI Edits","entries":[{"hit":"AI Edits"},{"hit":"Deleted text"},{"hit":"Inserted text"},{"hit":"Tab hint"}]}
-{"id":"templates.modelproviders.configurable","name":"Model Providers","entries":[{"hit":"API key header:"},{"hit":"API key:"},{"hit":"Anthropic-compatible"},{"hit":"Available models"},{"hit":"Description:"},{"hit":"Gemini requires a signed-in Google account."},{"hit":"Learn more"},{"hit":"More"},{"hit":"OpenAI-compatible"},{"hit":"Port:"},{"hit":"Refresh"},{"hit":"Sign in"},{"hit":"Stop Server"},{"hit":"URL Schema:"},{"hit":"URL:"},{"hit":"http://localhost:"},{"hit":"Actions","path":"Available Models"},{"hit":"Available Models","path":"Available Models"},{"hit":"Cancel","path":"Available Models"},{"hit":"Delete","path":"Available Models"},{"hit":"Download","path":"Available Models"},{"hit":"Gemma 4 12B","path":"Available Models"},{"hit":"Gemma 4 26B","path":"Available Models"},{"hit":"Gemma 4 31B","path":"Available Models"},{"hit":"Gemma 4 4B","path":"Available Models"},{"hit":"Name","path":"Available Models"},{"hit":"Not downloaded","path":"Available Models"},{"hit":"State","path":"Available Models"},{"hit":"10 minutes of no requests","path":"Host Configuration"},{"hit":"15 minutes of no requests","path":"Host Configuration"},{"hit":"30 minutes of no requests","path":"Host Configuration"},{"hit":"5 minutes of no requests","path":"Host Configuration"},{"hit":"Host Configuration","path":"Host Configuration"},{"hit":"Idle Time-To-Live:","path":"Host Configuration"},{"hit":"Model Storage Folder:","path":"Host Configuration"},{"hit":"Never","path":"Host Configuration"},{"hit":"Parallel request processing","path":"Host Configuration"}]}
-{"id":"templates.modelproviders.configurable","name":"Model Providers","entries":[{"hit":"Model Providers"},{"hit":"API key header:","path":"Model Providers"},{"hit":"API key:","path":"Model Providers"},{"hit":"Anthropic-compatible","path":"Model Providers"},{"hit":"Available models","path":"Model Providers"},{"hit":"Description:","path":"Model Providers"},{"hit":"Gemini requires a signed-in Google account.","path":"Model Providers"},{"hit":"Learn more","path":"Model Providers"},{"hit":"Model Providers","path":"Model Providers"},{"hit":"More","path":"Model Providers"},{"hit":"OpenAI-compatible","path":"Model Providers"},{"hit":"Port:","path":"Model Providers"},{"hit":"Refresh","path":"Model Providers"},{"hit":"Sign in","path":"Model Providers"},{"hit":"Stop Server","path":"Model Providers"},{"hit":"URL Schema:","path":"Model Providers"},{"hit":"URL:","path":"Model Providers"},{"hit":"http://localhost:","path":"Model Providers"},{"hit":"Actions","path":"Model Providers.Available Models"},{"hit":"Cancel","path":"Model Providers.Available Models"},{"hit":"Delete","path":"Model Providers.Available Models"},{"hit":"Download","path":"Model Providers.Available Models"},{"hit":"Gemma 4 12B","path":"Model Providers.Available Models"},{"hit":"Gemma 4 26B","path":"Model Providers.Available Models"},{"hit":"Gemma 4 31B","path":"Model Providers.Available Models"},{"hit":"Gemma 4 4B","path":"Model Providers.Available Models"},{"hit":"Model Providers.Available Models","path":"Model Providers.Available Models"},{"hit":"Name","path":"Model Providers.Available Models"},{"hit":"Not downloaded","path":"Model Providers.Available Models"},{"hit":"State","path":"Model Providers.Available Models"},{"hit":"10 minutes of no requests","path":"Model Providers.Host Configuration"},{"hit":"15 minutes of no requests","path":"Model Providers.Host Configuration"},{"hit":"30 minutes of no requests","path":"Model Providers.Host Configuration"},{"hit":"5 minutes of no requests","path":"Model Providers.Host Configuration"},{"hit":"Idle Time-To-Live:","path":"Model Providers.Host Configuration"},{"hit":"Model Providers.Host Configuration","path":"Model Providers.Host Configuration"},{"hit":"Model Storage Folder:","path":"Model Providers.Host Configuration"},{"hit":"Never","path":"Model Providers.Host Configuration"},{"hit":"Parallel request processing","path":"Model Providers.Host Configuration"}]}
+{
+  "id": "com.android.studio.ml.McpConfigurable",
+  "name": "MCP Servers",
+  "entries": [
+    {
+      "hit": "MCP Servers"
+    }
+  ]
+}
+{
+  "id": "com.android.studio.ml.bot.mainConfigurable",
+  "name": "AI",
+  "entries": [
+    {
+      "hit": "%"
+    },
+    {
+      "hit": "AI"
+    },
+    {
+      "hit": "Auto-compress at:"
+    },
+    {
+      "hit": "Context Compression"
+    },
+    {
+      "hit": "Enable Pre-Bundled Skills"
+    },
+    {
+      "hit": "Gemini requires a signed-in Google account."
+    },
+    {
+      "hit": "Percent:"
+    },
+    {
+      "hit": "Sign in"
+    },
+    {
+      "hit": "Skills"
+    },
+    {
+      "hit": "Tokens:"
+    }
+  ]
+}
+{
+  "id": "com.android.studio.ml.editor",
+  "name": "Editor",
+  "entries": [
+    {
+      "hit": "1000 ms"
+    },
+    {
+      "hit": "1250 ms"
+    },
+    {
+      "hit": "1500 ms"
+    },
+    {
+      "hit": "1750 ms"
+    },
+    {
+      "hit": "2000 ms"
+    },
+    {
+      "hit": "500 ms"
+    },
+    {
+      "hit": "750 ms"
+    },
+    {
+      "hit": "AI inline code completion"
+    },
+    {
+      "hit": "AI next edit prediction"
+    },
+    {
+      "hit": "Configure colors..."
+    },
+    {
+      "hit": "Editor"
+    },
+    {
+      "hit": "Enable AI predictions"
+    },
+    {
+      "hit": "Enable AI smart rename suggestions"
+    },
+    {
+      "hit": "Model:"
+    },
+    {
+      "hit": "Request delay:"
+    }
+  ]
+}
+{
+  "id": "com.android.studio.ml.permissions",
+  "name": "Agent Permissions",
+  "entries": [
+    {
+      "hit": "\nAlways allowed URLs (none)"
+    },
+    {
+      "hit": "\nAlways allowed files and folders (none)"
+    },
+    {
+      "hit": "\nAlways allowed shell commands (none)"
+    },
+    {
+      "hit": "\nBlocked URLs (none)"
+    },
+    {
+      "hit": "\nBlocked folders (none)"
+    },
+    {
+      "hit": "\nBlocked shell commands (none)"
+    },
+    {
+      "hit": "\nLocked by administrator"
+    },
+    {
+      "hit": "Access gitignored files"
+    },
+    {
+      "hit": "Access sensitive files"
+    },
+    {
+      "hit": "Agent Permissions"
+    },
+    {
+      "hit": "Agent supervised"
+    },
+    {
+      "hit": "Always allow"
+    },
+    {
+      "hit": "Ask every time"
+    },
+    {
+      "hit": "Automatically run safe shell commands"
+    },
+    {
+      "hit": "Delete or rename files in the project"
+    },
+    {
+      "hit": "Delete or rename files outside the project"
+    },
+    {
+      "hit": "Don't allow"
+    },
+    {
+      "hit": "Execute Command"
+    },
+    {
+      "hit": "File Permissions"
+    },
+    {
+      "hit": "Launching Commands"
+    },
+    {
+      "hit": "Mode:"
+    },
+    {
+      "hit": "Model Context Protocol (MCP)"
+    },
+    {
+      "hit": "Modify connected devices"
+    },
+    {
+      "hit": "More"
+    },
+    {
+      "hit": "Network"
+    },
+    {
+      "hit": "Other"
+    },
+    {
+      "hit": "Read URL"
+    },
+    {
+      "hit": "Read files in the project"
+    },
+    {
+      "hit": "Read files outside the project"
+    },
+    {
+      "hit": "Strict"
+    },
+    {
+      "hit": "Unrestricted"
+    },
+    {
+      "hit": "Use MCP"
+    },
+    {
+      "hit": "Web Search"
+    },
+    {
+      "hit": "Write executable files in the project"
+    },
+    {
+      "hit": "Write executable files outside the project"
+    },
+    {
+      "hit": "Write source files in the project"
+    },
+    {
+      "hit": "Write source files outside the project"
+    }
+  ]
+}
+{
+  "id": "com.android.studio.ml.sandbox",
+  "name": "Agent Shell Sandbox",
+  "entries": [
+    {
+      "hit": "Agent Shell Sandbox"
+    },
+    {
+      "hit": "Allow file access outside the sandbox if allowed by the Agent Permission settings"
+    },
+    {
+      "hit": "Allow network access"
+    },
+    {
+      "hit": "Anthropic Sandbox Runtime"
+    },
+    {
+      "hit": "Apply sandbox to local MCP servers"
+    },
+    {
+      "hit": "Bubblewrap (Linux)"
+    },
+    {
+      "hit": "Built-in macOS sandbox (sandbox-exec)"
+    },
+    {
+      "hit": "Custom wrapper command"
+    },
+    {
+      "hit": "Docker container"
+    },
+    {
+      "hit": "Docker image"
+    },
+    {
+      "hit": "Don't require shell command confirmation when sandbox is enabled"
+    },
+    {
+      "hit": "Sandbox"
+    },
+    {
+      "hit": "Sandbox root directory"
+    },
+    {
+      "hit": "Sandbox runtime path"
+    },
+    {
+      "hit": "Show Command..."
+    },
+    {
+      "hit": "Use sandbox for shell commands"
+    },
+    {
+      "hit": "Wrapper command"
+    }
+  ]
+}
+{
+  "id": "com.android.studio.ml.templates",
+  "name": "Prompt Library",
+  "entries": [
+    {
+      "hit": "\nCreate a prompt by clicking the '+' button or select existing one"
+    },
+    {
+      "hit": "IDE"
+    },
+    {
+      "hit": "Project"
+    },
+    {
+      "hit": "Prompt Library"
+    },
+    {
+      "hit": "Scope:"
+    }
+  ]
+}
+{
+  "id": "preferences.keymap",
+  "name": "Keymap",
+  "entries": [
+    {
+      "hit": "AI",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Add selected code as a snippet to Studio Bot Agent",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Add to Chat",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Analyze Thread Safety",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Analyzes the thread safety state for the selected files.",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Ask the agent to help merge conflicts in the current repository",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Cancel Next Edit Prediction",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Compose Preview",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Cycle Through Active Chats",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Displays the Next Edit Prediction status bar menu",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Document Code",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Explain Code",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Explain with AI",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Floating Code Toolbar",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Generate AGENTS.md",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Generate Code From Image",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Generate Code\u2026",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Generate Jetpack Compose code from the attached image",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Generate Preview for Composable",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Generate README",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Generates a README in markdown for the selected files.",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Instantly loads the migration agent configured for resumption from disk artifacts.",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Keep",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Keep All",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Keep all changes in this file",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Keep this change",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Merge Conflicts with Agent",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Move or Accept Next Edit Prediction",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "New",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "New Agent Chat",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "New Agent Tab",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Next Chat",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Open inline AI editor",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Open the Agent window",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Opens the agent chat window, or cycles through the available agent tabs",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Previous Chat",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Prompt Library",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Quick Edit",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Resume Migration",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Revert",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Revert All",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Revert all changes in this file",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Revert this change",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Review Commit with AI",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Review Pending Changes with AI",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Show Next Edit Prediction Menu",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Start a code review of the selected commit(s) using the AI agent",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Start a code review of your pending changes using the AI agent",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Suggest Commit Message",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Suggest Improvements",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Suggest commit message by summarizing changes",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Transform Selected Code\u2026",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Unsupported version: Update now",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Update All Libraries with AI",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Update Dependencies",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Updates project dependencies",
+      "path": "ActionManager"
+    }
+  ]
+}
+{
+  "id": "reference.settingsdialog.IDE.editor.colors.com.google.tools.aiplugin.editor.predictionservices.configuration.NextEditPredictionColorsPage",
+  "name": "AI Edits",
+  "entries": [
+    {
+      "hit": "AI Edits"
+    },
+    {
+      "hit": "Deleted text"
+    },
+    {
+      "hit": "Inserted text"
+    },
+    {
+      "hit": "Tab hint"
+    }
+  ]
+}
+{
+  "id": "templates.modelproviders.configurable",
+  "name": "Model Providers",
+  "entries": [
+    {
+      "hit": "API key header:"
+    },
+    {
+      "hit": "API key:"
+    },
+    {
+      "hit": "Anthropic-compatible"
+    },
+    {
+      "hit": "Available models"
+    },
+    {
+      "hit": "Description:"
+    },
+    {
+      "hit": "Gemini requires a signed-in Google account."
+    },
+    {
+      "hit": "Learn more"
+    },
+    {
+      "hit": "More"
+    },
+    {
+      "hit": "OpenAI-compatible"
+    },
+    {
+      "hit": "Port:"
+    },
+    {
+      "hit": "Refresh"
+    },
+    {
+      "hit": "Sign in"
+    },
+    {
+      "hit": "Stop Server"
+    },
+    {
+      "hit": "URL Schema:"
+    },
+    {
+      "hit": "URL:"
+    },
+    {
+      "hit": "http://localhost:"
+    },
+    {
+      "hit": "Actions",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Available Models",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Cancel",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Delete",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Download",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Gemma 4 12B",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Gemma 4 26B",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Gemma 4 31B",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Gemma 4 4B",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Name",
+      "path": "Available Models"
+    },
+    {
+      "hit": "Not downloaded",
+      "path": "Available Models"
+    },
+    {
+      "hit": "State",
+      "path": "Available Models"
+    },
+    {
+      "hit": "10 minutes of no requests",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "15 minutes of no requests",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "30 minutes of no requests",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "5 minutes of no requests",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "Host Configuration",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "Idle Time-To-Live:",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "Model Storage Folder:",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "Never",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "Parallel request processing",
+      "path": "Host Configuration"
+    }
+  ]
+}
+{
+  "id": "templates.modelproviders.configurable",
+  "name": "Model Providers",
+  "entries": [
+    {
+      "hit": "Model Providers"
+    },
+    {
+      "hit": "API key header:",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "API key:",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Anthropic-compatible",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Available models",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Description:",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Gemini requires a signed-in Google account.",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Learn more",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Model Providers",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "More",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "OpenAI-compatible",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Port:",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Refresh",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Sign in",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Stop Server",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "URL Schema:",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "URL:",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "http://localhost:",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Actions",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Cancel",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Delete",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Download",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Gemma 4 12B",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Gemma 4 26B",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Gemma 4 31B",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Gemma 4 4B",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Model Providers.Available Models",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Name",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "Not downloaded",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "State",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "10 minutes of no requests",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "15 minutes of no requests",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "30 minutes of no requests",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "5 minutes of no requests",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "Idle Time-To-Live:",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "Model Providers.Host Configuration",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "Model Storage Folder:",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "Never",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "Parallel request processing",
+      "path": "Model Providers.Host Configuration"
+    }
+  ]
+}

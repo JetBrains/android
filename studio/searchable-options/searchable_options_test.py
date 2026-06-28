@@ -46,12 +46,7 @@ class SearchableOptionTests(unittest.TestCase):
             with zipfile.ZipFile(os.path.join(lib_dir, jar)) as jar_file:
               for name in jar_file.namelist():
                 if name.endswith(".json"):
-                  extracted_path = jar_file.extract(name, path=actual_dir)
-                  with open(extracted_path, "r", encoding="utf-8") as f:
-                    lines = f.readlines()
-                  lines.sort()
-                  with open(extracted_path, "w", encoding="utf-8") as f:
-                    f.writelines(lines)
+                  jar_file.extract(name, path=actual_dir)
 
     eq = self.same_folders(filecmp.dircmp(expected_dir, actual_dir, ignore = ["content.bzl"]))
     if not eq:
