@@ -147,6 +147,8 @@ iml_module(
         "@intellij//:intellij.platform.debugger.impl.backend",
         "@intellij//:intellij.platform.debugger.impl.frontend",
         "@intellij//:intellij.platform.images.xdebugger",
+        "@intellij//:intellij.platform.smRunner",
+        "@intellij//:intellij.platform.testRunner",
         "@intellij//:intellij.java.debugger.impl.frontend",
         "@intellij//:intellij.java.ui",
         "@intellij//:intellij.java.analysis",

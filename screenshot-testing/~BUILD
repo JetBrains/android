@@ -67,6 +67,8 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
+        "@intellij//:intellij.platform.smRunner",
+        "@intellij//:intellij.platform.testRunner",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",

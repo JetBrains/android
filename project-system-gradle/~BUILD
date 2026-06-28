@@ -135,6 +135,8 @@ iml_module(
         "@intellij//:intellij.java.impl",
         "@intellij//:intellij.java.execution",
         "@intellij//:intellij.java.execution.impl",
+        "@intellij//:intellij.platform.smRunner",
+        "@intellij//:intellij.platform.testRunner",
     ],
 )
 
@@ -706,6 +708,8 @@ iml_module(
         "@intellij//:tanvd.grazi",
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "@intellij//:org.jetbrains.idea.reposearch",
+        "@intellij//:intellij.platform.smRunner",
+        "@intellij//:intellij.platform.testRunner",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testResources"],

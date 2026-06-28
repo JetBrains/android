@@ -49,6 +49,8 @@ iml_module(
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
         "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser",
+        "@intellij//:intellij.platform.smRunner",
+        "@intellij//:intellij.platform.testRunner",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

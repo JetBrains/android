@@ -34,6 +34,7 @@ iml_module(
         "//tools/adt/idea/analytics",
         "@intellij//:intellij.java.execution.impl",
         "@intellij//:intellij.java",
+        "@intellij//:intellij.platform.testRunner",
     ],
 )
 
@@ -100,6 +101,8 @@ iml_module(
         "//tools/adt/idea/testartifacts:libjourneys-java-proto",
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/adt/idea/android-adb:intellij.android.adb.testUtil",
+        "@intellij//:intellij.platform.smRunner",
+        "@intellij//:intellij.platform.testRunner",
     ],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",

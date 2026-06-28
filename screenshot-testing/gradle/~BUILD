@@ -29,5 +29,7 @@ iml_module(
         "//tools/adt/idea/analytics",
         "@intellij//:intellij.java.execution.impl",
         "@intellij//:intellij.java.execution",
+        "@intellij//:intellij.platform.smRunner",
+        "@intellij//:intellij.platform.testRunner",
     ],
 )
