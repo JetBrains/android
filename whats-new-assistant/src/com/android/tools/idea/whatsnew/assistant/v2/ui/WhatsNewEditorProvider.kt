@@ -35,7 +35,7 @@ class WhatsNewEditorProvider : AsyncFileEditorProvider {
   private var cachedDocuments: List<WhatsNewMarkdownDocument>? = null
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
-    return file is WhatsNewVirtualFile
+    return file is WhatsNewVirtualFileImpl
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
@@ -65,7 +65,9 @@ class WhatsNewEditorProvider : AsyncFileEditorProvider {
   }
 }
 
-class WhatsNewVirtualFile : LightVirtualFile() {
+abstract class WhatsNewVirtualFile : LightVirtualFile()
+
+class WhatsNewVirtualFileImpl : WhatsNewVirtualFile() {
   override fun getPresentableName(): @NlsSafe String {
     return "What's New"
   }
