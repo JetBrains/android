@@ -177,6 +177,12 @@
   "name": "Database Inspector",
   "entries": [
     {
+      "hit": "Additional SQLiteConnection:"
+    },
+    {
+      "hit": "Additional SQLiteDriver:"
+    },
+    {
       "hit": "Database Inspector"
     },
     {
@@ -184,6 +190,9 @@
     },
     {
       "hit": "Force open databases that are not already open"
+    },
+    {
+      "hit": "Ignore Framework API (SQLiteDatabase):"
     }
   ]
 }
