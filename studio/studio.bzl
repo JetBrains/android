@@ -1157,17 +1157,22 @@ def android_studio(
                 "--ide %s/%s.%s" % (native.package_name(), name, config_name),
             ] + (["--plugins %s" % " ".join([Label(plugin).name for plugin in searchable_options_plugin_lst])] if searchable_options_plugin_lst else []),
             data = [
-                ":%s.%s.linux.zip" % (name, config_name),
-                ":%s.%s.mac.zip" % (name, config_name),
-                ":%s.%s.mac_arm.zip" % (name, config_name),
                 ":%s.%s.plugin.lst" % (name, config_name),
-            ],
+            ] + select({
+                "@platforms//os:linux": [":%s.%s.linux.zip" % (name, config_name)],
+                "//tools/base/bazel/platforms:macos-x86_64": [":%s.%s.mac.zip" % (name, config_name)],
+                "//tools/base/bazel/platforms:macos-arm64": [":%s.%s.mac_arm.zip" % (name, config_name)],
+            }),
             imports = ["%s/tools/adt/idea/studio/searchable-options" % ("/".join([".."] * len(native.package_name().split("/"))) if native.package_name() else ".")],
             main = "searchable_options_test.py",
             tags = [
                 "block_network",
                 "noci:studio-win",
             ],
+            target_compatible_with = select({
+                "@platforms//os:windows": ["@platforms//:incompatible"],
+                "//conditions:default": [],
+            }),
         )
 
         py_test(
@@ -1208,20 +1213,21 @@ def android_studio(
             "--ide-configuration " + " ".join([Label(configuration).name for configuration in configurations]),
         ] + (["--plugins %s" % " ".join([Label(plugin).name for plugin in searchable_options_plugin_lst])] if searchable_options_plugin_lst else []),
         data = [
-            file % (name, Label(configuration).name)
-            for configuration in configurations
-            for file in (
-                ":%s.%s.linux.zip",
-                ":%s.%s.mac.zip",
-                ":%s.%s.mac_arm.zip",
-                ":%s.%s.plugin.lst",
-            )
-        ],
+            ":%s.%s.plugin.lst" % (name, Label(config).name) for config in configurations
+        ] + select({
+            "@platforms//os:linux": [":%s.%s.linux.zip" % (name, Label(config).name) for config in configurations],
+            "//tools/base/bazel/platforms:macos-x86_64": [":%s.%s.mac.zip" % (name, Label(config).name) for config in configurations],
+            "//tools/base/bazel/platforms:macos-arm64": [":%s.%s.mac_arm.zip" % (name, Label(config).name) for config in configurations],
+        }),
         main = "update_searchable_options.py",
         tags = [
             "block_network",
             "noci:studio-win",
         ],
+        target_compatible_with = select({
+            "@platforms//os:windows": ["@platforms//:incompatible"],
+            "//conditions:default": [],
+        }),
     )
 
     py_binary(
