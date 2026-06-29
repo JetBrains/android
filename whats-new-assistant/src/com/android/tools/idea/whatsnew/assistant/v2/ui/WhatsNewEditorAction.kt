@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
 
 class WhatsNewEditorAction : AnAction("What's New in Android Studio") {
-  private var whatsNewVirtualFile: WhatsNewVirtualFile? = null
+  private var whatsNewVirtualFile: WhatsNewVirtualFileImpl? = null
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -45,7 +45,7 @@ class WhatsNewEditorAction : AnAction("What's New in Android Studio") {
 
   fun openWhatsNewEditor(project: Project, isAutoOpened: Boolean) {
     if (whatsNewVirtualFile == null) {
-      whatsNewVirtualFile = WhatsNewVirtualFile()
+      whatsNewVirtualFile = WhatsNewVirtualFileImpl()
     }
     FileEditorManager.getInstance(project)?.let { fileEditorManager ->
       WhatsNewMetricsTracker.getInstance().open(project, isAutoOpened)
