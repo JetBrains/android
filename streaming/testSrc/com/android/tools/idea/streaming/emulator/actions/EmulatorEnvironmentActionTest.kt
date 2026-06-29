@@ -17,14 +17,18 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.Camera
 import com.android.emulator.control.CameraList
+import com.android.emulator.control.Environment
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.createTestEvent
 import com.android.tools.adtui.actions.executeAction
+import com.android.tools.adtui.actions.updateAndGetActionPresentation
 import com.android.tools.idea.avd.EnvironmentImage
 import com.android.tools.idea.avd.EnvironmentsUpdater
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
@@ -39,6 +43,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
 import com.intellij.openapi.vfs.VirtualFile
@@ -56,6 +61,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -112,7 +118,6 @@ class EmulatorEnvironmentActionTest {
 
     val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
     val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
-    group.update(event)
     val children = group.getChildren(event)
 
     val environments = listOf("indoor-study-dark", "outdoor-city-bright", "outdoor-nature-bright")
@@ -178,6 +183,117 @@ class EmulatorEnvironmentActionTest {
   }
 
   @Test
+  fun testRecentCustom360Environment_featureFlagOff() {
+    StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.overrideForTest(false, testRootDisposable)
+    val xml =
+      """
+      <x:xmpmeta xmlns:x="adobe:ns:meta/">
+       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="" xmlns:GPano="http://ns.google.com/photos/1.0/panorama/" GPano:ProjectionType="equirectangular" />
+       </rdf:RDF>
+      </x:xmpmeta>
+      """
+        .trimIndent()
+    val jpeg = createMockJpegWithXml(xml)
+
+    val action = EmulatorEnvironmentAction.RecentCustom(jpeg)
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request))
+      .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${jpeg.systemIndependentString}\" }")
+  }
+
+  @Test
+  fun testRecentEnvironmentsExcludesCurrent() {
+    val file1 = tempDirRule.newPath("file1.png")
+    val file2 = tempDirRule.newPath("file2.png")
+    Files.createFile(file1)
+    Files.createFile(file2)
+
+    val properties = PropertiesComponent.getInstance()
+    properties.setValue("EmulatorEnvironmentAction.recentFiles", "")
+    EmulatorEnvironmentAction.addRecentFile(file1.toString())
+    EmulatorEnvironmentAction.addRecentFile(file2.toString())
+
+    val group = EmulatorRecentEnvironmentsActionGroup()
+    val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    // 1. Initially (no environment), both should be shown
+    assertThat(updateAndGetActionPresentation(group, event).isVisible).isTrue()
+    var children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(2)
+    assertThat(children[0].templatePresentation.text).isEqualTo(file2.fileName.toString())
+    assertThat(children[1].templatePresentation.text).isEqualTo(file1.fileName.toString())
+
+    // 2. Set active environment to file2
+    val recentAction2 = EmulatorEnvironmentAction.RecentCustom(file2)
+    executeAction(recentAction2, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) {
+      recentAction2.doesMatchEnvironment(
+        EnvironmentTracker.forEmulator(emulatorController)?.environment ?: Environment.getDefaultInstance()
+      )
+    }
+
+    // Now file2 should be filtered out
+    assertThat(updateAndGetActionPresentation(group, event).isVisible).isTrue()
+    children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(1)
+    assertThat(children[0].templatePresentation.text).isEqualTo(file1.fileName.toString())
+
+    // 3. Set active environment to file1
+    val recentAction1 = EmulatorEnvironmentAction.RecentCustom(file1)
+    executeAction(recentAction1, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) {
+      recentAction1.doesMatchEnvironment(
+        EnvironmentTracker.forEmulator(emulatorController)?.environment ?: Environment.getDefaultInstance()
+      )
+    }
+
+    // Now file1 should be filtered out, showing only file2
+    assertThat(updateAndGetActionPresentation(group, event).isVisible).isTrue()
+    children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(1)
+    assertThat(children[0].templatePresentation.text).isEqualTo(file2.fileName.toString())
+
+    // 4. Set environment to empty (None)
+    val emptyAction = ActionManager.getInstance().getAction("android.emulator.environment.empty")
+    executeAction(emptyAction, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) {
+      val env = EnvironmentTracker.forEmulator(emulatorController)?.environment ?: Environment.getDefaultInstance()
+      env.environmentMap["scene.mode"].isNullOrEmpty()
+    }
+
+    // Both should be shown again
+    assertThat(updateAndGetActionPresentation(group, event).isVisible).isTrue()
+    children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(2)
+
+    // 5. Test with only one recent file
+    properties.setValue("EmulatorEnvironmentAction.recentFiles", "")
+    EmulatorEnvironmentAction.addRecentFile(file1.toString())
+
+    // Active environment is empty, so file1 is visible
+    assertThat(updateAndGetActionPresentation(group, event).isVisible).isTrue()
+    children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(1)
+
+    // Select file1
+    executeAction(recentAction1, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) {
+      recentAction1.doesMatchEnvironment(
+        EnvironmentTracker.forEmulator(emulatorController)?.environment ?: Environment.getDefaultInstance()
+      )
+    }
+
+    // Since file1 is active, and it's the only recent file, the group should be hidden.
+    assertThat(updateAndGetActionPresentation(group, event).isVisible).isFalse()
+    children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(0)
+  }
+
+  @Test
   fun testActionGroupDoesNotIncludeTitleWhenEmpty() {
     // Clear recent files
     val properties = PropertiesComponent.getInstance()
@@ -188,9 +304,7 @@ class EmulatorEnvironmentActionTest {
     val recentGroup = children[4] as DefaultActionGroup
 
     val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
-    recentGroup.update(event)
-
-    assertThat(event.presentation.isVisible).isFalse()
+    assertThat(updateAndGetActionPresentation(recentGroup, event).isVisible).isFalse()
   }
 
   @Test
@@ -234,7 +348,6 @@ class EmulatorEnvironmentActionTest {
 
     val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
     val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
-    group.update(event)
     val children = group.getChildren(event)
 
     // Expect original children (5) + Separator + Cameras submenu
@@ -260,12 +373,10 @@ class EmulatorEnvironmentActionTest {
 
     val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
     val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
-    group.update(event)
     val children = group.getChildren(event)
     val camerasGroup = children[6] as DefaultActionGroup
 
-    camerasGroup.update(event)
-    assertThat(event.presentation.isVisible).isFalse()
+    assertThat(updateAndGetActionPresentation(camerasGroup, event).isVisible).isFalse()
   }
 
   @Test
@@ -277,19 +388,16 @@ class EmulatorEnvironmentActionTest {
     val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
     val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
     emulatorController
-    group.update(event)
     val children = group.getChildren(event)
     val camerasGroup = children[6] as DefaultActionGroup
 
-    camerasGroup.update(event)
-    assertThat(event.presentation.isVisible).isFalse()
+    assertThat(updateAndGetActionPresentation(camerasGroup, event).isVisible).isFalse()
   }
 
   @Test
   fun testBuiltInImageActionPresentationText() {
     val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
     val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
-    group.update(event)
     val children = group.getChildren(event)
 
     val indoorAction = children.firstOrNull() as? EmulatorEnvironmentAction.BuiltInImage
@@ -376,29 +484,6 @@ class EmulatorEnvironmentActionTest {
       .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${jpeg.systemIndependentString}\" }")
   }
 
-  @Test
-  fun testRecentCustom360Environment_featureFlagOff() {
-    StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.overrideForTest(false, testRootDisposable)
-    val xml =
-      """
-      <x:xmpmeta xmlns:x="adobe:ns:meta/">
-       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-        <rdf:Description rdf:about="" xmlns:GPano="http://ns.google.com/photos/1.0/panorama/" GPano:ProjectionType="equirectangular" />
-       </rdf:RDF>
-      </x:xmpmeta>
-      """
-        .trimIndent()
-    val jpeg = createMockJpegWithXml(xml)
-
-    val action = EmulatorEnvironmentAction.RecentCustom(jpeg)
-    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
-
-    val call = emulator.getNextGrpcCall(2.seconds)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
-    assertThat(shortDebugString(call.request))
-      .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${jpeg.systemIndependentString}\" }")
-  }
-
   private fun createMockJpegWithXml(xml: String): Path {
     val xmlBytes = xml.toByteArray()
     val xmpHeader = "http://ns.adobe.com/xap/1.0/\u0000".toByteArray()
@@ -454,59 +539,172 @@ class EmulatorEnvironmentActionTest {
   }
 
   private fun createMockPngWithXml(xml: String, compressed: Boolean = false): Path {
-    val bos = ByteArrayOutputStream()
+    val stream = ByteArrayOutputStream()
     // Signature
-    bos.write(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))
+    stream.write(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A))
 
     // IHDR
-    writePngChunk(bos, "IHDR", byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 2, 0, 0, 0))
+    writePngChunk(stream, "IHDR", byteArrayOf(0, 0, 0, 1, 0, 0, 0, 1, 8, 2, 0, 0, 0))
 
     // iTXt
-    val chunkBos = ByteArrayOutputStream()
-    chunkBos.write("XML:com.adobe.xmp\u0000".toByteArray())
+    val chunkStream = ByteArrayOutputStream()
+    chunkStream.write("XML:com.adobe.xmp\u0000".toByteArray())
     if (compressed) {
-      chunkBos.write(1) // compression flag
-      chunkBos.write(0) // compression method
-      chunkBos.write(0) // language tag null
-      chunkBos.write(0) // translated keyword null
+      chunkStream.write(1) // compression flag
+      chunkStream.write(0) // compression method
+      chunkStream.write(0) // language tag null
+      chunkStream.write(0) // translated keyword null
       val deflater = Deflater()
       deflater.setInput(xml.toByteArray())
       deflater.finish()
       val deflatedBytes = ByteArray(1024)
-      val compressedBos = ByteArrayOutputStream()
+      val compressedStream = ByteArrayOutputStream()
       while (!deflater.finished()) {
         val count = deflater.deflate(deflatedBytes)
-        compressedBos.write(deflatedBytes, 0, count)
+        compressedStream.write(deflatedBytes, 0, count)
       }
       deflater.end()
-      chunkBos.write(compressedBos.toByteArray())
+      chunkStream.write(compressedStream.toByteArray())
     } else {
-      chunkBos.write(0) // compression flag
-      chunkBos.write(0) // compression method
-      chunkBos.write(0) // language tag null
-      chunkBos.write(0) // translated keyword null
-      chunkBos.write(xml.toByteArray())
+      chunkStream.write(0) // compression flag
+      chunkStream.write(0) // compression method
+      chunkStream.write(0) // language tag null
+      chunkStream.write(0) // translated keyword null
+      chunkStream.write(xml.toByteArray())
     }
-    writePngChunk(bos, "iTXt", chunkBos.toByteArray())
+    writePngChunk(stream, "iTXt", chunkStream.toByteArray())
 
     // IEND
-    writePngChunk(bos, "IEND", ByteArray(0))
+    writePngChunk(stream, "IEND", ByteArray(0))
 
     val file = tempDirRule.newPath("test_image.png")
-    Files.write(file, bos.toByteArray())
+    Files.write(file, stream.toByteArray())
     return file
   }
 
-  private fun writePngChunk(bos: ByteArrayOutputStream, type: String, data: ByteArray) {
+  private fun writePngChunk(stream: ByteArrayOutputStream, type: String, data: ByteArray) {
     val length = data.size
-    bos.write((length shr 24) and 0xFF)
-    bos.write((length shr 16) and 0xFF)
-    bos.write((length shr 8) and 0xFF)
-    bos.write(length and 0xFF)
-    bos.write(type.toByteArray(Charsets.US_ASCII))
-    bos.write(data)
+    stream.write((length shr 24) and 0xFF)
+    stream.write((length shr 16) and 0xFF)
+    stream.write((length shr 8) and 0xFF)
+    stream.write(length and 0xFF)
+    stream.write(type.toByteArray(Charsets.US_ASCII))
+    stream.write(data)
     // CRC (dummy)
-    bos.write(byteArrayOf(0, 0, 0, 0))
+    stream.write(byteArrayOf(0, 0, 0, 0))
+  }
+
+  @Test
+  fun testEnvironmentToggleState() {
+    val emptyAction = ActionManager.getInstance().getAction("android.emulator.environment.empty")
+    val emptyEvent = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    val cameraAction = EmulatorEnvironmentAction.Camera("FaceTime HD Camera", "camera_id_123")
+    val cameraEvent = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    val builtInAction =
+      EmulatorEnvironmentAction.BuiltInImage(Path.of("/Sdk/environments/outdoor-nature-bright.jpg"), "Outdoor Nature Bright")
+    val builtInEvent = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    val recentAction = EmulatorEnvironmentAction.RecentCustom(Path.of("/tmp/recent_image.png"))
+    val recentEvent = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(cameraAction, cameraEvent))).isFalse()
+
+    // 2. Set to camera environment
+    executeAction(cameraAction, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) { Toggleable.isSelected(updateAndGetActionPresentation(cameraAction, cameraEvent)) }
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(emptyAction, emptyEvent))).isFalse()
+
+    // 3. Set to built-in image environment
+    executeAction(builtInAction, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) { Toggleable.isSelected(updateAndGetActionPresentation(builtInAction, builtInEvent)) }
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(cameraAction, cameraEvent))).isFalse()
+
+    // 4. Set to recent custom environment
+    executeAction(recentAction, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) { Toggleable.isSelected(updateAndGetActionPresentation(recentAction, recentEvent)) }
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(builtInAction, builtInEvent))).isFalse()
+  }
+
+  @Test
+  fun testCustomEnvironmentToggleState() {
+    val customAction = ActionManager.getInstance().getAction("android.emulator.environment.custom")
+    val customEvent = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    val builtInAction =
+      EmulatorEnvironmentAction.BuiltInImage(Path.of("/Sdk/environments/outdoor-nature-bright.jpg"), "Outdoor Nature Bright")
+    val builtInEvent = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    // Setup mock EnvironmentsUpdater for custom path checking
+    val environmentsUpdater = mock<EnvironmentsUpdater>()
+    val list = listOf(EnvironmentImage(Path.of("/Sdk/environments/outdoor-nature-bright.jpg"), "Outdoor Nature Bright", false))
+    runBlocking { whenever(environmentsUpdater.getEnvironments()).thenReturn(list) }
+    ApplicationManager.getApplication().replaceService(EnvironmentsUpdater::class.java, environmentsUpdater, testRootDisposable)
+
+    // 1. Set environment to built-in image (outdoor-nature-bright)
+    executeAction(builtInAction, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) { Toggleable.isSelected(updateAndGetActionPresentation(builtInAction, builtInEvent)) }
+    // Check that customAction is NOT selected
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(customAction, customEvent))).isFalse()
+
+    // 2. Set environment to custom image
+    val customImagePath = "/tmp/my_custom_image.jpg"
+    val recentAction = EmulatorEnvironmentAction.RecentCustom(Path.of(customImagePath))
+    val recentEvent = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+    executeAction(recentAction, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) { Toggleable.isSelected(updateAndGetActionPresentation(recentAction, recentEvent)) }
+
+    // Now builtInAction should be deselected
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(builtInAction, builtInEvent))).isFalse()
+
+    // And customAction should be SELECTED!
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(customAction, customEvent))).isTrue()
+  }
+
+  @Test
+  fun testCameraActionGroupToggleState() {
+    val camera1 = Camera.newBuilder().setDisplayName("Camera 1").setId("id1").build()
+    emulator.hostCameras = CameraList.newBuilder().addCameras(camera1).build()
+
+    val group = EmulatorCameraActionGroup()
+    val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    // 1. Initial state (empty environment in emulator)
+    emulator.environment.clear()
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(group, event))).isFalse()
+
+    // 2. Set to camera environment
+    val cameraAction = EmulatorEnvironmentAction.Camera("Camera 1", "id1")
+    executeAction(cameraAction, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) { Toggleable.isSelected(updateAndGetActionPresentation(group, event)) }
+
+    // 3. Set to built-in image environment
+    val builtInAction =
+      EmulatorEnvironmentAction.BuiltInImage(Path.of("/Sdk/environments/outdoor-nature-bright.jpg"), "Outdoor Nature Bright")
+    executeAction(builtInAction, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) { !Toggleable.isSelected(updateAndGetActionPresentation(group, event)) }
+  }
+
+  @Test
+  fun testUpdateWhenDisconnected() {
+    val disconnectedController = mock<EmulatorController>()
+    whenever(disconnectedController.connectionState).thenReturn(EmulatorController.ConnectionState.DISCONNECTED)
+    whenever(disconnectedController.getUserData<Any>(any())).thenReturn(null)
+    whenever(disconnectedController.putUserDataIfAbsent<Any>(any(), any())).thenAnswer { it.arguments[1] }
+    val mockConfig = mock<EmulatorConfiguration>()
+    whenever(mockConfig.deviceType).thenReturn(DeviceType.AI_GLASSES)
+    whenever(disconnectedController.emulatorConfig).thenReturn(mockConfig)
+
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.empty")
+    val event =
+      createTestEvent(
+        project = projectRule.project,
+        extra = DataSnapshotProvider { sink -> sink[EMULATOR_CONTROLLER_KEY] = disconnectedController },
+      )
+
+    // This should not throw an exception!
+    assertThat(updateAndGetActionPresentation(action, event).isEnabled).isFalse()
   }
 }
 
