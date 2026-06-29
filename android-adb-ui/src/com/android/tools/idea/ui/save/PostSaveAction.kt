@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.save
 
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.intellij.ide.actions.RevealFileAction
+import com.intellij.ide.ui.search.TraverseUIMode
 
 /** Defines what happens after a screenshot or a screen recording is saved to a file. */
 internal enum class PostSaveAction {
@@ -25,7 +26,7 @@ internal enum class PostSaveAction {
   OPEN;
 
   val isSupported: Boolean
-    get() = this != SHOW_IN_FOLDER || RevealFileAction.isSupported()
+    get() = this != SHOW_IN_FOLDER || (RevealFileAction.isSupported() && !TraverseUIMode.getInstance().isActive())
 
   override fun toString(): String {
     return when (this) {
