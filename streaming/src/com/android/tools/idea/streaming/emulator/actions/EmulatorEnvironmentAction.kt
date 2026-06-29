@@ -96,7 +96,10 @@ internal sealed class EmulatorEnvironmentAction :
   class None : EmulatorEnvironmentAction() {
     override suspend fun prepareEnvironment(project: Project?): Environment = Environment.newBuilder().build()
 
-    override fun doesMatchEnvironment(environment: Environment): Boolean = environment.environmentMap["scene.mode"].isNullOrEmpty()
+    override fun doesMatchEnvironment(environment: Environment): Boolean {
+      val mode = environment.environmentMap["scene.mode"]
+      return mode.isNullOrEmpty() || mode == "color:#000000"
+    }
   }
 
   open class Custom : EmulatorEnvironmentAction() {
