@@ -16,6 +16,7 @@
 package com.android.tools.idea.device.explorer.files.adbimpl;
 
 import static com.android.ddmlib.FileListingService.FILE_SEPARATOR;
+import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +24,9 @@ public class AdbShellCommandBuilder {
   @NotNull private final StringBuilder myCommand = new StringBuilder();
   private boolean mySuRootPrefix;
   private String myRunAsPackage;
+
+  private static final Pattern VALID_PACKAGE_NAME =
+      Pattern.compile("[a-zA-Z0-9._]+");
 
   @Override
   public String toString() {
@@ -66,6 +70,10 @@ public class AdbShellCommandBuilder {
 
 
   public AdbShellCommandBuilder withRunAs(@NotNull String packageName) {
+    if (!VALID_PACKAGE_NAME.matcher(packageName).matches()) {
+      throw new IllegalArgumentException(
+          "Invalid package name for run-as: contains disallowed characters");
+    }
     myRunAsPackage = packageName;
     return this;
   }

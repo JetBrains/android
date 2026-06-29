@@ -97,4 +97,26 @@ public class AdbShellCommandBuilderTest {
       // Expected
     }
   }
+
+  @Test
+  public void testBuildCommandWithRunAsInvalidPackage() {
+    String[] invalidPackages = {
+      "my.package;bad_command",
+      "my.package&bad_command",
+      "my.package|bad_command",
+      "my.package`bad_command`",
+      "my.package$(bad_command)",
+      "my.package\nui",
+      "my.package ",
+    };
+    for (String pkg : invalidPackages) {
+      try {
+        new AdbShellCommandBuilder().withRunAs(pkg);
+        Assert.fail("Expected exception not thrown for: " + pkg);
+      } catch (IllegalArgumentException e) {
+        assertThat(e.getMessage()).contains("Invalid package name");
+      }
+    }
+  }
 }
+
