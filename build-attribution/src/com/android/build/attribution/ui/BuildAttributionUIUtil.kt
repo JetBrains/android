@@ -27,7 +27,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
-import org.jetbrains.kotlin.lombok.utils.capitalize
+import java.util.Locale.getDefault
 import javax.swing.Icon
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
@@ -53,7 +53,7 @@ fun TaskCategory.displayName() =
     TaskCategory.APK_PACKAGING -> "APK Packaging"
     else -> {
       toString().split("_").joinToString(separator = " ") { word ->
-        word.lowercase().capitalize()
+        word.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() }
       }
     }
   }
