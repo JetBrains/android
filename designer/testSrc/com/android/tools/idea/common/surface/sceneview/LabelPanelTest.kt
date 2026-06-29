@@ -58,7 +58,8 @@ class LabelPanelTest {
     val label = LabelPanel(settings, scope, organizationEnabled).apply { size = Dimension(250, 50) }
     assertTrue(label.isVisible)
     assertEquals("displayName", label.text)
-    assertEquals("Tooltip", label.text)
+    assertEquals("Tooltip", label.toolTipText)
+    assertTrue(label.getClientProperty("html.disable") as Boolean)
 
     settings.setDisplayName("New displayName")
     assertEquals("New displayName", label.text)

@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.util.text.StringUtil
 
 /** [DropDownAction] that allows the user filtering the visible previews by group. */
 class GroupSwitchAction(
@@ -35,7 +36,11 @@ class GroupSwitchAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /** [ToggleAction] that sets the given [group] as filter. */
-  inner class SetGroupAction(private val group: PreviewGroup) : ToggleAction(group.displayName) {
+  class SetGroupAction(private val group: PreviewGroup) : ToggleAction() {
+    init {
+      templatePresentation.setText(StringUtil.escapeXmlEntities(group.displayName), false)
+    }
+
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun isSelected(e: AnActionEvent): Boolean = e.dataContext.findPreviewManager(PreviewGroupManager.KEY)?.groupFilter == group
@@ -58,7 +63,8 @@ class GroupSwitchAction(
     presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
 
     if (presentation.isVisible) {
-      presentation.text = previewManager?.groupFilter?.displayName
+      val textToSet = previewManager?.groupFilter?.displayName?.let(StringUtil::escapeXmlEntities)
+      presentation.setText(textToSet, false)
     }
   }
 
