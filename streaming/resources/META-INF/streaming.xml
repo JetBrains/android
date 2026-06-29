@@ -155,9 +155,9 @@
         <group id="android.emulator.environment.camera" class="com.android.tools.idea.streaming.emulator.actions.EmulatorCameraActionGroup"
                text="Camera" popup="true"/>
         <separator/>
-        <action id="android.emulator.environment.empty"
-                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$None"
-                text="No Environment" description="Select no environment"/>
+        <action id="android.emulator.environment.darkness"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Darkness"
+                text="Pitch Dark" description="Select a completely dark environment"/>
       </group>
       <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">

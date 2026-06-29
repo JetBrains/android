@@ -89,8 +89,9 @@ internal sealed class EmulatorEnvironmentAction :
     return Environment.newBuilder().putEnvironment("scene.mode", mode).build()
   }
 
-  class None : EmulatorEnvironmentAction() {
-    override suspend fun prepareEnvironment(project: Project?): Environment = Environment.newBuilder().build()
+  class Darkness : EmulatorEnvironmentAction() {
+    override suspend fun prepareEnvironment(project: Project?): Environment =
+      Environment.newBuilder().putEnvironment("scene.mode", "color:#000000").build()
 
     override fun doesMatchEnvironment(environment: Environment): Boolean {
       val mode = environment.environmentMap["scene.mode"]

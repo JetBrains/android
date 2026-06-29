@@ -95,13 +95,13 @@ class EmulatorEnvironmentActionTest {
   }
 
   @Test
-  fun testEmptyEnvironment() {
-    val action = ActionManager.getInstance().getAction("android.emulator.environment.empty")
+  fun testDarknessEnvironment() {
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.darkness")
     executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
     val call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
-    assertThat(shortDebugString(call.request)).isEqualTo("")
+    assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"color:#000000\" }")
   }
 
   @Test
@@ -258,11 +258,11 @@ class EmulatorEnvironmentActionTest {
     assertThat(children[0].templatePresentation.text).isEqualTo(file2.fileName.toString())
 
     // 4. Set environment to empty (None)
-    val emptyAction = ActionManager.getInstance().getAction("android.emulator.environment.empty")
-    executeAction(emptyAction, project = projectRule.project, extra = dataSnapshotProvider)
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.darkness")
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
     waitForCondition(5.seconds) {
       val env = EnvironmentTracker.forEmulator(emulatorController)?.environment ?: Environment.getDefaultInstance()
-      env.environmentMap["scene.mode"].isNullOrEmpty()
+      env.environmentMap["scene.mode"] == "color:#000000"
     }
 
     // Both should be shown again
@@ -596,7 +596,7 @@ class EmulatorEnvironmentActionTest {
 
   @Test
   fun testEnvironmentToggleState() {
-    val emptyAction = ActionManager.getInstance().getAction("android.emulator.environment.empty")
+    val emptyAction = ActionManager.getInstance().getAction("android.emulator.environment.darkness")
     val emptyEvent = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
 
     val cameraAction = EmulatorEnvironmentAction.Camera("FaceTime HD Camera", "camera_id_123")
@@ -696,7 +696,7 @@ class EmulatorEnvironmentActionTest {
     whenever(mockConfig.deviceType).thenReturn(DeviceType.AI_GLASSES)
     whenever(disconnectedController.emulatorConfig).thenReturn(mockConfig)
 
-    val action = ActionManager.getInstance().getAction("android.emulator.environment.empty")
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.darkness")
     val event =
       createTestEvent(
         project = projectRule.project,
