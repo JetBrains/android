@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
 import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.execution.filters.Filter
+import com.intellij.execution.filters.UrlFilter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.Disposable
@@ -67,6 +68,7 @@ internal class EditorHyperlinkDetector(
       .finishOnUiThread(modalityState) { filters: List<Filter> ->
         filters.filterNot { it::class.java.name in IGNORE_FILTERS }.forEach { filter.addFilter(it) }
         filter.addFilter(SimpleFileLinkFilter(project))
+        filter.addFilter(SafeUrlFilter())
       }
       .submit(executor)
   }
@@ -89,7 +91,7 @@ internal class EditorHyperlinkDetector(
 
   companion object {
     // These filters don't apply to Logcat output
-    @VisibleForTesting
-    internal val IGNORE_FILTERS = setOf(GradleConsoleFilter::class.java.name, "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter")
+    private val IGNORE_FILTERS =
+      setOf(GradleConsoleFilter::class.java.name, "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter", UrlFilter::class.java.name)
   }
 }
