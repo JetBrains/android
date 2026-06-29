@@ -2514,6 +2514,18 @@ public final class StudioFlags {
                     "Enable the inactivity monitor for tool calls",
                     "When enabled, tool execution will be monitored for inactivity and cancelled after a timeout");
 
+  public static final Flag<Integer> STUDIOBOT_MAX_TOOL_OUTPUT_TOKENS =
+    new IntFlag(STUDIOBOT, "max.tool.output.tokens",
+                "Max tokens for tool outputs",
+                "Maximum number of tokens allowed for a single tool call's output before middle truncation is applied.",
+                10_000);
+
+  public static final Flag<Integer> STUDIOBOT_TOOL_OUTPUT_PREFIX_PERCENT =
+    new IntFlag(STUDIOBOT, "tool.output.prefix.percent",
+                "Prefix percent for tool truncation",
+                "Percentage of the maximum token budget to preserve at the beginning of the output during middle truncation (head budget ratio).",
+                25);
+
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "completions.per.hour",
