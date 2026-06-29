@@ -504,10 +504,10 @@
       "hit": "Push Edits Automatically"
     },
     {
-      "hit": "Push Edits Manually (Ctrl+Quote)"
+      "hit": "Push Edits Manually ()"
     },
     {
-      "hit": "Push Edits Manually on Save (Ctrl+S)"
+      "hit": "Push Edits Manually on Save ()"
     }
   ]
 }

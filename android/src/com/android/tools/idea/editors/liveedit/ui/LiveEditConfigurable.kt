@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEdi
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.intellij.ide.ActivityTracker
+import com.intellij.ide.ui.search.TraverseUIMode
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.BoundSearchableConfigurable
@@ -45,10 +46,14 @@ class LiveEditConfigurable :
 
   override fun createPanel(): DialogPanel {
     val config = LiveEditApplicationConfiguration.getInstance()
+
+    val shortcutAction = ActionManager.getInstance().getAction(MANUAL_LIVE_EDIT_ACTION_ID).shortcutSet.shortcuts.firstOrNull()
     val shortcut =
-      ActionManager.getInstance().getAction(MANUAL_LIVE_EDIT_ACTION_ID).shortcutSet.shortcuts.firstOrNull()?.let {
-        KeymapUtil.getShortcutText(it)
-      } ?: ""
+      if (shortcutAction != null && !TraverseUIMode.getInstance().isActive()) {
+        KeymapUtil.getShortcutText(shortcutAction)
+      } else {
+        ""
+      }
 
     // https://plugins.jetbrains.com/docs/intellij/kotlin-ui-dsl-version-2.html
     return panel {
@@ -69,8 +74,11 @@ class LiveEditConfigurable :
               row { radioButton(message("live.edit.mode.automatic"), AUTOMATIC).enabledIf(rb.selected) }
               row { radioButton(message("live.edit.mode.manual.onkey", shortcut), ON_HOTKEY).enabledIf(rb.selected) }
               row {
-                radioButton(message("live.edit.mode.manual.onsave", LiveEditAnActionListener.getLiveEditTriggerShortCutString()), ON_SAVE)
-                  .enabledIf(rb.selected)
+                val onSaveShortcut =
+                  if (!TraverseUIMode.getInstance().isActive()) {
+                    LiveEditAnActionListener.getLiveEditTriggerShortCutString()
+                  } else ""
+                radioButton(message("live.edit.mode.manual.onsave", onSaveShortcut), ON_SAVE).enabledIf(rb.selected)
               }
             }
             .bind(config::leTriggerMode)
