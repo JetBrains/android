@@ -445,7 +445,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
       @Override
       public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
         if (module.equals(modelModule)) {
-          FileEditorManager.getInstance(project).closeFile(myFile);
+          // closeFile must be called in the EDT thread.
+          ApplicationManager.getApplication().invokeLater(() -> FileEditorManager.getInstance(project).closeFile(myFile));
         }
       }
     });
