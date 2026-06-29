@@ -46,23 +46,25 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.StandardWatchEventKinds.OVERFLOW
+import java.nio.file.WatchService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.regex.Pattern
-import kotlin.concurrent.read
-import kotlin.concurrent.write
 import kotlin.io.path.deleteIfExists
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.TestOnly
 
 /** Keeps track of Android Emulators running on the local machine under the current user account. */
@@ -73,8 +75,6 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private val fileNamePattern = Pattern.compile("pid_(\\d+).ini")
   @GuardedBy("dataLock") private var updateJob: Job? = null
   @Volatile private var isDisposing = false
-  /** This lock is held for reading while an update is running. */
-  private val updateLock = ReentrantReadWriteLock()
   private val updateChannel = Channel<Unit>(Channel.CONFLATED)
   @GuardedBy("dataLock") private var updateWorkerJob: Job? = null
   private val dataLock = Any()
@@ -89,101 +89,112 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @GuardedBy("dataLock") private var registrationDirectory: Path? = computeRegistrationDirectory()
   private var runningAvdTracker: RunningAvdTracker? = null
 
-  private val scope = createCoroutineScope()
+  private val catalogScope = createCoroutineScope(Dispatchers.IO)
   @GuardedBy("dataLock") private var watchJob: Job? = null
+  @GuardedBy("dataLock") private var watchService: WatchService? = null
   @Volatile private var useWatchService = false
 
   init {
-    startUpdateWorker()
-    startWatchService()
+    startUpdateWorkerAndWatchService()
   }
 
-  private fun startWatchService() {
-    synchronized(dataLock) {
-      watchJob?.cancel()
-      useWatchService = false
-      val directory = registrationDirectory ?: return
-
-      watchJob =
-        scope.launch(Dispatchers.IO) {
-          try {
-            Files.createDirectories(directory)
-          } catch (e: Exception) {
-            thisLogger().warn("Failed to create emulator registration directory $directory, falling back to polling", e)
-            return@launch
-          }
-
-          try {
-            val watchService = directory.fileSystem.newWatchService()
-            val cancellationHandler =
-              coroutineContext[Job]?.invokeOnCompletion {
-                try {
-                  watchService.close()
-                } catch (_: Exception) {}
-              }
-
-            try {
-              directory.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
-              useWatchService = true
-
-              // Run initial update safely through the alarm thread
-              scheduleUpdate(0)
-
-              while (isActive) {
-                val key = watchService.poll(1, TimeUnit.SECONDS) ?: continue
-                var needsUpdate = false
-                for (event in key.pollEvents()) {
-                  val kind = event.kind()
-                  if (kind == ENTRY_CREATE || kind == ENTRY_DELETE || kind == ENTRY_MODIFY || kind == OVERFLOW) {
-                    needsUpdate = true
-                  }
-                }
-                if (!key.reset()) {
-                  break
-                }
-                if (needsUpdate && isActive) {
-                  val delay =
-                    synchronized(dataLock) {
-                      // Don't allow updates to run too frequently.
-                      val minimumIntervalBetweenUpdates = lastUpdateDuration * 100
-                      val timeSinceLastUpdate = System.currentTimeMillis() - lastUpdateStartTime - lastUpdateDuration
-                      (minimumIntervalBetweenUpdates - timeSinceLastUpdate).coerceAtLeast(0)
-                    }
-                  scheduleUpdate(delay)
-                }
-              }
-            } finally {
-              cancellationHandler?.dispose()
-              try {
-                watchService.close()
-              } catch (_: Exception) {}
-            }
-          } catch (_: ClosedWatchServiceException) {
-            // Normal termination
-          } catch (_: InterruptedException) {
-            // Normal termination
-          } catch (e: Exception) {
-            thisLogger().warn("Error in emulator catalog WatchService, falling back to polling", e)
-            synchronized(dataLock) {
-              useWatchService = false
-              if (updateInterval != Long.MAX_VALUE) {
-                scheduleUpdate(updateInterval)
-              }
-            }
-          }
-        }
-    }
-  }
-
-  private fun startUpdateWorker() {
+  private fun startUpdateWorkerAndWatchService() {
     synchronized(dataLock) {
       updateWorkerJob?.cancel()
       updateWorkerJob =
-        scope.launch(Dispatchers.IO) {
+        catalogScope.launch {
           for (request in updateChannel) {
-            updateLock.read { update() }
+            update()
           }
         }
+
+      watchJob?.cancel()
+      watchJob = null
+      try {
+        watchService?.close()
+      } catch (_: Exception) {}
+      watchService = null
+      val directory = registrationDirectory ?: return
+
+      useWatchService = false
+
+      watchJob = catalogScope.launch { watchDirectory(directory, this) }
+    }
+  }
+
+  private fun watchDirectory(directory: Path, scope: CoroutineScope) {
+    try {
+      Files.createDirectories(directory)
+    } catch (e: Exception) {
+      thisLogger().warn("Failed to create emulator registration directory $directory, falling back to polling", e)
+      return
+    }
+
+    var watchService: WatchService
+    try {
+      watchService = directory.fileSystem.newWatchService()
+      synchronized(dataLock) { this.watchService = watchService }
+      try {
+        directory.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
+        synchronized(dataLock) { useWatchService = true }
+
+        // Run initial update safely through the alarm thread
+        scheduleUpdate(0)
+
+        while (scope.isActive) {
+          val key =
+            try {
+              watchService.poll(1, TimeUnit.SECONDS) ?: continue
+            } catch (_: InterruptedException) {
+              break // Interrupted.
+            }
+
+          var needsUpdate = false
+          for (event in key.pollEvents()) {
+            val kind = event.kind()
+            if (kind == ENTRY_CREATE || kind == ENTRY_DELETE || kind == ENTRY_MODIFY || kind == OVERFLOW) {
+              needsUpdate = true
+            }
+          }
+          if (!key.reset()) {
+            break
+          }
+          if (needsUpdate && scope.isActive) {
+            val delay =
+              synchronized(dataLock) {
+                if (isDisposing) return // exit
+                // Don't allow updates to run too frequently.
+                val minimumIntervalBetweenUpdates = lastUpdateDuration * 100
+                val timeSinceLastUpdate = System.currentTimeMillis() - lastUpdateStartTime - lastUpdateDuration
+                (minimumIntervalBetweenUpdates - timeSinceLastUpdate).coerceAtLeast(0)
+              }
+            scheduleUpdate(delay)
+          }
+        }
+      } finally {
+        try {
+          watchService.close()
+        } catch (_: Exception) {}
+        synchronized(dataLock) {
+          if (this.watchService === watchService) {
+            this.watchService = null
+          }
+        }
+      }
+    } catch (e: CancellationException) {
+      throw e
+    } catch (_: ClosedWatchServiceException) {
+      // Normal termination
+    } catch (_: InterruptedException) {
+      // Normal termination
+    } catch (e: Exception) {
+      thisLogger().warn("Error in emulator catalog WatchService, falling back to polling", e)
+      synchronized(dataLock) {
+        useWatchService = false
+        if (updateInterval != Long.MAX_VALUE) {
+          scheduleUpdate(updateInterval)
+        }
+      }
     }
   }
 
@@ -241,12 +252,17 @@ class RunningEmulatorCatalog : Disposable.Parent {
       // Check if an update is already scheduled soon enough.
       if (nextScheduledUpdateTime > updateTime) {
         updateJob?.cancel()
+        updateJob = null
         nextScheduledUpdateTime = updateTime
-        updateJob =
-          scope.launch(Dispatchers.IO) {
-            delay(delay.milliseconds)
-            updateChannel.trySend(Unit)
-          }
+        if (delay == 0L) {
+          updateChannel.trySend(Unit)
+        } else {
+          updateJob =
+            catalogScope.launch(Dispatchers.IO) {
+              delay(delay.milliseconds)
+              updateChannel.trySend(Unit)
+            }
+        }
       }
     }
   }
@@ -306,7 +322,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
                   }
                   created = true
                   val processHandle = ProcessHandleProvider.getProcessHandle(emulatorId.pid)
-                  val catalogRef = WeakReference(this@RunningEmulatorCatalog)
+                  val catalogRef = WeakReference(this)
                   processHandle?.onExit()?.thenAccept { @Suppress("DeferredResultUnused") catalogRef.get()?.updateNow() }
                 }
                 if (!isDisposing) {
@@ -490,6 +506,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
     synchronized(dataLock) {
       watchJob?.cancel()
+      watchJob = null
       updateJob?.cancel()
       updateWorkerJob?.cancel()
     }
@@ -513,6 +530,24 @@ class RunningEmulatorCatalog : Disposable.Parent {
    */
   @TestOnly
   fun overrideRegistrationDirectory(directory: Path?) {
+    var jobToCancel: Job? = null
+    var watchServiceToClose: WatchService? = null
+    synchronized(dataLock) {
+      jobToCancel = watchJob
+      watchJob = null
+      watchServiceToClose = this.watchService
+      this.watchService = null
+    }
+
+    try {
+      watchServiceToClose?.close()
+    } catch (_: Exception) {}
+
+    runBlocking {
+      jobToCancel?.cancelAndJoin()
+      updateWorkerJob?.cancelAndJoin()
+    }
+
     synchronized(dataLock) {
       listeners = emptyList()
       updateIntervalsByListener.clear()
@@ -526,8 +561,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       registrationDirectory = directory ?: computeRegistrationDirectory()
     }
 
-    updateLock.write {} // Make sure that previously running updates have finished.
-    startWatchService()
+    startUpdateWorkerAndWatchService()
   }
 
   /**
