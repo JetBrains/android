@@ -117,12 +117,15 @@ object ScreenshotTestUtils {
     }
   }
 
-  /** Returns true if the given [path] starts with obvious network or Windows UNC prefixes. */
+  /** Returns true if the given [path] starts with obvious network or Windows UNC prefixes, unless it is a WSL path. */
   @JvmStatic
   fun isNetworkPath(path: String?): Boolean {
     if (path.isNullOrEmpty()) return false
-    val trimmed = path.trim()
-    return trimmed.startsWith("\\\\") || trimmed.startsWith("//")
+    val trimmed = path.trim().replace('/', '\\')
+    if (trimmed.startsWith("\\\\wsl$\\", ignoreCase = true) || trimmed.startsWith("\\\\wsl.localhost\\", ignoreCase = true)) {
+      return false
+    }
+    return trimmed.startsWith("\\\\")
   }
 
   /**

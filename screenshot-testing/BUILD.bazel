@@ -200,6 +200,8 @@ jvm_library(
         "//android/intellij.android.testutils:testutils_test_lib",
         "//plugins/gradle",
         "//plugins/gradle:gradle_test_lib",
+        "//java/testFramework",
+        "//java/testFramework:testFramework_test_lib",
         "//plugins/kotlin/base/util",
         "//plugins/kotlin/base/util:util_test_lib",
         "//libraries/junit4",
