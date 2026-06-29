@@ -173,6 +173,30 @@
   ]
 }
 {
+  "id": "database.inspector",
+  "name": "Database Inspector",
+  "entries": [
+    {
+      "hit": "Additional SQLiteConnection:"
+    },
+    {
+      "hit": "Additional SQLiteDriver:"
+    },
+    {
+      "hit": "Database Inspector"
+    },
+    {
+      "hit": "Enable offline mode"
+    },
+    {
+      "hit": "Force open databases that are not already open"
+    },
+    {
+      "hit": "Ignore Framework API (SQLiteDatabase):"
+    }
+  ]
+}
+{
   "id": "debugger.stepping",
   "name": "Stepping",
   "entries": [

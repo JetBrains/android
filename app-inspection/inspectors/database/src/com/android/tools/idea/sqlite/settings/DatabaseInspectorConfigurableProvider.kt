@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.settings
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle.message
+import com.intellij.ide.ui.search.TraverseUIMode
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
@@ -170,6 +171,10 @@ class DatabaseInspectorProjectSettings : PersistentStateComponent<DatabaseInspec
 private fun <T : JComponent> Cell<T>.named(name: String) = applyToComponent { this.name = name }
 
 private fun Cell<ClassPicker>.bindText(property: ObservableMutableProperty<String>): Cell<ClassPicker> {
+  if (TraverseUIMode.getInstance().isActive()) {
+    // During searchable-options indexing we are on a background thread and cannot edit the backing document.
+    return this
+  }
   return applyToComponent {
     text = property.get()
     property.afterChange { text = it }
