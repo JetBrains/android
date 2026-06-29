@@ -19,6 +19,7 @@ import com.android.emulator.control.Environment
 import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avd.EnvironmentImageScanner.is360Image
+import com.android.tools.idea.avd.EnvironmentsUpdater
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -29,6 +30,7 @@ import com.android.tools.idea.streaming.emulator.SuspendingStreamObserver
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileChooser.FileChooser.chooseFile
@@ -38,10 +40,12 @@ import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
 import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 /** Changes environment of AI Glasses AVD. */
-internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configFilter = { it.deviceType == DeviceType.AI_GLASSES }) {
+internal sealed class EmulatorEnvironmentAction :
+  AbstractEmulatorAction(configFilter = { it.deviceType == DeviceType.AI_GLASSES }), Toggleable {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulator = getEmulatorController(event) ?: return
@@ -54,7 +58,7 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     try {
       emulator.setEnvironment(environment, observer)
       observer.getResult()
-      onEnvironmentSet(environment)
+      onEnvironmentSet(emulator, environment)
     } catch (_: Exception) {
       // Error is already logged.
     }
@@ -64,16 +68,23 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
     super.update(event)
     if (!emulatorSupported) {
       event.presentation.isEnabledAndVisible = false
+      return
     }
+    val emulator = getEmulatorController(event) ?: return
+    val environment = EnvironmentTracker.forEmulator(emulator)?.environment
+    val selected = environment != null && doesMatchEnvironment(environment)
+    Toggleable.setSelected(event.presentation, selected)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   protected abstract suspend fun prepareEnvironment(project: Project?): Environment?
 
-  protected open fun onEnvironmentSet(environment: Environment) {}
+  open fun doesMatchEnvironment(environment: Environment): Boolean = false
 
-  protected fun Path.toSystemIndependentString(): String = toSystemIndependentName(this.toString())
+  protected open fun onEnvironmentSet(emulator: EmulatorController, environment: Environment) {
+    EnvironmentTracker.forEmulator(emulator)?.environment = environment
+  }
 
   protected suspend fun createImageEnvironmentMessage(path: Path): Environment {
     val is360 = StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.get() && withContext(Dispatchers.IO) { is360Image(path) }
@@ -84,6 +95,8 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
 
   class None : EmulatorEnvironmentAction() {
     override suspend fun prepareEnvironment(project: Project?): Environment = Environment.newBuilder().build()
+
+    override fun doesMatchEnvironment(environment: Environment): Boolean = environment.environmentMap["scene.mode"].isNullOrEmpty()
   }
 
   open class Custom : EmulatorEnvironmentAction() {
@@ -106,24 +119,39 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
       return createImageEnvironmentMessage(path)
     }
 
-    override fun onEnvironmentSet(environment: Environment) {
+    override fun onEnvironmentSet(emulator: EmulatorController, environment: Environment) {
+      super.onEnvironmentSet(emulator, environment)
       filePath?.let { addRecentFile(it) }
+    }
+
+    override fun doesMatchEnvironment(environment: Environment): Boolean {
+      val path = environment.getImagePath()?.toAbsolutePath()?.normalize() ?: return false
+      val builtInEnvironments = runBlocking { EnvironmentsUpdater.getInstance().getEnvironments() }
+      val builtInPaths = builtInEnvironments.map { it.path.toAbsolutePath().normalize() }
+      return !builtInPaths.contains(path)
     }
   }
 
   class RecentCustom(val filePath: Path) : EmulatorEnvironmentAction() {
 
     init {
-      templatePresentation.text = "${filePath.fileName}"
+      templatePresentation.setText(filePath.fileName.toString(), false)
       templatePresentation.description = filePath.toString()
     }
 
-    override suspend fun prepareEnvironment(project: Project?): Environment? {
+    override suspend fun prepareEnvironment(project: Project?): Environment {
       return createImageEnvironmentMessage(filePath)
     }
 
-    override fun onEnvironmentSet(environment: Environment) {
+    override fun onEnvironmentSet(emulator: EmulatorController, environment: Environment) {
+      super.onEnvironmentSet(emulator, environment)
       addRecentFile(filePath.toString())
+    }
+
+    override fun doesMatchEnvironment(environment: Environment): Boolean {
+      val mode = environment.environmentMap["scene.mode"] ?: return false
+      val pathStr = toSystemIndependentName(filePath.toString())
+      return mode == "imagefile:$pathStr" || mode == "image360:$pathStr"
     }
   }
 
@@ -134,9 +162,10 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
       templatePresentation.description = "Use host camera $cameraName"
     }
 
-    override suspend fun prepareEnvironment(project: Project?): Environment {
-      return Environment.newBuilder().putEnvironment("scene.mode", "webcam:$cameraId").build()
-    }
+    override suspend fun prepareEnvironment(project: Project?): Environment =
+      Environment.newBuilder().putEnvironment("scene.mode", "webcam:$cameraId").build()
+
+    override fun doesMatchEnvironment(environment: Environment): Boolean = environment.environmentMap["scene.mode"] == "webcam:$cameraId"
   }
 
   class BuiltInImage(val environmentPath: Path, title: String) : EmulatorEnvironmentAction() {
@@ -146,8 +175,12 @@ internal sealed class EmulatorEnvironmentAction : AbstractEmulatorAction(configF
       templatePresentation.description = "Select $title environment"
     }
 
-    override suspend fun prepareEnvironment(project: Project?): Environment {
-      return createImageEnvironmentMessage(environmentPath)
+    override suspend fun prepareEnvironment(project: Project?): Environment = createImageEnvironmentMessage(environmentPath)
+
+    override fun doesMatchEnvironment(environment: Environment): Boolean {
+      val mode = environment.environmentMap["scene.mode"] ?: return false
+      val pathStr = toSystemIndependentName(environmentPath.toString())
+      return mode == "imagefile:$pathStr" || mode == "image360:$pathStr"
     }
   }
 

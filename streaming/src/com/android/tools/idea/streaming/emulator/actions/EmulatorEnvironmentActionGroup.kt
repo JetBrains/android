@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.Camera
 import com.android.emulator.control.CameraList
+import com.android.emulator.control.Environment
 import com.android.tools.idea.avd.EnvironmentImage
 import com.android.tools.idea.avd.EnvironmentsUpdater
 import com.android.tools.idea.flags.StudioFlags
@@ -27,6 +28,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Key
 import java.nio.file.Files
@@ -84,31 +86,51 @@ internal class EmulatorRecentEnvironmentsActionGroup : DefaultActionGroup(), Dum
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
-    val hasRecentFiles = EmulatorEnvironmentAction.getRecentFiles().map { Path.of(it) }.any { Files.isRegularFile(it) }
+    val currentEnvironmentPath = getCurrentCustomEnvironmentPath(event)
+    val hasRecentFiles =
+      EmulatorEnvironmentAction.getRecentFiles()
+        .map { Path.of(it) }
+        .filter { Files.isRegularFile(it) }
+        .any { currentEnvironmentPath == null || it.toAbsolutePath().normalize() != currentEnvironmentPath }
     presentation.isVisible = hasRecentFiles && EmulatorEnvironmentAction.isApplicable(event)
     presentation.isEnabled = presentation.isVisible && isEmulatorConnected(event)
   }
 
   override fun getChildren(event: AnActionEvent?): Array<AnAction> {
-    val recentFiles = EmulatorEnvironmentAction.getRecentFiles().map { Path.of(it) }.filter { Files.isRegularFile(it) }
+    val currentEnvironmentPath = getCurrentCustomEnvironmentPath(event)
+    val recentFiles =
+      EmulatorEnvironmentAction.getRecentFiles()
+        .map { Path.of(it) }
+        .filter { Files.isRegularFile(it) }
+        .filter { currentEnvironmentPath == null || it.toAbsolutePath().normalize() != currentEnvironmentPath }
     return recentFiles.map { EmulatorEnvironmentAction.RecentCustom(it) }.toTypedArray()
+  }
+
+  private fun getCurrentCustomEnvironmentPath(event: AnActionEvent?): Path? {
+    val emulator = event?.let(::getEmulatorController) ?: return null
+    val env = EnvironmentTracker.forEmulator(emulator)?.environment ?: return null
+    return env.getImagePath()?.toAbsolutePath()?.normalize()
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }
 
 /** Displays a popup menu of available host cameras. */
-internal class EmulatorCameraActionGroup : DefaultActionGroup(), DumbAware {
+internal class EmulatorCameraActionGroup : DefaultActionGroup(), DumbAware, Toggleable {
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     val emulator = getEmulatorController(event)
-    presentation.isVisible =
+    val visible =
       StudioFlags.EMBEDDED_EMULATOR_CAMERA_ENVIRONMENT.get() &&
         emulator != null &&
         EmulatorEnvironmentAction.isApplicable(emulator.emulatorConfig) &&
         emulator.hostCameras.isNotEmpty()
-    presentation.isEnabled = presentation.isVisible && emulator?.connectionState == EmulatorController.ConnectionState.CONNECTED
+    val enabled = visible && emulator.connectionState == EmulatorController.ConnectionState.CONNECTED
+    presentation.isVisible = visible
+    presentation.isEnabled = enabled
+    val selected = enabled && emulator.environment?.isCamera() == true
+    Toggleable.setSelected(presentation, selected)
   }
 
   override fun getChildren(event: AnActionEvent?): Array<AnAction> {
@@ -120,11 +142,16 @@ internal class EmulatorCameraActionGroup : DefaultActionGroup(), DumbAware {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }
 
+private val EmulatorController.environment: Environment?
+  get() = EnvironmentTracker.forEmulator(this)?.environment
+
 private val EmulatorController.hostCameras: List<Camera>
-  get() {
-    if (connectionState != EmulatorController.ConnectionState.CONNECTED) return emptyList()
-    return computeUserDataIfAbsent(CameraListFetcher.KEY) { CameraListFetcher(this) }.hostCameras
-  }
+  get() = CameraListFetcher.forEmulator(this)?.hostCameras ?: emptyList()
+
+private fun Environment.isCamera(): Boolean {
+  val mode = environmentMap["scene.mode"] ?: return false
+  return mode == "webcam" || mode.startsWith("webcam:")
+}
 
 private class CameraListFetcher(private val emulator: EmulatorController) {
 
@@ -155,5 +182,10 @@ private class CameraListFetcher(private val emulator: EmulatorController) {
 
   companion object {
     val KEY = Key<CameraListFetcher>(CameraListFetcher::class.java.name)
+
+    fun forEmulator(emulator: EmulatorController): CameraListFetcher? {
+      if (emulator.connectionState != EmulatorController.ConnectionState.CONNECTED) return null
+      return emulator.computeUserDataIfAbsent(KEY) { CameraListFetcher(emulator) }
+    }
   }
 }
