@@ -19,7 +19,9 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import com.android.tools.asdriver.tests.integration.RemoteDeviceManager
 import com.android.tools.testlib.Emulator
+import com.intellij.openapi.util.SystemInfo
 import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
@@ -43,12 +45,28 @@ class ApplyChangesTest {
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
     system.runAdb { adb ->
-      system.runEmulator(Emulator.SystemImage.API_33) { emulator ->
+      var emulator: Emulator? = null
+      var remoteDeviceManager: RemoteDeviceManager? = null
+
+      if (!SystemInfo.isWindows) {
+        emulator = system.runEmulator(Emulator.SystemImage.API_33)
+      } else {
+        remoteDeviceManager = RemoteDeviceManager("MediumPhone.arm", "34")
+        remoteDeviceManager.setupRemoteDevice()
+      }
+
+      try {
         println("Waiting for boot")
-        emulator.waitForBoot()
+        if (!SystemInfo.isWindows) {
+          emulator!!.waitForBoot()
+        }
 
         println("Waiting for device")
-        adb.waitForDevice(emulator)
+        if (!SystemInfo.isWindows) {
+          adb.waitForDevice(emulator!!)
+        } else {
+          adb.waitForRemoteDevice()
+        }
 
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
@@ -82,6 +100,8 @@ class ApplyChangesTest {
 
           adb.runCommand("logcat") { waitForLog(".*OnResume After with resource status: new.*", 600, TimeUnit.SECONDS) }
         }
+      } finally {
+        if (!SystemInfo.isWindows) emulator?.close() else remoteDeviceManager?.close()
       }
     }
   }
