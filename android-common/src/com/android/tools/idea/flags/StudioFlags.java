@@ -2142,6 +2142,11 @@ public final class StudioFlags {
                     "Enable Agent Tabs",
                     "Enables opening the Agent UI as Editor Tabs.");
 
+  public static final Flag<Boolean> STUDIOBOT_NPA_ONBOARDING_ENABLED =
+    new BooleanFlag(STUDIOBOT, "npa.onboarding.enabled",
+                    "Enable NPA Onboarding",
+                    "Enables the onboarding flow within the New Project Agent Wizard");
+
   public enum CompletionGhostTextHintStyle {
     NONE,
     NEXT_LINE,

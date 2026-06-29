@@ -248,6 +248,7 @@ studiobot.message.queue.enabled=COMPLETE:2026
 studiobot.model.manager.enabled=INTERNAL
 studiobot.new.project.agent=COMPLETE:2026
 studiobot.new.subagent.mode=COMPLETE:2026
+studiobot.npa.onboarding.enabled=INTERNAL
 studiobot.open.files.context=PREVIEW
 studiobot.permission.model=COMPLETE:2026
 studiobot.project.facts.context.enabled=INTERNAL
