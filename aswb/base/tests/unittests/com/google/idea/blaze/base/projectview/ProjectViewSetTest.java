@@ -48,6 +48,7 @@ import com.google.idea.blaze.base.projectview.section.sections.ImportTargetOutpu
 import com.google.idea.blaze.base.projectview.section.sections.RunConfigurationsSection;
 import com.google.idea.blaze.base.projectview.section.sections.Sections;
 import com.google.idea.blaze.base.projectview.section.sections.ShardBlazeBuildsSection;
+import com.google.idea.blaze.base.projectview.section.sections.SkillsMdSection;
 import com.google.idea.blaze.base.projectview.section.sections.SyncFlagsSection;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TargetShardSizeSection;
@@ -124,6 +125,7 @@ public class ProjectViewSetTest extends BlazeTestCase {
                         ScalarSection.builder(BuildConfigSection.KEY)
                             .set(new WorkspacePath("test")))
                     .add(ScalarSection.builder(AgentsMdSection.KEY).set(new WorkspacePath("test")))
+                    .add(ScalarSection.builder(SkillsMdSection.KEY).set(new WorkspacePath("test")))
                     .build())
             .build();
 
