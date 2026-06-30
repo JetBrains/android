@@ -80,7 +80,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     val tableModel = ThreadsTableModel(model.selectionRangeDataFetcher)
     threadsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.displayName, true)
     val timelineRenderer = TimelineRenderer(threadsTable, model)
-    threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).cellRenderer = BorderlessTableCellRenderer()
+    threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).cellRenderer = BorderlessTableCellRenderer().disableHtml()
     threadsTable.columnModel.getColumn(Column.TIMELINE.ordinal).cellRenderer = timelineRenderer
     threadsTable.setBackground(DEFAULT_BACKGROUND)
     threadsTable.setShowVerticalLines(true)

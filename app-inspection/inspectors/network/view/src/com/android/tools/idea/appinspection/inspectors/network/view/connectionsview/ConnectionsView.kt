@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.awt.RelativePoint
 import java.awt.KeyboardFocusManager
 import java.awt.event.MouseAdapter
@@ -76,7 +77,7 @@ class ConnectionsView(project: Project, private val model: NetworkInspectorModel
     connectionsTable.addMouseListener(
       object : MouseAdapter() {
         override fun mouseMoved(e: MouseEvent) {
-          connectionsTable.toolTipText = e.getConnectionData()?.url
+          connectionsTable.toolTipText = e.getConnectionData()?.url?.let { escapeXmlEntities(it) }
         }
 
         override fun mouseClicked(e: MouseEvent) {
