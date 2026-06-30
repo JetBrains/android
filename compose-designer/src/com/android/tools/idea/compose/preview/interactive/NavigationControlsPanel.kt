@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.compose.preview.interactive
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +56,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Slider
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
 private val DEFAULT_SPACING = 8.dp
 
@@ -105,6 +107,7 @@ fun NavigationControlsContent(
  * @param fpsUpdater A [SharedFlow] used to refresh the state of the panel (e.g., re-evaluating [canBackPress]).
  * @param backPressCompletedFlow A [SharedFlow] to listen for back navigation completion events.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NavigationControlsPanel(
   modifier: Modifier = Modifier,
@@ -137,19 +140,22 @@ fun NavigationControlsPanel(
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalArrangement = Arrangement.spacedBy(DEFAULT_SPACING, Alignment.CenterVertically),
     ) {
-      OutlinedButton(
-        modifier = Modifier.testTag(NavigationControlsPanelTestTags.backButton).widthIn(min = 135.dp),
-        enabled = backNavigationAvailable,
-        onClick = onBackPress,
-      ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-          Icon(
-            key = StudioIconsCompose.Emulator.Toolbar.Back,
-            // The contentDescription is not needed as this icon is decorative to a text label which describes already what the button does.
-            contentDescription = null,
-            tint = Color(IntUiPaletteDefaults.Dark.Green7),
-          )
-          Text(text = message("action.navigate.back.button.text"), maxLines = 1, softWrap = false)
+      Tooltip(tooltip = { Text(message("action.navigate.back.button.disabled.tooltip")) }, enabled = !backNavigationAvailable) {
+        OutlinedButton(
+          modifier = Modifier.testTag(NavigationControlsPanelTestTags.backButton).widthIn(min = 135.dp),
+          enabled = backNavigationAvailable,
+          onClick = onBackPress,
+        ) {
+          Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+              key = StudioIconsCompose.Emulator.Toolbar.Back,
+              // The contentDescription is not needed as this icon is decorative to a text label which describes already what the button
+              // does.
+              contentDescription = null,
+              tint = Color(IntUiPaletteDefaults.Dark.Green7),
+            )
+            Text(text = message("action.navigate.back.button.text"), maxLines = 1, softWrap = false)
+          }
         }
       }
       DropDownAction(
@@ -200,7 +206,7 @@ fun NavigationControlsPanel(
  * @param label The text to show in the Label located on the right of the Dropdown.
  * @param selectedEdge The edge to be selected among the [BackNavigationEdge] enum.
  */
-@OptIn(ExperimentalJewelApi::class)
+@OptIn(ExperimentalJewelApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun DropDownAction(
   label: String,
@@ -215,24 +221,26 @@ private fun DropDownAction(
   ) {
     val labelColor = if (enabled) JewelTheme.globalColors.text.normal else JewelTheme.globalColors.text.disabled
     Text(text = label, modifier = Modifier.padding(vertical = DEFAULT_SPACING), color = labelColor, maxLines = 1, softWrap = false)
-    Dropdown(
-      modifier = Modifier.testTag(NavigationControlsPanelTestTags.edgeDropdown).widthIn(min = 100.dp),
-      enabled = enabled,
-      menuContent = {
-        for (edge in BackNavigationEdge.entries) {
-          selectableItem(
-            selected = selectedEdge.value == edge,
-            onClick = {
-              selectedEdge.value = edge
-              onEdgeDropdownPress()
-            },
-          ) {
-            Text(text = edge.visibleName, maxLines = 1, softWrap = false)
+    Tooltip(tooltip = { Text(message("action.navigate.back.navigation.edge.disabled.tooltip")) }, enabled = !enabled) {
+      Dropdown(
+        modifier = Modifier.testTag(NavigationControlsPanelTestTags.edgeDropdown).widthIn(min = 100.dp),
+        enabled = enabled,
+        menuContent = {
+          for (edge in BackNavigationEdge.entries) {
+            selectableItem(
+              selected = selectedEdge.value == edge,
+              onClick = {
+                selectedEdge.value = edge
+                onEdgeDropdownPress()
+              },
+            ) {
+              Text(text = edge.visibleName, maxLines = 1, softWrap = false)
+            }
           }
-        }
-      },
-    ) {
-      Text(selectedEdge.value.visibleName, maxLines = 1, softWrap = false)
+        },
+      ) {
+        Text(selectedEdge.value.visibleName, maxLines = 1, softWrap = false)
+      }
     }
   }
 

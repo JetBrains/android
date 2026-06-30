@@ -22,6 +22,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeRight
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
@@ -97,6 +98,12 @@ class NavigationControlsPanelUiTest {
     // Verify button and slider are disabled
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.backButton).assertIsDisplayed().assertIsNotEnabled()
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.progressSlider).assertIsDisplayed().assertIsNotEnabled()
+
+    // Verify tooltip appears when back button is disabled
+    composeTestRule.onNodeWithText(message("action.navigate.back.button.disabled.tooltip")).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.backButton).performMouseInput { moveTo(center) }
+    composeTestRule.mainClock.advanceTimeBy(1201L) // org.jetbrains.jewel.ui.component.styling.TooltipMetrics delay is 1200ms
+    composeTestRule.onNodeWithText(message("action.navigate.back.button.disabled.tooltip")).assertIsDisplayed()
 
     // Verify clicking disabled button does not increment counter
     val countBeforeClick = backPressCallCount
@@ -218,5 +225,11 @@ class NavigationControlsPanelUiTest {
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.backButton).assertIsDisplayed()
     // Verify Dropdown is displayed but disabled
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).assertIsDisplayed().assertIsNotEnabled()
+
+    // Verify tooltip appears when edge dropdown is disabled
+    composeTestRule.onNodeWithText(message("action.navigate.back.navigation.edge.disabled.tooltip")).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).performMouseInput { moveTo(center) }
+    composeTestRule.mainClock.advanceTimeBy(1201L) // org.jetbrains.jewel.ui.component.styling.TooltipMetrics delay is 1200ms
+    composeTestRule.onNodeWithText(message("action.navigate.back.navigation.edge.disabled.tooltip")).assertIsDisplayed()
   }
 }
