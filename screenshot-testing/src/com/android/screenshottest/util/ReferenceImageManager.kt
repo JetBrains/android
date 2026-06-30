@@ -16,6 +16,7 @@
 package com.android.screenshottest.util
 
 import com.android.screenshottest.ui.PreviewDetails
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import java.io.File
@@ -26,17 +27,32 @@ data class ImageData(val previewData: PreviewDetails, val loadedImagePaths: Map<
 
 private val LOG = Logger.getInstance("com.android.screenshottest.util.ReferenceImageManager")
 
+private fun File.isUnder(root: File): Boolean {
+  return try {
+    val rootPath = root.canonicalFile.toPath()
+    val filePath = this.canonicalFile.toPath()
+    filePath.startsWith(rootPath)
+  } catch (_: Exception) {
+    false
+  }
+}
+
 /**
  * Copies the images from the provided data objects to the appropriate reference image directory. This method should be called from a
  * background thread.
  *
- * @param module The module where the screenshots belong.
  * @param imagesToCopy The list of data objects representing the previews to be copied.
+ * @param projectBasePath The base path of the current project, used for containment validation.
  * @return A list of data objects that failed to copy.
  */
-fun copyReferenceImages(imagesToCopy: List<ImageData>): List<ImageData> {
+fun copyReferenceImages(imagesToCopy: List<ImageData>, projectBasePath: String): List<ImageData> {
+  if (projectBasePath.isBlank()) {
+    throw IllegalArgumentException("Project base path must not be empty or blank")
+  }
   val failures = mutableListOf<ImageData>()
   val refreshRoots = mutableSetOf<File>()
+  val projectBaseFile = File(projectBasePath)
+
   try {
     imagesToCopy.forEach { imageData ->
       val destinationPath = imageData.previewData.destImagePath
@@ -50,6 +66,21 @@ fun copyReferenceImages(imagesToCopy: List<ImageData>): List<ImageData> {
         imageData.loadedImagePaths.forEach { (imagePath, _) ->
           val sourceFile = File(imagePath)
           val destinationFile = File(destinationPath)
+
+          if (ScreenshotTestUtils.isNetworkPath(imagePath) || ScreenshotTestUtils.isNetworkPath(destinationPath)) {
+            throw IOException("Network paths are not allowed: source=$imagePath, dest=$destinationPath")
+          }
+
+          if (!destinationFile.isUnder(projectBaseFile) || !sourceFile.isUnder(projectBaseFile)) {
+            throw IOException("Screenshot path escapes the project bounds: source=$sourceFile, dest=$destinationFile")
+          }
+
+          val allowedExtensions = listOf("png", "jpg", "jpeg", "webp")
+          val extension = destinationFile.extension.lowercase()
+          if (extension !in allowedExtensions) {
+            throw IOException("Reference image destination must be a supported image file (png, jpg, jpeg, webp): $destinationFile")
+          }
+
           destinationFile.parentFile.mkdirs()
           sourceFile.copyTo(destinationFile, overwrite = true)
           LOG.info("Copied ${sourceFile.path} to ${destinationFile.path}")

@@ -78,7 +78,7 @@ class ReferenceImageManagerTest {
     val imageData = createImageData(mapOf(sourceImage.path to "MyTestClass"), expectedDestFile.path)
 
     // 2. Act
-    val failures = copyReferenceImages(listOf(imageData))
+    val failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
 
     // 3. Assert
     assertTrue("There should be no failures", failures.isEmpty())
@@ -97,7 +97,7 @@ class ReferenceImageManagerTest {
     val imageData2 = createImageData(mapOf(sourceImage2.path to "MyTestClass2"), expectedDestFile2.path)
 
     // 2. Act
-    val failures = copyReferenceImages(listOf(imageData1, imageData2))
+    val failures = copyReferenceImages(listOf(imageData1, imageData2), projectRule.project.basePath!!)
 
     // 3. Assert
     assertTrue("There should be no failures", failures.isEmpty())
@@ -118,7 +118,7 @@ class ReferenceImageManagerTest {
     val imageData = createImageData(mapOf(sourceImage.path to "MyTestClass"), expectedDestFile.path)
 
     // 2. Act
-    val failures = copyReferenceImages(listOf(imageData))
+    val failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
 
     // 3. Assert
     assertTrue("There should be no failures", failures.isEmpty())
@@ -135,12 +135,76 @@ class ReferenceImageManagerTest {
 
     // 2. Act
     var failures: List<ImageData> = emptyList()
-    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData)) }
+    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
 
     // 3. Assert
     assertEquals("There should be one failure", 1, failures.size)
     assertEquals("The failed item should be the input item", imageData, failures.first())
 
+    assertFalse("Destination file should NOT exist", expectedDestFile.exists())
+  }
+
+  @Test
+  fun copyReferenceImages_rejectOutOfBoundsDestination() {
+    // 1. Arrange
+    val sourceImage = File(tempOutputDir, "image.png").apply { writeText("payload") }
+    val outOfBoundsDest = File(projectRule.project.basePath).parentFile.resolve("unauthorized_file.png")
+    val imageData = createImageData(mapOf(sourceImage.path to "MyTestClass"), outOfBoundsDest.path)
+
+    // 2. Act
+    var failures: List<ImageData> = emptyList()
+    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+
+    // 3. Assert
+    assertEquals("There should be one failure", 1, failures.size)
+    assertFalse("File should NOT have been copied out of bounds", outOfBoundsDest.exists())
+  }
+
+  @Test
+  fun copyReferenceImages_rejectInvalidImageExtension() {
+    // 1. Arrange
+    val sourceImage = File(tempOutputDir, "image.png").apply { writeText("payload") }
+    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/unauthorized.sh")
+    val imageData = createImageData(mapOf(sourceImage.path to "MyTestClass"), expectedDestFile.path)
+
+    // 2. Act
+    var failures: List<ImageData> = emptyList()
+    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+
+    // 3. Assert
+    assertEquals("There should be one failure", 1, failures.size)
+    assertFalse("File with non-image extension should NOT be written", expectedDestFile.exists())
+  }
+
+  @Test
+  fun copyReferenceImages_success_jpgImage() {
+    // 1. Arrange
+    val sourceImage = File(tempOutputDir, "test_image.jpg").apply { writeText("jpg content") }
+    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/test_image.jpg")
+    val imageData = createImageData(mapOf(sourceImage.path to "MyTestClass"), expectedDestFile.path)
+
+    // 2. Act
+    val failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
+
+    // 3. Assert
+    assertTrue("There should be no failures", failures.isEmpty())
+    assertTrue("Destination file should exist", expectedDestFile.exists())
+    assertEquals("File content should match", "jpg content", expectedDestFile.readText())
+  }
+
+  @Test
+  fun copyReferenceImages_rejectNetworkSourceAndDestination() {
+    // 1. Arrange
+    val networkSource = "\\\\attacker\\share\\payload.png"
+    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/image.png")
+    val imageData = createImageData(mapOf(networkSource to "MyTestClass"), expectedDestFile.path)
+
+    // 2. Act
+    var failures: List<ImageData> = emptyList()
+    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+
+    // 3. Assert
+    assertEquals("There should be one failure", 1, failures.size)
     assertFalse("Destination file should NOT exist", expectedDestFile.exists())
   }
 
