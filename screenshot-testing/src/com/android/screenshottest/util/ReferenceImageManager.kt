@@ -71,8 +71,8 @@ fun copyReferenceImages(imagesToCopy: List<ImageData>, projectBasePath: String):
             throw IOException("Network paths are not allowed: source=$imagePath, dest=$destinationPath")
           }
 
-          if (!destinationFile.isUnder(projectBaseFile) || !sourceFile.isUnder(projectBaseFile)) {
-            throw IOException("Screenshot path escapes the project bounds: source=$sourceFile, dest=$destinationFile")
+          if (!destinationFile.isUnder(projectBaseFile)) {
+            throw IOException("Screenshot path escapes the project bounds: dest=$destinationFile")
           }
 
           val allowedExtensions = listOf("png", "jpg", "jpeg", "webp")
