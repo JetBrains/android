@@ -2546,16 +2546,6 @@ public final class StudioFlags {
     "Enable the Merge Conflicts action.",
     "If enabled, the merge conflicts action is available.");
 
-  public static final Flag<Boolean> README_GENERATION =
-    new BooleanFlag(STUDIOBOT, "readme.generation",
-                    "Use ML model to create a README",
-                    "Enables the \"Generate README\" button in the Project tool window");
-
-  public static final Flag<Boolean> ANALYZE_THREAD_SAFETY =
-    new BooleanFlag(STUDIOBOT, "analyze.thread.safety",
-                    "Use ML model analyze thread safety of selected files",
-                    "Enables the \"Analyze Thread Safety\" button in the Project tool window");
-
   public static final Flag<Boolean> AI_RENAME_ACTION =
     new BooleanFlag(STUDIOBOT, "ai.rename.action",
                     "Use AI to suggest a better identifier name",
