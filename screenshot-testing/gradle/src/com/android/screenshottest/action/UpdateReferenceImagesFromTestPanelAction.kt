@@ -76,9 +76,9 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT, UP
               methodName = methodName,
               previewName = previewName,
               testResult = testCase.result,
-              destImagePath = ScreenshotTestUtils.resolvePath(project, testCase.className, artifacts["PreviewScreenshot.refImagePath"]),
-              srcImagePath = ScreenshotTestUtils.resolvePath(project, testCase.className, artifacts["PreviewScreenshot.newImagePath"]),
-              diffImagePath = ScreenshotTestUtils.resolvePath(project, testCase.className, artifacts["PreviewScreenshot.diffImagePath"]),
+              destImagePath = ScreenshotTestUtils.resolvePath(project, artifacts["PreviewScreenshot.refImagePath"]),
+              srcImagePath = ScreenshotTestUtils.resolvePath(project, artifacts["PreviewScreenshot.newImagePath"]),
+              diffImagePath = ScreenshotTestUtils.resolvePath(project, artifacts["PreviewScreenshot.diffImagePath"]),
               diffPercent = artifacts["PreviewScreenshot.diffPercent"],
             )
 

@@ -243,7 +243,7 @@ class ScreenshotTestUtilsTest {
     val project = mock<Project>()
     val basePath = tempFolder.root.canonicalPath
     whenever(project.basePath).thenReturn(basePath)
-    val result = ScreenshotTestUtils.resolvePath(project, null, "screenshots/image.png")
+    val result = ScreenshotTestUtils.resolvePath(project, "screenshots/image.png")
     val expected = Paths.get(basePath, "screenshots/image.png").toFile().canonicalFile.toPath().toString()
     assertThat(result).isEqualTo(expected)
   }
@@ -253,7 +253,7 @@ class ScreenshotTestUtilsTest {
     val project = mock<Project>()
     val basePath = tempFolder.root.canonicalPath
     whenever(project.basePath).thenReturn(basePath)
-    val result = ScreenshotTestUtils.resolvePath(project, null, "../../etc/passwd")
+    val result = ScreenshotTestUtils.resolvePath(project, "../../etc/passwd")
     assertThat(result).isNull()
   }
 
@@ -262,7 +262,7 @@ class ScreenshotTestUtilsTest {
     val project = mock<Project>()
     val basePath = tempFolder.root.canonicalPath
     whenever(project.basePath).thenReturn(basePath)
-    val result = ScreenshotTestUtils.resolvePath(project, null, "/etc/passwd")
+    val result = ScreenshotTestUtils.resolvePath(project, "/etc/passwd")
     assertThat(result).isNull()
   }
 
@@ -271,7 +271,7 @@ class ScreenshotTestUtilsTest {
     val project = mock<Project>()
     val basePath = tempFolder.root.canonicalPath
     whenever(project.basePath).thenReturn(basePath)
-    val result = ScreenshotTestUtils.resolvePath(project, null, "\\\\attacker.evil\\share\\image.png")
+    val result = ScreenshotTestUtils.resolvePath(project, "\\\\attacker.evil\\share\\image.png")
     assertThat(result).isNull()
   }
 
@@ -280,7 +280,7 @@ class ScreenshotTestUtilsTest {
     val project = mock<Project>()
     val basePath = tempFolder.root.canonicalPath
     whenever(project.basePath).thenReturn(basePath)
-    val result = ScreenshotTestUtils.resolvePath(project, null, "//attacker.evil/share/image.png")
+    val result = ScreenshotTestUtils.resolvePath(project, "//attacker.evil/share/image.png")
     assertThat(result).isNull()
   }
 
@@ -289,11 +289,11 @@ class ScreenshotTestUtilsTest {
     val project = mock<Project>()
     val basePath = tempFolder.root.canonicalPath
     whenever(project.basePath).thenReturn(basePath)
-    assertThat(ScreenshotTestUtils.resolvePath(project, null, null)).isNull()
+    assertThat(ScreenshotTestUtils.resolvePath(project, null as String?)).isNull()
   }
 
   @Test
   fun testResolvePath_nullProject() {
-    assertThat(ScreenshotTestUtils.resolvePath(null, null, "screenshots/image.png")).isNull()
+    assertThat(ScreenshotTestUtils.resolvePath(null, "screenshots/image.png")).isNull()
   }
 }

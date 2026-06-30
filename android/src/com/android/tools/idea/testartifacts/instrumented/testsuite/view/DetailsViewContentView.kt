@@ -322,16 +322,14 @@ open class DetailsViewContentView(
   @VisibleForTesting var pathResolutionFuture: Future<*>? = null
 
   private fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>, testResults: AndroidTestResults?) {
-    val className = testResults?.className
-
     // Perform path resolution in background to avoid blocking the UI thread
     pathResolutionFuture?.cancel(true)
     pathResolutionFuture =
       ReadAction.nonBlocking(
           Callable {
-            val newImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.newImagePath"])
-            val refImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.refImagePath"])
-            val diffImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
+            val newImage = ScreenshotTestUtils.resolvePath(project, additionalTestArtifacts["PreviewScreenshot.newImagePath"])
+            val refImage = ScreenshotTestUtils.resolvePath(project, additionalTestArtifacts["PreviewScreenshot.refImagePath"])
+            val diffImage = ScreenshotTestUtils.resolvePath(project, additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
             val diffPercentString = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
             val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
             listOf(newImage, refImage, diffImage, diffPercent)
