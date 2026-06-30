@@ -57,6 +57,7 @@ import com.android.tools.idea.streaming.core.scaledUnbiased
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
+import com.android.tools.idea.streaming.emulator.actions.EnvironmentTracker
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.google.protobuf.TextFormat.shortDebugString
@@ -255,6 +256,7 @@ internal class EmulatorView(
 
   private val coroutineScope = createCoroutineScope()
   private var notificationCollectionJob: Job? = null
+  private var environmentCollectionJob: Job? = null
 
   private val sourceFrameListeners = DisposableWrapperList<SourceFrameListener>()
   private val currentPosture: PostureValue?
@@ -366,15 +368,19 @@ internal class EmulatorView(
 
   private var clipboardSynchronizer: EmulatorClipboardSynchronizer? = null
 
+  private val sceneMode: String?
+    get() = EnvironmentTracker.forEmulator(emulator)?.environment?.environmentMap?.get("scene.mode")
+
   private fun updateCameraPromptAndMultiTouchFeedback(event: InputEvent) = updateCameraPromptAndMultiTouchFeedback(event.modifiersEx)
 
   private fun updateCameraPromptAndMultiTouchFeedback(modifiers: Int = lastModifiers) {
     lastModifiers = modifiers
 
-    val cameraReadyToOperate = virtualSceneCameraActive && isFocusOwner && !isHardwareInputEnabled()
+    val is360Environment = emulatorConfig.deviceType == DeviceType.AI_GLASSES && sceneMode?.startsWith("image360:") == true
+    val cameraReadyToOperate = (virtualSceneCameraActive || is360Environment) && isFocusOwner && !isHardwareInputEnabled()
     if (cameraReadyToOperate && modifiers and SHIFT_DOWN_MASK != 0) {
       if (virtualSceneCameraController == null) {
-        virtualSceneCameraController = VirtualSceneCameraController(this, this, emulator)
+        virtualSceneCameraController = VirtualSceneCameraController(this, this, emulator, allowTranslation = virtualSceneCameraActive)
       }
     } else {
       virtualSceneCameraController?.let { Disposer.dispose(it) }
@@ -383,17 +389,23 @@ internal class EmulatorView(
     virtualSceneCameraPrompt =
       when {
         virtualSceneCameraController != null -> {
-          val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
-          "Move camera with $keys keys, rotate with mouse or arrow keys"
+          if (is360Environment) {
+            "Rotate camera with mouse or arrow keys"
+          } else {
+            val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
+            "Move camera with $keys keys, rotate with mouse or arrow keys"
+          }
         }
-        cameraReadyToOperate -> "Hold Shift to control camera"
+        cameraReadyToOperate -> {
+          if (is360Environment) "Hold Shift to rotate camera" else "Hold Shift to control camera"
+        }
         else -> null
       }
 
     multiTouchMode =
       emulatorConfig.hasTouchScreen &&
         mouseCoordinates != null &&
-        !virtualSceneCameraActive &&
+        !(virtualSceneCameraActive || is360Environment) &&
         modifiers and CTRL_DOWN_MASK != 0 &&
         !isHardwareInputEnabled() &&
         xrInputController == null
@@ -540,8 +552,19 @@ internal class EmulatorView(
           }
         }
       }
+      if (displayId == PRIMARY_DISPLAY_ID && environmentCollectionJob == null) {
+        val environmentTracker = EnvironmentTracker.forEmulator(emulator)
+        if (environmentTracker != null) {
+          environmentCollectionJob =
+            coroutineScope.launch(Dispatchers.EDT) {
+              environmentTracker.environmentFlow.collect { updateCameraPromptAndMultiTouchFeedback() }
+            }
+        }
+      }
     } else if (connectionState == ConnectionState.DISCONNECTED) {
       stopClipboardSynchronization()
+      environmentCollectionJob?.cancel()
+      environmentCollectionJob = null
       if (RunningAvdTracker.getInstance().runningAvds[emulatorId.avdFolder]?.isShuttingDown != true) {
         lastScreenshot = null
         xrInputController = null
