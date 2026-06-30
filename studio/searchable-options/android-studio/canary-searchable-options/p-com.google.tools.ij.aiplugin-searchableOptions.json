@@ -21,16 +21,22 @@
       "hit": "Auto-compress at:"
     },
     {
+      "hit": "Change Management"
+    },
+    {
       "hit": "Context Compression"
     },
     {
-      "hit": "Enable Pre-Bundled Skills"
+      "hit": "Enable pre-bundled skills"
     },
     {
       "hit": "Gemini requires a signed-in Google account."
     },
     {
       "hit": "Percent:"
+    },
+    {
+      "hit": "Show inline diffs"
     },
     {
       "hit": "Sign in"
