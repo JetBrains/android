@@ -2871,6 +2871,7 @@
 +++Android Studio.app/Contents/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 +++Android Studio.app/Contents/plugins/android/resources/transport/x86/transport
 +++Android Studio.app/Contents/plugins/android/resources/transport/x86_64/transport
++++Android Studio.app/Contents/plugins/app-link-assistant-ai/lib/app-link-assistant-ai.jar
 +++Android Studio.app/Contents/plugins/c/lib/LICENSE.txt
 +++Android Studio.app/Contents/plugins/c/lib/c.jar
 +++Android Studio.app/Contents/plugins/c/lib/modules/intellij.c.core.jar
@@ -6785,6 +6786,7 @@
 ---Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 ---Android Studio Preview.app/Contents/plugins/android/resources/transport/x86/transport
 ---Android Studio Preview.app/Contents/plugins/android/resources/transport/x86_64/transport
+---Android Studio Preview.app/Contents/plugins/app-link-assistant-ai/lib/app-link-assistant-ai.jar
 ---Android Studio Preview.app/Contents/plugins/c/lib/LICENSE.txt
 ---Android Studio Preview.app/Contents/plugins/c/lib/c.jar
 ---Android Studio Preview.app/Contents/plugins/c/lib/modules/intellij.c.core.jar

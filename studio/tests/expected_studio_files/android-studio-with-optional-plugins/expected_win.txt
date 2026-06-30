@@ -2147,6 +2147,7 @@ android-studio/plugins/android/resources/transport/native/agent/x86/libjvmtiagen
 android-studio/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/x86/transport
 android-studio/plugins/android/resources/transport/x86_64/transport
+android-studio/plugins/app-link-assistant-ai/lib/app-link-assistant-ai.jar
 android-studio/plugins/c/lib/LICENSE.txt
 android-studio/plugins/c/lib/c.jar
 android-studio/plugins/c/lib/modules/intellij.c.core.jar
