@@ -53,12 +53,9 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
      * 1. Project structure root path (relative to workspace) (ConcurrentHashMap)
      * 2. Build package path (relative to workspace) (ConcurrentHashMap)
      * 3. Java package (String) (ConcurrentHashMap)
-     * 4. Language (JVM, CC, etc.) (guarded by: leaf map instance monitor) -> List of source file paths (relative to workspace) (guarded by:
-     *    leaf map instance monitor)
+     * 4. Java package content (JavaPackageContent)
      */
-    val sourcesMap:
-      ConcurrentHashMap<Path, ConcurrentHashMap<Path, ConcurrentHashMap<String, HashMap<QuerySyncLanguage?, MutableList<Path>>>>> =
-      ConcurrentHashMap()
+    val sourcesMap: ConcurrentHashMap<Path, ConcurrentHashMap<Path, ConcurrentHashMap<String, JavaPackageContent>>> = ConcurrentHashMap()
     val languages: MutableSet<QuerySyncLanguage> = ConcurrentHashMap.newKeySet()
     val warnedPackages: MutableSet<Path> = ConcurrentHashMap.newKeySet()
 
@@ -112,14 +109,15 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
               val javaPackage = if (result.language == QuerySyncLanguage.JVM) forcedPackage ?: "" else ""
               val rootMap = sourcesMap.computeIfAbsent(includeRoot) { ConcurrentHashMap() }
               val buildPkgMap = rootMap.computeIfAbsent(buildPackage) { ConcurrentHashMap() }
-              val packageSources = buildPkgMap.computeIfAbsent(javaPackage) { HashMap() }
-              val lang = result.language
-              synchronized(packageSources) {
-                val langSources = packageSources.computeIfAbsent(lang) { mutableListOf() }
-                if (langSources.contains(result.relativePath)) {
-                  error("Duplicate file found: ${result.relativePath}")
+              val packageContent = buildPkgMap.computeIfAbsent(javaPackage) { JavaPackageContent() }
+              val added =
+                if (result.language == QuerySyncLanguage.JVM) {
+                  packageContent.javaSources.add(result.relativePath)
+                } else {
+                  packageContent.nonJavaSources.add(result.relativePath)
                 }
-                langSources.add(result.relativePath)
+              if (!added) {
+                error("Duplicate file found: ${result.relativePath}")
               }
             } else {
               val fitsAnyRoot = projectDefinition.projectIncludes.any { buildPackage.startsWith(it) }
@@ -163,13 +161,11 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
             BuildPackage(
               path = buildPackage,
               sourceSets =
-                packageMap.map { (javaPackage, langMap) ->
-                  val javaSources = langMap[QuerySyncLanguage.JVM]?.sorted() ?: emptyList()
-                  val nonJavaSources = langMap.filterKeys { it != QuerySyncLanguage.JVM }.values.flatten().sorted()
+                packageMap.map { (javaPackage, packageContent) ->
                   SourceSet(
                     rootPath = buildPackage,
-                    javaSourceFiles = javaSources.map { buildPackage.relativize(it) },
-                    nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) },
+                    javaSourceFiles = packageContent.javaSources.sorted().map { buildPackage.relativize(it) },
+                    nonJavaSourceFiles = packageContent.nonJavaSources.sorted().map { buildPackage.relativize(it) },
                     javaPackage = javaPackage,
                   )
                 },
@@ -195,4 +191,9 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
     )
     return result
   }
+}
+
+private class JavaPackageContent {
+  val javaSources: MutableSet<Path> = ConcurrentHashMap.newKeySet()
+  val nonJavaSources: MutableSet<Path> = ConcurrentHashMap.newKeySet()
 }
