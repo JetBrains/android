@@ -147,8 +147,12 @@ class AndroidTestSuiteViewAdaptor(private val runConfiguration: RunConfiguration
     if (testCase != null) {
       output.lineSequence().forEach { line ->
         if (line.startsWith("[additionalTestArtifacts]")) {
-          val (key, value) = line.substringAfter("[additionalTestArtifacts]").split("=", limit = 2) + listOf("", "")
-          testCase.additionalTestArtifacts[key] = value
+          val parts = line.substringAfter("[additionalTestArtifacts]").split("=", limit = 2)
+          val key = parts.getOrNull(0)?.trim().orEmpty()
+          val value = parts.getOrNull(1)?.trim().orEmpty()
+          if (key.isNotEmpty() && isSafeArtifactValue(value)) {
+            testCase.additionalTestArtifacts[key] = value
+          }
         } else if (line.isNotBlank()) {
           testCase.logcat += line + "\n"
         }
@@ -237,4 +241,23 @@ class AndroidTestSuiteViewAdaptor(private val runConfiguration: RunConfiguration
   companion object {
     val LOGGER: ILogger = LogWrapper(AndroidTestSuiteViewAdaptor::class.java)
   }
+}
+
+/**
+ * Validates whether the given test artifact metadata value is safe to ingest.
+ *
+ * This check acts as a generic defense-in-depth shield to reject obvious network or Windows UNC paths (e.g., starting with double slashes
+ * '\\' or '//', excluding WSL). Blocking raw UNC paths at ingestion prevents downstream consumers from accidentally resolving the value as
+ * a network resource, which could trigger automatic OS-level SMB connections and leak NTLM credentials.
+ *
+ * @param value The raw metadata value string to validate.
+ * @return True if the value is safe to ingest, false if it represents an unsafe UNC/network path.
+ */
+private fun isSafeArtifactValue(value: String?): Boolean {
+  if (value.isNullOrEmpty()) return true
+  val trimmed = value.trim().replace('/', '\\')
+  if (trimmed.startsWith("\\\\wsl$\\") || trimmed.startsWith("\\\\wsl.localhost\\")) {
+    return true
+  }
+  return !trimmed.startsWith("\\\\")
 }

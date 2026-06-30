@@ -43,6 +43,203 @@ class AndroidTestSuiteViewAdaptorTest {
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @Test
+  fun testSuiteAndTest_filtersAdditionalTestArtifacts_onOutput() {
+    val runConfiguration = mock<RunConfiguration>()
+    val adaptor = AndroidTestSuiteViewAdaptor(runConfiguration)
+    val testSuiteView = mock<AndroidTestSuiteView>()
+
+    val expectedDevice =
+      AndroidDevice(
+        id = "Preview",
+        deviceName = "Preview",
+        avdName = "",
+        deviceType = AndroidDeviceType.LOCAL_EMULATOR,
+        version = AndroidVersion.DEFAULT,
+      )
+    val expectedTestSuite =
+      AndroidTestSuite(id = "1.1", name = "Gradle Test Executor 1", testCaseCount = 0, result = null, runConfiguration = runConfiguration)
+
+    // Start internal Gradle test suites
+    adaptor.processEvent(
+      createBeforeSuiteXml(
+        id = ":app:validateDebugScreenshotTest",
+        parentId = "",
+        name = "Gradle Test Run :app:validateDebugScreenshotTest",
+        displayName = "Gradle Test Run :app:validateDebugScreenshotTest",
+        className = "",
+      ),
+      testSuiteView,
+    )
+    adaptor.processEvent(
+      createBeforeSuiteXml(
+        id = "1.1",
+        parentId = ":app:validateDebugScreenshotTest",
+        name = "Gradle Test Executor 1",
+        displayName = "Gradle Test Executor 1",
+        className = "",
+      ),
+      testSuiteView,
+    )
+    adaptor.processEvent(
+      createOnOutputXml(
+        id = "1.1",
+        parentId = ":app:validateDebugScreenshotTest",
+        name = "Gradle Test Executor 1",
+        displayName = "Gradle Test Executor 1",
+        className = "",
+        content = "W2FkZGl0aW9uYWxUZXN0QXJ0aWZhY3RzXWRldmljZUlkPVByZXZpZXcK", // [additionalTestArtifacts]deviceId=Preview
+      ),
+      testSuiteView,
+    )
+    adaptor.processEvent(
+      createOnOutputXml(
+        id = "1.1",
+        parentId = ":app:validateDebugScreenshotTest",
+        name = "Gradle Test Executor 1",
+        displayName = "Gradle Test Executor 1",
+        className = "",
+        content =
+          "W2FkZGl0aW9uYWxUZXN0QXJ0aWZhY3RzXWRldmljZURpc3BsYXlOYW1lPVByZXZpZXcK", // [additionalTestArtifacts]deviceDisplayName=Preview
+      ),
+      testSuiteView,
+    )
+
+    // Start nested test suites
+    adaptor.processEvent(
+      createBeforeSuiteXml(
+        id = "1.2",
+        parentId = "1.1",
+        name = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+        displayName = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+        className = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+      ),
+      testSuiteView,
+    )
+    adaptor.processEvent(
+      createBeforeSuiteXml(
+        id = "1.3",
+        parentId = "1.2",
+        name = "GreetingPreview",
+        displayName = "GreetingPreview",
+        className = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+      ),
+      testSuiteView,
+    )
+    adaptor.processEvent(
+      createBeforeSuiteXml(
+        id = "1.4",
+        parentId = "1.3",
+        name = "GreetingPreview",
+        displayName = "GreetingPreview",
+        className = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+      ),
+      testSuiteView,
+    )
+
+    // Start first test
+    adaptor.processEvent(
+      createBeforeTestXml(
+        id = "1.5",
+        parentId = "1.4",
+        name = "GreetingPreview",
+        displayName = "GreetingPreview",
+        className = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+      ),
+      testSuiteView,
+    )
+
+    val expectedFirstTestCase =
+      AndroidTestCase(
+        id = "1.5",
+        methodName = "GreetingPreview",
+        className = "ExamplePreviewsScreenshots",
+        packageName = "com.example.screenshottesting",
+        result = AndroidTestCaseResult.IN_PROGRESS,
+      )
+
+    // Report allowed & safe artifact
+    adaptor.processEvent(
+      createOnOutputXml(
+        id = "1.5",
+        parentId = "1.4",
+        name = "GreetingPreview",
+        displayName = "GreetingPreview",
+        className = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+        content =
+          Base64.getEncoder()
+            .encodeToString(
+              "[additionalTestArtifacts]PreviewScreenshot.newImagePath=ExamplePreviewsScreenshots/GreetingPreview_748aa731_0.png"
+                .toByteArray()
+            ),
+      ),
+      testSuiteView,
+    )
+
+    // Report blocked unauthorized key artifact
+    adaptor.processEvent(
+      createOnOutputXml(
+        id = "1.5",
+        parentId = "1.4",
+        name = "GreetingPreview",
+        displayName = "GreetingPreview",
+        className = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+        content =
+          Base64.getEncoder()
+            .encodeToString(
+              "[additionalTestArtifacts]unauthorizedKey=ExamplePreviewsScreenshots/GreetingPreview_748aa731_0.png".toByteArray()
+            ),
+      ),
+      testSuiteView,
+    )
+
+    // Report blocked malicious UNC path artifact
+    adaptor.processEvent(
+      createOnOutputXml(
+        id = "1.5",
+        parentId = "1.4",
+        name = "GreetingPreview",
+        displayName = "GreetingPreview",
+        className = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+        content =
+          Base64.getEncoder()
+            .encodeToString("[additionalTestArtifacts]PreviewScreenshot.refImagePath=\\\\attacker.evil\\share\\image.png".toByteArray()),
+      ),
+      testSuiteView,
+    )
+
+    // End first test
+    adaptor.processEvent(
+      createAfterTestXml(
+        id = "1.5",
+        parentId = "1.4",
+        name = "GreetingPreview",
+        displayName = "GreetingPreview",
+        className = "com.example.screenshottesting.ExamplePreviewsScreenshots",
+        resultType = "SUCCESS",
+        startTime = "1749122532921",
+        endTime = "1749122532948",
+      ),
+      testSuiteView,
+    )
+
+    verify(testSuiteView, times(1))
+      .onTestCaseFinished(
+        expectedDevice,
+        expectedTestSuite.copy(testCaseCount = 1),
+        expectedFirstTestCase.copy(
+          result = AndroidTestCaseResult.PASSED,
+          startTimestampMillis = 1749122532921,
+          endTimestampMillis = 1749122532948,
+          additionalTestArtifacts =
+            mutableMapOf(
+              "PreviewScreenshot.newImagePath" to "ExamplePreviewsScreenshots/GreetingPreview_748aa731_0.png",
+              "unauthorizedKey" to "ExamplePreviewsScreenshots/GreetingPreview_748aa731_0.png",
+            ),
+        ),
+      )
+  }
+
+  @Test
   fun resultsIgnored_forJUnitTestThatDoesntReportDeviceId() {
     val runConfiguration = mock<RunConfiguration>()
     val adaptor = AndroidTestSuiteViewAdaptor(runConfiguration)

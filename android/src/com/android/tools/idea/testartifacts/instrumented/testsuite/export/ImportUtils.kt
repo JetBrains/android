@@ -70,6 +70,25 @@ private val logger: Logger
   get() = Logger.getInstance("ImportUtils")
 
 /**
+ * Validates whether the given test artifact metadata value is safe to ingest.
+ *
+ * This check acts as a generic defense-in-depth shield to reject obvious network or Windows UNC paths (e.g., starting with double slashes
+ * '\\' or '//', excluding WSL). Blocking raw UNC paths at ingestion prevents downstream consumers from accidentally resolving the value as
+ * a network resource, which could trigger automatic OS-level SMB connections and leak NTLM credentials.
+ *
+ * @param value The raw metadata value string to validate.
+ * @return True if the value is safe to ingest, false if it represents an unsafe UNC/network path.
+ */
+private fun isSafeArtifactValue(value: String?): Boolean {
+  if (value.isNullOrEmpty()) return true
+  val trimmed = value.trim().replace('/', '\\')
+  if (trimmed.startsWith("\\\\wsl$\\") || trimmed.startsWith("\\\\wsl.localhost\\")) {
+    return true
+  }
+  return !trimmed.startsWith("\\\\")
+}
+
+/**
  * Imports AndroidTestMatrixResult results from given [xmlFile].
  *
  * @param onExecutionStarted a callback func which is called after an execution of test import run profile started.
@@ -258,7 +277,11 @@ private class ImportAndroidTestMatrixRunProfileState(
               }
 
               "additionalTestCaseArtifact" -> {
-                requireNotNull(myCurrentTestCase).additionalTestArtifacts[attributes.getValue("key")] = attributes.getValue("value")
+                val key = attributes.getValue("key")
+                val value = attributes.getValue("value")
+                if (key != null && isSafeArtifactValue(value)) {
+                  requireNotNull(myCurrentTestCase).additionalTestArtifacts[key] = value
+                }
               }
 
               "testStep" -> {
@@ -282,7 +305,11 @@ private class ImportAndroidTestMatrixRunProfileState(
               }
 
               "additionalTestStepArtifact" -> {
-                requireNotNull(myCurrentTestStep).additionalTestArtifacts[attributes.getValue("key")] = attributes.getValue("value")
+                val key = attributes.getValue("key")
+                val value = attributes.getValue("value")
+                if (key != null && isSafeArtifactValue(value)) {
+                  requireNotNull(myCurrentTestStep).additionalTestArtifacts[key] = value
+                }
               }
             }
           }

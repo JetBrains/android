@@ -118,4 +118,67 @@ class ImportUtilsTest {
       null
     }
   }
+
+  @Test
+  fun importAndroidTestMatrixResultXmlFile_filtersAdditionalTestCaseArtifact() {
+    val xmlFile = runWriteAction {
+      val file = temporaryDirectoryRule.createVirtualDir("testDirImport").createChildData(this, "import.xml")
+      file.setBinaryContent(
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <testrun name="Tests">
+          <config configId="AndroidTestRunConfigurationType" name="Tests">
+            <module name="app"/>
+          </config>
+          <androidTestMatrix>
+            <device id="Pixel_3" deviceName="Pixel 3" deviceType="LOCAL_EMULATOR" version="28">
+            </device>
+            <testsuite deviceId="Pixel_3" testCount="1" result="PASSED">
+              <testcase id="com.example.MyTestClass.testMethod" methodName="testMethod" className="MyTestClass" packageName="com.example" result="PASSED" logcat="" errorStackTrace="" startTimestampMillis="0" endTimestampMillis="100" benchmark="">
+                <additionalTestCaseArtifact key="PreviewScreenshot.newImagePath" value="safe_relative/image.png" />
+                <additionalTestCaseArtifact key="unauthorizedKey" value="safe_relative/image.png" />
+                <additionalTestCaseArtifact key="PreviewScreenshot.refImagePath" value="\\attacker.evil\share\image.png" />
+                <additionalTestCaseArtifact key="PreviewScreenshot.diffImagePath" value="../../../etc/passwd" />
+                <additionalTestCaseArtifact key="deviceId" value="192.168.1.5:5555" />
+              </testcase>
+            </testsuite>
+          </androidTestMatrix>
+        </testrun>
+        """
+          .trimIndent()
+          .toByteArray(Charsets.UTF_8)
+      )
+      file
+    }
+
+    var testSuiteView: AndroidTestSuiteView? = null
+    val succeeded =
+      importAndroidTestMatrixResultXmlFile(projectRule.project, xmlFile) { env ->
+        testSuiteView = env.contentToReuse?.executionConsole as? AndroidTestSuiteView
+      }
+    assertThat(succeeded).isTrue()
+    assertThat(testSuiteView).isNotNull()
+
+    val results = testSuiteView!!.myResultsTableView.rootResultsNode.results
+    val timeoutTime = System.currentTimeMillis() + 5000
+    while (timeoutTime > System.currentTimeMillis()) {
+      if (results.getAllTestCases().isNotEmpty()) {
+        break
+      }
+      com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      Thread.sleep(10)
+    }
+    val testCase = results.getAllTestCases().first()
+
+    // Allowed and safe keys should be imported successfully
+    assertThat(testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"]).isEqualTo("safe_relative/image.png")
+    // Unauthorized keys are allowed by design as they are arbitrary
+    assertThat(testCase.additionalTestArtifacts["unauthorizedKey"]).isEqualTo("safe_relative/image.png")
+    // Malicious/UNC paths in values should be blocked and ignored (applies to ALL keys)
+    assertThat(testCase.additionalTestArtifacts["PreviewScreenshot.refImagePath"]).isNull()
+    // Path traversal paths are allowed at ingestion-time (resolved and validated later by ScreenshotTestUtils.resolvePath)
+    assertThat(testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"]).isEqualTo("../../../etc/passwd")
+    // Non-path keys containing colons (like deviceId) should be successfully imported
+    assertThat(testCase.additionalTestArtifacts["deviceId"]).isEqualTo("192.168.1.5:5555")
+  }
 }
