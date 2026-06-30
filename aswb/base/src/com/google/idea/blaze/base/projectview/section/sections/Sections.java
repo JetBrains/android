@@ -49,7 +49,8 @@ public class Sections {
           WorkspaceLocationSection.PARSER,
           EnableWorkspaceSwitcherSection.PARSER,
           EnableCodeAnalysisOnSyncSection.PARSER,
-          AgentsMdSection.PARSER);
+          AgentsMdSection.PARSER,
+          SkillsMdSection.PARSER);
 
   public static List<SectionParser> getParsers() {
     List<SectionParser> parsers = Lists.newArrayList(PARSERS);
