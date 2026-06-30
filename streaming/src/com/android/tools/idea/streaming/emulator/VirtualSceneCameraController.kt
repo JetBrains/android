@@ -69,6 +69,7 @@ internal class VirtualSceneCameraController(
   disposableParent: Disposable,
   private val hostComponent: JComponent,
   private val emulator: EmulatorController,
+  private val allowTranslation: Boolean = true,
 ) : Disposable {
 
   private val controlKeys = EmulatorSettings.getInstance().cameraVelocityControls.keys
@@ -118,7 +119,7 @@ internal class VirtualSceneCameraController(
       VK_PAGE_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
       else -> {
         val mask = keyToMask(keyCode)
-        if (mask == 0) {
+        if (mask == 0 || !allowTranslation) {
           return false
         }
         val newPressed = pressedKeysMask or mask
@@ -135,7 +136,7 @@ internal class VirtualSceneCameraController(
   /** Notifies the controller that a key was released. Returns true if the key was handled. */
   fun keyReleased(event: KeyEvent): Boolean {
     val mask = keyToMask(event.keyCode)
-    if (mask == 0) {
+    if (mask == 0 || !allowTranslation) {
       return false
     }
     val newPressed = pressedKeysMask and mask.inv()
