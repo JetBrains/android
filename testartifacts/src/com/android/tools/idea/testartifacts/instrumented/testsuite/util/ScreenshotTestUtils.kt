@@ -108,6 +108,7 @@ object ScreenshotTestUtils {
       if (resolvedCanonical.startsWith(rootPathNio)) {
         resolvedCanonical.toString()
       } else {
+        LOG.warn("Rejecting screenshot artifact path outside project root: $path")
         null
       }
     } catch (_: IOException) {
