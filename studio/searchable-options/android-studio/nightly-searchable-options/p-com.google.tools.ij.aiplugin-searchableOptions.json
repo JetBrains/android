@@ -306,14 +306,6 @@
       "path": "ActionManager"
     },
     {
-      "hit": "Analyze Thread Safety",
-      "path": "ActionManager"
-    },
-    {
-      "hit": "Analyzes the thread safety state for the selected files.",
-      "path": "ActionManager"
-    },
-    {
       "hit": "Ask the agent to help merge conflicts in the current repository",
       "path": "ActionManager"
     },
@@ -367,14 +359,6 @@
     },
     {
       "hit": "Generate Preview for Composable",
-      "path": "ActionManager"
-    },
-    {
-      "hit": "Generate README",
-      "path": "ActionManager"
-    },
-    {
-      "hit": "Generates a README in markdown for the selected files.",
       "path": "ActionManager"
     },
     {
