@@ -813,6 +813,20 @@ studio_plugin(
 )
 
 studio_plugin(
+    name = "com.google.urlassistant.ai",
+    directory = "app-link-assistant-ai",
+    modules = {
+        "app-link-assistant-ai.jar": [
+            "//tools/vendor/google/app-link-assistant-ai:app-link-assistant-ai",
+        ],
+    },
+    visibility = ["//visibility:public"],
+    deps = [
+        ":com.google.urlassistant",
+    ],
+)
+
+studio_plugin(
     name = "com.android.tools.gradle.dsl",
     directory = "gradle-dsl",
     modules = {
@@ -1065,6 +1079,7 @@ STUDIO_CORE_PLUGINS = [
     "//tools/adt/idea/studio:com.android.tools.idea.smali",
     "//tools/adt/idea/studio:com.google.gct.test.recorder",
     "//tools/adt/idea/studio:com.google.urlassistant",
+    "//tools/adt/idea/studio:com.google.urlassistant.ai",
     "//tools/adt/idea/studio:com.google.targetsdkversionassistant",
     "//tools/adt/idea/studio:com.android.tools.gradle.dcl",
     "//tools/adt/idea/studio:com.android.tools.gradle.dsl",
@@ -1400,6 +1415,7 @@ iml_module(
         "//tools/studio/google/cloud/testing/directaccess",
         "//tools/studio/google/cloud/testing/test-recorder",
         "//tools/vendor/google/url-assistant",
+        "//tools/vendor/google/app-link-assistant-ai",
         "//tools/vendor/google/targetsdkversion-upgrade-assistant",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
         "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
