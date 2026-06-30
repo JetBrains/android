@@ -744,4 +744,33 @@ class ProjectStructureReaderTest {
     val logs = capturingContext.outputs.joinToString("\n")
     assertThat(logs).contains("WARNING: Package java/com/example is outside all project structure roots")
   }
+
+  @Test
+  fun buildFileInWorkspaceRoot() {
+    createFile("BUILD")
+    createFile("RootClass.java")
+    createFile("java/RootClass.java")
+
+    val projectDefinition = createProjectDefinition(setOf(""))
+    val structure = reader.read(context, workspaceRoot, projectDefinition)
+
+    val expected =
+      expectedStructure(
+        roots =
+          mapOf(
+            "" to
+              mapOf(
+                "" to
+                  SourceSet(
+                    rootPath = Path.of(""),
+                    javaSourceFiles = listOf(Path.of("RootClass.java"), Path.of("java/RootClass.java")),
+                    nonJavaSourceFiles = emptyList(),
+                    javaPackage = "",
+                  )
+              )
+          ),
+        languages = setOf(QuerySyncLanguage.JVM),
+      )
+    assertStructureEquals(structure, expected)
+  }
 }
