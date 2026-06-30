@@ -2502,6 +2502,7 @@
 +++Android Studio Nightly.app/Contents/plugins/android/lib/transport_java_proto.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/utp.jar
++++Android Studio Nightly.app/Contents/plugins/android/lib/whats-new-content.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/wire-runtime-jvm-6.4.0.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/wizard-template.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
@@ -6420,6 +6421,7 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/transport_java_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/whats-new-content.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/wire-runtime-jvm-6.4.0.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar

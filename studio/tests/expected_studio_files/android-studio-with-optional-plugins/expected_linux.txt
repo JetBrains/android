@@ -2491,6 +2491,7 @@ android-studio/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha09.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/utp.jar
+android-studio/plugins/android/lib/whats-new-content.jar
 android-studio/plugins/android/lib/wire-runtime-jvm-6.4.0.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
