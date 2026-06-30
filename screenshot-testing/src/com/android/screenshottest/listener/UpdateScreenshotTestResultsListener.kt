@@ -44,12 +44,9 @@ class UpdateScreenshotTestResultsListener(
     val testId = "$className.$methodName.$previewName"
 
     executor.execute {
-      val destPath =
-        ScreenshotTestUtils.resolvePath(dialog.project, className, testCase.additionalTestArtifacts["PreviewScreenshot.refImagePath"])
-      val srcPath =
-        ScreenshotTestUtils.resolvePath(dialog.project, className, testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"])
-      val diffPath =
-        ScreenshotTestUtils.resolvePath(dialog.project, className, testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
+      val destPath = ScreenshotTestUtils.resolvePath(dialog.project, testCase.additionalTestArtifacts["PreviewScreenshot.refImagePath"])
+      val srcPath = ScreenshotTestUtils.resolvePath(dialog.project, testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"])
+      val diffPath = ScreenshotTestUtils.resolvePath(dialog.project, testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
 
       ApplicationManager.getApplication().invokeLater {
         val errorTrace = (testCase.errorStackTrace as? String) ?: ""

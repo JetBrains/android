@@ -407,9 +407,20 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
       BlueText(
         text = path,
         modifier =
-          modifier.clickable(enabled = File(path).exists(), interactionSource = interactionSource, indication = null) {
+          // Do NOT hand untrusted paths to the OS shell. Reveal in the platform file manager instead,
+          // which highlights the file without invoking its association handler.
+          modifier.clickable(
+            enabled =
+              try {
+                java.nio.file.Files.isRegularFile(java.nio.file.Paths.get(path))
+              } catch (e: java.nio.file.InvalidPathException) {
+                false
+              },
+            interactionSource = interactionSource,
+            indication = null,
+          ) {
             try {
-              RevealFileAction.openFile(File(path))
+              RevealFileAction.openFile(java.nio.file.Paths.get(path))
             } catch (e: Exception) {
               LOG.warn("Failed to open file: $path", e)
             }

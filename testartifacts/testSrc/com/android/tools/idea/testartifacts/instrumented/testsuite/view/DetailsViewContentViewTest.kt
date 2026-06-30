@@ -357,7 +357,7 @@ class DetailsViewContentViewTest {
     val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
-      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage").canonicalPath))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage.png").canonicalPath))
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
@@ -373,7 +373,7 @@ class DetailsViewContentViewTest {
     val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
-      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage").canonicalPath))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage.png").canonicalPath))
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
 
     view.setResults(testDevice, mockTestResults)
@@ -388,7 +388,7 @@ class DetailsViewContentViewTest {
     val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
-      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage").canonicalPath))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage.png").canonicalPath))
     whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
 
     // Force select Device Info tab first
@@ -406,7 +406,7 @@ class DetailsViewContentViewTest {
     val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
-      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage").canonicalPath))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage.png").canonicalPath))
 
     // Simulate user selecting logs tab
     view.lastTabSelectedByUser = view.logsTab
@@ -424,7 +424,7 @@ class DetailsViewContentViewTest {
     val view = createView()
     val testDevice = device("device id", "device name")
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
-      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage").canonicalPath))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage.png").canonicalPath))
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
@@ -558,7 +558,7 @@ class DetailsViewContentViewTest {
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myDeviceInfoTab)
 
     whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
-      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage").canonicalPath))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to File(projectRule.project.basePath, "newImage.png").canonicalPath))
 
     view.setResults(testDevice, mockTestResults)
     view.pathResolutionFuture?.let { PlatformTestUtil.waitForFuture(it) }
