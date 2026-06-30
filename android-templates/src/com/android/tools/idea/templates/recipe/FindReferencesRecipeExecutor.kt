@@ -65,7 +65,6 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.classpathEntries.add(classpath)
   }
 
-  // TODO studio-merge
   override fun addPluginDeclaration(pluginId: String, classpathModule: String, version: String) {
     context.plugins.add(pluginId)
     context.classpathEntries.add("$classpathModule:$version")

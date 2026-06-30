@@ -153,7 +153,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     applyPluginToProjectAndModule(pluginId, classpathModule, version, buildModel)
   }
 
-  // TODO studio-merge
   override fun addPluginDeclaration(pluginId: String, classpathModule: String, version: String) {
     referencesExecutor.addPluginDeclaration(pluginId, classpathModule, version)
     val projectModel = projectBuildModel ?: return
