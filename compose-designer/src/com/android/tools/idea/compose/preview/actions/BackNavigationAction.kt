@@ -42,7 +42,14 @@ class BackNavigationAction : DumbAwareAction(message("action.navigate.back"), nu
     val interactivePreviewNavigationController = e.dataContext.getData(InteractivePreviewNavigationController.KEY) ?: return
     e.presentation.isVisible =
       interactivePreviewNavigationController.canPerformBackNavigation() && StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.get()
-    e.presentation.isEnabled = interactivePreviewNavigationController.canBackPress()
+
+    val canBack = interactivePreviewNavigationController.canBackPress()
+    e.presentation.isEnabled = canBack
+    if (!canBack) {
+      e.presentation.description = message("action.navigate.back.button.disabled.tooltip")
+    } else {
+      e.presentation.description = null
+    }
   }
 
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */
