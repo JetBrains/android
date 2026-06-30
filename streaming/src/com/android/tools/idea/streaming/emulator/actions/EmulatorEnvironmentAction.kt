@@ -142,9 +142,7 @@ internal sealed class EmulatorEnvironmentAction :
       templatePresentation.description = filePath.toString()
     }
 
-    override suspend fun prepareEnvironment(project: Project?): Environment {
-      return createImageEnvironmentMessage(filePath)
-    }
+    override suspend fun prepareEnvironment(project: Project?): Environment = createImageEnvironmentMessage(filePath)
 
     override fun onEnvironmentSet(emulator: EmulatorController, environment: Environment) {
       super.onEnvironmentSet(emulator, environment)
