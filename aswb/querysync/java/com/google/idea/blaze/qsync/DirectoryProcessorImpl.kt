@@ -22,6 +22,7 @@ import com.google.idea.blaze.traverser.DirectoryProcessor
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributes
 
 /**
  * This class is an implementation of the [DirectoryProcessor] interface. Its purpose is to list the files and subdirectories within a
@@ -47,12 +48,17 @@ class DirectoryProcessorImpl(private val context: Context<*>, private val exclud
     try {
       Files.newDirectoryStream(currentDir).use { stream ->
         for (child in stream) {
-          if (Files.isRegularFile(child)) {
-            files.add(child)
-          } else if (Files.isDirectory(child)) {
-            if (excludeAbsolute.none { child.startsWith(it) }) {
-              subDirs.add(child)
+          try {
+            val attrs = Files.readAttributes(child, BasicFileAttributes::class.java)
+            if (attrs.isRegularFile) {
+              files.add(child)
+            } else if (attrs.isDirectory) {
+              if (excludeAbsolute.none { child.startsWith(it) }) {
+                subDirs.add(child)
+              }
             }
+          } catch (e: IOException) {
+            // Ignore files/directories we cannot read attributes for
           }
         }
       }
