@@ -89,7 +89,7 @@ class RunningEmulatorCatalogTest {
     assertThat(event4.emulator).isEqualTo(event2.emulator)
     assertThat(catalog.emulators).isEmpty()
 
-    // Start a standalone emulator and check that it is reflected in the catalog after an explicit update.
+    // Start a standalone emulator and check that it is reflected in the catalog.
     emulator3.start(standalone = true)
     val event5: CatalogEvent = eventQueue.poll(1500, MILLISECONDS) ?: fail("Listener was not called")
     assertThat(event5.type).isEqualTo(EventType.ADDED)
