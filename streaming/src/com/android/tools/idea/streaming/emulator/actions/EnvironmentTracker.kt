@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.Environment
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.util.computeUserDataIfAbsent
@@ -25,44 +26,63 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 internal class EnvironmentTracker(private val emulator: EmulatorController) {
 
+  private val _environmentFlow = MutableStateFlow<Environment?>(null)
+  val environmentFlow: StateFlow<Environment?> = _environmentFlow.asStateFlow()
+
+  init {
+    emulator.createCoroutineScope().launch {
+      _environmentFlow.subscriptionCount.collect { count ->
+        if (count > 0 && _environmentFlow.value == null) {
+          launch(Dispatchers.IO) { fetchEnvironmentSync() }
+        }
+      }
+    }
+  }
+
   var environment: Environment?
     get() {
-      _environment?.let {
-        return it
+      if (_environmentFlow.value == null) {
+        fetchEnvironmentSync()
       }
-      val latch = CountDownLatch(1)
-      val observer =
-        object : EmptyStreamObserver<Environment>() {
-          override fun onNext(message: Environment) {
-            if (!message.environmentMap.isEmpty()) { // TODO: Don't ignore empty environment when b/528439369 is fixed.
-              _environment = message
-            }
-            latch.countDown()
-          }
+      return _environmentFlow.value
+    }
+    set(value) {
+      updateEnvironment(value)
+    }
 
-          override fun onError(t: Throwable) {
-            latch.countDown()
+  private fun fetchEnvironmentSync() {
+    val latch = CountDownLatch(1)
+    val observer =
+      object : EmptyStreamObserver<Environment>() {
+        override fun onNext(message: Environment) {
+          if (!message.environmentMap.isEmpty()) { // TODO: Don't ignore empty environment when b/528439369 is fixed.
+            updateEnvironment(message)
           }
+          latch.countDown()
         }
-      emulator.getEnvironment(observer)
-      try {
-        latch.await(500, TimeUnit.MILLISECONDS)
-      } catch (_: InterruptedException) {}
-      return _environment
-    }
-    set(value) {
-      _environment = value
-    }
 
-  @Volatile
-  private var _environment: Environment? = null
-    set(value) {
-      field = value
-      ActivityTracker.getInstance().inc()
-    }
+        override fun onError(t: Throwable) {
+          latch.countDown()
+        }
+      }
+    emulator.getEnvironment(observer)
+    try {
+      latch.await(500, TimeUnit.MILLISECONDS)
+    } catch (_: InterruptedException) {}
+  }
+
+  private fun updateEnvironment(value: Environment?) {
+    _environmentFlow.value = value
+    ActivityTracker.getInstance().inc()
+  }
 
   companion object {
     private val KEY = Key<EnvironmentTracker>(EnvironmentTracker::class.java.name)
