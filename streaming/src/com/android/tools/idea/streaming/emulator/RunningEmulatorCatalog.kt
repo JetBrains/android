@@ -79,7 +79,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @GuardedBy("dataLock") private var updateWorkerJob: Job? = null
   private val dataLock = Any()
   @GuardedBy("dataLock") private var lastUpdateStartTime: Long = 0
-  @GuardedBy("dataLock") private var lastUpdateDuration: Long = 0
+  @GuardedBy("dataLock") private var lastUpdateEndTime: Long = 0
   @GuardedBy("dataLock") private var nextScheduledUpdateTime: Long = Long.MAX_VALUE
   @GuardedBy("dataLock") private var listeners: List<Listener> = emptyList()
   @GuardedBy("dataLock") private val updateIntervalsByListener = Object2LongOpenHashMap<Listener>()
@@ -138,7 +138,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
         directory.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
         synchronized(dataLock) { useWatchService = true }
 
-        // Run initial update safely through the alarm thread
+        // Run initial update.
         scheduleUpdate(0)
 
         while (scope.isActive) {
@@ -160,14 +160,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
             break
           }
           if (needsUpdate && scope.isActive) {
-            val delay =
-              synchronized(dataLock) {
-                if (isDisposing) return // exit
-                // Don't allow updates to run too frequently.
-                val minimumIntervalBetweenUpdates = lastUpdateDuration * 100
-                val timeSinceLastUpdate = System.currentTimeMillis() - lastUpdateStartTime - lastUpdateDuration
-                (minimumIntervalBetweenUpdates - timeSinceLastUpdate).coerceAtLeast(0)
-              }
+            // Don't allow updates to run too frequently.
+            val timeSinceLastUpdate = synchronized(dataLock) { System.currentTimeMillis() - lastUpdateEndTime }
+            val delay = (MINIMUM_INTERVAL_BETWEEN_UPDATES.inWholeMilliseconds - timeSinceLastUpdate).coerceAtLeast(0)
             scheduleUpdate(delay)
           }
         }
@@ -248,6 +243,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       return
     }
     synchronized(dataLock) {
+      if (isDisposing) return // exit
       val updateTime = System.currentTimeMillis() + delay
       // Check if an update is already scheduled soon enough.
       if (nextScheduledUpdateTime > updateTime) {
@@ -349,7 +345,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       synchronized(dataLock) {
         if (isDisposing) return
         lastUpdateStartTime = start
-        lastUpdateDuration = System.currentTimeMillis() - start
+        lastUpdateEndTime = System.currentTimeMillis()
         emulators = newEmulators.values.toSet()
         listenersSnapshot = listeners
         for (result in updateResults) {
@@ -583,6 +579,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
   }
 
   companion object {
+    @JvmStatic private val MINIMUM_INTERVAL_BETWEEN_UPDATES = 100.milliseconds
+
     @JvmStatic
     fun getInstance(): RunningEmulatorCatalog {
       return ApplicationManager.getApplication().getService(RunningEmulatorCatalog::class.java)
