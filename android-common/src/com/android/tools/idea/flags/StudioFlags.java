@@ -2173,11 +2173,6 @@ public final class StudioFlags {
                     "Show original shell command for mapped tool calls",
                     "When enabled, tool calls that were originally shell commands but were mapped to better tools will show the original command in the timeline.");
 
-  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
-    new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
-                    "Enable sending inline code completion metrics to the AIDA CES service",
-                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.");
-
   public static final Flag<Boolean> STUDIOBOT_QUERY_CODE_COMPLETION_ENABLED =
     new BooleanFlag(STUDIOBOT, "query.completion",
                     "Enable query code completion",
@@ -2263,16 +2258,6 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "editor.action.context.enabled",
                     "Enable sending context with editor actions.",
                     "When enabled, queries sent by editor actions, like Explain Code, will attach context (e.g. resolved references) from the project.");
-
-  public static final Flag<Boolean> STUDIOBOT_TRANSFORMS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.transforms.enabled",
-                    "Enable the transform actions.",
-                    "When enabled, the transform actions (document, comment, the custom transform action, etc.) are enabled.");
-
-  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_HISTORY_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.transform.history.enabled",
-                    "Enable the transform history in the transform diff.",
-                    "When enabled, allows the user to navigate transform history in the diff view.");
 
   public static final Flag<Boolean> STUDIOBOT_SHOW_TRANSFORM_HISTORY_FORWARD_BACK =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.show.history.forward.back",
@@ -2530,11 +2515,6 @@ public final class StudioFlags {
                     "Enable multiple sessions in gemini window",
                     "When enabled, allows creating and selecting different sessions for the gemini Chat/Agent window.");
 
-  public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
-    new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
-                    "Use ML model to suggest commit messages",
-                    "Enables the \"Suggest Commit Message\" button in the Commit tool window");
-
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION_OVERRIDE =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion.override",
                     "Allow users to override prompt for suggesting commit messages",
@@ -2546,10 +2526,15 @@ public final class StudioFlags {
     "Enable the Merge Conflicts action.",
     "If enabled, the merge conflicts action is available.");
 
-  public static final Flag<Boolean> AI_RENAME_ACTION =
-    new BooleanFlag(STUDIOBOT, "ai.rename.action",
-                    "Use AI to suggest a better identifier name",
-                    "Enables AI rename suggestion functionality");
+  public static final Flag<Boolean> README_GENERATION =
+    new BooleanFlag(STUDIOBOT, "readme.generation",
+                    "Use ML model to create a README",
+                    "Enables the \"Generate README\" button in the Project tool window");
+
+  public static final Flag<Boolean> ANALYZE_THREAD_SAFETY =
+    new BooleanFlag(STUDIOBOT, "analyze.thread.safety",
+                    "Use ML model analyze thread safety of selected files",
+                    "Enables the \"Analyze Thread Safety\" button in the Project tool window");
 
   public static final Flag<Boolean> FIX_WITH_AI_EDITOR_ACTION =
     new BooleanFlag(STUDIOBOT, "ai.fix.error.editor.action",
