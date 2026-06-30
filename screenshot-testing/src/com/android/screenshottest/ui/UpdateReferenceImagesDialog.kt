@@ -45,7 +45,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfoRt
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AnimatedIcon
@@ -470,9 +469,8 @@ class UpdateReferenceImagesDialog(
 
     val missingFiles = imagesToCopy.filter { it.previewData.srcImagePath == null || !File(it.previewData.srcImagePath).exists() }
     if (missingFiles.isNotEmpty()) {
-      val rawFailedNames = missingFiles.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
-      val failedNames = StringUtil.escapeXmlEntities(rawFailedNames)
-      logger.error("The following selected previews have no source image: $rawFailedNames")
+      val failedNames = missingFiles.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
+      logger.error("The following selected previews have no source image: $failedNames")
       Messages.showErrorDialog(
         project,
         "The following selected previews have no source image. Please uncheck them to proceed:\n\n$failedNames",
@@ -505,9 +503,8 @@ class UpdateReferenceImagesDialog(
           // Log the SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE event for analytics
           // on failure to copy reference images
           logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE, project)
-          val rawFailedNames = failures.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
-          val failedNames = StringUtil.escapeXmlEntities(rawFailedNames)
-          logger.error("Failed to copy the following previews: $rawFailedNames")
+          val failedNames = failures.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
+          logger.error("Failed to copy the following previews: $failedNames")
           Messages.showErrorDialog(project, "Failed to copy the following previews:\n\n$failedNames", "Copy Failed")
           okButton?.text = originalText
           okButton?.icon = null
