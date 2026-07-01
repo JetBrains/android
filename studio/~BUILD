@@ -799,7 +799,6 @@ studio_plugin(
     },
     visibility = ["//visibility:public"],
     deps = [
-        ":com.google.tools.ij.aiplugin",  # TODO: make optional once optional plugin dependencies are supported in Bazel build
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.java.analysis.impl",
@@ -819,7 +818,14 @@ studio_plugin(
     },
     visibility = ["//visibility:public"],
     deps = [
+        ":com.google.tools.ij.aiplugin",
         ":com.google.urlassistant",
+        ":org.jetbrains.android",
+        "@intellij//:com.intellij.java",
+        "@intellij//:intellij.java.analysis.impl",
+        "@intellij//:intellij.java.execution",
+        "@intellij//:org.intellij.groovy",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
