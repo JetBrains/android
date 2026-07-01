@@ -50,7 +50,10 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
@@ -438,6 +441,13 @@ public class NavigationSchema implements Disposable {
   }
 
   /**
+   * Returns true if a NavigationSchema has already been created and cached for the given module.
+   */
+  public static boolean hasSchema(@NotNull Module module) {
+    return ourSchemas.containsKey(module);
+  }
+
+  /**
    * Creates a {@code NavigationSchema} for the given module. The navigation library must already be included in the project, or this will
    * throw {@code ClassNotFoundException}.
    */
@@ -510,6 +520,7 @@ public class NavigationSchema implements Disposable {
 
     // Now we iterate over all the navigators and collect the destinations and tags.
     for (PsiClass navClass : ClassInheritorsSearch.search(navigatorRoot, scope, true).findAll()) {
+      ProgressManager.checkCanceled();
       if (navClass.equals(navigatorRoot)) {
         // Don't keep the root navigator
         continue;
@@ -582,6 +593,7 @@ public class NavigationSchema implements Disposable {
     destinationClassToType.put(NAV_GRAPH_DESTINATION, NAVIGATION);
 
     for (TypeRef destinationClassRef : myTagToDestinationClass.values()) {
+      ProgressManager.checkCanceled();
       if (destinationClassRef == NULL_TYPE) {
         continue;
       }
@@ -780,9 +792,9 @@ public class NavigationSchema implements Disposable {
       if (myRebuildTask != null) {
         return false;
       }
-
-      return myNavigatorCacheKeys.stream().allMatch(value -> value.checkConsistent(this));
     }
+
+    return myNavigatorCacheKeys.stream().allMatch(value -> value.checkConsistent(this));
   }
 
   @NotNull
@@ -801,47 +813,50 @@ public class NavigationSchema implements Disposable {
       task = myRebuildTask;
     }
 
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+    ReadAction.nonBlocking(() -> {
       NavigationSchema newVersion = new NavigationSchema(myModule);
-      DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
-        try {
-          newVersion.init();
+      newVersion.init();
+      return newVersion;
+    }).inSmartMode(myModule.getProject()).submit(AppExecutorUtil.getAppExecutorService())
+      .onSuccess(newVersion -> {
+        synchronized (myTaskLock) {
+          if (myRebuildTask == null || myRebuildTask.isCompletedExceptionally()) {
+            return;
+          }
+          if (equals(newVersion)) {
+            myRebuildTask.complete(this);
+            myRebuildTask = null;
+            return;
+          }
         }
-        catch (Throwable t) {
-          synchronized (myTaskLock) {
+
+        putSchema(myModule, newVersion);
+
+        boolean registered = false;
+        try {
+          Disposer.register(myModule, newVersion);
+          registered = true;
+        }
+        catch (IncorrectOperationException ignore) {
+          newVersion.dispose();
+        }
+
+        synchronized (myTaskLock) {
+          if (myRebuildTask != null) {
+            myRebuildTask.complete(registered ? newVersion : new NavigationSchema(myModule));
+          }
+        }
+
+        Disposer.dispose(this);
+      })
+      .onError(t -> {
+        synchronized (myTaskLock) {
+          if (myRebuildTask != null) {
             myRebuildTask.completeExceptionally(t);
             myRebuildTask = null;
           }
         }
       });
-      if (myRebuildTask == null || myRebuildTask.isCompletedExceptionally()) {
-        // there was an error during init
-        return;
-      }
-
-      if (equals(newVersion)) {
-        synchronized (myTaskLock) {
-          myRebuildTask.complete(this);
-          myRebuildTask = null;
-        }
-        return;
-      }
-      putSchema(myModule, newVersion);
-
-      boolean registered = false;
-      try {
-        Disposer.register(myModule, newVersion);
-        registered = true;
-      }
-      catch (IncorrectOperationException ignore) {
-        newVersion.dispose();
-      }
-      synchronized (myTaskLock) {
-        myRebuildTask.complete(registered ? newVersion : new NavigationSchema(myModule));
-      }
-
-      Disposer.dispose(this);
-    });
     return task;
   }
 
@@ -923,20 +938,11 @@ public class NavigationSchema implements Disposable {
    */
   @NotNull
   public static List<String> getPossibleRootsMaybeWithoutSchema(@NotNull Module module) {
-    Application application = ApplicationManager.getApplication();
-    AtomicReference<List<String>> result = new AtomicReference<>();
-
-    application.invokeAndWait(() -> application.runReadAction(() -> {
-      try {
-        createIfNecessary(module);
-        result.set(get(module).getPossibleRoots());
-      }
-      catch (ClassNotFoundException e) {
-        // Navigation wasn't initialized yet, fall back to default
-        result.set(ImmutableList.of(NavigationDomFileDescription.DEFAULT_ROOT_TAG));
-      }
-    }));
-    return result.get();
+    NavigationSchema schema = ourSchemas.get(module);
+    if (schema != null) {
+      return schema.getPossibleRoots();
+    }
+    return ImmutableList.of(NavigationDomFileDescription.DEFAULT_ROOT_TAG);
   }
 
   /**
