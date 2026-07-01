@@ -19,6 +19,7 @@
   <depends>com.intellij.java</depends>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">
+    <BinaryContextProvider implementation="com.google.idea.bazel.java.run.producers.JavaBinaryContextProvider"/>
     <SyncPlugin implementation="com.google.idea.bazel.java.sync.BlazeJavaSyncPlugin"/>
     <QuerySyncPlugin implementation="com.google.idea.bazel.java.qsync.BlazeJavaQuerySyncPlugin"/>
     <PsiFileProvider implementation="com.google.idea.bazel.java.psi.JavaPsiFileProvider" />
