@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.ILayoutLog
+import com.android.ide.common.rendering.api.RecyclableImage
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.analytics.CommonUsageTracker
@@ -39,7 +40,6 @@ import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
-import com.android.tools.rendering.imagepool.NonPooledImage
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -188,7 +188,7 @@ class LayoutlibSceneRenderer(
           ) {
             field =
               newResult.copyWithNewImageAndRootViewDimensions(
-                NonPooledImage.copyOf(oldResult.getRenderedImage()),
+                RecyclableImage.copyOf(oldResult.getRenderedImage()),
                 oldResult.rootViewDimensions,
               )
             resultToDispose = newResult

@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.rendering.RenderResult;
-import com.android.tools.rendering.imagepool.ImagePool;
-import com.android.tools.rendering.imagepool.ImagePoolImageDisposer;
+import com.android.ide.common.rendering.api.RecyclableImage;
+import com.android.tools.rendering.imagepool.RecyclableImageDisposer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
@@ -100,7 +100,7 @@ public class ScreenViewLayer extends Layer {
    */
   @NotNull
   private static BufferedImage getPreviewImage(@NotNull GraphicsConfiguration configuration,
-                                               @NotNull ImagePool.Image renderedImage,
+                                               @NotNull RecyclableImage renderedImage,
                                                int screenViewX, int screenViewY,
                                                @NotNull Rectangle screenViewVisibleSize,
                                                double xScaleFactor, double yScaleFactor,
@@ -182,8 +182,8 @@ public class ScreenViewLayer extends Layer {
     //noinspection FloatingPointEquality
     if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
       if (myLastRenderResult != null) {
-        ImagePool.Image image = myLastRenderResult.getRenderedImage();
-        ImagePoolImageDisposer.runWithDisposeLock(image, theImage -> {
+        RecyclableImage image = myLastRenderResult.getRenderedImage();
+        RecyclableImageDisposer.runWithDisposeLock(image, theImage -> {
           if (theImage.isValid()) {
             int resultImageWidth = theImage.getWidth();
             int resultImageHeight = theImage.getHeight();

@@ -19,7 +19,6 @@ import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.getFieldV
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isArrayOfPrimitives;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.rendering.imagepool.ImagePool;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.TriConsumer;

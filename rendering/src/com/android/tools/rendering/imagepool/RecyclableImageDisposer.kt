@@ -15,23 +15,24 @@
  */
 package com.android.tools.rendering.imagepool
 
+import com.android.ide.common.rendering.api.RecyclableImage
 import com.google.common.collect.ConcurrentHashMultiset
 import com.google.common.collect.Multiset
 import com.intellij.util.containers.CollectionFactory
 import java.util.Collections
 import java.util.function.Consumer
 
-object ImagePoolImageDisposer {
+object RecyclableImageDisposer {
   private val disposerLock = Any()
-  private val lockedDisposeImage: Multiset<DisposableImage> = ConcurrentHashMultiset.create()
-  private val pendingDispose: MutableSet<DisposableImage> = Collections.newSetFromMap(CollectionFactory.createConcurrentWeakMap())
+  private val lockedDisposeImage: Multiset<RecyclableImage> = ConcurrentHashMultiset.create()
+  private val pendingDispose: MutableSet<RecyclableImage> = Collections.newSetFromMap(CollectionFactory.createConcurrentWeakMap())
 
   /**
    * Runs the given block of code avoiding the image to be disposed while the block is running. If the image is disposed 1 or more times
    * within the execution of the block or in a separate block, the image will be disposed after the last dispose lock is released.
    */
-  fun ImagePool.Image.runWithDisposeLock(block: ImagePool.Image.() -> Unit) {
-    if (this !is DisposableImage || !isValid) {
+  fun RecyclableImage.runWithDisposeLock(block: RecyclableImage.() -> Unit) {
+    if (!isValid) {
       block(this)
       return
     }
@@ -43,7 +44,7 @@ object ImagePoolImageDisposer {
       if (wasLastLock) {
         // This was the last lock, if the image was waiting to be released, now it's the time.
         if (pendingDispose.remove(this)) {
-          dispose()
+          close()
         }
       }
     }
@@ -56,29 +57,24 @@ object ImagePoolImageDisposer {
    * This is the same as [runWithDisposeLock] but more convenient for Java users.
    */
   @JvmStatic
-  fun runWithDisposeLock(image: ImagePool.Image, block: Consumer<ImagePool.Image>) {
+  fun runWithDisposeLock(image: RecyclableImage, block: Consumer<RecyclableImage>) {
     image.runWithDisposeLock { block.accept(this) }
   }
 
-  /**
-   * Requests manually disposing the current image, this might happen at some point in the future or not at all if the image is not
-   * [DisposableImage].
-   */
+  /** Requests manually disposing the current image, this might happen at some point in the future or not at all. */
   @JvmStatic
-  fun disposeImage(image: ImagePool.Image) {
-    if (image is DisposableImage) {
-      var deferredDispose = false
-      synchronized(disposerLock) {
-        if (lockedDisposeImage.contains(image)) {
-          deferredDispose = true
-          // The image can not be disposed at the moment, add for later disposal.
-          pendingDispose.add(image)
-        }
+  fun disposeImage(image: RecyclableImage) {
+    var deferredDispose = false
+    synchronized(disposerLock) {
+      if (lockedDisposeImage.contains(image)) {
+        deferredDispose = true
+        // The image can not be disposed at the moment, add for later disposal.
+        pendingDispose.add(image)
       }
-      if (!deferredDispose) {
-        // Dispose immediately
-        (image as DisposableImage).dispose()
-      }
+    }
+    if (!deferredDispose) {
+      // Dispose immediately
+      image.close()
     }
   }
 }
