@@ -20,9 +20,6 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.AiInsightContributor
 import com.android.tools.idea.insights.ai.InsightSource
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
-import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.stacktrace.Caption
@@ -56,18 +53,13 @@ class VitalsAiInsightToolkitTest {
 
         override fun showOnboarding(project: Project) = Unit
 
-        override suspend fun fetchInsight(
-          connection: Connection,
-          event: Event,
-          project: Project,
-          codeContextResolver: CodeContextResolver,
-        ): AiInsight {
-          return AiInsight("insight for $connection and $event", event, insightSource = InsightSource.STUDIO_BOT)
+        override suspend fun fetchInsight(event: Event): AiInsight {
+          return AiInsight("insight for $event", event, insightSource = InsightSource.STUDIO_BOT)
         }
       }
     ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(client), projectRule.disposable)
 
-    aiInsightToolkit = VitalsAiInsightToolkit(projectRule.project, CodeContextResolverImpl(projectRule.project))
+    aiInsightToolkit = VitalsAiInsightToolkit(projectRule.project)
   }
 
   @Test
@@ -75,7 +67,7 @@ class VitalsAiInsightToolkitTest {
     val insight = aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent, true)
 
     val rawInsight = (insight as LoadingState.Ready).value.rawInsight
-    Truth.assertThat(rawInsight).isEqualTo("insight for $TEST_CONNECTION_1 and ${ISSUE1.sampleEvent}")
+    Truth.assertThat(rawInsight).isEqualTo("insight for ${ISSUE1.sampleEvent}")
   }
 
   @Test

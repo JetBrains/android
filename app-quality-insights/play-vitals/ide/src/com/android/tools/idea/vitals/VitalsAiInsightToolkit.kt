@@ -17,12 +17,11 @@ package com.android.tools.idea.vitals
 
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsightToolkit
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.intellij.openapi.project.Project
 
-class VitalsAiInsightToolkit(project: Project, codeContextResolver: CodeContextResolver) : AiInsightToolkit(project, codeContextResolver) {
+class VitalsAiInsightToolkit(project: Project) : AiInsightToolkit(project) {
 
   override suspend fun validateFetchInsightPrecondition(failureType: FailureType, event: Event) =
     when {

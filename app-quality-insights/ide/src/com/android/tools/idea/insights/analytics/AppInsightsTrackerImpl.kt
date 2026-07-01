@@ -180,12 +180,6 @@ class AppInsightsTrackerImpl(private val project: Project, private val insightsP
             this.crashType = crashType.toCrashType()
             this.isCached = insight.isCached
             this.source = insight.insightSource.toProto()
-            this.codeContextDetails =
-              insight.codeContextData
-                .getTrackingInfo()
-                .toCodeContextDetailsProto()
-                .apply { this.contextLimit = contextLimit.toLong() }
-                .build()
           }
           .build()
     }

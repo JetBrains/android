@@ -16,9 +16,6 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.codecontext.CodeContext
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.model.common.DataPoint
 import com.android.tools.idea.insights.model.common.StatsGroup
@@ -415,12 +412,7 @@ val ISSUE_VARIANT2 =
   IssueVariant(id = "variant2", sampleEvent = "sample_event_2", uri = "firebase.google.com", impactedDevicesCount = 1, eventsCount = 1)
 
 val DEFAULT_AI_INSIGHT = AiInsight("", ISSUE1.sampleEvent)
-val AI_INSIGHT_WITH_CODE_CONTEXT =
-  AiInsight(
-    "context",
-    ISSUE1.sampleEvent,
-    codeContextData = CodeContextData(listOf(CodeContext("filePath", "content")), contextSharingState = ContextSharingState.ALLOWED),
-  )
+val AI_INSIGHT_WITH_CODE_CONTEXT = AiInsight("context", ISSUE1.sampleEvent)
 
 // Used for testing cached issues because their counts are zeroed out.
 fun IssueDetails.zeroCounts() = copy(impactedDevicesCount = 0, eventsCount = 0)

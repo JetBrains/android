@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
@@ -28,19 +26,11 @@ import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.ai.codecontext.CodeContext
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
-import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.insights.client.AiInsightCache
-import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
-import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.ui.FakeToolWindow
 import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
@@ -60,7 +50,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -71,10 +60,7 @@ class AiInsightToolkitTest {
   private val projectRule = ProjectRule()
   private val loginUsersRule = LoginUsersRule()
 
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(FlagRule(StudioFlags.AQI_FIX_WITH_AGENT, false)).around(loginUsersRule)
-
-  private val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(loginUsersRule)
 
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
 
@@ -96,26 +82,6 @@ class AiInsightToolkitTest {
     loginUsersRule.setActiveUser("test@google.com")
 
     projectRule.project.service<AppInsightsSettings>().enableAutoGenerate("test@google.com")
-  }
-
-  @Test
-  fun `code context resolver returns empty result when context sharing is off`() = runBlocking {
-    val toolKit = createToolkit(codeContextResolver = FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
-
-    fakeGeminiPluginApi.contextAllowed = false
-    assertThat(toolKit.getSource(conn, StacktraceGroup())).isEqualTo(CodeContextData.DISABLED)
-
-    fakeGeminiPluginApi.contextAllowed = true
-    assertThat(toolKit.getSource(conn, StacktraceGroup()).codeContext).isNotEmpty()
-  }
-
-  @Test
-  fun `code context resolver returns empty result when connection does not match project`() = runBlocking {
-    doReturn(false).whenever(conn).isMatchingProject()
-    val toolKit = createToolkit(codeContextResolver = FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
-    fakeGeminiPluginApi.contextAllowed = true
-
-    assertThat(toolKit.getSource(conn, StacktraceGroup()).isEmpty()).isTrue()
   }
 
   @Test
@@ -159,7 +125,7 @@ class AiInsightToolkitTest {
     setupAiInsightContributor()
 
     val insight = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
-    assertThat(insight.valueOrNull()).isEqualTo(expectedInsight())
+    assertThat(insight.valueOrNull()).isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
   @Test
@@ -171,8 +137,7 @@ class AiInsightToolkitTest {
 
     val insight = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
     assertThat(insight.valueOrNull()).isEqualTo(expectedInsight())
-    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isEqualTo(expectedInsight().copy(isCached = true))
+    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null)).isEqualTo(expectedInsight().copy(isCached = true))
   }
 
   @Test
@@ -191,42 +156,6 @@ class AiInsightToolkitTest {
   }
 
   @Test
-  fun `when context sharing is enabled, toolkit does not serve cached insight generated without context`() = runBlocking {
-    fakeGeminiPluginApi.contextAllowed = true
-    val cache = AiInsightCache()
-    cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-
-    val codeContextData =
-      listOf(
-        CodeContext(
-          "a/b/c/HelloWorld1.kt",
-          """
-          |package a.b.c
-          |
-          |fun helloWorld() {
-          |  println("Hello World")
-          |}
-          """
-            .trimMargin(),
-        )
-      )
-
-    var fakeInsightFetched = false
-    setupAiInsightContributor { connection, event ->
-      fakeInsightFetched = true
-      AiInsight("insight for $connection and $event", event, insightSource = InsightSource.STUDIO_BOT)
-    }
-
-    val toolkit = createToolkit(cache)
-
-    val loadingState = toolkit.fetchInsight(CONNECTION1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
-
-    assertThat(fakeInsightFetched).isTrue()
-    val insight = loadingState.valueOrNull() ?: fail("LoadingState did not have an insight")
-    assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
-  }
-
-  @Test
   fun `toolkit checks condition before fetching insight`() = runBlocking {
     val toolkit = createToolkit { _, _ -> LoadingState.UnsupportedOperation(null) }
 
@@ -236,7 +165,7 @@ class AiInsightToolkitTest {
 
   @Test
   fun `toolkit returns new insight with force regenerate`() = runBlocking {
-    setupAiInsightContributor { _, event -> AiInsight("a different insight", event, insightSource = InsightSource.STUDIO_BOT) }
+    setupAiInsightContributor { event -> AiInsight("a different insight", event, insightSource = InsightSource.STUDIO_BOT) }
 
     val cache = AiInsightCache()
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
@@ -271,20 +200,7 @@ class AiInsightToolkitTest {
   }
 
   @Test
-  fun `isModelAvailable returns result from GeminiPluginApi when flag is disabled`() {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(false, projectRule.disposable)
-    val toolkit = createToolkit()
-
-    fakeGeminiPluginApi.available = true
-    assertThat(toolkit.isModelAvailable()).isTrue()
-
-    fakeGeminiPluginApi.available = false
-    assertThat(toolkit.isModelAvailable()).isFalse()
-  }
-
-  @Test
-  fun `isModelAvailable returns result from first available contributor when flag is enabled`() {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
+  fun `isModelAvailable returns result from first available contributor`() {
     val contributor = mock<AiInsightContributor>()
     whenever(contributor.canContribute()).thenReturn(true)
     whenever(contributor.isModelAvailable()).thenReturn(true)
@@ -299,7 +215,6 @@ class AiInsightToolkitTest {
 
   @Test
   fun `fetchInsight returns failure when auto-generation is disabled and not forced`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val toolkit = createToolkit()
     projectRule.project.service<AppInsightsSettings>().disableAutoGenerate("test@google.com")
 
@@ -309,7 +224,6 @@ class AiInsightToolkitTest {
 
   @Test
   fun `fetchInsight proceeds when auto-generation is disabled but forced`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val toolkit = createToolkit()
     projectRule.project.service<AppInsightsSettings>().disableAutoGenerate("test@google.com")
     setupAiInsightContributor()
@@ -321,7 +235,6 @@ class AiInsightToolkitTest {
 
   @Test
   fun `fetchInsight proceeds when auto-generation is enabled`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val toolkit = createToolkit()
     projectRule.project.service<AppInsightsSettings>().enableAutoGenerate("test@google.com")
     setupAiInsightContributor()
@@ -332,7 +245,6 @@ class AiInsightToolkitTest {
 
   @Test
   fun `setAutoGenerate and isAutoGenerateEnabled correctly update and read from AppInsightsSettings`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val toolkit = createToolkit()
 
     toolkit.setAutoGenerate(true)
@@ -383,10 +295,9 @@ class AiInsightToolkitTest {
 
   private fun createToolkit(
     cache: AiInsightCache = AiInsightCache(),
-    codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
     fetchInsightCondition: (FailureType, Event) -> LoadingState.Done<AiInsight>? = { _, _ -> null },
   ) =
-    object : AiInsightToolkit(projectRule.project, codeContextResolver, cache) {
+    object : AiInsightToolkit(projectRule.project, cache) {
       override suspend fun validateFetchInsightPrecondition(failureType: FailureType, event: Event) =
         fetchInsightCondition(failureType, event)
     }
@@ -395,7 +306,7 @@ class AiInsightToolkitTest {
     return AiInsight("expected insight", ISSUE1.sampleEvent)
   }
 
-  private fun setupAiInsightContributor(fetchInsight: suspend (Connection, Event) -> AiInsight = { _, _ -> expectedInsight() }) {
+  private fun setupAiInsightContributor(fetchInsight: suspend (Event) -> AiInsight = { _ -> expectedInsight() }) {
     val contributor =
       object : AiInsightContributor {
         override fun canContribute() = true
@@ -404,13 +315,8 @@ class AiInsightToolkitTest {
 
         override fun showOnboarding(project: Project) = Unit
 
-        override suspend fun fetchInsight(
-          connection: Connection,
-          event: Event,
-          project: Project,
-          codeContextResolver: CodeContextResolver,
-        ): AiInsight {
-          return fetchInsight(connection, event)
+        override suspend fun fetchInsight(event: Event): AiInsight {
+          return fetchInsight(event)
         }
       }
     ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(contributor), projectRule.disposable)
