@@ -28,7 +28,7 @@ class QuerySyncLanguageSettingsProvider : QuerySyncLanguageSettings.Provider {
     return QuerySyncLanguageSettings.from(
       projectViewSet,
       workspaceLanguageSettings,
-      JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21),
+      JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_25),
       projectViewSet.getScalarValue(AndroidSdkPlatformSection.KEY).orElse(null),
       projectViewSet.getScalarValue(AndroidMinSdkSection.KEY).orElse(null),
     )
