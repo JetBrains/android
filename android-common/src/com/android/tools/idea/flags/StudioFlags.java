@@ -2147,6 +2147,31 @@ public final class StudioFlags {
                     "Enable NPA Onboarding",
                     "Enables the onboarding flow within the New Project Agent Wizard");
 
+  public static final Flag<Boolean> STUDIOBOT_TRANSFORMS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "transforms.enabled",
+                    "Enable Studio Bot Transforms",
+                    "Enables the Studio Bot Code Transformations/Refactorings.");
+
+  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_HISTORY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "transforms.history.enabled",
+                    "Enable Studio Bot Transforms History",
+                    "Enables the Studio Bot Code Transformations/Refactorings History.");
+
+  public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
+    new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
+                    "Enable suggesting commit messages",
+                    "Enables AI-suggested commit messages.");
+
+  public static final Flag<Boolean> AI_RENAME_ACTION =
+    new BooleanFlag(STUDIOBOT, "ai.rename.action",
+                    "Enable AI Rename Action",
+                    "Enables the AI Rename Action.");
+
+  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry",
+                    "Enable CES Telemetry",
+                    "Enables the CES Telemetry.");
+
   public enum CompletionGhostTextHintStyle {
     NONE,
     NEXT_LINE,
