@@ -119,6 +119,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
+        "//tools/adt/idea/.idea/libraries:protobuf-java-util",
         "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
         "//tools/adt/idea/.idea/libraries:sqlite",
@@ -134,6 +135,7 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_kt_proto",
+        "//tools/adt/idea/app-quality-insights/play-findings/client:play_findings_proto",
         "//tools/adt/idea/cli-server/command-handler:cli_commands_proto",
         "//tools/adt/idea/cli-server/server:studio_cli_service_kt_proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
@@ -228,6 +230,7 @@ studio_plugin(
             "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
             "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide",
             "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui",
+            "//tools/adt/idea/app-quality-insights/play-findings/client:intellij.android.app-quality-insights.play-findings.client",
             "//tools/adt/idea/app-quality-insights/play-findings/ide:intellij.android.app-quality-insights.play-findings.ide",
             "//tools/adt/idea/app-quality-insights/play-policy/ide:intellij.android.app-quality-insights.play-policy.ide",
             "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
@@ -913,7 +916,6 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/backends/aicode:aicode_grpc",
         "//tools/vendor/google/ml/aiplugin/backends/baicode:baicode_grpc",
         "//tools/vendor/google/ml/gemini-coder:libgemini-coder_proto",
-        "//prebuilts/tools/common/m2:protobuf-java-util-3.22.3",
     ],
     modules = {
         "aiplugin.jar": [

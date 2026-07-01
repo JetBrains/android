@@ -241,6 +241,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/git4insights/git4insights.iml" filepath="$PROJECT_DIR$/../../vendor/google/git4insights/git4insights.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/login/google-login.iml" filepath="$PROJECT_DIR$/../../vendor/google/login/google-login.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/login/integration/google-login-integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/login/integration/google-login-integration.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/play-client/findings/google-play-client-findings.iml" filepath="$PROJECT_DIR$/../../vendor/google/play-client/findings/google-play-client-findings.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb/intellij.android.adb.iml" filepath="$PROJECT_DIR$/android-adb/intellij.android.adb.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb/intellij.android.adb.testUtil.iml" filepath="$PROJECT_DIR$/android-adb/intellij.android.adb.testUtil.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb/intellij.android.adb.tests.iml" filepath="$PROJECT_DIR$/android-adb/intellij.android.adb.tests.iml" />
