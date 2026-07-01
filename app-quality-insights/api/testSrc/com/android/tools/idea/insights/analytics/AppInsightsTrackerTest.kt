@@ -34,8 +34,6 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
-import com.android.tools.idea.insights.ai.codecontext.CodeContext
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.Permission
@@ -299,14 +297,13 @@ class AppInsightsTrackerTest {
 
   @Test
   fun `track insight fetch`() = runBlocking {
-    val context = CodeContextData(listOf(CodeContext("path", "dklsjfsds")))
     val testState =
       AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
       )
-    val insight = AiInsight("", ISSUE1.sampleEvent, insightSource = InsightSource.STUDIO_BOT, isCached = true, codeContextData = context)
+    val insight = AiInsight("", ISSUE1.sampleEvent, insightSource = InsightSource.STUDIO_BOT, isCached = true)
     val insightFetch = AiInsightFetched(LoadingState.Ready(insight))
     insightFetch.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 

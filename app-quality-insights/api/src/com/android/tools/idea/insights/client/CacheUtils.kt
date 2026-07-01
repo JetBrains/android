@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 
@@ -25,4 +24,4 @@ fun <K : Any, V> createNew(maximumSize: Long): Cache<K, V> {
   return Caffeine.newBuilder().maximumSize(maximumSize).build()
 }
 
-data class AiInsightKey(val variantId: String?, val contextSharingState: ContextSharingState)
+data class AiInsightKey(val variantId: String?)

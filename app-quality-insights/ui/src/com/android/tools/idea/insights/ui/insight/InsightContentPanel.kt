@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
@@ -83,8 +82,6 @@ class InsightContentPanel(
 
   private val insightTextPane = InsightTextPane(controller.project)
 
-  private val insightBottomPanel = InsightBottomPanel(controller, currentInsightFlow, this)
-
   private val insightLinksPanel = InsightLinksPanel(controller, currentInsightFlow, tracker, this)
 
   private val autoGenerateInsightPanel = AutoGenerateInsightPanel(controller, tracker, this)
@@ -93,15 +90,10 @@ class InsightContentPanel(
 
   private val insightPanel =
     JPanel(VerticalLayout(JBUI.scale(8))).apply {
-      add(InsightDisclaimerPanel(controller, scope, currentInsightFlow))
-      if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
-        add(modelHeader)
-      }
+      add(modelHeader)
       add(insightTextPane)
       add(autoGenerateInsightPanel)
-      if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
-        add(insightLinksPanel)
-      }
+      add(insightLinksPanel)
       border = JBUI.Borders.empty(8, 16, 8, 8)
     }
 
@@ -128,9 +120,6 @@ class InsightContentPanel(
       setLoadingText(DEFAULT_LOADING_TEXT)
       border = JBUI.Borders.empty()
       add(insightScrollPanel, BorderLayout.CENTER)
-      if (!StudioFlags.AQI_FIX_WITH_AGENT.get()) {
-        add(insightBottomPanel, BorderLayout.SOUTH)
-      }
     }
 
   private val geminiOnboardingObserverAction =
@@ -294,11 +283,7 @@ class InsightContentPanel(
 
   private fun toggleInsightTextPane(visibility: Boolean) {
     insightTextPane.isVisible = visibility
-    if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
-      insightLinksPanel.isVisible = visibility
-    } else if (StudioFlags.SUGGEST_A_FIX.get()) {
-      insightBottomPanel.isVisible = visibility
-    }
+    insightLinksPanel.isVisible = visibility
   }
 
   private fun showEmptyCard() = showCard(EMPTY_CARD, startLoading = false, emptyStateTextVisible = true)
@@ -325,7 +310,6 @@ class InsightContentPanel(
 
   private fun togglePanelVisibilities(visibility: Boolean) {
     insightPanel.isVisible = visibility
-    insightBottomPanel.isVisible = visibility
   }
 
   override fun dispose() = Unit

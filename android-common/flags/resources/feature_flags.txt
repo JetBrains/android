@@ -17,7 +17,6 @@ app.links.assistant.gemini.add.logic.for.a.new.link=COMPLETE:2025
 app.links.assistant.integrate.manifest.update.in.agent=COMPLETE:2026
 app.links.assistant.service.compatibility.enabled=COMPLETE:2025
 app.links.assistant.website.association.generator.v2=PREVIEW
-appinsights.fix.with.agent=COMPLETE:2026
 appinspection.additional.sql.drivers.enable=PREVIEW
 appinspection.use.experimental.database.inspector=COMPLETE:2025
 backgroundtask.inspector.enable.backgroundtask.inspector.tab=COMPLETE:2021

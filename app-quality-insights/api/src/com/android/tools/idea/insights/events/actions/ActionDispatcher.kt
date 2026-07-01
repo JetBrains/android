@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Filters
@@ -315,12 +314,7 @@ class ActionDispatcher(
         val insight =
           when {
             aiInsightToolkit.insightDeprecationData.isUnsupported() -> LoadingState.ServiceUnsupported
-            !aiInsightToolkit.isModelAvailable() ->
-              if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
-                LoadingState.NoModelAvailable
-              } else {
-                LoadingState.Unauthorized("Gemini is not enabled")
-              }
+            !aiInsightToolkit.isModelAvailable() -> LoadingState.NoModelAvailable
             state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)
             action.event.isStackTraceEmpty() -> {
               if (state.selectedEvent == null) {

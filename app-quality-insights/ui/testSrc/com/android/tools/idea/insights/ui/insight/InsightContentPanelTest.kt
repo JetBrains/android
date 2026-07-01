@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.AppInsightsCrashState
@@ -40,7 +38,6 @@ import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ui.SELECTED_APP_ID_KEY
 import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeatureRule
 import com.google.protobuf.Any
@@ -87,13 +84,7 @@ class InsightContentPanelTest {
   private val projectRule = ProjectRule()
   private val loginFeatureRule = LoginFeatureRule()
 
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(EdtRule())
-      .around(projectRule)
-      .around(loginFeatureRule)
-      .around(FlagRule(StudioFlags.AQI_FIX_WITH_AGENT, false))
-      .around(FlagRule(StudioFlags.SUGGEST_A_FIX, false))
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(loginFeatureRule)
 
   private lateinit var currentInsightFlow: MutableStateFlow<LoadingState<AiInsight?>>
   private lateinit var insightContentPanel: InsightContentPanel
@@ -335,40 +326,6 @@ class InsightContentPanelTest {
   }
 
   @Test
-  fun `test fixing with agent flag shows links panel and hides bottom panel`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.override(true)
-    val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
-    currentInsightFlow.update { LoadingState.Ready(AiInsight("insight text", ISSUE1.sampleEvent)) }
-
-    val fakeUi = FakeUi(panel)
-    val linksPanel = fakeUi.findComponent<InsightLinksPanel>() ?: fail("InsightLinksPanel not found")
-    val bottomPanel = fakeUi.findComponent<InsightBottomPanel>()
-
-    assertThat(linksPanel.isVisible).isTrue()
-    assertThat(bottomPanel).isNull()
-
-    StudioFlags.AQI_FIX_WITH_AGENT.clearOverride()
-  }
-
-  @Test
-  fun `test suggest a fix flag shows bottom panel when fix with agent is off`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.override(false)
-    StudioFlags.SUGGEST_A_FIX.override(true)
-    val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
-    currentInsightFlow.update { LoadingState.Ready(AiInsight("insight text", ISSUE1.sampleEvent)) }
-
-    val fakeUi = FakeUi(panel)
-    val linksPanel = fakeUi.findComponent<InsightLinksPanel>()
-    val bottomPanel = fakeUi.findComponent<InsightBottomPanel>() ?: fail("InsightBottomPanel not found")
-
-    assertThat(linksPanel).isNull()
-    assertThat(bottomPanel.isVisible).isTrue()
-
-    StudioFlags.AQI_FIX_WITH_AGENT.clearOverride()
-    StudioFlags.SUGGEST_A_FIX.clearOverride()
-  }
-
-  @Test
   fun `test uiDataSnapshot provides necessary keys`() = runBlocking {
     val sink = mock<DataSink>()
     insightContentPanel.uiDataSnapshot(sink)
@@ -380,7 +337,6 @@ class InsightContentPanelTest {
 
   @Test
   fun `test model name visible when insight generated`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     val insight = AiInsight("insight text", ISSUE1.sampleEvent, modelInfo = AiModelInfo("Gemini Flash", null))
     currentInsightFlow.update { LoadingState.Ready(insight) }
@@ -393,7 +349,6 @@ class InsightContentPanelTest {
 
   @Test
   fun `test model and provider name visible when insight generated`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     val insight = AiInsight("insight text", ISSUE1.sampleEvent, modelInfo = AiModelInfo("Gemini Flash", "Google"))
     currentInsightFlow.update { LoadingState.Ready(insight) }
@@ -406,7 +361,6 @@ class InsightContentPanelTest {
 
   @Test
   fun `test provider name only visible when insight generated`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     val insight = AiInsight("insight text", ISSUE1.sampleEvent, modelInfo = AiModelInfo(null, "Google"))
     currentInsightFlow.update { LoadingState.Ready(insight) }
@@ -419,7 +373,6 @@ class InsightContentPanelTest {
 
   @Test
   fun `test model header hidden when model and provider name are null`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     val insight = AiInsight("insight text", ISSUE1.sampleEvent, modelInfo = AiModelInfo(null, null))
     currentInsightFlow.update { LoadingState.Ready(insight) }
@@ -431,7 +384,6 @@ class InsightContentPanelTest {
 
   @Test
   fun `test model name visible when auto-generation disabled`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     currentInsightFlow.update { LoadingState.InsightAutogenerateDisabled }
 
@@ -443,7 +395,6 @@ class InsightContentPanelTest {
 
   @Test
   fun `test model name visible when no model available`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     currentInsightFlow.update { LoadingState.NoModelAvailable }
 
@@ -455,7 +406,6 @@ class InsightContentPanelTest {
 
   @Test
   fun `test no model available shows auto-generation panel with correct card`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     currentInsightFlow.update { LoadingState.NoModelAvailable }
 
@@ -475,7 +425,6 @@ class InsightContentPanelTest {
 
   @Test
   fun `test clicking regenerate generates insight irrespective of auto generate setting`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(true, projectRule.disposable)
     val panel = InsightContentPanel(mockController, scope, currentInsightFlow, mockTracker, projectRule.disposable)
     currentInsightFlow.update { LoadingState.NoModelAvailable }
 

@@ -2004,21 +2004,6 @@ public final class StudioFlags {
     "Use a global App Quality Insights connection selector that spans across multiple providers (Firebase, Play)"
   );
 
-  public static final Flag<Boolean> GEMINI_ASSISTED_CONTEXT_FETCH =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "gemini.assisted.context.fetch",
-      "Ask Gemini for context files",
-      "Ask Gemini for the context files it needs to generate an insight."
-    );
-
-  public static final Flag<Boolean> SUGGEST_A_FIX = new BooleanFlag(
-    APP_INSIGHTS,
-    "suggest.a.fix",
-    "Enables suggest a fix button in insights panel",
-    "Allows AQI to provide suggested fix based on the generated insight."
-  );
-
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,
@@ -2041,10 +2026,6 @@ public final class StudioFlags {
       "Set Play Vitals gRpc server address",
       "Set Play Vitals gRpc server address, mainly used for testing purposes.",
       "playdeveloperreporting.googleapis.com");
-
-  public static final Flag<Boolean> AQI_FIX_WITH_AGENT =
-    new BooleanFlag(APP_INSIGHTS, "fix.with.agent", "Use Agent for suggested fixes.",
-                    "Use the AI Agent to propose and implement suggested fixes.");
 
   public static final Flag<Boolean> PLAY_FINDINGS_ENABLED =
     new BooleanFlag(

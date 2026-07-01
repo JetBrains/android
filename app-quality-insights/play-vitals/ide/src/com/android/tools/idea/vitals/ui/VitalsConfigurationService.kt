@@ -22,7 +22,6 @@ import com.android.tools.idea.insights.AppInsightsCrashControllerImpl
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -222,7 +221,6 @@ class VitalsConfigurationManager(
             return@launch
           }
 
-        val codeContextResolver = CodeContextResolverImpl(project)
         val vitalsController =
           AppInsightsCrashControllerImpl(
               provider = VitalsInsightsProvider,
@@ -238,7 +236,7 @@ class VitalsConfigurationManager(
                 AppInsightsToolWindowFactory.showBalloon(project, MessageType.ERROR, msg, hyperlinkListener)
               },
               defaultFilters = createVitalsFilters(),
-              aiInsightToolkit = VitalsAiInsightToolkit(project, codeContextResolver),
+              aiInsightToolkit = VitalsAiInsightToolkit(project),
               cache = cache,
             )
             .apply {

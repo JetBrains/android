@@ -16,8 +16,6 @@
 package com.android.tools.idea.insights.ai
 
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.intellij.openapi.project.Project
 
@@ -31,12 +29,7 @@ class FakeAiInsightContributor : AiInsightContributor {
 
   override fun showOnboarding(project: Project) = Unit
 
-  override suspend fun fetchInsight(
-    connection: Connection,
-    event: Event,
-    project: Project,
-    codeContextResolver: CodeContextResolver,
-  ): AiInsight {
+  override suspend fun fetchInsight(event: Event): AiInsight {
     return generatedInsight
   }
 }
