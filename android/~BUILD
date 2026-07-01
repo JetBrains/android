@@ -474,6 +474,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:libjourneys-java-proto",
         "//tools/vendor/google/ml/aiplugin/android:agent_log_proto",
         "//tools/vendor/google/ml/aiplugin/backends/aicode:aicode_grpc",
+        "//tools/vendor/google/ml/aiplugin/backends/baicode:baicode_grpc",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_grpc",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_protobuf",

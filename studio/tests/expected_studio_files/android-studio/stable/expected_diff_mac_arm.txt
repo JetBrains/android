@@ -3203,6 +3203,7 @@
 +++Android Studio.app/Contents/plugins/gemini/lib/annotation-jvm-1.7.1.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/anthropic-java-client-okhttp-2.26.0.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/anthropic-java-core-2.26.0.jar
++++Android Studio.app/Contents/plugins/gemini/lib/baicode_grpc.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/fontbox-2.0.31.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/gemini.so.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar
@@ -7108,6 +7109,7 @@
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/annotation-jvm-1.7.1.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/anthropic-java-client-okhttp-2.26.0.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/anthropic-java-core-2.26.0.jar
+---Android Studio Preview.app/Contents/plugins/gemini/lib/baicode_grpc.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/fontbox-2.0.31.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/gemini.so.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar

@@ -3195,6 +3195,7 @@ android-studio/plugins/gemini/lib/aiplugin.jar
 android-studio/plugins/gemini/lib/annotation-jvm-1.7.1.jar
 android-studio/plugins/gemini/lib/anthropic-java-client-okhttp-2.26.0.jar
 android-studio/plugins/gemini/lib/anthropic-java-core-2.26.0.jar
+android-studio/plugins/gemini/lib/baicode_grpc.jar
 android-studio/plugins/gemini/lib/fontbox-2.0.31.jar
 android-studio/plugins/gemini/lib/gemini.so.jar
 android-studio/plugins/gemini/lib/gemini_plugin_proto.jar
