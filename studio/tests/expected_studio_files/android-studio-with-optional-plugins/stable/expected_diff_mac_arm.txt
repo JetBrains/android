@@ -3187,7 +3187,6 @@
 +++Android Studio.app/Contents/plugins/directaccess/lib/directaccess.jar
 +++Android Studio.app/Contents/plugins/directaccess/lib/directaccess.so.jar
 +++Android Studio.app/Contents/plugins/directaccess/lib/ftl_client_kt_proto.jar
-+++Android Studio.app/Contents/plugins/directaccess/lib/google-api-services-serviceusage-v1-rev20240220-2.0.0.jar
 +++Android Studio.app/Contents/plugins/directaccess/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
 +++Android Studio.app/Contents/plugins/directaccess/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
 +++Android Studio.app/Contents/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
@@ -7103,7 +7102,6 @@
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.so.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/ftl_client_kt_proto.jar
----Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-serviceusage-v1-rev20240220-2.0.0.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
