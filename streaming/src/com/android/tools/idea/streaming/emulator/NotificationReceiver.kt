@@ -20,21 +20,26 @@ import com.android.emulator.control.LedIndicator
 import com.android.emulator.control.Notification as EmulatorNotification
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.XrOptions
-import com.android.ide.common.util.Cancelable
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.util.computeUserDataIfAbsent
+import com.android.utils.throwIfCancellation
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import java.awt.Color
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 /** Receives notifications from the emulator and updates relevant properties. */
-internal class NotificationReceiver private constructor(private val emulator: EmulatorController) :
-  EmptyStreamObserver<EmulatorNotification>(), ConnectionStateListener {
+internal class NotificationReceiver private constructor(private val emulator: EmulatorController) : Disposable, ConnectionStateListener {
 
   private val _currentPosture = MutableStateFlow<EmulatorConfiguration.PostureDescriptor?>(null)
   val currentPosture: StateFlow<EmulatorConfiguration.PostureDescriptor?> = _currentPosture.asStateFlow()
@@ -58,13 +63,14 @@ internal class NotificationReceiver private constructor(private val emulator: Em
   private val emulatorConfig
     get() = emulator.emulatorConfig
 
-  @Volatile private var notificationFeed: Cancelable? = null
+  private val coroutineScope = createCoroutineScope()
+  private var notificationReader: Job? = null
 
   init {
     emulator.addConnectionStateListener(this)
   }
 
-  override fun onNext(message: EmulatorNotification) {
+  private fun handleNotification(message: EmulatorNotification) {
     log.info("Received notification: ${shortDebugString(message)}")
 
     if (emulator.connectionState != ConnectionState.CONNECTED) {
@@ -80,14 +86,6 @@ internal class NotificationReceiver private constructor(private val emulator: Em
       message.hasMicrophoneState() -> _microphoneInput.value = message.microphoneState.realAudioEnabled
       message.hasLedIndicator() -> updateLedIndicators(message.ledIndicator)
       else -> {}
-    }
-  }
-
-  @Synchronized
-  override fun onError(t: Throwable) {
-    if (t is EmulatorController.RetryException) {
-      cancelNotificationFeed()
-      startNotificationFeedIfConnected()
     }
   }
 
@@ -115,26 +113,48 @@ internal class NotificationReceiver private constructor(private val emulator: Em
   }
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
-    cancelNotificationFeed()
-    startNotificationFeedIfConnected()
+    stopNotificationReader()
+    startNotificationReaderIfConnected()
   }
 
-  private fun startNotificationFeedIfConnected() {
-    if (emulator.connectionState == ConnectionState.CONNECTED) {
-      notificationFeed = emulator.streamNotification(this)
+  @Synchronized
+  private fun startNotificationReaderIfConnected() {
+    if (emulator.connectionState == ConnectionState.CONNECTED && notificationReader == null) {
+      notificationReader =
+        coroutineScope.launch {
+          while (isActive) {
+            try {
+              emulator.streamNotification().collect { message -> handleNotification(message) }
+            } catch (_: EmulatorController.RetryException) {
+              continue
+            } catch (t: Throwable) {
+              t.throwIfCancellation()
+            }
+            break
+          }
+        }
     }
   }
 
-  private fun cancelNotificationFeed() {
-    notificationFeed?.cancel()
-    notificationFeed = null
+  @Synchronized
+  private fun stopNotificationReader() {
+    notificationReader?.cancel()
+    notificationReader = null
+  }
+
+  override fun dispose() {
+    stopNotificationReader()
   }
 
   companion object {
     private val key = Key<NotificationReceiver>(NotificationReceiver::class.java.simpleName)
 
     fun forEmulator(emulator: EmulatorController): NotificationReceiver {
-      return emulator.computeUserDataIfAbsent(key) { NotificationReceiver(emulator) }
+      return emulator.computeUserDataIfAbsent(key) {
+        val receiver = NotificationReceiver(emulator)
+        Disposer.register(emulator, receiver)
+        receiver
+      }
     }
   }
 }
