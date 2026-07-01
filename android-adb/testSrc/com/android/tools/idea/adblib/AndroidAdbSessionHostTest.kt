@@ -153,28 +153,29 @@ class AndroidAdbSessionHostTest {
   }
 
   private class TestingIdeFrame : IdeFrame {
+    private val component = object : JComponent() {}
+
     override fun getStatusBar(): StatusBar? {
-      TODO("Not yet implemented")
+      return null
     }
 
     override fun suggestChildFrameBounds(): Rectangle {
-      TODO("Not yet implemented")
+      return Rectangle()
     }
 
     override fun getProject(): Project? {
-      TODO("Not yet implemented")
+      return null
     }
 
     override fun setFrameTitle(title: String?) {
-      TODO("Not yet implemented")
     }
 
     override fun getComponent(): JComponent {
-      TODO("Not yet implemented")
+      return component
     }
 
     override fun getBalloonLayout(): BalloonLayout? {
-      TODO("Not yet implemented")
+      return null
     }
   }
 }
