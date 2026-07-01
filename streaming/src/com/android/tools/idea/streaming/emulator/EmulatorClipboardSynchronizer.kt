@@ -18,19 +18,21 @@ package com.android.tools.idea.streaming.emulator
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
-import com.android.ide.common.util.Cancelable
-import com.android.tools.idea.protobuf.Empty
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.core.AbstractClipboardSynchronizer
+import com.android.utils.throwIfCancellation
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 /** Synchronizes the AVD and the host clipboards. */
 internal class EmulatorClipboardSynchronizer(disposableParent: Disposable, val emulator: EmulatorController) :
   AbstractClipboardSynchronizer(disposableParent) {
 
-  @GuardedBy("lock") private var clipboardFeed: Cancelable? = null
-  @GuardedBy("lock") private var clipboardReceiver: ClipboardReceiver? = null
+  private val coroutineScope = createCoroutineScope()
+  @GuardedBy("lock") private var clipboardReceiver: Job? = null
   private val lock = Any()
 
   private val logger
@@ -53,56 +55,50 @@ internal class EmulatorClipboardSynchronizer(disposableParent: Disposable, val e
     if (text.isNotEmpty() && text != lastClipboardText) {
       lastClipboardText = text
       logger.debug { "EmulatorClipboardSynchronizer.setDeviceClipboard: \"$text\"" }
-      emulator.setClipboard(
-        ClipData.newBuilder().setText(text).build(),
-        object : EmptyStreamObserver<Empty>() {
-          override fun onCompleted() {
-            if (!isDisposed) {
-              requestClipboardFeed()
-            }
+      coroutineScope.launch {
+        try {
+          emulator.setClipboard(ClipData.newBuilder().setText(text).build())
+          if (!isDisposed) {
+            requestClipboardFeed()
           }
-        },
-      )
-    } else if (clipboardFeed == null) {
+        } catch (e: Throwable) {
+          e.throwIfCancellation()
+          // gRPC exceptions are already logged.
+        }
+      }
+    } else if (clipboardReceiver == null) {
       requestClipboardFeed()
     }
   }
 
   @GuardedBy("lock")
   private fun cancelClipboardFeed() {
+    clipboardReceiver?.cancel()
     clipboardReceiver = null
-    clipboardFeed?.cancel()
-    clipboardFeed = null
   }
 
   private fun requestClipboardFeed() {
     synchronized(lock) {
       cancelClipboardFeed()
       if (emulator.connectionState == EmulatorController.ConnectionState.CONNECTED) {
-        val receiver = ClipboardReceiver()
-        clipboardReceiver = receiver
-        clipboardFeed = emulator.streamClipboard(receiver)
-      }
-    }
-  }
-
-  private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
-
-    override fun onNext(message: ClipData) {
-      logger.debug { "ClipboardReceiver.onNext: \"${message.text}\"" }
-      synchronized(lock) {
-        if (clipboardReceiver != this) {
-          return // This clipboard feed has already been cancelled.
-        }
-      }
-      if (message.text.isNotEmpty()) {
-        onDeviceClipboardChanged(message.text)
-      }
-    }
-
-    override fun onError(t: Throwable) {
-      if (t is EmulatorController.RetryException) {
-        requestClipboardFeed()
+        clipboardReceiver =
+          coroutineScope.launch {
+            while (true) {
+              try {
+                emulator.streamClipboard().collect { message ->
+                  logger.debug { "ClipboardReceiver.onNext: \"${message.text}\"" }
+                  if (message.text.isNotEmpty()) {
+                    onDeviceClipboardChanged(message.text)
+                  }
+                }
+              } catch (_: EmulatorController.RetryException) {
+                continue
+              } catch (t: Throwable) {
+                t.throwIfCancellation()
+              }
+              break
+            }
+          }
       }
     }
   }
