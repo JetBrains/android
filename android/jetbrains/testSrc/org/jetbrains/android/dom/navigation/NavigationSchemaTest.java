@@ -78,6 +78,10 @@ public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] EMPTIES = new String[] {"include" };
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
 
+  private static NavigationSchema waitForSchema(@NotNull CompletableFuture<NavigationSchema> future) {
+    return PlatformTestUtil.waitForFuture(future, 60_000);
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -121,7 +125,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
       NavigationSchema schema = NavigationSchema.get(myModule);
       return schema.rebuildSchema();
     });
-    NavigationSchema schema = future.get();
+    NavigationSchema schema = waitForSchema(future);
     assertNotNull(schema);
   }
 
@@ -253,7 +257,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                                  boolean doesValidate) throws Exception {
     PsiClass navigator = addClass(initialContent);
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
-    NavigationSchema schema = NavigationSchema.get(myModule).rebuildSchema().get();
+    NavigationSchema schema = waitForSchema(NavigationSchema.get(myModule).rebuildSchema());
     assertTrue(schema.quickValidate());
 
     updateContent(navigator, newContent);
@@ -294,7 +298,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     PsiClass navigator = addClass(content);
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
 
-    NavigationSchema schema = NavigationSchema.get(myModule).rebuildSchema().get();
+    NavigationSchema schema = waitForSchema(NavigationSchema.get(myModule).rebuildSchema());
     assertTrue(schema.quickValidate());
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> navigator.getContainingFile().delete());
@@ -545,7 +549,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
   public void testRebuildNoChange() throws Exception {
     NavigationSchema schema = NavigationSchema.get(myModule);
-    assertSame(schema, schema.rebuildSchema().get());
+    assertSame(schema, waitForSchema(schema.rebuildSchema()));
   }
 
   public void testRebuildCompleted() throws Exception {
@@ -553,15 +557,15 @@ public class NavigationSchemaTest extends AndroidTestCase {
     addClass("import androidx.navigation.*;\n" +
              "@Navigator.Name(\"activity_sub\")\n" +
              "public class TestRebuildCompleted extends ActivityNavigator {}\n");
-     NavigationSchema newSchema = orig.rebuildSchema().get();
-     assertSame(newSchema, orig.rebuildSchema().get());
+     NavigationSchema newSchema = waitForSchema(orig.rebuildSchema());
+     assertSame(newSchema, waitForSchema(orig.rebuildSchema()));
   }
 
   public void testListeners() throws Exception {
     NavigationSchema schema = NavigationSchema.get(myModule);
     Runnable failingListener = () -> fail("shouldn't run listener");
     NavigationSchema.addSchemaRebuildListener(myFixture.getTestRootDisposable(), myModule, failingListener);
-    schema.rebuildSchema().get();
+    waitForSchema(schema.rebuildSchema());
     NavigationSchema.removeSchemaRebuildListener(myModule, failingListener);
 
     Semaphore didRun = new Semaphore(1);
@@ -572,9 +576,9 @@ public class NavigationSchemaTest extends AndroidTestCase {
              "@Navigator.Name(\"activity_sub\")\n" +
              "public class TestListeners extends ActivityNavigator {}\n");
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
-    NavigationSchema.get(myModule).rebuildSchema().get();
+    waitForSchema(NavigationSchema.get(myModule).rebuildSchema());
 
-    schema.rebuildSchema().get();
+    waitForSchema(schema.rebuildSchema());
     assertTrue(didRun.tryAcquire(5, TimeUnit.SECONDS));
     NavigationSchema.removeSchemaRebuildListener(myModule, checkListener);
   }
