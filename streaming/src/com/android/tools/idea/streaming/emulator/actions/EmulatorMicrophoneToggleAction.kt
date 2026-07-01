@@ -21,6 +21,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.NotificationReceiver
+import com.android.tools.idea.streaming.emulator.getEmptyObserver
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -41,7 +42,7 @@ internal class EmulatorMicrophoneToggleAction : AbstractEmulatorAction(configFil
     val emulatorController = getEmulatorController(event) ?: return
     val microphoneInput = emulatorController.microphoneInput ?: return
 
-    emulatorController.setMicrophoneState(MicrophoneState.newBuilder().setRealAudioEnabled(!microphoneInput).build())
+    emulatorController.setMicrophoneState(MicrophoneState.newBuilder().setRealAudioEnabled(!microphoneInput).build(), getEmptyObserver())
   }
 
   override fun update(event: AnActionEvent) {

@@ -23,10 +23,8 @@ import com.android.tools.idea.avd.EnvironmentsUpdater
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.SuspendingStreamObserver
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -54,10 +52,8 @@ internal sealed class EmulatorEnvironmentAction :
   }
 
   private suspend fun setEnvironment(emulator: EmulatorController, environment: Environment) {
-    val observer = SuspendingStreamObserver<Empty>()
     try {
-      emulator.setEnvironment(environment, observer)
-      observer.getResult()
+      emulator.setEnvironment(environment)
       onEnvironmentSet(emulator, environment)
     } catch (_: Exception) {
       // Error is already logged.

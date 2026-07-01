@@ -95,7 +95,7 @@ internal class VirtualSceneCameraController(
     pressedKeysMask = 0
     if (virtualSceneCameraVelocity.x != 0F || virtualSceneCameraVelocity.y != 0F || virtualSceneCameraVelocity.z != 0F) {
       virtualSceneCameraVelocity.clear()
-      emulator.setVirtualSceneCameraVelocity(Velocity.getDefaultInstance())
+      emulator.setVirtualSceneCameraVelocity(Velocity.getDefaultInstance(), getEmptyObserver())
     }
     val glass = IdeGlassPaneUtil.find(hostComponent) as IdeGlassPaneEx
     glass.setCursor(null, hostComponent)
@@ -150,7 +150,7 @@ internal class VirtualSceneCameraController(
 
   private fun rotateVirtualSceneCamera(rotationX: Double, rotationY: Double) {
     val cameraRotation = RotationRadian.newBuilder().setX(rotationX.toFloat()).setY(rotationY.toFloat()).build()
-    emulator.rotateVirtualSceneCamera(cameraRotation)
+    emulator.rotateVirtualSceneCamera(cameraRotation, getEmptyObserver())
   }
 
   private fun keyToMask(keyCode: Int): Int {
@@ -168,7 +168,7 @@ internal class VirtualSceneCameraController(
       0x01 -> virtualSceneCameraVelocity.z -= deltaVelocity // W
       else -> throw IllegalArgumentException()
     }
-    emulator.setVirtualSceneCameraVelocity(virtualSceneCameraVelocity.build())
+    emulator.setVirtualSceneCameraVelocity(virtualSceneCameraVelocity.build(), getEmptyObserver())
   }
 
   private inner class MyMouseListener(private val glass: IdeGlassPaneEx, private val cursor: Cursor, private val scale: Double) :
