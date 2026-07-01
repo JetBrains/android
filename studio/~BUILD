@@ -893,6 +893,8 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/rag/lucene:lucene-aiplugin",
         "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
         "//tools/vendor/google/ml/aiplugin/backends/aicode:aicode_grpc",
+        "//tools/vendor/google/ml/gemini-coder:libgemini-coder_proto",
+        "//prebuilts/tools/common/m2:protobuf-java-util-3.22.3",
     ],
     modules = {
         "aiplugin.jar": [
@@ -939,6 +941,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
             "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
+            "//tools/vendor/google/ml/gemini-coder",
             "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp.kotlin-sdk",
         ],
     },
