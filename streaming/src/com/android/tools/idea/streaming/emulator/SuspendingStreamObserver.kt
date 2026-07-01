@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,9 @@
  */
 package com.android.tools.idea.streaming.emulator
 
-import com.android.emulator.control.Image
-import com.android.emulator.control.ImageFormat
 import kotlinx.coroutines.CompletableDeferred
 
-// Coroutine-friendly variants of EmulatorController methods.
-
-/** Retrieves a screenshot of an Emulator display. */
-suspend fun EmulatorController.getScreenshot(imageFormat: ImageFormat): Image {
-  val observer = SuspendingStreamObserver<Image>()
-  getScreenshot(imageFormat, observer)
-  return observer.getResult()
-}
-
+/** Stream observer for coroutine-friendly emulator gRPC method wrappers. */
 class SuspendingStreamObserver<T> : EmptyStreamObserver<T>() {
 
   private val deferredResult = CompletableDeferred<T>()

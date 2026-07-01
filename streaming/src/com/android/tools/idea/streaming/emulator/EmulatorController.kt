@@ -92,13 +92,21 @@ import java.nio.file.Files
 import java.util.Locale
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.resume
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.jetbrains.annotations.TestOnly
 
 /** Controls a running Emulator. */
@@ -348,7 +356,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (emulatorState.compareAndSet(EmulatorState.SHUTDOWN_REQUESTED, EmulatorState.SHUTDOWN_SENT)) {
       keepAliveJob?.cancel()
       val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
-      setVmState(vmRunState)
+      setVmState(vmRunState, getEmptyObserver())
       runningAvdTracker.shuttingDown(emulatorId.avdFolder)
     }
   }
@@ -379,14 +387,26 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Pushes audio packets into the emulator microphone. */
+  suspend fun injectAudio(audioPackets: Flow<AudioPacket>) {
+    callClientStreaming(audioPackets) { responseObserver -> injectAudio(responseObserver) }
+  }
+
   /** Sets contents of the clipboard. */
-  fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       // Don't log the actual clipboard contents to protect user privacy.
       val clipDataForLogging = shortDebugString(clipData.toBuilder().setText("<clipboard contents>").build())
       log.info("setClipboard($clipDataForLogging)")
     }
     emulatorControllerStub.setClipboard(clipData, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetClipboardMethod()))
+  }
+
+  /** Sets contents of the clipboard. */
+  suspend fun setClipboard(clipData: ClipData) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setClipboard(clipData, observer)
+    observer.getResult()
   }
 
   /** Streams contents of the clipboard. */
@@ -400,8 +420,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     return CancelableClientCall(call)
   }
 
+  /** Streams contents of the clipboard. */
+  fun streamClipboard(): Flow<ClipData> = callbackFlow {
+    val cancelable = streamClipboard(FlowStreamObserver(this))
+    awaitClose { cancelable.cancel() }
+  }
+
   /** Sets the size of the primary display of a resizable AVD. */
-  fun setDisplayMode(displayModeValue: DisplayModeValue, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setDisplayMode(displayModeValue: DisplayModeValue, streamObserver: StreamObserver<Empty>) {
     val displayMode = DisplayMode.newBuilder().setValue(displayModeValue).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setDisplayMode(${shortDebugString(displayMode)})")
@@ -412,12 +438,26 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Sets the size of the primary display of a resizable AVD. */
+  suspend fun setDisplayMode(displayModeValue: DisplayModeValue) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setDisplayMode(displayModeValue, observer)
+    observer.getResult()
+  }
+
   /** Sets the XR-related options. */
-  fun setXrOptions(xrOptions: XrOptions, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setXrOptions(xrOptions: XrOptions, streamObserver: StreamObserver<Empty>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setXrOptions(${shortDebugString(xrOptions)})")
     }
     emulatorControllerStub.setXrOptions(xrOptions, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetXrOptionsMethod()))
+  }
+
+  /** Sets the XR-related options. */
+  suspend fun setXrOptions(xrOptions: XrOptions) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setXrOptions(xrOptions, observer)
+    observer.getResult()
   }
 
   /** Retrieves the XR-related options. */
@@ -431,8 +471,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Retrieves the XR-related options. */
+  suspend fun getXrOptions(): XrOptions {
+    val observer = SuspendingStreamObserver<XrOptions>()
+    getXrOptions(observer)
+    return observer.getResult()
+  }
+
   /** Sets the state of microphone input. */
-  fun setMicrophoneState(microphoneState: MicrophoneState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setMicrophoneState(microphoneState: MicrophoneState, streamObserver: StreamObserver<Empty>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setMicrophoneState(${shortDebugString(microphoneState)})")
     }
@@ -440,6 +487,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       microphoneState,
       DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetMicrophoneStateMethod()),
     )
+  }
+
+  /** Sets the state of microphone input. */
+  suspend fun setMicrophoneState(microphoneState: MicrophoneState) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setMicrophoneState(microphoneState, observer)
+    observer.getResult()
   }
 
   /** Retrieves the state of microphone input. */
@@ -453,6 +507,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Retrieves the state of microphone input. */
+  suspend fun getMicrophoneState(): MicrophoneState {
+    val observer = SuspendingStreamObserver<MicrophoneState>()
+    getMicrophoneState(observer)
+    return observer.getResult()
+  }
+
   /** Retrieves the list of video cameras connected to the host machine. */
   fun getHostCameras(streamObserver: StreamObserver<CameraList>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
@@ -462,6 +523,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       EMPTY_PROTO,
       DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetHostCamerasMethod()),
     )
+  }
+
+  /** Retrieves the list of video cameras connected to the host machine. */
+  suspend fun getHostCameras(): CameraList {
+    val observer = SuspendingStreamObserver<CameraList>()
+    getHostCameras(observer)
+    return observer.getResult()
   }
 
   /**
@@ -503,6 +571,11 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
   }
 
+  /** Streams input events to the emulator. */
+  suspend fun streamInputEvents(inputEvents: Flow<InputEvent>) {
+    callClientStreaming(inputEvents) { responseObserver -> streamInputEvent(responseObserver) }
+  }
+
   /** Streams emulator notifications. */
   fun streamNotification(streamObserver: StreamObserver<Notification>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
@@ -512,6 +585,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     val call = emulatorControllerStub.channel.newCall(method, emulatorControllerStub.callOptions)
     ClientCalls.asyncServerStreamingCall(call, EMPTY_PROTO, DelegatingStreamObserver(streamObserver, method))
     return CancelableClientCall(call)
+  }
+
+  /** Streams emulator notifications. */
+  fun streamNotification(): Flow<Notification> = callbackFlow {
+    val cancelable = streamNotification(FlowStreamObserver(this))
+    awaitClose { cancelable.cancel() }
   }
 
   /** Retrieves a physical model value. */
@@ -526,8 +605,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Retrieves a physical model value. */
+  suspend fun getPhysicalModel(physicalType: PhysicalModelValue.PhysicalType): PhysicalModelValue {
+    val observer = SuspendingStreamObserver<PhysicalModelValue>()
+    getPhysicalModel(physicalType, observer)
+    return observer.getResult()
+  }
+
   /** Sets a physical model value. */
-  fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setPhysicalModel(${shortDebugString(modelValue)})")
     }
@@ -535,6 +621,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       modelValue,
       DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetPhysicalModelMethod()),
     )
+  }
+
+  /** Sets a physical model value. */
+  suspend fun setPhysicalModel(modelValue: PhysicalModelValue) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setPhysicalModel(modelValue, observer)
+    observer.getResult()
   }
 
   /** Retrieves a screenshot of an Emulator display. */
@@ -548,11 +641,18 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Retrieves a screenshot of an Emulator display. */
+  suspend fun getScreenshot(imageFormat: ImageFormat): Image {
+    val observer = SuspendingStreamObserver<Image>()
+    getScreenshot(imageFormat, observer)
+    return observer.getResult()
+  }
+
   /**
    * Streams a series of screenshots.
    *
    * **Note**: The value returned by the [Image.getImage] method of the response object cannot be used outside the [StreamObserver.onNext]
-   * method because it is backed by a mutable reusable byte array.
+   * method because it is backed by a mutable reusable byte array. For this reason a [Flow] based variant of this method is not provided.
    */
   fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
@@ -571,12 +671,26 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     emulatorControllerStub.getStatus(EMPTY_PROTO, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetStatusMethod()))
   }
 
+  /** Retrieves the status of the emulator. */
+  suspend fun getStatus(): EmulatorStatus {
+    val observer = SuspendingStreamObserver<EmulatorStatus>()
+    getStatus(observer)
+    return observer.getResult()
+  }
+
   /** Sets a virtual machine state. */
-  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setVmState(${shortDebugString(vmState)})")
     }
     emulatorControllerStub.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
+  }
+
+  /** Sets a virtual machine state. */
+  suspend fun setVmState(vmState: VmRunState) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setVmState(vmState, observer)
+    observer.getResult()
   }
 
   /** Retrieves configurations of all displays. */
@@ -590,11 +704,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Retrieves configurations of all displays. */
+  suspend fun getDisplayConfigurations(): DisplayConfigurations {
+    val observer = SuspendingStreamObserver<DisplayConfigurations>()
+    getDisplayConfigurations(observer)
+    return observer.getResult()
+  }
+
   /** Creates, modifies, or deletes configurable secondary displays. */
-  fun setDisplayConfigurations(
-    displayConfigurations: DisplayConfigurations,
-    streamObserver: StreamObserver<DisplayConfigurations> = getEmptyObserver(),
-  ) {
+  fun setDisplayConfigurations(displayConfigurations: DisplayConfigurations, streamObserver: StreamObserver<DisplayConfigurations>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setDisplayConfigurations(${shortDebugString(displayConfigurations)})")
     }
@@ -604,8 +722,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Creates, modifies, or deletes configurable secondary displays. */
+  suspend fun setDisplayConfigurations(displayConfigurations: DisplayConfigurations): DisplayConfigurations {
+    val observer = SuspendingStreamObserver<DisplayConfigurations>()
+    setDisplayConfigurations(displayConfigurations, observer)
+    return observer.getResult()
+  }
+
   /** Changes orientation of the virtual scene camera. */
-  fun rotateVirtualSceneCamera(cameraRotation: RotationRadian, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun rotateVirtualSceneCamera(cameraRotation: RotationRadian, streamObserver: StreamObserver<Empty>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("rotateVirtualSceneCamera(${shortDebugString(cameraRotation)})")
     }
@@ -615,8 +740,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Changes orientation of the virtual scene camera. */
+  suspend fun rotateVirtualSceneCamera(cameraRotation: RotationRadian) {
+    val observer = SuspendingStreamObserver<Empty>()
+    rotateVirtualSceneCamera(cameraRotation, observer)
+    observer.getResult()
+  }
+
   /** Changes velocity of the virtual scene camera. */
-  fun setVirtualSceneCameraVelocity(cameraVelocity: Velocity, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setVirtualSceneCameraVelocity(cameraVelocity: Velocity, streamObserver: StreamObserver<Empty>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setVirtualSceneCameraVelocity(${shortDebugString(cameraVelocity)})")
     }
@@ -626,8 +758,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Changes velocity of the virtual scene camera. */
+  suspend fun setVirtualSceneCameraVelocity(cameraVelocity: Velocity) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setVirtualSceneCameraVelocity(cameraVelocity, observer)
+    observer.getResult()
+  }
+
   /** Sets the environment background for AI glasses. */
-  fun setEnvironment(environment: Environment, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setEnvironment(environment: Environment, streamObserver: StreamObserver<Empty>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setEnvironment(${shortDebugString(environment)})")
     }
@@ -635,6 +774,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       environment,
       DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetEnvironmentMethod()),
     )
+  }
+
+  /** Sets the environment background for AI glasses. */
+  suspend fun setEnvironment(environment: Environment) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setEnvironment(environment, observer)
+    observer.getResult()
   }
 
   /** Retrieves the current environment configuration for AI glasses. */
@@ -648,13 +794,20 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Retrieves the current environment configuration for AI glasses. */
+  suspend fun getEnvironment(): Environment {
+    val observer = SuspendingStreamObserver<Environment>()
+    getEnvironment(observer)
+    return observer.getResult()
+  }
+
   /**
    * Lists existing snapshots. Only the snapshots compatible with the running emulator are returned.
    *
    * @param snapshotFilter determines whether all or only compatible snapshots are returned
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun listSnapshots(snapshotFilter: SnapshotFilter, streamObserver: StreamObserver<SnapshotList> = getEmptyObserver()) {
+  fun listSnapshots(snapshotFilter: SnapshotFilter, streamObserver: StreamObserver<SnapshotList>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("listSnapshots()")
     }
@@ -665,17 +818,39 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Lists existing snapshots. Only the snapshots compatible with the running emulator are returned.
+   *
+   * @param snapshotFilter determines whether all or only compatible snapshots are returned
+   */
+  suspend fun listSnapshots(snapshotFilter: SnapshotFilter): SnapshotList {
+    val observer = SuspendingStreamObserver<SnapshotList>()
+    listSnapshots(snapshotFilter, observer)
+    return observer.getResult()
+  }
+
+  /**
    * Loads a snapshot in the emulator.
    *
    * @param snapshotId the ID of the snapshot to load
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
+  fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage>) {
     val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("loadSnapshot(${shortDebugString(snapshot)})")
     }
     snapshotServiceStub.loadSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getLoadSnapshotMethod()))
+  }
+
+  /**
+   * Loads a snapshot in the emulator.
+   *
+   * @param snapshotId the ID of the snapshot to load
+   */
+  suspend fun loadSnapshot(snapshotId: String): SnapshotPackage {
+    val observer = SuspendingStreamObserver<SnapshotPackage>()
+    loadSnapshot(snapshotId, observer)
+    return observer.getResult()
   }
 
   /**
@@ -695,13 +870,18 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     return snapshotServiceStub.pushSnapshot(DelegatingClientResponseObserver(streamObserver, SnapshotServiceGrpc.getPushSnapshotMethod()))
   }
 
+  /** Pushes snapshot packages into the emulator. */
+  suspend fun pushSnapshot(snapshotPackages: Flow<SnapshotPackage>): SnapshotPackage {
+    return callClientStreaming(snapshotPackages) { responseObserver -> pushSnapshot(responseObserver) }
+  }
+
   /**
    * Creates a snapshot of the current emulator state.
    *
    * @param snapshotId the ID of the snapshot to create
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
+  fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage>) {
     val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("saveSnapshot(${shortDebugString(snapshot)})")
@@ -710,12 +890,23 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Creates a snapshot of the current emulator state.
+   *
+   * @param snapshotId the ID of the snapshot to create
+   */
+  suspend fun saveSnapshot(snapshotId: String): SnapshotPackage {
+    val observer = SuspendingStreamObserver<SnapshotPackage>()
+    saveSnapshot(snapshotId, observer)
+    return observer.getResult()
+  }
+
+  /**
    * Delete a snapshot in the emulator.
    *
    * @param snapshotId the ID of the snapshot to delete
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun deleteSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
+  fun deleteSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage>) {
     val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("deleteSnapshot(${shortDebugString(snapshot)})")
@@ -724,12 +915,23 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Delete a snapshot in the emulator.
+   *
+   * @param snapshotId the ID of the snapshot to delete
+   */
+  suspend fun deleteSnapshot(snapshotId: String): SnapshotPackage {
+    val observer = SuspendingStreamObserver<SnapshotPackage>()
+    deleteSnapshot(snapshotId, observer)
+    return observer.getResult()
+  }
+
+  /**
    * Shows the extended controls of the emulator.
    *
    * @param pane identifies the window position and the pane to open
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun showExtendedControls(pane: PaneEntry, streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
+  fun showExtendedControls(pane: PaneEntry, streamObserver: StreamObserver<ExtendedControlsStatus>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("showExtendedControls(${shortDebugString(pane)})")
     }
@@ -737,11 +939,22 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Shows the extended controls of the emulator.
+   *
+   * @param pane identifies the window position and the pane to open
+   */
+  suspend fun showExtendedControls(pane: PaneEntry): ExtendedControlsStatus {
+    val observer = SuspendingStreamObserver<ExtendedControlsStatus>()
+    showExtendedControls(pane, observer)
+    return observer.getResult()
+  }
+
+  /**
    * Closes the extended controls of the emulator.
    *
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun closeExtendedControls(streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
+  fun closeExtendedControls(streamObserver: StreamObserver<ExtendedControlsStatus>) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("closeExtendedControls()")
     }
@@ -751,18 +964,36 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     )
   }
 
+  /** Closes the extended controls of the emulator. */
+  suspend fun closeExtendedControls(): ExtendedControlsStatus {
+    val observer = SuspendingStreamObserver<ExtendedControlsStatus>()
+    closeExtendedControls(observer)
+    return observer.getResult()
+  }
+
   /**
    * Sets the UI style for the extended controls of the emulator.
    *
    * @param style the style to set
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun setUiTheme(style: ThemingStyle.Style, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setUiTheme(style: ThemingStyle.Style, streamObserver: StreamObserver<Empty>) {
     val themingStyle = ThemingStyle.newBuilder().setStyle(style).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       log.info("setUiTheme(${shortDebugString(themingStyle)})")
     }
     uiControllerStub.setUiTheme(themingStyle, DelegatingStreamObserver(streamObserver, UiControllerGrpc.getSetUiThemeMethod()))
+  }
+
+  /**
+   * Sets the UI style for the extended controls of the emulator.
+   *
+   * @param style the style to set
+   */
+  suspend fun setUiTheme(style: ThemingStyle.Style) {
+    val observer = SuspendingStreamObserver<Empty>()
+    setUiTheme(style, observer)
+    observer.getResult()
   }
 
   private fun sendKeepAlive() {
@@ -917,6 +1148,89 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       }
     }
   }
+}
+
+private open class FlowStreamObserver<T>(private val channel: SendChannel<T>) : EmptyStreamObserver<T>() {
+
+  override fun onNext(message: T) {
+    channel.trySend(message)
+  }
+
+  override fun onError(t: Throwable) {
+    channel.close(t)
+  }
+
+  override fun onCompleted() {
+    channel.close()
+  }
+}
+
+private suspend fun <ReqT, RespT> callClientStreaming(
+  flow: Flow<ReqT>,
+  stubCall: (ClientResponseObserver<ReqT, RespT>) -> StreamObserver<ReqT>,
+): RespT {
+  val deferred = CompletableDeferred<RespT>()
+  val requestStreamRef = AtomicReference<ClientCallStreamObserver<ReqT>>()
+
+  val isReady = AtomicBoolean(true)
+  val readyCallback = AtomicReference<(() -> Unit)?>()
+
+  val responseObserver =
+    object : ClientResponseObserver<ReqT, RespT> {
+      override fun beforeStart(requestStream: ClientCallStreamObserver<ReqT>) {
+        requestStreamRef.set(requestStream)
+        requestStream.setOnReadyHandler {
+          isReady.set(true)
+          readyCallback.getAndSet(null)?.invoke()
+        }
+      }
+
+      override fun onNext(value: RespT) {
+        deferred.complete(value)
+      }
+
+      override fun onError(t: Throwable) {
+        deferred.completeExceptionally(t)
+      }
+
+      override fun onCompleted() {
+        if (!deferred.isCompleted) {
+          deferred.completeExceptionally(IllegalStateException("Call completed without response"))
+        }
+      }
+    }
+
+  val requestObserver = stubCall(responseObserver)
+
+  try {
+    flow.collect { value ->
+      if (deferred.isCompleted) {
+        deferred.await()
+        return@collect
+      }
+      val requestStream = requestStreamRef.get()
+      if (requestStream != null) {
+        if (!isReady.get()) {
+          suspendCancellableCoroutine { continuation ->
+            readyCallback.set { continuation.resume(Unit) }
+            if (isReady.get()) {
+              readyCallback.set(null)
+              continuation.resume(Unit)
+            }
+          }
+        }
+        requestStream.onNext(value)
+      } else {
+        requestObserver.onNext(value)
+      }
+    }
+    requestObserver.onCompleted()
+  } catch (t: Throwable) {
+    requestObserver.onError(t)
+    throw t
+  }
+
+  return deferred.await()
 }
 
 /**

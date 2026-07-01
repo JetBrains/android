@@ -24,7 +24,6 @@ import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.getScreenshot
 import com.android.tools.idea.ui.DISPLAY_ID_KEY
 import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.android.tools.idea.ui.DisplayInfoProvider

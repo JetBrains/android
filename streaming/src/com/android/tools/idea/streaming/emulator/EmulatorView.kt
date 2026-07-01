@@ -470,7 +470,7 @@ internal class EmulatorView(
       LafManagerListener.TOPIC,
       LafManagerListener { lafManager ->
         if (isConnected) {
-          emulator.setUiTheme(getEmulatorUiTheme(lafManager))
+          emulator.setUiTheme(getEmulatorUiTheme(lafManager), getEmptyObserver())
         }
       },
     )

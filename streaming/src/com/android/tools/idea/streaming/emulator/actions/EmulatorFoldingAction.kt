@@ -20,6 +20,7 @@ import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.PhysicalModelValue.PhysicalType
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.NotificationReceiver
+import com.android.tools.idea.streaming.emulator.getEmptyObserver
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -39,7 +40,7 @@ internal data class EmulatorFoldingAction(val posture: PostureDescriptor) : Abst
         PhysicalModelValue.newBuilder()
           .setTarget(type)
           .setValue(ParameterValue.newBuilder().addData(getPostureValue(posture, emulator.emulatorConfig.postures).toFloat()))
-      emulator.setPhysicalModel(physicalModelValue.build())
+      emulator.setPhysicalModel(physicalModelValue.build(), getEmptyObserver())
     }
   }
 
