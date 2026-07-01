@@ -5,23 +5,10 @@ package google.play.developer.reporting.v1beta1;
 import "metrics.proto";
 
 option java_multiple_files = true;
-option java_outer_classname = "AcquisitionServiceProto";
+option java_outer_classname = "AcquisitionsProto";
 option java_package = "com.google.play.developer.reporting";
 
-// Service to describe and query Acquisition metrics.
-service AcquisitionService {
-  // Describes the properties of the metric set.
-  rpc GetAcquisitionMetricSet(GetAcquisitionMetricSetRequest)
-      returns (AcquisitionMetricSet) {}
-
-  // Queries the metrics in the metric set.
-  rpc QueryAcquisitionMetricSet(QueryAcquisitionMetricSetRequest)
-      returns (QueryAcquisitionMetricSetResponse) {}
-}
-
 // Singleton resource representing the set of Acquisition metrics.
-//
-// This metric set contains data related to how users and devices are acquired.
 //
 // **Supported aggregation periods:**
 //
@@ -31,17 +18,20 @@ service AcquisitionService {
 //
 // **Supported metrics:**
 //
-//  * `userAcquisition` (`google.type.Decimal`): The number of unique users who
-//     acquired the app (installed or purchased).
-//  * `deviceAcquisition` (`google.type.Decimal`): The number of unique devices
-//     that installed the app.
+//  * `userAcquisition` (`google.type.Decimal`): The number of users who
+//  installed your app and didn't have it installed on any devices at the time.
+//  Includes users who activated a new device, or reactivated a dormant device,
+//  on which your app was installed.
+//  * `deviceAcquisition` (`google.type.Decimal`): The number of devices that
+//  users installed your app on. This includes when a device on which your app
+//  was pre-installed is activated.
 //
 // **Supported dimensions:**
 //
-//  * `acquisitionType`
+//  * `acquisitionMechanism`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     Whether the user or device had previously acquired the app. Valid types
-//     are `NEW` and `RETURNING`.
+//     How the app was last acquired. For example, by installation or
+//     reactivation.
 //  * `apiLevel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The API level of Android that was running on the user's device.
@@ -70,7 +60,7 @@ service AcquisitionService {
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     The version of the app that was running on the user's device.
 //
-// (== resource_for v1beta1.platform.acquisition ==)
+// (== resource_for v1beta1.grow.acquisition ==)
 message AcquisitionMetricSet {
   // The resource name.
   string name = 1;
@@ -104,10 +94,10 @@ message QueryAcquisitionMetricSetRequest {
   //
   // **Supported dimensions:**
   //
-  //  * `acquisitionType`
+  //  * `acquisitionMechanism`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     Whether the user or device had previously acquired the app. Valid types
-  //     are `NEW` and `RETURNING`.
+  //     How the app was last acquired. For example, by installation or
+  //     reactivation.
   //  * `apiLevel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The API level of Android that was running on the user's device.
@@ -141,12 +131,13 @@ message QueryAcquisitionMetricSetRequest {
   //
   // **Supported metrics:**
   //
-  //  * `userAcquisition` (`google.type.Decimal`): The number of unique users
-  //  who
-  //     acquired the app (installed or purchased).
-  //  * `deviceAcquisition` (`google.type.Decimal`): The number of unique
-  //  devices
-  //     that installed the app.
+  //  * `userAcquisition` (`google.type.Decimal`): The number of users who
+  //  installed your app and didn't have it installed on any devices at the
+  //  time. Includes users who activated a new device, or reactivated a dormant
+  //  device, on which your app was installed.
+  //  * `deviceAcquisition` (`google.type.Decimal`): The number of devices that
+  //  users installed your app on. This includes when a device on which your app
+  //  was pre-installed is activated.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
