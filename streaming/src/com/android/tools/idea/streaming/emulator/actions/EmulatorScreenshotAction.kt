@@ -36,6 +36,7 @@ import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotProvider
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.android.tools.idea.ui.screenshot.getScreenshotScale
+import com.android.utils.throwIfCancellation
 import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -53,7 +54,6 @@ import java.awt.image.BufferedImage
 import java.io.IOException
 import javax.imageio.IIOException
 import javax.imageio.ImageIO
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -124,9 +124,8 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
                 )
               viewer.show()
             }
-          } catch (e: CancellationException) {
-            throw e
           } catch (e: Throwable) {
+            e.throwIfCancellation()
             val message = "Error obtaining screenshot"
             thisLogger().error(message, e)
             if (++errorCount == 1) { // Show error dialog no more than once.
