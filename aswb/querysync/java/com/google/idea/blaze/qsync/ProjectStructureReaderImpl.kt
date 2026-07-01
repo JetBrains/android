@@ -18,7 +18,7 @@ package com.google.idea.blaze.qsync
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.java.PackageReader
-import com.google.idea.blaze.qsync.java.choosePackageCandidate
+import com.google.idea.blaze.qsync.java.choosePackageCandidates
 import com.google.idea.blaze.qsync.project.BuildPackage
 import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.project.ProjectDefinition
@@ -141,9 +141,10 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
       val contents = directoryProcessorImpl.processDirectory(rootDir, currentDir)
       if (contents != null) {
         val includeRoot = workspaceRoot.relativize(rootDir)
-        val candidateFile =
-          choosePackageCandidate(contents.files, fileExtensions) { Files.exists(workspaceRoot.resolve(currentDir).resolve(it)) }
-        val javaPackage = candidateFile?.let { packageReader.readPackage(context, workspaceRoot.resolve(currentDir).resolve(it)) } ?: ""
+        val candidateFiles =
+          choosePackageCandidates(contents.files, fileExtensions) { Files.exists(workspaceRoot.resolve(currentDir).resolve(it)) }
+        val javaPackage =
+          candidateFiles.firstNotNullOfOrNull { packageReader.readPackage(context, workspaceRoot.resolve(currentDir).resolve(it)) } ?: ""
 
         for (file in contents.files) {
           val result = fileProcessor.processRegularFile(file, currentDir)
