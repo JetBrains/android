@@ -342,10 +342,6 @@
       "path": "ActionManager"
     },
     {
-      "hit": "Generate AGENTS.md",
-      "path": "ActionManager"
-    },
-    {
       "hit": "Generate Code From Image",
       "path": "ActionManager"
     },
