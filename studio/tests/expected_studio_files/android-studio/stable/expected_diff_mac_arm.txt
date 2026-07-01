@@ -2470,8 +2470,10 @@
 +++Android Studio.app/Contents/plugins/android/lib/perfetto-protos.jar
 +++Android Studio.app/Contents/plugins/android/lib/perfetto_android_protos.jar
 +++Android Studio.app/Contents/plugins/android/lib/pixelprobe.jar
++++Android Studio.app/Contents/plugins/android/lib/play_findings_proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/play_vitals_kt_proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/proto.jar
++++Android Studio.app/Contents/plugins/android/lib/protobuf-java-util-3.24.4.jar
 +++Android Studio.app/Contents/plugins/android/lib/protobuf-kotlin-3.24.4.jar
 +++Android Studio.app/Contents/plugins/android/lib/r8.jar
 +++Android Studio.app/Contents/plugins/android/lib/repository-sdk-schema.jar
@@ -3235,7 +3237,6 @@
 +++Android Studio.app/Contents/plugins/gemini/lib/openai-java-client-okhttp-4.32.0.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/openai-java-core-4.32.0.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/pdfbox-2.0.31.jar
-+++Android Studio.app/Contents/plugins/gemini/lib/protobuf-java-util-3.22.3.jar
 +++Android Studio.app/Contents/plugins/gemini/resources/kb_zip/dac.zip
 +++Android Studio.app/Contents/plugins/gemini/resources/llamacpp/LICENSE
 +++Android Studio.app/Contents/plugins/gemini/resources/llamacpp/libggml-base.0.15.1.dylib
@@ -6388,8 +6389,10 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/perfetto-protos.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/perfetto_android_protos.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/pixelprobe.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/play_findings_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/play_vitals_kt_proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/proto.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/protobuf-java-util-3.24.4.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/protobuf-kotlin-3.24.4.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/r8.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/repository-sdk-schema.jar
@@ -7153,7 +7156,6 @@
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/openai-java-client-okhttp-4.32.0.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/openai-java-core-4.32.0.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/pdfbox-2.0.31.jar
----Android Studio Preview.app/Contents/plugins/gemini/lib/protobuf-java-util-3.22.3.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/resources/kb_zip/dac.zip
 ---Android Studio Preview.app/Contents/plugins/gemini/resources/llamacpp/LICENSE
 ---Android Studio Preview.app/Contents/plugins/gemini/resources/llamacpp/libggml-base.0.15.1.dylib

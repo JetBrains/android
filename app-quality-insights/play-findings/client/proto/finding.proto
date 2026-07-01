@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package google.play.androidpublisher.v3;
+
+import "finding_data.proto";
+import "in_app_location.proto";
+
+option java_package = "com.google.play.androidpublisher.v3";
+option java_multiple_files = true;
+option java_outer_classname = "FindingProto";
+
+// A finding for an app, representing a problem or suggestion that a
+// developer can, should, or must address depending on its severity.
+message Finding {
+  // Unique identifier of the finding.
+  // Format: applications/{package_name}/findings/{finding_id}
+  // Always set.
+  string name = 1;
+
+  // The type of finding.
+  // This enum is not frozen. New values may be added in the future,
+  // and clients should handle unknown values gracefully.
+  // (-- Note: Specific types to be added per explicit API launches. --)
+  enum Type {
+    // Default value. This value is unused.
+    TYPE_UNSPECIFIED = 0;
+
+    // This finding identifies that the app is using a deprecated or crashing
+    // version of a Digital Rights Management (DRM) SDK.
+    //
+    // Associated finding data:
+    // [DrmAppCompatFindingData][google.play.androidpublisher.v3.DrmAppCompatFindingData]
+    //
+    // (-- Note: DRM_APP_COMPAT = 1; --)
+    DRM_APP_COMPAT = 1;
+  }
+
+  // The type of this finding. Always set.
+  Type finding_type = 2;
+
+  // The severity of finding.
+  // This enum is frozen and no new values will be added.
+  enum Severity {
+    // Unspecified severity.
+    SEVERITY_UNSPECIFIED = 0;
+    // An informational finding.
+    INFO = 1;
+    // A warning that should be addressed, but does not block developers from
+    // proceeding with the action.
+    WARNING = 2;
+    // A severe finding that requires attention but does not block developers
+    // from proceeding.
+    SEVERE = 3;
+    // A blocking finding that needs to be fixed before developers can
+    // proceed with the action (e.g., sending changes for review).
+    BLOCKING = 4;
+  }
+
+  // The severity of this finding. Always set.
+  Severity finding_severity = 3;
+
+  // The data associated with the finding that clients need to use findings
+  // programmatically. This is only populated for specific finding types
+  // that have structured data. May not be set.
+  FindingData finding_data = 4;
+
+  // Locations within the app that this finding refers to. This list can be
+  // empty if the finding applies to the entire app globally.
+  repeated InAppLocation in_app_locations = 5;
+}

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package google.play.androidpublisher.v3;
+
+option java_package = "com.google.play.androidpublisher.v3";
+option java_multiple_files = true;
+option java_outer_classname = "ComputeFindingsRequestProto";
+
+// Request to compute findings.
+message ComputeFindingsRequest {
+  // Parent app for which to compute findings.
+  // Format: applications/{package_name}
+  string parent = 1;
+
+  // The filter to apply to the findings.
+  string filter = 2;
+
+  // The order in which to return the findings.
+  string order_by = 3;
+}

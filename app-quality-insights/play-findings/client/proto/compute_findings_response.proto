@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package google.play.androidpublisher.v3;
+
+import "check_completion_state.proto";
+import "finding.proto";
+
+option java_package = "com.google.play.androidpublisher.v3";
+option java_multiple_files = true;
+option java_outer_classname = "ComputeFindingsResponseProto";
+
+// Response with computed findings for an app.
+message ComputeFindingsResponse {
+
+  // List of findings for an app. Filtered and ordered as per
+  // the request.
+  repeated Finding findings = 1;
+
+  // The current status of all the checks (RUNNING or COMPLETE).
+  CheckCompletionState check_completion_state = 2;
+}

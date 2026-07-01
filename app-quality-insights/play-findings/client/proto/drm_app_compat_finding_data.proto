@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package google.play.androidpublisher.v3;
+
+option java_package = "com.google.play.androidpublisher.v3";
+option java_multiple_files = true;
+option java_outer_classname = "DrmAppCompatFindingDataProto";
+
+// Data for DRM App Compatibility static analysis findings (finding type
+// [Finding.Type.DRM_APP_COMPAT][google.play.androidpublisher.v3.Finding.Type.DRM_APP_COMPAT]).
+message DrmAppCompatFindingData {
+
+  // The unique package identifier of the DRM SDK integrated into the app.
+  // Always set.
+  string drm_package_name = 1;
+
+  // The human-readable, publicly known name of the security or DRM product.
+  // E.g. "Foo App Protection".
+  // Always set.
+  string drm_display_name = 2;
+
+  // The version of the DRM SDK currently integrated into the app that is
+  // identified as causing crashes or compatibility issues.
+  // Always set.
+  string drm_version = 3;
+
+  // The recommended target version of the DRM SDK that fixes compatibility
+  // issues. Developers should upgrade to this version or newer.
+  // Optional.
+  string recommended_drm_version = 4;
+
+  // URL to documentation or developer guidance where they can learn more
+  // about updating the DRM SDK.
+  // Optional.
+  string learn_more_url = 5;
+}

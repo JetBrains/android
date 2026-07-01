@@ -1745,8 +1745,10 @@ android-studio/plugins/android/lib/org.eclipse.emf.ecore-2.12.0.jar
 android-studio/plugins/android/lib/perfetto-protos.jar
 android-studio/plugins/android/lib/perfetto_android_protos.jar
 android-studio/plugins/android/lib/pixelprobe.jar
+android-studio/plugins/android/lib/play_findings_proto.jar
 android-studio/plugins/android/lib/play_vitals_kt_proto.jar
 android-studio/plugins/android/lib/proto.jar
+android-studio/plugins/android/lib/protobuf-java-util-3.24.4.jar
 android-studio/plugins/android/lib/protobuf-kotlin-3.24.4.jar
 android-studio/plugins/android/lib/r8.jar
 android-studio/plugins/android/lib/repository-sdk-schema.jar
@@ -2511,7 +2513,6 @@ android-studio/plugins/gemini/lib/okhttp-4.12.0.jar
 android-studio/plugins/gemini/lib/openai-java-client-okhttp-4.32.0.jar
 android-studio/plugins/gemini/lib/openai-java-core-4.32.0.jar
 android-studio/plugins/gemini/lib/pdfbox-2.0.31.jar
-android-studio/plugins/gemini/lib/protobuf-java-util-3.22.3.jar
 android-studio/plugins/gemini/resources/kb_zip/dac.zip
 android-studio/plugins/gemini/resources/llamacpp/LICENSE
 android-studio/plugins/gemini/resources/llamacpp/ggml-base.dll

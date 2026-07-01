@@ -427,6 +427,7 @@ filegroup(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
+        "//tools/adt/idea/app-quality-insights/play-findings/client:play_findings_proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_kt_proto",
         "//tools/adt/idea/as-driver:adb-proxy",
         "//tools/adt/idea/as-driver:asdriver_proto",
