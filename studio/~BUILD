@@ -706,7 +706,7 @@ studio_plugin(
     libs = [
         "//tools/base/adb-proxy:adb_proxy_proto",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
-        "//prebuilts/tools/common/m2:google-api-services",
+        "//prebuilts/tools/common/m2:google_api_services_testing",
     ],
     modules = {
         "directaccess.jar": [
