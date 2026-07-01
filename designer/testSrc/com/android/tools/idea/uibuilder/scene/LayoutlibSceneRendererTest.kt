@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.SdkConstants
+import com.android.ide.common.rendering.api.RecyclableImage
 import com.android.ide.common.rendering.api.Result
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
@@ -31,8 +32,6 @@ import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderResultStats
 import com.android.tools.rendering.RenderService.RenderTaskBuilder
 import com.android.tools.rendering.RenderTask
-import com.android.tools.rendering.imagepool.ImagePool
-import com.android.tools.rendering.imagepool.NonPooledImage
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.util.Disposer
@@ -178,7 +177,7 @@ class LayoutlibSceneRendererTest {
     assertNotEquals(renderer.renderResult, simulatedRenderResult)
     assertFalse(renderer.renderResult!!.renderResult.isSuccess)
     assertEquals(myCancellationException, renderer.renderResult!!.renderResult.exception)
-    assertNotEquals(ImagePool.NULL_POOLED_IMAGE, renderer.renderResult!!.renderedImage)
+    assertNotEquals(RecyclableImage.NULL, renderer.renderResult!!.renderedImage)
     checkImage(renderer.renderResult!!.renderedImage)
 
     // After the exception, everything should still work normally
@@ -398,7 +397,7 @@ class LayoutlibSceneRendererTest {
       t.let { result.createResult("test-custom-throwable", t) } ?: result.createResult(),
       ImmutableList.of(),
       ImmutableList.of(),
-      if (result == Result.Status.SUCCESS) getTestImage() else ImagePool.NULL_POOLED_IMAGE,
+      if (result == Result.Status.SUCCESS) getTestImage() else RecyclableImage.NULL,
       ImmutableMap.of(),
       ImmutableMap.of(),
       null,
@@ -410,13 +409,13 @@ class LayoutlibSceneRendererTest {
   private val imageWidth = 10
   private val imageHeight = 10
 
-  private fun checkImage(image: ImagePool.Image) {
+  private fun checkImage(image: RecyclableImage) {
     assertEquals(imageHeight, image.height)
     assertEquals(imageHeight, image.width)
   }
 
-  private fun getTestImage(): ImagePool.Image {
-    val imageHQ = NonPooledImage.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
+  private fun getTestImage(): RecyclableImage {
+    val imageHQ = RecyclableImage.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
     imageHQ.paint { g ->
       g.stroke = BasicStroke(10F)
       g.color = Color.WHITE

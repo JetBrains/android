@@ -63,9 +63,6 @@ import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.compose.RenderTaskPatcher;
 import com.android.ide.common.rendering.api.RecyclableImage;
-import com.android.tools.rendering.imagepool.ImagePool;
-import com.android.tools.rendering.imagepool.NonPooledImage;
-import com.android.tools.rendering.imagepool.RecyclablePooledImage;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.rendering.parsers.LayoutPullParsers;
@@ -593,27 +590,19 @@ public class RenderTask {
     return null;
   }
 
-  /**
-   * Returns a valid pooled image or {@link ImagePool#NULL_POOLED_IMAGE} if the input is null or not valid.
-   */
   @NotNull
-  private ImagePool.Image toPooledImage(@Nullable RenderSession session) {
+  private RecyclableImage toRecyclableImage(@Nullable RenderSession session) {
     if (session != null) {
       RecyclableImage recyclableImage = session.getRecyclableImage();
       if (recyclableImage != null) {
         if (recyclableImage.getWidth() > 1 && recyclableImage.getHeight() > 1) {
-          return new RecyclablePooledImage(recyclableImage);
+          return recyclableImage;
         }
         recyclableImage.close();
-        return ImagePool.NULL_POOLED_IMAGE;
-      }
-      // Fallback for screenshot testing running with older version of layoutlib-api
-      BufferedImage image = session.getImage();
-      if (image != null && image.getWidth() > 1 && image.getHeight() > 1) {
-        return NonPooledImage.create(image);
+        return RecyclableImage.NULL;
       }
     }
-    return ImagePool.NULL_POOLED_IMAGE;
+    return RecyclableImage.NULL;
   }
 
   /**
@@ -792,7 +781,7 @@ public class RenderTask {
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
 
-        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, toPooledImage(session), myLayoutlibCallback.isUsed());
+        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, toRecyclableImage(session), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         RenderTaskPatcher.enableComposeHotReloadMode(myModuleClassLoaderReference.getClassLoader());
@@ -981,7 +970,7 @@ public class RenderTask {
       RenderXmlFile xmlFile = getXmlFile();
       return runAsyncRenderAction(() -> {
         myRenderSession.measure();
-        return RenderResult.create(myContext, renderSession, xmlFile, myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
+        return RenderResult.create(myContext, renderSession, xmlFile, myLogger, RecyclableImage.NULL, myLayoutlibCallback.isUsed());
       });
     }
     catch (Exception e) {
@@ -1109,7 +1098,7 @@ public class RenderTask {
           myTestEventListener.onBeforeRender();
           myRenderSession.render(forceMeasure);
           RenderResult result =
-            RenderResult.create(myContext, myRenderSession, xmlFile, myLogger, toPooledImage(myRenderSession), myLayoutlibCallback.isUsed());
+            RenderResult.create(myContext, myRenderSession, xmlFile, myLogger, toRecyclableImage(myRenderSession), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());

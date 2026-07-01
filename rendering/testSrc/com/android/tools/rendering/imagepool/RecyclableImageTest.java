@@ -18,6 +18,7 @@ package com.android.tools.rendering.imagepool;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
+import com.android.ide.common.rendering.api.RecyclableImage;
 import com.android.testutils.ImageDiffUtil;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -26,10 +27,10 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-public class NonPooledImageTest {
+public class RecyclableImageTest {
   @Test
   public void checkCreation() {
-    NonPooledImage image1 = NonPooledImage.create(100, 150, BufferedImage.TYPE_INT_ARGB);
+    RecyclableImage image1 = RecyclableImage.create(100, 150, BufferedImage.TYPE_INT_ARGB);
     assertEquals(100, image1.getWidth());
     assertEquals(150, image1.getHeight());
     BufferedImage image1copy = image1.getCopy();
@@ -39,7 +40,7 @@ public class NonPooledImageTest {
     assertEquals(150, image1copy.getHeight());
     assertEquals(BufferedImage.TYPE_INT_ARGB, image1copy.getType());
 
-    ImagePoolImageDisposer.disposeImage(image1);
+    image1.close();
   }
 
   private static void paintSampleImage(@NotNull Graphics2D g) {
@@ -51,8 +52,8 @@ public class NonPooledImageTest {
 
   @Test
   public void checkCopy() throws IOException {
-    NonPooledImage image1 = NonPooledImage.create(100, 150, BufferedImage.TYPE_INT_ARGB);
-    image1.paint(NonPooledImageTest::paintSampleImage);
+    RecyclableImage image1 = RecyclableImage.create(100, 150, BufferedImage.TYPE_INT_ARGB);
+    image1.paint(RecyclableImageTest::paintSampleImage);
     assertEquals(100, image1.getWidth());
     assertEquals(150, image1.getHeight());
     BufferedImage image1copy = image1.getCopy();
@@ -70,6 +71,6 @@ public class NonPooledImageTest {
     golden = golden.getSubimage(20, 40, 50, 50);
     BufferedImage subCopy = image1.getCopy(20, 40, 50, 50);
     ImageDiffUtil.assertImageSimilar("sample", golden, subCopy, 0.0);
-    ImagePoolImageDisposer.disposeImage(image1);
+    image1.close();
   }
 }

@@ -15,7 +15,8 @@
  */
 package com.android.tools.rendering.imagepool
 
-import com.android.tools.rendering.imagepool.ImagePoolImageDisposer.runWithDisposeLock
+import com.android.ide.common.rendering.api.RecyclableImage
+import com.android.tools.rendering.imagepool.RecyclableImageDisposer.runWithDisposeLock
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -25,10 +26,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-private class TestDisposableImage : ImagePool.Image, DisposableImage {
+private class TestDisposableImage : RecyclableImage {
   private var isDisposed = false
 
-  override fun dispose() {
+  override fun close() {
     isDisposed = true
   }
 
@@ -36,26 +37,28 @@ private class TestDisposableImage : ImagePool.Image, DisposableImage {
 
   override fun getHeight(): Int = 0
 
+  override fun getImage(): BufferedImage? = null
+
   override fun drawImageTo(g: Graphics, dx1: Int, dy1: Int, dx2: Int, dy2: Int, sx1: Int, sy1: Int, sx2: Int, sy2: Int) {}
 
-  override fun paint(command: Consumer<Graphics2D>?) {}
+  override fun paint(command: Consumer<Graphics2D>) {}
 
   override fun getCopy(x: Int, y: Int, w: Int, h: Int): BufferedImage? = null
 
   override fun isValid(): Boolean = !isDisposed
 }
 
-class ImagePoolImageDisposerTest {
+class RecyclableImageDisposerTest {
   @Test
   fun `verify image is disposed`() {
     val disposableImage = TestDisposableImage()
     assertTrue(disposableImage.isValid)
-    ImagePoolImageDisposer.disposeImage(disposableImage)
+    RecyclableImageDisposer.disposeImage(disposableImage)
     assertFalse(disposableImage.isValid)
 
     // Subsequent calls are ignored
-    ImagePoolImageDisposer.disposeImage(disposableImage)
-    ImagePoolImageDisposer.disposeImage(disposableImage)
+    RecyclableImageDisposer.disposeImage(disposableImage)
+    RecyclableImageDisposer.disposeImage(disposableImage)
   }
 
   @Test
@@ -74,7 +77,7 @@ class ImagePoolImageDisposerTest {
 
     // Now try to dispose within the lock
     disposableImage.runWithDisposeLock {
-      ImagePoolImageDisposer.disposeImage(disposableImage)
+      RecyclableImageDisposer.disposeImage(disposableImage)
       assertTrue(disposableImage.isValid)
     }
     // Immediately after the lock it should be disposed
@@ -98,7 +101,7 @@ class ImagePoolImageDisposerTest {
     threadStarted.await()
     // The disposableImage is not locked and can not be disposed
     assertTrue(disposableImage.isValid)
-    repeat(5) { ImagePoolImageDisposer.disposeImage(disposableImage) }
+    repeat(5) { RecyclableImageDisposer.disposeImage(disposableImage) }
     // Image can not be disposed yet
     assertTrue(disposableImage.isValid)
     latch.countDown()

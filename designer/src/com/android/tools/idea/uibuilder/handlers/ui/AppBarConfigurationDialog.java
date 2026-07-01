@@ -39,11 +39,11 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
-import com.android.tools.idea.rendering.StudioRenderService;
-import com.android.tools.rendering.imagepool.ImagePool;
+import com.android.ide.common.rendering.api.RecyclableImage;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.FutureCallback;
@@ -787,7 +787,6 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private CompletableFuture<BufferedImage> renderImage(@NotNull XmlFile xmlFile) {
-    AndroidFacet facet = myModel.getFacet();
     RenderService renderService = StudioRenderService.getInstance(getProject());
     final CompletableFuture<RenderTask> taskFuture =
       RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, myModel.getBuildTarget(), myModel.getConfiguration())
@@ -798,7 +797,7 @@ public class AppBarConfigurationDialog extends JDialog {
         task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
         task.getContext().setFolderType(ResourceFolderType.LAYOUT);
         return task.render().thenApply(result -> {
-          ImagePool.Image image = result.getRenderedImage();
+          RecyclableImage image = result.getRenderedImage();
           if (!image.isValid() || image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
             return null;
           }
