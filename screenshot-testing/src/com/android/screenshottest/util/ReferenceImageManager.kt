@@ -71,6 +71,13 @@ fun copyReferenceImages(imagesToCopy: List<ImageData>, projectBasePath: String):
             throw IOException("Network paths are not allowed: source=$imagePath, dest=$destinationPath")
           }
 
+          val tmpDir = File(System.getProperty("java.io.tmpdir"))
+          val gradleBuildDir = File(projectBaseFile, com.android.tools.idea.projectsystem.FilenameConstants.BUILD)
+
+          if (!sourceFile.isUnder(projectBaseFile) && !sourceFile.isUnder(tmpDir) && !sourceFile.isUnder(gradleBuildDir)) {
+            throw IOException("Source image path escapes the allowed bounds: source=$sourceFile")
+          }
+
           if (!destinationFile.isUnder(projectBaseFile)) {
             throw IOException("Screenshot path escapes the project bounds: dest=$destinationFile")
           }
