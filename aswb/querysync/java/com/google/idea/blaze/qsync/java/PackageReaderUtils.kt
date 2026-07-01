@@ -19,15 +19,20 @@ import com.google.idea.blaze.qsync.project.FileExtensions
 import java.nio.file.Path
 
 /**
- * Chooses a candidate file from a collection of files to represent the package of the directory.
+ * Chooses candidate files from a collection of files to represent the package of the directory.
  *
- * It selects the lexicographically smallest JVM source file that exists.
+ * It selects the lexicographically smallest JVM source files that exist, up to the given limit.
  */
-fun choosePackageCandidate(files: Collection<Path>, fileExtensions: FileExtensions, exists: (Path) -> Boolean): Path? {
+fun choosePackageCandidates(
+  files: Collection<Path>,
+  fileExtensions: FileExtensions,
+  limit: Int = 5,
+  exists: (Path) -> Boolean,
+): Sequence<Path> {
   return files
     .sortedBy { it.fileName.toString() }
     .asSequence()
     .filter { fileExtensions.jvmExtensions.contains(it.toFile().extension) }
     .filter { exists(it) }
-    .firstOrNull()
+    .take(limit)
 }

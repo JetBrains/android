@@ -950,7 +950,7 @@ class GraphToProjectConverterTest {
         setOf(TestData.ROOT),
         Path.of(""),
         object : PackageReader {
-          override fun readPackage(context: Context<*>?, path: Path?): String? = "com.example.custom"
+          override fun readPackage(context: Context<*>, path: Path): String = "com.example.custom"
         },
         PackageReader.ParallelReader.SingleThreadedForTests(),
         fileExists = { true },
@@ -973,8 +973,8 @@ private fun GraphToProjectConverter.configureProject(
       projectDefinition.projectIncludes,
       Path.of(""),
       object : PackageReader {
-        override fun readPackage(context: Context<*>?, path: Path?): String {
-          val pathStr = path?.toString() ?: return ""
+        override fun readPackage(context: Context<*>, path: Path): String {
+          val pathStr = path.toString()
           return if (pathStr.endsWith("TestAndroidClass.java")) {
             "com.google.idea.blaze.qsync.testdata.android"
           } else if (pathStr.endsWith("TestClassNoDeps.java")) {
