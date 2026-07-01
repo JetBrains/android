@@ -1,5 +1,12 @@
 <idea-plugin>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.google.idea.switcher.workspaceWatcherProvider"
+                    interface="com.google.idea.switcher.WorkspaceWatcherProvider"
+                    dynamic="true"/>
+  </extensionPoints>
+
   <extensions defaultExtensionNs="com.intellij">
     <multiRoutingFileSystemBackend implementation="com.google.idea.switcher.VirtualSymlinkFileSystemBackend"/>
+    <vfs.local.pluggableFileWatcher implementation="com.google.idea.switcher.WorkspaceFileWatcher"/>
   </extensions>
 </idea-plugin>

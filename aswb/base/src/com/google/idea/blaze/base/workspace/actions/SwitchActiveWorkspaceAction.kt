@@ -106,11 +106,8 @@ class SwitchActiveWorkspaceAction : BlazeProjectAction(), DumbAware {
 
             project
               .setWorkspaceTarget(physicalPath)
-              ?.let { LocalFileSystem.getInstance().findFileByNioFile(it) as? NewVirtualFile }
-              ?.let { switchRoot ->
-                switchRoot.markDirtyRecursively()
-                switchRoot.refresh(true, true)
-              }
+              .let { LocalFileSystem.getInstance().findFileByNioFile(it) as? NewVirtualFile }
+              ?.refresh(true, true)
           } catch (ex: Exception) {
             if (ex is kotlinx.coroutines.CancellationException) {
               throw ex
