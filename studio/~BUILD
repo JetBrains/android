@@ -269,6 +269,7 @@ studio_plugin(
             "//tools/adt/idea/logcat/gradle:intellij.android.logcat.gradle",
             "//tools/vendor/google/login:google-login",
             "//tools/vendor/google/login/onboarding:login.onboarding",
+            "//tools/vendor/google/play-client/findings:google-play-client-findings",
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
             "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs",
             "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common",
