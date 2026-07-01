@@ -27,6 +27,8 @@ import androidx.compose.ui.test.onNodeWithText
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
+import com.android.tools.idea.publishing.AdiClient
+import com.android.tools.idea.publishing.RegistrationState
 import com.android.tools.idea.publishing.play.AppMetadata
 import com.android.tools.idea.publishing.play.client.FakePlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
@@ -46,11 +48,16 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.wheneverBlocking
 
 @RunsInEdt
 class ChooseBundlePageTest {
@@ -353,14 +360,109 @@ class ChooseBundlePageTest {
     }
   }
 
+  @Test
+  fun testPackageNameChangeTriggersAdiClient() {
+    val client: AdiClient = mock()
+    wheneverBlocking { client.checkPackageRegistrationStatus(any(), anyOrNull()) }
+      .thenReturn(mapOf("com.new.package" to RegistrationState.REGISTERED) to null)
+
+    val state = PlayPublishingWizardState(bundlePath = null)
+    createWizard(state, adiClient = client) { AppMetadata("New App", "com.new.package", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    assertThat(state.packageName).isEqualTo("com.new.package")
+    assertThat(state.isRegistered).isTrue()
+  }
+
+  @Test
+  fun testPackageNameChangeDoesNotTriggerAdiClientWhenPathIsLocked() {
+    val client: AdiClient = mock()
+
+    val state = PlayPublishingWizardState(bundlePath = "/some/fake/path", isRegistered = true)
+    createWizard(state, adiClient = client) { AppMetadata("New App", "com.new.package", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    assertThat(state.packageName).isEqualTo("com.new.package")
+    assertThat(state.isRegistered).isTrue()
+
+    org.mockito.Mockito.verifyNoInteractions(client)
+  }
+
+  @Test
+  fun testPackageNameChangeTriggersAdiClientWhenPathIsLockedButIsRegisteredIsNull() {
+    val client: AdiClient = mock()
+    wheneverBlocking { client.checkPackageRegistrationStatus(any(), anyOrNull()) }
+      .thenReturn(mapOf("com.new.package" to RegistrationState.REGISTERED) to null)
+
+    val state = PlayPublishingWizardState(bundlePath = "/some/fake/path", isRegistered = null)
+    createWizard(state, adiClient = client) { AppMetadata("New App", "com.new.package", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    assertThat(state.packageName).isEqualTo("com.new.package")
+    assertThat(state.isRegistered).isTrue()
+  }
+
+  @Test
+  fun testNextButtonDisabledWhileCheckingRegistration() {
+    val client: AdiClient = mock()
+    val deferred = CompletableDeferred<Pair<Map<String, RegistrationState>, Any?>>()
+    wheneverBlocking { client.checkPackageRegistrationStatus(any(), anyOrNull()) }.thenAnswer { runBlocking { deferred.await() } }
+
+    val state = PlayPublishingWizardState(bundlePath = null)
+    createWizard(state, adiClient = client) { AppMetadata("New App", "com.new.package", "123", "1.2.3") }
+
+    // During registration check, isCheckingRegistration is true, so "Next" button should be disabled
+    composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+
+    // Complete the registration check to NOT_REGISTERED (available)
+    deferred.complete(mapOf("com.new.package" to RegistrationState.NOT_REGISTERED) to null)
+    composeTestRule.waitUntil(5000) {
+      runCatching {
+          composeTestRule.onNodeWithText("Next").assertIsEnabled()
+          true
+        }
+        .getOrDefault(false)
+    }
+  }
+
+  @Test
+  fun testNextButtonEnabledWhenRegistrationCheckFails() {
+    val client: AdiClient = mock()
+    wheneverBlocking { client.checkPackageRegistrationStatus(any(), anyOrNull()) }.thenThrow(RuntimeException("Network error"))
+
+    val state = PlayPublishingWizardState(bundlePath = null)
+    createWizard(state, adiClient = client) { AppMetadata("New App", "com.new.package", "123", "1.2.3") }
+    composeTestRule.waitForIdle()
+
+    // Check failed, isCheckingRegistration is false, we should fall back to BundleState.Valid, enabling Next button
+    composeTestRule.onNodeWithText("Next").assertIsEnabled()
+  }
+
   private fun createWizard(
     state: PlayPublishingWizardState = PlayPublishingWizardState(bundlePath = "/some/fake/path"),
     shouldExtractMetadata: suspend (Path) -> Boolean = { true },
+    adiClient: AdiClient? = null,
     appMetadata: () -> AppMetadata,
   ): TestComposeWizard {
+    val initialIsRegistered = state.isRegistered
+    val client =
+      adiClient
+        ?: mock<AdiClient>().apply {
+          wheneverBlocking { checkPackageRegistrationStatus(any(), anyOrNull()) }
+            .thenAnswer { invocation ->
+              @Suppress("UNCHECKED_CAST") val packageNames = invocation.arguments[0] as Collection<String>
+              val regState =
+                when (initialIsRegistered) {
+                  true -> RegistrationState.REGISTERED
+                  false -> RegistrationState.NOT_REGISTERED
+                  else -> RegistrationState.UNKNOWN
+                }
+              packageNames.associateWith { regState } to null
+            }
+        }
     val wizard = TestComposeWizard {
       getOrCreateState { state }
-      ChooseBundlePage(shouldExtractMetadata = shouldExtractMetadata) { appMetadata() }
+      ChooseBundlePage(createAdiClient = { client }, shouldExtractMetadata = shouldExtractMetadata) { appMetadata() }
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard

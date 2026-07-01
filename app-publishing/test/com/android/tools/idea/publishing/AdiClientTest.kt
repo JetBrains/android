@@ -54,7 +54,7 @@ class AdiClientTest {
   fun testRegistered() = runBlocking {
     val json =
       """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "REGISTERED"}]}"""
-    val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
+    val client = AdiClient.createForTesting(this, FakeHttpTransport(CompletableFuture.completedFuture(json)))
     val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
     assertEquals(mapOf("com.example.app" to RegistrationState.REGISTERED), state)
   }
@@ -67,7 +67,7 @@ class AdiClientTest {
       {"name": "packages/com-example-app2/packageRegistrationStatus", "state": "NOT_REGISTERED"},
       {"name": "packages/com-example-app3/packageRegistrationStatus", "state": "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT"}
     ]}"""
-    val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
+    val client = AdiClient.createForTesting(this, FakeHttpTransport(CompletableFuture.completedFuture(json)))
     val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app1", "com.example.app2", "com.example.app3"), null)
     assertEquals(
       mapOf(
@@ -83,7 +83,7 @@ class AdiClientTest {
   fun testNotRegistered() = runBlocking {
     val json =
       """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "NOT_REGISTERED"}]}"""
-    val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
+    val client = AdiClient.createForTesting(this, FakeHttpTransport(CompletableFuture.completedFuture(json)))
     val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
     assertEquals(mapOf("com.example.app" to RegistrationState.NOT_REGISTERED), state)
   }
@@ -92,7 +92,7 @@ class AdiClientTest {
   fun testBadKey() = runBlocking {
     val json =
       """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "REGISTERED_WITH_ANOTHER_CERTIFICATE_FINGERPRINT"}]}"""
-    val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
+    val client = AdiClient.createForTesting(this, FakeHttpTransport(CompletableFuture.completedFuture(json)))
     val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
     assertEquals(mapOf("com.example.app" to RegistrationState.BAD_KEY), state)
   }
@@ -101,14 +101,14 @@ class AdiClientTest {
   fun testUnknownState() = runBlocking {
     val json =
       """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "SOMETHING_ELSE"}]}"""
-    val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
+    val client = AdiClient.createForTesting(this, FakeHttpTransport(CompletableFuture.completedFuture(json)))
     val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
     assertEquals(mapOf("com.example.app" to RegistrationState.UNKNOWN), state)
   }
 
   @Test
   fun testNetworkError() = runBlocking {
-    val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.failedFuture(Exception("Network Error"))))
+    val client = AdiClient.createForTesting(this, FakeHttpTransport(CompletableFuture.failedFuture(Exception("Network Error"))))
     val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
     assertEquals(mapOf("com.example.app" to RegistrationState.UNKNOWN), state)
   }
@@ -116,7 +116,7 @@ class AdiClientTest {
   @Test
   fun testMalformedJson() = runBlocking {
     val json = """{"packageRegistrationStatuses": [{"n"""
-    val client = AdiClient(disposableRule.disposable, FakeHttpTransport(CompletableFuture.completedFuture(json)))
+    val client = AdiClient.createForTesting(this, FakeHttpTransport(CompletableFuture.completedFuture(json)))
     val (state, _) = client.checkPackageRegistrationStatus(listOf("com.example.app"), null)
     assertEquals(mapOf("com.example.app" to RegistrationState.UNKNOWN), state)
   }
@@ -126,7 +126,7 @@ class AdiClientTest {
     val json =
       """{"packageRegistrationStatuses": [{"name": "packages/com-example-app/packageRegistrationStatus", "state": "REGISTERED"}]}"""
     val transport = FakeHttpTransport(CompletableFuture.completedFuture(json))
-    val client = AdiClient(disposableRule.disposable, transport)
+    val client = AdiClient.createForTesting(this, transport)
     client.checkPackageRegistrationStatus(listOf("com.example.app"), byteArrayOf(1, 2, 3))
 
     // SHA-256 of [1,2,3]

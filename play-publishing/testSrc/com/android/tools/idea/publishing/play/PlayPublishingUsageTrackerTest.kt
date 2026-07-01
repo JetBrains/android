@@ -27,8 +27,10 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
+import com.android.tools.idea.publishing.AdiClient
 import com.android.tools.idea.publishing.AppPublishingService
 import com.android.tools.idea.publishing.AppPublishingSource
+import com.android.tools.idea.publishing.RegistrationState
 import com.android.tools.idea.publishing.play.client.FakePlayPublishingClient
 import com.android.tools.idea.publishing.play.client.NO_APP_LISTING_CORRECTION_MESSAGE
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
@@ -66,6 +68,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import com.intellij.util.xmlb.XmlSerializer
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -73,6 +76,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -521,9 +526,16 @@ class PlayPublishingUsageTrackerTest {
     state: PlayPublishingWizardState = PlayPublishingWizardState(bundlePath = "/some/fake/path"),
     appMetadata: () -> AppMetadata,
   ): TestComposeWizard {
+    val client =
+      mock<AdiClient>().apply {
+        runBlocking {
+          whenever(checkPackageRegistrationStatus(any(), anyOrNull()))
+            .thenReturn(mapOf("com.fake.app" to RegistrationState.REGISTERED) to null)
+        }
+      }
     val wizard = TestComposeWizard {
       getOrCreateState { state }
-      ChooseBundlePage(shouldExtractMetadata = { true }) { appMetadata() }
+      ChooseBundlePage(createAdiClient = { client }, shouldExtractMetadata = { true }) { appMetadata() }
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard

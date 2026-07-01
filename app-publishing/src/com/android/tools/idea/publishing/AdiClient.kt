@@ -34,6 +34,7 @@ import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
@@ -42,9 +43,11 @@ import org.jetbrains.annotations.TestOnly
 
 private const val SERVICE_NAME = "AdiClient"
 
-class AdiClient
-@JvmOverloads
-constructor(private val parentDisposable: Disposable, @TestOnly private val transport: HttpTransport = NetHttpTransport()) {
+class AdiClient private constructor(private val scope: CoroutineScope, private val transport: HttpTransport) {
+  constructor(scope: CoroutineScope) : this(scope, NetHttpTransport())
+
+  constructor(parentDisposable: Disposable) : this(parentDisposable.createCoroutineScope())
+
   private val cache = ConcurrentHashMap<String, RegistrationState>()
 
   fun reset() = cache.clear()
@@ -53,10 +56,7 @@ constructor(private val parentDisposable: Disposable, @TestOnly private val tran
     packageNames: Collection<String>,
     certificate: ByteArray?,
   ): CompletableFuture<Pair<Map<String, RegistrationState>, DevServicesDeprecationData?>> {
-    return parentDisposable
-      .createCoroutineScope(Dispatchers.IO)
-      .async { checkPackageRegistrationStatus(packageNames, certificate) }
-      .asCompletableFuture()
+    return scope.async(Dispatchers.IO) { checkPackageRegistrationStatus(packageNames, certificate) }.asCompletableFuture()
   }
 
   suspend fun checkPackageRegistrationStatus(
@@ -127,6 +127,13 @@ constructor(private val parentDisposable: Disposable, @TestOnly private val tran
           else -> RegistrationState.UNKNOWN
         }
     } ?: mapOf()
+
+  companion object {
+    @TestOnly
+    fun createForTesting(scope: CoroutineScope, transport: HttpTransport): AdiClient {
+      return AdiClient(scope, transport)
+    }
+  }
 }
 
 enum class RegistrationState {
