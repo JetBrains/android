@@ -1131,6 +1131,8 @@ class EmulatorViewTest {
     getStreamScreenshotCallAndWaitForFrame()
     focusManager.focusOwner = view
 
+    CopyPasteManager.getInstance().setContents(StringSelection(""))
+
     val settings = EmulatorSettings.getInstance()
     settings.synchronizeClipboard = true
     var call = getNextGrpcCallIgnoringStreamScreenshot()
