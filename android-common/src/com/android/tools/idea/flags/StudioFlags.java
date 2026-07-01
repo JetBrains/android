@@ -2722,11 +2722,6 @@ public final class StudioFlags {
                     "Enable regenerating past chat queries.",
                     "Enable regenerating past chat queries by hovering and clicking a regenerate button.");
 
-  public static final Flag<Boolean> STUDIOBOT_V2_UI_ENABLED =
-    new BooleanFlag(STUDIOBOT, "ui.v2.enabled",
-                    "Enable v2 agent UI (sessions in editor tabs)",
-                    "Disables the toolwindow-based v1 agent UI and replaces it with the v2 editor tabs-based agent UI. Requires restart.");
-
   public static final Flag<Boolean> STUDIOBOT_AGENT_V2_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "agent.v2.telemetry.enabled",
                     "Enable agent V2 telemetry",
