@@ -34,4 +34,13 @@
     <androidDebugger implementation="com.google.idea.blaze.android.cppimpl.debug.BlazeNativeAndroidDebugger"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <notificationGroup id="Native Debugger Warning" displayType="BALLOON"/>
+  </extensions>
+
+  <projectListeners>
+    <listener class="com.google.idea.blaze.android.cppimpl.debug.NativeDebuggerIpv6WarningListener"
+              topic="com.intellij.xdebugger.XDebuggerManagerListener"/>
+  </projectListeners>
+
 </idea-plugin>

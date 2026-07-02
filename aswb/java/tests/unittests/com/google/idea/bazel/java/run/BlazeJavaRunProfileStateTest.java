@@ -59,6 +59,8 @@ import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -67,10 +69,14 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
 
+  private static final Supplier<BlazeJavaRunProfileState.IpVersion> DEFAULT_DETECTOR =
+      BlazeJavaRunProfileState.ipVersionDetector;
+
   private BlazeCommandRunConfiguration configuration;
 
   @Override
   protected void initTest(Container applicationServices, Container projectServices) {
+    BlazeJavaRunProfileState.ipVersionDetector = () -> BlazeJavaRunProfileState.IpVersion.V4;
     projectServices.register(
         BazelImportSettingsManager.class, new BlazeImportSettingsManager(project));
     BlazeImportSettingsManager.getInstanceForTestingOnly(getProject())
@@ -266,6 +272,68 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
                 .toArgumentList())
         .contains(
             "--test_arg=--wrapper_script_flag=--jvm_flag=-javaagent:/path/to/kotlinx-coroutines-lib.jar");
+  }
+
+  @After
+  public void restoreDetector() throws Exception {
+    BlazeJavaRunProfileState.ipVersionDetector = DEFAULT_DETECTOR;
+  }
+
+  @Test
+  public void debugFlagShouldBeIPv4IfDetectorSaysV4() {
+    BlazeJavaRunProfileState.ipVersionDetector = () -> BlazeJavaRunProfileState.IpVersion.V4;
+    configuration.setTargetInfo(new TargetInfo(Label.create("//label:rule"), "java_test"));
+    BlazeCommandRunConfigurationCommonState handlerState =
+        (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
+    handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
+    assertThat(
+            BlazeJavaRunProfileState.getBlazeCommandBuilder(
+                    project,
+                    configuration,
+                    ImmutableList.of(),
+                    ExecutorType.DEBUG,
+                    /* kotlinxCoroutinesJavaAgent= */ null)
+                .build()
+                .toArgumentList())
+        .contains("--test_arg=--wrapper_script_flag=--debug=127.0.0.1:5005");
+  }
+
+  @Test
+  public void debugFlagShouldBeIPv6IfDetectorSaysV6() {
+    BlazeJavaRunProfileState.ipVersionDetector = () -> BlazeJavaRunProfileState.IpVersion.V6;
+    configuration.setTargetInfo(new TargetInfo(Label.create("//label:rule"), "java_test"));
+    BlazeCommandRunConfigurationCommonState handlerState =
+        (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
+    handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
+    assertThat(
+            BlazeJavaRunProfileState.getBlazeCommandBuilder(
+                    project,
+                    configuration,
+                    ImmutableList.of(),
+                    ExecutorType.DEBUG,
+                    /* kotlinxCoroutinesJavaAgent= */ null)
+                .build()
+                .toArgumentList())
+        .contains("--test_arg=--wrapper_script_flag=--debug=[::1]:5005");
+  }
+
+  @Test
+  public void debugFlagShouldBeSystemIfDetectorSaysSystem() {
+    BlazeJavaRunProfileState.ipVersionDetector = () -> BlazeJavaRunProfileState.IpVersion.SYSTEM;
+    configuration.setTargetInfo(new TargetInfo(Label.create("//label:rule"), "java_test"));
+    BlazeCommandRunConfigurationCommonState handlerState =
+        (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
+    handlerState.getCommandState().setCommand(BlazeCommandName.fromString("command"));
+    assertThat(
+            BlazeJavaRunProfileState.getBlazeCommandBuilder(
+                    project,
+                    configuration,
+                    ImmutableList.of(),
+                    ExecutorType.DEBUG,
+                    /* kotlinxCoroutinesJavaAgent= */ null)
+                .build()
+                .toArgumentList())
+        .contains("--test_arg=--wrapper_script_flag=--debug=5005");
   }
 
   private static class MockTargetFinder implements TargetFinder {
