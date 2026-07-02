@@ -56,13 +56,6 @@ import com.intellij.psi.xml.XmlText
 import com.intellij.psi.xml.XmlToken
 import com.intellij.util.application
 import com.intellij.util.concurrency.SameThreadExecutor
-import java.util.Collections
-import java.util.EnumSet
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -71,6 +64,13 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
+import java.util.Collections
+import java.util.EnumSet
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * The [ResourceNotificationManager] provides notifications to editors that are displaying Android
@@ -772,7 +772,7 @@ private class ProjectPsiTreeChangeListener(
     val file = event.file
     // Spurious events from the IDE doing internal things, such as the formatter using a light
     // virtual filesystem to process text formatting chunks etc.
-    return file != null && (file.parent == null || !file.viewProvider.isPhysical)
+    return file != null && (file.parent == null || !file.viewProvider.correspondsToRealFile())
   }
 
   private fun check(event: PsiTreeChangeEvent) {
