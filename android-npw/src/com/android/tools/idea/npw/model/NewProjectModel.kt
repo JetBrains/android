@@ -218,6 +218,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
                       imageAttachments.get(),
                       displayText.get().takeIf { it.isNotBlank() },
                       importProjectType = sourceProjectType.get().importProjectType,
+                      modelId = modelId.get().takeIf { it.isNotBlank() },
                     )
                 } else {
                   GeminiPluginApi.getInstance()
@@ -284,6 +285,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
                       imageAttachments.get(),
                       displayText.get().takeIf { it.isNotBlank() },
                       importProjectType = sourceProjectType.get().importProjectType,
+                      modelId = modelId.get().takeIf { it.isNotBlank() },
                     )
                 } else {
                   GeminiPluginApi.getInstance()
