@@ -89,5 +89,5 @@ class DumbModeTest {
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
   }
 
-  private fun getNumberOfArgs(args: List<LightArgsClass>) = args.sumOf { it.destination.arguments.size }
+  private fun getNumberOfArgs(args: List<LightArgsClass>) = args.flatMap { it.destination.arguments }.distinct().count()
 }

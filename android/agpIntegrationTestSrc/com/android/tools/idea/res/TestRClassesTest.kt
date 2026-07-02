@@ -317,7 +317,7 @@ sealed class TestRClassesTest {
                int[] id = new int[] {
                 com.example.projectwithappandlib.lib.R.string.libResource,
                 // The string that isn't in strings.xml should be highlighted as an error.
-                com.example.projectwithappandlib.lib.R.string.${"resource_that_does_not_exist" highlightedAs ERROR},
+                com.example.projectwithappandlib.lib.R.string.${"resource_that_does_not_exist".highlightedAs(ERROR, "Cannot resolve symbol 'resource_that_does_not_exist'")},
                };
             }
         }
@@ -766,14 +766,14 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
               com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource,
 
               // Resources from test deps are not in the non-transitive test R class:
-              com.example.projectwithappandlib.app.test.R.string.${"libResource" highlightedAs ERROR},
-              com.example.projectwithappandlib.app.test.R.color.${"primary_material_dark" highlightedAs ERROR},
+              com.example.projectwithappandlib.app.test.R.string.${"libResource".highlightedAs(ERROR, "Cannot resolve symbol 'libResource'")},
+              com.example.projectwithappandlib.app.test.R.color.${"primary_material_dark".highlightedAs(ERROR, "Cannot resolve symbol 'primary_material_dark'")},
 
               // Main resources are not in the test R class:
-              com.example.projectwithappandlib.app.test.R.string.${"app_name" highlightedAs ERROR},
+              com.example.projectwithappandlib.app.test.R.string.${"app_name".highlightedAs(ERROR, "Cannot resolve symbol 'app_name'")},
 
               // Main resources from dependencies are not in R class:
-              com.example.projectwithappandlib.app.test.R.string.${"libTestResource" highlightedAs ERROR},
+              com.example.projectwithappandlib.app.test.R.string.${"libTestResource".highlightedAs(ERROR, "Cannot resolve symbol 'libTestResource'")},
 
               R.string.app_name // Main R class is still accessible.
              };
