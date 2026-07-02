@@ -52,7 +52,7 @@ public class StringResourceTableModel extends AbstractTableModel {
     this(repository, project, StringResourceData.create(project, repository));
   }
 
-  StringResourceTableModel() {
+  public StringResourceTableModel() {
     this(StringResourceRepository.empty(), null, null);
   }
 

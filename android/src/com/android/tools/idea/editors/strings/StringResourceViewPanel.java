@@ -228,6 +228,16 @@ public class StringResourceViewPanel implements Disposable {
 
   @Override
   public void dispose() {
+    // Break the chain: Swing caches the last-focused JTextComponent in
+    // sun.awt.AppContext under key JTextComponent_FocusedComponent. When a
+    // TranslationsEditorTextField from this panel is that cached field, its
+    // table.model.myProject keeps the Project alive after tests finish.
+    // Swap in a project-less empty model so the cached field can no longer reach this Project.
+    myTable.setRowSorter(null);
+    myTable.setModel(new StringResourceTableModel());
+    // Break the chain: FrozenColumnTable listeners (CellSelectionListener, RemoveLocaleMouseListener,
+    // anonymous popup listener) all capture this panel and, through myGoToAction, the Project.
+    myTable.clearListeners();
   }
 
   private void initTable() {

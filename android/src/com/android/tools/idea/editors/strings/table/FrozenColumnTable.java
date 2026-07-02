@@ -678,6 +678,10 @@ public class FrozenColumnTable<M extends TableModel> {
     myListeners.add(listener);
   }
 
+  public final void clearListeners() {
+    myListeners.clear();
+  }
+
   @NotNull
   final Iterable<FrozenColumnTableListener> getListeners() {
     return myListeners;
@@ -751,7 +755,7 @@ public class FrozenColumnTable<M extends TableModel> {
     return myRowSorter;
   }
 
-  final void setRowSorter(@Nullable FrozenColumnTableRowSorter<M> rowSorter) {
+  public final void setRowSorter(@Nullable FrozenColumnTableRowSorter<M> rowSorter) {
     if (rowSorter == null) {
       myFrozenTable.setRowSorter(null);
       myScrollableTable.setRowSorter(null);
