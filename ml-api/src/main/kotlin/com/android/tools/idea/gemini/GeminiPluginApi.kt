@@ -90,8 +90,9 @@ interface GeminiPluginApi {
     project: Project,
     prompt: String,
     imageAttachments: Collection<VirtualFile>,
-    displayText: String? = null,
+    displayText: String?,
     importProjectType: ImportProjectType,
+    modelId: String?,
   ) {}
 
   companion object {
