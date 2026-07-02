@@ -151,7 +151,6 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     }
   }
 
-
   /**
    * Creates a system that contains only the sdk installed
    * and with a default temp folder.
