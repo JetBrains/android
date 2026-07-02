@@ -1075,10 +1075,6 @@
       "path": "ActionManager"
     },
     {
-      "hit": "Import Watch Face Studio File...",
-      "path": "ActionManager"
-    },
-    {
       "hit": "Import an Android Code Sample",
       "path": "ActionManager"
     },
