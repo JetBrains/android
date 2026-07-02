@@ -1,5 +1,4 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
-load("//tools/adt/idea/studio:studio.bzl", "studio_project_model")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -25,8 +24,8 @@ iml_test(
     name = "PlayPolicyInsightIntegrationTest",
     timeout = "moderate",
     data = [
+        ":minapp",
         ":minapp_deps",
-        ":minapp_project_model",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -61,17 +60,4 @@ maven_repository(
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
-)
-
-studio_project_model(
-    name = "minapp_project_model",
-    srcs = [
-        ":minapp",
-        ":minapp_deps",
-        "//tools/base/build-system:gradle-distrib-8.6",
-        "//prebuilts/studio/jdk:jdk21",
-    ],
-    manifest_path = "tools/adt/idea/app-quality-insights/play-policy/integration/minapp_deps.manifest",
-    out_dir_name = "minapp_project_model",
-    project_path = "tools/adt/idea/app-quality-insights/play-policy/integration/testData/minapp",
 )

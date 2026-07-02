@@ -18,35 +18,31 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
-import com.android.tools.asdriver.tests.base.IdeInstallation
-import java.nio.file.Paths
 import org.junit.Rule
 import org.junit.Test
 
 class MultiProjectSameWindowTest {
-  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
   @Test
   fun multiProjectTestSameWindow() {
     // Create a new android project, and set a fixed distribution
-    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/minapp_project_model")
-    val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
+    val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
-    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runStudio(project) { studio ->
-      studio.waitForSyncSkippedLog()
-      studio.waitForIndexingSkippedLog()
+      studio.waitForSync()
+      studio.waitForIndex()
 
       // Install and open a second project.
       val project2 = createLiveEditProject()
       system.installLiveEditMavenDependencies()
 
-      val projectPath2 = project2.install(IdeInstallation.getTmpDir())
+      val projectPath2 = project2.install(system.installation.fileSystem.root)
       system.installation.trustPath(projectPath2)
 
-      project2.setSdkDir(system.installation.sdkDir)
+      project2.setSdkDir(system.sdk.sourceDir)
       studio.openProject(projectPath2.toString(), false)
 
       // Wait for sync so that the project name reliably is "LiveEditTest".
@@ -54,7 +50,7 @@ class MultiProjectSameWindowTest {
       // result instead of the second. Therefore, this code resets the log (again) and then checks
       // for two syncs to have completed.
       system.installation.ideaLog.reset()
-      studio.waitForSyncSkippedLog()
+      studio.waitForSync()
       studio.waitForSync()
 
       // Open file in second project

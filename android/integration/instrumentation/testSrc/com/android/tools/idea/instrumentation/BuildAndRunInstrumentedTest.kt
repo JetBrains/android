@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.testlib.Emulator
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 import org.junit.Rule
@@ -28,22 +27,20 @@ import org.junit.Test
 
 // TODO(b/279220000 && IDEA-337844): Run button is grayed out in the failing tests while debug button is not.
 class BuildAndRunInstrumentedTest {
-  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
   @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun deployInstrumentedTest() {
-    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/instrumenttestapp_project_model")
-    val project = AndroidProject(projectArtifactsPath.resolve("InstrumentedTestApp").toString())
+    val project = AndroidProject("tools/adt/idea/android/integration/testData/InstrumentedTestApp")
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest"))
 
-    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator(Emulator.SystemImage.API_33_ATD) { emulator ->
         system.runStudio(project, watcher.dashboardName) { studio ->
-          studio.waitForSyncSkippedLog()
-          studio.waitForIndexingSkippedLog()
+          studio.waitForSync()
+          studio.waitForIndex()
           studio.waitForProjectInit()
           emulator.waitForBoot()
           adb.waitForDevice(emulator)

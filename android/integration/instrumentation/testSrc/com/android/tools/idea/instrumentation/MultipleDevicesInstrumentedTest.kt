@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.testlib.Emulator
 import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.time.Duration.Companion.minutes
 import org.junit.Ignore
 import org.junit.Rule
@@ -28,16 +27,14 @@ import org.junit.Test
 
 @Ignore("b/328255748")
 class MultipleDevicesInstrumentedTest {
-  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
   @Test
   fun deployInstrumentedTest() {
-    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/instrumenttestapp_project_model")
-    val project = AndroidProject(projectArtifactsPath.resolve("InstrumentedTestApp").toString())
+    val project = AndroidProject("tools/adt/idea/android/integration/testData/InstrumentedTestApp")
 
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest"))
 
-    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runAdb { adb ->
       system.runEmulator(Emulator.SystemImage.API_33_ATD) { emulator1 ->
         system.runEmulator(Emulator.SystemImage.API_33_ATD) { emulator2 ->
@@ -47,8 +44,8 @@ class MultipleDevicesInstrumentedTest {
           adb.waitForDevice(emulator1)
           adb.waitForDevice(emulator2)
           system.runStudio(project) { studio ->
-            studio.waitForSyncSkippedLog()
-            studio.waitForIndexingSkippedLog()
+            studio.waitForSync()
+            studio.waitForIndex()
             studio.waitForProjectInit()
 
             studio.executeAction("MakeGradleProject")

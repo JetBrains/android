@@ -23,13 +23,12 @@ import com.android.tools.asdriver.tests.integration.RemoteDeviceManager
 import com.android.tools.testlib.Emulator
 import com.android.tools.testlib.LogFile
 import com.intellij.openapi.util.SystemInfo
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 
 class BuildAndRunTest {
-  @JvmField @Rule val system = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system = AndroidSystem.standard()
 
   @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
@@ -56,11 +55,9 @@ class BuildAndRunTest {
    */
   @Test
   fun deploymentTest() {
-    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/minapp_project_model")
-    val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
+    val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
-    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runAdb { adb ->
       system.runStudio(project, watcher.dashboardName) { studio ->
         var logCat: LogFile
@@ -71,8 +68,8 @@ class BuildAndRunTest {
           emulator = system.runEmulator()
         }
 
-        studio.waitForSyncSkippedLog()
-        studio.waitForIndexingSkippedLog()
+        studio.waitForSync()
+        studio.waitForIndex()
 
         if (!SystemInfo.isWindows) {
           emulator?.waitForBoot()

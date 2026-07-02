@@ -19,26 +19,23 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import java.nio.file.Paths
 import org.junit.Rule
 import org.junit.Test
 
 class DebugJUnitTest {
 
-  @get:Rule val system = AndroidSystem.standardWithTmpDir()
+  @get:Rule val system = AndroidSystem.standard()
 
   @get:Rule val watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun runJUnitDebuggerTest() {
-    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/debugjunittest_project_model")
-    val project = AndroidProject(projectArtifactsPath.resolve("JUnitTestApp").toString())
+    val project = AndroidProject("tools/adt/idea/android/integration/testData/JUnitTestApp")
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/debug_junit_test_deps.manifest"))
-    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->
-      studio.waitForSyncSkippedLog()
-      studio.waitForIndexingSkippedLog()
+      studio.waitForSync()
+      studio.waitForIndex()
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
 

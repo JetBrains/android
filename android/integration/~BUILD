@@ -1,8 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/adt/idea/emulator-snapshots:emulator_test_env.bzl", "emulator_snapshot_data", "emulator_snapshot_jvm_flags", "emulator_test_jvm_flags")
-load("//tools/adt/idea/gradle-prebuild:gradle_prebuild.bzl", "gradle_build_project")
-load("//tools/adt/idea/studio:studio.bzl", "studio_project_model")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test", "studio_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -84,7 +82,7 @@ iml_test(
     name = "ShowUsagesTest",
     timeout = "long",
     data = [
-        ":minapp_project_model",
+        ":minapp",
         ":showusages_deps",
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
@@ -176,7 +174,7 @@ maven_repository(
 iml_test(
     name = "HighlightingAfterTypingTest",
     timeout = "long",
-    data = editor_performance_test_data + [":architectureSamples_project_model"],
+    data = editor_performance_test_data,
     module = ":intellij.android.core.integration",
     tags = [
         "ci:perfgate-linux",
@@ -192,7 +190,7 @@ iml_test(
 iml_test(
     name = "StartupPerformanceTest",
     timeout = "long",
-    data = editor_performance_test_data + [":architectureSamples_project_model"],
+    data = editor_performance_test_data,
     module = ":intellij.android.core.integration",
     tags = [
         "ci:perfgate-linux",
@@ -292,7 +290,7 @@ studio_test(
     ],
     data = [
         ":buildproject_deps",
-        ":mindebugapp_project_model",
+        ":mindebugapp",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -437,8 +435,8 @@ iml_test(
     name = "GoToDeclarationTest",
     timeout = "long",
     data = [
+        ":languagehighlighting",
         ":languagehighlighting_deps",
-        ":languagehighlighting_project_model",
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
@@ -567,7 +565,7 @@ iml_test(
 )
 
 build_and_run_test_data = [
-    ":minapp_project_model",
+    ":minapp",
     ":buildproject_deps",
     "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
@@ -756,7 +754,7 @@ studio_test(
         ":buildproject_deps",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
-        ":minapp_project_model",
+        ":minapp",
     ],
     module = ":intellij.android.core.integration",
     tags = [
@@ -851,7 +849,7 @@ iml_test(
     timeout = "long",
     data = [
         ":debug_junit_test_deps",
-        ":debugjunittest_project_model",
+        ":debugjunittest",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
@@ -874,7 +872,7 @@ iml_test(
     timeout = "long",
     data = [
         ":buildkmpproject_deps",
-        ":kmpapp_project_model",
+        ":kmpapp",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -934,7 +932,7 @@ iml_test(
 iml_test(
     name = "MultiProjectSameWindowTest",
     timeout = "long",
-    data = multi_project_test_data + [":minapp_project_model"],
+    data = multi_project_test_data,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -1230,6 +1228,7 @@ filegroup(
 filegroup(
     name = "instrumenttestapp",
     srcs = glob(["testData/InstrumentedTestApp/**"]),
+    visibility = ["//tools/adt/idea/android/integration/instrumentation:__pkg__"],
 )
 
 filegroup(
@@ -1256,148 +1255,4 @@ filegroup(
 filegroup(
     name = "architectureSamplesScenarioScripts",
     srcs = glob(["testData/architecture-samples-scenarios/**"]),
-)
-
-java_library(
-    name = "project_model_generator_lib",
-    testonly = True,
-    srcs = [
-        "testSrc/com/android/tools/idea/ProjectIndexAndGradleSyncGenerator.java",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//tools/adt/idea/as-driver:as-driver.utils_testlib",
-        "//tools/base/common:studio.android.sdktools.common",
-    ],
-)
-
-studio_project_model(
-    name = "minapp_project_model",
-    srcs = [
-        ":buildproject_deps",
-        ":minapp_built_project",
-        INTEGRATION_TEST_GRADLE_VERSION,
-    ],
-    manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
-    out_dir_name = "minapp_project_model",
-    project_path = "tools/adt/idea/android/integration/minapp_built_project/minapp",
-    visibility = ["//visibility:public"],
-)
-
-studio_project_model(
-    name = "debugjunittest_project_model",
-    srcs = [
-        ":debug_junit_test_deps",
-        ":debugjunittest",
-        INTEGRATION_TEST_GRADLE_VERSION,
-    ],
-    manifest_path = "tools/adt/idea/android/integration/debug_junit_test_deps.manifest",
-    out_dir_name = "debugjunittest_project_model",
-    project_path = "tools/adt/idea/android/integration/testData/JUnitTestApp",
-)
-
-studio_project_model(
-    name = "architectureSamples_project_model",
-    srcs = [
-        ":architectureSamples",
-        ":editor_performance_test_deps",
-        INTEGRATION_TEST_GRADLE_VERSION,
-    ],
-    manifest_path = "tools/adt/idea/android/integration/editor_performance_test_deps.manifest",
-    out_dir_name = "architectureSamples_project_model",
-    project_path = "tools/adt/idea/android/integration/testData/architecture-samples",
-)
-
-studio_project_model(
-    name = "languagehighlighting_project_model",
-    srcs = [
-        ":languagehighlighting",
-        ":languagehighlighting_deps",
-        INTEGRATION_TEST_GRADLE_VERSION,
-    ],
-    manifest_path = "tools/adt/idea/android/integration/languagehighlighting_deps.manifest",
-    out_dir_name = "languagehighlighting_project_model",
-    project_path = "tools/adt/idea/android/integration/testData/languagehighlighting",
-)
-
-studio_project_model(
-    name = "applychanges_project_model",
-    srcs = [
-        ":applychangesproject",
-        ":buildproject_deps",
-        INTEGRATION_TEST_GRADLE_VERSION,
-    ],
-    manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
-    out_dir_name = "applychanges_project_model",
-    project_path = "tools/adt/idea/android/integration/testData/applychanges",
-)
-
-studio_project_model(
-    name = "instrumenttestapp_project_model",
-    srcs = [
-        ":instrumenttestapp",
-        ":run_instrumented_test_project_deps",
-        INTEGRATION_TEST_GRADLE_VERSION,
-    ],
-    manifest_path = "tools/adt/idea/android/integration/run_instrumented_test_project_deps.manifest",
-    out_dir_name = "instrumenttestapp_project_model",
-    project_path = "tools/adt/idea/android/integration/testData/InstrumentedTestApp",
-    visibility = ["//tools/adt/idea/android/integration/instrumentation:__pkg__"],
-)
-
-studio_project_model(
-    name = "mindebugapp_project_model",
-    srcs = [
-        ":buildproject_deps",
-        ":mindebugapp",
-        INTEGRATION_TEST_GRADLE_VERSION,
-    ],
-    manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
-    out_dir_name = "mindebugapp_project_model",
-    project_path = "tools/adt/idea/android/integration/testData/mindebugapp",
-)
-
-studio_project_model(
-    name = "kmpapp_project_model",
-    srcs = [
-        ":buildkmpproject_deps",
-        ":kmpapp_built_project",
-        INTEGRATION_TEST_GRADLE_VERSION,
-    ],
-    manifest_path = "tools/adt/idea/android/integration/buildkmpproject_deps.manifest",
-    out_dir_name = "kmpapp_project_model",
-    project_path = "tools/adt/idea/android/integration/kmpapp_built_project/kmpapp",
-    visibility = ["//visibility:public"],
-)
-
-gradle_build_project(
-    name = "minapp_built_project",
-    srcs = [
-        ":buildproject_deps",
-        ":minapp",
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
-        "//prebuilts/studio/sdk:platforms/android-33",
-    ],
-    gradle_dist = INTEGRATION_TEST_GRADLE_VERSION,
-    manifest_path = "tools/adt/idea/android/integration/buildproject_deps.manifest",
-    out_dir_name = "minapp_built_project",
-    project_name = "minapp",
-    project_path = "tools/adt/idea/android/integration/testData/minapp",
-    visibility = ["//visibility:public"],
-)
-
-gradle_build_project(
-    name = "kmpapp_built_project",
-    srcs = [
-        ":buildkmpproject_deps",
-        ":kmpapp",
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
-        "//prebuilts/studio/sdk:platforms/android-33",
-    ],
-    gradle_dist = INTEGRATION_TEST_GRADLE_VERSION,
-    manifest_path = "tools/adt/idea/android/integration/buildkmpproject_deps.manifest",
-    out_dir_name = "kmpapp_built_project",
-    project_name = "kmpapp",
-    project_path = "tools/adt/idea/android/integration/testData/kmpapp",
-    visibility = ["//visibility:public"],
 )

@@ -65,9 +65,6 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
   protected final LogFile stderr;
   protected final Path vmOptionsPath;
   protected final Path systemDir;
-  //Points to a location outside bazel sandbox, used to ensure constant path for any artifact placed inside
-  protected final Path tmpDir;
-  protected boolean isRestoredFromPrebuiltCache = false;
 
   public final TestFileSystem fileSystem;
 
@@ -77,7 +74,6 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     this.workDir = workDir;
     this.studioDir = studioDir;
     this.logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "logs");
-    this.tmpDir = getTmpDir();
     this.ideaLog = new LogFile(logsDir.resolve("idea.log"));
     Files.createFile(ideaLog.getPath());
     stdout = new LogFile(logsDir.resolve("stdout.txt"));
@@ -277,34 +273,11 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     return projectPath;
   }
 
-  protected Path setupProjectAtTmpDir(AndroidProject project) throws IOException {
-    Path projectPath = project.installAtTmpDir(tmpDir);
-    project.setSdkDir(getSdkDir());
-    // Mark that project as trusted
-    trustPath(projectPath);
-    return projectPath;
-  }
-
   public T run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
     Path projectPath = setupProject(project, sdkDir);
     return run(display, env, new String[]{ projectPath.toString() });
   }
 
-  public T runIdeFromTmpDir(Display display, Map<String, String> env, AndroidProject project) throws IOException, InterruptedException {
-    Path projectPath = setupProjectAtTmpDir(project);
-    Path jdkDir = getJdkDir();
-    String javaHome = jdkDir.toAbsolutePath().toString();
-    env.put("GRADLE_LOCAL_JAVA_HOME", javaHome);
-    env.put("JAVA_HOME", javaHome);
-    env.put("STUDIO_GRADLE_JDK", javaHome);
-    env.put("STUDIO_JDK", javaHome);
-    Path gradleUserHome = tmpDir.resolve(".gradle");
-    env.put("GRADLE_USER_HOME", gradleUserHome.toAbsolutePath().toString());
-    addVmOption("-Dgradle.user.home=" + gradleUserHome.toAbsolutePath().toString());
-    env.put("ANDROID_USER_HOME", tmpDir.resolve(".android").toString());
-    addVmOption("-Dgradle.jvm=$javaHome");
-    return run(display, env, new String[]{ projectPath.toString() });
-  }
 
   public T run(Display display, Map<String, String> userEnv, String[] args) throws IOException, InterruptedException {
     Map<String, String> env = new HashMap<>(userEnv);
@@ -632,105 +605,11 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     return studio;
   }
 
-  public static Path getTmpDir() {
-    String tmpDir = "/tmp/android-studio-test-artifacts";
-    if (SystemInfo.isMac) {
-      tmpDir = "/private/tmp/android-studio-test-artifacts";
-    } else if (SystemInfo.isWindows) {
-      tmpDir = "C:\\Temp\\android-studio-test-artifacts";
-    }
-    return Path.of(tmpDir);
-  }
-
-  public Path getSdkDir() {
-    return this.tmpDir.resolve("sdk");
-  }
-
-  public Path getJdkDir() {
-    return this.tmpDir.resolve("jdk");
-  }
-
-  public void setupTmpDir() throws IOException {
-    FileUtils.deleteRecursivelyIfExists(tmpDir.toFile());
-    Files.createDirectories(tmpDir);
-    setupSdkAtTmpDir();
-    setupJdkAtTmpDir();
-  }
-
-  public void setupSdkAtTmpDir() throws IOException {
-    Path sdkDir = getSdkDir();
-    Files.createDirectories(sdkDir);
-    Path prebuiltSdk = TestUtils.resolveWorkspacePath(TestUtils.getRelativeSdk());
-    FileUtils.copyDirectory(prebuiltSdk.toFile(), sdkDir.toFile());
-  }
-
   /** JDK that is bundled with this IDE installation */
   public Path bundledJdkPath() {
     return TestUtils.getEmbeddedJdkPath();
   }
 
-  public void setupJdkAtTmpDir() throws IOException {
-    Path jdkDir = getJdkDir();
-    Files.createDirectories(jdkDir);
-    FileUtils.copyDirectory(bundledJdkPath().toFile(), jdkDir.toFile());
-  }
-
-  public void copySystemDir(Path projectArtifactsPath) throws IOException {
-    Path sourceSystem = TestUtils.getBinPath(projectArtifactsPath.resolve("system").toString());
-    if (Files.exists(sourceSystem)) {
-      FileUtils.copyDirectory(sourceSystem.toFile(), getSystemDir().toFile());
-    }
-  }
-
-  public void copyConfigDir(Path projectArtifactsPath) throws IOException {
-    Path sourceConfig = TestUtils.getBinPath(projectArtifactsPath.resolve("config").toString());
-    if (Files.exists(sourceConfig)) {
-      FileUtils.copyDirectory(sourceConfig.toFile(), getConfigDir().toFile());
-    }
-  }
-
-  public void copyAndroidHome(Path projectArtifactsPath) throws IOException {
-    Path sourceAndroidHome = TestUtils.getBinPath(projectArtifactsPath.resolve(".android").toString());
-    Path targetAndroidHome = tmpDir.resolve(".android");
-    if (Files.exists(sourceAndroidHome)) {
-      FileUtils.copyDirectory(sourceAndroidHome.toFile(), targetAndroidHome.toFile());
-    }
-  }
-
-  public void copyGradleDir(Path projectArtifactsPath) throws IOException {
-    Path sourceGradle = TestUtils.getBinPath(projectArtifactsPath.resolve(".gradle").toString());
-    if (Files.exists(sourceGradle)) {
-      FileUtils.copyDirectory(sourceGradle.toFile(), tmpDir.resolve(".gradle").toFile());
-    }
-  }
-
-  // We clear the transforms cache to prevent Gradle from crashing with an "Immutable workspace
-  // contents have been modified" error. This happens because Bazel assigns new filesystem
-  // timestamps when staging the prebuilt cache, which mismatch Gradle's internal tracking.
-  public void clearTransformsCache() {
-    Path cachesDir = tmpDir.resolve(".gradle/caches");
-    if (Files.exists(cachesDir)) {
-      try (java.nio.file.DirectoryStream<Path> stream = Files.newDirectoryStream(cachesDir, "transforms-*")) {
-        for (Path entry : stream) {
-          FileUtils.deleteRecursivelyIfExists(entry.toFile());
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  public void restoreCachedIdeState(Path projectArtifactsPath) throws IOException {
-    isRestoredFromPrebuiltCache = true;
-    copySystemDir(projectArtifactsPath);
-    copyConfigDir(projectArtifactsPath);
-    copyGradleDir(projectArtifactsPath);
-    copyAndroidHome(projectArtifactsPath);
-  }
-
-  public boolean isRestoredFromPrebuiltCache() {
-    return isRestoredFromPrebuiltCache;
-  }
 
   abstract public T attach() throws IOException, InterruptedException;
 

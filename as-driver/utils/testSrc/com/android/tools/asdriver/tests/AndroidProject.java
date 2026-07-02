@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AndroidProject {
@@ -63,63 +61,6 @@ public class AndroidProject {
     injectGradle();
     isInstalled = true;
     return targetProject;
-  }
-
-  /**
-   * Installs the project into the specified temporary directory outside bazel sandbox. The project
-   * source code is copied from the bazel bin folder to the specified location. It also sets the
-   * project jdk location through gradle.xml file.
-   */
-  public Path installAtTmpDir(Path tmpDir) throws IOException {
-    if (isInstalled) return targetProject;
-    Path project = TestUtils.getBinPath(this.path);
-    targetProject = tmpDir.resolve(Paths.get(path).getFileName().toString());
-    Files.createDirectories(targetProject);
-    FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
-    setJdkDir(targetProject);
-    injectGradleForPreSync();
-    isInstalled = true;
-    return targetProject;
-  }
-
-  private void setJdkDir(Path project) throws IOException {
-    Path dotIdea = project.resolve(".idea");
-    if (!Files.exists(dotIdea)) {
-      Files.createDirectories(dotIdea);
-    }
-    String xmlContent = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <project version="4">
-          <component name="GradleSettings">
-            <option name="linkedExternalProjectsSettings">
-              <GradleProjectSettings>
-                <option name="externalProjectPath" value="$PROJECT_DIR$" />
-                <option name="gradleJvm" value="$PROJECT_DIR$/../jdk" />
-                <option name="resolveModulePerSourceSet" value="false" />
-              </GradleProjectSettings>
-            </option>
-          </component>
-        </project>
-        """;
-    Files.writeString(dotIdea.resolve("gradle.xml"), xmlContent);
-  }
-
-  protected void injectGradleForPreSync() throws IOException {
-    Path wrapper = targetProject.resolve("gradle/wrapper/gradle-wrapper.properties");
-    String content = Files.readString(wrapper);
-    String distributionFileName = distribution.getFileName().toString();
-
-    Path projectRootDist = targetProject.getParent().resolve(distributionFileName);
-    if (!Files.exists(projectRootDist)) {
-      Files.copy(distribution, projectRootDist, StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    Path wrapperDir = wrapper.getParent();
-    String relativeUrl = wrapperDir.relativize(projectRootDist).toString().replace('\\', '/');
-    String newContent = content.replaceAll("distributionUrl=.*", Matcher.quoteReplacement("distributionUrl=" + relativeUrl));
-    if (!newContent.equals(content)) {
-      Files.writeString(wrapper, newContent);
-    }
   }
 
   protected void injectGradle() throws IOException {

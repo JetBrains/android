@@ -22,23 +22,20 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.platform.performance.testing.PlatformPerformanceBenchmark
 import com.intellij.openapi.util.SystemInfo
-import java.nio.file.Paths
 import org.junit.Rule
 import org.junit.Test
 
 class HighlightingAfterTypingTest {
-  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
   @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun testHighlightingAfterTyping() {
     // Create a new android project, and set a fixed distribution
-    val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/architectureSamples_project_model")
-    val project = AndroidProject(projectArtifactsPath.resolve("architecture-samples").toString())
+    val project = AndroidProject("tools/adt/idea/android/integration/testData/architecture-samples")
     // Don't show Decompiler legal notice in case of resolving in .class files.
     system.installation.acceptLegalDecompilerNotice()
-    system.getInstallation().restoreCachedIdeState(projectArtifactsPath)
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/editor_performance_test_deps.manifest"))
@@ -47,8 +44,8 @@ class HighlightingAfterTypingTest {
     system.installation.addVmOption("-Didea.is.integration.test=true")
 
     system.runStudio(project) { studio ->
-      studio.waitForSyncSkippedLog()
-      studio.waitForIndexingSkippedLog()
+      studio.waitForSync()
+      studio.waitForIndex()
 
       studio.openFile(
         null,
