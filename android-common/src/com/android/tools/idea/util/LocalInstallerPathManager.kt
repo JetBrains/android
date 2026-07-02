@@ -16,8 +16,7 @@
 
 package com.android.tools.idea.util
 
-import com.intellij.openapi.application.PathManager
-import java.nio.file.Paths
+import com.android.tools.idea.downloads.AndroidProfilerDownloader
 
 object LocalInstallerPathManager {
   @JvmStatic
@@ -26,6 +25,10 @@ object LocalInstallerPathManager {
       // Development mode
       return StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer").toString()
     }
-    return Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer").toString()
+    // JetBrains patch: we don't bundle the installer binary like AS does, it comes from the downloaded
+    // android-plugin-resources component, so grab it via the downloader instead of a static home path
+    val downloader = AndroidProfilerDownloader.getInstance()
+    downloader.makeSureComponentIsInPlace()
+    return downloader.getHostDir("plugins/android/resources/installer").path
   }
 }
