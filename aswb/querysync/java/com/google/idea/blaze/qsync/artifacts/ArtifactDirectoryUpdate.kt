@@ -32,14 +32,39 @@ import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContent
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents.Companion.readFrom
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
+import com.google.idea.common.experiments.IntExperiment
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.min
 import kotlin.streams.asSequence
 import kotlin.time.measureTimedValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+
+private val WORKER_COUNT = IntExperiment("aswb.artifact.directory.update.worker.count", 10)
+
+private fun <T> runInParallel(items: Collection<T>, action: (T) -> Unit) {
+  val channel = Channel<T>(Channel.UNLIMITED)
+  items.forEach { channel.trySend(it) }
+  channel.close()
+
+  runBlocking {
+    repeat(WORKER_COUNT.value) {
+      launch(Dispatchers.IO) {
+        for (item in channel) {
+          action(item)
+        }
+      }
+    }
+  }
+}
 
 /**
  * Performs a single directory update based on a [ArtifactDirectoryContents] proto.
@@ -52,7 +77,7 @@ class ArtifactDirectoryUpdate(
   private val root: Path,
   private val contents: ArtifactDirectoryContents,
 ) {
-  private val _updatedPaths: MutableSet<Path> = hashSetOf()
+  private val _updatedPaths: MutableSet<Path> = ConcurrentHashMap.newKeySet()
 
   @VisibleForTesting val updatedPaths: Set<Path> = _updatedPaths
 
@@ -68,7 +93,7 @@ class ArtifactDirectoryUpdate(
     // If any entry fails, we will throw an exception at the end with all such failures added as
     // suppressed exceptions. This ensures we update as much of the store as we can and should give
     // better behaviour in the event of problems.
-    val exceptions = mutableListOf<Exception>()
+    val exceptions = Collections.synchronizedList(mutableListOf<Exception>())
 
     return measureTimedValue {
         val existingContents: ArtifactDirectoryContents =
@@ -93,9 +118,9 @@ class ArtifactDirectoryUpdate(
           } else {
             getDefaultInstance()
           }
-        val incompleteTargets = mutableSetOf<Label>()
+        val incompleteTargets = ConcurrentHashMap.newKeySet<Label>()
 
-        for (destAndArtifact in contents.contents.entries) {
+        runInParallel(contents.contents.entries) { destAndArtifact ->
           try {
             val artifactSource = destAndArtifact.value
             when (artifactSource) {
@@ -118,6 +143,8 @@ class ArtifactDirectoryUpdate(
           } catch (e: BuildException) {
             exceptions.add(e)
           } catch (e: IOException) {
+            exceptions.add(e)
+          } catch (e: RuntimeException) {
             exceptions.add(e)
           }
         }
@@ -175,7 +202,11 @@ class ArtifactDirectoryUpdate(
       }
     }
     if (!Files.exists(dest)) {
-      Files.createDirectories(dest.parent)
+      try {
+        Files.createDirectories(dest.parent)
+      } catch (e: java.nio.file.FileAlreadyExistsException) {
+        // Ignored, can happen due to concurrency
+      }
       val src = getCachedArtifact(srcArtifact) ?: return false
       when (srcArtifact.transform) {
         ArtifactTransform.COPY -> _updatedPaths.addAll(FileTransform.COPY.copyWithTransform(src, dest))
