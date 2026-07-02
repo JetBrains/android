@@ -37,23 +37,20 @@ import com.android.tools.res.ResourceNamespacing;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidTargetData;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.Service;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
@@ -69,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -310,8 +306,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    * <p>When a layout is rendered in the layout editor, it is getting resources from the app resource repository:
    * it should see all the resources just like the app does.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
-   * or block waiting for a read action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time.
    *
    * @return the computed repository
    * @see #getCachedAppResources()
@@ -327,17 +322,15 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
     getLibraryResources(); // Precompute library resources to do less work inside the read action below.
 
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
-      synchronized (APP_RESOURCES_LOCK) {
-        if (myAppResources == null) {
-          if (myFacet.isDisposed()) {
-            return new EmptyRepository<>(getNamespace());
-          }
-          myAppResources = AppResourceRepository.create(myFacet, this);
+    synchronized (APP_RESOURCES_LOCK) {
+      if (myAppResources == null) {
+        if (myFacet.isDisposed()) {
+          return new EmptyRepository<>(getNamespace());
         }
-        return myAppResources;
+        myAppResources = AppResourceRepository.create(myFacet, this);
       }
-    });
+      return myAppResources;
+    }
   }
 
   /**
@@ -360,8 +353,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    * Returns the resource repository for a module along with all its (local) module dependencies.
    * The repository doesn't contain resources from AAR dependencies.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
-   * or block waiting for a read action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time.
    *
    * @return the computed repository
    * @see #getCachedProjectResources()
@@ -374,17 +366,11 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     if (projectResources != null) {
       return projectResources;
     }
-
-    ProjectResourceRepository projectResourceRepository = ApplicationManager.getApplication().runReadAction((Computable<@Nullable ProjectResourceRepository>)() -> {
-      if (myFacet.isDisposed()) {
-        return null;
-      }
-      return ProjectResourceRepository.create(myFacet, this);
-    });
-
-    if (projectResourceRepository == null) {
+    if (myFacet.isDisposed()) {
       return new EmptyRepository<>(getNamespace());
     }
+
+    ProjectResourceRepository projectResourceRepository = ProjectResourceRepository.create(myFacet, this);
     LocalResourceRepository<VirtualFile> projectResourceRepositoryToReturn;
     synchronized (PROJECT_RESOURCES_LOCK) {
       if (myProjectResources == null) {
@@ -435,17 +421,31 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       return moduleResources;
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
-      synchronized (MODULE_RESOURCES_LOCK) {
-        if (myModuleResources == null) {
-          if (myFacet.isDisposed()) {
-            return new EmptyRepository<VirtualFile>(getNamespace());
-          }
-          myModuleResources = ModuleResourceRepository.forMainResources(myFacet, this, getNamespace());
+    synchronized (MODULE_RESOURCES_LOCK) {
+      if (myModuleResources == null) {
+        if (myFacet.isDisposed()) {
+          return new EmptyRepository<VirtualFile>(getNamespace());
         }
-        return myModuleResources;
+        myModuleResources = ModuleResourceRepository.forMainResources(myFacet, this, getNamespace());
       }
-    });
+      moduleResources = myModuleResources;
+    }
+
+    // We need to load the repositories outside the MODULE_RESOURCES_LOCK lock to prevent deadlocks due to the following scenario:
+    // Thread 1:
+    //   1. writeAction
+    //   2. getModuleResources
+    //   3. acquire MODULE_RESOURCES_LOCK lock <- waiting for lock
+    // Thread 2:
+    //   1. getModuleResources
+    //   2. acquire MODULE_RESOURCES_LOCK lock
+    //   3. ensureLoaded
+    //   4. readAction <- waiting for read lock
+    if (moduleResources instanceof ModuleResourceRepository) {
+      ((ModuleResourceRepository)moduleResources).ensureLoaded();
+    }
+
+    return moduleResources;
   }
 
   /**
@@ -457,9 +457,18 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Nullable
   public LocalResourceRepository<VirtualFile> getCachedModuleResources() {
+    LocalResourceRepository<VirtualFile> moduleResources;
     synchronized (MODULE_RESOURCES_LOCK) {
-      return myModuleResources;
+      moduleResources = myModuleResources;
     }
+
+    // The loading is done outside the MODULE_RESOURCES_LOCK to avoid deadlocks. If the repository hasn't been
+    // loaded yet, we consider it's not yet ready and return null to ensure this method remains fast.
+    if (moduleResources instanceof ModuleResourceRepository && !((ModuleResourceRepository)moduleResources).isLoaded()) {
+      Logger.getInstance(StudioResourceRepositoryManager.class).warn("ModuleResourceRepository has not finished loading yet. Returning null.");
+      return null;
+    }
+    return moduleResources;
   }
 
   /**
@@ -467,17 +476,15 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @NotNull
   public LocalResourceRepository<VirtualFile> getTestAppResources() {
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
-      synchronized (TEST_RESOURCES_LOCK) {
-        if (myTestAppResources == null) {
-          if (myFacet.isDisposed()) {
-            return new EmptyRepository<>(getTestNamespace());
-          }
-          myTestAppResources = TestAppResourceRepository.create(myFacet, this);
+    synchronized (TEST_RESOURCES_LOCK) {
+      if (myTestAppResources == null) {
+        if (myFacet.isDisposed()) {
+          return new EmptyRepository<>(getTestNamespace());
         }
-        return myTestAppResources;
+        myTestAppResources = TestAppResourceRepository.create(myFacet, this);
       }
-    });
+      return myTestAppResources;
+    }
   }
 
   @Nullable
@@ -492,17 +499,22 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @NotNull
   public LocalResourceRepository<VirtualFile> getTestModuleResources() {
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
-      synchronized (TEST_RESOURCES_LOCK) {
-        if (myTestModuleResources == null) {
-          if (myFacet.isDisposed()) {
-            return new EmptyRepository<>(getTestNamespace());
-          }
-          myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, this, getTestNamespace());
+    LocalResourceRepository<VirtualFile> testModuleResources;
+    synchronized (TEST_RESOURCES_LOCK) {
+      if (myTestModuleResources == null) {
+        if (myFacet.isDisposed()) {
+          return new EmptyRepository<>(getTestNamespace());
         }
-        return myTestModuleResources;
+        myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, this, getTestNamespace());
       }
-    });
+      testModuleResources = myTestModuleResources;
+    }
+
+    // We need to load the repositories outside the lock to prevent deadlocks
+    if (testModuleResources instanceof ModuleResourceRepository) {
+      ((ModuleResourceRepository)testModuleResources).ensureLoaded();
+    }
+    return testModuleResources;
   }
 
   @Slow
@@ -513,17 +525,15 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       return sampleDataResources;
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
-      synchronized (mySampleDataLock) {
-        if (mySampleDataResources == null) {
-          if (myFacet.isDisposed()) {
-            return new EmptyRepository<>(getNamespace());
-          }
-          mySampleDataResources = new SampleDataResourceRepository(myFacet, this);
+    synchronized (mySampleDataLock) {
+      if (mySampleDataResources == null) {
+        if (myFacet.isDisposed()) {
+          return new EmptyRepository<>(getNamespace());
         }
-        return mySampleDataResources;
+        mySampleDataResources = new SampleDataResourceRepository(myFacet, this);
       }
-    });
+      return mySampleDataResources;
+    }
   }
 
   @Nullable
@@ -540,13 +550,11 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       }
     }
 
-    ApplicationManager.getApplication().runReadAction(() -> {
-      synchronized (mySampleDataLock) {
-        if (mySampleDataResources != null) {
-          mySampleDataResources.reload();
-        }
+    synchronized (mySampleDataLock) {
+      if (mySampleDataResources != null) {
+        mySampleDataResources.reload();
       }
-    });
+    }
   }
 
   /**
