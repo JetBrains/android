@@ -1715,11 +1715,6 @@ public final class StudioFlags {
     WEAR_DECLARATIVE_WATCH_FACE, "xml.editor.support.enabled", "Enable XML editor support for Declarative Watch Faces",
     "If enabled, the editor will support Watch Face Format in XML files"
   );
-
-  public static final Flag<Boolean> WATCH_FACE_STUDIO_FILE_IMPORT = new BooleanFlag(
-    WEAR_DECLARATIVE_WATCH_FACE, "wfs.import.enabled", "Enable support for importing Watch Face Studio files (.wfs)",
-    "If enabled, it will be possible to import Watch Face Studio files."
-  );
   // endregion
 
   // region App Inspection
