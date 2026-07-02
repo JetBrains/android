@@ -248,12 +248,12 @@ class ScreenshotAttributesView : Disposable {
             }
           }
           KeyValueRow("Preview") {
-            BlueText(
+            LightText(
               text = currentState.methodName,
               modifier = Modifier.clickable { scope.launch { bringIntoViewRequester.bringIntoView() } },
             )
           }
-          KeyValueRow("Related Composables") { BlueText(currentState.className) }
+          KeyValueRow("Related Composables") { LightText(currentState.className) }
         }
 
         Section("Preview configuration") { LightText("@Preview(${currentState.methodName})") }
