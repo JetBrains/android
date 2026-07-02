@@ -278,7 +278,6 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     return run(display, env, new String[]{ projectPath.toString() });
   }
 
-
   public T run(Display display, Map<String, String> userEnv, String[] args) throws IOException, InterruptedException {
     Map<String, String> env = new HashMap<>(userEnv);
     env.put(vmOptionEnvName(), vmOptionsPath.toString());
@@ -627,7 +626,6 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
   public Path bundledJdkPath() {
     return TestUtils.getEmbeddedJdkPath();
   }
-
 
   abstract public T attach() throws IOException, InterruptedException;
 
