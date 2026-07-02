@@ -372,7 +372,7 @@ filegroup(
         ":jps_artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
-        "//tools/adt/idea/android/prebuilts/android-cli:android_cli_launchers",
+        "//tools/adt/idea/android/prebuilts/android-cli:android_cli_binaries",
         "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
         "//tools/adt/idea/studio:default_user_jvm_args",
