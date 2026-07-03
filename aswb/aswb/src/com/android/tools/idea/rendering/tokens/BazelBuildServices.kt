@@ -157,7 +157,7 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
   @Throws(BuildException::class)
   private fun executeBuild(project: Project, context: BlazeContext, label: Label): com.google.idea.blaze.qsync.deps.OutputInfo {
     val tracker: DependencyTracker = QuerySyncManager.getInstance(project).getDependencyTracker()!!
-    val builder = tracker.getBuilder()
+    val builder = tracker.builder
     val groups =
       DependencyTracker.DependencyBuildRequest.getOutputGroups(
         listOf(QuerySyncLanguage.JVM),
