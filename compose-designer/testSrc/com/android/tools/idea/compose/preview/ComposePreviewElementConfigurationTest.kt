@@ -258,6 +258,62 @@ class ComposePreviewElementConfigurationTest {
         // Height in px = round(234dp * 440dpi / 160dpi) = round(234 * 2.75) = round(643.5) = 644.
         assertEquals(644, screenSize.height)
       }
+
+    SingleComposePreviewElementInstance(
+        "WithWidthOnly",
+        PreviewDisplaySettings(
+          name = "Name",
+          baseName = "BaseName",
+          parameterName = "ParameterName",
+          group = null,
+          showDecoration = false,
+          background = PreviewDisplaySettings.Background.None,
+          organizationName = "organizationName",
+          organizationGroup = "organizationGroup",
+        ),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(null, 123, -1, null, null, null, null),
+      )
+      .let { previewElement ->
+        previewElement.applyConfigurationForTest(
+          configuration,
+          highestApiTarget = { null },
+          devicesProvider = deviceProvider,
+          defaultDeviceProvider = { defaultDevice },
+        )
+        val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
+        assertEquals(123, screenSize.width)
+        assertEquals(2000, screenSize.height) // Falls back to default device height (2000px)
+      }
+
+    SingleComposePreviewElementInstance(
+        "WithHeightOnly",
+        PreviewDisplaySettings(
+          name = "Name",
+          baseName = "BaseName",
+          parameterName = "ParameterName",
+          group = null,
+          showDecoration = false,
+          background = PreviewDisplaySettings.Background.None,
+          organizationName = "organizationName",
+          organizationGroup = "organizationGroup",
+        ),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(null, -1, 234, null, null, null, null),
+      )
+      .let { previewElement ->
+        previewElement.applyConfigurationForTest(
+          configuration,
+          highestApiTarget = { null },
+          devicesProvider = deviceProvider,
+          defaultDeviceProvider = { defaultDevice },
+        )
+        val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.LANDSCAPE)!!
+        assertEquals(1000, screenSize.width) // Falls back to default device width (1000px)
+        assertEquals(234, screenSize.height)
+      }
   }
 
   @Test
