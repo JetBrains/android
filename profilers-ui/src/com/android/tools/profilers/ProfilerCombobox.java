@@ -60,7 +60,7 @@ public class ProfilerCombobox<T> extends ComboBox<T> {
   private static class ProfilerDarculaComboBoxUI extends DarculaComboBoxUI implements Border {
 
     @Override
-    protected ComboPopup createPopup() {
+    protected @NotNull ComboPopup createPopup() {
       return new ProfilerCustomComboPopup(comboBox);
     }
 
