@@ -24,6 +24,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -56,13 +57,21 @@ class BenchmarkLinkListener(
         val localPath = tempRoot.resolve(fileName).normalize()
         if (!localPath.startsWith(tempRoot)) {
           AndroidNotification.getInstance(project)
-            .showBalloon("Invalid benchmark path", "Rejected path traversal: $fileName", NotificationType.WARNING)
+            .showBalloon(
+              "Invalid benchmark path",
+              "Rejected path traversal: ${StringUtil.escapeXmlEntities(fileName)}",
+              NotificationType.WARNING,
+            )
           return
         }
         val localFile = localPath.toFile()
         if (!localFile.exists()) {
           AndroidNotification.getInstance(project)
-            .showBalloon("Benchmark file not found", "Unable to open trace file (${localFile.name})", NotificationType.WARNING)
+            .showBalloon(
+              "Benchmark file not found",
+              "Unable to open trace file (${StringUtil.escapeXmlEntities(localFile.name)})",
+              NotificationType.WARNING,
+            )
           // TODO (gijosh): Check if we have a task that is currently pulling the file
           return
         }

@@ -446,6 +446,7 @@ private class AndroidTestResultsTableViewComponent(
         ): Component {
           val renderComponent = originalDefaultHeaderRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
           val label = renderComponent as? JLabel ?: return renderComponent
+          label.putClientProperty("html.disable", true)
           if (column > 0) {
             label.horizontalAlignment = SwingConstants.CENTER
             label.border = JBUI.Borders.empty()

@@ -117,6 +117,13 @@ class AndroidTestSuiteDetailsViewTest {
     verify(mockListener).onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }
 
+  @Test
+  fun htmlShouldBeDisabledOnTitleTextView() {
+    val view =
+      AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
+    assertThat(view.titleTextView.getClientProperty("html.disable")).isEqualTo(true)
+  }
+
   private fun createTestResults(
     testCaseResult: AndroidTestCaseResult?,
     methodName: String = "methodName",

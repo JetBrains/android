@@ -167,6 +167,24 @@ class AndroidTestResultsTableViewTest {
   }
 
   @Test
+  fun htmlShouldBeDisabledOnTableHeader() {
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
+    val headerRenderer = table.getTableViewForTesting().tableHeader.defaultRenderer
+    val component =
+      headerRenderer.getTableCellRendererComponent(table.getTableViewForTesting(), "Header Title", false, false, -1, 0)
+        as javax.swing.JLabel
+    assertThat(component.getClientProperty("html.disable")).isEqualTo(true)
+  }
+
+  @Test
   fun addDevice() {
     val table =
       AndroidTestResultsTableView(
