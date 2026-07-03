@@ -358,3 +358,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:grpc-google-common-protos_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "androidx-tracing",
+    jars = ["//prebuilts/tools/common/m2:androidx-tracing_files"],
+    visibility = ["//visibility:public"],
+)
