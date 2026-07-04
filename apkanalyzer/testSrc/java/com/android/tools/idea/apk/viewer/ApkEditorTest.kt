@@ -37,8 +37,10 @@ import com.intellij.diff.util.FileEditorBase
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.ui.asSequence
 import com.intellij.openapi.util.Disposer
@@ -69,9 +71,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import com.intellij.ui.SimpleColoredComponent
 import java.awt.Component
 import java.awt.Container
@@ -112,7 +111,7 @@ class ApkEditorTest(
   val rule = RuleChain(
     projectRule,
     disposableRule,
-    ApplicationServiceRule(FileEditorProviderManager::class.java, mockFileEditorProviderManager()),
+    ApplicationServiceRule(FileEditorProviderManager::class.java, FakeFileEditorProviderManager()),
     temporaryDirectoryRule,
     EdtRule()
   )
@@ -559,16 +558,23 @@ class ApkEditorTest(
    *
    * When a `TextEditorImpl` is created, it launches several asynchronous tasks that fail the test because they run interfere with disposal.
    */
-  private fun mockFileEditorProviderManager(): FileEditorProviderManager {
-    val fileEditorProviderManager = mock<FileEditorProviderManager>()
-    val fileEditorProvider = mock<FileEditorProvider>()
-    whenever(fileEditorProvider.accept(any(), any())).thenReturn(true)
-    whenever(fileEditorProvider.createEditor(any(), any())).thenAnswer {
-      val file = it.arguments[1] as VirtualFile
-      return@thenAnswer TestFileEditor(file)
-    }
-    whenever(fileEditorProviderManager.getProviderList(any(), any())).thenReturn(listOf(fileEditorProvider))
-    return fileEditorProviderManager
+  private class FakeFileEditorProvider : FileEditorProvider {
+    override fun accept(project: Project, file: VirtualFile): Boolean = true
+    override fun createEditor(project: Project, file: VirtualFile): FileEditor = TestFileEditor(file)
+    override fun getEditorTypeId(): String = "apk-editor-test-fake"
+    override fun getPolicy(): FileEditorPolicy = FileEditorPolicy.NONE
+  }
+
+  private class FakeFileEditorProviderManager : FileEditorProviderManager {
+    private val provider: FileEditorProvider = FakeFileEditorProvider()
+    private val providers: List<FileEditorProvider> = listOf(provider)
+
+    override fun getProviderList(project: Project, file: VirtualFile): List<FileEditorProvider> = providers
+    override suspend fun getProvidersAsync(project: Project, file: VirtualFile): List<FileEditorProvider> = providers
+    override suspend fun getDumbUnawareProviders(project: Project, file: VirtualFile, excludeIds: Set<String>): List<FileEditorProvider> =
+      providers.filterNot { excludeIds.contains(it.editorTypeId) }
+    override fun getProvider(editorTypeId: String): FileEditorProvider? =
+      provider.takeIf { it.editorTypeId == editorTypeId }
   }
 
   /**
