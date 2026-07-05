@@ -150,4 +150,32 @@ internal class ModuleClassLoaderOverlaysTest {
     assertTrue(moduleClassLoaderOverlays.containsClass("d.e.OtherTestClass"))
     assertTrue(moduleClassLoaderOverlays.containsClass("d.e.f.OtherTestClass"))
   }
+
+  @Test
+  fun `non-persistent overlay is transient, loads classes, and does not fire notifications`() {
+    // Copy the classes into a temp directory to use as non-persistent overlay
+    val tempOverlayPath = Files.createTempDirectory("nonPersistentOverlayTest")
+    val packageDirPath = Files.createDirectories(tempOverlayPath.resolve(TestClass::class.java.packageName.replace(".", "/")))
+    val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
+    Files.write(classFilePath, loadClassBytes(TestClass::class.java))
+
+    val moduleClassLoaderOverlay = ModuleClassLoaderOverlays.getInstance(buildTargetReference)
+
+    val initialProjectModCount = projectOverlayModificationCount
+    val initialModuleModCount = moduleOverlayModificationCount
+
+    // Push the non-persistent overlay
+    moduleClassLoaderOverlay.pushNonPersistentOverlayPath(tempOverlayPath)
+
+    // 1. Verify class finding and loading works
+    assertTrue(moduleClassLoaderOverlay.containsClass(testClassName))
+    assertNotNull(moduleClassLoaderOverlay.classLoaderLoader.loadClass(testClassName))
+
+    // 2. Verify state does NOT persist the non-persistent path
+    assertFalse(moduleClassLoaderOverlay.state.paths.contains(tempOverlayPath.toString()))
+
+    // 3. Verify modification counters did not change
+    assertEquals(initialProjectModCount, projectOverlayModificationCount)
+    assertEquals(initialModuleModCount, moduleOverlayModificationCount)
+  }
 }
