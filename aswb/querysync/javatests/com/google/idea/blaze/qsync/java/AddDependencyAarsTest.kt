@@ -65,21 +65,7 @@ class AddDependencyAarsTest {
   private val aarPackageMetadata = AarPackageNameExtractor(null)
 
   private fun createJavaArtifactInfo(label: Label, ideAar: BuildArtifact? = null): JavaArtifactInfo {
-    return JavaArtifactInfo(
-      label = label,
-      isExternalDependency = false,
-      isKotlinToolchain = false,
-      jars = emptySet(),
-      outputJars = emptySet(),
-      ideAar = ideAar,
-      genSrcs = emptySet(),
-      genAndroidRes = emptySet(),
-      protoSrcjars = emptySet(),
-      sources = emptySet(),
-      srcJars = emptySet(),
-      androidResourcesPackage = "",
-      kotlinCompilerFlags = emptyList(),
-    )
+    return JavaArtifactInfo.empty(label).copy(ideAar = ideAar)
   }
 
   @Test

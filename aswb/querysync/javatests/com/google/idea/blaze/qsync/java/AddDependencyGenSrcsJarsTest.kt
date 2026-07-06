@@ -67,21 +67,7 @@ class AddDependencyGenSrcsJarsTest {
   private val innerRootsMetadata = SrcJarPackageRootsExtractor(null)
 
   private fun createJavaArtifactInfo(label: Label, genSrcs: Set<BuildArtifact> = emptySet()): JavaArtifactInfo {
-    return JavaArtifactInfo(
-      label = label,
-      isExternalDependency = false,
-      isKotlinToolchain = false,
-      jars = emptySet(),
-      outputJars = emptySet(),
-      ideAar = null,
-      genSrcs = genSrcs,
-      genAndroidRes = emptySet(),
-      protoSrcjars = emptySet(),
-      sources = emptySet(),
-      srcJars = emptySet(),
-      androidResourcesPackage = "",
-      kotlinCompilerFlags = emptyList(),
-    )
+    return JavaArtifactInfo.empty(label).copy(genSrcs = genSrcs)
   }
 
   @Before

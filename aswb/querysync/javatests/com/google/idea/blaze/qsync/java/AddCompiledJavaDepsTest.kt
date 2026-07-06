@@ -42,21 +42,7 @@ class AddCompiledJavaDepsTest {
   val buildTimestamp = Instant.now()
 
   private fun createJavaArtifactInfo(label: Label, jars: Set<BuildArtifact> = emptySet()): JavaArtifactInfo {
-    return JavaArtifactInfo(
-      label = label,
-      isExternalDependency = false,
-      isKotlinToolchain = false,
-      jars = jars,
-      outputJars = emptySet(),
-      ideAar = null,
-      genSrcs = emptySet(),
-      genAndroidRes = emptySet(),
-      protoSrcjars = emptySet(),
-      sources = emptySet(),
-      srcJars = emptySet(),
-      androidResourcesPackage = "",
-      kotlinCompilerFlags = emptyList(),
-    )
+    return JavaArtifactInfo.empty(label).copy(jars = jars)
   }
 
   @Test
