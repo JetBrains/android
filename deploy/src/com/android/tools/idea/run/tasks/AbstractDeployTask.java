@@ -129,10 +129,7 @@ public abstract class AbstractDeployTask {
     // Wall-clock start time for the deployment.
     long wallClockStartMs = System.currentTimeMillis();
 
-    AdbSession adbSession = null;
-    if (StudioFlags.INSTALL_WITH_ADBLIB.get()) {
-      adbSession = AdbLibService.getSession(myProject);
-    }
+    AdbSession adbSession = AdbLibService.getSession(myProject);
     AdbClient adb = new AdbClient(device, logger, adbSession);
 
     AdbHelper.setAbbExecAllowed(StudioFlags.DDMLIB_ABB_EXEC_INSTALL_ENABLE.get());
