@@ -25,7 +25,6 @@ import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import icons.StudioIcons
 
 /**
  * A tab in the Profiler window containing a [SessionProfilersView].
@@ -59,11 +58,13 @@ class StudioProfilersSessionTab(private val profilers: StudioProfilers,
 
   private fun profilingSessionChanged() {
     val profilingSession = profilers.sessionsManager.profilingSession
+    // JetBrains patch: use IDE-aware profiler icon instead of the hard-coded Studio icon.
+    val icon = getAndroidProfilerToolWindowIcon()
 
     window.setIcon(if (SessionsManager.isSessionAlive(profilingSession)) {
-      ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
+      ExecutionUtil.getLiveIndicator(icon)
     } else {
-      StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+      icon
     })
   }
 }

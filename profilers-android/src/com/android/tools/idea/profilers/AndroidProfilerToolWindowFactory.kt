@@ -39,13 +39,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.annotations.Nls
 
 class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
-
-  override val icon = if (IdeInfo.getInstance().isAndroidStudio) {
-    StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
-  } else {
-    AllIcons.Toolwindows.ToolWindowProfilerAndroid
-  }
-
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
 
@@ -163,12 +156,8 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
     ): AndroidProfilerToolWindow {
       val wrapper = ToolWindowWrapperImpl(project, toolWindow)
       val profilerToolWindow = AndroidProfilerToolWindow(wrapper, project)
-      val icon = if (IdeInfo.getInstance().isAndroidStudio) {
-        StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
-      } else {
-        AllIcons.Toolwindows.ToolWindowProfilerAndroid
-      }
-      toolWindow.setIcon(icon)
+      // JetBrains patch: use IDE-aware profiler icon instead of the hard-coded Studio icon.
+      toolWindow.setIcon(getAndroidProfilerToolWindowIcon())
       PROJECT_PROFILER_MAP[project] = profilerToolWindow
       Disposer.register(profilerToolWindow) {
         PROJECT_PROFILER_MAP.remove(project)
@@ -192,4 +181,11 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       }
     }
   }
+}
+
+// JetBrains patch: returns the IDE-specific profiler tool-window icon.
+internal fun getAndroidProfilerToolWindowIcon() = if (IdeInfo.getInstance().isAndroidStudio) {
+  StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+} else {
+  AllIcons.Toolwindows.ToolWindowProfilerAndroid
 }
