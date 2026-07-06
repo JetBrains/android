@@ -23,6 +23,7 @@ import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.deps.JavaOutputInfoDependencyGraphProvider
 import com.google.idea.blaze.qsync.deps.OutputInfo
 import com.google.idea.blaze.qsync.getCodeAnalysisDependencyGraphProvider
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
@@ -88,7 +89,8 @@ class DependencyTrackerImpl(
     val outputInfo = builder.build(context, requestedTargets.targetsToBuild, request.getOutputGroups(QuerySyncLanguage.entries))
     reportErrorsAndWarnings(context, snapshot, outputInfo)
 
-    val requiredTargets = requestedTargets.requiredTargets(snapshot.getCodeAnalysisDependencyGraphProvider())
+    val graphProvider = JavaOutputInfoDependencyGraphProvider(outputInfo, snapshot.getCodeAnalysisDependencyGraphProvider())
+    val requiredTargets = requestedTargets.requiredTargets(graphProvider)
     artifactTracker.update(requiredTargets, outputInfo, context)
   }
 
