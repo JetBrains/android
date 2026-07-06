@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.runningdevices.TabInfo
@@ -44,6 +45,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.LayeredIcon
@@ -61,11 +63,13 @@ import org.mockito.kotlin.whenever
 @RunsInEdt
 class ToggleLayoutInspectorActionTest {
 
-  @get:Rule val edtRule = EdtRule()
+  private val edtRule = EdtRule()
 
-  @get:Rule val applicationRule = ApplicationRule()
+  private val applicationRule = ApplicationRule()
 
-  @get:Rule val displayViewRule = EmulatorViewRule()
+  private val displayViewRule = EmulatorViewRule()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), applicationRule, edtRule, displayViewRule)
 
   private lateinit var fakeLayoutInspectorManager: FakeLayoutInspectorManager
   private lateinit var displayView: DisplayView

@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
 import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.RuleChain
 import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
@@ -28,7 +30,9 @@ import org.junit.Test
 
 class TabComponentsTest {
 
-  @get:Rule val displayViewRule = EmulatorViewRule()
+  private val displayViewRule = EmulatorViewRule()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), displayViewRule)
 
   private lateinit var displayListeners: MutableList<DeviceDisplayListener>
   private lateinit var displayView1: DisplayView

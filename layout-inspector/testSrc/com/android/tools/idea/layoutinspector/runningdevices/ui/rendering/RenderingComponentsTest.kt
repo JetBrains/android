@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.FakeSessionStats
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -36,6 +37,7 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.RuleChain
 import java.awt.Rectangle
 import org.junit.Before
 import org.junit.Rule
@@ -43,7 +45,9 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 
 class RenderingComponentsTest {
-  @get:Rule val displayViewRule = EmulatorViewRule()
+  private val displayViewRule = EmulatorViewRule()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), displayViewRule)
 
   private lateinit var layoutInspector: LayoutInspector
 
