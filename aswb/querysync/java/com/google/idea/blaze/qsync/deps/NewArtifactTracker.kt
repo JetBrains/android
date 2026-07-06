@@ -184,19 +184,13 @@ class NewArtifactTracker<C : Context<C>>(
         if (javaTargetArtifacts.getIsExternalDependency()) {
           continue
         }
-        // for a in-project target javaTargetArtifacts.getJarsList() returns all generated class jars collected
-        // via java_outputs and AIDL base jar needed for resolving base classes for aidl generated
-        // stubs.
-        // They are necessary for symbol resolving. More details can be found in b/448400351.
-        if (javaTargetArtifacts.getGenSrcsCount() > 0 || javaTargetArtifacts.getJarsCount() > 0) {
-          val javaTargetLabel = Label.of(javaTargetArtifacts.target)
-          add(
-            forJavaTarget(
-              create(javaTargetArtifacts, digestMap, externalRepositoryFinder, outputInfo.getDependencies(javaTargetLabel).toSet()),
-              outputInfo.buildContext,
-            )
+        val javaTargetLabel = Label.of(javaTargetArtifacts.target)
+        add(
+          forJavaTarget(
+            create(javaTargetArtifacts, digestMap, externalRepositoryFinder, outputInfo.getDependencies(javaTargetLabel).toSet()),
+            outputInfo.buildContext,
           )
-        }
+        )
       }
     }
   }

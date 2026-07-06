@@ -16,6 +16,9 @@
 package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.deps.OverrideDependencyGraphProvider
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.DependencyGraphProvider
 import com.google.idea.blaze.qsync.project.ProjectTarget
@@ -31,16 +34,18 @@ import org.jetbrains.annotations.TestOnly
  * analysis purposes.
  */
 fun QuerySyncProjectSnapshot.getCodeAnalysisDependencyGraphProvider(): DependencyGraphProvider {
-  return object : DependencyGraphProvider {
-    override fun getTarget(label: Label): Target {
-      val projectTarget = staleGraph.getProjectTarget(label)
-      return if (projectTarget != null) {
-        ProjectTargetWrapper(projectTarget, staleGraph, this)
-      } else {
-        UnknownTargetWrapper(label)
+  val baseProvider =
+    object : DependencyGraphProvider {
+      override fun getTarget(label: Label): Target {
+        val projectTarget = staleGraph.getProjectTarget(label)
+        return if (projectTarget != null) {
+          ProjectTargetWrapper(projectTarget, staleGraph, this)
+        } else {
+          UnknownTargetWrapper(label)
+        }
       }
     }
-  }
+  return ArtifactStateDependencyGraphProvider(artifactState, baseProvider)
 }
 
 /** A [DependencyGraphProvider] implementation for testing purposes, operating directly on [BuildGraphData]. */
@@ -91,4 +96,29 @@ private class UnknownTargetWrapper(override val label: Label) : Target {
   override fun equals(other: Any?): Boolean = (other as? Target)?.label == label
 
   override fun hashCode(): Int = label.hashCode()
+}
+
+fun ArtifactStateDependencyGraphProvider(state: ArtifactTracker.State, delegate: DependencyGraphProvider): DependencyGraphProvider {
+  return OverrideDependencyGraphProvider(delegate) { label, provider ->
+    val buildInfo = state.getTargetBuildInfo(label)
+    if (buildInfo is TargetBuildInfo.Java) {
+      object : Target {
+        override val label: Label = label
+        override val status: TargetStatus =
+          if (buildInfo.javaInfo.isExternalDependency) {
+            TargetStatus.EXTERNAL_TO_PROJECT_SCOPE
+          } else {
+            TargetStatus.IN_PROJECT_SCOPE
+          }
+        override val dependencies: Collection<Target>
+          get() = buildInfo.javaInfo.dependencies.map { provider.getTarget(it) }
+
+        override fun equals(other: Any?): Boolean = (other as? Target)?.label == label
+
+        override fun hashCode(): Int = label.hashCode()
+      }
+    } else {
+      null
+    }
+  }
 }

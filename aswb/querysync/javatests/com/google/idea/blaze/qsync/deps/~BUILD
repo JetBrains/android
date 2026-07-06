@@ -69,3 +69,22 @@ aswb_test(
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )
+
+aswb_test(
+    name = "OverrideDependencyGraphProviderTest",
+    size = "small",
+    srcs = ["OverrideDependencyGraphProviderTest.kt"],
+    test_class = "com.google.idea.blaze.qsync.deps.OverrideDependencyGraphProviderTest",
+    deps = [
+        "//tools/adt/idea/aswb/plugin_api",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java:java_target_info_java_proto",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
+        "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/shared:proto",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
+    ],
+)
