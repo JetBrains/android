@@ -111,7 +111,8 @@ public class ArtifactTrackerStateSerializationTest {
                         ProjectPath.workspaceRelativeForTests(
                             Path.of("/workspace/path/sources.srcjar"))),
                     "com.my.package",
-                    List.of()),
+                    List.of(),
+                    Set.of(Label.of("//my/package:dep1"), Label.of("//my/package:dep2"))),
                 buildContext));
     assertThat(roundTrip(depsMap)).containsExactlyEntriesIn(depsMap);
   }
@@ -160,7 +161,8 @@ public class ArtifactTrackerStateSerializationTest {
                         ProjectPath.workspaceRelativeForTests(
                             Path.of("/workspace/path/sources.srcjar"))),
                     "com.my.package",
-                    List.of()),
+                    List.of(),
+                    Set.of()),
                 buildContext));
     assertThat(roundTrip(depsMap)).containsExactlyEntriesIn(depsMap);
   }
@@ -260,7 +262,8 @@ public class ArtifactTrackerStateSerializationTest {
                 Set.of(),
                 Set.of(),
                 "",
-                List.of()),
+                List.of(),
+                Set.of()),
             buildContext);
     ImmutableMap<Label, TargetBuildInfo> depsMap =
         ImmutableMap.of(Label.of("//my/package:target"), targetInfo);

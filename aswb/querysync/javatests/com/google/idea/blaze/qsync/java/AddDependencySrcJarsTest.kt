@@ -60,21 +60,7 @@ class AddDependencySrcJarsTest {
   private lateinit var original: QuerySyncProjectSnapshot
 
   private fun createJavaArtifactInfo(label: Label, srcJars: Set<ProjectPath> = emptySet()): JavaArtifactInfo {
-    return JavaArtifactInfo(
-      label = label,
-      isExternalDependency = false,
-      isKotlinToolchain = false,
-      jars = emptySet(),
-      outputJars = emptySet(),
-      ideAar = null,
-      genSrcs = emptySet(),
-      genAndroidRes = emptySet(),
-      protoSrcjars = emptySet(),
-      sources = emptySet(),
-      srcJars = srcJars,
-      androidResourcesPackage = "",
-      kotlinCompilerFlags = emptyList(),
-    )
+    return JavaArtifactInfo.empty(label).copy(srcJars = srcJars)
   }
 
   @Before

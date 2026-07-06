@@ -105,20 +105,7 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     }
 
     private static JavaArtifactInfo createEmpty(Label label) {
-      return new JavaArtifactInfo(
-          label,
-          false,
-          false,
-          Set.of(),
-          Set.of(),
-          null,
-          Set.of(),
-          Set.of(),
-          Set.of(),
-          Set.of(),
-          Set.of(),
-          "",
-          java.util.List.of());
+      return JavaArtifactInfo.empty(label);
     }
 
     @VisibleForTesting

@@ -93,6 +93,7 @@ message JavaArtifacts {
   repeated Artifact gen_android_res = 14;
   repeated string kotlin_compiler_flags = 15;
   bool is_kotlin_toolchain = 16;
+  repeated string dependencies = 17;
 }
 
 message BuildContext {
