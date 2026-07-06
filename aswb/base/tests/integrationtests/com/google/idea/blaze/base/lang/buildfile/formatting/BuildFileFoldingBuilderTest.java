@@ -22,15 +22,30 @@ import com.google.idea.blaze.base.lang.buildfile.psi.BuildFile;
 import com.google.idea.blaze.base.lang.buildfile.psi.LoadStatement;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.intellij.lang.folding.FoldingDescriptor;
+import com.intellij.lang.folding.LanguageFolding;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiComment;
+import com.intellij.testFramework.ExtensionTestUtil;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import java.util.stream.Collectors;
 
 /** Tests for {@link BuildFileFoldingBuilder}. */
 @RunWith(JUnit4.class)
 public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
+
+  @Before
+  public void setupFoldingBuilders() {
+    // Mask the LanguageFolding extension point to include only our code folder (to avoid interference).
+    var ourExtensions =
+        LanguageFolding.EP_NAME.getExtensionList().stream()
+            .filter(ep -> ep.getInstance() instanceof BuildFileFoldingBuilder)
+            .collect(Collectors.toList());
+    assertThat(ourExtensions).isNotEmpty();
+    ExtensionTestUtil.maskExtensions(LanguageFolding.EP_NAME, ourExtensions, getTestRootDisposable());
+  }
 
   @Test
   public void testEndOfFileFunctionDelcaration() throws Throwable {
@@ -141,6 +156,8 @@ public class BuildFileFoldingBuilderTest extends BuildFileIntegrationTestCase {
 
   private FoldingDescriptor[] getFoldingRegions(BuildFile file) throws Throwable {
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
-    return new BuildFileFoldingBuilder().buildFoldRegions(file.getNode(), editor.getDocument());
+    var builder = LanguageFolding.INSTANCE.forLanguage(file.getLanguage());
+    assertThat(builder).isNotNull();
+    return builder.buildFoldRegions(file.getNode(), editor.getDocument());
   }
 }
