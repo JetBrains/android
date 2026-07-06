@@ -33,7 +33,6 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
-import org.jetbrains.kotlin.konan.file.use
 
 /**
  * Manages emulator snapshots and boot mode.
