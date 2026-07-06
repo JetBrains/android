@@ -19,6 +19,8 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.ui.EnumValueListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import javax.swing.ListCellRenderer
 
 class FakeEnumSupport(vararg elements: String, action: AnAction? = null, private val delayed: Boolean = false) : EnumSupport {
@@ -26,31 +28,21 @@ class FakeEnumSupport(vararg elements: String, action: AnAction? = null, private
   override val values: List<EnumValue>
     get() {
       if (delayed) {
-        synchronized(lock) {
-          lockCount++
-          lock.wait(2000L)
-        }
+        latch.await(30, TimeUnit.SECONDS)
       }
       return enumValues
     }
 
   override val renderer: ListCellRenderer<EnumValue> by lazy { EnumValueListCellRenderer() }
 
-  private val lock = Object()
-  private var lockCount = 0
+  private val latch = CountDownLatch(1)
   private val enumValues = mutableListOf<EnumValue>()
 
   fun releaseAll() {
-    synchronized(lock) {
-      var attempts = 0
-      while (lockCount == 0 && ++attempts < 10) {
-        lock.wait(200L)
-      }
-      if (!delayed || lockCount == 0) {
-        error("Nothing to release")
-      }
-      lock.notifyAll()
+    if (!delayed) {
+      error("Nothing to release")
     }
+    latch.countDown()
   }
 
   init {
