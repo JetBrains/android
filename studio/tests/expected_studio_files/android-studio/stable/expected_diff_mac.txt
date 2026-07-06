@@ -691,6 +691,8 @@
 +++Android Studio.app/Contents/lib/intellij.platform.langInjection.backend.jar
 +++Android Studio.app/Contents/lib/intellij.platform.langInjection.jar
 +++Android Studio.app/Contents/lib/intellij.platform.locking.impl.jar
++++Android Studio.app/Contents/lib/intellij.platform.lsp.impl.jar
++++Android Studio.app/Contents/lib/intellij.platform.lsp.jar
 +++Android Studio.app/Contents/lib/intellij.platform.lvcs.impl.jar
 +++Android Studio.app/Contents/lib/intellij.platform.managed.cache.backend.jar
 +++Android Studio.app/Contents/lib/intellij.platform.managed.cache.jar
@@ -4603,6 +4605,8 @@
 ---Android Studio Preview.app/Contents/lib/intellij.platform.langInjection.backend.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.langInjection.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.locking.impl.jar
+---Android Studio Preview.app/Contents/lib/intellij.platform.lsp.impl.jar
+---Android Studio Preview.app/Contents/lib/intellij.platform.lsp.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.lvcs.impl.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.managed.cache.backend.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.managed.cache.jar

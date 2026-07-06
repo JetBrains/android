@@ -450,7 +450,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app-backend.jar
 android-studio/lib/app.jar
-android-studio/lib/build-marker-AI-261.25134.95.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-261.26222.65.__BUILD_NUMBER__
 android-studio/lib/eclipse.lsp4j.debug.jar
 android-studio/lib/eclipse.lsp4j.jar
 android-studio/lib/eclipse.lsp4j.jsonrpc.debug.jar
@@ -691,6 +691,8 @@ android-studio/lib/intellij.platform.lang.jar
 android-studio/lib/intellij.platform.langInjection.backend.jar
 android-studio/lib/intellij.platform.langInjection.jar
 android-studio/lib/intellij.platform.locking.impl.jar
+android-studio/lib/intellij.platform.lsp.impl.jar
+android-studio/lib/intellij.platform.lsp.jar
 android-studio/lib/intellij.platform.lvcs.impl.jar
 android-studio/lib/intellij.platform.managed.cache.backend.jar
 android-studio/lib/intellij.platform.managed.cache.jar

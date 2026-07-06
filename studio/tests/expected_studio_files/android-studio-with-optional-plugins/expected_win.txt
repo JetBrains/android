@@ -750,6 +750,8 @@ android-studio/lib/intellij.platform.lang.jar
 android-studio/lib/intellij.platform.langInjection.backend.jar
 android-studio/lib/intellij.platform.langInjection.jar
 android-studio/lib/intellij.platform.locking.impl.jar
+android-studio/lib/intellij.platform.lsp.impl.jar
+android-studio/lib/intellij.platform.lsp.jar
 android-studio/lib/intellij.platform.lvcs.impl.jar
 android-studio/lib/intellij.platform.managed.cache.backend.jar
 android-studio/lib/intellij.platform.managed.cache.jar
