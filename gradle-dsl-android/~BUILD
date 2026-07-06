@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
     ],
+    test_shard_count = 4,
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
