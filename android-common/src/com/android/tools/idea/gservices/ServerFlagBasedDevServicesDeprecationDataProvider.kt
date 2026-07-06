@@ -16,10 +16,7 @@
 package com.android.tools.idea.gservices
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
-import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
 import com.android.tools.idea.serverflags.DynamicServerFlagService
-import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.Date
 import com.android.tools.idea.serverflags.protos.DevServicesDeprecationMetadata
 import com.intellij.openapi.Disposable
@@ -51,8 +48,8 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
   /**
    * Get the deprecation status of [serviceName] controlled by ServerFlags. Update the flags in google3 to control the deprecation status.
    *
-   * When [StudioFlags.USE_POLICY_WITH_DEPRECATE] flag is enabled, the status of service as well as studio is checked. Service status is
-   * prioritized over studio. If service status is not available, studio status is returned.
+   * The status of service as well as studio is checked. Service status is prioritized over studio. If service status is not available,
+   * studio status is returned.
    *
    * **Use this method to get a one time value of the flag. This is preferred if your feature gets called on user interactions (e.g. pop up
    * menu item)**
@@ -61,12 +58,8 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
    *   server_flags/server_configurations/dev_services/$serviceName.textproto.
    */
   override fun getCurrentDeprecationData(serviceName: String, userFriendlyServiceName: String): DevServicesDeprecationData {
-    return if (StudioFlags.USE_POLICY_WITH_DEPRECATE.get()) {
-      val proto = checkServiceStatus(serviceName)
-      return proto.toDeprecationData(userFriendlyServiceName)
-    } else {
-      getCurrentDeprecationData(serviceName)
-    }
+    val proto = checkServiceStatus(serviceName)
+    return proto.toDeprecationData(userFriendlyServiceName)
   }
 
   /**
@@ -95,17 +88,6 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
     }
   }
 
-  private fun getCurrentDeprecationData(serviceName: String): DevServicesDeprecationData {
-    // Proto missing would imply the service is still supported.
-    val proto =
-      ServerFlagService.instance.getProtoOrNull("dev_services/$serviceName", DevServicesDeprecationMetadata.getDefaultInstance())
-        ?: DevServicesDeprecationMetadata.getDefaultInstance()
-
-    return proto.toDeprecationData()
-  }
-
-  private fun DevServicesDeprecationMetadata.isDeprecated() = hasHeader() || hasDescription() || hasMoreInfoUrl() || hasShowUpdateAction()
-
   private fun checkServiceStatus(serviceName: String): DevServicesDeprecationMetadata {
     val defaultInstance = DevServicesDeprecationMetadata.getDefaultInstance()
     val serviceStatus = DynamicServerFlagService.instance.getProto("$DEV_SERVICES_DIR_NAME/$serviceName", defaultInstance)
@@ -116,9 +98,6 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
       serviceStatus
     }
   }
-
-  private fun DevServicesDeprecationMetadata.toDeprecationData() =
-    DevServicesDeprecationData(header, description, moreInfoUrl, showUpdateAction, if (isDeprecated()) UNSUPPORTED else SUPPORTED)
 
   private fun DevServicesDeprecationMetadata.toDeprecationData(serviceName: String) =
     DevServicesDeprecationData(

@@ -3193,12 +3193,6 @@ public final class StudioFlags {
 
   // region deprecation policy
   private static final FlagGroup DEPRECATION_POLICY = new FlagGroup(FLAGS, "deprecationpolicy", "Deprecation Policy");
-  public static final Flag<Boolean> USE_POLICY_WITH_DEPRECATE =
-    new BooleanFlag(
-      DEPRECATION_POLICY,
-      "use.policy.with.deprecate",
-      "Use compatibility policy with DEPRECATE support",
-      "Use compatibility policy that supports DEPRECATED state");
   public static final Flag<String> DEFAULT_MORE_INFO_URL =
     new StringFlag(
       DEPRECATION_POLICY,
