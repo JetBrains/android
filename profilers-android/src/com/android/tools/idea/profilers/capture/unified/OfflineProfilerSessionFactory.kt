@@ -51,6 +51,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
+import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -116,6 +117,14 @@ object OfflineProfilerSessionFactory {
       ideServices.mainExecutor.execute {
         val client = ProfilerClient("OfflineProfiler")
         val profilers = StudioProfilers(client, ideServices, true)
+        ideServices.codeNavigator.cpuArchSource = Supplier {
+          val metadataAbi = offlineMetadata?.sessionMetadata?.processAbi
+          if (!metadataAbi.isNullOrEmpty()) {
+            metadataAbi
+          } else {
+            profilers.sessionsManager.selectedSessionMetaData.processAbi
+          }
+        }
 
         val context = OfflineProfilerContext(ideServices, profilers, parentComponent, offlineMetadata)
         val configuration = UnspecifiedConfiguration("")
