@@ -84,7 +84,60 @@ public class ArtifactTrackerStateSerializationTest {
                             "jardigest",
                             Path.of("/build/out/classes.jar"),
                             Label.of("//my/package:target"))),
+                    Set.of(
+                        new BuildArtifact(
+                            "outputjardigest",
+                            Path.of("/build/out/output_classes.jar"),
+                            Label.of("//my/package:target"))),
+                    new BuildArtifact(
+                        "aardigest",
+                        Path.of("/build/out/resources.aar"),
+                        Label.of("//my/package:target")),
+                    Set.of(
+                        new BuildArtifact(
+                            "gensrcdigest",
+                            Path.of("/build/out/Generated.java"),
+                            Label.of("//my/package:target"))),
                     Set.of(),
+                    Set.of(
+                        new BuildArtifact(
+                            "gensrcdigest",
+                            Path.of("/build/out/libproto-src.jar"),
+                            Label.of("//my/package:target"))),
+                    Set.of(
+                        ProjectPath.workspaceRelativeForTests(
+                            Path.of("/workspace/path/Source.java"))),
+                    Set.of(
+                        ProjectPath.workspaceRelativeForTests(
+                            Path.of("/workspace/path/sources.srcjar"))),
+                    "com.my.package",
+                    List.of()),
+                buildContext));
+    assertThat(roundTrip(depsMap)).containsExactlyEntriesIn(depsMap);
+  }
+
+  @Test
+  public void test_java_info_external() {
+    DependencyBuildContext buildContext =
+        DependencyBuildContext.create("abc-def", Instant.ofEpochMilli(1000));
+    ImmutableMap<Label, TargetBuildInfo> depsMap =
+        ImmutableMap.of(
+            Label.of("//my/package:target"),
+            TargetBuildInfo.forJavaTarget(
+                new JavaArtifactInfo(
+                    Label.of("//my/package:target"),
+                    true,
+                    false,
+                    Set.of(
+                        new BuildArtifact(
+                            "jardigest",
+                            Path.of("/build/out/classes.jar"),
+                            Label.of("//my/package:target"))),
+                    Set.of(
+                        new BuildArtifact(
+                            "outputjardigest",
+                            Path.of("/build/out/output_classes.jar"),
+                            Label.of("//my/package:target"))),
                     new BuildArtifact(
                         "aardigest",
                         Path.of("/build/out/resources.aar"),
