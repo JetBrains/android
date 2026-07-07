@@ -15,29 +15,25 @@
  */
 package com.android.tools.profilers.leakcanary
 
-import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.leakcanarylib.data.Leak
+import com.android.tools.profilers.IdeProfilerServices
+import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.concurrent.ConcurrentHashMap
-import kotlinx.coroutines.CancellationException
 
-class LeakInsightModel(
-  private val ideServices: IdeProfilerServices,
-  private val scope: CoroutineScope
-) {
+class LeakInsightModel(private val ideServices: IdeProfilerServices, private val scope: CoroutineScope) {
   private val _currentInsight = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
   val currentInsight = _currentInsight.asStateFlow()
 
   private val _isInsightVisible = MutableStateFlow(true)
   val isInsightVisible = _isInsightVisible.asStateFlow()
   private var insightJob: Job? = null
-  private val _isInsightAutoGenerateEnabled = MutableStateFlow(
-    ideServices.persistentProfilerPreferences.getBoolean(KEY_LEAKCANARY_INSIGHT_AUTO_GENERATE, false)
-  )
+  private val _isInsightAutoGenerateEnabled =
+    MutableStateFlow(ideServices.persistentProfilerPreferences.getBoolean(KEY_LEAKCANARY_INSIGHT_AUTO_GENERATE, false))
   val isInsightAutoGenerateEnabled = _isInsightAutoGenerateEnabled.asStateFlow()
 
   private val insightCache = ConcurrentHashMap<String, LoadingState<AiInsight?>>()
@@ -100,49 +96,58 @@ class LeakInsightModel(
     _isInsightVisible.value = true
 
     insightJob?.cancel()
-    insightJob = scope.launch {
-      try {
-        val flow = ideServices.fetchLeakInsight(leak.toString())
-        val result = StringBuilder()
-        flow.collect { chunk ->
-          result.append(chunk)
-        }
-        val finalResult = result.toString()
-        if (finalResult.isEmpty()) {
-          val emptyState = LoadingState.Failure("AI Assistant returned an empty response.")
+    insightJob =
+      scope.launch {
+        try {
+          val flow = ideServices.fetchLeakInsight(leak.toString())
+          val result = StringBuilder()
+          flow.collect { chunk -> result.append(chunk) }
+          val finalResult = result.toString()
+          if (finalResult.isEmpty()) {
+            val emptyState = LoadingState.Failure("AI Assistant returned an empty response.")
+            if (selectedLeak == leak) {
+              _currentInsight.value = emptyState
+            }
+            insightCache[leak.signature] = emptyState
+          } else {
+            val readyState = LoadingState.Ready(AiInsight(finalResult))
+            if (selectedLeak == leak) {
+              _currentInsight.value = readyState
+            }
+            insightCache[leak.signature] = readyState
+          }
+        } catch (e: Exception) {
+          if (e is CancellationException) {
+            if (insightCache[leak.signature] === loadingState) {
+              insightCache.remove(leak.signature)
+            }
+            throw e
+          }
+          val errorMessage =
+            if (isNetworkError(e)) {
+              NETWORK_ERROR_MESSAGE
+            } else {
+              e.message ?: "Unknown error"
+            }
+          val failureState = LoadingState.Failure(errorMessage)
           if (selectedLeak == leak) {
-            _currentInsight.value = emptyState
+            _currentInsight.value = failureState
           }
-          insightCache[leak.signature] = emptyState
-        } else {
-          val readyState = LoadingState.Ready(AiInsight(finalResult))
-          if (selectedLeak == leak) {
-            _currentInsight.value = readyState
-          }
-          insightCache[leak.signature] = readyState
+          insightCache[leak.signature] = failureState
         }
-      } catch (e: Exception) {
-        if (e is CancellationException) {
-          if (insightCache[leak.signature] === loadingState) {
-            insightCache.remove(leak.signature)
-          }
-          throw e
-        }
-        val failureState = LoadingState.Failure(e.message ?: "Unknown error")
-        if (selectedLeak == leak) {
-          _currentInsight.value = failureState
-        }
-        insightCache[leak.signature] = failureState
       }
-    }
   }
 
   fun submitInsightFeedback(feedback: InsightFeedback) {
     val insight = (_currentInsight.value as? LoadingState.Ready)?.value ?: return
     val newInsightState = LoadingState.Ready(insight.copy(feedback = feedback))
     _currentInsight.value = newInsightState
-    selectedLeak?.let { leak ->
-      insightCache[leak.signature] = newInsightState
+    selectedLeak?.let { leak -> insightCache[leak.signature] = newInsightState }
+  }
+
+  private fun isNetworkError(t: Throwable): Boolean {
+    return generateSequence(t) { it.cause }.any {
+      it is java.net.UnknownHostException || it is java.net.SocketTimeoutException || it is java.net.SocketException
     }
   }
 
@@ -154,5 +159,6 @@ class LeakInsightModel(
 
   companion object {
     private const val KEY_LEAKCANARY_INSIGHT_AUTO_GENERATE = "leakcanary.insight.auto.generate"
+    const val NETWORK_ERROR_MESSAGE = "Network connection lost. Please check your internet connection and try again."
   }
 }
