@@ -489,40 +489,42 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundImageAssetBrowser.getAsset().setRole("background image");
     myBackgroundColorPanel.setSelectedColor(myIconGenerator.backgroundColor().get());
 
-    myMonochromeTextAssetEditor.getAsset().setDefaultText("Aa");
-    myMonochromeLayerName = new TextProperty(myMonochromeLayerNameTextField);
-    myMonochromeLayerName.set(defaultMonochromeLayerName());
-    myListeners.listen(myMonochromeLayerName, name -> {
-      if (name.equals(defaultMonochromeLayerName())) {
-        myGeneralBindings.bind(myMonochromeLayerName, Expression.create(this::defaultMonochromeLayerName, myOutputName));
+    if (isMonochromeSupported) {
+      myMonochromeTextAssetEditor.getAsset().setDefaultText("Aa");
+      myMonochromeLayerName = new TextProperty(myMonochromeLayerNameTextField);
+      myMonochromeLayerName.set(defaultMonochromeLayerName());
+      myListeners.listen(myMonochromeLayerName, name -> {
+        if (name.equals(defaultMonochromeLayerName())) {
+          myGeneralBindings.bind(myMonochromeLayerName, Expression.create(this::defaultMonochromeLayerName, myOutputName));
+        }
+        else {
+          myGeneralBindings.release(myMonochromeLayerName);
+        }
+      });
+      myMonochromeAssetPanelMap = ImmutableMap.of(
+        MonochromeAssetType.IMAGE, myMonochromeImageAssetBrowser,
+        MonochromeAssetType.CLIP_ART, myMonochromeClipartAssetButton,
+        MonochromeAssetType.TEXT, myMonochromeTextAssetEditor);
+      myMonochromeLayerNameLabel.setLabelFor(myMonochromeLayerNameTextField);
+      myMonochromeAssetTypeLabel.setLabelFor(myMonochromeAssetRadioButtonsPanel);
+      myMonochromeImagePathLabel.setLabelFor(myMonochromeImageAssetBrowser);
+      myMonochromeClipartLabel.setLabelFor(myMonochromeClipartAssetButton);
+      myMonochromeTextLabel.setLabelFor(myMonochromeTextAssetEditor);
+      myMonochromeTrimLabel.setLabelFor(myMonochromeTrimOptionsPanel);
+      myMonochromeResizeLabel.setLabelFor(myMonochromeResizeSliderPanel);
+      myMonochromeColorLabel.setLabelFor(myMonochromeColorPanel);
+      myMonochromeAssetType = new SelectedRadioButtonProperty<>(DEFAULT_MONOCHROME_ASSET_TYPE, MonochromeAssetType.values(),
+                                                                myMonochromeImageRadioButton, myMonochromeClipartRadioButton,
+                                                                myMonochromeTextRadioButton);
+      // We start with an unset active asset for Monochrome as this is an optional choice for now.
+      // In case Monochrome is not set (and the optional value property is empty) we fallback to
+      // foreground layer
+      myMonochromeActiveAsset = new OptionalValueProperty<>(myMonochromeImageAssetBrowser.getAsset());
+      myMonochromeImageAssetBrowser.getAsset().setRole("monochrome image");
+      myMonochromeColorPanel.setSelectedColor(DEFAULT_FOREGROUND_COLOR);
+      for (AssetComponent<?> assetComponent : myMonochromeAssetPanelMap.values()) {
+        Disposer.register(this, assetComponent);
       }
-      else {
-        myGeneralBindings.release(myMonochromeLayerName);
-      }
-    });
-    myMonochromeAssetPanelMap = ImmutableMap.of(
-      MonochromeAssetType.IMAGE, myMonochromeImageAssetBrowser,
-      MonochromeAssetType.CLIP_ART, myMonochromeClipartAssetButton,
-      MonochromeAssetType.TEXT, myMonochromeTextAssetEditor);
-    myMonochromeLayerNameLabel.setLabelFor(myMonochromeLayerNameTextField);
-    myMonochromeAssetTypeLabel.setLabelFor(myMonochromeAssetRadioButtonsPanel);
-    myMonochromeImagePathLabel.setLabelFor(myMonochromeImageAssetBrowser);
-    myMonochromeClipartLabel.setLabelFor(myMonochromeClipartAssetButton);
-    myMonochromeTextLabel.setLabelFor(myMonochromeTextAssetEditor);
-    myMonochromeTrimLabel.setLabelFor(myMonochromeTrimOptionsPanel);
-    myMonochromeResizeLabel.setLabelFor(myMonochromeResizeSliderPanel);
-    myMonochromeColorLabel.setLabelFor(myMonochromeColorPanel);
-    myMonochromeAssetType = new SelectedRadioButtonProperty<>(DEFAULT_MONOCHROME_ASSET_TYPE, MonochromeAssetType.values(),
-                                                              myMonochromeImageRadioButton, myMonochromeClipartRadioButton,
-                                                              myMonochromeTextRadioButton);
-    // We start with an unset active asset for Monochrome as this is an optional choice for now.
-    // In case Monochrome is not set (and the optional value property is empty) we fallback to
-    // foreground layer
-    myMonochromeActiveAsset = new OptionalValueProperty<>(myMonochromeImageAssetBrowser.getAsset());
-    myMonochromeImageAssetBrowser.getAsset().setRole("monochrome image");
-    myMonochromeColorPanel.setSelectedColor(DEFAULT_FOREGROUND_COLOR);
-    for (AssetComponent<?> assetComponent : myMonochromeAssetPanelMap.values()) {
-      Disposer.register(this, assetComponent);
     }
 
     initializeListenersAndBindings();

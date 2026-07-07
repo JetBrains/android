@@ -128,4 +128,23 @@ public class ConfigureAdaptiveIconPanelTest {
     assertThat(panel.getForegroundResizeSlider().isEnabled()).isTrue();
     assertThat(panel.getForegroundResizeValueTextField().isEnabled()).isTrue();
   }
+
+  @Test
+  public void testMonochromeNotSupportedInitializationDoesNotThrow() {
+    AndroidFacet facet = AndroidFacet.getInstance(myProjectRule.getFixture().getModule());
+    ValidatorPanel validatorPanel = new ValidatorPanel(myProjectRule.getFixture().getProjectDisposable(), new JPanel());
+    DrawableRenderer renderer = mock(DrawableRenderer.class);
+
+    BoolValueProperty showGrid = new BoolValueProperty(false);
+    BoolValueProperty showSafeZone = new BoolValueProperty(true);
+    AbstractProperty<Density> previewDensity = new ObjectValueProperty<>(Density.XHIGH);
+
+    ConfigureAdaptiveIconPanel panel = new ConfigureAdaptiveIconPanel(
+      myProjectRule.getFixture().getProjectDisposable(), facet, AndroidIconType.TV_CHANNEL,
+      showGrid, showSafeZone, previewDensity, validatorPanel, renderer, false
+    );
+    Disposer.register(myProjectRule.getFixture().getProjectDisposable(), panel);
+    myInvokeStrategy.updateAllSteps();
+    assertThat(panel).isNotNull();
+  }
 }
