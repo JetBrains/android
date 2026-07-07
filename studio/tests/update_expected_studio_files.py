@@ -40,12 +40,12 @@ def main(ide, configurations):
   # Update base files
   base_lines = {}
   for platform in PLATFORMS:
-    name = f"{ide}.{base_configuration}.{platform}.zip"
+    name = f"{ide}.{base_configuration}.{platform}.lst"
     try:
-      with zipfile.ZipFile(name) as file:
-        base_lines[platform] = sorted(file.namelist())
+      with open(name, "r") as txt:
+        base_lines[platform] = sorted(txt.read().splitlines())
     except Exception as e:
-      print(f"ERROR reading zip {name}: {e}", file=sys.stderr)
+      print(f"ERROR reading manifest {name}: {e}", file=sys.stderr)
       sys.exit(1)
 
     target_path = os.path.join(ws_dir, ide_path_prefix, f"tests/expected_studio_files/{ide_name}", f"expected_{platform}.txt")
@@ -61,12 +61,12 @@ def main(ide, configurations):
   # Generate diffs for all configurations
   for configuration in configurations:
     for platform in PLATFORMS:
-      name = f"{ide}.{configuration}.{platform}.zip"
+      name = f"{ide}.{configuration}.{platform}.lst"
       try:
-        with zipfile.ZipFile(name) as file:
-          actual_lines = sorted(file.namelist())
+        with open(name, "r") as txt:
+          actual_lines = sorted(txt.read().splitlines())
       except Exception as e:
-        print(f"ERROR reading zip {name}: {e}", file=sys.stderr)
+        print(f"ERROR reading manifest {name}: {e}", file=sys.stderr)
         sys.exit(1)
 
       base_set = set(base_lines[platform])
