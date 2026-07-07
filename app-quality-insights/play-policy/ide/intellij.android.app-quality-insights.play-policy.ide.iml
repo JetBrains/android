@@ -24,7 +24,9 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="android.sdktools.lint-api" />
     <orderEntry type="module" module-name="google-login" />
+    <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="intellij.android.play-client.metadata" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
