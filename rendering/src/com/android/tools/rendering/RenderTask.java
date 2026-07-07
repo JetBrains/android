@@ -340,11 +340,6 @@ public class RenderTask {
     return myLogger;
   }
 
-  @NotNull
-  public HardwareConfigHelper getHardwareConfigHelper() {
-    return myHardwareConfigHelper;
-  }
-
   public boolean getShowDecorations() {
     return myShowDecorations;
   }
@@ -453,7 +448,6 @@ public class RenderTask {
     updateHardwareConfiguration();
   }
 
-
   /**
    * Updates the hardware configuration of the current {@link RenderSession} and sets {@link #isSizeChanged} to true.
    * This method should be called whenever the size of the hardware used for rendering has changed.
@@ -464,8 +458,6 @@ public class RenderTask {
       isSizeChanged = true;
     }
   }
-
-
 
   /**
    * Sets the max width and height to be used during rendering (which might be adjusted if
