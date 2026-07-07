@@ -59,7 +59,7 @@ class ImportAndExportTraceTest : ProfilersTestBase() {
         Thread.sleep(2000)
         // Import memory trace.
         studio.openFile(project.targetProject.name, "sampleTaskRecordings/memory.heapprofd")
-        studio.waitForComponentByClass("TooltipLayeredPane", "CapturePanelUi")
+        studio.waitForComponentByClass("CapturePanelUi")
 
         Thread.sleep(2000)
         // open recording tab
