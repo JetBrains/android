@@ -20,7 +20,9 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.util.computeUserDataIfAbsent
+import com.android.utils.throwIfCancellation
 import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Key
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
@@ -73,7 +75,14 @@ internal class EnvironmentTracker(private val emulator: EmulatorController) {
           latch.countDown()
         }
       }
-    emulator.getEnvironment(observer)
+    try {
+      emulator.getEnvironment(observer)
+    } catch (e: Throwable) {
+      e.throwIfCancellation()
+      if (emulator.connectionState == EmulatorController.ConnectionState.CONNECTED && !emulator.isShuttingDown) {
+        thisLogger().error(e)
+      }
+    }
     try {
       latch.await(500, TimeUnit.MILLISECONDS)
     } catch (_: InterruptedException) {}
