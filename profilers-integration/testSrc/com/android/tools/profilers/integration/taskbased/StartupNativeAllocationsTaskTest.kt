@@ -36,7 +36,7 @@ class StartupNativeAllocationsTaskTest : ProfilersStartupTaskTestBase() {
   }
 
   override fun verifyUIComponents(studio: AndroidStudio) {
-    studio.waitForComponentByClass("TooltipLayeredPane", "CapturePanelUi")
+    studio.waitForComponentByClass("CapturePanelUi")
   }
 
   /**

@@ -132,13 +132,13 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   private boolean myMethodTraceInEditorEnabled = false;
 
-  private boolean myCallstackSampleTraceInEditorEnabled = false;
+  private boolean myCallstackSampleTraceInEditorEnabled = true;
 
-  private boolean myHeapDumpTraceInEditorEnabled = false;
+  private boolean myHeapDumpTraceInEditorEnabled = true;
 
-  private boolean myNativeAllocationsTraceInEditorEnabled = false;
+  private boolean myNativeAllocationsTraceInEditorEnabled = true;
 
-  private boolean myJavaKotlinAllocationsLegacyTraceInEditorEnabled = false;
+  private boolean myJavaKotlinAllocationsLegacyTraceInEditorEnabled = true;
 
   public void setSystemTraceInEditorEnabled(boolean enabled) {
     mySystemTraceInEditorEnabled = enabled;
