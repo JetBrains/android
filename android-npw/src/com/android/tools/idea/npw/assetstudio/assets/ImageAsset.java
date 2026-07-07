@@ -33,6 +33,7 @@ import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
@@ -211,7 +212,14 @@ public final class ImageAsset extends BaseAsset {
         return null;
       }
 
+      // SECURITY: imagePath is deserialised from project-level .idea/assetWizardSettings.xml,
+      // which is attacker-authored in an untrusted project. Calling Files.notExists() on a UNC
+      // path before the user grants trust triggers an SMB connect on Windows (NTLMv2 leak).
+      // Skip the existence-probe on Windows and let the user re-pick if the path is stale.
       Path path = Paths.get(imagePath);
+      if (SystemInfo.isWindows) {
+        return path.toFile();
+      }
       while (Files.notExists(path)) {
         path = path.getParent();
         if (path == null) {
