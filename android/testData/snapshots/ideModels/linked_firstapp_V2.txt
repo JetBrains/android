@@ -594,6 +594,8 @@ MODULE                        : My_First_App
                             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
+                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                                    qName                         : :app:mysharedlibrary:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :app:mysharedlibrary:testDebugUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -602,11 +604,15 @@ MODULE                        : My_First_App
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedDebugAndroidTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
 MODULE                        : My_First_App.app
@@ -619,6 +625,7 @@ MODULE                        : My_First_App.app
         rootFolderPath                : <ROOT>/firstapp
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -1693,6 +1700,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         rootFolderPath                : <ROOT>/firstapp
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk

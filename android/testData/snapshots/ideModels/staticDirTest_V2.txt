@@ -690,11 +690,15 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedDebugAndroidTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
 MODULE                        : project.app
@@ -707,6 +711,7 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk

@@ -73,6 +73,8 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
             library                       : :library (DefaultExternalProject)
@@ -92,6 +94,8 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :library:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :library:testDebugUnitTest
             library-debug                 : :library-debug (DefaultExternalProject)
@@ -112,6 +116,8 @@ MODULE                        : project
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedDebugAndroidTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
 MODULE                        : project.app
@@ -124,6 +130,7 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -462,6 +469,7 @@ MODULE                        : project.library
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk

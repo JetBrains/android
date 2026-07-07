@@ -28,11 +28,15 @@ MODULE                        : gradle_project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedDebugAndroidTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
 MODULE                        : gradle_project.app
@@ -45,6 +49,7 @@ MODULE                        : gradle_project.app
         rootFolderPath                : <ROOT>/gradle_project
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk

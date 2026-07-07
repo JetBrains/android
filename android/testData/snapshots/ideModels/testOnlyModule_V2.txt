@@ -652,6 +652,8 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
             benchmark                     : :benchmark (DefaultExternalProject)
@@ -670,6 +672,9 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        connectedBenchmarkAndroidTest : connectedBenchmarkAndroidTest (DefaultExternalTask)
+                            qName                         : :benchmark:connectedBenchmarkAndroidTest
             test                          : :test (DefaultExternalProject)
                 path                          : :test [-]
                 identityPath                  : :test [-]
@@ -686,6 +691,9 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :test:connectedDebugAndroidTest
             test2                         : :test2 (DefaultExternalProject)
                 path                          : :test2 [-]
                 identityPath                  : :test2 [-]
@@ -702,9 +710,16 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :test2:connectedDebugAndroidTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedBenchmarkAndroidTest : connectedBenchmarkAndroidTest (DefaultExternalTask)
+                    qName                         : :benchmark:connectedBenchmarkAndroidTest
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedDebugAndroidTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
 MODULE                        : project.app
@@ -717,6 +732,7 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -1079,6 +1095,7 @@ MODULE                        : project.benchmark
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedBenchmarkAndroidTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1552,6 +1569,7 @@ MODULE                        : project.test
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -2015,6 +2033,7 @@ MODULE                        : project.test2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16

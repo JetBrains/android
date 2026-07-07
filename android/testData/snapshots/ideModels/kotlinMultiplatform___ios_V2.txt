@@ -616,6 +616,8 @@ MODULE                        : kotlinMultiPlatform
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
             module2                       : :module2 (DefaultExternalProject)
@@ -671,6 +673,8 @@ MODULE                        : kotlinMultiPlatform
                     - additionalArtifacts         : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :module2:connectedDebugAndroidTest
                         iosSimulatorArm64Test         : iosSimulatorArm64Test (DefaultExternalTask)
                             qName                         : :module2:iosSimulatorArm64Test
                         iosX64Test                    : iosX64Test (DefaultExternalTask)
@@ -680,6 +684,8 @@ MODULE                        : kotlinMultiPlatform
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedDebugAndroidTest
                 iosSimulatorArm64Test         : iosSimulatorArm64Test (DefaultExternalTask)
                     qName                         : :module2:iosSimulatorArm64Test
                 iosX64Test                    : iosX64Test (DefaultExternalTask)
@@ -696,6 +702,7 @@ MODULE                        : kotlinMultiPlatform.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -1790,6 +1797,7 @@ MODULE                        : kotlinMultiPlatform.module2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : iosSimulatorArm64Test
         - taskNames                   : iosX64Test
         - taskNames                   : testDebugUnitTest
