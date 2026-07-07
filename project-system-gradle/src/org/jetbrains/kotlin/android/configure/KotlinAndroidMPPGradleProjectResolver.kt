@@ -39,12 +39,14 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
+import org.jetbrains.kotlin.idea.gradleTooling.IdeaMppProjectProvider
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.resolveAllDependsOnSourceSets
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 import java.io.File
@@ -52,12 +54,9 @@ import java.io.File
 @Order(ExternalSystemConstants.UNORDERED - 1)
 class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension() {
 
-  override fun getToolingExtensionsClasses(): Set<Class<*>> = setOf(
-    KotlinMPPGradleModel::class.java,   // Module: intellij.kotlin.gradle.tooling.impl
-    KotlinTarget::class.java,           // Module: intellij.kotlin.base.project-model
-  )
+  override fun getToolingExtensionsClasses(): Set<Class<*>> = IdeaMppProjectProvider.MODEL_CLASSPATH
 
-  override fun getExtraProjectModelClasses(): Set<Class<*>> = setOf(KotlinMPPGradleModel::class.java)
+  override fun getModelProvider(): ProjectImportModelProvider = IdeaMppProjectProvider
 
   override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData>? {
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)
