@@ -486,7 +486,7 @@ public class RenderTaskTest {
           return null;
         });
 
-        Future<?> disposeFuture = task.dispose();
+        Future<?> disposeFuture = task.disposeAsync();
         semaphore.release();
 
         Throwable exception = null;
@@ -1066,10 +1066,10 @@ public class RenderTaskTest {
       return null;
     });
     try {
-      task1.dispose().get(5, TimeUnit.SECONDS);
+      task1.disposeAsync().get(5, TimeUnit.SECONDS);
       latch.countDown();
-      task2.dispose().get(5, TimeUnit.SECONDS);
-      task3.dispose().get(5, TimeUnit.SECONDS);
+      task2.disposeAsync().get(5, TimeUnit.SECONDS);
+      task3.disposeAsync().get(5, TimeUnit.SECONDS);
     }
     catch (Exception e) {
       fail("RenderTask dispose not happening before low priority render tasks.");

@@ -218,7 +218,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
         myRenderVersions.put(file, configuration, version)
         image
       }
-      .whenCompleteAsync({ _, _ -> renderTaskFuture.get()?.dispose() }, AppExecutorUtil.getAppExecutorService())
+      .whenCompleteAsync({ _, _ -> renderTaskFuture.get()?.disposeAsync() }, AppExecutorUtil.getAppExecutorService())
   }
 
   protected open fun createTask(

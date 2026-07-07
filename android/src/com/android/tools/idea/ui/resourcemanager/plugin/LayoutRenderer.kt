@@ -109,7 +109,7 @@ constructor(
       )
       .whenComplete { _, _ ->
         // Dispose the RenderTask once it has finished rendering.
-        renderTaskFuture.get()?.dispose()
+        renderTaskFuture.get()?.disposeAsync()
       }
   }
 

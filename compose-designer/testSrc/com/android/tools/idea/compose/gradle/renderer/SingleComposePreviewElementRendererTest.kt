@@ -174,7 +174,7 @@ class SingleComposePreviewElementRendererTest {
 
     assertTrue(toRunTrampolined.isNotEmpty())
 
-    renderTask.dispose().get()
+    renderTask.disposeAsync().get()
     assertTrue("animationScale should have been cleared", (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty())
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
     assertTrue("globalWriteObservers should have been cleared", globalWriteObservers.isEmpty())
@@ -292,7 +292,7 @@ class SingleComposePreviewElementRendererTest {
         assertImageSimilar(Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/keyEventRender.png"), it, 0.1, 1)
       }
     } finally {
-      renderTask.dispose().get(30, TimeUnit.SECONDS)
+      renderTask.disposeAsync().get(30, TimeUnit.SECONDS)
     }
   }
 
@@ -314,7 +314,7 @@ class SingleComposePreviewElementRendererTest {
       val result = renderTask.render().get()
       assertFalse("The render should have failed", result.renderResult.isSuccess)
       classLoader = renderTask.classLoader as ModuleClassLoader
-      renderTaskFuture.future.get().dispose().get()
+      renderTaskFuture.future.get().disposeAsync().get()
     }
 
     // Ensure that the classes we will check were loaded by the test first. If not, it could be the

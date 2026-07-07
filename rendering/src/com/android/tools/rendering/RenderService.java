@@ -681,7 +681,7 @@ final public class RenderService implements Disposable {
             task.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
           }
           if (disposable.isDisposed()) {
-            task.dispose();
+            task.disposeAsync();
             return null;
           }
 
@@ -692,7 +692,7 @@ final public class RenderService implements Disposable {
         }
         catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
           if (task != null) {
-            task.dispose();
+            task.disposeAsync();
           }
           // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
           if (!module.isDisposed()) {
