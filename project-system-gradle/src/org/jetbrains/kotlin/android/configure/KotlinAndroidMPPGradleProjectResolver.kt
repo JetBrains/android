@@ -13,6 +13,9 @@ import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.ANDROID_TEST
@@ -20,9 +23,6 @@ import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet.UNIT_TEST
-import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
-import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.utils.appendCapitalized
@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
 import org.jetbrains.kotlin.idea.gradleTooling.resolveAllDependsOnSourceSets
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
@@ -52,13 +51,13 @@ import java.io.File
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
 class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension() {
-  override fun getToolingExtensionsClasses(): Set<Class<out Any>> {
-    return setOf(KotlinMPPGradleModelBuilder::class.java, KotlinTarget::class.java, Unit::class.java)
-  }
 
-  override fun getExtraProjectModelClasses(): Set<Class<out Any>> {
-    return setOf(KotlinMPPGradleModel::class.java, KotlinTarget::class.java)
-  }
+  override fun getToolingExtensionsClasses(): Set<Class<*>> = setOf(
+    KotlinMPPGradleModel::class.java,   // Module: intellij.kotlin.gradle.tooling.impl
+    KotlinTarget::class.java,           // Module: intellij.kotlin.base.project-model
+  )
+
+  override fun getExtraProjectModelClasses(): Set<Class<*>> = setOf(KotlinMPPGradleModel::class.java)
 
   override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData>? {
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)
