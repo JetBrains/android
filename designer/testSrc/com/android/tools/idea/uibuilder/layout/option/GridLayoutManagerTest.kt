@@ -28,6 +28,7 @@ import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
+import kotlin.test.DefaultAsserter.assertNotEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
@@ -546,6 +547,24 @@ class GridLayoutManagerTest {
     // updated
     assertSame(cachedSize, cachedSizeAfterContentUpdate)
     assertSame(cachedSizeAfterContentUpdate, manager.getCurrentCachedSizeForTestOnly())
+  }
+
+  @Test
+  fun testCacheInvalidationOnScaleChange() {
+    val manager = createGridLayoutManager()
+    val content = listOf(TestPositionableContent(null, Dimension(100, 100)))
+
+    // Calculate size with initial scale
+    var scale = 1.0
+    val size1 = manager.getSize(content, { scale }, 500)
+
+    // Change scale and recalculate size
+    scale = 2.0
+    val size2 = manager.getSize(content, { scale }, 500)
+
+    // Sizes should be different because scale changed, cache should have been invalidated.
+    // If cache is not invalidated, size2 will be equal to size1 (the cached value).
+    assertNotEquals("Sizes should be different because scale changed, cache should have been invalidated", size1, size2)
   }
 
   private fun createGroups(): List<PositionableGroup> {

@@ -63,9 +63,12 @@ open class GridLayoutManager(
 
   /** Get the total required size to layout the [content] with the given conditions. */
   fun getSize(content: Collection<PositionableContent>, scaleFunc: PositionableContent.() -> Double, availableWidth: Int): Dimension {
-    // PositionableContent.contentSize is mutable. Create a defensive copy of the dimensions to
-    // avoid side effects.
-    val newContentSizes = content.map { Dimension(it.contentSize.width, it.contentSize.height) }
+    // Use scaled sizes to ensure cache gets calculated correctly when scale changes.
+    val newContentSizes =
+      content.map {
+        val size = it.sizeForScale(it.scaleFunc())
+        Dimension(size.width, size.height)
+      }
     // Check if there is a cached size already, if so, returns the cached size if the input
     // parameters match the previous calculation.
     storedSurfaceSizes?.let { (storedPositionableContentSize, storedAvailableWidth, storedCalculatedSize) ->
