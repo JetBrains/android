@@ -134,7 +134,7 @@ fun renderPreviewElementForResult(
           if (it != null && it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty() && !it.logger.hasErrors()) it else null
         }
 
-    renderResultFuture.handle { _, _ -> renderTaskFuture.future.get().dispose() }
+    renderResultFuture.handle { _, _ -> renderTaskFuture.future.get().disposeAsync() }
     renderResultFuture
   }
 }

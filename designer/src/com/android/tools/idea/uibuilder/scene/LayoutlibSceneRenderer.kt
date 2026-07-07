@@ -139,7 +139,7 @@ class LayoutlibSceneRenderer(
         }
       }
       try {
-        oldTask?.dispose()
+        oldTask?.disposeAsync()
       } catch (t: Throwable) {
         log.warn(t)
       }
@@ -412,7 +412,7 @@ class LayoutlibSceneRenderer(
         }
       } else {
         // If the result is not successful or the renderer is disposed, then we discard the task.
-        newTask?.dispose()
+        newTask?.disposeAsync()
         renderTask = null
       }
     }

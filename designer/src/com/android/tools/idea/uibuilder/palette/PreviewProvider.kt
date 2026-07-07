@@ -144,7 +144,7 @@ class PreviewProvider(
       .thenCompose { renderTask -> renderImage(renderTask, xml) }
       .thenApply { (renderTask, renderResult) ->
         val image = renderResult?.let { extractImage(it) }
-        val disposal = renderTask?.dispose()
+        val disposal = renderTask?.disposeAsync()
         Pair(image, disposal)
       }
   }

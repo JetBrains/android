@@ -318,14 +318,14 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
       }
 
       if (model.isDisposed) {
-        newTask.dispose()
+        newTask.disposeAsync()
         return@thenCompose CompletableFuture.failedFuture(AlreadyDisposedException("NlModel was already disposed"))
       }
 
       // TODO: Potentially save this task for future?
       return@thenCompose newTask.inflate().whenComplete { result, inflateException ->
         val exception: Throwable? = inflateException ?: result?.renderResult?.exception
-        newTask.dispose()
+        newTask.disposeAsync()
         if (exception != null || result == null) {
           logger.error("INFLATE", "Error inflating views for visual lint on background", exception, null, null)
         }

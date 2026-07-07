@@ -173,7 +173,7 @@ public class ViewEditorImpl extends ViewEditor {
         return CompletableFuture.completedFuture(Collections.emptyMap());
       }
       return task.measureChildren(new PsiXmlTag(parentTag), filter)
-        .whenCompleteAsync((map, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService())
+        .whenCompleteAsync((map, ex) -> task.disposeAsync(), AppExecutorUtil.getAppExecutorService())
         .thenApply(map -> {
           if (map == null) {
             return Collections.emptyMap();

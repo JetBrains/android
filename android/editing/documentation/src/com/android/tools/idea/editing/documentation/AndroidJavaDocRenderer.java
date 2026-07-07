@@ -82,7 +82,6 @@ import com.google.common.collect.Ordering;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -1087,7 +1086,7 @@ public class AndroidJavaDocRenderer {
             }
 
             renderTask.setOverrideRenderSize(width, height);
-            return renderTask.renderDrawable(resolvedValue).whenComplete((image, ex) -> renderTask.dispose());
+            return renderTask.renderDrawable(resolvedValue).whenComplete((image, ex) -> renderTask.disposeAsync());
           });
           BufferedImage image;
           try {

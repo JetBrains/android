@@ -139,7 +139,7 @@ class SimpleComposeProjectScenarios {
 
         return ExtendedRenderResult.create(renderResult, firstExecutionResult, firstTouchEventResult, postTouchEventResult)
       } finally {
-        renderTaskFuture.future.get(5, TimeUnit.SECONDS).dispose().get(5, TimeUnit.SECONDS)
+        renderTaskFuture.future.get(5, TimeUnit.SECONDS).disposeAsync().get(5, TimeUnit.SECONDS)
       }
     }
   }

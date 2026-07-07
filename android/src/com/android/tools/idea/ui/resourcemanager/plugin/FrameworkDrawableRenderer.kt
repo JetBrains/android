@@ -72,7 +72,7 @@ constructor(
           renderTaskProvider(AndroidBuildTargetReference.gradleOnly(facet), configuration).thenCompose { renderTask ->
             renderTask?.setOverrideRenderSize(dimension.width, dimension.height)
             renderTask?.setMaxRenderSize(dimension.width, dimension.height)
-            renderTask?.renderDrawable(value)?.whenComplete { _, _ -> renderTask.dispose() }
+            renderTask?.renderDrawable(value)?.whenComplete { _, _ -> renderTask.disposeAsync() }
           }
         },
         PooledThreadExecutor.INSTANCE,

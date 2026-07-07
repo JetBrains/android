@@ -804,7 +804,7 @@ public class AppBarConfigurationDialog extends JDialog {
           }
 
           return result.getRenderedImage().getCopy();
-        }).whenCompleteAsync((image, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService());
+        }).whenCompleteAsync((image, ex) -> task.disposeAsync(), AppExecutorUtil.getAppExecutorService());
       }
       return null;
     });
