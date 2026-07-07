@@ -65,9 +65,7 @@ internal class EnvironmentTracker(private val emulator: EmulatorController) {
     val observer =
       object : EmptyStreamObserver<Environment>() {
         override fun onNext(message: Environment) {
-          if (!message.environmentMap.isEmpty()) { // TODO: Don't ignore empty environment when b/528439369 is fixed.
-            updateEnvironment(message)
-          }
+          updateEnvironment(message)
           latch.countDown()
         }
 
