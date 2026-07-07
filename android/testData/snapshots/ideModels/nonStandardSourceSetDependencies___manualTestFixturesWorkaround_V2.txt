@@ -786,6 +786,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
             common                        : :common (DefaultExternalProject)
@@ -982,6 +984,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         - releaseSourcesElements-published      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :feature-a:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :feature-a:testDebugUnitTest
             feature-b                     : :feature-b (DefaultExternalProject)
@@ -1015,6 +1019,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     - additionalArtifacts         : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :feature-b:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :feature-b:testDebugUnitTest
             jarWrapperLib                 : :jarWrapperLib (DefaultExternalProject)
@@ -1256,11 +1262,15 @@ MODULE                        : NonStandardSourceSetDependencies
                             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
+                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                                    qName                         : :kmp-java:sample-test:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :kmp-java:sample-test:testDebugUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample-test:connectedDebugAndroidTest
                         jvmTest                       : jvmTest (DefaultExternalTask)
                             qName                         : :kmp-java:sample:jvmTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -1295,11 +1305,15 @@ MODULE                        : NonStandardSourceSetDependencies
                     - additionalArtifacts         : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :lib:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedDebugAndroidTest
                 jvmTest                       : jvmTest (DefaultExternalTask)
                     qName                         : :common:jvmTest
                 test                          : test (DefaultExternalTask)
@@ -1326,6 +1340,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -2431,6 +2446,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -3512,6 +3528,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -4284,6 +4301,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : jvmTest
         - taskNames                   : testDebugUnitTest
     externalProject               : :kmp-java (DefaultExternalProject) (*seen*)
@@ -4503,6 +4521,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -4805,6 +4824,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk

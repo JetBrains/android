@@ -694,6 +694,8 @@ MODULE                        : kotlinMultiPlatform
                                     patterns                      : FilePatternSetImpl
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedDebugAndroidTest
                         jvmTest                       : jvmTest (DefaultExternalTask)
                             qName                         : :app:jvmTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -785,6 +787,8 @@ MODULE                        : kotlinMultiPlatform
                                     patterns                      : FilePatternSetImpl
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :module2:connectedDebugAndroidTest
                         jvmTest                       : jvmTest (DefaultExternalTask)
                             qName                         : :module2:jvmTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -792,6 +796,8 @@ MODULE                        : kotlinMultiPlatform
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedDebugAndroidTest
                 jvmTest                       : jvmTest (DefaultExternalTask)
                     qName                         : :app:jvmTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -806,6 +812,7 @@ MODULE                        : kotlinMultiPlatform.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : jvmTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
@@ -2315,6 +2322,7 @@ MODULE                        : kotlinMultiPlatform.module2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : jvmTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions

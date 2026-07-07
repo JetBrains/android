@@ -751,6 +751,14 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedBasicBarDebugAndroidTest       : connectedBasicBarDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedBasicBarDebugAndroidTest
+                        connectedBasicOtherBarDebugAndroidTest  : connectedBasicOtherBarDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedBasicOtherBarDebugAndroidTest
+                        connectedPaidBarDebugAndroidTest        : connectedPaidBarDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedPaidBarDebugAndroidTest
+                        connectedPaidOtherBarDebugAndroidTest   : connectedPaidOtherBarDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedPaidOtherBarDebugAndroidTest
                         testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testBasicBarDebugUnitTest
                         testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
@@ -776,6 +784,8 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :dyn_feature:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :dyn_feature:testDebugUnitTest
             jav                           : :jav (DefaultExternalProject)
@@ -860,6 +870,8 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :lib:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
             nested1                       : :nested1 (DefaultExternalProject)
@@ -891,6 +903,8 @@ MODULE                        : project
                             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
+                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                                    qName                         : :nested1:deep:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :nested1:deep:testDebugUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -899,6 +913,8 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :nested1:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested1:testDebugUnitTest
             nested2                       : :nested2 (DefaultExternalProject)
@@ -930,6 +946,8 @@ MODULE                        : project
                             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
+                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                                    qName                         : :nested2:deep:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :nested2:deep:testDebugUnitTest
                     trans                         : :nested2:trans (DefaultExternalProject)
@@ -961,11 +979,15 @@ MODULE                        : project
                                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                                 taskModel                     : DefaultGradleTaskModel
                                     tasks
+                                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                                            qName                         : :nested2:trans:deep2:connectedDebugAndroidTest
                                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                             qName                         : :nested2:trans:deep2:testDebugUnitTest
                         sourceSetModel                : DefaultGradleSourceSetModel
                         taskModel                     : DefaultGradleTaskModel
                             tasks
+                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                                    qName                         : :nested2:trans:deep2:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :nested2:trans:deep2:testDebugUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -974,6 +996,12 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedBasicDebugAndroidTest          : connectedBasicDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :nested2:connectedBasicDebugAndroidTest
+                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :nested2:deep:connectedDebugAndroidTest
+                        connectedPaidDebugAndroidTest : connectedPaidDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :nested2:connectedPaidDebugAndroidTest
                         testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testBasicDebugUnitTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -983,6 +1011,20 @@ MODULE                        : project
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedBasicBarDebugAndroidTest       : connectedBasicBarDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedBasicBarDebugAndroidTest
+                connectedBasicDebugAndroidTest          : connectedBasicDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :nested2:connectedBasicDebugAndroidTest
+                connectedBasicOtherBarDebugAndroidTest  : connectedBasicOtherBarDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedBasicOtherBarDebugAndroidTest
+                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :dyn_feature:connectedDebugAndroidTest
+                connectedPaidBarDebugAndroidTest        : connectedPaidBarDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedPaidBarDebugAndroidTest
+                connectedPaidDebugAndroidTest : connectedPaidDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :nested2:connectedPaidDebugAndroidTest
+                connectedPaidOtherBarDebugAndroidTest   : connectedPaidOtherBarDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedPaidOtherBarDebugAndroidTest
                 test                          : test (DefaultExternalTask)
                     qName                         : :jav:test
                 testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
@@ -1009,6 +1051,10 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedBasicBarDebugAndroidTest
+        - taskNames                   : connectedBasicOtherBarDebugAndroidTest
+        - taskNames                   : connectedPaidBarDebugAndroidTest
+        - taskNames                   : connectedPaidOtherBarDebugAndroidTest
         - taskNames                   : testBasicBarDebugUnitTest
         - taskNames                   : testBasicOtherBarDebugUnitTest
         - taskNames                   : testPaidBarDebugUnitTest
@@ -2504,6 +2550,7 @@ MODULE                        : project.dyn_feature
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -2802,6 +2849,7 @@ MODULE                        : project.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -3818,6 +3866,7 @@ MODULE                        : project.nested1
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -4114,6 +4163,7 @@ MODULE                        : project.nested1.deep
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -4420,6 +4470,9 @@ MODULE                        : project.nested2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedBasicDebugAndroidTest
+        - taskNames                   : connectedDebugAndroidTest
+        - taskNames                   : connectedPaidDebugAndroidTest
         - taskNames                   : testBasicDebugUnitTest
         - taskNames                   : testDebugUnitTest
         - taskNames                   : testPaidDebugUnitTest
@@ -4867,6 +4920,7 @@ MODULE                        : project.nested2.deep
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -5164,6 +5218,7 @@ MODULE                        : project.nested2.trans
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     externalProject               : :nested2:trans (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.trans.deep2
@@ -5176,6 +5231,7 @@ MODULE                        : project.nested2.trans.deep2
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk

@@ -444,6 +444,14 @@ MODULE                        : MultiFlavor
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
+                        connectedFirstAbcSecondAbcDebugAndroidTest        : connectedFirstAbcSecondAbcDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedFirstAbcSecondAbcDebugAndroidTest
+                        connectedFirstAbcSecondXyzDebugAndroidTest        : connectedFirstAbcSecondXyzDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedFirstAbcSecondXyzDebugAndroidTest
+                        connectedFirstXyzSecondAbcDebugAndroidTest        : connectedFirstXyzSecondAbcDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedFirstXyzSecondAbcDebugAndroidTest
+                        connectedFirstXyzSecondXyzDebugAndroidTest        : connectedFirstXyzSecondXyzDebugAndroidTest (DefaultExternalTask)
+                            qName                         : :app:connectedFirstXyzSecondXyzDebugAndroidTest
                         testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
                         testFirstAbcSecondXyzDebugUnitTest      : testFirstAbcSecondXyzDebugUnitTest (DefaultExternalTask)
@@ -455,6 +463,14 @@ MODULE                        : MultiFlavor
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
+                connectedFirstAbcSecondAbcDebugAndroidTest        : connectedFirstAbcSecondAbcDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedFirstAbcSecondAbcDebugAndroidTest
+                connectedFirstAbcSecondXyzDebugAndroidTest        : connectedFirstAbcSecondXyzDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedFirstAbcSecondXyzDebugAndroidTest
+                connectedFirstXyzSecondAbcDebugAndroidTest        : connectedFirstXyzSecondAbcDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedFirstXyzSecondAbcDebugAndroidTest
+                connectedFirstXyzSecondXyzDebugAndroidTest        : connectedFirstXyzSecondXyzDebugAndroidTest (DefaultExternalTask)
+                    qName                         : :app:connectedFirstXyzSecondXyzDebugAndroidTest
                 testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
                 testFirstAbcSecondXyzDebugUnitTest      : testFirstAbcSecondXyzDebugUnitTest (DefaultExternalTask)
@@ -473,6 +489,10 @@ MODULE                        : MultiFlavor.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+        - taskNames                   : connectedFirstAbcSecondAbcDebugAndroidTest
+        - taskNames                   : connectedFirstAbcSecondXyzDebugAndroidTest
+        - taskNames                   : connectedFirstXyzSecondAbcDebugAndroidTest
+        - taskNames                   : connectedFirstXyzSecondXyzDebugAndroidTest
         - taskNames                   : testFirstAbcSecondAbcDebugUnitTest
         - taskNames                   : testFirstAbcSecondXyzDebugUnitTest
         - taskNames                   : testFirstXyzSecondAbcDebugUnitTest
