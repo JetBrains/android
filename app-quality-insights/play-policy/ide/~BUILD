@@ -41,5 +41,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/vendor/google/play-client/metadata:intellij.android.play-client.metadata",
         "//tools/vendor/google/login:google-login",
+        "//tools/base/lint:studio.android.sdktools.lint-api",
+        "//tools/adt/idea/android-lint:intellij.android.lint",
     ],
 )

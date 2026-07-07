@@ -38,4 +38,8 @@
     <postStartupActivity implementation="com.android.tools.idea.play.PlayPolicyProjectActivity" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
+    <lintQuickFixProvider implementation="com.android.tools.idea.play.GoogleLoginQuickFixProvider"/>
+  </extensions>
+
 </idea-plugin>
