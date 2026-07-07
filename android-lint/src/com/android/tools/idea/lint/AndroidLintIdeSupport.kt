@@ -60,16 +60,16 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import java.io.File
-import java.util.EnumSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
+import java.io.File
+import java.util.EnumSet
 
-open class AndroidLintIdeSupport : LintIdeSupport() {
+class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry() = AndroidLintIdeIssueRegistry()
 
   override fun getBaselineFile(client: LintIdeClient, module: Module): File? {
