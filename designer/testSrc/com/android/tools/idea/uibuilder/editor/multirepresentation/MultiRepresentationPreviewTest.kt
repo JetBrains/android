@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
+import com.android.tools.idea.concurrency.AndroidCoroutinesAware
+import com.android.tools.idea.concurrency.scopeDisposable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.insertText
 import com.intellij.openapi.application.EDT
@@ -43,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -801,6 +804,29 @@ class MultiRepresentationPreviewTest {
 
     multiPreview.onInit()
     assertTrue("Expected the provider to be called", provider.wasCalled.get())
+  }
+
+  /**
+   * Regression test for b/519594212
+   *
+   * The MultiRepresentationPreview is a [AndroidCoroutinesAware]. The coroutine context will be registered to the Disposer ROOT_NODE if it
+   * is accessed before the preview has been registered to a parent disposable. This test checks that the coroutine scope associated with
+   * the preview is registered to the preview itself and not the disposer's root node.
+   */
+  @Test
+  fun testPreviewCoroutineScopeIsDisposedWhenPreviewIsDisposed() = runTest {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+
+    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf())
+    val scopeDisposable = multiPreview.scopeDisposable()
+    val isScopeDisposed = AtomicBoolean(false)
+    Disposer.register(scopeDisposable) { isScopeDisposed.set(true) }
+
+    launch { multiPreview.onInit() }
+    Disposer.dispose(multiPreview)
+
+    assertTrue(isScopeDisposed.get())
   }
 }
 
