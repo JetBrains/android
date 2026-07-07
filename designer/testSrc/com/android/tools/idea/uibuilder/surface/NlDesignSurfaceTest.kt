@@ -19,12 +19,17 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.resources.Density
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider.NlRenderIssueWrapper
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.DEFAULT_SCREEN_MODE
@@ -33,11 +38,14 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.l
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.savePreferredMode
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.Companion.build
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.Companion.builder
+import com.android.tools.idea.uibuilder.util.MockCopyPasteManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Point
+import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 import kotlinx.coroutines.test.runTest
 
@@ -47,8 +55,15 @@ class NlDesignSurfaceTest : LayoutTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
+    val projectSystem =
+      object : GradleProjectSystem(project) {
+        private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = true)
 
-    designSurface = build(getProject(), getTestRootDisposable())
+        override fun getBuildManager(): ProjectSystemBuildManager = buildManager
+      }
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(projectSystem)
+
+    designSurface = build(project, getTestRootDisposable())
     designSurface.setSize(1000, 1000)
   }
 
@@ -103,7 +118,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     )
   }
 
-  fun ignore_testRenderWhileBuilding() {
+  fun testRenderWhileBuilding() = runTest {
     val modelBuilder =
       model(
         "absolute.xml",
@@ -116,33 +131,38 @@ class NlDesignSurfaceTest : LayoutTestCase() {
 
     var model: NlModel = modelBuilder.build()
     // Simulate that we are in the middle of a build
-    //    BuildSettings.getInstance(getProject()).setBuildMode(BuildMode.SOURCE_GEN);
+    val buildManager = TestProjectSystemBuildManager.get(project)
+    buildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on
     // the Material theme
     model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
     designSurface.setModel(model)
 
     refreshSurface()
+    delayUntilCondition(100) {
+      designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("The project is still building") }
+    }
 
     // Now finish the build, and try to build again. The "project is still building" should be gone.
-    //    BuildSettings.getInstance(getProject()).setBuildMode(null);
+    buildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     model = modelBuilder.build()
     model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
     designSurface.setModel(model)
 
     refreshSurface()
-    // Because there is a missing view, some other extra errors will be generated about missing
-    // styles. This is caused by
-    // MockView (which is based on TextView) that depends on some Material styles.
-    // We only care about the missing class error.
-    assertTrue(designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("Missing classes") })
+    delayUntilCondition(100) {
+      // Because there is a missing view, some other extra errors will be generated about missing
+      // styles. This is caused by MockView (which is based on TextView) that depends on some Material styles.
+      // We only care about the missing class error.
+      designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("Missing classes") }
+    }
     assertFalse(
       designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("The project is still building") }
     )
   }
 
-  /** Copy a component and check that the id of the new component has the same base and an incremented number */
-  fun ignore_testCopyPasteWithId() {
+  /** Copy a component and check that the id of the new component has the same base and an incremented number. */
+  fun testCopyPasteWithId() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -156,23 +176,26 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
     val button = checkNotNull(model.treeReader.find("cuteLittleButton"))
     designSurface.selectionModel.setSelection(listOf(button))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton2") != null }
     val button2 = model.treeReader.find("cuteLittleButton2")
     checkNotNull(button2)
     designSurface.selectionModel.setSelection(listOf(button2))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton3") != null }
     val button3 = model.treeReader.find("cuteLittleButton3")
     checkNotNull(button3)
   }
 
   /** Cut a component and check that the id of the new component has been conserved */
-  fun ignore_testCutPasteWithId() {
+  fun testCutPasteWithId() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -186,12 +209,14 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
     val button = checkNotNull(model.treeReader.find("cuteLittleButton"))
     designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton") != null }
     assertComponentWithId(model, "cuteLittleButton")
   }
 
@@ -226,7 +251,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
   }
 
   /** Cut a component and check that the id of the new component has been conserved */
-  fun ignore_testMultipleCopyPasteWithId() {
+  fun testMultipleCopyPasteWithId() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -242,7 +267,8 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
     val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     val button2 = model.treeReader.find("cuteLittleButton2") ?: throw NullPointerException("Button2 should not be null")
@@ -251,12 +277,13 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     handler.performCopy(dataContext)
     designSurface.selectionModel.clear()
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton4") != null }
     assertComponentWithId(model, "cuteLittleButton4")
     assertComponentWithId(model, "cuteLittleButton5")
     assertComponentWithId(model, "cuteLittleButton6")
   }
 
-  fun ignore_testCutThenCopyWithId() {
+  fun testCutThenCopyWithId() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -270,23 +297,26 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
     val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton") != null }
     val button2 = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     assertNotNull("Component should have been pasted with the id cuteLittleButton", button2)
 
     designSurface.selectionModel.setSelection(listOf(button2))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton2") != null }
     assertComponentWithId(model, "cuteLittleButton2")
   }
 
   /** Cut component1, paste it, copy it, cut the copy and paste it. The copy should keep the same id as the first time. */
-  fun ignore_testCutPasteCut() {
+  fun testCutPasteCut() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -300,25 +330,30 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
     val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton") != null }
     val buttonCut = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     assertNotNull("Component should have been pasted with the id cuteLittleButton", buttonCut)
 
     designSurface.selectionModel.setSelection(listOf(buttonCut))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton2") != null }
     assertComponentWithId(model, "cuteLittleButton2")
 
     val buttonCopied = model.treeReader.find("cuteLittleButton2") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(buttonCopied))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton2") != null }
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton3") != null }
     assertNull(model.treeReader.find("cuteLittleButton4"))
     assertComponentWithId(model, "cuteLittleButton2")
   }
@@ -377,9 +412,9 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     designSurface.zoomController.zoom(ZoomType.FIT)
     assertEquals(designSurface.zoomController.scale, origScale)
 
-    // Zoom to actual will have a scale of 1.0 (100% of scale)
+    // Zoom to actual will have a scale of 1.0 / screenScalingFactor
     designSurface.zoomController.zoom(ZoomType.ACTUAL, 0, 0)
-    assertEquals(1.0, designSurface.zoomController.scale)
+    assertEquals(1.0 / designSurface.zoomController.screenScalingFactor, designSurface.zoomController.scale)
 
     assertEquals(0.01, designSurface.zoomController.minScale)
 
@@ -554,5 +589,16 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         model.treeReader.flattenComponents().map<String?> { obj: NlComponent? -> obj!!.getId() }.collect(Collectors.joining(", ")),
       component,
     )
+  }
+
+  private fun waitForSurfaceToBeReady(model: NlModel) {
+    waitAndDispatchEvents { designSurface.getSceneManager(model)?.renderResult != null && designSurface.focusedSceneView != null }
+  }
+
+  private fun waitAndDispatchEvents(condition: () -> Boolean) {
+    waitForCondition(10, TimeUnit.SECONDS) {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      condition()
+    }
   }
 }
