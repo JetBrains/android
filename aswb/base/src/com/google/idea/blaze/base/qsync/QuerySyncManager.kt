@@ -319,8 +319,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     if (snapshot != null && BazelComposeToolingProjectLabelProvider.isComposeProject(project, snapshot.staleGraph)) {
       val label = BazelComposeToolingProjectLabelProvider.getComposeToolingLabel(project)
       if (label != null) {
-        // TODO: solodkyy - This is a little bit inefficient
-        if (!assertProjectLoaded().artifactTracker.stateSnapshot.deprecatedSyncedTargetKeys().contains(label)) {
+        if (assertProjectLoaded().artifactTracker.stateSnapshot.getTargetBuildInfo(label) == null) {
           assertProjectLoaded().buildDependencies(context, DependencyTracker.DependencyBuildRequest.specialTarget(setOf(label)))
         }
       }
