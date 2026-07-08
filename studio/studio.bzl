@@ -1628,6 +1628,7 @@ def intellij_platform(
             "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents" + jar for jar in spec.jars + spec.jars_darwin_aarch64],
             "//conditions:default": [sdk_dirs.linux + jar for jar in spec.jars + spec.jars_linux],
         }),
+        srcjar = src + "/android-studio-sources.zip",
         add_exports = spec.add_exports,
         add_opens = spec.add_opens,
     )
