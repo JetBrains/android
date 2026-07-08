@@ -791,7 +791,7 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.google.urlassistant",
+    name = "com.google.applinkassistant",
     directory = "url-assistant",
     libs = [
         "//tools/vendor/google/url-assistant:urlassistant_proto",
@@ -814,7 +814,7 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.google.urlassistant.ai",
+    name = "com.google.applinkassistant.ai",
     directory = "app-link-assistant-ai",
     modules = {
         "app-link-assistant-ai.jar": [
@@ -823,8 +823,8 @@ studio_plugin(
     },
     visibility = ["//visibility:public"],
     deps = [
+        ":com.google.applinkassistant",
         ":com.google.tools.ij.aiplugin",
-        ":com.google.urlassistant",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.java.analysis.impl",
@@ -1085,8 +1085,8 @@ STUDIO_CORE_PLUGINS = [
     "//tools/adt/idea/studio:com.android.gmdcodecompletion",
     "//tools/adt/idea/studio:com.android.tools.idea.smali",
     "//tools/adt/idea/studio:com.google.gct.test.recorder",
-    "//tools/adt/idea/studio:com.google.urlassistant",
-    "//tools/adt/idea/studio:com.google.urlassistant.ai",
+    "//tools/adt/idea/studio:com.google.applinkassistant",
+    "//tools/adt/idea/studio:com.google.applinkassistant.ai",
     "//tools/adt/idea/studio:com.google.targetsdkversionassistant",
     "//tools/adt/idea/studio:com.android.tools.gradle.dcl",
     "//tools/adt/idea/studio:com.android.tools.gradle.dsl",
