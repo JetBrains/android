@@ -25,7 +25,8 @@ fi
 
 for TARGET in $TARGETS; do
   echo "Running $TARGET"
-  $BAZEL run "$TARGET"
+  # Using --norun_validations here to skip the "check_plugin" validation normally done when building the distro.
+  $BAZEL run --norun_validations "$TARGET"
 done
 
 echo "All targets updated successfully."
