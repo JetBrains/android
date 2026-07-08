@@ -117,7 +117,7 @@ abstract class EditorActionsFloatingToolbarProvider(
   }
 
   @UiThread
-  protected fun updateToolbar() {
+  protected open fun updateToolbar() {
     val toolbarPlace = actionPlacePrefix + zoomActionPlace
     val labelPlace = actionPlacePrefix + zoomLabelPlace
     val otherPlace = actionPlacePrefix + otherActionsPlace
