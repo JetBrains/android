@@ -61,6 +61,10 @@ public abstract class QuerySyncActionStats implements LoggedEvent {
 
   public abstract Optional<Duration> totalClockTime();
 
+  public abstract Optional<Duration> startupDirectoryScanTime();
+
+  public abstract Optional<Duration> startupBazelQueryTime();
+
   public abstract Result result();
 
   // The method current action get triggered. If it's null but trigger action is not, it may be
@@ -97,6 +101,11 @@ public abstract class QuerySyncActionStats implements LoggedEvent {
     public abstract Builder setStartTime(Instant value);
 
     public abstract Builder setTotalClockTime(@Nullable Duration value);
+
+    public abstract Builder setStartupDirectoryScanTime(
+        @Nullable Duration value);
+
+    public abstract Builder setStartupBazelQueryTime(@Nullable Duration value);
 
     public abstract Builder setResult(Result value);
 

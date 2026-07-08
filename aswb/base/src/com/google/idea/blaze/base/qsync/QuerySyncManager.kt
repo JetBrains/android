@@ -80,6 +80,7 @@ import com.intellij.serviceContainer.NonInjectable
 import java.io.FileInputStream
 import java.io.IOException
 import java.nio.file.Path
+import java.time.Duration.ofMillis
 import java.util.Objects
 import java.util.Optional
 import java.util.zip.GZIPInputStream
@@ -88,6 +89,8 @@ import kotlin.concurrent.Volatile
 import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.asListenableFuture
@@ -283,13 +286,16 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
       if (result == null || userPreferences.refreshQueryDataOnStartup) {
         val lastProjectStructureData = scanDirectoryAndConfigureModule(context)
-        syncStatsScope(context) { context ->
-          runQueryAndReadProjectStructureAndApply(
-            context,
-            lastQuery = result?.existingPostQuerySyncData,
-            lastProjectStructureData = lastProjectStructureData,
-          )
+        val duration = measureTime {
+          syncStatsScope(context) { context ->
+            runQueryAndReadProjectStructureAndApply(
+              context,
+              lastQuery = result?.existingPostQuerySyncData,
+              lastProjectStructureData = lastProjectStructureData,
+            )
+          }
         }
+        QuerySyncActionStatsScope.fromContext(context).ifPresent { it.setStartupBazelQueryTime(ofMillis(duration.inWholeMilliseconds)) }
         if (userPreferences.commitProjectStructureAfterQuery) {
           updateProjectStructureAndSnapshot(context)
         }
@@ -311,7 +317,13 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       ?.let {
         val loadedProject = assertProjectLoaded()
         context.output(StatusOutput("Scanning directory structure..."))
-        loadedProject.readProjectStructureFromDirectory(context)?.also { updateProjectStructureAndSnapshot(context, it) }
+        val (data, duration) = measureTimedValue { loadedProject.readProjectStructureFromDirectory(context) }
+        data?.also {
+          QuerySyncActionStatsScope.fromContext(context).ifPresent {
+            it.setStartupDirectoryScanTime(ofMillis(duration.inWholeMilliseconds))
+          }
+          updateProjectStructureAndSnapshot(context, it)
+        }
       }
 
   private fun autoEnableComposeBasicDependenciesIfNeeded(context: BlazeContext) {
