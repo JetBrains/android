@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.streaming` start
-
 jvm_library(
     name = "streaming",
     srcs = glob(
@@ -148,7 +147,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.streaming` end
 
 ### auto-generated section `build intellij.android.streaming.integration` start
-
 jvm_library(
     name = "streaming-integration",
     srcs = glob(
@@ -250,7 +248,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.streaming.integration` end
 
 ### auto-generated section `test intellij.android.streaming.integration` start
-
 jps_test(
     name = "streaming-integration_test",
     runtime_deps = [":streaming-integration_test_lib"],
@@ -258,7 +255,6 @@ jps_test(
 ### auto-generated section `test intellij.android.streaming.integration` end
 
 ### auto-generated section `build intellij.android.streaming.testUtil` start
-
 jvm_library(
     name = "streaming-testUtil",
     srcs = glob(
@@ -391,7 +387,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.streaming.testUtil` end
 
 ### auto-generated section `test intellij.android.streaming.testUtil` start
-
 jps_test(
     name = "streaming-testUtil_test",
     runtime_deps = [":streaming-testUtil_test_lib"],
@@ -399,7 +394,6 @@ jps_test(
 ### auto-generated section `test intellij.android.streaming.testUtil` end
 
 ### auto-generated section `build intellij.android.streaming.tests` start
-
 jvm_library(
     name = "streaming-tests",
     srcs = glob(
@@ -556,7 +550,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.streaming.tests` end
 
 ### auto-generated section `test intellij.android.streaming.tests` start
-
 jps_test(
     name = "streaming-tests_test",
     runtime_deps = [":streaming-tests_test_lib"],

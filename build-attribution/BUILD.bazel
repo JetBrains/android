@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.build-attribution` start
-
 jvm_library(
     name = "build-attribution",
     srcs = glob(
@@ -135,7 +134,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.build-attribution` end
 
 ### auto-generated section `build intellij.android.build-attribution.tests` start
-
 jvm_library(
     name = "build-attribution-tests",
     srcs = glob(
@@ -289,7 +287,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.build-attribution.tests` end
 
 ### auto-generated section `test intellij.android.build-attribution.tests` start
-
 jps_test(
     name = "build-attribution-tests_test",
     runtime_deps = [":build-attribution-tests_test_lib"],

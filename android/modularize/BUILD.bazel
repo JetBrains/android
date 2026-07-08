@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.core.modularize` start
-
 create_kotlinc_options(
     name = "custom_modularize",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -135,7 +134,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.modularize` end
 
 ### auto-generated section `test intellij.android.core.modularize` start
-
 jps_test(
     name = "modularize_test",
     runtime_deps = [":modularize_test_lib"],

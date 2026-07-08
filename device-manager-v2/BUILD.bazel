@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.device-manager-v2` start
-
 create_kotlinc_options(
     name = "custom_device-manager-v2",
     x_context_parameters = True,
@@ -182,7 +181,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.device-manager-v2` end
 
 ### auto-generated section `test intellij.android.device-manager-v2` start
-
 jps_test(
     name = "device-manager-v2_test",
     runtime_deps = [":device-manager-v2_test_lib"],

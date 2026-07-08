@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.wear-pairing` start
-
 jvm_library(
     name = "wear-pairing",
     srcs = glob(
@@ -164,7 +163,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.wear-pairing` end
 
 ### auto-generated section `test intellij.android.wear-pairing` start
-
 jps_test(
     name = "wear-pairing_test",
     runtime_deps = [":wear-pairing_test_lib"],
@@ -172,7 +170,6 @@ jps_test(
 ### auto-generated section `test intellij.android.wear-pairing` end
 
 ### auto-generated section `build intellij.android.wear-pairing.tests` start
-
 jvm_library(
     name = "wear-pairing-tests",
     srcs = glob(

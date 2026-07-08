@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.testartifacts` start
-
 create_kotlinc_options(
     name = "custom_testartifacts",
     x_context_parameters = True,
@@ -117,7 +116,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.testartifacts` end
 
 ### auto-generated section `build intellij.android.testartifacts.tests` start
-
 create_kotlinc_options(
     name = "custom_testartifacts-tests",
     x_context_parameters = True,
@@ -280,7 +278,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.testartifacts.tests` end
 
 ### auto-generated section `test intellij.android.testartifacts.tests` start
-
 jps_test(
     name = "testartifacts-tests_test",
     runtime_deps = [":testartifacts-tests_test_lib"],

@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.core.res` start
-
 create_kotlinc_options(
     name = "custom_res",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -183,7 +182,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.res` end
 
 ### auto-generated section `test intellij.android.core.res` start
-
 jps_test(
     name = "res_test",
     runtime_deps = [":res_test_lib"],

@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.device-manager-v2.integration` start
-
 jvm_library(
     name = "integration",
     srcs = glob(
@@ -54,7 +53,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.device-manager-v2.integration` end
 
 ### auto-generated section `test intellij.android.device-manager-v2.integration` start
-
 jps_test(
     name = "integration_test",
     runtime_deps = [":integration_test_lib"],

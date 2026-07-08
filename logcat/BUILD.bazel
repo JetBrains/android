@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.logcat` start
-
 jvm_library(
     name = "logcat",
     srcs = glob(
@@ -131,7 +130,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.logcat` end
 
 ### auto-generated section `build intellij.android.logcat.tests` start
-
 jvm_library(
     name = "logcat-tests",
     srcs = glob(
@@ -273,7 +271,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.logcat.tests` end
 
 ### auto-generated section `test intellij.android.logcat.tests` start
-
 jps_test(
     name = "logcat-tests_test",
     runtime_deps = [":logcat-tests_test_lib"],

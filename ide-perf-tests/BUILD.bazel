@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.ide-perf-tests` start
-
 jvm_library(
     name = "ide-perf-tests",
     srcs = glob(
@@ -103,7 +102,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.ide-perf-tests` end
 
 ### auto-generated section `test intellij.android.ide-perf-tests` start
-
 jps_test(
     name = "ide-perf-tests_test",
     runtime_deps = [":ide-perf-tests_test_lib"],

@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "kt_javac_op
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.core` start
-
 create_kotlinc_options(
     name = "custom_core",
     opt_in = [
@@ -516,7 +515,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core` end
 
 ### auto-generated section `build intellij.android.core.agp-integration-tests` start
-
 jvm_library(
     name = "core-agp-integration-tests",
     srcs = glob(
@@ -686,7 +684,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.agp-integration-tests` end
 
 ### auto-generated section `test intellij.android.core.agp-integration-tests` start
-
 jps_test(
     name = "core-agp-integration-tests_test",
     runtime_deps = [":core-agp-integration-tests_test_lib"],
@@ -694,7 +691,6 @@ jps_test(
 ### auto-generated section `test intellij.android.core.agp-integration-tests` end
 
 ### auto-generated section `build intellij.android.core.tests` start
-
 create_kotlinc_options(
     name = "custom_core-tests",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -1003,7 +999,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.tests` end
 
 ### auto-generated section `test intellij.android.core.tests` start
-
 jps_test(
     name = "core-tests_test",
     runtime_deps = [":core-tests_test_lib"],

@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.avd` start
-
 create_kotlinc_options(
     name = "custom_avd",
     x_context_parameters = True,
@@ -163,7 +162,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.avd` end
 
 ### auto-generated section `test intellij.android.avd` start
-
 jps_test(
     name = "avd_test",
     runtime_deps = [":avd_test_lib"],

@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
 ### auto-generated section `build intellij.android.debuggers` start
-
 resourcegroup(
     name = "debuggers_resources",
     srcs = glob(
@@ -160,7 +159,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.debuggers` end
 
 ### auto-generated section `build intellij.android.debuggers.tests` start
-
 jvm_library(
     name = "debuggers-tests",
     srcs = glob(
@@ -301,7 +299,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.debuggers.tests` end
 
 ### auto-generated section `test intellij.android.debuggers.tests` start
-
 jps_test(
     name = "debuggers-tests_test",
     runtime_deps = [":debuggers-tests_test_lib"],

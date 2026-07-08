@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.screenshot-test` start
-
 create_kotlinc_options(
     name = "custom_screenshot-test",
     x_context_parameters = True,
@@ -133,7 +132,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.screenshot-test` end
 
 ### auto-generated section `build intellij.android.screenshot-test.tests` start
-
 create_kotlinc_options(
     name = "custom_screenshot-test-tests",
     x_context_parameters = True,
@@ -264,7 +262,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.screenshot-test.tests` end
 
 ### auto-generated section `test intellij.android.screenshot-test.tests` start
-
 jps_test(
     name = "screenshot-test-tests_test",
     runtime_deps = [":screenshot-test-tests_test_lib"],

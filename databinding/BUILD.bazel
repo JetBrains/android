@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.databinding` start
-
 jvm_library(
     name = "databinding",
     srcs = glob(
@@ -140,7 +139,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.databinding` end
 
 ### auto-generated section `build intellij.android.databinding.tests` start
-
 jvm_library(
     name = "databinding-tests",
     srcs = glob(
@@ -304,7 +302,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.databinding.tests` end
 
 ### auto-generated section `test intellij.android.databinding.tests` start
-
 jps_test(
     name = "databinding-tests_test",
     runtime_deps = [":databinding-tests_test_lib"],

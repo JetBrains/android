@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.ml-api` start
-
 jvm_library(
     name = "ml-api",
     srcs = glob(
@@ -66,7 +65,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.ml-api` end
 
 ### auto-generated section `build intellij.android.ml-api-tests` start
-
 jvm_library(
     name = "ml-api-tests",
     srcs = glob(
@@ -133,7 +131,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.ml-api-tests` end
 
 ### auto-generated section `test intellij.android.ml-api-tests` start
-
 jps_test(
     name = "ml-api-tests_test",
     runtime_deps = [":ml-api-tests_test_lib"],

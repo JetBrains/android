@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.psd` start
-
 jvm_library(
     name = "projectSystem-gradle-psd",
     srcs = glob(
@@ -172,7 +171,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.projectSystem.gradle.psd` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.psd.tests` start
-
 jvm_library(
     name = "projectSystem-gradle-psd-tests",
     srcs = glob(
@@ -316,7 +314,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.projectSystem.gradle.psd.tests` end
 
 ### auto-generated section `test intellij.android.projectSystem.gradle.psd.tests` start
-
 jps_test(
     name = "projectSystem-gradle-psd-tests_test",
     runtime_deps = [":projectSystem-gradle-psd-tests_test_lib"],

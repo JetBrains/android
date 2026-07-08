@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.app-inspection.inspector.api` start
-
 jvm_library(
     name = "api",
     srcs = glob(
@@ -75,7 +74,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.app-inspection.inspector.api` end
 
 ### auto-generated section `test intellij.android.app-inspection.inspector.api` start
-
 jps_test(
     name = "api_test",
     runtime_deps = [":api_test_lib"],

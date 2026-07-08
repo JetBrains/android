@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.compose-designer` start
-
 create_kotlinc_options(
     name = "custom_compose-designer",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -234,7 +233,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.compose-designer` end
 
 ### auto-generated section `build intellij.android.compose-designer.integration` start
-
 jvm_library(
     name = "compose-designer-integration",
     srcs = glob(
@@ -287,7 +285,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.compose-designer.integration` end
 
 ### auto-generated section `test intellij.android.compose-designer.integration` start
-
 jps_test(
     name = "compose-designer-integration_test",
     runtime_deps = [":compose-designer-integration_test_lib"],
@@ -295,7 +292,6 @@ jps_test(
 ### auto-generated section `test intellij.android.compose-designer.integration` end
 
 ### auto-generated section `build intellij.android.compose-designer.testFramework` start
-
 jvm_library(
     name = "compose-designer-testFramework",
     srcs = glob(
@@ -406,7 +402,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.compose-designer.testFramework` end
 
 ### auto-generated section `test intellij.android.compose-designer.testFramework` start
-
 jps_test(
     name = "compose-designer-testFramework_test",
     runtime_deps = [":compose-designer-testFramework_test_lib"],
@@ -414,7 +409,6 @@ jps_test(
 ### auto-generated section `test intellij.android.compose-designer.testFramework` end
 
 ### auto-generated section `build intellij.android.compose-designer.tests` start
-
 create_kotlinc_options(
     name = "custom_compose-designer-tests",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -646,7 +640,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.compose-designer.tests` end
 
 ### auto-generated section `test intellij.android.compose-designer.tests` start
-
 jps_test(
     name = "compose-designer-tests_test",
     runtime_deps = [":compose-designer-tests_test_lib"],

@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.core.actions` start
-
 jvm_library(
     name = "actions",
     srcs = glob(
@@ -114,7 +113,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.actions` end
 
 ### auto-generated section `test intellij.android.core.actions` start
-
 jps_test(
     name = "actions_test",
     runtime_deps = [":actions_test_lib"],

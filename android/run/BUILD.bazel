@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.core.run` start
-
 create_kotlinc_options(
     name = "custom_run",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -226,7 +225,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.run` end
 
 ### auto-generated section `test intellij.android.core.run` start
-
 jps_test(
     name = "run_test",
     runtime_deps = [":run_test_lib"],

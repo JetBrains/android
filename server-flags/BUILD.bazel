@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.server-flags` start
-
 jvm_library(
     name = "server-flags",
     srcs = glob(
@@ -71,7 +70,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.server-flags` end
 
 ### auto-generated section `test intellij.android.server-flags` start
-
 jps_test(
     name = "server-flags_test",
     runtime_deps = [":server-flags_test_lib"],

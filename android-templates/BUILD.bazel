@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.templates` start
-
 create_kotlinc_options(
     name = "custom_templates",
     opt_in = [
@@ -153,7 +152,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.templates` end
 
 ### auto-generated section `build intellij.android.templates.tests` start
-
 create_kotlinc_options(
     name = "custom_templates-tests",
     opt_in = [
@@ -331,7 +329,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.templates.tests` end
 
 ### auto-generated section `test intellij.android.templates.tests` start
-
 jps_test(
     name = "templates-tests_test",
     runtime_deps = [":templates-tests_test_lib"],

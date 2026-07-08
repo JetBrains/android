@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.models` start
-
 create_kotlinc_options(
     name = "custom_projectSystem-gradle-models",
     jvm_target = "8",
@@ -62,7 +61,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.projectSystem.gradle.models` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.models.tests` start
-
 jvm_library(
     name = "projectSystem-gradle-models-tests",
     srcs = glob(
@@ -115,7 +113,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.projectSystem.gradle.models.tests` end
 
 ### auto-generated section `test intellij.android.projectSystem.gradle.models.tests` start
-
 jps_test(
     name = "projectSystem-gradle-models-tests_test",
     runtime_deps = [":projectSystem-gradle-models-tests_test_lib"],

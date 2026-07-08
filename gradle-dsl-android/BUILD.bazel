@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl.android` start
-
 jvm_library(
     name = "gradle-dsl-android",
     srcs = glob(
@@ -64,7 +63,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.gradle.dsl.android` end
 
 ### auto-generated section `build intellij.android.gradle.dsl.android.tests` start
-
 jvm_library(
     name = "gradle-dsl-android-tests",
     srcs = glob(
@@ -145,7 +143,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.gradle.dsl.android.tests` end
 
 ### auto-generated section `test intellij.android.gradle.dsl.android.tests` start
-
 jps_test(
     name = "gradle-dsl-android-tests_test",
     runtime_deps = [":gradle-dsl-android-tests_test_lib"],

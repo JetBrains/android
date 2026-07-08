@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.common` start
-
 create_kotlinc_options(
     name = "custom_common",
     opt_in = [
@@ -161,7 +160,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.common` end
 
 ### auto-generated section `build intellij.android.common.tests` start
-
 create_kotlinc_options(
     name = "custom_common-tests",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -276,7 +274,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.common.tests` end
 
 ### auto-generated section `test intellij.android.common.tests` start
-
 jps_test(
     name = "common-tests_test",
     runtime_deps = [":common-tests_test_lib"],

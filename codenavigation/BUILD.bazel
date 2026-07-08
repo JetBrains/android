@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.codenavigation` start
-
 jvm_library(
     name = "codenavigation",
     srcs = glob(
@@ -118,7 +117,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.codenavigation` end
 
 ### auto-generated section `test intellij.android.codenavigation` start
-
 jps_test(
     name = "codenavigation_test",
     runtime_deps = [":codenavigation_test_lib"],

@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.layout-inspector` start
-
 create_kotlinc_options(
     name = "custom_layout-inspector",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -301,7 +300,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.layout-inspector` end
 
 ### auto-generated section `test intellij.android.layout-inspector` start
-
 jps_test(
     name = "layout-inspector_test",
     runtime_deps = [":layout-inspector_test_lib"],
@@ -309,7 +307,6 @@ jps_test(
 ### auto-generated section `test intellij.android.layout-inspector` end
 
 ### auto-generated section `build intellij.android.layout-inspector.integration` start
-
 jvm_library(
     name = "layout-inspector-integration",
     srcs = glob(
@@ -371,7 +368,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.layout-inspector.integration` end
 
 ### auto-generated section `test intellij.android.layout-inspector.integration` start
-
 jps_test(
     name = "layout-inspector-integration_test",
     runtime_deps = [":layout-inspector-integration_test_lib"],
@@ -379,7 +375,6 @@ jps_test(
 ### auto-generated section `test intellij.android.layout-inspector.integration` end
 
 ### auto-generated section `build intellij.android.layout-inspector.tests` start
-
 jvm_library(
     name = "layout-inspector-tests",
     srcs = glob(
@@ -577,7 +572,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.layout-inspector.tests` end
 
 ### auto-generated section `test intellij.android.layout-inspector.tests` start
-
 jps_test(
     name = "layout-inspector-tests_test",
     runtime_deps = [":layout-inspector-tests_test_lib"],

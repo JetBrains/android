@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.core.gradle.project.sync` start
-
 jvm_library(
     name = "gradle.project.sync",
     srcs = glob(
@@ -135,7 +134,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.gradle.project.sync` end
 
 ### auto-generated section `test intellij.android.core.gradle.project.sync` start
-
 jps_test(
     name = "gradle.project.sync_test",
     runtime_deps = [":gradle.project.sync_test_lib"],

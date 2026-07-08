@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` start
-
 jvm_library(
     name = "projectSystem-gradle-upgrade",
     srcs = glob(
@@ -156,7 +155,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.projectSystem.gradle.upgrade` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade.tests` start
-
 jvm_library(
     name = "projectSystem-gradle-upgrade-tests",
     srcs = glob(
@@ -311,7 +309,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.projectSystem.gradle.upgrade.tests` end
 
 ### auto-generated section `test intellij.android.projectSystem.gradle.upgrade.tests` start
-
 jps_test(
     name = "projectSystem-gradle-upgrade-tests_test",
     runtime_deps = [":projectSystem-gradle-upgrade-tests_test_lib"],

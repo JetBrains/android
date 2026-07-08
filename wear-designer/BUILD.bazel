@@ -3,7 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.wear-designer` start
-
 create_kotlinc_options(
     name = "custom_wear-designer",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -145,7 +144,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.wear-designer` end
 
 ### auto-generated section `build intellij.android.wear-designer.tests` start
-
 create_kotlinc_options(
     name = "custom_wear-designer-tests",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
@@ -294,7 +292,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.wear-designer.tests` end
 
 ### auto-generated section `test intellij.android.wear-designer.tests` start
-
 jps_test(
     name = "wear-designer-tests_test",
     runtime_deps = [":wear-designer-tests_test_lib"],

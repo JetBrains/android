@@ -1,7 +1,6 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.gradle.declarative.lang.flags` start
-
 jvm_library(
     name = "gradle-declarative-lang-flags",
     srcs = glob(

@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.core.instantapp` start
-
 jvm_library(
     name = "instantapp",
     srcs = glob(
@@ -90,7 +89,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.instantapp` end
 
 ### auto-generated section `test intellij.android.core.instantapp` start
-
 jps_test(
     name = "instantapp_test",
     runtime_deps = [":instantapp_test_lib"],

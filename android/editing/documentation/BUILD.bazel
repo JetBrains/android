@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.core.editing.documentation` start
-
 jvm_library(
     name = "documentation",
     srcs = glob(
@@ -159,7 +158,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.editing.documentation` end
 
 ### auto-generated section `test intellij.android.core.editing.documentation` start
-
 jps_test(
     name = "documentation_test",
     runtime_deps = [":documentation_test_lib"],

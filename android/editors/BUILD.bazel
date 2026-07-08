@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.core.editors` start
-
 jvm_library(
     name = "editors",
     srcs = glob(
@@ -110,7 +109,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.core.editors` end
 
 ### auto-generated section `test intellij.android.core.editors` start
-
 jps_test(
     name = "editors_test",
     runtime_deps = [":editors_test_lib"],

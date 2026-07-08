@@ -2,7 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.memory-usage` start
-
 jvm_library(
     name = "memory-usage",
     srcs = glob(
@@ -53,7 +52,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.memory-usage` end
 
 ### auto-generated section `test intellij.android.memory-usage` start
-
 jps_test(
     name = "memory-usage_test",
     runtime_deps = [":memory-usage_test_lib"],
