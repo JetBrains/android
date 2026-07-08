@@ -45,6 +45,7 @@ namespace {
 #define DEBUG_LAYOUT_DIVIDER "-- Debug Layout --"
 #define FOREGROUND_APPLICATION_DIVIDER "-- Foreground Application --"
 #define APP_LANGUAGE_DIVIDER "-- App Language --"
+#define APP_LOCALES_DIVIDER "-- App Locales --"
 
 #define GESTURES_OVERLAY "com.android.internal.systemui.navbar.gestural"
 #define THREE_BUTTON_OVERLAY "com.android.internal.systemui.navbar.threebutton"
@@ -261,6 +262,45 @@ void ProcessAppLanguage(TokenIterator* it, UiSettingsState* state) {
   }
 }
 
+// Example: "Locales within the LocaleConfig for com.example.app for user 0 are [es-CL,es]"
+bool ParseAppLocalesLine(const string& line, string* application_id, vector<string>* locales) {
+  regex app_locales_pattern("Locales within the LocaleConfig for (.+) for user \\d+ are \\[(.*)\\]");
+  smatch match;
+  try {
+    if (!regex_match(line, match, app_locales_pattern) || match.size() != 3) {
+      return false;
+    }
+  } catch (const std::regex_error& e) {
+    return false;
+  }
+  *application_id = match[1];
+  string locales_str = match[2];
+  if (!locales_str.empty() && locales_str != "null") {
+    TokenIterator it(locales_str, ',');
+    while (it.has_next()) {
+      string loc = TrimEnd(it.next());
+      while (!loc.empty() && loc.front() <= ' ') loc.erase(0, 1);
+      if (!loc.empty() && loc != "null") locales->push_back(loc);
+    }
+  }
+  return true;
+}
+
+void ProcessAppLocales(TokenIterator* it, UiSettingsState* state) {
+  if (it->has_next()) {
+    string line = it->next();
+    if (StartsWithDividerPrefix(line)) {
+      it->prev();
+      return;
+    }
+    string application_id;
+    vector<string> locales;
+    if (ParseAppLocalesLine(line, &application_id, &locales)) {
+      state->add_app_locales(application_id, locales);
+    }
+  }
+}
+
 void ProcessAccessibility(const CommandContext& context, UiSettingsState* state) {
   bool talkback_on = context.enabled.find(string(TALK_BACK_SERVICE_NAME)) != context.enabled.end();
   bool select_to_speak_on =
@@ -286,6 +326,7 @@ void ProcessAdbOutput(const string& output, UiSettingsState* state, CommandConte
     if (line == DEBUG_LAYOUT_DIVIDER) ProcessDebugLayout(&it, state);
     if (line == FOREGROUND_APPLICATION_DIVIDER) ProcessForegroundApplication(&it, context);
     if (line == APP_LANGUAGE_DIVIDER) ProcessAppLanguage(&it, state);
+    if (line == APP_LOCALES_DIVIDER) ProcessAppLocales(&it, state);
   }
 }
 
@@ -294,6 +335,8 @@ void GetApplicationLocales(const vector<string>& application_ids, UiSettingsStat
   for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
     command += "echo " APP_LANGUAGE_DIVIDER;
     command += StringPrintf("cmd locale get-app-locales %s", it->c_str());
+    command += "echo " APP_LOCALES_DIVIDER;
+    command += StringPrintf("cmd locale get-app-localeconfig-ignore-override %s", it->c_str());
   }
   string output = ExecuteShellCommand(command);
   ProcessAdbOutput(TrimEnd(output), state, nullptr);
@@ -503,6 +546,7 @@ void UiSettings::Get(UiSettingsResponse* response) {
   string foreground_application_id = application_ids.size() == 1 ? application_ids.at(0) : "";
   response->set_foreground_application_id(foreground_application_id);
   response->set_app_locale(state.app_locale_of(foreground_application_id));
+  response->set_app_locales(state.app_locales_of(foreground_application_id));
   response->set_font_scale_settable(IsFontScaleSettable(state.font_scale()));
   response->set_density_settable(IsScreenDensitySettable(state.density()));
   response->set_original_values(has_original_values());

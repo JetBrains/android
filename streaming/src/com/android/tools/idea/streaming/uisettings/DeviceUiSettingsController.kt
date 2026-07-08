@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.uisettings
 
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.res.AppLanguageService
@@ -55,9 +56,19 @@ internal class DeviceUiSettingsController(
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
     model.gestureNavigation.setFromController(response.gestureNavigation)
     model.debugLayout.setFromController(response.debugLayout)
-    AppLanguageService.getInstance(project)
-      .getAppLanguageInfo(RunningApplicationIdentity(applicationId = response.foregroundApplicationId, processName = null))
-      ?.let { addLanguage(it.applicationId, it.localeConfig, response.appLocale) }
+    val appIdentity = RunningApplicationIdentity(applicationId = response.foregroundApplicationId, processName = null)
+    val localeConfig =
+      if (response.appLocales.isNotEmpty()) {
+        val adbLocales =
+          response.appLocales.mapNotNullTo(mutableSetOf()) { tag ->
+            LocaleQualifier.parseBcp47(LocaleQualifier.BCP_47_PREFIX + tag.trim().replace("-", "+"))
+          }
+        val pseudoLocales = AppLanguageService.getInstance(project).getPseudoLocales(appIdentity)
+        adbLocales + pseudoLocales
+      } else {
+        AppLanguageService.getInstance(project).getAppLanguageInfo(appIdentity)?.localeConfig ?: emptySet()
+      }
+    addLanguage(response.foregroundApplicationId, localeConfig, response.appLocale)
     model.differentFromDefault.setFromController(!response.originalValues)
     model.fontScaleSettable.setFromController(response.fontScaleSettable)
     model.screenDensitySettable.setFromController(response.densitySettable)

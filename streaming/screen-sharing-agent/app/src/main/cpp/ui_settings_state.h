@@ -93,9 +93,14 @@ public:
   }
 
   std::string app_locale_of(const std::string application_id) const;
+  std::vector<std::string> app_locales_of(const std::string& application_id) const;
 
   void add_app_locale(const std::string& application_id, const std::string& locale) {
     app_locales_[application_id] = locale;
+  }
+
+  void add_app_locales(const std::string& application_id, const std::vector<std::string>& locales) {
+    app_supported_locales_[application_id] = locales;
   }
 
   void add_unseen_app_locales(UiSettingsState* result) const;
@@ -132,6 +137,8 @@ private:
 
   // Application specific settings: application_id -> app_locale
   std::map<std::string, std::string> app_locales_;
+  // Application specific supported locales: application_id -> list of locales
+  std::map<std::string, std::vector<std::string>> app_supported_locales_;
 
   DISALLOW_COPY_AND_ASSIGN(UiSettingsState);
 };

@@ -907,6 +907,7 @@ public:
     result->set_debug_layout(debug_layout_);
     result->set_foreground_application_id(foreground_application_id_);
     result->set_app_locale(app_locale_);
+    result->set_app_locales(app_locales_);
     result->set_original_values(original_values_);
     result->set_font_scale_settable(font_scale_settable_);
     result->set_density_settable(density_settable_);
@@ -986,6 +987,14 @@ public:
     return app_locale_;
   }
 
+  void set_app_locales(const std::vector<std::string>& app_locales) {
+    app_locales_ = app_locales;
+  }
+
+  [[nodiscard]] const std::vector<std::string>& app_locales() const {
+    return app_locales_;
+  }
+
   void set_original_values(bool original_values) {
     original_values_ = original_values;
   }
@@ -1032,6 +1041,7 @@ private:
   bool debug_layout_ = false;
   std::string foreground_application_id_;
   std::string app_locale_;
+  std::vector<std::string> app_locales_;
 
   bool original_values_ = false;
 
