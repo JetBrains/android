@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
@@ -282,5 +283,32 @@ class WearPairingManagerTest {
       // the pairing will not succeed if the wrong thread is used due to the threading assertions
       isPairingReconnected.get()
     }
+  }
+
+  // Regression test for b/513190326
+  @Test
+  fun getDeviceNameEscapesHtmlCorrectly() = runBlocking {
+    val phoneWithHtmlInModel =
+      PairingDevice(
+        deviceID = "serialNumber",
+        displayName = "My Phone",
+        androidVersion = AndroidVersion(34, 0),
+        isWearDevice = false,
+        isEmulator = false,
+        hasPlayStore = true,
+        state = ConnectionState.ONLINE,
+      )
+    val phoneIDevice =
+      phoneWithHtmlInModel.buildIDevice(
+        avdInfo = null,
+        properties = mapOf(IDevice.PROP_DEVICE_MODEL to "<b>Malicious Model</b>", IDevice.PROP_DEVICE_MANUFACTURER to "Google"),
+      ) { request ->
+        handlePhoneAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+      }
+
+    pairingManager.setDataProviders({ listOf() }, { listOf(phoneIDevice) })
+    val device = pairingManager.findDevice("serialNumber")
+    assertNotNull(device)
+    assertEquals("Google &lt;B&gt;Malicious Model&lt;/b&gt;", device!!.displayName)
   }
 }

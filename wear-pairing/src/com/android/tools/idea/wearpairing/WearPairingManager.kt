@@ -29,6 +29,7 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.google.common.html.HtmlEscapers
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
@@ -576,7 +577,7 @@ internal fun AvdInfo.isWearOrPhone(): Boolean =
 private fun IDevice.getDeviceName(unknown: String): String {
   val model = getModel(this, "")
   val manufacturer = getManufacturer(this, "")
-  val deviceName = if (model.startsWith(manufacturer, true)) model else "$manufacturer $model"
+  val deviceName = HtmlEscapers.htmlEscaper().escape(if (model.startsWith(manufacturer, true)) model else "$manufacturer $model")
   return deviceName.ifBlank { unknown }
 }
 
