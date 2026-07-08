@@ -129,6 +129,12 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
   init {
     Disposer.register(parentDisposable, this)
 
+    // Eagerly initialize VisualLintService when ErrorQueue is created to avoid
+    // instantiating a Disposable service during project/disposable teardown.
+    if (!project.isDisposed) {
+      VisualLintService.getInstance(project)
+    }
+
     // Run the update queue. The updates run *at most* once per second.
     // This will ensure that if a bunch of updates happen in a short period of time, the first
     // one will happen immediately but the next will wait 1s as a batching period.

@@ -32,7 +32,6 @@ import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.testing.withTargetSdk
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -68,8 +67,6 @@ private class ComposeGradleProjectRuleImpl(
     }
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
-    // Create VisualLintService early to avoid it being created at the time of project disposal
-    VisualLintService.getInstance(projectRule.project)
   }
 
   override fun after(description: Description) {
