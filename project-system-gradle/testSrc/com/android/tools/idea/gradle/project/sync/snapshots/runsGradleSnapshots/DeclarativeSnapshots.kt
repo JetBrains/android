@@ -35,8 +35,7 @@ class DeclarativeSnapshots(val version: AgpVersionSoftwareEnvironmentDescriptor)
     @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*> {
       return listOf(
-        // TODO(b/531700772): Enable following case back after addressing flakes.
-        // AGP_DECLARATIVE_GRADLE_SNAPSHOT,
+        AGP_DECLARATIVE_GRADLE_SNAPSHOT,
         // making sure we can consume schema for stable Gradle version
         AGP_CURRENT,
       )

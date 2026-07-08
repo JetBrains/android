@@ -8166,7 +8166,7 @@ Projects:
             kotlin.Array
                 Name                          : kotlin.Array
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -8218,16 +8218,16 @@ Projects:
             kotlin.collections.List
                 Name                          : kotlin.collections.List
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Map
                 Name                          : kotlin.collections.Map
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
-                    ConcreteGeneric ReferenceType : kotlin.Any
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Set
                 Name                          : kotlin.collections.Set
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric ReferenceType : org.gradle.api.artifacts.DependencyArtifact
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -8886,7 +8886,7 @@ Settings:
             kotlin.Array
                 Name                          : kotlin.Array
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -9534,7 +9534,7 @@ Settings:
             kotlin.Array
                 Name                          : kotlin.Array
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -18260,7 +18260,7 @@ Settings:
             kotlin.Array
                 Name                          : kotlin.Array
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -18312,16 +18312,16 @@ Settings:
             kotlin.collections.List
                 Name                          : kotlin.collections.List
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Map
                 Name                          : kotlin.collections.Map
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
-                    ConcreteGeneric ReferenceType : kotlin.Any
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Set
                 Name                          : kotlin.collections.Set
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric ReferenceType : org.gradle.api.artifacts.DependencyArtifact
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
