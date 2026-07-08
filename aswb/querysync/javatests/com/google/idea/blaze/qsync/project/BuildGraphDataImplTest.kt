@@ -25,7 +25,6 @@ import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.getCodeAnalysisDependencyGraphProvider
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.builder
-import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.filterRedundantTargets
 import com.google.idea.blaze.qsync.testdata.BuildGraphs
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.io.IOException

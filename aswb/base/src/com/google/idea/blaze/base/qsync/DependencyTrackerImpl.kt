@@ -27,6 +27,7 @@ import com.google.idea.blaze.qsync.deps.OutputInfo
 import com.google.idea.blaze.qsync.getCodeAnalysisDependencyGraphProvider
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.google.idea.blaze.qsync.project.RequestedTargets
+import com.google.idea.blaze.qsync.project.computeSufficientTargets
 import com.google.idea.blaze.qsync.project.requiredTargets
 import com.intellij.openapi.util.text.StringUtil
 import java.io.IOException
