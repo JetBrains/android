@@ -38,9 +38,10 @@ import com.example.external.withjvmname.srcjar.ExternalKtInSrcJarUtils;
 public class Class1 {
 
   public String getString() {
-    final var s = new ExternalJavaSource();
-    return s.copy(ExternalJavaSource.STRING)
-        + s.copy(ExternalKtSource.STRING)
+    final var externalJavaSource = new ExternalJavaSource();
+    final var externalJavaInSrcJar = new ExternalJavaInSrcJar();
+    return externalJavaSource.copy(ExternalJavaSource.STRING)
+        + externalJavaInSrcJar.copy(ExternalKtSource.STRING)
         + ExternalKtSource1.STRING
         + ExternalKtSource2.STRING
         + ExternalKtSourceKt.STRING

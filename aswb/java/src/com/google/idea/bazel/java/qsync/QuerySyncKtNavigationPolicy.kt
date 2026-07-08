@@ -66,7 +66,7 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
      * Returns candidate source file for KtClsFile provided. It will go over source files of target, source files in generated source jar
      * and in source jar of java target to find the one matched class file.
      */
-    private fun findCandiateSourceFile(file: KtClsFile): PsiFile? {
+    private fun findCandidateSourceFile(file: KtClsFile): PsiFile? {
       return ClassFileKtSourceFinder(file).findSourceFile()
         ?: ClassFileGenSrcJarJavaSourceFinder(file).findSourceFile()
         ?: ClassFileSrcJarJavaSourceFinder(file).findSourceFile()
@@ -76,10 +76,10 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
      * Returns a list of candidate source files for KtClsFile provided. It will go over source files in project, source files in generated
      * source jar and in source jar of java target.
      *
-     * In most of cases, we should only have one candidate source file. But it's not true if your target declaration is top level
+     * In most of the cases, we should only have one candidate source file. But it's not true if your target declaration is top level
      * declaration whose class file may merged from multiple kotlin files.
      */
-    private fun findCandiateSourceFiles(file: KtClsFile): Collection<PsiFile> {
+    private fun findCandidateSourceFiles(file: KtClsFile): Collection<PsiFile> {
       return ClassFileKtSourceFinder(file).findSourceFiles()?.takeIf { it.isNotEmpty() }
         ?: ClassFileGenSrcJarJavaSourceFinder(file).findSourceFiles()?.takeIf { it.isNotEmpty() }
         ?: ClassFileSrcJarJavaSourceFinder(file).findSourceFiles()?.takeIf { it.isNotEmpty() }
@@ -139,7 +139,7 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
     }
     val containingFile = declaration.containingFile
     if (containingFile is KtClsFile) {
-      val candidateSourceFiles = getCachedResult(containingFile, project, ::findCandiateSourceFiles)
+      val candidateSourceFiles = getCachedResult(containingFile, project, ::findCandidateSourceFiles)
       return candidateSourceFiles
         .asSequence()
         .filterIsInstance<KtFile>()
@@ -159,7 +159,7 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
     }
     val ktClsFile = localCache.get()[classId] ?: return super.getClassesByClassId(classId, project, scope)
 
-    val candidateSourceFile = getCachedResult(ktClsFile, project, ::findCandiateSourceFile)
+    val candidateSourceFile = getCachedResult(ktClsFile, project, ::findCandidateSourceFile)
 
     if (candidateSourceFile is KtFile) {
       return PsiTreeUtil.findChildrenOfType(candidateSourceFile, KtClassOrObject::class.java)
