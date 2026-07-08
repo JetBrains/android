@@ -26,6 +26,7 @@ import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectTarget
 import com.google.idea.blaze.qsync.project.RequestedTargets
+import com.google.idea.blaze.qsync.project.computeSufficientTargets
 import com.google.idea.blaze.qsync.project.pathToLabel
 import com.google.idea.blaze.qsync.project.requiredTargets
 import java.nio.file.Path

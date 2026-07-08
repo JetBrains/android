@@ -139,11 +139,11 @@ interface BuildGraphData {
   /** Returns the project targets that own/build the given source file. */
   fun getProjectTargetsForSourceFile(sourceFileLabel: Label): TargetsToBuild
 
-  /** Calculates a sufficient set of targets to build for the given project targets. */
-  fun computeSufficientTargets(
+  /** Collects project targets that contribute source files. */
+  fun collectTargetsToBuildForSourcesIn(
     projectTargets: Collection<Label>,
     replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
-  ): Set<Label>
+  ): Collection<Label>
 
   /** Calculates a sufficient set of targets to build for the whole project. */
   fun computeWholeProjectTargets(): Set<Label>
@@ -207,3 +207,41 @@ val BuildGraphData.BuildPackage.sourceFileLabels: Set<Label>
 
 val BuildGraphData.BuildPackage.allSupportedTargets: Set<Label>
   get() = allSupportedTargetNames.map { packageLabel.siblingWithName(it) }.toSet()
+
+/** Calculates a sufficient set of targets to build for the given project targets. */
+fun BuildGraphData.computeSufficientTargets(
+  projectTargets: Collection<Label>,
+  replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
+): Set<Label> {
+  return filterRedundantTargets(
+    collectTargetsToBuildForSourcesIn(projectTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets)
+  )
+}
+
+/**
+ * Use the direct and transitive dependencies of an initial set of targets to prune the initial set of redundant targets. Redundant targets
+ * are those that are contained in any of the direct/indirect dependencies of the initial set of targets. This improves performance by
+ * reducing the targets that are built.
+ */
+private fun BuildGraphData.filterRedundantTargets(projectTargets: Collection<Label>): Set<Label> {
+  return filterRedundantTargets(graph = { label -> getProjectTarget(label)?.deps().orEmpty() }, starting = projectTargets.toSet())
+}
+
+/**
+ * Filter the initial set of targets to a minimal set that may be reached based on the provided graph by running BFS (breadth-first search)
+ * on the direct/transitively linked targets on the map.
+ */
+@VisibleForTesting
+fun <T> filterRedundantTargets(graph: (T) -> Set<T>, starting: Set<T>): Set<T> {
+  // Store the direct dependencies of the starting set of targets in a queue and run BFS.
+  val queue = ArrayDeque(starting.asSequence().flatMap { graph(it) }.toSet())
+
+  val visited = HashSet<T>()
+  while (!queue.isEmpty()) {
+    val target = queue.removeFirst()
+    if (visited.add(target)) {
+      queue.addAll(graph(target))
+    }
+  }
+  return starting.asSequence().filter { !visited.contains(it) }.toSet()
+}

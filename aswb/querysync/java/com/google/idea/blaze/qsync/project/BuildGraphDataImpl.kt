@@ -311,17 +311,8 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
    *
    * @return Requested targets. The [RequestedTargets.targetsToBuild] will match the parameter given.
    */
-  override fun computeSufficientTargets(
-    projectTargets: Collection<Label>,
-    replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
-  ): Set<Label> {
-    return filterRedundantTargets(
-      collectTargetsToBuildForSourcesIn(projectTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets)
-    )
-  }
-
   /** Collects project targets that contribute */
-  private fun collectTargetsToBuildForSourcesIn(
+  override fun collectTargetsToBuildForSourcesIn(
     projectTargets: Collection<Label>,
     replaceNativeTargetsWithAndroidTransitionTriggeringTargets: Boolean,
   ): Collection<Label> {
@@ -389,38 +380,7 @@ data class BuildGraphDataImpl private constructor(@VisibleForTesting @JvmField v
     return nodes[target]?.rdeps.orEmpty()
   }
 
-  /**
-   * Use the direct and transitive dependencies of an initial set of targets to prune the initial set of redundant targets. Redundant
-   * targets that are contained in any of the direct/indirect dependencies of the initial set of targets. This improves performance by
-   * reducing the targets that are built.
-   */
-  fun filterRedundantTargets(projectTargets: Collection<Label>): Set<Label> {
-    return filterRedundantTargets(
-      graph = { label -> storage.buildPackages[label.getPackageLabel()]?.targetMap?.get(label.name)?.deps().orEmpty() },
-      starting = projectTargets.toSet(),
-    )
-  }
-
   companion object {
-    /**
-     * Filter the initial set of targets to a minimal set that may be reached based on the provided graph by running BFS (breadth-first
-     * search) on the direct/transitively linked targets on the map.
-     */
-    @JvmStatic
-    fun <T> filterRedundantTargets(graph: (T) -> Set<T>, starting: Set<T>): Set<T> {
-      // Store the direct dependencies of the starting set of targets in a queue and run BFS.
-      val queue = ArrayDeque(starting.asSequence().flatMap { graph(it) }.toSet())
-
-      val visited = HashSet<T>()
-      while (!queue.isEmpty()) {
-        val target = queue.removeFirst()
-        if (visited.add(target)) {
-          queue.addAll(graph(target))
-        }
-      }
-      return starting.asSequence().filter { !visited.contains(it) }.toSet()
-    }
-
     @JvmStatic
     fun builder(): Storage.Builder {
       return Storage.builder()
