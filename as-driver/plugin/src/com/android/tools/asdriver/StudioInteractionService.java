@@ -471,12 +471,6 @@ public class StudioInteractionService {
         Collections.addAll(componentsToSearch, container.getComponents());
       }
       componentsFound.add(c);
-      String componentClassName = c.getClass().toString();
-      // JewelComposePanel has all the same accessibility elements as its androidx.compose.ui.awt.ComposePanel pair, so lets skip it
-      if (componentClassName.contains("Compose") && !componentClassName.contains("org.jetbrains.jewel.bridge.JewelComposePanel")) {
-        Set<AccessibleContext> contexts = getAllAccessibleContext(c.getAccessibleContext());
-        componentsFound.addAll(getComponentsFromContext(contexts));
-      }
     }
     return componentsFound;
   }
@@ -608,28 +602,6 @@ public class StudioInteractionService {
       }
     }
   }
-
-  /**
-   * Gets all the AccessibleContext from the children of the passed in context
-   */
-  private Set<AccessibleContext> getAllAccessibleContext(AccessibleContext context) {
-    Set<AccessibleContext> allContext = new HashSet<>();
-    if (context == null) {
-      return allContext;
-    }
-    allContext.add(context);
-    if (context.getAccessibleChildrenCount() == 0) {
-      return allContext;
-    }
-    for (int i = 0; i < context.getAccessibleChildrenCount(); i++) {
-      Accessible child = context.getAccessibleChild(i);
-      if (child == null) continue; // It can happen sometimes, see b/456533108.
-      AccessibleContext c = child.getAccessibleContext();
-      allContext.addAll(getAllAccessibleContext(c));
-    }
-    return allContext;
-  }
-
   private String getAccessibleTextFromTable(JBTable jbTable) {
     AccessibleContext ac = jbTable.getAccessibleContext();
     if (ac == null) {
