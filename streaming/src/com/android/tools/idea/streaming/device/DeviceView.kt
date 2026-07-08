@@ -939,6 +939,9 @@ internal class DeviceView(
       if (!isInsideDisplay(event)) {
         return
       }
+      if (event.modifiersEx and SHIFT_DOWN_MASK.inv() != 0) {
+        return // Modifiers other than Shift are not allowed.
+      }
       terminateHovering(event)
       // AWT fakes shift being held down for horizontal scrolling.
       val axis = if (event.isShiftDown) MotionEventMessage.AXIS_HSCROLL else MotionEventMessage.AXIS_VSCROLL
