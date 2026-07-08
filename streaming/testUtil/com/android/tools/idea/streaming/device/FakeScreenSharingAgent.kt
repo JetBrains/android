@@ -243,7 +243,8 @@ class FakeScreenSharingAgent(
     var selectToSpeakOn: Boolean = false,
     var gestureNavigation: Boolean = true,
     var debugLayout: Boolean = false,
-    var appLocales: String = "",
+    var appLocale: String = "",
+    var appLocales: List<String> = emptyList(),
   ) {
     fun set(other: UiSettings) {
       darkMode = other.darkMode
@@ -253,6 +254,7 @@ class FakeScreenSharingAgent(
       selectToSpeakOn = other.selectToSpeakOn
       gestureNavigation = other.gestureNavigation
       debugLayout = other.debugLayout
+      appLocale = other.appLocale
       appLocales = other.appLocales
     }
   }
@@ -681,6 +683,7 @@ class FakeScreenSharingAgent(
           gestureNavigation,
           debugLayout,
           foregroundProcess,
+          appLocale,
           appLocales,
           originalValues,
           fontScaleSettable,
@@ -704,7 +707,7 @@ class FakeScreenSharingAgent(
       UiCommand.APP_LOCALE -> {
         val appLocale = message.value as UiSettingsChangeRequest.AppLocale
         if (foregroundProcess == appLocale.applicationId) {
-          currentUiSettings.appLocales = appLocale.locale
+          currentUiSettings.appLocale = appLocale.locale
         }
       }
     }

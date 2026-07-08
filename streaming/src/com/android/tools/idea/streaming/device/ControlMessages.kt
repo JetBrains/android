@@ -932,6 +932,7 @@ internal data class UiSettingsResponse(
   val debugLayout: Boolean,
   val foregroundApplicationId: String,
   val appLocale: String,
+  val appLocales: List<String>,
   val originalValues: Boolean,
   val fontScaleSettable: Boolean,
   val densitySettable: Boolean,
@@ -950,6 +951,10 @@ internal data class UiSettingsResponse(
     stream.writeBoolean(debugLayout)
     stream.writeBytes(foregroundApplicationId.toByteArray(UTF_8))
     stream.writeBytes(appLocale.toByteArray(UTF_8))
+    stream.writeInt(appLocales.size)
+    for (locale in appLocales) {
+      stream.writeBytes(locale.toByteArray(UTF_8))
+    }
 
     stream.writeBoolean(originalValues)
 
@@ -971,6 +976,7 @@ internal data class UiSettingsResponse(
       "debugLayout=$debugLayout, " +
       "foregroundApplicationId=\"$foregroundApplicationId\", " +
       "appLocale=\"$appLocale\", " +
+      "appLocales=$appLocales, " +
       "originalValues=$originalValues, " +
       "fontScaleSettable=$fontScaleSettable, " +
       "densitySettable=$densitySettable, " +
@@ -993,6 +999,11 @@ internal data class UiSettingsResponse(
       val debugLayout = stream.readBoolean()
       val foregroundApplicationId = stream.readBytes().toString(UTF_8)
       val appLocale = stream.readBytes().toString(UTF_8)
+      val appLocalesCount = stream.readInt()
+      val appLocales = ArrayList<String>(appLocalesCount)
+      for (i in 0 until appLocalesCount) {
+        appLocales.add(stream.readBytes().toString(UTF_8))
+      }
 
       val originalValues = stream.readBoolean()
 
@@ -1011,6 +1022,7 @@ internal data class UiSettingsResponse(
         debugLayout,
         foregroundApplicationId,
         appLocale,
+        appLocales,
         originalValues,
         fontScaleSettable,
         densitySettable,

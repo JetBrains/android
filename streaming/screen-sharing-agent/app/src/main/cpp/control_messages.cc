@@ -391,6 +391,10 @@ void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   stream.WriteInt32(debug_layout_);
   stream.WriteBytes(foreground_application_id_);
   stream.WriteBytes(app_locale_);
+  stream.WriteInt32(app_locales_.size());
+  for (const string& loc : app_locales_) {
+    stream.WriteBytes(loc);
+  }
 
   stream.WriteBool(original_values_);
 

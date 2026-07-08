@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.android.adblib.DeviceSelector
 import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.shellAsLines
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -65,6 +66,8 @@ private const val PHYSICAL_DENSITY_PATTERN = "Physical density: (\\d+)"
 private const val OVERRIDE_DENSITY_PATTERN = "Override density: (\\d+)"
 private const val FOREGROUND_APPLICATION_PATTERN = "mFocusedApp=ActivityRecord.* .* (\\S*)/\\S* "
 private const val APP_LANGUAGE_PATTERN = "Locales for (.+) for user \\d+ are \\[(.*)]"
+private const val APP_LOCALES_DIVIDER = "-- App Locales --"
+private const val APP_LOCALES_PATTERN = "Locales within the LocaleConfig for (.+) for user \\d+ are \\[(.*)]"
 
 private const val SYSPROPS_TRANSACTION = 1599295570 // from frameworks/base/core/java/android/os/IBinder.java
 
@@ -95,7 +98,10 @@ internal const val GET_ACCESSIBILITY_SERVICES_COMMAND = "settings get secure $EN
 internal const val GET_ACCESSIBILITY_BUTTON_TARGETS_COMMAND = "settings get secure $ACCESSIBILITY_BUTTON_TARGETS"
 
 internal const val POPULATE_LANGUAGE_COMMAND =
-  "echo $APP_LANGUAGE_DIVIDER; " + "cmd locale get-app-locales %s; " // Parameter: applicationId
+  "echo $APP_LANGUAGE_DIVIDER; " +
+    "cmd locale get-app-locales %s; " +
+    "echo $APP_LOCALES_DIVIDER; " +
+    "cmd locale get-app-localeconfig-ignore-override %s; " // Parameter: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
   "cmd locale set-app-locales %s --locales; " +
@@ -163,7 +169,7 @@ internal class EmulatorUiSettingsController(
     executeCommand(POPULATE_COMMAND, context)
 
     if (context.applicationId.isNotEmpty()) {
-      executeCommand(POPULATE_LANGUAGE_COMMAND.format(context.applicationId), context)
+      executeCommand(POPULATE_LANGUAGE_COMMAND.format(context.applicationId, context.applicationId), context)
     }
     processAccessibility(context.enabled, context.buttons)
     updateResetButton()
@@ -187,7 +193,8 @@ internal class EmulatorUiSettingsController(
         DEBUG_LAYOUT_DIVIDER -> processDebugLayout(iterator)
         LIST_PACKAGES_DIVIDER -> processListPackages(iterator)
         FOREGROUND_APPLICATION_DIVIDER -> processForegroundApplication(iterator, context)
-        APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator)
+        APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator, context)
+        APP_LOCALES_DIVIDER -> processAppLocales(iterator, context)
       }
     }
   }
@@ -261,7 +268,7 @@ internal class EmulatorUiSettingsController(
     model.talkBackInstalled.setFromController(talkBackInstalled)
   }
 
-  private fun processAppLanguage(iterator: ListIterator<String>) {
+  private fun processAppLanguage(iterator: ListIterator<String>, context: CommandContext) {
     val appLanguageLine = (if (iterator.hasNext()) iterator.next() else "")
     if (appLanguageLine.startsWith(DIVIDER_PREFIX)) {
       iterator.previous()
@@ -270,12 +277,42 @@ internal class EmulatorUiSettingsController(
     val match = Regex(APP_LANGUAGE_PATTERN).find(appLanguageLine) ?: return
     val applicationId = match.groupValues[1]
     val localeTag = match.groupValues[2].split(",").firstOrNull().takeIf { it != "null" } ?: ""
-    AppLanguageService.getInstance(project)
-      .getAppLanguageInfo(RunningApplicationIdentity(applicationId = applicationId, processName = null))
-      ?.let { addLanguage(applicationId, it.localeConfig, localeTag) }
 
+    context.applicationId = applicationId
+    context.appLocale = localeTag
     readApplicationId = applicationId
     lastLocaleTag = localeTag
+  }
+
+  private fun processAppLocales(iterator: ListIterator<String>, context: CommandContext) {
+    val appLocalesLine = (if (iterator.hasNext()) iterator.next() else "")
+    if (appLocalesLine.startsWith(DIVIDER_PREFIX)) {
+      iterator.previous()
+    }
+    val match = if (!appLocalesLine.startsWith(DIVIDER_PREFIX)) Regex(APP_LOCALES_PATTERN).find(appLocalesLine) else null
+    val tags =
+      if (match != null) {
+        val localesStr = match.groupValues[2]
+        if (localesStr.isNotEmpty() && localesStr != "null") {
+          localesStr.split(",").mapNotNull { tag -> tag.trim().takeIf { it.isNotEmpty() && it != "null" } }
+        } else {
+          emptyList()
+        }
+      } else {
+        emptyList()
+      }
+
+    val appIdentity = RunningApplicationIdentity(applicationId = context.applicationId, processName = null)
+    val localeConfig =
+      if (tags.isNotEmpty()) {
+        val adbLocales =
+          tags.mapNotNullTo(mutableSetOf()) { tag -> LocaleQualifier.parseBcp47(LocaleQualifier.BCP_47_PREFIX + tag.replace("-", "+")) }
+        val pseudoLocales = AppLanguageService.getInstance(project).getPseudoLocales(appIdentity)
+        adbLocales + pseudoLocales
+      } else {
+        AppLanguageService.getInstance(project).getAppLanguageInfo(appIdentity)?.localeConfig ?: emptySet()
+      }
+    addLanguage(context.applicationId, localeConfig, context.appLocale)
   }
 
   private fun processForegroundApplication(iterator: ListIterator<String>, context: CommandContext) {
@@ -469,5 +506,6 @@ internal class EmulatorUiSettingsController(
     val enabled = AccessibilityData()
     val buttons = AccessibilityData()
     var applicationId = ""
+    var appLocale = ""
   }
 }

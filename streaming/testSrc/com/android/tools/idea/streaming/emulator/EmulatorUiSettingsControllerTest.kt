@@ -21,6 +21,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
@@ -124,7 +125,7 @@ class EmulatorUiSettingsControllerTest {
       darkMode = true,
       gestureNavigation = false,
       applicationId = APPLICATION_ID1,
-      appLocales = "da",
+      appLocale = "da",
       talkBackInstalled = true,
       talkBackOn = true,
       selectToSpeakOn = true,
@@ -254,6 +255,17 @@ class EmulatorUiSettingsControllerTest {
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales " }
     assertThat(model.differentFromDefault.value).isFalse()
     assertUsageEvent(OperationKind.APP_LANGUAGE, OperationKind.APP_LANGUAGE)
+  }
+
+  @Test
+  fun testAppLocalesFromAdb() {
+    uiRule.configureUiSettings(appLocales = listOf("es", "fr"))
+    controller.initAndWait()
+    val appLanguage = model.appLanguage
+    assertThat(appLanguage.size).isEqualTo(3)
+    assertThat(appLanguage.getElementAt(0).toString()).isEqualTo(DEFAULT_LANGUAGE.toString())
+    assertThat(appLanguage.getElementAt(1).toString()).isEqualTo("French")
+    assertThat(appLanguage.getElementAt(2).toString()).isEqualTo("Spanish")
   }
 
   @Test
@@ -404,7 +416,7 @@ class EmulatorUiSettingsControllerTest {
     uiRule.configureUiSettings(
       darkMode = true,
       applicationId = APPLICATION_ID1,
-      appLocales = "da",
+      appLocale = "da",
       talkBackInstalled = true,
       talkBackOn = true,
       selectToSpeakOn = true,
@@ -426,7 +438,7 @@ class EmulatorUiSettingsControllerTest {
     assertThat(commands[3]).isEqualTo("settings delete secure $ENABLED_ACCESSIBILITY_SERVICES")
     assertThat(commands[4]).isEqualTo("settings delete secure $ACCESSIBILITY_BUTTON_TARGETS")
     assertThat(commands[5]).isEqualTo(POPULATE_COMMAND)
-    assertThat(commands[6]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
+    assertThat(commands[6]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1, APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
 
     uiRule.configureUiSettings()
@@ -441,7 +453,7 @@ class EmulatorUiSettingsControllerTest {
       gestureOverlayInstalled = true,
       gestureNavigation = false,
       applicationId = APPLICATION_ID1,
-      appLocales = "da",
+      appLocale = "da",
       talkBackInstalled = true,
       talkBackOn = true,
       selectToSpeakOn = true,
@@ -464,7 +476,7 @@ class EmulatorUiSettingsControllerTest {
     assertThat(commands[4]).isEqualTo("settings delete secure $ACCESSIBILITY_BUTTON_TARGETS")
     assertThat(commands[5]).isEqualTo(SYSTEM_PROPERTY_UPDATE_COMMAND)
     assertThat(commands[6]).isEqualTo(POPULATE_COMMAND)
-    assertThat(commands[7]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
+    assertThat(commands[7]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1, APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
 
     uiRule.configureUiSettings()
@@ -479,7 +491,7 @@ class EmulatorUiSettingsControllerTest {
       gestureOverlayInstalled = true,
       gestureNavigation = false,
       applicationId = APPLICATION_ID1,
-      appLocales = "da",
+      appLocale = "da",
       talkBackInstalled = true,
       talkBackOn = true,
       selectToSpeakOn = true,
@@ -503,7 +515,7 @@ class EmulatorUiSettingsControllerTest {
     assertThat(commands[4]).isEqualTo("settings put secure $ACCESSIBILITY_BUTTON_TARGETS $MAGNIFICATION_SERVICE_NAME")
     assertThat(commands[5]).isEqualTo(SYSTEM_PROPERTY_UPDATE_COMMAND)
     assertThat(commands[6]).isEqualTo(POPULATE_COMMAND)
-    assertThat(commands[7]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
+    assertThat(commands[7]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1, APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
 
     uiRule.configureUiSettings(magnificationOn = true)

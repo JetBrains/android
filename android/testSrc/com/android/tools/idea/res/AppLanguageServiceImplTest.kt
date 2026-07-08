@@ -97,6 +97,10 @@ class AppLanguageServiceImplTest {
           setOf(LocaleQualifier("ru"), LocaleQualifier(null, "en", "XA", null), LocaleQualifier(null, "ar", "XB", null)),
         )
       )
+
+    assertThat(services.getPseudoLocales(RunningApplicationIdentity(processName = null, applicationId = "com.example.one"))).isEmpty()
+    assertThat(services.getPseudoLocales(RunningApplicationIdentity(processName = null, applicationId = "com.example.two")))
+      .isEqualTo(setOf(LocaleQualifier(null, "en", "XA", null), LocaleQualifier(null, "ar", "XB", null)))
   }
 
   private fun createApp(applicationId: String) =

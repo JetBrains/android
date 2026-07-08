@@ -29,10 +29,20 @@ string UiSettingsState::app_locale_of(const string application_id) const {
   return (it != app_locales_.end()) ? it->second : "";
 }
 
+vector<string> UiSettingsState::app_locales_of(const string& application_id) const {
+  auto it = app_supported_locales_.find(application_id);
+  return (it != app_supported_locales_.end()) ? it->second : vector<string>();
+}
+
 vector<string> UiSettingsState::get_application_ids() const {
   vector<string> application_ids;
   for (map<string, string>::const_iterator it = app_locales_.begin(); it != app_locales_.end(); it++) {
     application_ids.push_back(it->first);
+  }
+  for (auto it = app_supported_locales_.begin(); it != app_supported_locales_.end(); it++) {
+    if (app_locales_.count(it->first) == 0) {
+      application_ids.push_back(it->first);
+    }
   }
   return application_ids;
 }
@@ -41,6 +51,11 @@ void UiSettingsState::add_unseen_app_locales(UiSettingsState* result) const {
   for (map<string, string>::const_iterator it = app_locales_.begin(); it != app_locales_.end(); it++) {
     if (result->app_locales_.count(it->first) == 0) {
       result->add_app_locale(it->first, it->second);
+    }
+  }
+  for (auto it = app_supported_locales_.begin(); it != app_supported_locales_.end(); it++) {
+    if (result->app_supported_locales_.count(it->first) == 0) {
+      result->add_app_locales(it->first, it->second);
     }
   }
 }

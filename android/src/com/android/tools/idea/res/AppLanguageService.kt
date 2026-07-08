@@ -41,6 +41,10 @@ fun interface AppLanguageService {
 
   /** Returns the [AppLanguageInfo] of the specified application. */
   @Slow fun getAppLanguageInfo(runningApplicationIdentity: ApplicationProjectContextProvider.RunningApplicationIdentity): AppLanguageInfo?
+
+  /** Returns the pseudo locales if enabled for the specified application in the IDE project. */
+  fun getPseudoLocales(runningApplicationIdentity: ApplicationProjectContextProvider.RunningApplicationIdentity): Set<LocaleQualifier> =
+    emptySet()
 }
 
 @Service(Service.Level.PROJECT)
@@ -56,5 +60,13 @@ class AppLanguageServiceImpl(private val project: Project) : AppLanguageService 
       applicationId = context.applicationId,
       localeConfig = getLocaleConfig(facet) + if (pseudoLocalesEnabled) pseudoLocales else emptySet(),
     )
+  }
+
+  override fun getPseudoLocales(
+    runningApplicationIdentity: ApplicationProjectContextProvider.RunningApplicationIdentity
+  ): Set<LocaleQualifier> {
+    val context = project.getProjectSystem().getApplicationProjectContext(runningApplicationIdentity) ?: return emptySet()
+    val pseudoLocalesEnabled = project.getProjectSystem().isPseudoLocalesEnabled(context) in enabledStates
+    return if (pseudoLocalesEnabled) pseudoLocales else emptySet()
   }
 }
