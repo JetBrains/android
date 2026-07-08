@@ -415,7 +415,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -423,7 +423,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -1188,7 +1188,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -1196,7 +1196,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -1534,7 +1534,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -1542,7 +1542,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -2062,7 +2062,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -2070,7 +2070,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -2446,18 +2446,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : annotationProcessor
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2469,7 +2463,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2477,6 +2471,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -2494,18 +2494,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : api
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2517,7 +2511,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2525,6 +2519,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : api
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -2542,18 +2542,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : compileOnly
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2565,7 +2559,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2573,6 +2567,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : compileOnly
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -2590,18 +2590,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : compileOnlyApi
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2613,7 +2607,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2621,6 +2615,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -2646,18 +2646,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : implementation
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2669,7 +2663,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2677,6 +2671,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : implementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -2696,13 +2696,11 @@ Projects:
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
-                          - Name                          : projectPath
-                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : runtimeOnly
+                    - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
-                          - Name                          : dependency
+                          - Name                          : projectPath
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
@@ -2715,7 +2713,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2727,7 +2725,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -2735,6 +2733,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -3500,7 +3504,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -3508,7 +3512,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -4116,7 +4120,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeLibraryFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -4124,7 +4128,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeLibraryFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -4433,7 +4437,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -4441,7 +4445,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -4594,18 +4598,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : androidTestImplementation
-                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -4617,7 +4615,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -4625,6 +4623,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : androidTestImplementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -4642,18 +4646,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : api
-                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -4665,7 +4663,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -4673,6 +4671,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : api
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -4685,6 +4689,22 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                    - MemberFunctionName            : enforcedPlatform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                    - MemberFunctionName            : enforcedPlatform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - MemberFunctionName            : enforcedPlatform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : gradleApi
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -4698,18 +4718,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : implementation
-                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -4721,7 +4735,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -4729,6 +4743,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : implementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -4748,6 +4768,10 @@ Projects:
                     - MemberFunctionName            : platform
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
+                      Block ReferenceType           : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
+                    - MemberFunctionName            : platform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
@@ -4760,13 +4784,11 @@ Projects:
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
-                          - Name                          : projectPath
-                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : testImplementation
+                    - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
-                          - Name                          : dependency
+                          - Name                          : projectPath
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : testImplementation
@@ -4779,7 +4801,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : testImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -4791,7 +4813,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : testImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -4799,6 +4821,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : testImplementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : testImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -4812,6 +4840,10 @@ Projects:
                             Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                 Properties
+                    - PropertyName                  : enforcedPlatform
+                      Property ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                    - PropertyName                  : platform
+                      Property ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
                 Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any,org.gradle.api.plugins.jvm.PlatformDependencyModifiers
             com.android.build.api.dsl.DependenciesInfo
                 Name                          : com.android.build.api.dsl.DependenciesInfo
@@ -5191,7 +5223,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryBaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -5199,7 +5231,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryBaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -5954,7 +5986,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryDefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -5962,7 +5994,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryDefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -6278,7 +6310,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -6286,7 +6318,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -6471,12 +6503,12 @@ Projects:
                     - MemberFunctionName            : multipleVariants
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryPublishing
                       Parameters
-                          - Name                          : componentName
-                            Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.MultipleVariants
                     - MemberFunctionName            : multipleVariants
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryPublishing
                       Parameters
+                          - Name                          : componentName
+                            Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.MultipleVariants
                     - MemberFunctionName            : singleVariant
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryPublishing
@@ -7179,7 +7211,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -7187,7 +7219,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -7362,18 +7394,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : annotationProcessor
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7385,7 +7411,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7393,6 +7419,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -7410,18 +7442,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : api
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7433,7 +7459,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7441,6 +7467,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : api
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -7458,18 +7490,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : compileOnly
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7481,7 +7507,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7489,6 +7515,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : compileOnly
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -7506,18 +7538,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : compileOnlyApi
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7529,7 +7555,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7537,6 +7563,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -7562,18 +7594,12 @@ Projects:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : implementation
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7585,7 +7611,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7593,6 +7619,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : implementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -7612,13 +7644,11 @@ Projects:
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
-                          - Name                          : projectPath
-                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : runtimeOnly
+                    - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
-                          - Name                          : dependency
+                          - Name                          : projectPath
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
@@ -7631,7 +7661,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7643,7 +7673,7 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -7651,6 +7681,12 @@ Projects:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -8130,7 +8166,7 @@ Projects:
             kotlin.Array
                 Name                          : kotlin.Array
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -8138,6 +8174,11 @@ Projects:
                 Supertypes                    : kotlin.Comparable,kotlin.Any
             kotlin.CharSequence
                 Name                          : kotlin.CharSequence
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            kotlin.Cloneable
+                Name                          : kotlin.Cloneable
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
@@ -8177,16 +8218,16 @@ Projects:
             kotlin.collections.List
                 Name                          : kotlin.collections.List
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Map
                 Name                          : kotlin.collections.Map
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
-                    ConcreteGeneric ReferenceType : kotlin.Any
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Set
                 Name                          : kotlin.collections.Set
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric ReferenceType : org.gradle.api.artifacts.DependencyArtifact
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -8492,6 +8533,23 @@ Projects:
                     - PropertyName                  : name
                       Property SimpleType           : STRING
                 Supertypes                    : java.io.Serializable,kotlin.Any
+            org.gradle.api.artifacts.ModuleVersionIdentifier
+                Name                          : org.gradle.api.artifacts.ModuleVersionIdentifier
+                MemberFunctions
+                    - MemberFunctionName            : module
+                      Receiver ReferenceType        : org.gradle.api.artifacts.ModuleVersionIdentifier
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.artifacts.ModuleIdentifier
+                Properties
+                    - PropertyName                  : group
+                      Property SimpleType           : STRING
+                    - PropertyName                  : module
+                      Property ReferenceType        : org.gradle.api.artifacts.ModuleIdentifier
+                    - PropertyName                  : name
+                      Property SimpleType           : STRING
+                    - PropertyName                  : version
+                      Property SimpleType           : STRING
+                Supertypes                    : java.io.Serializable,kotlin.Any
             org.gradle.api.artifacts.ModuleVersionSelector
                 Name                          : org.gradle.api.artifacts.ModuleVersionSelector
                 MemberFunctions
@@ -8561,6 +8619,10 @@ Projects:
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : org.gradle.api.artifacts.dsl.Dependencies
                       Parameters
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - MemberFunctionName            : project
+                      Receiver ReferenceType        : org.gradle.api.artifacts.dsl.Dependencies
+                      Parameters
                           - Name                          : projectPath
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
@@ -8586,6 +8648,10 @@ Projects:
                       Receiver ReferenceType        : org.gradle.api.artifacts.dsl.GradleDependencies
                       Parameters
                       Function ReferenceType        : org.gradle.api.artifacts.Dependency
+                    - MemberFunctionName            : project
+                      Receiver ReferenceType        : org.gradle.api.artifacts.dsl.GradleDependencies
+                      Parameters
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : org.gradle.api.artifacts.dsl.GradleDependencies
                       Parameters
@@ -8639,8 +8705,6 @@ Projects:
                 Name                          : org.gradle.api.file.RegularFile
                 MemberFunctions
                 Properties
-                    - PropertyName                  : asFile
-                      Property ReferenceType        : java.io.File
                 Supertypes                    : org.gradle.api.file.FileSystemLocation,kotlin.Any
             org.gradle.api.file.RegularFileProperty
                 Name                          : org.gradle.api.file.RegularFileProperty
@@ -8655,8 +8719,30 @@ Projects:
             org.gradle.api.plugins.jvm.PlatformDependencyModifiers
                 Name                          : org.gradle.api.plugins.jvm.PlatformDependencyModifiers
                 MemberFunctions
+                    - MemberFunctionName            : enforcedPlatform
+                      Receiver ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                    - MemberFunctionName            : platform
+                      Receiver ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
                 Properties
+                    - PropertyName                  : enforcedPlatform
+                      Property ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                    - PropertyName                  : platform
+                      Property ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
                 Supertypes                    : kotlin.Any
+            org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                Name                          : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                MemberFunctions
+                Properties
+                Supertypes                    : org.gradle.api.artifacts.dsl.DependencyModifier,kotlin.Any
+            org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
+                Name                          : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
+                MemberFunctions
+                Properties
+                Supertypes                    : org.gradle.api.artifacts.dsl.DependencyModifier,kotlin.Any
             org.gradle.internal.declarativedsl.project.ProjectTopLevelReceiver
                 Name                          : org.gradle.internal.declarativedsl.project.ProjectTopLevelReceiver
                 MemberFunctions
@@ -8762,6 +8848,31 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            java.lang.constant.Constable
+                Name                          : java.lang.constant.Constable
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            java.lang.invoke.TypeDescriptor
+                Name                          : java.lang.invoke.TypeDescriptor
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            java.lang.reflect.AnnotatedElement
+                Name                          : java.lang.reflect.AnnotatedElement
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            java.lang.reflect.GenericDeclaration
+                Name                          : java.lang.reflect.GenericDeclaration
+                MemberFunctions
+                Properties
+                Supertypes                    : java.lang.reflect.AnnotatedElement,kotlin.Any
+            java.lang.reflect.Type
+                Name                          : java.lang.reflect.Type
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
             java.net.URI
                 Name                          : java.net.URI
                 MemberFunctions
@@ -8775,7 +8886,7 @@ Settings:
             kotlin.Array
                 Name                          : kotlin.Array
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -8786,6 +8897,21 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Cloneable
+                Name                          : kotlin.Cloneable
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            kotlin.Int
+                Name                          : kotlin.Int
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Number,kotlin.Any,java.io.Serializable,kotlin.Comparable
+            kotlin.Number
+                Name                          : kotlin.Number
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any,java.io.Serializable
             kotlin.Pair
                 Name                          : kotlin.Pair
                 GenericArguments
@@ -9118,13 +9244,13 @@ Settings:
                       Receiver ReferenceType        : org.gradle.api.artifacts.repositories.UrlArtifactRepository
                       Parameters
                           - Name                          : url
-                            Value ReferenceType           : kotlin.Any
+                            Value ReferenceType           : java.net.URI
                       Function SimpleType           : UNIT
                     - MemberFunctionName            : setUrl
                       Receiver ReferenceType        : org.gradle.api.artifacts.repositories.UrlArtifactRepository
                       Parameters
                           - Name                          : url
-                            Value ReferenceType           : java.net.URI
+                            Value ReferenceType           : kotlin.Any
                       Function SimpleType           : UNIT
                 Properties
                     - PropertyName                  : allowInsecureContinueWhenDisabled
@@ -9370,6 +9496,31 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            java.lang.constant.Constable
+                Name                          : java.lang.constant.Constable
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            java.lang.invoke.TypeDescriptor
+                Name                          : java.lang.invoke.TypeDescriptor
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            java.lang.reflect.AnnotatedElement
+                Name                          : java.lang.reflect.AnnotatedElement
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            java.lang.reflect.GenericDeclaration
+                Name                          : java.lang.reflect.GenericDeclaration
+                MemberFunctions
+                Properties
+                Supertypes                    : java.lang.reflect.AnnotatedElement,kotlin.Any
+            java.lang.reflect.Type
+                Name                          : java.lang.reflect.Type
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
             java.net.URI
                 Name                          : java.net.URI
                 MemberFunctions
@@ -9383,7 +9534,7 @@ Settings:
             kotlin.Array
                 Name                          : kotlin.Array
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -9394,6 +9545,21 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Cloneable
+                Name                          : kotlin.Cloneable
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            kotlin.Int
+                Name                          : kotlin.Int
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Number,kotlin.Any,java.io.Serializable,kotlin.Comparable
+            kotlin.Number
+                Name                          : kotlin.Number
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any,java.io.Serializable
             kotlin.Pair
                 Name                          : kotlin.Pair
                 GenericArguments
@@ -9726,13 +9892,13 @@ Settings:
                       Receiver ReferenceType        : org.gradle.api.artifacts.repositories.UrlArtifactRepository
                       Parameters
                           - Name                          : url
-                            Value ReferenceType           : kotlin.Any
+                            Value ReferenceType           : java.net.URI
                       Function SimpleType           : UNIT
                     - MemberFunctionName            : setUrl
                       Receiver ReferenceType        : org.gradle.api.artifacts.repositories.UrlArtifactRepository
                       Parameters
                           - Name                          : url
-                            Value ReferenceType           : java.net.URI
+                            Value ReferenceType           : kotlin.Any
                       Function SimpleType           : UNIT
                 Properties
                     - PropertyName                  : allowInsecureContinueWhenDisabled
@@ -10343,7 +10509,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -10351,7 +10517,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationBaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -11116,7 +11282,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -11124,7 +11290,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationDefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -11462,7 +11628,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -11470,7 +11636,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ApplicationProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -11990,7 +12156,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -11998,7 +12164,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -12374,18 +12540,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : annotationProcessor
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12397,7 +12557,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12405,6 +12565,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -12422,18 +12588,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : api
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12445,7 +12605,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12453,6 +12613,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : api
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -12470,18 +12636,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : compileOnly
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12493,7 +12653,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12501,6 +12661,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : compileOnly
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -12518,18 +12684,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : compileOnlyApi
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12541,7 +12701,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12549,6 +12709,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -12574,18 +12740,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : implementation
-                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12597,7 +12757,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12605,6 +12765,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : implementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -12624,13 +12790,11 @@ Settings:
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
-                          - Name                          : projectPath
-                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : runtimeOnly
+                    - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
-                          - Name                          : dependency
+                          - Name                          : projectPath
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
@@ -12643,7 +12807,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12655,7 +12819,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
@@ -12663,6 +12827,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.BuildTypeDependenciesExtension
                       Parameters
@@ -13428,7 +13598,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -13436,7 +13606,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeApplicationFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -14044,7 +14214,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeLibraryFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -14052,7 +14222,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DeclarativeLibraryFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -14361,7 +14531,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -14369,7 +14539,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -14522,18 +14692,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : androidTestImplementation
-                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -14545,7 +14709,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -14553,6 +14717,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : androidTestImplementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : androidTestImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -14570,18 +14740,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : api
-                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -14593,7 +14757,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -14601,6 +14765,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : api
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -14613,6 +14783,22 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ProjectDependency
+                    - MemberFunctionName            : enforcedPlatform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                    - MemberFunctionName            : enforcedPlatform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - MemberFunctionName            : enforcedPlatform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : gradleApi
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -14626,18 +14812,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : implementation
-                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -14649,7 +14829,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -14657,6 +14837,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : implementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -14676,6 +14862,10 @@ Settings:
                     - MemberFunctionName            : platform
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
+                      Block ReferenceType           : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
+                    - MemberFunctionName            : platform
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
@@ -14688,13 +14878,11 @@ Settings:
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
-                          - Name                          : projectPath
-                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : testImplementation
+                    - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
-                          - Name                          : dependency
+                          - Name                          : projectPath
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : testImplementation
@@ -14707,7 +14895,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : testImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -14719,7 +14907,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : testImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
@@ -14727,6 +14915,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : testImplementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : testImplementation
                       Receiver ReferenceType        : com.android.build.api.dsl.DependenciesExtension
                       Parameters
@@ -14740,6 +14934,10 @@ Settings:
                             Value ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ProjectDependency
                 Properties
+                    - PropertyName                  : enforcedPlatform
+                      Property ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                    - PropertyName                  : platform
+                      Property ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
                 Supertypes                    : org.gradle.api.artifacts.dsl.GradleDependencies,org.gradle.api.artifacts.dsl.Dependencies,kotlin.Any,org.gradle.api.plugins.jvm.PlatformDependencyModifiers
             com.android.build.api.dsl.DependenciesInfo
                 Name                          : com.android.build.api.dsl.DependenciesInfo
@@ -15119,7 +15317,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryBaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -15127,7 +15325,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryBaseFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -15882,7 +16080,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryDefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -15890,7 +16088,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryDefaultConfig
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -16206,7 +16404,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -16214,7 +16412,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -16399,12 +16597,12 @@ Settings:
                     - MemberFunctionName            : multipleVariants
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryPublishing
                       Parameters
-                          - Name                          : componentName
-                            Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.MultipleVariants
                     - MemberFunctionName            : multipleVariants
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryPublishing
                       Parameters
+                          - Name                          : componentName
+                            Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.MultipleVariants
                     - MemberFunctionName            : singleVariant
                       Receiver ReferenceType        : com.android.build.api.dsl.LibraryPublishing
@@ -17107,7 +17305,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.collections.Collection
+                            Value DataClassWithType       : kotlin.Array
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -17115,7 +17313,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavor
                       Parameters
                           - Name                          : config
-                            Value DataClassWithType       : kotlin.Array
+                            Value DataClassWithType       : kotlin.collections.Collection
                             GenericTypes
                                 - ConcreteGeneric SimpleType    : STRING
                       Function SimpleType           : UNIT
@@ -17290,18 +17488,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : annotationProcessor
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17313,7 +17505,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17321,6 +17513,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : annotationProcessor
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : annotationProcessor
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -17338,18 +17536,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : api
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17361,7 +17553,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17369,6 +17561,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : api
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : api
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -17386,18 +17584,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : compileOnly
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17409,7 +17601,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17417,6 +17609,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : compileOnly
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -17434,18 +17632,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : compileOnlyApi
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17457,7 +17649,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17465,6 +17657,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : compileOnlyApi
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : compileOnlyApi
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -17490,18 +17688,12 @@ Settings:
                       Parameters
                           - Name                          : dependency
                             Value SimpleType              : STRING
-                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : implementation
-                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
-                      Parameters
-                          - Name                          : dependency
-                            Value SimpleType              : STRING
                       Block ReferenceType           : org.gradle.api.artifacts.ExternalModuleDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17513,7 +17705,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17521,6 +17713,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : implementation
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : implementation
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -17540,13 +17738,11 @@ Settings:
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
-                          - Name                          : projectPath
-                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
-                    - MemberFunctionName            : runtimeOnly
+                    - MemberFunctionName            : project
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
-                          - Name                          : dependency
+                          - Name                          : projectPath
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
@@ -17559,7 +17755,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
+                            Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17571,7 +17767,7 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
                           - Name                          : dependency
-                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                            Value ReferenceType           : org.gradle.api.artifacts.Dependency
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
@@ -17579,6 +17775,12 @@ Settings:
                           - Name                          : dependency
                             Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
                       Block ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                    - MemberFunctionName            : runtimeOnly
+                      Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
+                      Parameters
+                          - Name                          : dependency
+                            Value ReferenceType           : org.gradle.api.artifacts.ModuleDependency
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : runtimeOnly
                       Receiver ReferenceType        : com.android.build.api.dsl.ProductFlavorDependenciesExtension
                       Parameters
@@ -18058,7 +18260,7 @@ Settings:
             kotlin.Array
                 Name                          : kotlin.Array
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.Boolean
                 Name                          : kotlin.Boolean
                 MemberFunctions
@@ -18066,6 +18268,11 @@ Settings:
                 Supertypes                    : kotlin.Comparable,kotlin.Any
             kotlin.CharSequence
                 Name                          : kotlin.CharSequence
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Any
+            kotlin.Cloneable
+                Name                          : kotlin.Cloneable
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
@@ -18105,16 +18312,16 @@ Settings:
             kotlin.collections.List
                 Name                          : kotlin.collections.List
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Map
                 Name                          : kotlin.collections.Map
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
-                    ConcreteGeneric ReferenceType : kotlin.Any
+                    ConcreteGeneric GenericType   : <T>
+                    ConcreteGeneric GenericType   : <T>
             kotlin.collections.Set
                 Name                          : kotlin.collections.Set
                 GenericArguments
-                    ConcreteGeneric SimpleType    : STRING
+                    ConcreteGeneric ReferenceType : org.gradle.api.artifacts.DependencyArtifact
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -18420,6 +18627,23 @@ Settings:
                     - PropertyName                  : name
                       Property SimpleType           : STRING
                 Supertypes                    : java.io.Serializable,kotlin.Any
+            org.gradle.api.artifacts.ModuleVersionIdentifier
+                Name                          : org.gradle.api.artifacts.ModuleVersionIdentifier
+                MemberFunctions
+                    - MemberFunctionName            : module
+                      Receiver ReferenceType        : org.gradle.api.artifacts.ModuleVersionIdentifier
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.artifacts.ModuleIdentifier
+                Properties
+                    - PropertyName                  : group
+                      Property SimpleType           : STRING
+                    - PropertyName                  : module
+                      Property ReferenceType        : org.gradle.api.artifacts.ModuleIdentifier
+                    - PropertyName                  : name
+                      Property SimpleType           : STRING
+                    - PropertyName                  : version
+                      Property SimpleType           : STRING
+                Supertypes                    : java.io.Serializable,kotlin.Any
             org.gradle.api.artifacts.ModuleVersionSelector
                 Name                          : org.gradle.api.artifacts.ModuleVersionSelector
                 MemberFunctions
@@ -18489,6 +18713,10 @@ Settings:
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : org.gradle.api.artifacts.dsl.Dependencies
                       Parameters
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
+                    - MemberFunctionName            : project
+                      Receiver ReferenceType        : org.gradle.api.artifacts.dsl.Dependencies
+                      Parameters
                           - Name                          : projectPath
                             Value SimpleType              : STRING
                       Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
@@ -18514,6 +18742,10 @@ Settings:
                       Receiver ReferenceType        : org.gradle.api.artifacts.dsl.GradleDependencies
                       Parameters
                       Function ReferenceType        : org.gradle.api.artifacts.Dependency
+                    - MemberFunctionName            : project
+                      Receiver ReferenceType        : org.gradle.api.artifacts.dsl.GradleDependencies
+                      Parameters
+                      Function ReferenceType        : org.gradle.api.artifacts.ProjectDependency
                     - MemberFunctionName            : project
                       Receiver ReferenceType        : org.gradle.api.artifacts.dsl.GradleDependencies
                       Parameters
@@ -18567,8 +18799,6 @@ Settings:
                 Name                          : org.gradle.api.file.RegularFile
                 MemberFunctions
                 Properties
-                    - PropertyName                  : asFile
-                      Property ReferenceType        : java.io.File
                 Supertypes                    : org.gradle.api.file.FileSystemLocation,kotlin.Any
             org.gradle.api.file.RegularFileProperty
                 Name                          : org.gradle.api.file.RegularFileProperty
@@ -18583,8 +18813,30 @@ Settings:
             org.gradle.api.plugins.jvm.PlatformDependencyModifiers
                 Name                          : org.gradle.api.plugins.jvm.PlatformDependencyModifiers
                 MemberFunctions
+                    - MemberFunctionName            : enforcedPlatform
+                      Receiver ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                    - MemberFunctionName            : platform
+                      Receiver ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
                 Properties
+                    - PropertyName                  : enforcedPlatform
+                      Property ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                    - PropertyName                  : platform
+                      Property ReferenceType        : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
                 Supertypes                    : kotlin.Any
+            org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                Name                          : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.EnforcedPlatformDependencyModifier
+                MemberFunctions
+                Properties
+                Supertypes                    : org.gradle.api.artifacts.dsl.DependencyModifier,kotlin.Any
+            org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
+                Name                          : org.gradle.api.plugins.jvm.PlatformDependencyModifiers.PlatformDependencyModifier
+                MemberFunctions
+                Properties
+                Supertypes                    : org.gradle.api.artifacts.dsl.DependencyModifier,kotlin.Any
             org.gradle.internal.declarativedsl.defaults.DefaultsTopLevelReceiver
                 Name                          : org.gradle.internal.declarativedsl.defaults.DefaultsTopLevelReceiver
                 MemberFunctions
