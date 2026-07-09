@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-  namespace 'com.example.lib'
+  namespace = 'com.example.lib'
   compileSdk 32
   defaultConfig {
     minSdk 21

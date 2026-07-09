@@ -23,7 +23,7 @@ android {
 
   buildTypes {
     debug {
-      applicationIdSuffix ".debug"
+      applicationIdSuffix = ".debug"
       buildConfigField "boolean", "DEBUG2", "false"
     }
   }

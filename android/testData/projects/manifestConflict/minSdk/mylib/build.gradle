@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    namespace "test.helloworldapp.lib"
+    namespace = "test.helloworldapp.lib"
     compileSdkVersion 18
 
     defaultConfig {

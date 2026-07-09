@@ -17,7 +17,7 @@ apply plugin: 'android'
 
 android {
   compileSdkVersion 19
-  namespace "com.example.test.multiproject.module1"
+  namespace = "com.example.test.multiproject.module1"
 
   defaultConfig {
     minSdkVersion 15

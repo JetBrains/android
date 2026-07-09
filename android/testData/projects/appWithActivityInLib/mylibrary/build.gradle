@@ -7,7 +7,7 @@ kotlin {
 }
 
 android {
-    namespace 'com.example.mylibrary'
+    namespace = 'com.example.mylibrary'
     compileSdk 33
 
     defaultConfig {

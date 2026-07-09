@@ -9,7 +9,7 @@ String lib1 = Lib1Class.getString()
 String lib2 = Lib2Class.getClass().getName()
 
 android {
-    namespace 'com.example.buildsrcwithcomposite'
+    namespace = 'com.example.buildsrcwithcomposite'
     compileSdk 33
 
     defaultConfig {

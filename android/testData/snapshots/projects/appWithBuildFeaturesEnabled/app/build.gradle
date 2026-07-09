@@ -17,8 +17,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    lintOptions {
-        abortOnError false
+    lint {
+        abortOnError = false
     }
 
     dataBinding {
@@ -27,15 +27,15 @@ android {
 
     // Enable all build features
     buildFeatures {
-        aidl true
-        buildConfig true
-        compose true
-        mlModelBinding true
-        prefab true
-        renderScript true
-        resValues true
-        shaders true
-        viewBinding true
+        aidl = true
+        buildConfig = true
+        compose = true
+        mlModelBinding = true
+        prefab = true
+        renderScript = true
+        resValues = true
+        shaders = true
+        viewBinding = true
     }
 }
 

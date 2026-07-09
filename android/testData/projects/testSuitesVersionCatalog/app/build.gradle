@@ -4,7 +4,7 @@ plugins {
 
 android {
   compileSdkVersion 23
-  namespace "google.simpleapplication"
+  namespace = "google.simpleapplication"
   useLibrary 'org.apache.http.legacy'
 
   defaultConfig {
@@ -20,8 +20,8 @@ android {
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
   }
-  lintOptions {
-    abortOnError false
+  lint {
+    abortOnError = false
   }
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_11

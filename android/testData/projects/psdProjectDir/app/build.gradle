@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.psd.sample.app.default"
-        applicationIdSuffix "defaultSuffix"
+        applicationIdSuffix = "defaultSuffix"
         testApplicationId "com.example.psd.sample.app.default.test"
         maxSdkVersion 26
         minSdkVersion 9

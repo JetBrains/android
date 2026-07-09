@@ -21,8 +21,8 @@ plugins {
 android {
     compileSdkVersion 23
     testFixtures {
-        enable true
-        androidResources true
+        enable = true
+        androidResources = true
     }
 }
 

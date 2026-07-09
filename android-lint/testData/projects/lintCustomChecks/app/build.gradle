@@ -9,7 +9,7 @@ android {
 }
 
 repositories {
-    maven { url '../localRepo' }
+    maven { url = '../localRepo' }
 }
 
 dependencies {

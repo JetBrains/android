@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.androidlibrary'
+    namespace = 'com.example.androidlibrary'
     compileSdk 33
 
     defaultConfig {

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace 'com.example.appwithactivityinlib'
+    namespace = 'com.example.appwithactivityinlib'
     compileSdk 33
 
     defaultConfig {

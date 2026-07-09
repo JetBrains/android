@@ -27,13 +27,13 @@ android {
 
   buildTypes {
     benchmark {
-      signingConfig signingConfigs.debug
+      signingConfig = signingConfigs.debug
       matchingFallbacks = ['release']
-      debuggable false
+      debuggable = false
     }
   }
 
-  publishNonDefault true
+  publishNonDefault = true
 }
 
 repositories {

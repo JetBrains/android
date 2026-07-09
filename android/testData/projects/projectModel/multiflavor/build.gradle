@@ -31,36 +31,36 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".d"
+            applicationIdSuffix = ".d"
         }
         release {
-            applicationIdSuffix ".r"
+            applicationIdSuffix = ".r"
         }
     }
 
     productFlavors {
         free {
             dimension = "paymodel"
-            applicationIdSuffix ".free"
+            applicationIdSuffix = ".free"
             versionNameSuffix "-free"
             minSdkVersion 20
         }
         pro {
             dimension = "paymodel"
-            applicationIdSuffix ".pro"
+            applicationIdSuffix = ".pro"
             versionNameSuffix "-pro"
             minSdkVersion 21
         }
 
         arm {
             dimension = "arch"
-            applicationIdSuffix ".arm"
+            applicationIdSuffix = ".arm"
             versionNameSuffix "-arm"
             minSdkVersion 22
         }
         x86 {
             dimension = "arch"
-            applicationIdSuffix ".x86"
+            applicationIdSuffix = ".x86"
             versionNameSuffix "-x86"
             minSdkVersion 23
         }

@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-  namespace 'com.example.migratebuildconfig.app'
+  namespace = 'com.example.migratebuildconfig.app'
   compileSdk = 33
 
   defaultConfig {

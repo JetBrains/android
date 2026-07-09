@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.android.test.uitoolingdependency"
+    namespace = "com.android.test.uitoolingdependency"
     compileSdkVersion 22
 
     defaultConfig {

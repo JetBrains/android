@@ -17,7 +17,7 @@ apply plugin: 'android-library'
 
 android {
   compileSdkVersion 19
-  namespace "com.example.test.multiproject.module3"
+  namespace = "com.example.test.multiproject.module3"
 
   defaultConfig {
     minSdkVersion 15

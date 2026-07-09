@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-  namespace "google.simplelibrary"
+  namespace = "google.simplelibrary"
   compileSdkVersion 33
 }
 

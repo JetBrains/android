@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace 'com.google.mylibrary'
+    namespace = 'com.google.mylibrary'
     compileSdk 33
 
     defaultConfig {

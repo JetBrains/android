@@ -2,7 +2,7 @@ plugins {
   id 'com.android.dynamic-feature'
 }
 android {
-  namespace 'com.example.dynamicfeature'
+  namespace = 'com.example.dynamicfeature'
   compileSdk 32
 
   defaultConfig {

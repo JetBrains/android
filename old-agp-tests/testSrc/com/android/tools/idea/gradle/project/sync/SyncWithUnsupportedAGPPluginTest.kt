@@ -20,12 +20,15 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.applicableAgpVersions
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.Parameterized.Parameters
+import kotlin.text.contains
+import kotlin.text.lines
 import org.jetbrains.annotations.Contract
 import org.junit.Rule
 import org.junit.Test
@@ -57,6 +60,11 @@ class SyncWithUnsupportedAGPPluginTest(private val environmentDescriptor: AgpVer
   fun testGradleSyncFails() {
     var exceptionText: String? = null
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = environmentDescriptor)
+    // Need a modified version of simple application to drop an old api usage.  Not using a pre-defined target in TestProject because it
+    // trips self checks for SyncedProjectTest that requires all these projected to be tested.
+    preparedProject.root.resolve("app/build.gradle").replaceContent {
+      it.lines().filterNot { it.contains("abortOnError") }.joinToString("\n")
+    }
     preparedProject.open(
       updateOptions = { it.copy(verifyOpened = {}, syncExceptionHandler = { e: Exception -> exceptionText = e.message }) }
     ) {}

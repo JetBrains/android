@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 27
-    namespace "com.example.google.androidx"
+    namespace = "com.example.google.androidx"
     defaultConfig {
         applicationId "com.example.google.androidx"
         minSdkVersion 15

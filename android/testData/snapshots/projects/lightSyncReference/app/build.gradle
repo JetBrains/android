@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.skeleton'
+    namespace = 'com.example.skeleton'
     compileSdk 33
 
     defaultConfig {

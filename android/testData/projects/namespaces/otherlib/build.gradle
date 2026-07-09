@@ -16,7 +16,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    namespace "com.example.otherlib"
+    namespace = "com.example.otherlib"
     compileSdkVersion 23
 
     defaultConfig {
