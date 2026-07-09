@@ -1,4 +1,0 @@
-rootProject.name='My Second App'
-include ':app'
-include ':mysharedlibrary'
-project(':mysharedlibrary').projectDir = new File( "../shared/mysharedlibrary")
