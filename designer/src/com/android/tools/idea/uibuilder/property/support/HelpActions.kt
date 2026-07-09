@@ -94,19 +94,19 @@ object HelpActions {
     val sb =
       StringBuilder(100)
         .append("<html><body><b>")
-        .append(findNamespacePrefix(property))
-        .append(property.name)
+        .append(findNamespacePrefix(property).escapeHtml())
+        .append(property.name.escapeHtml())
         .append("</b><br/>")
         .append("<br/>")
     if (definition != null) {
       if (definition.formats.isNotEmpty()) {
         sb.append("Formats: ")
-        definition.formats.joinTo(sb) { it.getName() }
+        definition.formats.joinTo(sb) { it.getName().escapeHtml() }
         sb.append("<br/>")
       }
       if (definition.values.isNotEmpty()) {
         sb.append("Values: ")
-        definition.values.joinTo(sb)
+        definition.values.joinTo(sb) { it.escapeHtml() }
         sb.append("<br/>")
       }
       if (definition.formats.isNotEmpty() || definition.values.isNotEmpty()) {
@@ -136,6 +136,8 @@ object HelpActions {
   // TODO: b/121033944 Give access to links and format code sections as well.
   @VisibleForTesting
   fun filterRawAttributeComment(comment: String): String {
-    return HtmlEscapers.htmlEscaper().escape(comment.replace(lineEndingRegex, " "))
+    return comment.replace(lineEndingRegex, " ").escapeHtml()
   }
+
+  private fun String.escapeHtml(): String = HtmlEscapers.htmlEscaper().escape(this)
 }

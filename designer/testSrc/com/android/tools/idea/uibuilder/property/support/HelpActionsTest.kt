@@ -29,8 +29,11 @@ import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyDocumentationTarget
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
@@ -146,6 +149,31 @@ class HelpActionsTest {
   fun testFilterRawAttributeComment() {
     val comment = "Here is a\n" + "        comment with an\n" + "        odd formatting."
     assertThat(HelpActions.filterRawAttributeComment(comment)).isEqualTo("Here is a comment with an odd formatting.")
+  }
+
+  @Test
+  fun testCreateHelpTextWithSpecialCharacters() {
+    val definition: AttributeDefinition = mock()
+    whenever(definition.formats).thenReturn(setOf(AttributeFormat.BOOLEAN, AttributeFormat.STRING))
+    whenever(definition.values).thenReturn(arrayOf("<value1>", "value2 & value3", "\"value4\""))
+    whenever(definition.getDescription(null)).thenReturn("A description with <tag> & &amp;.")
+
+    val resolver: ResourceNamespace.Resolver = mock()
+    whenever(resolver.uriToPrefix(AUTO_URI)).thenReturn("<app>")
+
+    val property: NlPropertyItem = mock()
+    whenever(property.name).thenReturn("attr<name>")
+    whenever(property.namespace).thenReturn(AUTO_URI)
+    whenever(property.namespaceResolver).thenReturn(resolver)
+    whenever(property.definition).thenReturn(definition)
+
+    assertThat(HelpActions.createHelpText(property, allowEmptyDescription = true))
+      .isEqualTo(
+        "<html><body><b>&lt;app&gt;:attr&lt;name&gt;</b><br/><br/>" +
+          "Formats: boolean, string<br/>" +
+          "Values: &lt;value1&gt;, value2 &amp; value3, &quot;value4&quot;<br/><br/>" +
+          "A description with &lt;tag&gt; &amp; &amp;amp;.</body></html>"
+      )
   }
 
   @Test
