@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.model
 import com.android.AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
 
@@ -38,10 +39,12 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
     val pkg = StringUtil.notNullize(facet.getModuleSystem().getPackageName())
     activityClassName = pkg + activityClassName
   }
-  val facade = JavaPsiFacade.getInstance(project)
-  var activityClass = facade.findClass(activityClassName, module.moduleScope)
-  while (activityClass != null && !CLASS_APP_COMPAT_ACTIVITY.isEquals(activityClass.qualifiedName)) {
-    activityClass = activityClass.superClass
+  return runReadActionBlocking {
+    val facade = JavaPsiFacade.getInstance(project)
+    var activityClass = facade.findClass(activityClassName, module.moduleScope)
+    while (activityClass != null && !CLASS_APP_COMPAT_ACTIVITY.isEquals(activityClass.qualifiedName)) {
+      activityClass = activityClass.superClass
+    }
+    activityClass != null
   }
-  return activityClass != null
 }
