@@ -1145,16 +1145,16 @@ internal class DeviceViewTest {
     // Enable hardware input
     executeAction("android.streaming.hardware.input", view, agentRule.project)
 
-    // Check if multitouch indicator is hidden.
-    fakeUi.layoutAndDispatchEvents()
-    assertAppearance("MultiTouch4")
-
     // Pressing mouse should generate mouse events instead of touch.
     fakeUi.mouse.press(mousePosition)
     assertThat(getNextControlMessageAndWaitForFrame())
       .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, true))
     assertThat(getNextControlMessageAndWaitForFrame())
       .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_DOWN, 1, 1, 0, true))
+
+    // Check if multitouch indicator is hidden.
+    fakeUi.layoutAndDispatchEvents()
+    assertAppearance("MultiTouch4")
 
     // Disable hardware input.
     executeAction("android.streaming.hardware.input", view, agentRule.project, modifiers = CTRL_DOWN_MASK)

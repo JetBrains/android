@@ -76,6 +76,7 @@ import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.protobuf.UnsafeByteOperations
 import com.android.tools.idea.protobuf.WireFormat
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
@@ -112,7 +113,8 @@ import org.jetbrains.annotations.TestOnly
 /** Controls a running Emulator. */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : UserDataHolderBase(), Disposable {
 
-  val log = Logger.getInstance("EmulatorController: ${emulatorId.avdName}")
+  val deviceId: StreamingDeviceId = StreamingDeviceId.ofEmulator(emulatorId)
+  private val log = Logger.getInstance("EmulatorController: ${emulatorId.avdName}")
   private val imageResponseMarshaller = ImageResponseMarshaller()
   private val streamScreenshotMethod =
     EmulatorControllerGrpc.getStreamScreenshotMethod()

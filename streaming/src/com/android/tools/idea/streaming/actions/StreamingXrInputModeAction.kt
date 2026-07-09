@@ -18,7 +18,6 @@ package com.android.tools.idea.streaming.actions
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
-import com.android.tools.idea.streaming.core.STREAMING_DEVICE_ID_KEY
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -56,14 +55,6 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
   }
 
   class InteractionMouse : StreamingXrInputModeAction(XrInputMode.MOUSE) {
-
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
-      super.setSelected(event, state)
-      // Mouse interaction mode enables hardware input.
-      val project = event.project ?: return
-      val deviceId = event.getData(STREAMING_DEVICE_ID_KEY) ?: return
-      HardwareInputStateStorage.getInstance(project).setHardwareInputEnabled(deviceId, state)
-    }
 
     override fun update(event: AnActionEvent) {
       super.update(event)

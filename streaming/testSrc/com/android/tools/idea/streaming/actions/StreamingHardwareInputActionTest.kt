@@ -35,6 +35,8 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.streaming.testutil.newEmulatorView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.configurationStore.deserialize
+import com.intellij.configurationStore.serialize
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
@@ -46,6 +48,7 @@ import com.intellij.testFramework.RuleChain
 import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Rule
@@ -135,6 +138,72 @@ class StreamingHardwareInputActionTest {
     assertThat(hardwareInputStateStorage.isHardwareInputEnabled(deviceId)).isTrue()
     hardwareInputStateStorage.setHardwareInputEnabled(deviceId, false)
     assertThat(hardwareInputStateStorage.isHardwareInputEnabled(deviceId)).isFalse()
+  }
+
+  @Test
+  fun testSerialization() {
+    val storage = HardwareInputStateStorage()
+    val deviceId1 = StreamingDeviceId.ofPhysicalDevice("device1")
+    val deviceId2 = StreamingDeviceId.ofPhysicalDevice("device2")
+    storage.setHardwareInputEnabled(deviceId1, true)
+    storage.setHardwareInputEnabled(deviceId2, true)
+
+    val element = serialize(storage, createElementIfEmpty = true)!!
+    val deserialized = deserialize<HardwareInputStateStorage>(element)
+    assertThat(deserialized.isHardwareInputEnabled(deviceId1)).isTrue()
+    assertThat(deserialized.isHardwareInputEnabled(deviceId2)).isTrue()
+
+    storage.setHardwareInputEnabled(deviceId1, false)
+    val element2 = serialize(storage, createElementIfEmpty = true)!!
+    val deserialized2 = deserialize<HardwareInputStateStorage>(element2)
+    assertThat(deserialized2.isHardwareInputEnabled(deviceId1)).isFalse()
+    assertThat(deserialized2.isHardwareInputEnabled(deviceId2)).isTrue()
+  }
+
+  @Test
+  fun testPruning() {
+    val storage = HardwareInputStateStorage()
+    val now = System.currentTimeMillis()
+
+    val deviceId1 = StreamingDeviceId.ofPhysicalDevice("device1")
+    val deviceId2 = StreamingDeviceId.ofPhysicalDevice("device2")
+    val deviceId3 = StreamingDeviceId.ofPhysicalDevice("device3")
+
+    storage.serializedEnabledDevices =
+      mapOf(
+        "device1" to now - 61.days.inWholeMilliseconds, // Should be pruned.
+        "device2" to now - 10.days.inWholeMilliseconds, // Should be kept.
+        "device3" to now - 70.days.inWholeMilliseconds, // Should be pruned.
+      )
+
+    storage.getState()
+
+    assertThat(storage.isHardwareInputEnabled(deviceId1)).isFalse()
+    assertThat(storage.isHardwareInputEnabled(deviceId2)).isTrue()
+    assertThat(storage.isHardwareInputEnabled(deviceId3)).isFalse()
+  }
+
+  @Test
+  fun testPruningMaxSize() {
+    val storage = HardwareInputStateStorage()
+    val now = System.currentTimeMillis()
+
+    val devicesMap = mutableMapOf<String, Long>()
+    for (i in 0 until 105) {
+      devicesMap["device$i"] = now - (105 - i) * 1000
+    }
+    storage.serializedEnabledDevices = devicesMap
+
+    storage.getState()
+
+    for (i in 0 until 5) {
+      val deviceId = StreamingDeviceId.ofPhysicalDevice("device$i")
+      assertThat(storage.isHardwareInputEnabled(deviceId)).isFalse()
+    }
+    for (i in 5 until 105) {
+      val deviceId = StreamingDeviceId.ofPhysicalDevice("device$i")
+      assertThat(storage.isHardwareInputEnabled(deviceId)).isTrue()
+    }
   }
 
   @Test

@@ -207,8 +207,7 @@ internal class EmulatorView(
       }
     }
 
-  private val emulatorId = emulator.emulatorId
-  override val deviceId: StreamingDeviceId = StreamingDeviceId.ofEmulator(emulatorId)
+  override val deviceId: StreamingDeviceId = emulator.deviceId
   override val deviceType: DeviceType = emulatorConfig.deviceType
   override val apiLevel: Int
     get() = emulatorConfig.api
@@ -565,7 +564,7 @@ internal class EmulatorView(
       stopClipboardSynchronization()
       environmentCollectionJob?.cancel()
       environmentCollectionJob = null
-      if (RunningAvdTracker.getInstance().runningAvds[emulatorId.avdFolder]?.isShuttingDown != true) {
+      if (RunningAvdTracker.getInstance().runningAvds[emulator.emulatorId.avdFolder]?.isShuttingDown != true) {
         lastScreenshot = null
         xrInputController = null
         hideLongRunningOperationIndicatorInstantly()

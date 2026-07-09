@@ -31,7 +31,6 @@ import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
-import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.core.ZoomablePanel
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
@@ -68,7 +67,7 @@ internal class DeviceToolWindowPanel(
   private val project: Project,
   val deviceHandle: DeviceHandle,
   val deviceClient: DeviceClient,
-) : AbstractDevicePanel<DeviceDisplayPanel>(StreamingDeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID) {
+) : AbstractDevicePanel<DeviceDisplayPanel>(deviceClient.deviceId, DEVICE_MAIN_TOOLBAR_ID) {
 
   override val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber

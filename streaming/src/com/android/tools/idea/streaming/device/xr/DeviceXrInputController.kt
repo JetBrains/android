@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device.xr
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.device.DeviceClient
@@ -43,15 +44,14 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
 
 /** Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough. Thread safe. */
-internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
-  AbstractXrInputController(isHandAndEyeInputSupported = false), XrEnvironmentListener {
+internal class DeviceXrInputController(private val deviceClient: DeviceClient, hardwareInputStateStorage: HardwareInputStateStorage) :
+  AbstractXrInputController(isHandAndEyeInputSupported = false, hardwareInputStateStorage, deviceClient.deviceId), XrEnvironmentListener {
 
   override val isPassthroughSupported: Boolean
     get() = StudioFlags.DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH.get()
 
   init {
     Disposer.register(deviceClient, this)
-    inputMode = XrInputMode.MOUSE // Hand tracking is not supported for physical devices yet.
   }
 
   override suspend fun setPassthroughAndDimming(passthroughCoefficient: Float, dimmingCoefficient: Float) {
@@ -188,14 +188,14 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
 }
 
 @Service(Service.Level.PROJECT)
-internal class DeviceXrInputControllerService : Disposable {
+internal class DeviceXrInputControllerService(private val project: Project) : Disposable {
 
   private val xrControllers = ConcurrentHashMap<DeviceClient, DeviceXrInputController>()
 
   fun getXrInputController(deviceClient: DeviceClient): DeviceXrInputController {
     return xrControllers.computeIfAbsent(deviceClient) {
       Disposer.register(deviceClient) { xrControllers.remove(deviceClient) }
-      return@computeIfAbsent DeviceXrInputController(deviceClient)
+      DeviceXrInputController(deviceClient, HardwareInputStateStorage.getInstance(project))
     }
   }
 

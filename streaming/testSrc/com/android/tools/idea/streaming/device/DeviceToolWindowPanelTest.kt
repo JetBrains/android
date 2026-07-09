@@ -365,7 +365,7 @@ class DeviceToolWindowPanelTest {
 
     val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.VIEW_DIRECTION)
-    assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
+    assertThat(HardwareInputStateStorage.getInstance(project).isHardwareInputEnabled(displayView.deviceId)).isFalse()
 
     fakeUi.keyboard.setFocus(displayView)
     fakeUi.keyboard.press(VK_ENTER)
@@ -495,7 +495,7 @@ class DeviceToolWindowPanelTest {
     fakeUi.expandFloatingToolbar()
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Move Forward/Backward" })
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.LOCATION_IN_SPACE_Z)
-    assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
+    assertThat(HardwareInputStateStorage.getInstance(project).isHardwareInputEnabled(displayView.deviceId)).isFalse()
 
     fakeUi.mouse.press(50, 70)
     fakeUi.mouse.dragTo(100, 200)
