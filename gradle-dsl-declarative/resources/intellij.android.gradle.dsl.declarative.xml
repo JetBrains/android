@@ -5,9 +5,10 @@
 
   <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
   <dependencies>
-    <plugin id="com.android.tools.gradle.dcl"/>
     <module name="intellij.gradle"/>
+    <plugin id="com.android.tools.gradle.dcl"/>
     <module name="intellij.android.gradle.declarative.lang"/>
+    <module name="intellij.kotlin.base.codeInsight"/>
   </dependencies>
   <!-- endregion -->
 </idea-plugin>
