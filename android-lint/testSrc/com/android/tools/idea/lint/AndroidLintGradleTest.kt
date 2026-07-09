@@ -348,12 +348,12 @@ class AndroidLintGradleTest {
     fixture.checkLint(
       appBuildFile,
       AndroidLintGradleDependencyInspection(),
-      "compileSdk|Version" to
+      "compileSdk| = 34" to
         """
-        Warning: A newer version of `compileSdkVersion` than 34 is available: ${GradleDetector.HIGHEST_KNOWN_STABLE_ANDROID_API}
-            compileSdkVersion(34)
-            ~~~~~~~~~~~~~~~~~~~~~
-            Fix: Set compileSdkVersion to ${GradleDetector.HIGHEST_KNOWN_STABLE_ANDROID_API}
+        Warning: A newer version of `compileSdk` than 34 is available: ${GradleDetector.HIGHEST_KNOWN_STABLE_ANDROID_API}
+            compileSdk = 34
+            ~~~~~~~~~~~~~~~
+            Fix: Set compileSdk to ${GradleDetector.HIGHEST_KNOWN_STABLE_ANDROID_API}
             Fix: Suppress GradleDependency with a comment
         """,
     )

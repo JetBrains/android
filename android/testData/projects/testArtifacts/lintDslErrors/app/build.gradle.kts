@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
 }
 
@@ -12,7 +11,7 @@ kotlin {
 
 android {
     namespace = "com.example.myapplication"
-    compileSdkVersion(34)
+    compileSdk = 34
 
     defaultConfig {
         kotlin { // Wrong place: options
