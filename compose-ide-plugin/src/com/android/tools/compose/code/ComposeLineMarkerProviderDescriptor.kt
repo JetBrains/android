@@ -60,7 +60,6 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
   }
 
   companion object {
-
     private fun isComposableInvocation(parentFunction: KtCallExpression): Boolean {
       analyze(parentFunction) {
         // `KtCallExpression.resolveCallOld()` expects the call to be successful always, or throws.

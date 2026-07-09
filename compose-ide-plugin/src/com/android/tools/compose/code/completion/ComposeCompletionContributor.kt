@@ -126,8 +126,8 @@ class ComposeCompletionContributor : CompletionContributor() {
 
   /**
    * Checks if the [LookupElement] is an additional, "special" lookup element created for functions that can be invoked using the lambda
-   * syntax. These are created by [LookupElementFactory.addSpecialFunctionCallElements] and can be confusing for Compose APIs that often use
-   * overloaded function names.
+   * syntax. These are created by FunctionLookupElementFactory#createLookupWithTrailingLambda and can be confusing for Compose APIs that
+   * often use overloaded function names.
    */
   private fun LookupElement.isForSpecialLambdaLookupElement(): Boolean {
     val presentation = LookupElementPresentation()

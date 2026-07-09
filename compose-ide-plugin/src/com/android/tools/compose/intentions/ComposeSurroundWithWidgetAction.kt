@@ -24,6 +24,7 @@ import com.intellij.codeInsight.template.impl.InvokeTemplateAction
 import com.intellij.codeInsight.template.impl.TemplateImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -153,7 +154,7 @@ abstract class ComposeSurroundWithWidgetAction : IntentionAction, HighPriorityAc
 
   override fun startInWriteAction(): Boolean = true
 
-  private fun findSurroundableRange(file: PsiFile, editor: Editor): TextRange? = runReadAction {
+  private fun findSurroundableRange(file: PsiFile, editor: Editor): TextRange? = runReadActionBlocking {
     if (editor.selectionModel.hasSelection()) {
       findSurroundingSelectionRange(file, editor)
     } else {
