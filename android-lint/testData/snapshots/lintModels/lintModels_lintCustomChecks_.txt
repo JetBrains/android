@@ -28,8 +28,13 @@ MODULE                        : project.app
             Dependencies
                 CompileDependencies
                     artifacts::library            : null => :library@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::library            : null => :library@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
@@ -37,9 +42,14 @@ MODULE                        : project.app
                 CompileDependencies
                     artifacts::app                : null => :app@main
                     artifacts::library            : null => :library@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::app                : null => :app@main
                     artifacts::library            : null => :library@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.app.test
@@ -49,9 +59,12 @@ MODULE                        : project.app
             CompileDependencies
                 artifacts::app                : null => :app@main
                 artifacts::library            : null => :library@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::app                : null => :app@main
                 artifacts::library            : null => :library@main
+        - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
@@ -97,6 +110,14 @@ MODULE                        : project.app
                 Identifier                    : :library@main
                 LintJar                       : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                 ProjectPath                   : :library
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
@@ -126,15 +147,25 @@ MODULE                        : project.library
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/library/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/library/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/library/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
                     artifacts::library            : null => :library@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::library            : null => :library@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/library/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/library/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/library/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.library.test
@@ -143,8 +174,13 @@ MODULE                        : project.library
         Dependencies
             CompileDependencies
                 artifacts::library            : null => :library@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::library            : null => :library@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/library/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/library/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/library/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
@@ -187,6 +223,14 @@ MODULE                        : project.library
                 Identifier                    : :library@main
                 LintJar                       : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                 ProjectPath                   : :library
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.library-remote
     Dir                           : <ROOT>/library-remote
     ModulePath                    : :library-remote
@@ -213,15 +257,25 @@ MODULE                        : project.library-remote
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/library-remote/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/library-remote/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/library-remote/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
                     artifacts::library-remote     : null => :library-remote@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::library-remote     : null => :library-remote@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/library-remote/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/library-remote/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.library.test
@@ -230,8 +284,13 @@ MODULE                        : project.library-remote
         Dependencies
             CompileDependencies
                 artifacts::library-remote     : null => :library-remote@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::library-remote     : null => :library-remote@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/library-remote/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/library-remote/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/library-remote/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
@@ -274,6 +333,14 @@ MODULE                        : project.library-remote
                 Identifier                    : :library-remote@main
                 LintJar                       : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                 ProjectPath                   : :library-remote
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.library-remote.androidTest
 MODULE                        : project.library-remote.main
 MODULE                        : project.library-remote.unitTest
