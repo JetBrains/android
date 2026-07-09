@@ -146,7 +146,7 @@ internal class DeviceView(
   override val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
 
-  override val deviceId: StreamingDeviceId = StreamingDeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber)
+  override val deviceId: StreamingDeviceId = deviceClient.deviceId
   override val deviceType: DeviceType = deviceConfig.deviceType
 
   /**

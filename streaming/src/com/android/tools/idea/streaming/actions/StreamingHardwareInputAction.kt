@@ -23,11 +23,20 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.util.containers.ContainerUtil.createConcurrentList
+import com.intellij.util.xmlb.XmlSerializerUtil
+import com.intellij.util.xmlb.annotations.MapAnnotation
+import com.intellij.util.xmlb.annotations.OptionTag
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * ToggleAction for hardware input.
@@ -76,16 +85,41 @@ private val AnActionEvent.hardwareInputStateStorage: HardwareInputStateStorage?
   get() = project?.let { HardwareInputStateStorage.getInstance(it) }
 
 @Service(Service.Level.PROJECT)
-internal class HardwareInputStateStorage {
+@State(name = "HardwareInputStateStorage", storages = [Storage("deviceHardwareInput.xml", roamingType = RoamingType.DISABLED)])
+internal class HardwareInputStateStorage : PersistentStateComponent<HardwareInputStateStorage> {
 
-  private val enabledDevices = createConcurrentList<String>()
+  /**
+   * The keys are IDs of devices for which Hardware Input is enabled. The values are times of
+   * the last device access in milliseconds since epoch.
+   */
+  private val enabledDevices = ConcurrentHashMap<String, Long>()
 
-  fun isHardwareInputEnabled(deviceId: StreamingDeviceId): Boolean = enabledDevices.contains(deviceId.storageKey)
+  /** Visible for serialization only. Do not access directly. */
+  @get:OptionTag("enabledDevices")
+  @get:MapAnnotation
+  var serializedEnabledDevices: Map<String, Long>
+    get() = enabledDevices.toMap()
+    set(value) {
+      enabledDevices.clear()
+      enabledDevices.putAll(value)
+    }
+
+  fun isHardwareInputEnabled(deviceId: StreamingDeviceId): Boolean {
+    val key = deviceId.storageKey
+    val lastUpdated = enabledDevices[key] ?: return false
+    val now = System.currentTimeMillis()
+    if (now - lastUpdated > REFRESH_INTERVAL.inWholeMilliseconds) {
+      enabledDevices[key] = now
+    }
+    return true
+  }
 
   fun setHardwareInputEnabled(deviceId: StreamingDeviceId, enabled: Boolean) {
-    when {
-      enabled -> enabledDevices.addIfAbsent(deviceId.storageKey)
-      else -> enabledDevices.remove(deviceId.storageKey)
+    val key = deviceId.storageKey
+    if (enabled) {
+      enabledDevices[key] = System.currentTimeMillis()
+    } else {
+      enabledDevices.remove(key)
     }
   }
 
@@ -93,10 +127,39 @@ internal class HardwareInputStateStorage {
     get() =
       when (this) {
         is StreamingDeviceId.EmulatorDeviceId -> emulatorId.avdId
-        is StreamingDeviceId.PhysicalDeviceId -> serialNumber
+        is StreamingDeviceId.PhysicalDeviceId -> deviceId
       }
 
+  private fun pruneOldDevices() {
+    val now = System.currentTimeMillis()
+    // Remove devices older than 30 days.
+    enabledDevices.entries.removeIf { now - it.value > MAX_AGE.inWholeMilliseconds }
+
+    // If still too many, remove the oldest.
+    if (enabledDevices.size > MAX_DEVICES) {
+      val sortedEntries = enabledDevices.entries.sortedBy { it.value }
+      val toRemoveCount = enabledDevices.size - MAX_DEVICES
+      for (i in 0 until toRemoveCount) {
+        enabledDevices.remove(sortedEntries[i].key)
+      }
+    }
+  }
+
+  override fun getState(): HardwareInputStateStorage {
+    pruneOldDevices()
+    return this
+  }
+
+  override fun loadState(state: HardwareInputStateStorage) {
+    XmlSerializerUtil.copyBean(state, this)
+    pruneOldDevices()
+  }
+
   companion object {
+    private val MAX_AGE = 60.days
+    private val REFRESH_INTERVAL = 5.seconds
+    private const val MAX_DEVICES = 100
+
     fun getInstance(project: Project): HardwareInputStateStorage = project.service()
   }
 }

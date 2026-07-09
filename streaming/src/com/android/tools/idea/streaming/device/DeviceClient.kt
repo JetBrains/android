@@ -37,6 +37,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.core.htmlEscaped
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.TraceUtils.simpleId
@@ -118,6 +119,9 @@ private val pushSerializer = ExecutionSerializer()
 class DeviceClient(val deviceSerialNumber: String, val deviceConfig: DeviceConfiguration, private val deviceAbi: String) : Disposable {
 
   val deviceName: String = deviceConfig.deviceName
+  val deviceId: StreamingDeviceId =
+    StreamingDeviceId.ofPhysicalDevice(deviceSerialNumber, deviceConfig.deviceProperties.wearPairingId ?: deviceSerialNumber)
+
   internal val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
   private val clientScope = createCoroutineScope()
   private val connectionHolder = AtomicReference<Connection>()

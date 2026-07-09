@@ -27,9 +27,10 @@ sealed class StreamingDeviceId(val serialNumber: String) : Comparable<StreamingD
     }
   }
 
-  class PhysicalDeviceId(serialNumber: String) : StreamingDeviceId(serialNumber) {
+  class PhysicalDeviceId(serialNumber: String, val deviceId: String) : StreamingDeviceId(serialNumber) {
 
-    override fun equals(other: Any?): Boolean = this === other || other is PhysicalDeviceId && other.serialNumber == serialNumber
+    override fun equals(other: Any?): Boolean =
+      this === other || other is PhysicalDeviceId && other.serialNumber == serialNumber && other.deviceId == deviceId
 
     override fun hashCode(): Int = serialNumber.hashCode()
 
@@ -50,6 +51,7 @@ sealed class StreamingDeviceId(val serialNumber: String) : Comparable<StreamingD
   companion object {
     fun ofEmulator(emulatorId: EmulatorId): StreamingDeviceId = EmulatorDeviceId(emulatorId)
 
-    fun ofPhysicalDevice(serialNumber: String): StreamingDeviceId = PhysicalDeviceId(serialNumber)
+    fun ofPhysicalDevice(serialNumber: String, deviceId: String = serialNumber): StreamingDeviceId =
+      PhysicalDeviceId(serialNumber, deviceId)
   }
 }

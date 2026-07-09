@@ -26,6 +26,7 @@ import com.android.emulator.control.XrOptions.Environment.forNumber
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.Empty
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -50,8 +51,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 /** Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough. Thread safe. */
-internal class EmulatorXrInputController(private val emulator: EmulatorController) :
-  AbstractXrInputController(StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_INPUT.get() && emulator.emulatorConfig.handAndEyeInputSupported) {
+internal class EmulatorXrInputController(private val emulator: EmulatorController, hardwareInputStateStorage: HardwareInputStateStorage) :
+  AbstractXrInputController(isHandAndEyeInputSupported(emulator), hardwareInputStateStorage, emulator.deviceId) {
 
   private val inputEvent = InputEvent.newBuilder()
   private val rotation = RotationRadian.newBuilder()
@@ -220,20 +221,23 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   }
 
   companion object {
+    private fun isHandAndEyeInputSupported(emulator: EmulatorController): Boolean =
+      StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_INPUT.get() && emulator.emulatorConfig.handAndEyeInputSupported
+
     fun getInstance(project: Project, emulator: EmulatorController): EmulatorXrInputController =
       project.service<EmulatorXrInputControllerService>().getXrInputController(emulator)
   }
 }
 
 @Service(Service.Level.PROJECT)
-internal class EmulatorXrInputControllerService(project: Project) : Disposable {
+internal class EmulatorXrInputControllerService(private val project: Project) : Disposable {
 
   private val xrControllers = ConcurrentHashMap<EmulatorController, EmulatorXrInputController>()
 
   fun getXrInputController(emulator: EmulatorController): EmulatorXrInputController {
     return xrControllers.computeIfAbsent(emulator) {
       Disposer.register(emulator) { xrControllers.remove(emulator) }
-      return@computeIfAbsent EmulatorXrInputController(emulator)
+      EmulatorXrInputController(emulator, HardwareInputStateStorage.getInstance(project))
     }
   }
 
