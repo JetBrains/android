@@ -32,7 +32,7 @@ import com.android.tools.adtui.compose.LocalProject
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import java.nio.file.Path
-import org.jetbrains.jewel.bridge.LocalComponent
+import org.jetbrains.jewel.foundation.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Icon

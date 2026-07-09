@@ -50,7 +50,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import javax.swing.JPanel
 import kotlinx.collections.immutable.toImmutableList
-import org.jetbrains.jewel.bridge.LocalComponent
+import org.jetbrains.jewel.foundation.LocalComponent
 
 class SdkFixture(
   val fileSystem: FileSystem = createInMemoryFileSystem(),

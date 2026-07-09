@@ -78,7 +78,7 @@ import java.awt.Component
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.jewel.bridge.LocalComponent
+import org.jetbrains.jewel.foundation.LocalComponent
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Divider
