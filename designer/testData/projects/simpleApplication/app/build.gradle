@@ -4,7 +4,7 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
-        namespace "google.simpleapplication"
+        namespace = "google.simpleapplication"
         minSdkVersion 29
         targetSdkVersion 33
         versionCode 1
@@ -17,7 +17,7 @@ android {
         }
     }
     lintOptions {
-        abortOnError false
+        abortOnError = false
     }
 }
 

@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-  namespace 'com.example.migrateresvalues.lib'
+  namespace = 'com.example.migrateresvalues.lib'
   compileSdk = 33
 
   defaultConfig {

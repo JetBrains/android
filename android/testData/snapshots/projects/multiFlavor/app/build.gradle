@@ -18,14 +18,14 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
+            applicationIdSuffix = ".debug"
             proguardFiles "debug.pro"
             manifestPlaceholders = ["b": "debug"]
             resValue "string", "v_b", "debug"
             versionNameSuffix "-debug"
         }
         release {
-            applicationIdSuffix ".release"
+            applicationIdSuffix = ".release"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders = ["b": "release"]
@@ -37,7 +37,7 @@ android {
     productFlavors {
         firstAbc {
             dimension = 'Dim1'
-            applicationIdSuffix ".firstAbc"
+            applicationIdSuffix = ".firstAbc"
             proguardFiles "firstAbc.txt"
             manifestPlaceholders = ["a": "firstAbc"]
             resValue "string", "v_a", "firstAbc"
@@ -49,7 +49,7 @@ android {
         }
         secondAbc {
             dimension = 'Dim2'
-            applicationIdSuffix ".secondAbc"
+            applicationIdSuffix = ".secondAbc"
             manifestPlaceholders = ["a": "secondAbc", "b": "secondAbc", "c": "secondAbc"]
             resValue "string", "v_a", "secondAbc"
             resValue "string", "v_b", "secondAbc"
@@ -60,7 +60,7 @@ android {
         }
         secondXyz {
             dimension = 'Dim2'
-            applicationIdSuffix ".secondXyz"
+            applicationIdSuffix = ".secondXyz"
             proguardFiles "secondXyz.txt"
             manifestPlaceholders = ["b": "secondXyz"]
             resValue "string", "v_b", "secondXyz"

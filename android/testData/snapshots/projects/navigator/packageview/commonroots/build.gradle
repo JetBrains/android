@@ -33,7 +33,7 @@ apply plugin: 'com.android.application'
 
 android {
   compileSdkVersion 19
-  namespace "com.example.canon.app"
+  namespace = "com.example.canon.app"
 
   defaultConfig {
     minSdkVersion 14

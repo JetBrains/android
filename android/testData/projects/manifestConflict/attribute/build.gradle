@@ -15,7 +15,7 @@ dependencies {
 }
 
 android {
-  namespace "test.helloworldapp"
+  namespace = "test.helloworldapp"
   compileSdkVersion 19
 
   defaultConfig {

@@ -24,7 +24,7 @@ dependencies {
 android {
     compileSdkVersion 22
 
-    testBuildType "debug"
+    testBuildType = "debug"
 
     signingConfigs {
         myConfig {
@@ -42,7 +42,7 @@ android {
         targetSdkVersion 22
 
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
-        testHandleProfiling false
+        testHandleProfiling = false
 
         buildConfigField "boolean", "DEFAULT", "true"
         buildConfigField "String", "FOO", "\"foo\""
@@ -56,10 +56,10 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
-            signingConfig signingConfigs.myConfig
+            applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.myConfig
 
-            testCoverageEnabled true
+            testCoverageEnabled = true
 
             buildConfigField "String", "FOO", "\"bar1\""
             buildConfigField "String", "FOO", "\"bar\""
@@ -70,11 +70,11 @@ android {
 
     aaptOptions {
         noCompress 'txt'
-        ignoreAssetsPattern "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
     }
 
     buildFeatures {
-        buildConfig true
+        buildConfig = true
         resValues = true
     }
 

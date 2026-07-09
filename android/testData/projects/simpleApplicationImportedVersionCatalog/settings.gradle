@@ -11,7 +11,7 @@ dependencyResolutionManagement {
   }
   repositories {
     maven{
-      url "./repo"
+      url = "./repo"
     }
     // This will be populated by AndroidGradleTestCase
   }
