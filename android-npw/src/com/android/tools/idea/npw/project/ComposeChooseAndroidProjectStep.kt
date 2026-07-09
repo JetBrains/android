@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import com.android.tools.adtui.compose.copyWithSize
 import com.android.tools.idea.npw.ui.getTemplateTitle
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.diagnostic.fileLogger
@@ -57,8 +58,7 @@ import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextArea
-import org.jetbrains.jewel.ui.component.Typography
-import org.jetbrains.jewel.ui.component.copyWithSize
+import org.jetbrains.jewel.ui.typography
 
 // This should be unified with com.android.studio.ml.bot.ui.compose.timeline.emptystate.Greeting.kt
 internal val brandColor1 = Color(0xFF3186FF)
@@ -131,7 +131,7 @@ private fun NewProjectWizardWithGemini(textStateFlow: MutableStateFlow<String>) 
     modifier = Modifier.padding(bottom = 8.dp),
     text = "What do you want to build?",
     style =
-      Typography.labelTextStyle()
+      JewelTheme.typography.labelTextStyle
         .copyWithSize(fontSize = 24.sp, fontWeight = FontWeight.Medium, letterSpacing = (-1).sp)
         .copy(brush = brush),
   )
