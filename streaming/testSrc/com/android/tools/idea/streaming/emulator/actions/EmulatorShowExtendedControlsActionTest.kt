@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.ThemingStyle
 import com.android.tools.adtui.swing.HeadlessDialogRule
-import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
+import com.android.tools.idea.streaming.core.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.testutil.newEmulatorView
 import com.google.common.truth.Truth.assertThat

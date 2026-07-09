@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.android.testutils.PropertySetterRule
+import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.EmulatorSettings
 import com.intellij.testFramework.RuleChain
 
 /**

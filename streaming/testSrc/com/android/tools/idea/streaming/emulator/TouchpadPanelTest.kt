@@ -20,7 +20,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
+import com.android.tools.idea.streaming.core.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState.CONNECTED
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo

@@ -31,9 +31,9 @@ import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AndroidInputEvent
+import com.android.tools.idea.streaming.core.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.core.DeviceInputListener
 import com.android.tools.idea.streaming.core.DeviceInputListenerManager
 import com.android.tools.idea.streaming.core.ZoomType

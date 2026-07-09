@@ -24,6 +24,7 @@ import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.core.StreamingDeviceId
+import com.android.tools.idea.streaming.core.extractText
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceDisplayPanel
 import com.android.tools.idea.streaming.device.DeviceView
@@ -32,7 +33,6 @@ import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDe
 import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
-import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.streaming.testutil.newEmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.deserialize
