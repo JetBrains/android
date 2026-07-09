@@ -146,7 +146,7 @@ public class ProjectStructureUsageTrackerSyncListenerTest {
           .setAndroidPluginVersion(AgpVersions.getLatestKnown().toString())
           .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
           .addLibraries(GradleLibrary.newBuilder()
-                          .setJarDependencyCount(5)
+                          .setJarDependencyCount(7)
                           .setAarDependencyCount(27))
           .addModules(GradleModule.newBuilder()
                         .setTotalModuleCount(2)
@@ -167,7 +167,7 @@ public class ProjectStructureUsageTrackerSyncListenerTest {
                                      .setBuildSystemType(GradleNativeAndroidModule.NativeBuildSystemType.CMAKE)
                                      .setNdkVersion(SdkConstants.NDK_DEFAULT_VERSION))
           .setModuleCount(2)
-          .setLibCount(32)
+          .setLibCount(34)
           .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.hellojni"))
           .build());
     });
