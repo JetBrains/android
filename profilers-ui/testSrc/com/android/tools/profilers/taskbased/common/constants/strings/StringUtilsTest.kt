@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers.taskbased.common.constants.strings
+package com.android.tools.profilers.taskbased.common.constants.strings
 
-import com.android.tools.profilers.taskbased.common.constants.strings.StringUtils
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.junit.Assert.assertEquals
 import org.junit.Test
