@@ -828,6 +828,24 @@ class MultiRepresentationPreviewTest {
 
     assertTrue(isScopeDisposed.get())
   }
+
+  @Test
+  // Regression test for http://b/468333173
+  fun testOnDeactivateRemovesKeyListener() = runBlocking {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+
+    multiPreview = createMultiRepresentation(sampleFile, myFixture.editor, listOf())
+
+    val contentComponent = myFixture.editor.contentComponent
+
+    // Key listener should be added on activate (which is called in createMultiRepresentation)
+    assertTrue(contentComponent.keyListeners.any { it.javaClass.name.contains(MultiRepresentationPreview::class.simpleName.toString()) })
+
+    // Key listener should be removed on deactivate
+    multiPreview.onDeactivate()
+    assertFalse(contentComponent.keyListeners.any { it.javaClass.name.contains(MultiRepresentationPreview::class.simpleName.toString()) })
+  }
 }
 
 fun <T> any(): T = Mockito.any<T>()
