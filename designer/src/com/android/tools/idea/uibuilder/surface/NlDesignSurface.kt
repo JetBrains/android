@@ -293,6 +293,7 @@ internal constructor(
 
   override fun deactivate() {
     errorQueue.deactivate(issueModel)
+    issueModel.removeIssueProvider(visualLintIssueProvider)
     visualLintIssueProvider.clear()
     super.deactivate()
   }

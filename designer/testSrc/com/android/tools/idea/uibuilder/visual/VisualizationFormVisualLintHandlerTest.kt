@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssuePro
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.visuallint.VisualLintErrorType
 import com.google.common.collect.ImmutableCollection
+import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -50,6 +51,8 @@ class VisualizationFormVisualLintHandlerTest {
     val fakeNlModel = mock<NlModel>()
     val fakeNlComponent = mock<NlComponent>()
     Mockito.`when`(fakeNlComponent.model).thenReturn(fakeNlModel)
+    val fakeVirtualFile = Mockito.mock(VirtualFile::class.java)
+    Mockito.`when`(fakeNlModel.virtualFile).thenReturn(fakeVirtualFile)
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val localIssues =

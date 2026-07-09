@@ -37,10 +37,12 @@ import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findDocument
@@ -116,13 +118,21 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
   private var frozenNavigatable: Navigatable? = null
 
   val navigatable: Navigatable?
-    get() = frozenNavigatable ?: components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
+    get() =
+      if (frozenUnsuppressedModelCount >= 0) {
+        frozenNavigatable
+      } else {
+        ApplicationManager.getApplication()
+          .runReadAction(Computable<Navigatable> { components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable })
+      }
 
   private var frozenAffectedFiles: List<VirtualFile> = emptyList()
 
   val affectedFiles: List<VirtualFile>
     get() =
-      frozenAffectedFiles.ifEmpty {
+      if (frozenUnsuppressedModelCount >= 0) {
+        frozenAffectedFiles
+      } else {
         models
           .filter { model -> this.shouldHighlight(model) }
           .map { @kotlin.Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile) }
@@ -220,6 +230,8 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
    * anymore.
    */
   fun freeze() {
+    // If the issue has already been frozen, no need to do anything.
+    if (frozenUnsuppressedModelCount >= 0) return
     frozenNavigatable = navigatable
     frozenUnsuppressedModelCount = unsuppressedModelCount
     frozenAffectedFiles =
