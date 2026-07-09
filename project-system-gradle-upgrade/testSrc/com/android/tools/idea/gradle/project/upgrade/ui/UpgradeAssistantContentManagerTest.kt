@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.upgrade.ui
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
@@ -1009,6 +1011,7 @@ class UpgradeAssistantContentManagerTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/532569155", condition = OnWindows::class)
   fun testRevertAfterRunProcessor() {
     val psiFile = addMinimalBuildGradleToProject()
     var changingCurrentAgpVersion = supportedAgpVersion
