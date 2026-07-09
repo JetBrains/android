@@ -20,10 +20,8 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiEditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.codeinsight.utils.EditorUtilsKt;
 
 public class AndroidQuickfixContexts {
   public static abstract class Context {
@@ -36,15 +34,6 @@ public class AndroidQuickfixContexts {
     @NotNull
     public ContextType getType() {
       return myType;
-    }
-
-    @Nullable
-    public Editor getEditor(@NotNull PsiFile file) {
-      Editor editor = EditorUtilsKt.findExistingEditor(file);
-      if (editor != null) {
-        return editor;
-      }
-      return PsiEditorUtil.findEditor(file);
     }
 
     @Nullable
@@ -91,14 +80,6 @@ public class AndroidQuickfixContexts {
     @NotNull
     public Editor getEditor() {
       return myEditor;
-    }
-
-    @Override
-    public @Nullable Editor getEditor(@NotNull PsiFile file) {
-      if (isPreviewFile(file)) {
-        return myEditor;
-      }
-      return super.getEditor(file);
     }
 
     @Override
