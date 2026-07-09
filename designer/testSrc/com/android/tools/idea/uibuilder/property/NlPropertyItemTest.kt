@@ -100,7 +100,6 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -250,7 +249,6 @@ class NlPropertyItemTest {
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
 
-  @Ignore("b/318693686")
   @Test
   fun testColorPropertyWithColorStateList() =
     testScope.runTest {
