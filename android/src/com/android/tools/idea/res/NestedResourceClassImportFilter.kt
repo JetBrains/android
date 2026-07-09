@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res
 
-import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.idea.util.ClassImportFilter
 import org.jetbrains.kotlin.idea.util.ClassImportFilter.ClassInfo
