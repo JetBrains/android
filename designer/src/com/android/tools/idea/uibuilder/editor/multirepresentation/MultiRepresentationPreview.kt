@@ -510,7 +510,7 @@ open class MultiRepresentationPreview(
     LOG.debug { "[$instanceId] Deactivating '$currentRepresentationName'" }
     editor.caretModel.removeCaretListener(caretListener)
     currentRepresentation?.onDeactivate()
-    editor.component.removeKeyListener(keyListener)
+    editor.contentComponent.removeKeyListener(keyListener)
   }
 
   override fun selectNotify() {
