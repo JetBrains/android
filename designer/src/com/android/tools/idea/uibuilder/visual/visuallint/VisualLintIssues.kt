@@ -31,6 +31,7 @@ class VisualLintIssues {
     get() = _map.values
 
   fun clear() {
+    _map.values.forEach { it.freeze() }
     _map.clear()
     _mapByType.clear()
   }
