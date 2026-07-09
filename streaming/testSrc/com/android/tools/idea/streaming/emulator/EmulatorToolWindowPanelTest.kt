@@ -42,10 +42,10 @@ import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.actions.ZoomAction
+import com.android.tools.idea.streaming.core.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.core.expandFloatingToolbar
