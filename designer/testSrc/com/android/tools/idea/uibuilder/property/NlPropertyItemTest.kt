@@ -755,7 +755,6 @@ class NlPropertyItemTest {
     assertThat(property.value).isEqualTo("@string/demo")
   }
 
-  @Ignore("b/356584506")
   @Test
   fun testLazyResolverLoading() =
     testScope.runTest {
