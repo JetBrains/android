@@ -486,6 +486,7 @@ studio_test(
     jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.core.integration",
     tags = [
+        "noci:studio-win",  # Disabling due to b/532527223
         "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
