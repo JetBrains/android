@@ -67,6 +67,7 @@ import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import java.io.File
 import java.time.Clock
 import java.util.concurrent.TimeoutException
+import kotlin.io.path.absolutePathString
 import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
@@ -632,17 +633,23 @@ private fun createJavaCodeInsightTestFixture(
  */
 internal class AndroidProjectRuleTempDirectoryFixture(name: String) : AndroidTempDirTestFixture(name) {
   private val tempRoot: String =
-    FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
+    if (shouldKeepTestDirectory()) {
+      TestUtils.getTestOutputDir().resolve("project_${Clock.systemUTC().millis()}").absolutePathString()
+    } else {
+      FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
+    }
 
   override fun getRootTempDirectory(): String = tempRoot
 
   override fun tearDown() {
-    super.tearDown() // Deletes the project directory.
-    try {
-      // Delete the temp directory where the project directory was created.
-      runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
-    } catch (e: Throwable) {
-      addSuppressedException(e)
+    super.tearDown() // Deletes root/name
+    if (deleteOnTearDown()) { // Deletes root
+      try {
+        // Delete the temp directory where the project directory was created.
+        runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
+      } catch (e: Throwable) {
+        addSuppressedException(e)
+      }
     }
   }
 }

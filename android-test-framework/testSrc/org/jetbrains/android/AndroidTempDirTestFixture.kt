@@ -15,11 +15,13 @@
  */
 package org.jetbrains.android
 
+import com.android.testutils.TestUtils
 import com.android.utils.FileUtils
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 open class AndroidTempDirTestFixture(private val testName: String) : TempDirTestFixtureImpl() {
   override fun doCreateTempDirectory(): Path {
@@ -28,8 +30,20 @@ open class AndroidTempDirTestFixture(private val testName: String) : TempDirTest
     return folder.toPath()
   }
 
-  open fun getRootTempDirectory() = FileUtil.getTempDirectory()
+  override fun deleteOnTearDown() = !shouldKeepTestDirectory()
+
+  open fun getRootTempDirectory() =
+    if (shouldKeepTestDirectory()) {
+      TestUtils.getTestOutputDir().absolutePathString()
+    } else {
+      FileUtil.getTempDirectory()
+    }
 
   val projectDir: File
     get() = File(tempDirPath)
+
+  fun shouldKeepTestDirectory() =
+    System.getProperty("KEEP_TEST_PROJECTS")
+      ?.ifEmpty { "true" } // Keep when specified without any value
+      ?.toBoolean() ?: false
 }
