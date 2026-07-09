@@ -110,26 +110,20 @@ public class TestFileSystem {
 
   /** Finds PsiFile, and asserts that it's not null. */
   public PsiFile getPsiFile(VirtualFile file) {
-    return new ReadAction<PsiFile>() {
-      @Override
-      protected void run(Result<? super PsiFile> result) {
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        assertThat(psiFile).isNotNull();
-        result.setResult(psiFile);
-      }
-    }.execute().getResultObject();
+    return ReadAction.compute(() -> {
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+      assertThat(psiFile).isNotNull();
+      return psiFile;
+    });
   }
 
   /** Finds PsiDirectory, and asserts that it's not null. */
   public PsiDirectory getPsiDirectory(VirtualFile file) {
-    return new ReadAction<PsiDirectory>() {
-      @Override
-      protected void run(Result<? super PsiDirectory> result) {
-        PsiDirectory psiFile = PsiManager.getInstance(project).findDirectory(file);
-        assertThat(psiFile).isNotNull();
-        result.setResult(psiFile);
-      }
-    }.execute().getResultObject();
+    return ReadAction.compute(() -> {
+      PsiDirectory psiFile = PsiManager.getInstance(project).findDirectory(file);
+      assertThat(psiFile).isNotNull();
+      return psiFile;
+    });
   }
 
   @Nullable
