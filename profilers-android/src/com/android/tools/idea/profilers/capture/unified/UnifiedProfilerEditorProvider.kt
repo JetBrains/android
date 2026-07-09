@@ -18,17 +18,45 @@ package com.android.tools.idea.profilers.capture.unified
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.capture.CpuCaptureFileType
 import com.android.tools.idea.profilers.capture.PerfettoCaptureFileType
+import com.android.tools.idea.profilers.capture.unified.UnifiedProfilerEditorProvider.Companion.isSupportedByPerfettoEditor
 import com.android.tools.profilers.ProfilerFormat
+// JetBrains patch: the sherlock.common module is not part of the monorepo and Google publishes no artifact for it,
+// so com.android.tools.sherlock.common.system.editor.PerfettoEditorStateManager and PerfettoFileEditorState
+// cannot be imported here. This is permanent, not a pending merge step.
+// import com.android.tools.sherlock.common.system.editor.PerfettoEditorStateManager
+// import com.android.tools.sherlock.common.system.editor.PerfettoFileEditorState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
+import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.jdom.Element
 
-/** Custom [FileEditorProvider] which allows opening profiler captures in a new editor tab. */
+/**
+ * Custom [FileEditorProvider] which allows opening profiler captures in a new editor tab. Also accommodates state persistence (e.g.,
+ * zoom/scroll) for supported formats like Perfetto and ART traces.
+ */
 class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
+
+  // JetBrains patch: both overrides do nothing but delegate to PerfettoEditorStateManager, which lives in the
+  // sherlock.common module the monorepo does not carry and for which no artifact is published. With no manager to
+  // delegate to, the platform defaults for writeState and readState are what is left, so the overrides stay
+  // commented out. This is permanent, not a pending merge step.
+  // override fun writeState(state: FileEditorState, project: Project, targetElement: Element) {
+  //   if (state is PerfettoFileEditorState) {
+  //     project.getService(PerfettoEditorStateManager::class.java).writeState(state, targetElement)
+  //   }
+  // }
+  //
+  // override fun readState(sourceElement: Element, project: Project, file: VirtualFile): FileEditorState {
+  //   if (isSupportedByPerfettoEditor(file)) {
+  //     return project.getService(PerfettoEditorStateManager::class.java).readState(sourceElement, file)
+  //   }
+  //   return FileEditorState.INSTANCE
+  // }
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
     // Fail fast if extension is not supported
