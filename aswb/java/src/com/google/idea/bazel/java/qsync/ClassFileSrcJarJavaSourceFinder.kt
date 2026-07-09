@@ -30,7 +30,9 @@ class ClassFileSrcJarJavaSourceFinder(clsFile: PsiFile) : SourceFileInCompiledFi
       .map { pathResolver.resolve(it) }
       .filter { path ->
         val pathString = path.toString()
-        pathString.endsWith(SdkConstants.DOT_JAR) || pathString.endsWith(SdkConstants.DOT_SRCJAR)
+        pathString.endsWith(SdkConstants.DOT_ZIP) ||
+          pathString.endsWith(SdkConstants.DOT_JAR) ||
+          pathString.endsWith(SdkConstants.DOT_SRCJAR)
       }
   }
 }

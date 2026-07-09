@@ -105,8 +105,12 @@ constructor(
 
   protected fun containsClass(file: PsiFile?): Boolean {
     if (file is KtFile) {
-      val facadeFqName = JvmFileClassUtil.getFileClassInfoNoResolve(file).facadeClassFqName
-      if (facadeFqName.asString() in qualifiedClassNames) {
+      val facadeFqName = JvmFileClassUtil.getFileClassInfoNoResolve(file).facadeClassFqName.asString()
+      if (facadeFqName in qualifiedClassNames) {
+        return true
+      }
+      val facadeFqNameWithoutKt = facadeFqName.removeSuffix("Kt")
+      if (facadeFqNameWithoutKt in qualifiedClassNames) {
         return true
       }
     }

@@ -29,18 +29,16 @@ import com.intellij.psi.util.PsiTreeUtil
 import java.util.concurrent.CancellationException
 import org.jetbrains.kotlin.analysis.decompiler.psi.file.KtClsFile
 import org.jetbrains.kotlin.idea.navigation.KotlinAnalysisApiBasedDeclarationNavigationPolicyImpl
-import org.jetbrains.kotlin.name.CallableId
-import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtClassLikeDeclaration
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationPolicyImpl() {
-  private val localCache = ThreadLocal.withInitial { mutableMapOf<ClassId, KtClsFile>() }
 
   companion object {
     private val logger = Logger.getInstance(QuerySyncKtNavigationPolicy::class.java)
@@ -60,16 +58,6 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
           }
         Result.create(result, ktClsFile, QuerySyncManager.getInstance(project).projectModificationTracker)
       }
-    }
-
-    /**
-     * Returns candidate source file for KtClsFile provided. It will go over source files of target, source files in generated source jar
-     * and in source jar of java target to find the one matched class file.
-     */
-    private fun findCandidateSourceFile(file: KtClsFile): PsiFile? {
-      return ClassFileKtSourceFinder(file).findSourceFile()
-        ?: ClassFileGenSrcJarJavaSourceFinder(file).findSourceFile()
-        ?: ClassFileSrcJarJavaSourceFinder(file).findSourceFile()
     }
 
     /**
@@ -94,80 +82,62 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
   override fun getNavigationElement(ktDeclaration: KtDeclaration): KtElement {
     if (!ENABLED_NAVIGATION_POLICY.value) return super.getNavigationElement(ktDeclaration)
 
-    val classIdToKtClsFile = localCache.get()
-    var classId: ClassId? = null
     val project = ktDeclaration.project
     if (!eligibleToRun(project)) {
       return super.getNavigationElement(ktDeclaration)
     }
 
-    try {
-      val psiFile = ktDeclaration.containingFile
-      if (psiFile is KtClsFile) {
-        // Determine ClassID based on declaration type
-        classId =
-          if (ktDeclaration is KtClassLikeDeclaration) {
-            ktDeclaration.getClassId()
-          } else {
-            ktDeclaration.containingClassOrObject?.getClassId()
-          }
+    val ktClsFile = ktDeclaration.containingFile as? KtClsFile ?: return super.getNavigationElement(ktDeclaration)
 
-        if (classId != null) {
-          classIdToKtClsFile[classId] = psiFile
+    val candidateSourceFiles = getCachedResult(ktClsFile, project, ::findCandidateSourceFiles)
+    for (candidateSourceFile in candidateSourceFiles) {
+      if (candidateSourceFile is KtFile) {
+        val target = findMatchingDeclarationInSource(ktDeclaration, candidateSourceFile)
+        if (target != null) {
+          return target
         }
       }
-      return super.getNavigationElement(ktDeclaration)
-    } finally {
-      if (classId != null) {
-        classIdToKtClsFile.remove(classId)
-      }
-      // Clean up ThreadLocal to prevent memory leaks
-      if (classIdToKtClsFile.isEmpty()) {
-        localCache.remove()
-      }
     }
+
+    return super.getNavigationElement(ktDeclaration)
   }
 
-  override fun getTopLevelCallablesByName(
-    declaration: KtCallableDeclaration,
-    callableId: CallableId,
-    project: Project,
-    scope: Scope,
-  ): Sequence<KtCallableDeclaration> {
-    if (!eligibleToRun(project)) {
-      return super.getTopLevelCallablesByName(declaration, callableId, project, scope)
-    }
-    val containingFile = declaration.containingFile
-    if (containingFile is KtClsFile) {
-      val candidateSourceFiles = getCachedResult(containingFile, project, ::findCandidateSourceFiles)
-      return candidateSourceFiles
-        .asSequence()
-        .filterIsInstance<KtFile>()
-        .filter { it.packageFqName == callableId.packageName }
-        .flatMap { sourceFile ->
-          PsiTreeUtil.findChildrenOfType(sourceFile, KtCallableDeclaration::class.java).asSequence().filter {
-            it.name == callableId.callableName.asString()
+  private fun findMatchingDeclarationInSource(original: KtDeclaration, sourceFile: KtFile): KtElement? {
+    return when (original) {
+      is KtClassLikeDeclaration -> {
+        val exactMatch =
+          original.getClassId()?.let { classId ->
+            val shortName = classId.shortClassName.asString()
+            val fqName = classId.asSingleFqName()
+
+            PsiTreeUtil.findChildrenOfType(sourceFile, KtClassOrObject::class.java).asSequence().firstOrNull { ktClass ->
+              val nameMatches =
+                ktClass.name == shortName || (shortName == "Companion" && ktClass is KtObjectDeclaration && ktClass.isCompanion())
+
+              nameMatches && ktClass.fqName == fqName
+            }
           }
-        }
+
+        exactMatch ?: PsiTreeUtil.findChildOfType(sourceFile, KtClassOrObject::class.java)
+      }
+
+      is KtCallableDeclaration -> {
+        val name = original.name ?: return null
+        val parentClassId = original.containingClassOrObject?.getClassId()
+        PsiTreeUtil.findChildrenOfType(sourceFile, KtCallableDeclaration::class.java)
+          .asSequence()
+          .filter { it.name == name }
+          .filter {
+            if (parentClassId != null) {
+              it.containingClassOrObject?.getClassId() == parentClassId
+            } else {
+              it.containingClassOrObject == null
+            }
+          }
+          .firstOrNull()
+      }
+
+      else -> null
     }
-    return super.getTopLevelCallablesByName(declaration, callableId, project, scope)
-  }
-
-  override fun getClassesByClassId(classId: ClassId, project: Project, scope: Scope): Sequence<KtClassOrObject> {
-    if (!eligibleToRun(project)) {
-      return super.getClassesByClassId(classId, project, scope)
-    }
-    val ktClsFile = localCache.get()[classId] ?: return super.getClassesByClassId(classId, project, scope)
-
-    val candidateSourceFile = getCachedResult(ktClsFile, project, ::findCandidateSourceFile)
-
-    if (candidateSourceFile is KtFile) {
-      return PsiTreeUtil.findChildrenOfType(candidateSourceFile, KtClassOrObject::class.java)
-        .asSequence()
-        .filter { it.name == classId.shortClassName.asString() }
-        .filter { classId.asSingleFqName() == it.fqName }
-    }
-
-    return super.getClassesByClassId(classId, project, scope)
   }
 }
