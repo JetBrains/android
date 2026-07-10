@@ -13,12 +13,35 @@ AppIconInfo = provider(
     },
 )
 
-_STUDIO_PATH_PNG = "bin/studio.png"
-_STUDIO_PATH_ICNS = "Contents/Resources/studio.icns"
-_STUDIO_PATH_ICO = "bin/studio.ico"
-_STUDIO_PATH_SVG = "bin/studio.svg"
-_STUDIO_PATH_SVG_MACOS = "Contents/bin/studio.svg"
-_STUDIO_PATH_WINDOWS_EXE = "bin/studio64.exe"
+AppIconPathsInfo = provider(
+    doc = "Defines the output paths for the application icons.",
+    fields = {
+        "png": "Path to the linux app icon.",
+        "icns": "Path to the MacOS app icon.",
+        "ico": "Path to the Windows app icon.",
+        "svg": "Path to the svg file.",
+        "svg_macos": "Path to the svg file on MacOS.",
+        "windows_exe": "Path to the Windows launcher exe.",
+    },
+)
+
+_STUDIO_PATHS = AppIconPathsInfo(
+    png = "bin/studio.png",
+    icns = "Contents/Resources/studio.icns",
+    ico = "bin/studio.ico",
+    svg = "bin/studio.svg",
+    svg_macos = "Contents/bin/studio.svg",
+    windows_exe = "bin/studio64.exe",
+)
+
+_APA_PATHS = AppIconPathsInfo(
+    png = "bin/apa.png",
+    icns = "Contents/Resources/apa.icns",
+    ico = "bin/apa.ico",
+    svg = "bin/apa.svg",
+    svg_macos = "Contents/bin/apa.svg",
+    windows_exe = "bin/apa64.exe",
+)
 
 def _app_icon_impl(ctx):
     return AppIconInfo(
@@ -79,7 +102,7 @@ def _modify_exe_launcher(ctx, out, windows_exe, ico_file):
         mnemonic = "ModifyExeIcon",
     )
 
-def replace_app_icon(ctx, platform_name, file_map, icon_info):
+def replace_app_icon(ctx, platform_name, file_map, icon_info, branding):
     """Returns a new file map with application icon files replaced.
 
     Args:
@@ -87,6 +110,7 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
       platform_name: One of linux, win, mac, or mac_arm.
       file_map: A map of relative studio paths to files.
       icon_info: The AppIconInfo provider.
+      branding: Tool/IDE branding that determines the icons to replace and their layouts.
 
     Returns:
       An updated file mapping.
@@ -96,27 +120,29 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
 
     resources_jar = "lib/resources.jar"
 
+    paths = _APA_PATHS if branding == "android-performance-analyzer" else _STUDIO_PATHS
+
     new_file_map = {k: v for k, v in file_map.items()}
     if platform_name == "linux":
         if icon_info.png:
-            new_file_map[_STUDIO_PATH_PNG] = icon_info.png
+            new_file_map[paths.png] = icon_info.png
         if icon_info.svg:
-            new_file_map[_STUDIO_PATH_SVG] = icon_info.svg
+            new_file_map[paths.svg] = icon_info.svg
     if platform_name in ["mac", "mac_arm"]:
         resources_jar = "Contents/%s" % resources_jar
         if icon_info.icns:
-            new_file_map[_STUDIO_PATH_ICNS] = icon_info.icns
+            new_file_map[paths.icns] = icon_info.icns
         if icon_info.svg:
-            new_file_map[_STUDIO_PATH_SVG_MACOS] = icon_info.svg
+            new_file_map[paths.svg_macos] = icon_info.svg
     if platform_name == "win":
         if icon_info.ico:
-            new_file_map[_STUDIO_PATH_ICO] = icon_info.ico
+            new_file_map[paths.ico] = icon_info.ico
             new_win_exe = ctx.actions.declare_file(ctx.attr.name + ".windows-launcher.exe")
-            win_exe = new_file_map[_STUDIO_PATH_WINDOWS_EXE]
+            win_exe = new_file_map[paths.windows_exe]
             _modify_exe_launcher(ctx, new_win_exe, win_exe, icon_info.ico)
-            new_file_map[_STUDIO_PATH_WINDOWS_EXE] = new_win_exe
+            new_file_map[paths.windows_exe] = new_win_exe
         if icon_info.svg:
-            new_file_map[_STUDIO_PATH_SVG] = icon_info.svg
+            new_file_map[paths.svg] = icon_info.svg
 
     new_res_jar = ctx.actions.declare_file(ctx.attr.name + ".%s.updated-app-icon-resources.jar" % platform_name)
     ctx.actions.run(
@@ -135,6 +161,8 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
             icon_info.splash2x.path,
             "--out",
             new_res_jar.path,
+            "--branding",
+            branding,
         ],
         executable = ctx.executable._update_resources_jar,
         mnemonic = "UpdateIntellijResourceJar",
