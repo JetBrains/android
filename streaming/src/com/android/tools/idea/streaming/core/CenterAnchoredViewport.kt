@@ -25,6 +25,22 @@ import kotlin.math.roundToInt
 /** A viewport that scales the contained view relative to the center of the viewport. */
 class CenterAnchoredViewport : JBViewport() {
 
+  var viewCenterOffset: Point
+    get() {
+      val viewSize = viewSize
+      val viewPosition = viewPosition
+      return Point(viewPosition.x + (width - viewSize.width) / 2, viewPosition.y + (height - viewSize.height) / 2)
+    }
+    set(value) {
+      if (width > 0 && height > 0) {
+        applyViewCenterOffset(value)
+      } else {
+        // Cannot apply the view center offset yet. Defer until the next doLayout call.
+        pendingViewCenterOffset = value
+      }
+    }
+
+  private var pendingViewCenterOffset: Point? = null
   private var layoutUnderway = false
   private var resizingUnderway = false
 
@@ -47,6 +63,9 @@ class CenterAnchoredViewport : JBViewport() {
     layoutUnderway = true
     try {
       super.doLayout()
+      if (width > 0 && height > 0) {
+        pendingViewCenterOffset?.let { applyViewCenterOffset(it) }
+      }
     } finally {
       layoutUnderway = false
     }
@@ -119,6 +138,13 @@ class CenterAnchoredViewport : JBViewport() {
     }
     val viewPosition = viewPosition
     return Point(viewPosition.x.coerceInLenient(0, view.width - width), viewPosition.y.coerceInLenient(0, view.height - height))
+  }
+
+  private fun applyViewCenterOffset(centerOffset: Point) {
+    pendingViewCenterOffset = null
+    val viewSize = viewSize
+    val viewPosition = Point(centerOffset.x + (viewSize.width - width) / 2, centerOffset.y + (viewSize.height - height) / 2)
+    super.setViewPosition(viewPosition)
   }
 }
 

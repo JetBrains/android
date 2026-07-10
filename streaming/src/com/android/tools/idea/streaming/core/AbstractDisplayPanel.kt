@@ -43,7 +43,6 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Insets
 import java.awt.LayoutManager
-import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
@@ -80,15 +79,6 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
     set(value) {
       field = value
       zoomToolbar?.isVisible = value
-    }
-
-  internal var zoomScrollState: ZoomScrollState
-    get() = ZoomScrollState(scrollPane.viewport.viewPosition, displayView.explicitlySetPreferredSize)
-    set(value) {
-      if (value.preferredViewSize != null) {
-        displayView.preferredSize = value.preferredViewSize
-        scrollPane.viewport.viewPosition = value.viewPosition
-      }
     }
 
   protected abstract val deviceType: DeviceType
@@ -210,9 +200,6 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
     sink[ZOOMABLE_KEY] = displayView
     (zoomToolbar ?: xrNavigationToolbar)?.let { floatingToolbar -> sink[FLOATING_TOOLBAR_KEY] = floatingToolbar }
   }
-
-  /** Zoom and scroll state of the panel. */
-  class ZoomScrollState(val viewPosition: Point, val preferredViewSize: Dimension?)
 
   private class LayeredPaneLayoutManager : LayoutManager {
 

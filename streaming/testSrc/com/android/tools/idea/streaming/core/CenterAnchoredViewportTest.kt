@@ -120,6 +120,66 @@ class CenterAnchoredViewportTest {
     assertThat(viewport.viewPosition).isEqualTo(Point(0, 0))
   }
 
+  @Test
+  fun testViewCenterOffset() {
+    assertThat(viewport.viewCenterOffset).isEqualTo(Point(0, 0))
+
+    // Zoom level 200%.
+    view.preferredSize = Dimension(200, 400)
+    ui.layoutAndDispatchEvents()
+    assertThat(viewport.viewCenterOffset).isEqualTo(Point(0, 0))
+
+    val vWidth = viewport.width
+    val vHeight = viewport.height
+
+    // Set a non-zero offset.
+    viewport.viewCenterOffset = Point(10, 20)
+    ui.layoutAndDispatchEvents()
+    assertThat(viewport.viewCenterOffset).isEqualTo(Point(10, 20))
+
+    val expectedX = 10 + (200 - vWidth) / 2
+    val expectedY = 20 + (400 - vHeight) / 2
+    assertThat(viewport.viewPosition).isEqualTo(Point(expectedX, expectedY))
+
+    // Set offset that is out of bounds (should be clamped).
+    viewport.viewCenterOffset = Point(100, 200)
+    ui.layoutAndDispatchEvents()
+    val maxViewPositionX = 200 - vWidth
+    val maxViewPositionY = 400 - vHeight
+    val expectedMaxOffsetX = maxViewPositionX + (vWidth - 200) / 2
+    val expectedMaxOffsetY = maxViewPositionY + (vHeight - 400) / 2
+
+    assertThat(viewport.viewCenterOffset).isEqualTo(Point(expectedMaxOffsetX, expectedMaxOffsetY))
+    assertThat(viewport.viewPosition).isEqualTo(Point(maxViewPositionX, maxViewPositionY))
+
+    // Min viewPosition is (0, 0)
+    viewport.viewCenterOffset = Point(-100, -200)
+    ui.layoutAndDispatchEvents()
+    val expectedMinOffsetX = 0 + (vWidth - 200) / 2
+    val expectedMinOffsetY = 0 + (vHeight - 400) / 2
+    assertThat(viewport.viewCenterOffset).isEqualTo(Point(expectedMinOffsetX, expectedMinOffsetY))
+    assertThat(viewport.viewPosition).isEqualTo(Point(0, 0))
+
+    // Test deferred offset application when viewport size is 0.
+    val freshViewport = CenterAnchoredViewport()
+    val freshView = JPanel().apply { preferredSize = Dimension(200, 400) }
+    freshViewport.view = freshView
+
+    assertThat(freshViewport.width).isEqualTo(0)
+    assertThat(freshViewport.height).isEqualTo(0)
+
+    freshViewport.viewCenterOffset = Point(15, 25)
+    assertThat(freshViewport.viewPosition).isEqualTo(Point(0, 0))
+
+    freshViewport.setBounds(0, 0, 100, 150)
+    freshViewport.doLayout()
+
+    // viewPosition = offset + (viewSize - viewportSize) / 2
+    //              = (15, 25) + (200 - 100, 400 - 150) / 2 = (15, 25) + (50, 125) = (65, 150)
+    assertThat(freshViewport.viewPosition).isEqualTo(Point(65, 150))
+    assertThat(freshViewport.viewCenterOffset).isEqualTo(Point(15, 25))
+  }
+
   private inner class TestScrollPane : JBScrollPane(0) {
 
     init {

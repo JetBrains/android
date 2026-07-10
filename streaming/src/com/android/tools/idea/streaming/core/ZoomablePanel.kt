@@ -21,6 +21,7 @@ import com.intellij.ui.JreHiDpiUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
+import java.awt.Point
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -62,6 +63,16 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   /** Indicates whether the view is scaled so that its inner part fits into the available space. */
   protected open var framing: Framing = Framing.OUTER
+
+  internal var zoomScrollState: ZoomScrollState
+    get() = ZoomScrollState(framing, explicitlySetPreferredSize, findAncestor<CenterAnchoredViewport>()?.viewCenterOffset ?: Point())
+    set(value) {
+      framing = value.framing
+      if (value.preferredViewSize != null) {
+        preferredSize = value.preferredViewSize
+        findAncestor<CenterAnchoredViewport>()?.viewCenterOffset = value.viewCenterOffset
+      }
+    }
 
   /** Returns the size of the content at 100% zoom. */
   protected abstract fun computeActualSize(framing: Framing): Dimension
@@ -226,8 +237,11 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   private fun ZoomType.toFraming(): Framing = if (this == ZoomType.FIT_INNER) Framing.INNER else Framing.OUTER
 
-  protected enum class Framing {
+  enum class Framing {
     OUTER,
     INNER,
   }
+
+  /** Zoom and scroll state of the panel. */
+  class ZoomScrollState(val framing: Framing, val preferredViewSize: Dimension?, val viewCenterOffset: Point)
 }
