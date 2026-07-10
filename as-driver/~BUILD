@@ -52,7 +52,7 @@ iml_module(
         "//tools/base/threading-agent:threading_agent.jar",
     ] + select({
         "@intellij//:studio-sdk": ["//tools/adt/idea/studio:android-studio_files"],
-        "@intellij//:sherlock-sdk": ["//tools/profiler/sherlock-plugin:sherlock"],
+        "@intellij//:sherlock-sdk": ["//tools/profiler/sherlock-plugin:sherlock.stable"],
         "//conditions:default": ["@intellij//:distribution-zip"],
     }),
     iml_files = ["utils/as-driver.utils.iml"],
