@@ -330,7 +330,8 @@ class StreamingToolWindowManagerTest {
   @Test
   fun testZoomStatePreservation() {
     val tempFolder = emulatorRule.avdRoot
-    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+    val avdFolder = FakeEmulator.createDisplayGlassesAvd(tempFolder)
+    val emulator = emulatorRule.newEmulator(avdFolder)
 
     toolWindow.show()
 
@@ -343,33 +344,58 @@ class StreamingToolWindowManagerTest {
     val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
     waitForCondition(4.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     waitForCondition(2.seconds) { contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
+    assertThat(contentManager.contents[0].displayName).startsWith(emulator.avdName)
 
     val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
     panel.setSize(250, 500)
     val ui = FakeUi(panel)
-    val emulatorView = ui.getComponent<EmulatorView>()
+    var emulatorView = ui.getComponent<EmulatorView>()
     waitForCondition(2.seconds) { renderAndGetFrameNumber(ui, emulatorView) > 0u }
 
-    // Zoom in.
-    emulatorView.zoom(ZoomType.IN)
+    // 1. Verify FIT_INNER framing restoration.
+    assertThat(emulatorView.hasInnerPart).isTrue()
+    emulatorView.zoom(ZoomType.FIT_INNER)
     ui.layoutAndDispatchEvents()
-    assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
+    assertThat(emulatorView.zoomScrollState.framing).isEqualTo(ZoomablePanel.Framing.INNER)
+    val fitInnerScale = emulatorView.scale
+
+    toolWindow.hide()
+    dispatchAllEventsInIdeEventQueue() // Allow the tool window hidden event to propagate and destroy the content.
+    toolWindow.show()
+    dispatchAllEventsInIdeEventQueue() // Allow the tool window shown event to propagate and reconstruct the content.
+    ui.layoutAndDispatchEvents()
+
+    emulatorView = ui.getComponent<EmulatorView>()
+    assertThat(emulatorView.zoomScrollState.framing).isEqualTo(ZoomablePanel.Framing.INNER)
+    assertThat(emulatorView.scale).isWithin(0.0001).of(fitInnerScale)
+
+    // 2. Verify zoom and scroll position restoration (uses Framing.OUTER).
     var viewport = emulatorView.parent as JViewport
+    while (viewport.viewSize.height <= viewport.height) {
+      emulatorView.zoom(ZoomType.IN)
+      ui.layoutAndDispatchEvents()
+      viewport = emulatorView.parent as JViewport
+    }
+    assertThat(emulatorView.zoomScrollState.framing).isEqualTo(ZoomablePanel.Framing.OUTER)
+    val zoomedScale = emulatorView.scale
     val viewportSize = viewport.viewSize
-    assertThat(viewportSize).isEqualTo(Dimension(396, 811))
-    // Scroll to the bottom.
-    val scrollPosition = Point(viewport.viewPosition.x, viewport.viewSize.height - viewport.height)
+
+    // Scroll the viewport. Use an offset (30) that doesn't reach the edge to avoid clamping.
+    val scrollPosition = Point(viewport.viewPosition.x, 30)
     viewport.viewPosition = scrollPosition
 
     toolWindow.hide()
+    dispatchAllEventsInIdeEventQueue() // Allow the tool window hidden event to propagate and destroy the content.
     toolWindow.show()
-
+    dispatchAllEventsInIdeEventQueue() // Allow the tool window shown event to propagate and reconstruct the content.
     ui.layoutAndDispatchEvents()
-    assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
-    viewport = emulatorView.parent as JViewport
-    assertThat(viewport.viewSize).isEqualTo(viewportSize)
-    assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
+
+    val newEmulatorView = ui.getComponent<EmulatorView>()
+    val newViewport = newEmulatorView.parent as JViewport
+    assertThat(newEmulatorView.zoomScrollState.framing).isEqualTo(ZoomablePanel.Framing.OUTER)
+    assertThat(newEmulatorView.scale).isWithin(0.0001).of(zoomedScale)
+    assertThat(newViewport.viewSize).isEqualTo(viewportSize)
+    assertThat(newViewport.viewPosition).isEqualTo(scrollPosition)
   }
 
   @Test

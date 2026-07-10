@@ -24,7 +24,6 @@ import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDevicePanel
-import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.LayoutNode
@@ -33,6 +32,7 @@ import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.core.StreamingDeviceId
+import com.android.tools.idea.streaming.core.ZoomablePanel
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.installFileDropHandler
@@ -151,7 +151,7 @@ internal class DeviceToolWindowPanel(
       }
     val zoomScrollState = uiState.zoomScrollState
     for (displayPanel in displayPanels) {
-      zoomScrollState[displayPanel.displayId]?.let { displayPanel.zoomScrollState = it }
+      zoomScrollState[displayPanel.displayId]?.let { displayPanel.displayView.zoomScrollState = it }
     }
 
     val deviceView = primaryDisplayPanel.displayView
@@ -206,7 +206,7 @@ internal class DeviceToolWindowPanel(
     contentScope = null
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     for (displayPanel in displayPanels) {
-      uiState.zoomScrollState[displayPanel.displayId] = displayPanel.zoomScrollState
+      uiState.zoomScrollState[displayPanel.displayId] = displayPanel.displayView.zoomScrollState
     }
 
     Disposer.dispose(disposable)
@@ -441,6 +441,6 @@ internal class DeviceToolWindowPanel(
 
   class DeviceUiState : UiState {
     var orientation = UNKNOWN_ORIENTATION
-    val zoomScrollState = Int2ObjectRBTreeMap<AbstractDisplayPanel.ZoomScrollState>()
+    val zoomScrollState = Int2ObjectRBTreeMap<ZoomablePanel.ZoomScrollState>()
   }
 }
