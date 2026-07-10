@@ -16,17 +16,25 @@ def main(argv):
   parser.add_argument("--svg_small", help="The icon as a smaller SVG")
   parser.add_argument("--splash", help="The splash screen")
   parser.add_argument("--splash2x", help="The splash screen at 2x resolution for Retina displays")
+  parser.add_argument("--branding", help="The branding to use", choices=["android-studio", "android-performance-analyzer"])
 
   args = parser.parse_args(argv)
 
   with zipfile.ZipFile(args.out, 'w') as out:
     replaced = []
-    replaced.append(write_entry(out, args.svg, 'artwork/androidstudio.svg'))
-    replaced.append(write_entry(out, args.svg_small, 'artwork/androidstudio-small.svg'))
-    replaced.append(write_entry(out, args.svg, 'artwork/preview/androidstudio.svg'))
-    replaced.append(write_entry(out, args.svg_small, 'artwork/preview/androidstudio-small.svg'))
-    replaced.append(write_entry(out, args.splash, 'artwork/studio_splash.png'))
-    replaced.append(write_entry(out, args.splash2x, 'artwork/studio_splash@2x.png'))
+    if args.branding == "android-studio":
+      replaced.append(write_entry(out, args.svg, 'artwork/androidstudio.svg'))
+      replaced.append(write_entry(out, args.svg_small, 'artwork/androidstudio-small.svg'))
+      replaced.append(write_entry(out, args.svg, 'artwork/preview/androidstudio.svg'))
+      replaced.append(write_entry(out, args.svg_small, 'artwork/preview/androidstudio-small.svg'))
+      replaced.append(write_entry(out, args.splash, 'artwork/studio_splash.png'))
+      replaced.append(write_entry(out, args.splash2x, 'artwork/studio_splash@2x.png'))
+    elif args.branding == "android-performance-analyzer":
+      # Note: Android Performance Analyzer (APA) does not have a splash screen.
+      replaced.append(write_entry(out, args.svg, 'apa_linux_128x128.svg'))
+      replaced.append(write_entry(out, args.svg_small, 'apa-small.svg'))
+    else:
+      sys.exit(f"ERROR: unsupported branding '{args.branding}'")
 
     with zipfile.ZipFile(args.resources_jar) as res_jar:
       for f in replaced:
