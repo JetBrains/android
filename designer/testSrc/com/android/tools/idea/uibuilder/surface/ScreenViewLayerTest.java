@@ -26,7 +26,7 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
-import com.android.tools.rendering.imagepool.ImagePoolFactory;
+import com.android.tools.rendering.imagepool.NonPooledImage;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
@@ -156,8 +156,7 @@ public class ScreenViewLayerTest {
 
   @NotNull
   private static ImagePool.Image getTestImage(int imageWidth, int imageHeight) {
-    ImagePool imagePool = ImagePoolFactory.createImagePool();
-    ImagePool.Image imageHQ = imagePool.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+    ImagePool.Image imageHQ = NonPooledImage.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
     imageHQ.paint(g -> {
       g.setStroke(new BasicStroke(10));
       //noinspection UseJBColor

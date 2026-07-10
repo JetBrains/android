@@ -153,7 +153,6 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
             updateAndRenderWhenActivated = false
             sceneRenderConfiguration.let {
               it.showDecorations = VisualizationToolSettings.getInstance().globalState.showDecoration
-              it.useImagePool = false
               // 0.5f makes it spend 50% memory.
               it.quality = 0.5f
               it.logRenderErrors = false

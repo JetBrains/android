@@ -166,7 +166,11 @@ public class ScreenViewLayer extends Layer {
     RenderResult renderResult = myScreenView.getResult();
     boolean drawNewImg = false;
     if (newRenderImageAvailable(renderResult)) {
+      if (myLastRenderResult != null) {
+        Disposer.dispose(myLastRenderResult);
+      }
       myLastRenderResult = renderResult;
+      Disposer.register(this, myLastRenderResult);
       myScreenView.getScene().needsRebuildList();
       drawNewImg = true;
     }
@@ -223,7 +227,7 @@ public class ScreenViewLayer extends Layer {
 
   /**
    * Check whether the provided render result has new image to draw. We only accept renders containing a valid image. If the new result is
-   * an error without image, we prefer to keep the last valid image..
+   * an error without image, we prefer to keep the last valid image.
    *
    * @param renderResult The renderResult from {@link LayoutlibSceneManager#getRenderResult()}
    * @return false if renderResult is null or the same as the previous one or if no image is available, true otherwise
