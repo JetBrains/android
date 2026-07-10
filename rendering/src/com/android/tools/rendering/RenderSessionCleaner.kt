@@ -22,6 +22,7 @@ import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.rendering.classloading.ModuleClassLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.compose.RECOMPOSER_CLASS
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.ref.WeakReference
@@ -50,7 +51,7 @@ private const val TYPEFACE_COMPAT_FQN = "androidx.core.graphics.TypefaceCompat"
 private const val WINDOW_RECOMPOSER_ANDROID_KT_FQN = "androidx.compose.ui.platform.WindowRecomposer_androidKt"
 private const val LOCAL_BROADCAST_MANAGER_FQN = "androidx.localbroadcastmanager.content.LocalBroadcastManager"
 
-private const val GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker"
+private val GAP_WORKER_CLASS_NAMES = listOf("androidx.recyclerview.widget.GapWorker", "android.support.v7.widget.GapWorker")
 
 private const val INTERNAL_PACKAGE = "_layoutlib_._internal_."
 private const val ANDROID_UI_DISPATCHER_FQN = "androidx.compose.ui.platform.AndroidUiDispatcher"
@@ -69,8 +70,7 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
   var applyObserversRef: WeakReference<MutableCollection<*>?>? = null
   var globalWriteObserversRef: WeakReference<MutableCollection<*>?>? = null
   var toRunTrampolinedRef: WeakReference<MutableCollection<*>?>? = null
-  // After render clean-up. Dispose the GapWorker, FontRequestWorker, and TypefaceCompat caches for all projects.
-  clearGapWorkerCache(classLoader)
+  // After render clean-up. Dispose the FontRequestWorker cache and TypefaceCompat caches for all projects.
   clearFontRequestWorker(classLoader)
   clearTypefaceCompatCache(classLoader)
   clearAndroidComposeView(classLoader)
@@ -125,6 +125,7 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
     toRunTrampolinedRef?.get()?.clear()
     broadcastManagerInstanceField.get()?.set(null, null)
     this@dispose.dispose()
+    clearGapWorkerCache(classLoader)
   }
 }
 
@@ -220,8 +221,10 @@ private fun findSnapshotKtObserversField(classLoader: ModuleClassLoader, fieldNa
 }
 
 private fun findLocalBroadcastManagerInstance(classLoader: ModuleClassLoader): Field? {
+  if (!classLoader.hasLoadedClass(LOCAL_BROADCAST_MANAGER_FQN)) return null
+
   return try {
-    val broadcastManagerClass = classLoader.loadClass(LOCAL_BROADCAST_MANAGER_FQN)
+    val broadcastManagerClass: Class<*> = classLoader.loadClass(LOCAL_BROADCAST_MANAGER_FQN)
     broadcastManagerClass.getDeclaredField("mInstance").apply { this.isAccessible = true }
   } catch (ex: ReflectiveOperationException) {
     LOG.debug("Unable to find $LOCAL_BROADCAST_MANAGER_FQN.mInstance", ex)
@@ -286,29 +289,22 @@ private fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
     return
   }
 
-  try {
-    val gapWorkerClass = classLoader.loadClass(GAP_WORKER_CLASS_NAME)
-
-    if (gapWorkerClass.classLoader !== classLoader) {
-      LOG.debug("GapWorker loaded by parent classloader, skipping clean-up")
-      return
-    }
-
-    val gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker")
-    gapWorkerField.isAccessible = true
-
-    // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-    RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
-      try {
-        val gapWorkerFieldValue = gapWorkerField[null] as? ThreadLocal<*>
-        gapWorkerFieldValue?.set(null)
-        LOG.debug("GapWorker was cleared")
-      } catch (e: Exception) {
-        LOG.debug(e)
+  for (className in GAP_WORKER_CLASS_NAMES) {
+    try {
+      val gapWorkerClass = classLoader.loadClass(className)
+      if (gapWorkerClass.classLoader !is DelegatingClassLoader) {
+        LOG.debug("GapWorker loaded by IDE/system classloader, skipping clean-up")
+        continue
       }
+      val gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker")
+      gapWorkerField.isAccessible = true
+
+      val gapWorkerFieldValue = gapWorkerField[null] as? ThreadLocal<*>
+      gapWorkerFieldValue?.set(null)
+      LOG.debug("GapWorker was cleared")
+    } catch (t: Throwable) {
+      LOG.debug(t)
     }
-  } catch (t: Throwable) {
-    LOG.debug(t)
   }
 }
 
