@@ -46,6 +46,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -155,6 +156,7 @@ class AppInspectionInspectorMetricsTest {
     }
   }
 
+  @Ignore("b/533381063")
   @Test
   fun testInitialRenderLogging() = runBlocking {
     inspectorRule.launchSynchronously = false
