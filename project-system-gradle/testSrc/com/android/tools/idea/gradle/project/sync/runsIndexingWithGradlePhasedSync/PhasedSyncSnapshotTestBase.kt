@@ -133,14 +133,15 @@ fun ModuleDumpWithType.annotate() =
 
 fun Sequence<String>.annotate(phasedSyncModuleNames: List<String>, androidModuleNames: List<String>) =
   this.map { line ->
-    buildString {
-      if (phasedSyncModuleNames.any { line.contains("MODULE ($it)") }) append("PHASED") else append("LEGACY")
-      append(" ")
-      if (androidModuleNames.any { line.contains("MODULE ($it)") }) append("ANDROID") else append("NON-ANDROID")
-      append(" ")
-      append(line)
+      buildString {
+        if (phasedSyncModuleNames.any { line.contains("MODULE ($it)") }) append("PHASED") else append("LEGACY")
+        append(" ")
+        if (androidModuleNames.any { line.contains("MODULE ($it)") }) append("ANDROID") else append("NON-ANDROID")
+        append(" ")
+        append(line)
+      }
     }
-  }
+    .sorted()
 
 fun Project.dumpModules(knownAndroidPaths: Set<File>, checkObjectIdentity: Boolean = false): ModuleDumpWithType {
   // Filter KTS modules since with IntelliJ 2025.2 there are differences between intermediate and full sync b/431159711
