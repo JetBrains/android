@@ -73,7 +73,6 @@ public class HeapTraverseChildProcessor {
     }
     Class<?> nodeClass = obj.getClass();
     boolean objIsReference = obj instanceof Reference;
-    boolean isImagePoolClass = obj instanceof ImagePool;
     for (Field field : fieldCache.getInstanceFields(nodeClass)) {
       // do not follow weak/soft refs
       if (objIsReference && REFERENCE_CLASS_FIELDS_TO_IGNORE.contains(field.getName())) {
@@ -82,12 +81,6 @@ public class HeapTraverseChildProcessor {
 
       Object value;
       try {
-        // Ignore FinalizablePhantomReferences stored in ImagePoolImpl#myReferences.
-        // It was decided to do so in order to mitigate memory usage tests flakiness: FinalizablePhantomReferences are managed by GC and
-        // the moment they are collected may differ from run to run.
-        if (isImagePoolClass && "myReferences".equals(field.getName())) {
-          continue;
-        }
         value = field.get(obj);
         consumer.accept(value, HeapTraverseNode.RefWeight.INSTANCE_FIELD, field.getName());
       }
