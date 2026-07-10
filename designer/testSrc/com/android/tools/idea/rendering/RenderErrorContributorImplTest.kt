@@ -114,15 +114,15 @@ class RenderErrorContributorImplTest {
       configuration,
       logger,
       Consumer { task: RenderTask? ->
-        val render = RenderTestUtil.renderOnSeparateThread(task!!)
+        val render = RenderTestUtil.renderOnSeparateThread(task!!)!!
         assertNotNull(render)
 
-        logOperation?.addErrors(logger, render!!)
+        logOperation?.addErrors(logger, render)
 
         val errorModelTask = Runnable {
           // The error model must be created on a background thread.
           val errorModel =
-            ApplicationManager.getApplication().executeOnPooledThread(Callable { RenderErrorModelFactory.createErrorModel(null, render!!) })
+            ApplicationManager.getApplication().executeOnPooledThread(Callable { RenderErrorModelFactory.createErrorModel(null, render) })
           Futures.getUnchecked<RenderErrorModel?>(errorModel)!!.issues.stream().sorted().forEachOrdered { e: RenderErrorModel.Issue? ->
             issues.add(e)
           }
@@ -132,6 +132,8 @@ class RenderErrorContributorImplTest {
         } else {
           errorModelTask.run()
         }
+        // Dispose the render to ensure there are no extra warning coming from the render image not having been disposed
+        render.dispose()
       },
     )
     return issues

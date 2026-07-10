@@ -17,7 +17,9 @@ package com.android.tools.rendering
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
 import java.util.EnumMap
 import java.util.PriorityQueue
 import java.util.Queue
@@ -196,7 +198,12 @@ private constructor(
           // The request got called, so reset the timeout counter.
           accumulatedTimeoutExceptions.set(0)
           try {
-            future.complete(callable.call())
+            val result = callable.call()
+            if (!future.complete(result)) {
+              if (result is Disposable) {
+                Disposer.dispose(result)
+              }
+            }
           } catch (t: Throwable) {
             future.completeExceptionally(t)
           }

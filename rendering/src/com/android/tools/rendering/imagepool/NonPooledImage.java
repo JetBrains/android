@@ -20,7 +20,6 @@ import static com.android.tools.rendering.imagepool.ImagePoolUtil.stackTraceToAs
 import com.intellij.openapi.diagnostic.Logger;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.function.Consumer;
@@ -29,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class NonPooledImage implements ImagePool.Image, DisposableImage {
   private static final Logger LOG = Logger.getInstance(NonPooledImage.class);
+  public static final NonPooledImage ERROR_IMAGE = NonPooledImage.create(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
   // Track dispose call when assertions are enabled
   private static final boolean ourTrackDisposeCall = NonPooledImage.class.desiredAssertionStatus();
 
@@ -77,7 +77,7 @@ public class NonPooledImage implements ImagePool.Image, DisposableImage {
 
   @Nullable
   @Override
-  public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
+  public BufferedImage getCopy(int x, int y, int w, int h) {
     assertIfDisposed();
     if (x == 0 && y == 0 && w == getWidth() && h == getHeight()) {
       return copy(myImage);
@@ -115,7 +115,16 @@ public class NonPooledImage implements ImagePool.Image, DisposableImage {
   }
 
   @NotNull
-  static NonPooledImage copyOf(@NotNull BufferedImage image) {
+  public static NonPooledImage create(@NotNull BufferedImage image) {
     return new NonPooledImage(copy(image));
+  }
+
+  @NotNull
+  public static NonPooledImage copyOf(@NotNull ImagePool.Image image) {
+    BufferedImage copy = image.getCopy();
+    if (copy == null) {
+      return ERROR_IMAGE;
+    }
+    return new NonPooledImage(copy);
   }
 }
