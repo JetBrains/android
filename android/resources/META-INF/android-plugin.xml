@@ -193,6 +193,18 @@
         icon="AllIcons.Actions.Execute">
       <add-to-group group-id="RunContextPopupGroup" anchor="first"/>
     </action>
+
+    <!-- This group is declared here but only registered in the UI if running in Android Studio. -->
+    <group id="Android.NavBarToolBar">
+      <reference ref="AndroidDeviceManagerPlaceholder" />
+      <separator/>
+    </group>
+
+    <!-- This group is declared here but only registered in the UI if running in Android Studio. -->
+    <group id="Android.MainToolbarRight" >
+      <reference ref="Android.InstantRunActions" />
+      <reference ref="AndroidConnectDebuggerAction" />
+    </group>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
