@@ -3193,9 +3193,6 @@
 +++Android Studio Nightly.app/Contents/plugins/directaccess/lib/directaccess.jar
 +++Android Studio Nightly.app/Contents/plugins/directaccess/lib/directaccess.so.jar
 +++Android Studio Nightly.app/Contents/plugins/directaccess/lib/ftl_client_kt_proto.jar
-+++Android Studio Nightly.app/Contents/plugins/directaccess/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
-+++Android Studio Nightly.app/Contents/plugins/directaccess/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
-+++Android Studio Nightly.app/Contents/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 +++Android Studio Nightly.app/Contents/plugins/directaccess/lib/libadb_proxy_java_proto.jar
 +++Android Studio Nightly.app/Contents/plugins/directaccess/resources/reverse_daemon.dex
 +++Android Studio Nightly.app/Contents/plugins/editorconfig-plugin/lib/editorconfig-plugin.jar
@@ -7112,9 +7109,6 @@
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.so.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/ftl_client_kt_proto.jar
----Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
----Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-testing-v1-rev20250327-2.0.0.jar
----Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/lib/libadb_proxy_java_proto.jar
 ---Android Studio Preview.app/Contents/plugins/directaccess/resources/reverse_daemon.dex
 ---Android Studio Preview.app/Contents/plugins/editorconfig-plugin/lib/editorconfig-plugin.jar
