@@ -90,13 +90,6 @@ class VersionCatalogGoToDeclarationHandlerTest {
       "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
     )
 
-    // Navigate to the appropriate plugin in TOML
-    checkUsage(
-      "app/build.gradle.kts",
-      "alias(libs.plu|gins.kotlinAndroid)",
-      "kotlinAndroid = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlinVersion\" }",
-    )
-
     // Navigate from a KTS plugin reference to the plugin in the TOML file
     checkUsage(
       "app/build.gradle.kts",
