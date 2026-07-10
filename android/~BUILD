@@ -485,7 +485,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/editor/prediction-services/integration:aida_proto",
         "//tools/vendor/google/ml/aiplugin/editor/prediction-services/integration:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/rag/lucene:lucene-aiplugin",
-        "//tools/vendor/google/ml/gemini-coder:libgemini-coder_proto",
+        "//tools/vendor/google/ml/gemini-coder:gemini-coder_proto_shaded",
         "//tools/vendor/google/optional-plugins/project-system-lightbuild:lightbuild-android-plugin",
         "//tools/vendor/google/optional-plugins/project-system-lightbuild:lightbuild-ide-api-impl",
         "//tools/vendor/google/optional-plugins/project-system-lightbuild:lightbuild-kotlin-plugin",
