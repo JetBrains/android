@@ -20,7 +20,6 @@ import com.android.tools.idea.common.diagnostics.NlDiagnosticKey
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsRead
 import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.uibuilder.surface.LAYER_FONT
 import com.android.tools.idea.uibuilder.surface.drawMultilineString
 import com.intellij.openapi.project.Project
@@ -30,7 +29,6 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.text.DecimalFormat
-import java.util.concurrent.TimeUnit
 import libcore.util.NativeAllocationRegistry
 
 private val PCT_FORMAT = DecimalFormat("###.##")
@@ -55,18 +53,8 @@ class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val p
     val runtime = Runtime.getRuntime()
     val freeMemPct = runtime.freeMemory().toDouble() / runtime.totalMemory() * 100
     val lastRenderMs = diagnostics.lastRenders().takeLast(1).firstOrNull() ?: -1
-    val poolStats = StudioRenderService.getInstance(project).sharedImagePool.stats
     val mallocedBytes = NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes }
     val nonmallocedBytes = NativeAllocationRegistry.getMetrics().sumOf { it.nonmallocedBytes }
-
-    val bucketStats =
-      poolStats?.bucketStats?.joinToString("\n") {
-        " (${it.minWidth}x${it.minHeight} s=${it.maxSize()}) " +
-          "lastAccess=${
-        TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - it.lastAccessTimeMs)
-      }s ago " +
-          "hits=${it.bucketHits()} misses=${it.bucketMisses()} wasFull=${it.bucketWasFull()} hadSpace=${it.imageWasReturned()}"
-      } ?: ""
 
     return """
       |General
@@ -74,17 +62,9 @@ class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val p
       | 90% Render    ${PCT_FORMAT.format(diagnostics.renderTime(90))}ms
       | Last render   ${PCT_FORMAT.format(lastRenderMs)}ms / ${diagnostics.lastRenderImageSize() / MiB}MB
       |
-      |Image pool
-      | Allocated     ${(poolStats?.totalBytesAllocated() ?: -1) / MiB}MB
-      | In use        ${(poolStats?.totalBytesInUse() ?: -1) / MiB}MB
-      | Free          ${((poolStats?.totalBytesAllocated() ?: -1) - (poolStats?.totalBytesInUse() ?: 0)) / MiB}MB
-      |
       |Native memory
       | mallocedBytes       ${mallocedBytes / MiB}MB
       | nonmallocedBytes    ${nonmallocedBytes / MiB}MB
-      |
-      |Buckets
-      |${bucketStats}
     """
       .trimMargin()
   }

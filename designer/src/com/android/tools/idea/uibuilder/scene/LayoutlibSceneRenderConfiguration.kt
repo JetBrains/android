@@ -31,7 +31,6 @@ import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderService.RenderTaskBuilder
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.ViewLoader
-import com.android.tools.rendering.imagepool.ImagePool
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.currentCoroutineContext
@@ -145,9 +144,6 @@ class LayoutlibSceneRenderConfiguration(
    */
   var classesToPreload = emptyList<String>()
 
-  /** If false, the [ImagePool] won't be used when rendering. */
-  var useImagePool = true
-
   /** Value in the range [0f..1f] to set the quality of the rendering, 0 meaning the lowest quality. */
   var quality = 1f
 
@@ -203,7 +199,6 @@ class LayoutlibSceneRenderConfiguration(
         .withTopic(renderingTopic)
         .setUseCustomInflater(useCustomInflater)
         .setUseLoadViewFallbacks(useLoadViewFallbacks)
-    if (!useImagePool) taskBuilder.disableImagePool()
     if (quality < 1f) taskBuilder.withQuality(quality)
     if (!showDecorations) taskBuilder.disableDecorations()
     if (useShrinkRendering) taskBuilder.withRenderingMode(SessionParams.RenderingMode.SHRINK)

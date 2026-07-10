@@ -32,7 +32,7 @@ import com.android.tools.rendering.RenderResultStats
 import com.android.tools.rendering.RenderService.RenderTaskBuilder
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.imagepool.ImagePool
-import com.android.tools.rendering.imagepool.ImagePoolFactory
+import com.android.tools.rendering.imagepool.NonPooledImage
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.util.Disposer
@@ -416,8 +416,7 @@ class LayoutlibSceneRendererTest {
   }
 
   private fun getTestImage(): ImagePool.Image {
-    val imagePool = ImagePoolFactory.createImagePool()
-    val imageHQ = imagePool.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
+    val imageHQ = NonPooledImage.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
     imageHQ.paint { g ->
       g.stroke = BasicStroke(10F)
       g.color = Color.WHITE
