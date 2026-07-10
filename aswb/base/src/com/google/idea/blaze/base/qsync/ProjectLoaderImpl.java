@@ -132,8 +132,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
       BuildGraphData.ProtoRules protoRules,
       ProjectStructureReader projectStructureReader,
       PackageReader packageReader,
-      PackageReader.ParallelReader parallelPackageReader,
-      boolean readProjectStructureFromDirectory) {}
+      PackageReader.ParallelReader parallelPackageReader) {}
 
   public ProjectLoaderImpl(Project project) {
     this(
@@ -187,8 +186,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
             result.protoRules(),
             result.projectStructureReader(),
             result.packageReader(),
-            result.parallelPackageReader(),
-            result.readProjectStructureFromDirectory());
+            result.parallelPackageReader());
 
     return querySyncProject;
   }
@@ -309,8 +307,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
             snapshotHolder::getCurrent);
     ProjectStructureReader projectStructureReader =
         ProjectStructureReader.Companion.create(new FileExtensions(), createPackageReader());
-    boolean readProjectStructureFromDirectory =
-        querySyncUserPreferences.getLoadProjectStructureFromDirectoryTraversal();
 
     ProjectBuilder snapshotBuilder = new ProjectBuilder(workspaceRoot.path());
     QueryRunner queryRunner = createQueryRunner(buildSystem);
@@ -346,8 +342,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         buildSystem.getProtoRules(),
         projectStructureReader,
         new WorkspaceResolvingPackageReader(workspaceRoot.path(), createPackageReader()),
-        createParallelPackageReader(),
-        readProjectStructureFromDirectory);
+        createParallelPackageReader());
   }
 
   private static Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>

@@ -30,7 +30,6 @@ interface QuerySyncUserPreferences {
   val liveEditEnabled: Boolean
   val autoSyncComposeTooling: Boolean
   val commitProjectStructureAfterQuery: Boolean
-  val loadProjectStructureFromDirectoryTraversal: Boolean
 }
 
 val skipRefreshQueryDataOnStartup = BoolExperiment("aswb.query.sync.skip.query.on.startup", true)
@@ -39,8 +38,6 @@ val buildNativeTargetsFromAndroidTransitionPoint =
 val liveEditSupportEnabled: BoolExperiment = BoolExperiment("aswb.live.edit.enabled", false)
 val autoSyncComposeToolingExperiment = BoolExperiment("aswb.query.sync.auto.sync.compose.tooling", true)
 val commitProjectStructureAfterQueryExperiment = BoolExperiment("aswb.query.sync.commit.project.structure.after.query", false)
-val loadProjectStructureFromDirectoryTraversalExperiment =
-  BoolExperiment("aswb.query.sync.load.project.structure.from.directory.traversal", false)
 
 @Service(Service.Level.PROJECT)
 class QuerySyncUserPreferencesProvider(private val project: Project) {
@@ -65,9 +62,6 @@ class QuerySyncUserPreferencesProvider(private val project: Project) {
 
       override val commitProjectStructureAfterQuery: Boolean
         get() = commitProjectStructureAfterQueryExperiment.value
-
-      override val loadProjectStructureFromDirectoryTraversal: Boolean
-        get() = loadProjectStructureFromDirectoryTraversalExperiment.value
     }
 
   companion object {
