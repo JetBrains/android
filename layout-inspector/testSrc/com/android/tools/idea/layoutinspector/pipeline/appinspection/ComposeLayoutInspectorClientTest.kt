@@ -70,7 +70,6 @@ import java.nio.file.Paths
 import java.util.EnumSet
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UnknownCommandResponse
-import org.jetbrains.kotlin.konan.file.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -78,6 +77,7 @@ import org.junit.rules.RuleChain
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.io.File
 
 class ComposeLayoutInspectorClientTest {
   private val processDescriptor =

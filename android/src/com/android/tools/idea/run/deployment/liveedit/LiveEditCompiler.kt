@@ -35,7 +35,6 @@ import com.intellij.openapi.util.Computable
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.idea.base.util.module
-import org.jetbrains.kotlin.konan.file.isBitcode
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.Optional
 
