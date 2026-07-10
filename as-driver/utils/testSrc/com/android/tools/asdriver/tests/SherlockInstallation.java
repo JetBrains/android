@@ -61,7 +61,7 @@ public class SherlockInstallation extends IdeInstallation<Sherlock> {
     }
 
     // Extract the bundled Sherlock artifact.
-    String zipPath =  String.format("tools/profiler/sherlock-plugin/sherlock_%s.zip", platform);
+    String zipPath =  String.format("tools/profiler/sherlock-plugin/sherlock.stable.%s.zip", platform);
     Path sherlockZip = TestUtils.getBinPath(zipPath);
     unzip(sherlockZip, workDir);
     Path sherlockDir = workDir.resolve(getSherlockDirectory());
