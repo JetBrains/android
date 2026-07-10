@@ -50,6 +50,7 @@ import com.android.tools.idea.publishing.play.PlayPublishingUsageTracker
 import com.android.tools.idea.publishing.play.client.NO_APP_LISTING_CORRECTION_MESSAGE
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
 import com.android.tools.idea.publishing.play.client.PlayPublishingException
+import com.android.tools.idea.publishing.play.client.playStoreLanguageNamesLower
 import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Track
@@ -69,10 +70,14 @@ import com.intellij.platform.ide.progress.withBackgroundProgress
 import icons.StudioIcons
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.InlineErrorBanner
@@ -101,15 +106,41 @@ private fun String.displayTrackName() = trackNameMap[this] ?: (replaceFirstChar 
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalJewelApi::class)
 @Composable
-fun WizardPageScope.CreateReleasePage() {
+fun WizardPageScope.CreateReleasePage(releaseNotesDebounceMillis: Long = 500) {
   val state = getOrCreateState<PlayPublishingWizardState> { error("State not initialized") }
   val project = LocalProject.current ?: error("Project cannot be null")
 
   val releaseNameState = rememberTextFieldState(state.releaseName ?: "")
   val releaseNotesState = rememberTextFieldState(state.releaseNotes ?: "")
   var extractedTags: Map<String, String>? by remember { mutableStateOf(null) }
+  var releaseNotesValidationError: String? by remember { mutableStateOf(null) }
 
-  LaunchedEffect(releaseNotesState.text) { extractedTags = extractAndValidateTags(releaseNotesState.text.toString().trim()) }
+  LaunchedEffect(releaseNotesState.text) {
+    // Debounce the validation to avoid performing regex matching and UI state updates on every keystroke.
+    delay(releaseNotesDebounceMillis.milliseconds)
+    val text = releaseNotesState.text.toString().trim()
+    when (val validationResult = extractAndValidateTags(text)) {
+      is TagValidationResult.InvalidFormat -> {
+        extractedTags = null
+        releaseNotesValidationError = "Invalid format. Release notes must be enclosed in language tags, e.g., <en-US>Release notes</en-US>"
+      }
+      is TagValidationResult.DuplicateTags -> {
+        extractedTags = null
+        releaseNotesValidationError = "Duplicate language tag(s): ${validationResult.duplicates.joinToString(", ")}"
+      }
+      is TagValidationResult.Success -> {
+        val tags = validationResult.tags
+        val unsupported = tags.keys.filter { it.lowercase(Locale.US) !in playStoreLanguageNamesLower }
+        if (unsupported.isNotEmpty()) {
+          extractedTags = null
+          releaseNotesValidationError = "Unsupported language tag(s): ${unsupported.joinToString(", ")}"
+        } else {
+          extractedTags = tags
+          releaseNotesValidationError = null
+        }
+      }
+    }
+  }
 
   var errorMessage: String? by remember { mutableStateOf(null) }
   var isLoadingTracks by remember { mutableStateOf(true) }
@@ -205,16 +236,25 @@ fun WizardPageScope.CreateReleasePage() {
           // Release Notes
           FormField(label = "Release notes:") {
             Column {
+              val showError = releaseNotesValidationError != null
               TextArea(
                 state = releaseNotesState,
                 modifier = Modifier.fillMaxWidth().height(200.dp),
                 placeholder = { Text(DEFAULT_RELEASE_NOTES) },
+                outline = if (showError) Outline.Error else Outline.None,
               )
               Spacer(modifier = Modifier.height(4.dp))
-              Text(
-                text = "Enter release notes for each language within the tags.",
-                style = JewelTheme.defaultTextStyle.copy(fontSize = 12.sp, color = Color.Gray),
-              )
+              if (showError) {
+                Text(
+                  text = releaseNotesValidationError ?: "",
+                  style = JewelTheme.defaultTextStyle.copy(fontSize = 12.sp, color = JewelTheme.globalColors.text.error),
+                )
+              } else {
+                Text(
+                  text = "Enter release notes for each language within the tags.",
+                  style = JewelTheme.defaultTextStyle.copy(fontSize = 12.sp, color = Color.Gray),
+                )
+              }
             }
           }
         }
@@ -330,32 +370,53 @@ fun playConsoleViaAccountChooserUrl(email: String, continuationUrl: String): Str
 
 private val TAG_REGEX = "<([a-zA-Z0-9_.-]+)>(.*?)</\\1>".toRegex(RegexOption.DOT_MATCHES_ALL)
 
+private sealed class TagValidationResult {
+  data class Success(val tags: Map<String, String>) : TagValidationResult()
+
+  data object InvalidFormat : TagValidationResult()
+
+  data class DuplicateTags(val duplicates: Set<String>) : TagValidationResult()
+}
+
 /**
  * We want the release notes to be in this format: <lang1> Notes ... </lang1> <lang2> Notes2 ... </lang2>
  *
- * This function extracts the tags and the release notes content. Returns null otherwise signaling something is wrong.
+ * This function extracts the tags and the release notes content.
  *
- * @return A map of tag names to their content, or null if the string contains invalid content.
+ * @return A [TagValidationResult] representing the outcome of parsing and validating the tags.
  */
-private fun extractAndValidateTags(xmlString: String): Map<String, String>? {
+private fun extractAndValidateTags(xmlString: String): TagValidationResult {
   val result = mutableMapOf<String, String>()
+  val duplicates = mutableSetOf<String>()
+  val seenTags = mutableSetOf<String>()
   var lastEnd = 0
 
   TAG_REGEX.findAll(xmlString).forEach { match ->
-    // If there is text between 2 languages, return null
+    // If there is text between 2 languages, return InvalidFormat
     if (xmlString.subSequence(lastEnd, match.range.first).isNotBlank()) {
-      return null
+      return TagValidationResult.InvalidFormat
     }
 
-    result[match.groupValues[1]] = match.groupValues[2].trim()
+    val tagName = match.groupValues[1]
+    val tagNameLower = tagName.lowercase(Locale.US)
+    if (!seenTags.add(tagNameLower)) {
+      duplicates.add(tagName)
+    }
+
+    result[tagName] = match.groupValues[2].trim()
     lastEnd = match.range.last + 1
   }
 
-  // If there is text after the last language, return null
+  // If there is text after the last language, return InvalidFormat
   if (xmlString.subSequence(lastEnd, xmlString.length).isNotBlank()) {
-    return null
+    return TagValidationResult.InvalidFormat
   }
-  return result
+
+  if (duplicates.isNotEmpty()) {
+    return TagValidationResult.DuplicateTags(duplicates)
+  }
+
+  return TagValidationResult.Success(result)
 }
 
 private fun String.toTrackType(): TrackType =

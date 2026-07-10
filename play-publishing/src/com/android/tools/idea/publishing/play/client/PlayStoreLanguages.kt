@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.publishing.play.client
 
+import java.util.Locale
+
 // Play console supported languages - https://support.google.com/googleplay/android-developer/table/4419860
 val playStoreLanguageNames =
   mapOf(
@@ -106,3 +108,5 @@ val playStoreLanguageNames =
     "zh-TW" to "Chinese (Traditional, Taiwan)",
     "zu" to "Zulu",
   )
+
+val playStoreLanguageNamesLower = playStoreLanguageNames.keys.map { it.lowercase(Locale.US) }.toSet()
