@@ -406,7 +406,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       Arrays.sort(sortedValues);
 
       for (int i = 0; i < sortedValues.length; i++) {
-        builder.append(sortedValues[i]);
+        builder.append(StringUtil.escapeXmlEntities(sortedValues[i]));
 
         if (i < sortedValues.length - 1) {
           builder.append(", ");
