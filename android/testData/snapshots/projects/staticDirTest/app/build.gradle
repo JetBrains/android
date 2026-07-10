@@ -1,6 +1,5 @@
 import com.android.build.api.variant.HostTestBuilder;
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 23
@@ -29,7 +28,6 @@ dependencies {
     api 'com.android.support:appcompat-v7:+'
     api 'com.google.guava:guava:19.0'
     api 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:+'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
