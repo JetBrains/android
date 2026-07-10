@@ -35,11 +35,13 @@ import com.android.tools.preview.config.ReferencePhoneConfig
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.Callable
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
@@ -720,6 +722,46 @@ class PreviewPickerTests {
         }
       }
     }
+  }
+
+  // Verifies two things at once:
+  // (a) reading the value from a pooled thread that holds no read action must not crash with
+  //     "Read access is allowed from inside read-action only" — off the EDT the getter touches PSI /
+  //     calls analyze() and must establish its own read action (on the EDT reads are implicitly
+  //     permitted, so the problem is hidden there);
+  // (b) a value containing special characters (commas, spaces, '!', '@') round-trips intact through
+  //     write -> analyze/tryEvaluateConstantAsText -> read.
+  @Test
+  fun `reading a property value does not require the caller to hold a read action`() {
+    @Language("kotlin")
+    val fileContent =
+      """
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview(name = "Test")
+        fun PreviewWithParameters() {
+        }
+        """
+        .trimIndent()
+    val specialValue = "a, b! @c"
+    lateinit var property: PsiCallParameterPropertyItem
+    // Set up the model and write the value on the EDT (fixture setup and write actions require it).
+    ApplicationManager.getApplication().invokeAndWait {
+      runBlocking {
+        val model = getFirstModel(fileContent)
+        property =
+          model.properties.values.find { it.name == "name" } as PsiCallParameterPropertyItem
+        property.value = specialValue
+      }
+    }
+
+    // Reading from a pooled thread (no read action) must not throw: the getter has to establish its
+    // own read action.
+    val readBack =
+      ApplicationManager.getApplication().executeOnPooledThread(Callable { property.value }).get()
+    assertEquals(specialValue, readBack)
   }
 
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {

@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.preview.model.CurrentDeviceKey
 import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -77,9 +78,12 @@ internal open class PsiCallParameterPropertyItem(
   @OptIn(KaAllowAnalysisOnEdt::class)
   override var value: String?
     get() =
-      SlowOperations.knownIssue("b/382724628").use {
-        allowAnalysisOnEdt {
-          argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
+      // JetBrains patch: Establish a read action; the getter can be called off the EDT.
+      runReadAction {
+        SlowOperations.knownIssue("b/382724628").use {
+          allowAnalysisOnEdt {
+            argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
+          }
         }
       }
     set(value) {
