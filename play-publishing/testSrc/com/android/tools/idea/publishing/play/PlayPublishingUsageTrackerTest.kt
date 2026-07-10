@@ -532,7 +532,7 @@ class PlayPublishingUsageTrackerTest {
   private fun createCreateReleaseWizard(state: PlayPublishingWizardState = PlayPublishingWizardState()): TestComposeWizard {
     val wizard = TestComposeWizard {
       getOrCreateState { state }
-      CreateReleasePage()
+      CreateReleasePage(releaseNotesDebounceMillis = 0L)
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard
