@@ -2553,6 +2553,7 @@ android-studio/plugins/gemini/lib/anthropic-java-client-okhttp-2.26.0.jar
 android-studio/plugins/gemini/lib/anthropic-java-core-2.26.0.jar
 android-studio/plugins/gemini/lib/baicode_grpc.jar
 android-studio/plugins/gemini/lib/fontbox-2.0.31.jar
+android-studio/plugins/gemini/lib/gemini-coder_proto_shaded.jar
 android-studio/plugins/gemini/lib/gemini.so.jar
 android-studio/plugins/gemini/lib/gemini_plugin_proto.jar
 android-studio/plugins/gemini/lib/google-api-services-cloudresourcemanager-v1beta1-rev20240128-2.0.0.jar
@@ -2560,7 +2561,6 @@ android-studio/plugins/gemini/lib/jackson-datatype-jdk8-2.18.2.jar
 android-studio/plugins/gemini/lib/jackson-datatype-jsr310-2.18.2.jar
 android-studio/plugins/gemini/lib/libagent_log_proto.jar
 android-studio/plugins/gemini/lib/libfeedback_java_proto.jar
-android-studio/plugins/gemini/lib/libgemini-coder_proto.jar
 android-studio/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 android-studio/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 android-studio/plugins/gemini/lib/libv1internal_java_rest.jar
