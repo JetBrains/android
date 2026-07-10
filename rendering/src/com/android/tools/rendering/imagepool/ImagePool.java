@@ -51,7 +51,7 @@ public interface ImagePool {
 
     @Override
     @Nullable
-    public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
+    public BufferedImage getCopy(int x, int y, int w, int h) {
       return null;
     }
 
@@ -61,68 +61,6 @@ public interface ImagePool {
       return false;
     }
   };
-
-  /**
-   * Returns a new image of width w and height h.
-   */
-  @NotNull
-  public Image create(final int w, final int h, final int type);
-
-  /**
-   * Returns a pooled image with a copy of the passed {@link BufferedImage}
-   */
-  @NotNull
-  public Image copyOf(@Nullable BufferedImage origin);
-
-  @Nullable
-  Stats getStats();
-
-  /**
-   * Disposes the image pool
-   */
-  public void dispose();
-
-  /**
-   * Interface for bucket specific stats
-   */
-  interface BucketStats {
-    int getMinWidth();
-    int getMinHeight();
-    int maxSize();
-
-    /**
-     * Returns the last time the bucket was accessed in milliseconds.
-     */
-    long getLastAccessTimeMs();
-
-    /**
-     * Returns the number of times this bucket contained an image that was reused.
-     */
-    long bucketHits();
-
-    /**
-     * Returns the number of times this bucket was empty when an image from it was needed.
-     */
-    long bucketMisses();
-
-    /**
-     * Returns the number of times we had an image that was freed but could not be returned to this bucket.
-     */
-    long bucketWasFull();
-
-    /**
-     * Returns the number of times we had an image that was returned to this bucket.
-     */
-    long imageWasReturned();
-  }
-
-  interface Stats {
-    long totalBytesAllocated();
-
-    long totalBytesInUse();
-
-    BucketStats[] getBucketStats();
-  }
 
   /**
    * Interface that represents an image from the pool. Clients can not access the inner BufferedImage directly and
@@ -174,37 +112,17 @@ public interface ImagePool {
     }
 
     /**
-     * Returns a {@link BufferedImage} with a copy of a sub-image of the pooled image. If you pass the
-     * optional {@link GraphicsConfiguration}, the returned copy will be compatible with that configuration.
-     */
-    @SuppressWarnings("SameParameterValue")
-    @Nullable
-    BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h);
-
-    /**
      * Returns a {@link BufferedImage} with a copy of a sub-image of the pooled image.
      */
     @Nullable
-    default BufferedImage getCopy(int x, int y, int w, int h) {
-      return getCopy(null, x, y, w, h);
-    }
-
-    /**
-     * Returns a {@link BufferedImage} with a copy of the pooled image. The copy will be compatible with the given
-     * {@link GraphicsConfiguration}.
-     * If the original image is large, and you plan to paint to screen, use this method to obtain the copy.
-     */
-    @Nullable
-    default BufferedImage getCopy(@NotNull GraphicsConfiguration gc) {
-      return getCopy(gc, 0, 0, getWidth(), getHeight());
-    }
+    BufferedImage getCopy(int x, int y, int w, int h);
 
     /**
      * Returns a {@link BufferedImage} with a copy of the pooled image
      */
     @Nullable
     default BufferedImage getCopy() {
-      return getCopy(null, 0, 0, getWidth(), getHeight());
+      return getCopy(0, 0, getWidth(), getHeight());
     }
 
     /**

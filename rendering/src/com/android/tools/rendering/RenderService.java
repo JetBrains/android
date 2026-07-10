@@ -28,8 +28,6 @@ import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ClassTransform;
-import com.android.tools.rendering.imagepool.ImagePool;
-import com.android.tools.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.TagSnapshot;
@@ -105,8 +103,6 @@ final public class RenderService implements Disposable {
 
   private final Object myCredential = new Object();
 
-  private final ImagePool myImagePool = ImagePoolFactory.createImagePool();
-
   private final Consumer<RenderTaskBuilder> myConfigureBuilder;
 
   @NotNull
@@ -152,15 +148,13 @@ final public class RenderService implements Disposable {
   public RenderTaskBuilder taskBuilder(@NotNull RenderModelModule module,
                                        @NotNull Configuration configuration,
                                        @NotNull RenderLogger logger) {
-    RenderTaskBuilder builder = new RenderTaskBuilder(module, configuration, myImagePool, myCredential, logger);
+    RenderTaskBuilder builder = new RenderTaskBuilder(module, configuration, myCredential, logger);
     myConfigureBuilder.accept(builder);
     return builder;
   }
 
   @Override
-  public void dispose() {
-    myImagePool.dispose();
-  }
+  public void dispose() {}
 
   /**
    * @return true if the underlying {@link RenderExecutor} is busy, false otherwise.
@@ -244,11 +238,6 @@ final public class RenderService implements Disposable {
     return null;
   }
 
-  @NotNull
-  public ImagePool getSharedImagePool() {
-    return myImagePool;
-  }
-
   /** This is the View.MeasureSpec mode shift */
   private static final int MEASURE_SPEC_MODE_SHIFT = 30;
 
@@ -268,7 +257,6 @@ final public class RenderService implements Disposable {
   public static class RenderTaskBuilder {
     private final RenderContext myContext;
     private final Object myCredential;
-    @NotNull private ImagePool myImagePool;
     @Nullable private RenderXmlFile myXmlFile;
     @NotNull private final RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
@@ -283,7 +271,6 @@ final public class RenderService implements Disposable {
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
     private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
-    private boolean useCachingImageFactory = true;
 
     /**
      * If two RenderTasks share the same ModuleClassLoader they share the same compose framework. This way they share the state. If we would
@@ -347,11 +334,9 @@ final public class RenderService implements Disposable {
 
     private RenderTaskBuilder(@NotNull RenderModelModule module,
                               @NotNull Configuration configuration,
-                              @NotNull ImagePool defaultImagePool,
                               @NotNull Object credential,
                               @NotNull RenderLogger logger) {
       myContext = new RenderContext(module, configuration);
-      myImagePool = defaultImagePool;
       myCredential = credential;
       myLogger = logger;
     }
@@ -404,25 +389,6 @@ final public class RenderService implements Disposable {
 
     public RenderTaskBuilder withForceMonochromeIcon(Boolean forceMonochromeIcon) {
       this.forceMonochromeIcon = forceMonochromeIcon;
-      return this;
-    }
-
-    /**
-     * Disables the image pooling for this render task
-     */
-    @SuppressWarnings("unused")
-    @NotNull
-    public RenderTaskBuilder disableImagePool() {
-      this.myImagePool = ImagePoolFactory.getNonPooledPool();
-      return this;
-    }
-
-    /**
-     * Disables the cache image factory for this render task
-     */
-    @NotNull
-    public RenderTaskBuilder disableCachingImageFactory() {
-      useCachingImageFactory = false;
       return this;
     }
 
@@ -650,11 +616,11 @@ final public class RenderService implements Disposable {
         try {
           task =
             new RenderTask(myContext, myLogger, layoutLib,
-                           myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
+                           myCredential, myContext.getModule().getEnvironment().getCrashReporter(),
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, useLoadViewFallbacks, myTestEventListener, animationDurationScale,
-                           useCachingImageFactory);
+                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, useLoadViewFallbacks,
+                           myTestEventListener, animationDurationScale);
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);
           }

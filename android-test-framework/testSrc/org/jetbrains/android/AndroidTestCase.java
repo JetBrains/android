@@ -317,6 +317,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       ApplicationManager.getApplication(),
       // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
       "Layoutlib",
+      // Layoutlib creates a cleaner thread to recycle image buffers
+      "Cleaner-",
       // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
       "Device Client Monitor",
       "Device List Monitor",
