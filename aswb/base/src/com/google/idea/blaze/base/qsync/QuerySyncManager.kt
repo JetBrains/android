@@ -313,7 +313,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   private fun scanDirectoryAndConfigureModule(context: BlazeContext): ProjectStructureData? =
     userPreferences
-      .takeIf { it.loadProjectStructureFromDirectoryTraversal && it.commitProjectStructureAfterQuery }
+      .takeIf { it.commitProjectStructureAfterQuery }
       ?.let {
         val loadedProject = assertProjectLoaded()
         context.output(StatusOutput("Scanning directory structure..."))
@@ -550,15 +550,12 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   ) {
     val postQuerySyncData = runQueryAndComputePostQuerySyncData(context, lastQuery)
     val coreSyncResult = assertProjectLoaded().syncQueryCore(context, postQuerySyncData)
-    val projectStructureDataToUse = readProjectStructureData(context, lastProjectStructureData, coreSyncResult)
+    val projectStructureDataToUse = readProjectStructureData(context, lastProjectStructureData)
     updateCurrentSnapshot(context) { applySyncResult(coreSyncResult, projectStructureDataToUse, assertProjectLoaded().projectDefinition) }
   }
 
-  private fun readProjectStructureData(
-    context: BlazeContext,
-    lastProjectStructureData: ProjectStructureData?,
-    coreSyncResult: QuerySyncProject.QueryCoreSyncResult,
-  ): ProjectStructureData = assertProjectLoaded().computeProjectStructureData(context, lastProjectStructureData, coreSyncResult.graph)
+  private fun readProjectStructureData(context: BlazeContext, lastProjectStructureData: ProjectStructureData?): ProjectStructureData =
+    assertProjectLoaded().computeProjectStructureData(context, lastProjectStructureData)
 
   private fun runQueryAndComputePostQuerySyncData(context: BlazeContext, lastQuery: PostQuerySyncData?): PostQuerySyncData {
     SaveUtil.saveAllFiles()

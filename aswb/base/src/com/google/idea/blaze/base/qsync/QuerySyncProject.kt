@@ -38,7 +38,6 @@ import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.ProjectBuilder
 import com.google.idea.blaze.qsync.ProjectStructureReader
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.fromGraph
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
@@ -108,7 +107,6 @@ class QuerySyncProject(
   private val projectStructureReader: ProjectStructureReader,
   val packageReader: PackageReader,
   val parallelPackageReader: PackageReader.ParallelReader,
-  private val readProjectStructureFromDirectory: Boolean,
 ) : ReadonlyQuerySyncProject {
   override val projectData: QuerySyncProjectData
     get() {
@@ -135,26 +133,11 @@ class QuerySyncProject(
     return postQuerySyncData
   }
 
-  fun computeProjectStructureData(
-    context: BlazeContext,
-    lastProjectStructureData: ProjectStructureData?,
-    graph: BuildGraphData, // This is a temporary parameter while we cannot switch over to the new nway completely.
-  ): ProjectStructureData {
-    return lastProjectStructureData
-      ?: (if (readProjectStructureFromDirectory) {
-        readProjectStructureFromDirectory(context)
-      } else null)
-      ?: ProjectStructureData.fromGraph(
-        context,
-        graph,
-        projectDefinition.projectIncludes,
-        workspaceRoot.path(),
-        packageReader,
-        parallelPackageReader,
-      )
+  fun computeProjectStructureData(context: BlazeContext, lastProjectStructureData: ProjectStructureData?): ProjectStructureData {
+    return lastProjectStructureData ?: readProjectStructureFromDirectory(context)
   }
 
-  fun readProjectStructureFromDirectory(context: Context<*>): ProjectStructureData? =
+  fun readProjectStructureFromDirectory(context: Context<*>): ProjectStructureData =
     projectStructureReader.read(context, workspaceRoot.path(), projectDefinition)
 
   /** Returns the set of targets with direct dependencies on `targets`. */
