@@ -514,6 +514,39 @@ def studio_data(name, files = [], files_linux = [], files_mac = [], files_mac_ar
         **kwargs
     )
 
+def _studio_data_files_impl(ctx):
+    host_platform = platform_by_name[ctx.attr.host_platform_name]
+    data = ctx.attr.data[StudioDataInfo]
+    return [DefaultInfo(files = host_platform.get(data))]
+
+_studio_data_files = rule(
+    attrs = {
+        "data": attr.label(mandatory = True, providers = [StudioDataInfo]),
+        "host_platform_name": attr.string(mandatory = True),
+    },
+    executable = False,
+    implementation = _studio_data_files_impl,
+)
+
+# Converts a studio_data target into a filegroup for consumption by rules such as pkg_files.
+# It uses the current platform to return the correct set of files for pkg_files.
+# Args:
+#     name: The name of the filegroup
+#     data: The studio_data target
+def studio_data_files(
+        name,
+        data):
+    _studio_data_files(
+        name = name,
+        host_platform_name = select({
+            "@platforms//os:linux": LINUX.name,
+            "//tools/base/bazel/platforms:macos-x86_64": MAC.name,
+            "//tools/base/bazel/platforms:macos-arm64": MAC_ARM.name,
+            "@platforms//os:windows": WIN.name,
+        }),
+        data = data,
+    )
+
 def _split_version(version):
     """Splits a version string into its constituent parts."""
     index_of_period = version.find(".")
