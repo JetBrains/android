@@ -30,8 +30,22 @@ import org.junit.runner.Description
  * This may be too aggressive for test classes, but it can be a useful rule for test suites.
  */
 class GradleDaemonsRule : TestWatcher() {
+  override fun starting(description: Description?) {
+    if (collectGradleDiagnostics()) {
+      gradleUserHome()
+        .resolve("gradle.properties")
+        .writeText(
+          // This helps to collect a more complete problems report
+          "org.gradle.internal.problem.summary.threshold=5000"
+        )
+    }
+  }
+
   override fun succeeded(description: Description?) {
     closeConnection()
+    if (collectGradleDiagnostics()) {
+      collectDaemonLogs()
+    }
   }
 
   override fun failed(e: Throwable, description: Description) {
@@ -44,9 +58,8 @@ class GradleDaemonsRule : TestWatcher() {
   }
 
   private fun collectDaemonLogs() {
-    val gradleHome = File(System.getProperty("gradle.user.home"))
     val testOutputDir = TestUtils.getTestOutputDir()
-    gradleHome
+    gradleUserHome()
       .resolve("daemon")
       .walk()
       .filter { it.name.endsWith("out.log") }
@@ -54,5 +67,14 @@ class GradleDaemonsRule : TestWatcher() {
         // Replace existing just in case the test itself also attempts to collect it
         Files.copy(it.toPath(), testOutputDir.resolve(it.name), StandardCopyOption.REPLACE_EXISTING)
       }
+  }
+
+  companion object {
+    private fun gradleUserHome() = File(System.getProperty("gradle.user.home"))
+
+    private fun collectGradleDiagnostics() =
+      System.getProperty("COLLECT_GRADLE_DIAGNOSTICS")
+        ?.ifEmpty { "true" } // Keep when specified without any value
+        ?.toBoolean() ?: false
   }
 }
