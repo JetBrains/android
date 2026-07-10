@@ -64,6 +64,7 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
     ],
