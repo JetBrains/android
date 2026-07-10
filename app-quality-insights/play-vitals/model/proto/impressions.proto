@@ -9,6 +9,7 @@ option java_outer_classname = "ImpressionsProto";
 option java_package = "com.google.play.developer.reporting";
 
 // Singleton resource representing the set of Impressions metrics.
+// Impressions data is available from May 1, 2026 onward.
 //
 // **Supported aggregation periods:**
 //
