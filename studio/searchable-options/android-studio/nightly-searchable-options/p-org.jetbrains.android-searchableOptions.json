@@ -1419,6 +1419,10 @@
       "path": "ActionManager"
     },
     {
+      "hit": "Project View Popup Menu",
+      "path": "ActionManager"
+    },
+    {
       "hit": "Project View Popup Menu Run Group",
       "path": "ActionManager"
     },
