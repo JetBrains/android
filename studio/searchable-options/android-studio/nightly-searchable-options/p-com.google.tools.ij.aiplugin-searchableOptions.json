@@ -135,9 +135,6 @@
       "hit": "Agent Permissions"
     },
     {
-      "hit": "Agent supervised"
-    },
-    {
       "hit": "Always allow"
     },
     {
@@ -193,6 +190,9 @@
     },
     {
       "hit": "Strict"
+    },
+    {
+      "hit": "Supervised"
     },
     {
       "hit": "Unrestricted"
