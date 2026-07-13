@@ -28,20 +28,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
-
-// Adapted from the Mesh project: des/c5inco/mesh/ui/GradientCanvas.kt
 
 @Composable
 fun GradientCanvas(
-  resolution: Int,
   modifier: Modifier = Modifier,
-  blurLevel: Float = 0f,
-  meshPoints: List<List<Pair<Offset, Color>>>,
+  meshPoints: List<List<MeshGradientPoint>>,
   showPoints: Boolean,
   constrainEdgePoints: Boolean = true,
   onTogglePoints: () -> Unit = {},
@@ -57,7 +51,7 @@ fun GradientCanvas(
 
       fun handlePointDrag(row: Int, col: Int, offsetX: Float, offsetY: Float) {
         val currentPoint = meshPoints[row][col]
-        val currentOffset = currentPoint.first
+        val currentOffset = currentPoint.position
 
         val x = (currentOffset.x + (offsetX / maxWidth)).coerceIn(0f, 1f)
         val y = (currentOffset.y + (offsetY / maxHeight)).coerceIn(0f, 1f)
@@ -65,16 +59,12 @@ fun GradientCanvas(
         onPointDrag(row, col, Offset(x = x, y = y))
       }
 
-      Box(
-        Modifier.clip(RoundedCornerShape(8.dp))
-          .fillMaxSize()
-          .meshGradient(
-            points = meshPoints,
-            blurLevel = (blurLevel * 40).roundToInt(), // MAX_BLUR_LEVEL = 40
-            resolutionX = resolution,
-            resolutionY = resolution,
-            showPoints = showPoints,
-          )
+      MeshGradient(
+        modifier = Modifier.clip(RoundedCornerShape(8.dp)).fillMaxSize(),
+        rows = meshPoints.size - 1,
+        columns = meshPoints[0].size - 1,
+        points = meshPoints,
+        showPoints = showPoints,
       ) {
         Spacer(Modifier.fillMaxSize())
       }
@@ -91,7 +81,7 @@ fun GradientCanvas(
                 PointCursor(
                   xIndex = colIdx,
                   yIndex = rowIdx,
-                  color = col.second,
+                  color = col.color,
                   enabled = isMovable,
                   modifier =
                     Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPointClick?.invoke(rowIdx, colIdx) }) }
@@ -126,8 +116,8 @@ fun GradientCanvas(
                 val row = i / cols
                 val col = i % cols
 
-                val xOffset = meshPoints[row][col].first.x
-                val yOffset = meshPoints[row][col].first.y
+                val xOffset = meshPoints[row][col].position.x
+                val yOffset = meshPoints[row][col].position.y
 
                 val x = ((xOffset * (constraints.maxWidth)) - cursorWidth / 2).toInt()
                 val y = ((yOffset * (constraints.maxHeight)) - cursorHeight / 2).toInt()

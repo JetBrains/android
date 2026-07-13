@@ -158,8 +158,6 @@ fun MeshGradientEditorScreen(project: Project, state: MeshGeneratorState, isEdit
       // 1. Canvas Preview
       Box(modifier = Modifier.fillMaxWidth().height(220.dp).onGloballyPositioned { canvasSize = it.size }) {
         GradientCanvas(
-          resolution = state.resolution,
-          blurLevel = state.blurLevel,
           meshPoints = state.meshPoints,
           showPoints = state.showPoints,
           constrainEdgePoints = state.constrainEdgePoints,
@@ -170,7 +168,7 @@ fun MeshGradientEditorScreen(project: Project, state: MeshGeneratorState, isEdit
 
         showColorPickerForVertex?.let { (row, col) ->
           val point = state.meshPoints[row][col]
-          val relativeOffset = point.first
+          val relativeOffset = point.position
 
           // Calculate absolute pixel coordinates inside the Box container
           val xOffset = (relativeOffset.x * canvasSize.width).toInt()
@@ -257,9 +255,9 @@ fun MeshGradientEditorScreen(project: Project, state: MeshGeneratorState, isEdit
                     val fallbackColor = state.availableColors.first()
                     state.updateAllPoints { offset, currentColor ->
                       if (currentColor == color) {
-                        Pair(offset, fallbackColor)
+                        MeshGradientPoint(offset, fallbackColor)
                       } else {
-                        Pair(offset, currentColor)
+                        MeshGradientPoint(offset, currentColor)
                       }
                     }
                   }
