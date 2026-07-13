@@ -52,7 +52,7 @@ class MeshGradientEditorDialog(private val project: Project, private val file: K
             val vertex = parsed.vertices.firstOrNull { it.row == r && it.col == c }
             val offset = vertex?.offset ?: Offset(c.toFloat() / (parsed.cols - 1), r.toFloat() / (parsed.rows - 1))
             val color = vertex?.color ?: Color.White
-            Pair(offset, color)
+            MeshGradientPoint(offset, color)
           }
         }
       state.loadMesh(parsed.rows, parsed.cols, grid)

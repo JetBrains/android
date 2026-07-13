@@ -73,8 +73,8 @@ class MeshGradientEditorDialogTest : LightPlatformTestCase() {
     assertEquals(4, dialog.state.cols)
 
     val p01 = dialog.state.meshPoints[0][1]
-    assertEquals(Offset(0.3333f, 0f), p01.first)
-    assertEquals(Color(0xFFE91E63), p01.second)
+    assertEquals(Offset(0.3333f, 0f), p01.position)
+    assertEquals(Color(0xFFE91E63), p01.color)
 
     dialog.close(DialogWrapper.CANCEL_EXIT_CODE)
   }

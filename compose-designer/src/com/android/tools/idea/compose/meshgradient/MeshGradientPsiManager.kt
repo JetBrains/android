@@ -285,7 +285,7 @@ class MeshGradientPsiManager(private val project: Project) {
   }
 
   /** Completely clears and regenerates all setVertex statements inside the lambda body block. */
-  fun regenerateLambdaBody(painterCall: KtCallExpression, meshPoints: List<List<Pair<Offset, Color>>>): Boolean {
+  fun regenerateLambdaBody(painterCall: KtCallExpression, meshPoints: List<List<MeshGradientPoint>>): Boolean {
     val lambda = painterCall.valueArguments.lastOrNull() as? KtLambdaArgument ?: return false
     val body = lambda.getLambdaExpression()?.bodyExpression ?: return false
 
@@ -295,16 +295,16 @@ class MeshGradientPsiManager(private val project: Project) {
     val psiFactory = KtPsiFactory(project)
 
     meshPoints.forEachIndexed { r, row ->
-      row.forEachIndexed { c, (offset, color) ->
+      row.forEachIndexed { c, point ->
         val statementStr =
           String.format(
             Locale.US,
             "setVertex(%d, %d, Offset(%.4ff, %.4ff), Color(%s))",
             r,
             c,
-            offset.x,
-            offset.y,
-            color.toComposeHexLiteral(),
+            point.position.x,
+            point.position.y,
+            point.color.toComposeHexLiteral(),
           )
         val statementExpr = psiFactory.createExpression(statementStr)
         body.add(statementExpr)
