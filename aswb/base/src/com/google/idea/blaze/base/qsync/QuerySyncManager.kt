@@ -83,6 +83,7 @@ import java.nio.file.Path
 import java.time.Duration.ofMillis
 import java.util.Objects
 import java.util.Optional
+import java.util.concurrent.CancellationException
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.Volatile
@@ -427,13 +428,34 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   ): Boolean {
     syncStatus.operationStarted(operation.operationType)
     statsScope?.builder?.setTaskOrigin(taskOrigin)
-    return contextScope { context ->
-      withSyncEventsPublished(context) {
-        statsScope?.let { context.push(it) }
-        operation.execute(context, this)
-        logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new project stats on exception.
+    return runCatching {
+        contextScope { context ->
+          withSyncEventsPublished(context) {
+            statsScope?.let { context.push(it) }
+            operation.execute(context, this)
+            logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new project stats on exception.
+          }
+        }
       }
-    }
+      .fold(
+        onSuccess = { operationSucceeded ->
+          if (operationSucceeded) {
+            syncStatus.operationEnded()
+          } else {
+            syncStatus.operationFailed()
+          }
+          operationSucceeded
+        },
+        onFailure = { throwable ->
+          if (throwable is CancellationException) {
+            syncStatus.operationCancelled()
+          } else {
+            syncStatus.operationFailed()
+            logger.error("Sync failed", throwable)
+          }
+          false
+        },
+      )
   }
 
   suspend fun bazelOutputToolWindowScope(
@@ -453,27 +475,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       }
     }
 
-    return coroutineScope
-      .runCatching { resultFuture.await() }
-      .fold(
-        onSuccess = { operationSucceeded ->
-          if (operationSucceeded) {
-            syncStatus.operationEnded()
-          } else {
-            syncStatus.operationFailed()
-          }
-          operationSucceeded
-        },
-        onFailure = { throwable ->
-          if (resultFuture.isCancelled) {
-            syncStatus.operationCancelled()
-          } else {
-            syncStatus.operationFailed()
-            logger.error("Sync failed", throwable)
-          }
-          false
-        },
-      )
+    return resultFuture.await()
   }
 
   suspend fun runOperationWithToolWindow(
