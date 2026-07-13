@@ -644,8 +644,11 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
   @Override
   public void dispose() {
-    // There's nothing to dispose in this object, but the actual resource repositories may need to do
-    // clean-up, and they are children of this object in the Disposer hierarchy.
+    // Remove resource folders from the registry when the owning facet is disposed.
+    Project project = getProject();
+    if (!project.isDisposed()) {
+      ResourceFolderRegistry.getInstance(getProject()).reset(myFacet);
+    }
   }
 
   public void resetAllCaches() {

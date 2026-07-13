@@ -45,6 +45,7 @@ private val LOG = Logger.getInstance("RenderSessionDisposer")
 
 private const val SNAPSHOT_KT_FQN = "androidx.compose.runtime.snapshots.SnapshotKt"
 private const val FONT_REQUEST_WORKER_FQN = "androidx.core.provider.FontRequestWorker"
+private const val TYPEFACE_COMPAT_FQN = "androidx.core.graphics.TypefaceCompat"
 private const val WINDOW_RECOMPOSER_ANDROID_KT_FQN = "androidx.compose.ui.platform.WindowRecomposer_androidKt"
 private const val LOCAL_BROADCAST_MANAGER_FQN = "androidx.localbroadcastmanager.content.LocalBroadcastManager"
 
@@ -66,9 +67,10 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
   var applyObserversRef: WeakReference<MutableCollection<*>?>? = null
   var globalWriteObserversRef: WeakReference<MutableCollection<*>?>? = null
   var toRunTrampolinedRef: WeakReference<MutableCollection<*>?>? = null
-  // After render clean-up. Dispose the GapWorker and FontRequestWorker caches for all projects.
+  // After render clean-up. Dispose the GapWorker, FontRequestWorker, and TypefaceCompat caches for all projects.
   clearGapWorkerCache(classLoader)
   clearFontRequestWorker(classLoader)
+  clearTypefaceCompatCache(classLoader)
 
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
     clearCompositions(classLoader)
@@ -324,5 +326,26 @@ private fun clearCompositions(classLoader: ModuleClassLoader) {
     }
   } catch (t: Throwable) {
     LOG.debug(t)
+  }
+}
+
+/** Clear static Typeface cache in TypefaceCompat (androidx.core.graphics.TypefaceCompat.sTypefaceCache). */
+private fun clearTypefaceCompatCache(classLoader: ModuleClassLoader) {
+  if (!classLoader.hasLoadedClass(TYPEFACE_COMPAT_FQN)) return
+
+  try {
+    val typefaceCompatClass = classLoader.loadClass(TYPEFACE_COMPAT_FQN)
+
+    // Safety check to ensure we only modify classes loaded by the ModuleClassLoader itself
+    if (typefaceCompatClass.classLoader !== classLoader) {
+      LOG.debug("TypefaceCompat loaded by parent classloader, skipping clean-up")
+      return
+    }
+
+    val clearCacheMethod = typefaceCompatClass.getDeclaredMethod("clearCache")
+    clearCacheMethod.isAccessible = true
+    clearCacheMethod.invoke(null)
+  } catch (ex: ReflectiveOperationException) {
+    LOG.debug("Unable to dispose TypefaceCompat.sTypefaceCache", ex)
   }
 }
