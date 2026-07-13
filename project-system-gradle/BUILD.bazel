@@ -12,6 +12,11 @@ create_kotlinc_options(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlin_libraries-kotlin-gradle-plugin-idea_provided",
+    lib = "//libraries/kotlin/gradle-plugin-idea:libraries-kotlin-gradle-plugin-idea",
+)
+
+jvm_provided_library(
     name = "libraries_kotlin_libraries-kotlin-tooling-core_provided",
     lib = "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core",
 )
@@ -47,7 +52,6 @@ jvm_library(
         "//libraries/grpc",
         "//libraries/gson",
         "@lib//:jetbrains-annotations",
-        "@lib//:kotlin-gradle-plugin-idea-provided",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/kotlinx/coroutines/core",
@@ -193,6 +197,7 @@ jvm_library(
         "//android/observable",
         "//platform/locking-impl",
         "//plugins/kotlin/references",
+        ":libraries_kotlin_libraries-kotlin-gradle-plugin-idea_provided",
         ":libraries_kotlin_libraries-kotlin-tooling-core_provided",
     ],
 )
@@ -220,7 +225,8 @@ jvm_library(
         "//libraries/fastutil:fastutil_test_lib",
         "//libraries/grpc:grpc_test_lib",
         "//libraries/gson:gson_test_lib",
-        "@lib//:kotlin-gradle-plugin-idea-provided",
+        "//libraries/kotlin/gradle-plugin-idea:libraries-kotlin-gradle-plugin-idea",
+        "//libraries/kotlin/gradle-plugin-idea:libraries-kotlin-gradle-plugin-idea_test_lib",
         "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core",
         "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core_test_lib",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
