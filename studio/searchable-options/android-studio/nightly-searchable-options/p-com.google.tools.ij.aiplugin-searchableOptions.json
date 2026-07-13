@@ -575,6 +575,9 @@
       "hit": "Refresh"
     },
     {
+      "hit": "Show Gemma in the model picker when no models are downloaded"
+    },
+    {
       "hit": "Sign in"
     },
     {
@@ -728,6 +731,10 @@
     },
     {
       "hit": "Refresh",
+      "path": "Model Providers"
+    },
+    {
+      "hit": "Show Gemma in the model picker when no models are downloaded",
       "path": "Model Providers"
     },
     {
