@@ -147,6 +147,20 @@ class SingleComposePreviewElementRendererTest {
     val size = pendingReplies::class.java.getMethod("size").invoke(pendingReplies) as Int
     assertEquals("FontRequestWorker.PENDING_REPLIES size must be 0 after render", 0, size)
 
+    val typefaceCompat = classLoader.loadClass("androidx.core.graphics.TypefaceCompat")
+    val sTypefaceCacheField = typefaceCompat.getDeclaredField("sTypefaceCache").apply { isAccessible = true }
+    val sTypefaceCache = sTypefaceCacheField.get(null)
+    val sTypefaceCacheSizeMethod = sTypefaceCache::class.java.getMethod("size")
+
+    // Populate the cache manually with a dummy typeface before disposal
+    val typefaceClass = classLoader.loadClass("android.graphics.Typeface")
+    val defaultTypeface = typefaceClass.getField("DEFAULT").get(null)
+    val sTypefaceCachePutMethod = sTypefaceCache::class.java.getMethod("put", Any::class.java, Any::class.java)
+    sTypefaceCachePutMethod.invoke(sTypefaceCache, "test_key", defaultTypeface)
+
+    val sizeBeforeDisposal = sTypefaceCacheSizeMethod.invoke(sTypefaceCache) as Int
+    assertTrue("sTypefaceCache should not be empty before disposal", sizeBeforeDisposal > 0)
+
     assertTrue((animationScaleField.get(windowRecomposer) as Map<*, *>).isNotEmpty())
 
     val snapshotKt = classLoader.loadClass("androidx.compose.runtime.snapshots.SnapshotKt")
@@ -179,6 +193,9 @@ class SingleComposePreviewElementRendererTest {
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
     assertTrue("globalWriteObservers should have been cleared", globalWriteObservers.isEmpty())
     assertTrue("toRunTrampolined should have been cleared", toRunTrampolined.isEmpty())
+
+    val sizeAfterDisposal = sTypefaceCacheSizeMethod.invoke(sTypefaceCache) as Int
+    assertEquals("sTypefaceCache should be empty after disposal", 0, sizeAfterDisposal)
   }
 
   @Test
