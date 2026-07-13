@@ -134,7 +134,8 @@ fun setupProjectsVariantsAndConsume(
           path = gradleProject.path,
           moduleId = gradleProject.moduleId(),
           projectType = androidData.ideAndroidProject.projectType,
-          outgoingDependencies = androidData.declaredDependencies.allOutgoingProjectDependencies.filter { it != gradleProject.path },
+          outgoingDependencies =
+            androidData.declaredDependencies.allOutgoingProjectsDependenciesToConfigurations.keys.filter { it != gradleProject.path },
         )
       },
       syncOptions,
@@ -168,7 +169,7 @@ fun setupProjectsVariantsAndConsume(
               androidProjectContext.selectedVariantName,
               androidProjectContext.ideAndroidProject,
               androidProjectContext.shouldSkipRuntimeClassPathForLibraries,
-              androidProjectContext.declaredDependencies.allOutgoingProjectDependencies,
+              androidProjectContext.declaredDependencies.allOutgoingProjectsDependenciesToConfigurations.keys.toList(),
             )
         }
       }
@@ -640,7 +641,7 @@ private fun setUpExpectedVariantForDependantProjects(
     )
 
   // Now we set the expectations for projects dependencies.
-  androidProjectContext.declaredDependencies.allOutgoingProjectDependencies.forEach { dependencyPath ->
+  androidProjectContext.declaredDependencies.allOutgoingProjectsDependenciesToConfigurations.keys.forEach { dependencyPath ->
     val dependencyId = ProjectBuildInfo(dependencyPath, gradleProject.projectIdentifier.buildIdentifier.rootDir)
     // Higher priority consumer overrides existing variant expectation.
     val existingVariantRequirement = variantResolutionContext.projectVariantRequirements[dependencyId]

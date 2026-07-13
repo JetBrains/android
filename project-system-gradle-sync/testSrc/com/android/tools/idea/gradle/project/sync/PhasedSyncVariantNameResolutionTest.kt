@@ -1350,7 +1350,8 @@ class PhasedSyncVariantNameResolutionTest {
     whenever(androidDsl.buildTypes).thenReturn(buildTypes)
     whenever(androidDsl.productFlavors).thenReturn(productFlavors)
     whenever(androidDsl.flavorDimensions).thenReturn(dimensions)
-    whenever(declaredDependencies.allOutgoingProjectDependencies).thenReturn(project.dependencies)
+    whenever(declaredDependencies.allOutgoingProjectsDependenciesToConfigurations)
+      .thenReturn(project.dependencies.associateWith { setOf("implementation") })
 
     return Parameters(
       gradleProject,

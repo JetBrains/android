@@ -196,7 +196,7 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
             data.selectedVariantName,
             data.ideAndroidProject,
             data.shouldSkipRuntimeClassPathForLibraries,
-            data.declaredDependencies.allOutgoingProjectDependencies,
+            data.declaredDependencies.allOutgoingProjectsDependenciesToConfigurations.keys.toList(),
           )
       }
     }

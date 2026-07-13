@@ -27,7 +27,7 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
 
   override fun buildAll(modelName: String, project: Project): Any {
     val configurationsToCoordinates = mutableMapOf<String, MutableList<Coordinates>>()
-    val allOutgoingProjectDependencies = mutableListOf<String>()
+    val projectToConfigurations = mutableMapOf<String, MutableSet<String>>()
 
     fun ProjectDependency.computePath(): String =
       if (GradleVersion.version(project.gradle.gradleVersion) >= GradleVersion.version("8.11")) {
@@ -48,7 +48,13 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
       configuration.dependencies.toMutableList().forEach { dependency ->
         when (dependency) {
           // For project dependencies, we should filter inward dependencies (from sourceSets to holder).
-          is ProjectDependency -> dependency.computePath().takeIf { it != project.path }?.let { allOutgoingProjectDependencies.add(it) }
+          is ProjectDependency -> {
+            val path = dependency.computePath()
+            if (path != project.path) {
+              val configsSet = projectToConfigurations.getOrPut(path) { mutableSetOf() }
+              configsSet.add(configuration.name)
+            }
+          }
           else ->
             if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
               configurationsToCoordinates.getOrPut(configuration.name) { mutableListOf() }.add(dependency.coordinates())
@@ -56,7 +62,7 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
         }
       }
     }
-    return DeclaredDependenciesImpl(configurationsToCoordinates, allOutgoingProjectDependencies)
+    return DeclaredDependenciesImpl(configurationsToCoordinates, projectToConfigurations)
   }
 
   private val ProjectDependency.dependencyProject: Project
@@ -76,7 +82,7 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
 
 interface DeclaredDependencies {
   val configurationsToCoordinates: Map<String, List<Coordinates>>
-  val allOutgoingProjectDependencies: List<String>
+  val allOutgoingProjectsDependenciesToConfigurations: Map<String, Set<String>>
 }
 
 interface Coordinates {
@@ -87,7 +93,7 @@ interface Coordinates {
 
 data class DeclaredDependenciesImpl(
   override val configurationsToCoordinates: Map<String, List<Coordinates>>,
-  override val allOutgoingProjectDependencies: List<String>,
+  override val allOutgoingProjectsDependenciesToConfigurations: Map<String, Set<String>>,
 ) : DeclaredDependencies, Serializable
 
 data class CoordinatesImpl(override val group: String?, override val name: String, override val version: String?) :
