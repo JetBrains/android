@@ -46,7 +46,8 @@ class AccessibilityModelUpdater : NlModelUpdaterInterface {
     val tagToViewInfo = mutableMapOf<XmlTag, ViewInfo>()
     viewInfos.forEach {
       val tag = (it.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return@forEach
-      tagToViewInfo[tag.psiXmlTag] = it
+      val psiTag = tag.psiXmlTag ?: return@forEach
+      tagToViewInfo[psiTag] = it
     }
     model.treeReader.components.forEach {
       val tag = runReadAction { it.tag }

@@ -298,7 +298,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
         return model.treeReader.findViewByAccessibilityId(accessibilityNodeInfo.sourceNodeId)
       }
       val tag = (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return model.treeReader.components.firstOrNull()
-      return model.treeReader.findViewByTag(tag.psiXmlTag)
+      return tag.psiXmlTag?.let { model.treeReader.findViewByTag(it) } ?: model.treeReader.components.firstOrNull()
     }
 
     private fun getHyperlinkListener(issueOrigin: VisualLintOrigin, type: VisualLintErrorType): HyperlinkListener {
