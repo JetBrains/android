@@ -119,6 +119,7 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
         )
       assert(renderResult.result != null)
       resultToModelMap[renderResult.result!!] = nlModel
+      renderResult.result?.dispose()
     }
     uiCheckBenchmark.measureOperation(
       measures =
