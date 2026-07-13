@@ -23,6 +23,12 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+}
+
 apply plugin: 'com.android.application'
 
 android {
