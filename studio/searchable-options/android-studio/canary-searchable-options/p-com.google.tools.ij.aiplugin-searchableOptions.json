@@ -81,6 +81,9 @@
       "hit": "AI next edit prediction"
     },
     {
+      "hit": "Change Review"
+    },
+    {
       "hit": "Configure colors..."
     },
     {
@@ -96,7 +99,16 @@
       "hit": "Model:"
     },
     {
+      "hit": "Next Edit Prediction"
+    },
+    {
+      "hit": "Reduce research scope"
+    },
+    {
       "hit": "Request delay:"
+    },
+    {
+      "hit": "Smart Rename"
     }
   ]
 }
