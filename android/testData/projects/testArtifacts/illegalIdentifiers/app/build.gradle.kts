@@ -1,6 +1,5 @@
 plugins {
   id("com.android.application")
-  kotlin("android")
 }
 
 val `a b c` by extra(1)
