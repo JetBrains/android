@@ -1,10 +1,8 @@
 import com.android.build.gradle.LibraryPlugin
 import com.android.build.api.dsl.LibraryExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 
 apply {
     plugin<LibraryPlugin>()
-    plugin<KotlinAndroidPluginWrapper>()
 }
 
 configure<LibraryExtension> {
