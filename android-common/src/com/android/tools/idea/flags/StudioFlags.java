@@ -473,10 +473,6 @@ public final class StudioFlags {
     NELE, "preview.class.preloading.diagnostics", "Enable class preloading overlay",
     "If enabled, the surface displays background class preloading progress");
 
-  public static final Flag<Boolean> NELE_XML_TO_COMPOSE = new BooleanFlag(
-    NELE, "xml.to.compose", "Enable XML to Compose conversion",
-    "Enable an action that converts XML layouts to Compose using the Gemini backend");
-
   public static final Flag<Boolean> PREVIEW_ZOOM_ANIMATION = new BooleanFlag(
     NELE, "preview.zoom.animation", "Enable animation while zooming",
     "If enabled, Zoom change will show up an animation.");
