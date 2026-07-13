@@ -50,7 +50,7 @@ internal sealed class ZoomAction(val zoomType: ZoomType) : AnAction(), DumbAware
       val presentation = event.presentation
       presentation.isEnabled = zoomable?.canZoom(zoomType) ?: false
       if (zoomable?.hasInnerPart == true) {
-        presentation.icon = StagingIcons.FIT_VIEW // TODO: Replace with a proper icon when available.
+        presentation.icon = StagingIcons.ZOOM_FIT_VIEW // TODO: Replace with a proper icon when available.
       }
     }
   }

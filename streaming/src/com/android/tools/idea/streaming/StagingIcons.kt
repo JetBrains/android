@@ -18,15 +18,11 @@ package com.android.tools.idea.streaming
 import com.intellij.ui.IconManager
 import javax.swing.Icon
 
-/**
- * NOTE THIS FILE IS AUTO-GENERATED.
- * DO NOT EDIT IT BY HAND, run "tools/adt/idea/streaming/generate_icons.sh" to update.
- */
+/** NOTE THIS FILE IS AUTO-GENERATED. DO NOT EDIT IT BY HAND, run "tools/adt/idea/streaming/generate_icons.sh" to update. */
 object StagingIcons {
   private fun load(path: String, cacheKey: Int, flags: Int): Icon {
     return IconManager.getInstance().loadRasterizedIcon(path, StagingIcons::class.java.classLoader, cacheKey, flags)
   }
 
-  @JvmField
-  val FIT_VIEW: Icon = load("icons/fit-view.svg", -842529787, 0)
+  @JvmField val ZOOM_FIT_VIEW: Icon = load("icons/zoom-fit-view.svg", -70700135, 0)
 }
