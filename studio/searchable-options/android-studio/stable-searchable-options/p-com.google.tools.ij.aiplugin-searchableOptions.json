@@ -96,7 +96,13 @@
       "hit": "Model:"
     },
     {
+      "hit": "Next Edit Prediction"
+    },
+    {
       "hit": "Request delay:"
+    },
+    {
+      "hit": "Smart Rename"
     }
   ]
 }
