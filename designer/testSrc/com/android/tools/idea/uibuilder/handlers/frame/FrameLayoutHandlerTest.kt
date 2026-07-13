@@ -19,21 +19,25 @@ import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.uibuilder.model.SegmentType.RIGHT
-import com.android.tools.idea.uibuilder.model.SegmentType.TOP
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 
 class FrameLayoutHandlerTest : SceneTest() {
 
-  // needs to be rewritten for the Target architecture
-  fun ignore_testDragNothing() {
-    screen(myModel).get("@id/myText1").resize(TOP, RIGHT).drag(0, 0).release().expectWidth("100dp").expectHeight("100dp")
+  fun testDragNothing() {
+    myInteraction.select("myText1", true)
+    myInteraction.mouseDown("myText1", ResizeBaseTarget.Type.RIGHT_BOTTOM)
+    // Releasing the mouse without crossing any threshold leaves the element at its initial size.
+    myInteraction.mouseRelease(150f, 150f)
+    myScreen.get("@id/myText1").expectWidth("100dp").expectHeight("100dp")
   }
 
-  // needs to be rewritten for the Target architecture
-  fun ignore_testCancel() {
-    screen(myModel).get("@id/myText1").resize(TOP).drag(20, 30).cancel().expectWidth("100dp").expectHeight("100dp")
+  fun testCancel() {
+    myInteraction.select("myText1", true)
+    myInteraction.mouseDown("myText1", ResizeBaseTarget.Type.RIGHT_BOTTOM)
+    // Cancel the mouse instead of releasing it.
+    myInteraction.mouseCancel(220f, 230f)
+    myScreen.get("@id/myText1").expectWidth("100dp").expectHeight("100dp")
   }
 
   fun testResize() {
@@ -65,6 +69,21 @@ class FrameLayoutHandlerTest : SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
+    // Layout Structure & Dimension Mappings:
+    //
+    // +------------------------------------------------------------+
+    // | FrameLayout (0, 0, 1000, 1000)                             |
+    // |                                                            |
+    // |  (100, 100)                                                |
+    // |  +-----------------------+                                 |
+    // |  | TextView (myText1)    |                                 |
+    // |  | Initial Size:         |                                 |
+    // |  | width = 100dp         |                                 |
+    // |  | height = 100dp        |                                 |
+    // |  +-----------------------+ (200, 200)                      |
+    // |                                                            |
+    // +------------------------------------------------------------+
+    //
     val builder =
       model(
         "frame.xml",
