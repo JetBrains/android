@@ -47,7 +47,8 @@ class DeclaredDependenciesModelBuilder : ToolingModelBuilder {
     project.configurations.toMutableList().forEach { configuration ->
       configuration.dependencies.toMutableList().forEach { dependency ->
         when (dependency) {
-          is ProjectDependency -> allOutgoingProjectDependencies.add(dependency.computePath())
+          // For project dependencies, we should filter inward dependencies (from sourceSets to holder).
+          is ProjectDependency -> dependency.computePath().takeIf { it != project.path }?.let { allOutgoingProjectDependencies.add(it) }
           else ->
             if (CONFIGURATIONS_OF_INTEREST.contains(configuration.name)) {
               configurationsToCoordinates.getOrPut(configuration.name) { mutableListOf() }.add(dependency.coordinates())
