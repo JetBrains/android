@@ -51,6 +51,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RuleChain
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -147,7 +148,7 @@ class LayoutInspectorRule(
 
   private var runningThreadCount = AtomicInteger(0)
 
-  private val asyncLauncherThreads = mutableListOf<Thread>()
+  private val asyncLauncherThreads = CopyOnWriteArrayList<Thread>()
 
   private val launcherExecutor = Executor { runnable ->
     if (launchSynchronously) {
@@ -156,9 +157,12 @@ class LayoutInspectorRule(
       asyncLauncherThreads.add(
         Thread {
             runningThreadCount.incrementAndGet()
-            runnable.run()
-            runningThreadCount.decrementAndGet()
-            asyncLaunchLatch.countDown()
+            try {
+              runnable.run()
+            } finally {
+              runningThreadCount.decrementAndGet()
+              asyncLaunchLatch.countDown()
+            }
           }
           .apply { start() }
       )
@@ -295,8 +299,7 @@ class LayoutInspectorRule(
     // might happen on a background thread after the test framework is done tearing down.
     launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
 
-    launchSynchronously = true // Do not start more threads, since that would cause ConcurrentModificationException
-    // below
+    launchSynchronously = true // Do not start more threads during teardown
     asyncLauncherThreads.forEach {
       it.join(1000) // Wait for the thread to finish
       if (it.isAlive) {
