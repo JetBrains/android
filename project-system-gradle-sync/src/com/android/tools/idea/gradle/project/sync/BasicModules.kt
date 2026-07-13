@@ -24,6 +24,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginPropertiesModelParameters
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.project.sync.AndroidProjectResult.Companion.RuntimeClasspathBehaviour
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
@@ -268,6 +269,11 @@ internal class BasicV2AndroidModuleGradleProject(
           controller.findModel(gradleProject, GradlePropertiesModel::class.java)
             ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
 
+        val declaredDependencies =
+          if (syncActionOptions.flags.studioFlagUsedPhasedSyncVariantResolution)
+            controller.findModel(gradleProject, DeclaredDependencies::class.java)
+          else null
+
         val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncActionOptions.syncTestMode)
         val rootBuildId = buildInfo.buildPathMap[":"] ?: error("Root build (':') not found")
         val androidProjectResult =
@@ -293,6 +299,7 @@ internal class BasicV2AndroidModuleGradleProject(
             useFlatDependencyGraphModel =
               syncActionOptions.flags.studioFlagUseFlatDependencyGraphModel && modelVersions[ModelFeature.HAS_FLAT_DEPENDENCY_MODEL],
             additionalArtifactsInModel = syncActionOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport,
+            declaredDependencies = declaredDependencies,
           )
 
         return androidProjectResult
@@ -406,5 +413,9 @@ private fun createAndroidModuleV2(
     variantFetcher = androidProjectResult.createVariantFetcher(),
     nativeModule = ideNativeModule,
     legacyAndroidGradlePluginProperties = androidProjectResult.legacyAndroidGradlePluginProperties,
+    basicAndroidProject = androidProjectResult.basicAndroidProject,
+    androidProjectV2 = androidProjectResult.androidProjectV2,
+    androidDsl = androidProjectResult.androidDsl,
+    declaredDependencies = androidProjectResult.declaredDependencies,
   )
 }

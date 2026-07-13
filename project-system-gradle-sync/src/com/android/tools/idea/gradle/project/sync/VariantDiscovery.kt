@@ -22,8 +22,10 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
+import com.android.utils.associateWithNotNull
 import java.util.Collections
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.gradle.BasicGradleProject
 
 // This is used as a key to track the variant fetch requests
 // It will be expanded with variant itself because it is possible we end up
@@ -121,12 +123,37 @@ internal class VariantDiscovery(
    */
   fun discoverVariantsAndSync(shouldUseProjectGraph: Boolean) {
     if (inputModules.isEmpty()) return
-    val modulesToSetUpWithPriority = prepareRequestedOrDefaultModuleConfigurations()
+
+    // Run the new resolution for V2 projects. TODO: Enable this once we have proper support for the configurations of interest
+    val useNewResolution = false
+    // syncOptions.flags.studioFlagUsedPhasedSyncVariantResolution &&
+    //  buildInfo.buildIdMap.keys.size == 1 &&
+    //  inputModules.all { it is AndroidModule.V2 && it.nativeModelVersion == AndroidModule.NativeModelVersion.None }
 
     if (shouldUsePreviouslyResolvedVariants) {
+      val modulesToSetUpWithPriority = prepareRequestedOrDefaultModuleConfigurations()
       // If we know which variants to fetch for each module, fetch and populate those without traversing the dependencies
       populatePreviouslyResolvedVariantResults(modulesToSetUpWithPriority.values.flatten())
+    } else if (useNewResolution) {
+      val androidModulesData = inputModules.associateWithNotNull { userSelectedOrDefaultModuleConfiguration(it) }
+      val variantsResolutionIssues = mutableMapOf<BasicGradleProject, Throwable>()
+
+      val selectedVariantsPerModules =
+        resolveVariantsForRegularSync(
+          androidModulesData.map { it.key.gradleProject to Pair(it.key, it.value.variant) },
+          syncOptions,
+          variantsResolutionIssues,
+        )
+      // Fetch the successfully resolved modules.
+      val fetchActions = selectedVariantsPerModules.mapNotNull { (module, resolvedVariantName) ->
+        val baseConfig = androidModulesData[module] ?: return@mapNotNull null
+        baseConfig.copy(variant = resolvedVariantName).toFetchVariantDependenciesAction()
+      }
+      actionRunner.runActions(fetchActions)
+      // Make sure we mark the results as final.
+      moduleFetchResults.keys.forEach { it.setFinal() }
     } else {
+      val modulesToSetUpWithPriority = prepareRequestedOrDefaultModuleConfigurations()
       // Otherwise fetch each module with the same priority in a batch
       for (nextBatch in modulesToSetUpWithPriority.values) {
         val modulesToVisit = nextBatch.filter { it.shouldVisit() }
@@ -392,19 +419,18 @@ internal class VariantDiscovery(
 
   /** Populate the AndroidModule models of each fetched module with the result */
   private fun updateAndroidModuleWithResult(result: ModelResult<SyncVariantResult>) {
-    val updatedResult =
-      result.mapCatching { result ->
-        if (result is SyncVariantResultSuccess) {
-          result.module.syncedVariant = result.ideVariant
-          result.module.unresolvedDependencies = result.unresolvedDependencies
-          result.module.syncedNativeVariantAbiName =
-            when (val nativeVariantAbiResult = result.nativeVariantAbi) {
-              is NativeVariantAbiResult.V2 -> nativeVariantAbiResult.selectedAbiName
-              NativeVariantAbiResult.None -> null
-            }
-        }
-        result
+    val updatedResult = result.mapCatching { result ->
+      if (result is SyncVariantResultSuccess) {
+        result.module.syncedVariant = result.ideVariant
+        result.module.unresolvedDependencies = result.unresolvedDependencies
+        result.module.syncedNativeVariantAbiName =
+          when (val nativeVariantAbiResult = result.nativeVariantAbi) {
+            is NativeVariantAbiResult.V2 -> nativeVariantAbiResult.selectedAbiName
+            NativeVariantAbiResult.None -> null
+          }
       }
+      result
+    }
     if (syncOptions.syncTestMode == SyncTestMode.TEST_EXCEPTION_WITH_UNRESOLVED_MODULE) {
       error("**internal error for tests**")
     }

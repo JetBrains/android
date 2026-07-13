@@ -16,11 +16,15 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.ProjectSyncIssues as ProjectSyncIssuesV1
+import com.android.builder.model.v2.models.AndroidDsl
+import com.android.builder.model.v2.models.AndroidProject as AndroidProjectV2
+import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.ProjectSyncIssues as ProjectSyncIssuesV2
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -116,6 +120,11 @@ constructor(
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   private val nativeModule: IdeNativeModule?,
   val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+  // Marking this as nullable here just because we have V1 still, but we don't use the new resolution logic in V1 mode.
+  val androidDsl: AndroidDsl?,
+  val basicAndroidProject: BasicAndroidProject? = null,
+  val androidProjectV2: AndroidProjectV2? = null,
+  val declaredDependencies: DeclaredDependencies?,
 ) : GradleModule(gradleProject), ResolvedAndroidProjectPath {
   val projectType: IdeAndroidProjectType
     get() = androidProject.projectType
@@ -180,6 +189,8 @@ constructor(
       /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
       nativeModule = nativeModule,
       legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
+      androidDsl = null,
+      declaredDependencies = null,
     ) {
     override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
       return ActionToRun(
@@ -208,6 +219,10 @@ constructor(
     androidVariantResolver: AndroidVariantResolver,
     nativeModule: IdeNativeModule?,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+    basicAndroidProject: BasicAndroidProject? = null,
+    androidProjectV2: AndroidProjectV2? = null,
+    androidDsl: AndroidDsl,
+    declaredDependencies: DeclaredDependencies? = null,
   ) :
     AndroidModule(
       modelVersions = modelVersions,
@@ -220,6 +235,10 @@ constructor(
       androidVariantResolver = androidVariantResolver,
       nativeModule = nativeModule,
       legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
+      androidDsl = androidDsl,
+      basicAndroidProject = basicAndroidProject,
+      androidProjectV2 = androidProjectV2,
+      declaredDependencies = declaredDependencies,
     ) {
     override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
       return ActionToRun(

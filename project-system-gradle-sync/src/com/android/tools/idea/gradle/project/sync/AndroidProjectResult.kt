@@ -23,6 +23,7 @@ import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.sync.AndroidProjectResult.Companion.RuntimeClasspathBehaviour
@@ -55,6 +56,10 @@ sealed class AndroidProjectResult {
     val runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
     val useFlatDependencyGraphModel: Boolean,
     val additionalArtifactsInModel: Boolean,
+    val basicAndroidProject: BasicAndroidProject? = null,
+    val androidProjectV2: com.android.builder.model.v2.models.AndroidProject? = null,
+    val androidDsl: AndroidDsl,
+    val declaredDependencies: DeclaredDependencies? = null,
   ) : AndroidProjectResult() {
     override fun createVariantFetcher(): IdeVariantFetcher =
       v2VariantFetcher(
@@ -123,6 +128,7 @@ sealed class AndroidProjectResult {
       runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
       useFlatDependencyGraphModel: Boolean,
       additionalArtifactsInModel: Boolean,
+      declaredDependencies: DeclaredDependencies? = null,
     ): ModelResult<V2Project> {
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
       val defaultVariantName: String? =
@@ -176,6 +182,10 @@ sealed class AndroidProjectResult {
           runtimeClasspathBehaviour = runtimeClasspathBehaviour,
           useFlatDependencyGraphModel = useFlatDependencyGraphModel,
           additionalArtifactsInModel = additionalArtifactsInModel,
+          basicAndroidProject = basicAndroidProject,
+          androidProjectV2 = androidProject,
+          androidDsl = androidDsl,
+          declaredDependencies = declaredDependencies,
         )
       }
     }

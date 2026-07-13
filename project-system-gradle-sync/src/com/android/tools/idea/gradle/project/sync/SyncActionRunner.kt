@@ -33,6 +33,7 @@ import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.projectsystem.gradle.sync.Counter
 import org.gradle.api.Action
 import org.gradle.tooling.BuildAction
@@ -103,6 +104,7 @@ data class ActionToRun<T>(
         LegacyV1AgpVersionModel::class.java -> true
         GradlePluginModel::class.java -> true
         GradlePropertiesModel::class.java -> true
+        DeclaredDependencies::class.java -> true
         else -> error("Unexpected model type: $modelType. ActionToRun.validateModelType needs to be updated.")
       }
     if (!isDeclared) {
@@ -399,6 +401,7 @@ private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
       LegacyV1AgpVersionModel::class.java -> otherModel
       GradlePluginModel::class.java -> otherModel
       GradlePropertiesModel::class.java -> otherModel
+      DeclaredDependencies::class.java -> otherModel
       else -> error("Unexpected model type: $modelType. ActionToRun.SyncCounters.measure needs to be updated.")
     }
   return counter(block)
