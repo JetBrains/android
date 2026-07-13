@@ -4,71 +4,82 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.rendering.parsers.RenderXmlAttribute
 import com.android.tools.rendering.parsers.RenderXmlTag
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 
 /** Studio specific [XmlTag]-based implementation of [RenderXmlTag]. */
-class PsiXmlTag(private val tag: XmlTag) : RenderXmlTag {
+class PsiXmlTag private constructor(private val tagPointer: SmartPsiElementPointer<XmlTag>) : RenderXmlTag {
+  constructor(
+    tag: XmlTag
+  ) : this(
+    ApplicationManager.getApplication().runReadAction<SmartPsiElementPointer<XmlTag>> {
+      SmartPointerManager.getInstance(tag.project).createSmartPsiElementPointer(tag)
+    }
+  )
+
   override val localNamespaceDeclarations: Map<String, String>
-    get() = tag.localNamespaceDeclarations
+    get() = psiXmlTag?.localNamespaceDeclarations ?: emptyMap()
 
   override fun getAttribute(name: String, namespace: String): RenderXmlAttribute? =
-    tag.getAttribute(name, namespace)?.let { PsiXmlAttribute(it) }
+    psiXmlTag?.getAttribute(name, namespace)?.let { PsiXmlAttribute(it) }
 
-  override fun getAttribute(name: String): RenderXmlAttribute? = tag.getAttribute(name)?.let { PsiXmlAttribute(it) }
+  override fun getAttribute(name: String): RenderXmlAttribute? = psiXmlTag?.getAttribute(name)?.let { PsiXmlAttribute(it) }
 
   override val name: String
-    get() = tag.name
+    get() = psiXmlTag?.name ?: ""
 
   override val subTags: List<RenderXmlTag>
-    get() = tag.subTags.map { PsiXmlTag(it) }
+    get() = psiXmlTag?.subTags?.map { PsiXmlTag(it) } ?: emptyList()
 
   override val namespace: String
-    get() = tag.namespace
+    get() = psiXmlTag?.namespace ?: ""
 
   override val resourceNamespace: ResourceNamespace?
-    get() = tag.resourceNamespace
+    get() = psiXmlTag?.resourceNamespace
 
   override val localName: String
-    get() = tag.localName
+    get() = psiXmlTag?.localName ?: ""
 
   override val isValid: Boolean
-    get() = tag.isValid
+    get() = psiXmlTag?.isValid ?: false
 
   override val attributes: List<RenderXmlAttribute>
-    get() = tag.attributes.map { PsiXmlAttribute(it) }
+    get() = psiXmlTag?.attributes?.map { PsiXmlAttribute(it) } ?: emptyList()
 
   override val namespacePrefix: String
-    get() = tag.namespacePrefix
+    get() = psiXmlTag?.namespacePrefix ?: ""
 
   override val parentTag: RenderXmlTag?
-    get() = tag.parentTag?.let { PsiXmlTag(it) }
+    get() = psiXmlTag?.parentTag?.let { PsiXmlTag(it) }
 
-  override fun getAttributeValue(name: String): String? = tag.getAttributeValue(name)
+  override fun getAttributeValue(name: String): String? = psiXmlTag?.getAttributeValue(name)
 
-  override fun getAttributeValue(name: String, namespace: String): String? = tag.getAttributeValue(name, namespace)
+  override fun getAttributeValue(name: String, namespace: String): String? = psiXmlTag?.getAttributeValue(name, namespace)
 
-  override fun getNamespaceByPrefix(prefix: String): String = tag.getNamespaceByPrefix(prefix)
+  override fun getNamespaceByPrefix(prefix: String): String = psiXmlTag?.getNamespaceByPrefix(prefix) ?: ""
 
-  override fun getPrefixByNamespace(namespace: String): String? = tag.getPrefixByNamespace(namespace)
+  override fun getPrefixByNamespace(namespace: String): String? = psiXmlTag?.getPrefixByNamespace(namespace)
 
   override val containingFileNameWithoutExtension: String
-    get() = tag.containingFile.virtualFile.nameWithoutExtension
+    get() = psiXmlTag?.containingFile?.virtualFile?.nameWithoutExtension ?: ""
 
   override val isEmpty: Boolean
-    get() = tag.isEmpty
+    get() = psiXmlTag?.isEmpty ?: true
 
   override fun hashCode(): Int {
-    return tag.hashCode()
+    return tagPointer.hashCode()
   }
 
   override fun equals(other: Any?): Boolean =
     when (other) {
-      is PsiXmlTag -> this.tag == other.tag
+      is PsiXmlTag -> this.tagPointer == other.tagPointer || (this.psiXmlTag != null && this.psiXmlTag == other.psiXmlTag)
       else -> false
     }
 
-  val psiXmlTag: XmlTag
-    get() = tag
+  val psiXmlTag: XmlTag?
+    get() = ApplicationManager.getApplication().runReadAction<XmlTag> { tagPointer.element }
 
   companion object {
     @JvmStatic fun create(xmlTag: XmlTag?): PsiXmlTag? = xmlTag?.let { PsiXmlTag(it) }

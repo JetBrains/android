@@ -304,7 +304,10 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
   private static void gatherTagsAndSnapshots(@NotNull TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
     TagSnapshot snapshot = node.getTagSnapshot();
     if (snapshot != null && snapshot.tag instanceof PsiXmlTag xmlTag) {
-      map.put(xmlTag.getPsiXmlTag(), snapshot);
+      XmlTag psiXmlTag = xmlTag.getPsiXmlTag();
+      if (psiXmlTag != null) {
+        map.put(psiXmlTag, snapshot);
+      }
     }
 
     for (TagSnapshotTreeNode child : node.getChildren()) {
