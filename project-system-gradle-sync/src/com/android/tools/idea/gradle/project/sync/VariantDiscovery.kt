@@ -289,7 +289,7 @@ internal class VariantDiscovery(
         ModuleConfiguration(module.id, selectedVariantName, selectedAbi, isRoot = true)
       }
       else -> {
-        ModuleConfiguration(module.id, selectedVariantName, selectedAbi, isRoot = true)
+        ModuleConfiguration(module.id, selectedVariantName, selectedAbi, isRoot = false)
       }
     }
   }
