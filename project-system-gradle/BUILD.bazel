@@ -1,5 +1,5 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.projectSystem.gradle` start
@@ -9,6 +9,11 @@ create_kotlinc_options(
         "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
         "org.jetbrains.kotlin.K1Deprecation",
     ],
+)
+
+jvm_provided_library(
+    name = "libraries_kotlin_libraries-kotlin-tooling-core_provided",
+    lib = "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core",
 )
 
 jvm_library(
@@ -44,7 +49,6 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-gradle-plugin-idea-provided",
         "@lib//:kotlin-stdlib",
-        "@lib//:kotlin-tooling-core-provided",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/kotlinx/coroutines/core",
         "//libraries/kotlin/reflect",
@@ -189,6 +193,7 @@ jvm_library(
         "//android/observable",
         "//platform/locking-impl",
         "//plugins/kotlin/references",
+        ":libraries_kotlin_libraries-kotlin-tooling-core_provided",
     ],
 )
 
@@ -216,7 +221,8 @@ jvm_library(
         "//libraries/grpc:grpc_test_lib",
         "//libraries/gson:gson_test_lib",
         "@lib//:kotlin-gradle-plugin-idea-provided",
-        "@lib//:kotlin-tooling-core-provided",
+        "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core",
+        "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core_test_lib",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//libraries/kotlin/reflect:reflect_test_lib",
