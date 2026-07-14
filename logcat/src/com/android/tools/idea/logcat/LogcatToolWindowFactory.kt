@@ -95,7 +95,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   private fun showLogcat(toolWindow: ToolWindowEx, deviceInfo: DeviceInfo, applicationId: String?) {
     toolWindow.disposable.createCoroutineScope().launch {
-      val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
+      val name = if (applicationId == null) deviceInfo.serialNumber else "$applicationId (${deviceInfo.serialNumber})"
       val device = toolWindow.project.service<DeviceFinder>().findDevice(deviceInfo.serialNumber) ?: deviceInfo.toOfflineDevice()
       withContext(Dispatchers.EDT) {
         insideShowLogcatListener = true
@@ -191,7 +191,7 @@ private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
 
 private fun DeviceInfo.toOfflineDevice(): Device {
   return when (this) {
-    is PhysicalDeviceInfo -> Device.createPhysical(serialNumber, false, release, androidVersion, manufacturer, model)
-    is EmulatorDeviceInfo -> Device.createEmulator(serialNumber, false, release, androidVersion, avdName, avdPath)
+    is PhysicalDeviceInfo -> Device.createPhysical(id, serialNumber, false, release, androidVersion, manufacturer, model)
+    is EmulatorDeviceInfo -> Device.createEmulator(id, serialNumber, false, release, androidVersion, avdName, avdPath)
   }
 }

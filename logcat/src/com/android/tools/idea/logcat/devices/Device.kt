@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.devices
 import com.android.adblib.INFINITE_DURATION
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.service.LogcatService
@@ -35,8 +36,8 @@ import java.time.Duration
 import kotlinx.coroutines.flow.Flow
 
 /** A representation of a device used by [DeviceComboBox]. */
-internal sealed class Device() {
-  abstract val deviceId: String
+internal sealed class Device {
+  abstract val deviceId: DeviceId
   abstract val name: String
   abstract val serialNumber: String
   abstract val isOnline: Boolean
@@ -55,6 +56,7 @@ internal sealed class Device() {
   abstract fun copy(isOnline: Boolean = this.isOnline, apiLevel: AndroidApiLevel = this.apiLevel): Device
 
   data class PhysicalDevice(
+    override val deviceId: DeviceId,
     override val serialNumber: String,
     override val isOnline: Boolean,
     override val release: String,
@@ -64,9 +66,6 @@ internal sealed class Device() {
     val model: String,
     override val type: DeviceType,
   ) : Device() {
-    override val deviceId: String
-      get() = serialNumber
-
     override val name: String
       get() = if (model.startsWith(manufacturer)) model else "$manufacturer $model"
 
@@ -76,10 +75,11 @@ internal sealed class Device() {
     override fun getScreenshotParameters() = ScreenshotParameters(serialNumber, type, model)
 
     override fun copy(isOnline: Boolean, apiLevel: AndroidApiLevel) =
-      PhysicalDevice(serialNumber, isOnline, release, apiLevel, featureLevel, manufacturer, model, type)
+      PhysicalDevice(deviceId, serialNumber, isOnline, release, apiLevel, featureLevel, manufacturer, model, type)
   }
 
   data class EmulatorDevice(
+    override val deviceId: DeviceId,
     override val serialNumber: String,
     override val isOnline: Boolean,
     override val release: String,
@@ -89,11 +89,9 @@ internal sealed class Device() {
     val avdPath: String,
     override val type: DeviceType,
   ) : Device() {
+
     override val isEmulator
       get() = true
-
-    override val deviceId: String
-      get() = avdPath
 
     override val name: String
       get() = avdName
@@ -101,7 +99,7 @@ internal sealed class Device() {
     override fun getScreenshotParameters() = ScreenshotParameters(serialNumber, type, Path.of(avdPath))
 
     override fun copy(isOnline: Boolean, apiLevel: AndroidApiLevel) =
-      EmulatorDevice(serialNumber, isOnline, release, apiLevel, featureLevel, avdName, avdPath, type)
+      EmulatorDevice(deviceId, serialNumber, isOnline, release, apiLevel, featureLevel, avdName, avdPath, type)
   }
 
   companion object {
@@ -109,6 +107,7 @@ internal sealed class Device() {
     private const val PROPERTY_EMULATOR_DEVICE = "emulatorDevice"
 
     fun createPhysical(
+      id: DeviceId,
       serialNumber: String,
       isOnline: Boolean,
       release: String,
@@ -118,6 +117,7 @@ internal sealed class Device() {
       type: DeviceType? = null,
     ): Device {
       return PhysicalDevice(
+        id,
         serialNumber,
         isOnline,
         release.normalizeVersion(),
@@ -130,6 +130,7 @@ internal sealed class Device() {
     }
 
     fun createEmulator(
+      id: DeviceId,
       serialNumber: String,
       isOnline: Boolean,
       release: String,
@@ -139,6 +140,7 @@ internal sealed class Device() {
       type: DeviceType? = null,
     ): Device {
       return EmulatorDevice(
+        id,
         serialNumber,
         isOnline,
         release.normalizeVersion(),
