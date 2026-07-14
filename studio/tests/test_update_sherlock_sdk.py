@@ -75,28 +75,40 @@ class UpdateSherlockSdkTest(unittest.TestCase):
     linux_artifacts = {"Sherlock-2.1/" + k: v for k, v in common_lib_files.items()}
     linux_artifacts.update({"Sherlock-2.1/" + k: v for k, v in common_plugin_files.items()})
     linux_artifacts["Sherlock-2.1/product-info.json"] = product_info
-    test_utils.create(str(self.download_dir / "apa-platform.tar.gz"), linux_artifacts)
+    test_utils.create(str(self.download_dir / "apa-platform-no-jbr.tar.gz"), linux_artifacts)
 
     # Mac ARM
     mac_arm_artifacts = {"Android Performance Analyzer.app/Contents/" + k: v for k, v in common_lib_files.items()}
     mac_arm_artifacts.update({"Android Performance Analyzer.app/Contents/" + k: v for k, v in common_plugin_files.items()})
     mac_arm_artifacts["Android Performance Analyzer.app/Contents/Resources/product-info.json"] = product_info
-    test_utils.create(str(self.download_dir / "apa-platform.mac.aarch64.zip"), mac_arm_artifacts)
+    test_utils.create(str(self.download_dir / "apa-platform.mac.aarch64-no-jdk.zip"), mac_arm_artifacts)
 
     # Mac x86_64
     mac_x64_artifacts = {"Android Performance Analyzer.app/Contents/" + k: v for k, v in common_lib_files.items()}
     mac_x64_artifacts.update({"Android Performance Analyzer.app/Contents/" + k: v for k, v in common_plugin_files.items()})
     mac_x64_artifacts["Android Performance Analyzer.app/Contents/Resources/product-info.json"] = product_info
-    test_utils.create(str(self.download_dir / "apa-platform.mac.x64.zip"), mac_x64_artifacts)
+    test_utils.create(str(self.download_dir / "apa-platform.mac.x64-no-jdk.zip"), mac_x64_artifacts)
 
     # Windows
     win_artifacts = common_lib_files.copy()
     win_artifacts.update(common_plugin_files)
     win_artifacts["product-info.json"] = product_info
-    test_utils.create(str(self.download_dir / "apa-platform.win.zip"), win_artifacts)
+    test_utils.create(str(self.download_dir / "apa-platform-no-jbr.win.zip"), win_artifacts)
 
     # Sources
     test_utils.create(str(self.download_dir / "apa-platform-sources.zip"), {})
+
+    # Create mock JBR directories so they are preserved
+    ic_dir = self.prebuilts_path / "IC"
+    jbr_paths = [
+      ic_dir / "linux" / "sherlock" / "jbr",
+      ic_dir / "windows" / "sherlock" / "jbr",
+      ic_dir / "darwin" / "sherlock" / "Contents" / "jbr",
+      ic_dir / "darwin_aarch64" / "sherlock" / "Contents" / "jbr",
+    ]
+    for jbr in jbr_paths:
+      jbr.mkdir(parents=True, exist_ok=True)
+      (jbr / "jbr_marker.txt").write_text("jbr_preserved")
 
     env = os.environ.copy()
     pythonpath = self.deploy_dir / "tools/adt/idea/studio"
@@ -168,6 +180,12 @@ SPEC = struct(
     for file, content in expected.items():
       actual_content = test_utils.readstr(str(self.workspace_dir / file))
       self.assertEqual(content, actual_content)
+
+    # Verify JBR directories were preserved
+    for jbr in jbr_paths:
+      marker_file = jbr / "jbr_marker.txt"
+      self.assertTrue(marker_file.exists(), f"JBR directory not preserved: {jbr}")
+      self.assertEqual("jbr_preserved", marker_file.read_text())
 
 
 if __name__ == "__main__":
