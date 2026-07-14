@@ -33,6 +33,7 @@ intellij_plugin(
     plugin_id = "com.android.tools.asdriver",
     deps = [
         "@intellij//:com.jetbrains.performancePlugin",
+        "@intellij//:intellij.performanceTesting.remoteDriver",
     ],
 )
 
@@ -126,6 +127,7 @@ iml_module(
         "//tools/adt/idea/bleak:intellij.android.bleak",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "@intellij//:com.jetbrains.performancePlugin",
+        "@intellij//:intellij.performanceTesting.remoteDriver",
     ],
 )
 

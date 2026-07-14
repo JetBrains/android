@@ -20,8 +20,11 @@
   <description>Plugin that is used for E2E integration testing of Android Studio</description>
   <vendor url="http://www.google.com">Google, Inc.</vendor>
 
-  <depends>com.intellij.modules.lang</depends>
-  <depends>com.jetbrains.performancePlugin</depends>
+  <dependencies>
+    <plugin id="com.intellij.modules.lang"/>
+    <plugin id="com.jetbrains.performancePlugin"/>
+    <module name="intellij.performanceTesting.remoteDriver"/>
+  </dependencies>
 
   <applicationListeners>
     <listener class="com.android.tools.asdriver.AndroidStudioDriverInitializer"
