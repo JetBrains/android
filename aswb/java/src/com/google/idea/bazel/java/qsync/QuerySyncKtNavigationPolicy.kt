@@ -19,6 +19,7 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
 import com.google.idea.common.experiments.BoolExperiment
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.debugger.engine.DebuggerManagerThreadImpl
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
@@ -80,7 +81,7 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
   }
 
   override fun getNavigationElement(ktDeclaration: KtDeclaration): KtElement {
-    if (!ENABLED_NAVIGATION_POLICY.value) return super.getNavigationElement(ktDeclaration)
+    if (DebuggerManagerThreadImpl.isManagerThread() || !ENABLED_NAVIGATION_POLICY.value) return super.getNavigationElement(ktDeclaration)
 
     val project = ktDeclaration.project
     if (!eligibleToRun(project)) {
