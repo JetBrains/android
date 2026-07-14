@@ -1,6 +1,5 @@
 plugins {
   id("com.android.application")
-  kotlin("android")
 }
 apply(plugin = "com.android.application")
 

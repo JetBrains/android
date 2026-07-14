@@ -26,7 +26,6 @@ android {
     applicationId 'com.example.android.app'
   }
 
-  publishNonDefault true
 }
 
 repositories {
