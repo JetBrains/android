@@ -152,7 +152,7 @@ internal object UnactionableConsistencyIssues {
           "LIBRARY_TABLE"
         )
       // The models for phased sync is fetched too early and are missing this, but it's fine as we have the rest of the tasks for variants
-      TestProject.PSD_SAMPLE_GROOVY -> setOf("/taskNames (testDebugUnitTest)", "/taskNames (connectedDebugAndroidTest)")
+      TestProject.PSD_SAMPLE_GROOVY -> setOf("/taskNames (testDebugUnitTest)")
       TestProject.TWO_JARS -> setOf("/taskNames (test)")
       else -> emptySet()
     }

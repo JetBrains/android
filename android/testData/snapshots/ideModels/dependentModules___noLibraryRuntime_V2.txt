@@ -540,10 +540,6 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedBasicDebugAndroidTest          : connectedBasicDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :app:connectedBasicDebugAndroidTest
-                        connectedPaidDebugAndroidTest : connectedPaidDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :app:connectedPaidDebugAndroidTest
                         testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testBasicDebugUnitTest
                         testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
@@ -565,19 +561,11 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :lib:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
-                connectedBasicDebugAndroidTest          : connectedBasicDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :app:connectedBasicDebugAndroidTest
-                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :lib:connectedDebugAndroidTest
-                connectedPaidDebugAndroidTest : connectedPaidDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :app:connectedPaidDebugAndroidTest
                 testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testBasicDebugUnitTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -594,8 +582,6 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedBasicDebugAndroidTest
-        - taskNames                   : connectedPaidDebugAndroidTest
         - taskNames                   : testBasicDebugUnitTest
         - taskNames                   : testPaidDebugUnitTest
     CurrentVariantReportedVersions
@@ -1700,7 +1686,6 @@ MODULE                        : project.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk

@@ -61,15 +61,11 @@ MODULE                        : MultiFlavor
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedFirstAbcSecondAbcDebugAndroidTest        : connectedFirstAbcSecondAbcDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :app:connectedFirstAbcSecondAbcDebugAndroidTest
                         testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
-                connectedFirstAbcSecondAbcDebugAndroidTest        : connectedFirstAbcSecondAbcDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :app:connectedFirstAbcSecondAbcDebugAndroidTest
                 testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
 MODULE                        : MultiFlavor.app
@@ -82,7 +78,6 @@ MODULE                        : MultiFlavor.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedFirstAbcSecondAbcDebugAndroidTest
         - taskNames                   : testFirstAbcSecondAbcDebugUnitTest
     CurrentVariantReportedVersions
         minSdk

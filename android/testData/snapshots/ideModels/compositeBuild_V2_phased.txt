@@ -620,8 +620,6 @@ MODULE                        : project
                             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
-                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                                    qName                         : :app:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :app:testDebugUnitTest
                     lib                           : :includedLib1:lib (DefaultExternalProject)
@@ -641,15 +639,11 @@ MODULE                        : project
                             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
-                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                                    qName                         : :lib:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :lib:testDebugUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
             TestCompositeLib3             : :TestCompositeLib3 (DefaultExternalProject)
@@ -680,8 +674,6 @@ MODULE                        : project
                             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
-                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                                    qName                         : :app:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :app:testDebugUnitTest
                     lib                           : :TestCompositeLib3:lib (DefaultExternalProject)
@@ -701,15 +693,11 @@ MODULE                        : project
                             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                         taskModel                     : DefaultGradleTaskModel
                             tasks
-                                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                                    qName                         : :lib:connectedDebugAndroidTest
                                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                     qName                         : :lib:testDebugUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
             app                           : :app (DefaultExternalProject)
@@ -729,8 +717,6 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
             composite2                    : :TestCompositeLib2 (DefaultExternalProject)
@@ -945,15 +931,11 @@ MODULE                        : project
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :lib:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :lib:testDebugUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
-                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :app:connectedDebugAndroidTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :app:testDebugUnitTest
 MODULE                        : project.app
@@ -966,7 +948,6 @@ MODULE                        : project.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -2074,7 +2055,6 @@ MODULE                        : project.lib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -3186,7 +3166,6 @@ MODULE                        : includedLib1.app
         rootFolderPath                : <ROOT>/TestCompositeLib1
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -4186,7 +4165,6 @@ MODULE                        : includedLib1.lib
         rootFolderPath                : <ROOT>/TestCompositeLib1
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -5319,7 +5297,6 @@ MODULE                        : TestCompositeLib3.app
         rootFolderPath                : <ROOT>/TestCompositeLib3
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -6299,7 +6276,6 @@ MODULE                        : TestCompositeLib3.lib
         rootFolderPath                : <ROOT>/TestCompositeLib3
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
