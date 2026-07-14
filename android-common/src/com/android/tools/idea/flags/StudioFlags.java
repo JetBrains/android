@@ -2451,6 +2451,11 @@ public final class StudioFlags {
                     "Enable support for the MCP registry",
                     "When enabled, adds a Registry tab into the MCP settings");
 
+  public static final Flag<Boolean> STUDIOBOT_ACP_CLIENT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "acp.client.enabled",
+                    "Enable Agent Context Protocol (ACP) Support",
+                    "Allows using ACP-compatible agent harnesses");
+
   public static final Flag<Boolean> STUDIOBOT_CHAT_QUERY_STATUS_BANNER_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.query.status.banner.enabled",
                     "Enable thinking banner in Chat Timeline",
