@@ -54,7 +54,7 @@ class GradleTaskListIntegrationTest {
     // Verify that only test tasks are being created.
     val taskNodeData = ExternalSystemApiUtil.findAll(moduleData!!, ProjectKeys.TASK)
     Truth.assertThat(taskNodeData).isNotEmpty()
-    Truth.assertThat(taskNodeData.map { it.data.name }).containsExactly(":app:testDebugUnitTest", ":app:connectedDebugAndroidTest")
+    Truth.assertThat(taskNodeData.map { it.data.name }).isEqualTo(listOf(":app:testDebugUnitTest"))
   }
 
   @Test

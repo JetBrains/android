@@ -554,7 +554,6 @@ MODULE                        : project
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -1512,8 +1511,6 @@ MODULE                        : project
             configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
         taskModel                     : DefaultGradleTaskModel
             tasks
-                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :connectedDebugAndroidTest
                 testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                     qName                         : :testDebugUnitTest
 MODULE                        : project.androidTest

@@ -893,14 +893,6 @@ MODULE                        : Kotlin_Multiplatform
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedTypeoneModeoneDebugAndroidTest : connectedTypeoneModeoneDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :androidLib:connectedTypeoneModeoneDebugAndroidTest
-                        connectedTypeoneModetwoDebugAndroidTest : connectedTypeoneModetwoDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :androidLib:connectedTypeoneModetwoDebugAndroidTest
-                        connectedTypetwoModeoneDebugAndroidTest : connectedTypetwoModeoneDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :androidLib:connectedTypetwoModeoneDebugAndroidTest
-                        connectedTypetwoModetwoDebugAndroidTest : connectedTypetwoModetwoDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :androidLib:connectedTypetwoModetwoDebugAndroidTest
                         testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
                             qName                         : :androidLib:testTypeoneModeoneDebugUnitTest
                         testTypeoneModetwoDebugUnitTest         : testTypeoneModetwoDebugUnitTest (DefaultExternalTask)
@@ -926,8 +918,6 @@ MODULE                        : Kotlin_Multiplatform
                     configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                            qName                         : :app:connectedDebugAndroidTest
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                             qName                         : :app:testDebugUnitTest
             build-logic                   : :build-logic (DefaultExternalProject)
@@ -965,15 +955,11 @@ MODULE                        : Kotlin_Multiplatform
                             - additionalArtifacts         : <ROOT>/build-logic/lib-foo/build/libs/lib-foo-metadata.jar [-]
                         taskModel                     : DefaultGradleTaskModel
                             tasks
-                                connectedAndroidDeviceTest    : connectedAndroidDeviceTest (DefaultExternalTask)
-                                    qName                         : :lib-foo:connectedAndroidDeviceTest
                                 testAndroidHostTest           : testAndroidHostTest (DefaultExternalTask)
                                     qName                         : :lib-foo:testAndroidHostTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedAndroidDeviceTest    : connectedAndroidDeviceTest (DefaultExternalTask)
-                            qName                         : :lib-foo:connectedAndroidDeviceTest
                         testAndroidHostTest           : testAndroidHostTest (DefaultExternalTask)
                             qName                         : :lib-foo:testAndroidHostTest
             kmpFirstLib                   : :kmpFirstLib (DefaultExternalProject)
@@ -1000,8 +986,6 @@ MODULE                        : Kotlin_Multiplatform
                     - additionalArtifacts         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
-                        connectedAndroidDeviceTest    : connectedAndroidDeviceTest (DefaultExternalTask)
-                            qName                         : :kmpFirstLib:connectedAndroidDeviceTest
                         testAndroidHostTest           : testAndroidHostTest (DefaultExternalTask)
                             qName                         : :kmpFirstLib:testAndroidHostTest
             kmpJvmOnly                    : :kmpJvmOnly (DefaultExternalProject)
@@ -1176,18 +1160,6 @@ MODULE                        : Kotlin_Multiplatform
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
             tasks
-                connectedAndroidDeviceTest    : connectedAndroidDeviceTest (DefaultExternalTask)
-                    qName                         : :kmpFirstLib:connectedAndroidDeviceTest
-                connectedDebugAndroidTest     : connectedDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :app:connectedDebugAndroidTest
-                connectedTypeoneModeoneDebugAndroidTest : connectedTypeoneModeoneDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :androidLib:connectedTypeoneModeoneDebugAndroidTest
-                connectedTypeoneModetwoDebugAndroidTest : connectedTypeoneModetwoDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :androidLib:connectedTypeoneModetwoDebugAndroidTest
-                connectedTypetwoModeoneDebugAndroidTest : connectedTypetwoModeoneDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :androidLib:connectedTypetwoModeoneDebugAndroidTest
-                connectedTypetwoModetwoDebugAndroidTest : connectedTypetwoModetwoDebugAndroidTest (DefaultExternalTask)
-                    qName                         : :androidLib:connectedTypetwoModetwoDebugAndroidTest
                 jvmTest                       : jvmTest (DefaultExternalTask)
                     qName                         : :kmpJvmOnly:jvmTest
                 testAndroidHostTest           : testAndroidHostTest (DefaultExternalTask)
@@ -1212,10 +1184,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedTypeoneModeoneDebugAndroidTest
-        - taskNames                   : connectedTypeoneModetwoDebugAndroidTest
-        - taskNames                   : connectedTypetwoModeoneDebugAndroidTest
-        - taskNames                   : connectedTypetwoModetwoDebugAndroidTest
         - taskNames                   : testTypeoneModeoneDebugUnitTest
         - taskNames                   : testTypeoneModetwoDebugUnitTest
         - taskNames                   : testTypetwoModeoneDebugUnitTest
@@ -1832,7 +1800,6 @@ MODULE                        : Kotlin_Multiplatform.app
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedDebugAndroidTest
         - taskNames                   : testDebugUnitTest
     CurrentVariantReportedVersions
         minSdk
@@ -2279,7 +2246,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedAndroidDeviceTest
         - taskNames                   : testAndroidHostTest
     CurrentVariantReportedVersions
         minSdk
@@ -3643,7 +3609,6 @@ MODULE                        : build-logic.lib-foo
         rootFolderPath                : <ROOT>/build-logic
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : connectedAndroidDeviceTest
         - taskNames                   : testAndroidHostTest
     CurrentVariantReportedVersions
         minSdk
