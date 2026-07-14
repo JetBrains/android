@@ -665,10 +665,14 @@
         serviceInterface="com.android.tools.idea.sdk.sources.SdkSourcePositionFinder"
         serviceImplementation="com.android.tools.idea.sdk.sources.SdkSourcePositionFinderImpl"/>
 
+    <applicationService
+        serviceImplementation="com.android.tools.idea.sdk.AndroidSdkWatcherService"/>
+
     <daemon.highlightInfoFilter implementation="com.android.tools.idea.sdk.SdkHighlightFilter"/>
 
     <writingAccessProvider implementation="com.android.tools.idea.sdk.SdkWritingAccessProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.ndk.PageAlignProjectActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.sdk.AndroidSdkWatcherProjectActivity"/>
 
     <internalFileTemplate name="Version_Catalog_File.versions" />
 
@@ -776,6 +780,11 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <projectsystem.ApplicationProjectContextProvider implementation="com.android.tools.idea.project.DefaultApplicationProjectContextProvider"/>
     <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.DefaultBuildSystemFilePreviewServices"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.ide">
+    <sdkEventListener implementation="com.android.tools.idea.avdmanager.AvdScannerSdkEventListener"/>
+    <sdkEventListener implementation="com.android.tools.idea.sdk.AndroidSdkWatcherEventListener"/>
   </extensions>
 
   <applicationListeners>

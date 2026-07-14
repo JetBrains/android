@@ -15,24 +15,82 @@
  */
 package com.android.tools.idea.avdmanager
 
+import com.android.repository.api.RepoManager
 import com.android.sdklib.deviceprovisioner.AbstractAvdScanner
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.sdk.AndroidSdkData
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.Project
+import java.io.File
+import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 
 @Service(Service.Level.APP)
-class AvdScannerService(coroutineScope: CoroutineScope) : AbstractAvdScanner(coroutineScope) {
+class AvdScannerService(coroutineScope: CoroutineScope) : AbstractAvdScanner(coroutineScope), Disposable {
+  private val localChangeListener =
+    RepoManager.RepoLoadedListener {
+      thisLogger().debug("SDK packages changed, rescanning AVDs")
+      rescanAsync()
+    }
+  @Volatile private var currentRepoManager: RepoManager? = null
+  private val sdkPathFlow = MutableSharedFlow<Path>(1)
+
   companion object {
     @JvmStatic
     val instance: AvdScannerService
       get() = service()
   }
 
+  init {
+    coroutineScope.launch {
+      // Setup listener for the current SDK
+      val sdkPath = IdeSdks.getInstance().androidSdkPath?.toPath()
+      if (sdkPath != null) {
+        sdkPathFlow.emit(sdkPath)
+      }
+      sdkPathFlow.collect { sdkPath ->
+        currentRepoManager?.removeLocalChangeListener(localChangeListener)
+        currentRepoManager = null
+
+        val sdkData = AndroidSdkData.getSdkData(sdkPath)
+        if (sdkData != null) {
+          val progress = StudioLoggerProgressIndicator(AvdScannerService::class.java)
+          val repoManager = sdkData.sdkHandler.getRepoManager(progress)
+          repoManager.addLocalChangeListener(localChangeListener)
+          currentRepoManager = repoManager
+        } else {
+          thisLogger().warn("Could not get SdkData for $sdkPath, AVD scanner won't receive SDK updates")
+        }
+      }
+    }
+  }
+
+  fun onSdkPathChanged(newSdkPath: Path) {
+    sdkPathFlow.tryEmit(newSdkPath)
+    rescanAsync()
+  }
+
   override fun scanAvds(): List<AvdInfo> = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)
 
   override fun logError(message: String, exception: Throwable) {
     thisLogger().error(message, exception)
+  }
+
+  override fun dispose() {
+    currentRepoManager?.removeLocalChangeListener(localChangeListener)
+    currentRepoManager = null
+  }
+}
+
+class AvdScannerSdkEventListener : IdeSdks.AndroidSdkEventListener {
+  override fun afterSdkPathChange(sdkPath: File, project: Project) {
+    AvdScannerService.instance.onSdkPathChanged(sdkPath.toPath())
   }
 }
