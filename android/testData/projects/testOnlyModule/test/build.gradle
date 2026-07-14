@@ -27,7 +27,6 @@ android {
   }
 
   targetProjectPath ':app'
-  targetVariant 'debug'
 }
 
 repositories {

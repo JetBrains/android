@@ -163,7 +163,6 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
       expectPackageName = "one.dynamic.name.debug",
       expectTestPackageName = "(null)",
-      expectSyncIssueContent = APP_LEGACY_WARNINGS,
     ),
     def(
       stackMarker = { it() },
@@ -178,7 +177,6 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       },
       expectPackageName = "one.dynamic.name.debug",
       expectTestPackageName = "one.dynamic.name.debug.test",
-      expectSyncIssueContent = APP_LEGACY_WARNINGS,
     ),
     def(
       stackMarker = { it() },
@@ -205,7 +203,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
               "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
               "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
               "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
-            ) + APP_LEGACY_WARNINGS, // <--- ADDED HERE
+            ), // <--- ADDED HERE
           AGP_72 to
             listOf(
               "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
