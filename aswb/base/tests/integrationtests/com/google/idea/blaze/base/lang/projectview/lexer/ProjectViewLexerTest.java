@@ -58,7 +58,7 @@ public class ProjectViewLexerTest extends ProjectViewIntegrationTestCase {
         tokenize(
             "import java/com/google/work/.blazeproject",
             "",
-            "workspace_type: intellij_plugin",
+            "workspace_type: java",
             "",
             "import_target_output:",
             "  //java/com/google/work:target",
@@ -82,7 +82,7 @@ public class ProjectViewLexerTest extends ProjectViewIntegrationTestCase {
   public void testUnrecognizedKeyword() {
     String result =
         tokenize(
-            "impart java/com/google/work/.blazeproject", "", "workspace_trype: intellij_plugin");
+            "impart java/com/google/work/.blazeproject", "", "workspace_trype: java");
 
     assertThat(result)
         .isEqualTo(Joiner.on(" ").join("identifier identifier", "identifier : identifier"));
