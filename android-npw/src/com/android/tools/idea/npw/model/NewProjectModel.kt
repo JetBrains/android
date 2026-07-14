@@ -125,7 +125,9 @@ interface ProjectModelData {
   val dslLanguage: ObjectValueProperty<DslLanguage>
   val useVersionCatalog: BoolProperty
   val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
-  val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy>
+  val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>>
+  val templateRenderStrategyAdditionalUserSettings:
+    Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings>
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
@@ -164,8 +166,18 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
   override val userSkillDirectories: ObjectValueProperty<List<File>> = ObjectValueProperty(listOf())
   val launchFirebaseWizard = BoolValueProperty(false)
-  override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy> =
-    OptionalValueProperty.fromNullable(calculateInitialCustomProjectSystem(properties).orElse(null))
+  @Suppress("UNCHECKED_CAST") // Ugly generics here make the extension point itself slightly neater
+  override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>> =
+    OptionalValueProperty.fromNullable(
+      calculateInitialCustomProjectSystem(properties).orElse(null)
+        as? TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>
+    )
+  @Suppress("UNCHECKED_CAST") // Ugly generics here make the extension point itself slightly neater
+  override val templateRenderStrategyAdditionalUserSettings:
+    Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings> =
+    TemplateRendererStrategy.EP_NAME.extensions.associateWith { it.createAdditionalUserSettings() }
+      as Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings>
+
   override val sourceProjectType = ObjectValueProperty<SourceProjectType>(SourceProjectType.IOS)
   override val importSourcePath = StringValueProperty("")
 
@@ -249,7 +261,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       .queue()
   }
 
-  private fun runCustomProjectRenderer(strategy: TemplateRendererStrategy, renderer: (Project) -> Unit) {
+  private fun runCustomProjectRenderer(
+    strategy: TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>,
+    renderer: (Project) -> Unit,
+  ) {
     object : Task.Backgroundable(null, "Generating project", false) {
         override fun run(indicator: ProgressIndicator) {
           val projectName = applicationName.get()
@@ -538,7 +553,9 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         if (dryRun) {
           FindReferencesRecipeExecutor(context)
         } else {
-          templateRendererStrategy.valueOrNull?.createRecipeExecutor(context) ?: DefaultRecipeExecutor(context)
+          templateRendererStrategy.valueOrNull?.let { templateRendererStrategy ->
+            templateRendererStrategy.createRecipeExecutor(context, templateRenderStrategyAdditionalUserSettings[templateRendererStrategy]!!)
+          } ?: DefaultRecipeExecutor(context)
         }
 
       val recipe: Recipe = { _ -> }
@@ -675,7 +692,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
      * @return If a custom project system name was previously saved in the DSL language property, return it.
      */
     @JvmStatic
-    fun calculateInitialCustomProjectSystem(props: PropertiesComponent): Optional<TemplateRendererStrategy> {
+    fun calculateInitialCustomProjectSystem(props: PropertiesComponent): Optional<TemplateRendererStrategy<*>> {
       val languageValue = props.getValue(PROPERTIES_NPW_DSL_LANGUAGE_KEY) ?: return Optional.empty()
       return Optional.ofNullable(TemplateRendererStrategy.EP_NAME.extensions.firstOrNull { it.id == languageValue })
     }

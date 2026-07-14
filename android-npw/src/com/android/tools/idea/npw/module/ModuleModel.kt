@@ -217,7 +217,8 @@ abstract class ModuleModel(
         if (dryRun) {
           FindReferencesRecipeExecutor(context)
         } else {
-          renderStrategy?.createRecipeExecutor(context) ?: DefaultRecipeExecutor(context)
+          renderStrategy?.createRecipeExecutor(context, templateRenderStrategyAdditionalUserSettings[templateRendererStrategy.value]!!)
+            ?: DefaultRecipeExecutor(context)
         }
 
       if (renderStrategy == null && StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() && isNewProject && useVersionCatalog.get()) {

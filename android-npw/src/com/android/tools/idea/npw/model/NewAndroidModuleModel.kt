@@ -73,8 +73,18 @@ class ExistingProjectModelData(
   override val dslLanguage: ObjectValueProperty<DslLanguage> = ObjectValueProperty(project.dslLanguageUsage())
   override val useVersionCatalog = BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
-  override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy> =
-    OptionalValueProperty.fromNullable(TemplateRendererStrategy.EP_NAME.extensions.firstOrNull { it.isProjectApplicable(project) })
+  @Suppress("UNCHECKED_CAST") // Ugly generics here make the extension point itself slightly neater
+  override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>> =
+    OptionalValueProperty.fromNullable(
+      TemplateRendererStrategy.EP_NAME.extensions.firstOrNull { it.isProjectApplicable(project) }
+        as? TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>
+    )
+  @Suppress("UNCHECKED_CAST") // Ugly generics here make the extension point itself slightly neater
+  override val templateRenderStrategyAdditionalUserSettings:
+    Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings> =
+    TemplateRendererStrategy.EP_NAME.extensions.associateWith { it.createAdditionalUserSettings() }
+      as Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings>
+
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val agpVersionSelector =
