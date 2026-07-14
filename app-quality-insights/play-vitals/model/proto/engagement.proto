@@ -26,8 +26,8 @@ option java_package = "com.google.play.developer.reporting";
 //  devices that open your app each day. An active device is one that has opened
 //  your app at least once on any given day. Data is updated daily and averaged
 //  over a selected time period (28 days by default).
-//  * `monthlyActiveDevices` (`google.type.Decimal`)
-//  * `timeInApp` (`google.type.Decimal`)
+//  * `monthlyActiveDevices` (`google.type.Decimal`): The number of devices that
+//  have opened your app at least once in the last 28 days.
 //
 // **Supported dimensions:**
 //
@@ -142,8 +142,8 @@ message QueryEngagementMetricSetRequest {
   //  active devices that open your app each day. An active device is one that
   //  has opened your app at least once on any given day. Data is updated daily
   //  and averaged over a selected time period (28 days by default).
-  //  * `monthlyActiveDevices` (`google.type.Decimal`)
-  //  * `timeInApp` (`google.type.Decimal`)
+  //  * `monthlyActiveDevices` (`google.type.Decimal`): The number of devices
+  //  that have opened your app at least once in the last 28 days.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
