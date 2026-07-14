@@ -370,7 +370,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallbackEx {
   @Nullable
   public XmlPullParser createXmlParserForFile(@NotNull String fileName) {
     try {
-      ByteArrayInputStream stream = new ByteArrayInputStream(FileResourceReader.readBytes(fileName));
+      PathString pathString = ResourcesUtil.toFileResourcePathString(fileName);
+      if (pathString == null) {
+        pathString = new PathString(fileName);
+      }
+      ByteArrayInputStream stream = new ByteArrayInputStream(FileResourceReader.readBytes(
+        pathString, ResourceIdManagerHelper.getResolver(myRenderModule.getResourceIdManager())));
       // Instantiate an XML pull parser based on the contents of the stream.
       XmlPullParser parser;
       if (XmlUtils.isProtoXml(stream)) {

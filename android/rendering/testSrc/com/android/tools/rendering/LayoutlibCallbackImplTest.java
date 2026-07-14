@@ -230,6 +230,33 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
 
   }
 
+  public void testCreateXmlParserForFile() {
+    @Language("XML") final String main = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                         "    android:layout_width=\"wrap_content\"\n" +
+                                         "    android:layout_height=\"wrap_content\">\n" +
+                                         "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/main.xml", main);
+
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, psiFile.getVirtualFile());
+    RenderLogger logger = mock(RenderLogger.class);
+    RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
+      LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
+        ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
+
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forBuildTargetReference(myBuildTarget.getBuildTarget());
+      ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
+        RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
+        LayoutlibCallbackImpl layoutlibCallback =
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true, true);
+
+        assertNotNull(layoutlibCallback.createXmlParserForFile(psiFile.getVirtualFile().getPath()));
+
+        return Unit.INSTANCE;
+      });
+    });
+  }
+
   private static File createAarDependencyWithFont(Module module, String libraryName) throws IOException {
     File aarDir = FileUtil.createTempDirectory(libraryName, "_exploded");
     createManifest(aarDir, "com.foo.bar");
