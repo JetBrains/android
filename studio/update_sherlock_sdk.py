@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import contextlib
 import glob
 import os
 import shutil
@@ -24,10 +25,10 @@ MAC_X64 = "darwin"
 
 # Artifact Filenames
 SOURCES_ZIP = "apa-platform-sources.zip"
-MAC_ARM_ZIP = "apa-platform.mac.aarch64.zip"
-MAC_X64_ZIP = "apa-platform.mac.x64.zip"
-LINUX_TAR = "apa-platform.tar.gz"
-WIN_ZIP = "apa-platform.win.zip"
+MAC_ARM_ZIP = "apa-platform.mac.aarch64-no-jdk.zip"
+MAC_X64_ZIP = "apa-platform.mac.x64-no-jdk.zip"
+LINUX_TAR = "apa-platform-no-jbr.tar.gz"
+WIN_ZIP = "apa-platform-no-jbr.win.zip"
 MANIFEST_TEMPLATE = "manifest_{}.xml"
 
 EXPECTED_ARTIFACTS: Set[str] = {SOURCES_ZIP, MAC_ARM_ZIP, MAC_X64_ZIP, LINUX_TAR, WIN_ZIP}
@@ -277,6 +278,34 @@ def _extract_artifact(artifact: Path, extract_subdir: Path, os_name: str) -> Non
       shutil.rmtree(temp_extract_dir)
 
 
+@contextlib.contextmanager
+def preserve_jbr_directories(platform_dirs: Dict[str, Path]):
+  """
+  Context manager to temporarily move JBR directories out of the way before cleaning,
+  and restore them after execution.
+  """
+  saved_jbrs: List[Tuple[Path, Path]] = []
+  with tempfile.TemporaryDirectory(prefix="jbr_backup_") as temp_dir_name:
+    jbr_temp_dir = Path(temp_dir_name)
+    try:
+      for os_name, plat_dir in platform_dirs.items():
+        jbr_path = plat_dir / "Contents" / "jbr" if os_name in (MAC_ARM, MAC_X64) else plat_dir / "jbr"
+        if not jbr_path.exists():
+          raise FileNotFoundError(f"Error: Expected JBR directory not found at {jbr_path}")
+        backup_path = jbr_temp_dir / os_name
+        shutil.move(str(jbr_path), str(backup_path))
+        saved_jbrs.append((backup_path, jbr_path))
+
+      yield
+
+    finally:
+      # Restore JBR directories (if successfully backed up)
+      for backup_path, jbr_path in saved_jbrs:
+        if backup_path.exists():
+          jbr_path.parent.mkdir(parents=True, exist_ok=True)
+          shutil.move(str(backup_path), str(jbr_path))
+          print(f"Restored JBR directory to {jbr_path}")
+
 def extract_artifacts(download_dir: Path, found_files: List[str], prebuilts: Path, metadata: Dict[str, Any], bid: str = "") -> Path:
   """
   Extracts the downloaded artifacts into the prebuilts/studio/intellij-sdk/IC directory.
@@ -294,45 +323,46 @@ def extract_artifacts(download_dir: Path, found_files: List[str], prebuilts: Pat
     WIN: sdk / WIN / SHERLOCK_SUBDIR,
   }
 
-  # Clean destinations before extraction attempts
-  for plat_dir in dest_paths.values():
-    if plat_dir.exists():
-      print(f"Cleaning existing platform directory: {plat_dir}")
-      shutil.rmtree(plat_dir)
-    plat_dir.mkdir(parents=True, exist_ok=True)
+  with preserve_jbr_directories(dest_paths):
+    # Clean destinations before extraction attempts
+    for plat_dir in dest_paths.values():
+      if plat_dir.exists():
+        print(f"Cleaning existing platform directory: {plat_dir}")
+        shutil.rmtree(plat_dir)
+      plat_dir.mkdir(parents=True, exist_ok=True)
 
-  try:
-    if LINUX_TAR in found_files:
-      _extract_artifact(download_dir / LINUX_TAR, dest_paths[LINUX], LINUX)
-    if MAC_ARM_ZIP in found_files:
-      _extract_artifact(download_dir / MAC_ARM_ZIP, dest_paths[MAC_ARM], MAC_ARM)
-    if MAC_X64_ZIP in found_files:
-      _extract_artifact(download_dir / MAC_X64_ZIP, dest_paths[MAC_X64], MAC_X64)
-    if WIN_ZIP in found_files:
-      _extract_artifact(download_dir / WIN_ZIP, dest_paths[WIN], WIN)
+    try:
+      if LINUX_TAR in found_files:
+        _extract_artifact(download_dir / LINUX_TAR, dest_paths[LINUX], LINUX)
+      if MAC_ARM_ZIP in found_files:
+        _extract_artifact(download_dir / MAC_ARM_ZIP, dest_paths[MAC_ARM], MAC_ARM)
+      if MAC_X64_ZIP in found_files:
+        _extract_artifact(download_dir / MAC_X64_ZIP, dest_paths[MAC_X64], MAC_X64)
+      if WIN_ZIP in found_files:
+        _extract_artifact(download_dir / WIN_ZIP, dest_paths[WIN], WIN)
 
-    sources_src = download_dir / SOURCES_ZIP
-    sources_dest = sdk / SOURCES_ZIP
-    if SOURCES_ZIP in found_files:
-      print(f"Copying sources zip to {sources_dest}...")
-      shutil.copyfile(sources_src, sources_dest)
+      sources_src = download_dir / SOURCES_ZIP
+      sources_dest = sdk / SOURCES_ZIP
+      if SOURCES_ZIP in found_files:
+        print(f"Copying sources zip to {sources_dest}...")
+        shutil.copyfile(sources_src, sources_dest)
 
-    # Parse manifest if it was downloaded
-    manifest_file = MANIFEST_TEMPLATE.format(bid)
-    manifest_path = download_dir / manifest_file
-    if bid and manifest_path.exists():
-      print(f"Parsing manifest {manifest_path}")
-      try:
-        xml = ET.parse(manifest_path)
-        for project in xml.getroot().findall("project"):
-          metadata[project.get("path")] = project.get("revision")
-      except ET.ParseError as e:
-        print(f"Warning: Could not parse manifest file {manifest_path}: {e}", file=sys.stderr)
-    else:
-      print("No manifest file found in artifact directory.")
+      # Parse manifest if it was downloaded
+      manifest_file = MANIFEST_TEMPLATE.format(bid)
+      manifest_path = download_dir / manifest_file
+      if bid and manifest_path.exists():
+        print(f"Parsing manifest {manifest_path}")
+        try:
+          xml = ET.parse(manifest_path)
+          for project in xml.getroot().findall("project"):
+            metadata[project.get("path")] = project.get("revision")
+        except ET.ParseError as e:
+          print(f"Warning: Could not parse manifest file {manifest_path}: {e}", file=sys.stderr)
+      else:
+        print("No manifest file found in artifact directory.")
 
-  except Exception as e:
-    raise Exception(f"Error during artifact processing: {e}")
+    except Exception as e:
+      raise Exception(f"Error during artifact processing: {e}")
 
   print(f"Artifacts extracted to {sdk}")
   write_metadata(sdk, metadata)
