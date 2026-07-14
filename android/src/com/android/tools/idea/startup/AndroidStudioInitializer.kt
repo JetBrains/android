@@ -32,11 +32,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginSuggestionProvider
-import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.util.application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.sdk.AndroidSdkUtils
+import org.jetbrains.annotations.ApiStatus
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -106,7 +106,6 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     }
   }
 
-  @OptIn(IntellijInternalApi::class)
   private fun removePluginSuggestionProviderExtension() {
     val ep = application.extensionArea.getExtensionPoint<PluginSuggestionProvider>("com.intellij.pluginSuggestionProvider")
     ep.unregisterExtensions({ _, _ -> false }, false)

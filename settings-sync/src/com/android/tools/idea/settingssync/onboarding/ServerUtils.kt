@@ -17,13 +17,11 @@ package com.android.tools.idea.settingssync.onboarding
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.settingsSync.core.UpdateResult
 import com.intellij.settingsSync.core.communicator.getAvailableSyncProviders
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@OptIn(IntellijInternalApi::class) // For getAvailableSyncProviders().
 internal suspend fun checkCloudUpdates(userEmail: String, providerCode: String): UpdateResult {
   return withContext(Dispatchers.IO) {
     val parentDisposable = Disposer.newDisposable()

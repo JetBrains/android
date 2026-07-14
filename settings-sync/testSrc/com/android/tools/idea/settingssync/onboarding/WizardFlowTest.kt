@@ -54,7 +54,6 @@ import com.intellij.openapi.extensions.PluginDescriptor
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.extensions.impl.ExtensionPointImpl
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.settingsSync.core.ServerState
@@ -125,7 +124,6 @@ class WizardFlowTest {
       }
     communicatorProvider = FakeCommunicatorProvider(communicator)
 
-    @OptIn(IntellijInternalApi::class) // For SettingsSyncCommunicatorProvider.
     val communicatorProviderBean = object : SettingsSyncCommunicatorBean() {
       override fun createInstance(componentManager: ComponentManager,
                                   pluginDescriptor: PluginDescriptor): SettingsSyncCommunicatorProvider {

@@ -27,7 +27,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.settingsSync.core.AbstractServerCommunicator
 import com.intellij.settingsSync.core.SETTINGS_SYNC_SNAPSHOT_ZIP
 import com.intellij.settingsSync.core.SettingsSnapshot
@@ -97,7 +96,6 @@ class GoogleLoginStateListener(private val coroutineScope: CoroutineScope) {
 private const val BACKUP_AND_SYNC_HELP_URL = "https://d.android.com/r/studio-ui/settings-sync/help"
 private val helpLinkPair: Pair<String, String> = Pair("Learn more", BACKUP_AND_SYNC_HELP_URL)
 
-@OptIn(IntellijInternalApi::class) // For SettingsSyncCommunicatorProvider.
 class GoogleCommunicatorProvider : SettingsSyncCommunicatorProvider {
   init {
     service<GoogleLoginStateListener>().startListening()
