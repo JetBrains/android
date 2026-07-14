@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
@@ -167,13 +168,16 @@ class LogcatToolWindowFactoryTest {
   fun showLogcat_opensLogcatPanel() {
     val toolWindow = MockToolWindow(project)
     logcatToolWindowFactory().init(toolWindow)
-    val device = Device.createPhysical("device1", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
+    val device = Device.createPhysical(DeviceId("Fake", false, "device1"), "device1", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
     project.replaceService(DeviceFinder::class.java, DeviceFinder { device }, disposable)
     deviceTracker.addDevices(device)
 
     project.messageBus
       .syncPublisher(ShowLogcatListener.TOPIC)
-      .showLogcat(PhysicalDeviceInfo("device1", "11", AndroidVersion(30, 0), "Google", "Pixel"), "com.test")
+      .showLogcat(
+        PhysicalDeviceInfo(DeviceId("Fake", false, "device1"), "device1", "11", AndroidVersion(30, 0), "Google", "Pixel"),
+        "com.test",
+      )
 
     waitForCondition { toolWindow.contentManager.contentCount == 1 }
 
@@ -181,7 +185,7 @@ class LogcatToolWindowFactoryTest {
     val logcatMainPanel: LogcatMainPanel = TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
     waitForCondition { logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice() != null }
     assertThat(content.tabName).isEqualTo("com.test (device1)")
-    assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice()?.deviceId).isEqualTo("device1")
+    assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice()?.deviceId).isEqualTo(DeviceId("Fake", false, "device1"))
     assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:com.test")
   }
 

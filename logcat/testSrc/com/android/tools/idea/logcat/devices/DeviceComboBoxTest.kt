@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.devices
 
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
@@ -62,9 +63,12 @@ class DeviceComboBoxTest {
 
   private val selectionEvents = mutableListOf<Any?>()
 
-  private val device1 = Device.createPhysical("device1", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
-  private val device2 = Device.createPhysical("device2", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
-  private val emulator = Device.createEmulator("emulator-5555", false, "11", AndroidVersion(30, 0), "AVD", "avdPath")
+  private val device1 =
+    Device.createPhysical(DeviceId("Fake", false, "device1"), "device1", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
+  private val device2 =
+    Device.createPhysical(DeviceId("Fake", false, "device2"), "device2", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
+  private val emulator =
+    Device.createEmulator(DeviceId("Fake", false, "emulator-5555"), "emulator-5555", false, "11", AndroidVersion(30, 0), "AVD", "avdPath")
 
   @Test
   fun noDevice_noSelection(): Unit =

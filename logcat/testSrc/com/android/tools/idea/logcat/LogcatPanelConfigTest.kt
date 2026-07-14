@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.sdklib.AndroidApiLevel
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceType.HANDHELD
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
@@ -74,6 +75,7 @@ class LogcatPanelConfigTest {
       {
         'device': {
           'physicalDevice': {
+            'deviceId':{'pluginId':'Fake','isTemplate':false,'identifier':'id'},
             'serialNumber':'51181FDAS003BA',
             'isOnline':false,
             'release':'16',
@@ -98,6 +100,7 @@ class LogcatPanelConfigTest {
         LogcatPanelConfig(
           device =
             PhysicalDevice(
+              DeviceId("Fake", false, "id"),
               "51181FDAS003BA",
               isOnline = false,
               release = "16",
@@ -124,6 +127,7 @@ class LogcatPanelConfigTest {
       {
         'device': {
           'emulatorDevice':{
+            'deviceId':{'pluginId':'Fake','isTemplate':false,'identifier':'id'},
             'serialNumber':'emulator-5554',
             'isOnline':false,
             'release':'16',
@@ -148,6 +152,7 @@ class LogcatPanelConfigTest {
         LogcatPanelConfig(
           device =
             EmulatorDevice(
+              DeviceId("Fake", false, "id"),
               "emulator-5554",
               isOnline = false,
               release = "16",
@@ -202,6 +207,7 @@ class LogcatPanelConfigTest {
   fun deviceRoundtrip() {
     val device =
       PhysicalDevice(
+        deviceId = DeviceId("Fake", false, "id"),
         serialNumber = "serial",
         isOnline = true,
         release = "Release",

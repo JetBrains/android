@@ -168,11 +168,11 @@ class AndroidRunConfigurationExecutor(
       processHandler.addTargetDevice(device)
       if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
         console.printHyperlink(getShowLogcatLinkText(device)) { project ->
-          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
         }
       }
       if (configuration.SHOW_LOGCAT_AUTOMATICALLY) {
-        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
       }
     }
     AndroidSessionInfo.create(processHandler, devices, applicationId)
@@ -274,7 +274,7 @@ class AndroidRunConfigurationExecutor(
     indicator.text = "Connecting debugger"
     val session = startDebugSession(device, applicationId, indicator, console)
     if (configuration.SHOW_LOGCAT_AUTOMATICALLY) {
-      project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+      project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
     }
     @Suppress("UnstableApiUsage") session.runContentDescriptor
   }

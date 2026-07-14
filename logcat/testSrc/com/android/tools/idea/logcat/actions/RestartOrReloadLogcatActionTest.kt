@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
@@ -35,7 +36,8 @@ import org.junit.Test
 class RestartOrReloadLogcatActionTest {
   @get:Rule val applicationRule = ApplicationRule()
 
-  private val device = Device.createPhysical("device", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
+  private val device =
+    Device.createPhysical(DeviceId("Fake", false, "device"), "device", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 

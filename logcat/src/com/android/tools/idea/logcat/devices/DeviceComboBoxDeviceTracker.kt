@@ -16,9 +16,8 @@
 package com.android.tools.idea.logcat.devices
 
 import com.android.adblib.AdbSession
-import com.android.adblib.serialNumber
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
-import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
@@ -42,17 +41,17 @@ constructor(private val deviceProvisioner: DeviceProvisioner, private val preexi
   ) : this(project.service<DeviceProvisionerService>().deviceProvisioner, preexistingDevice)
 
   override suspend fun trackDevices(): Flow<DeviceEvent> {
-    val onlineDevicesBySerial = mutableMapOf<String, Device>()
-    val allDevicesById = mutableMapOf<String, Device>()
+    val onlineDevicesById = mutableMapOf<DeviceId, Device>()
+    val allDevicesById = mutableMapOf<DeviceId, Device>()
 
     // Initialize state by reading all current devices
     return flow {
         val initialDevices = deviceProvisioner.devices.value
         initialDevices
           .filter { it.state.isOnline() }
-          .mapNotNull { it.state.toDevice() }
+          .mapNotNull { it.toDevice() }
           .forEach { device ->
-            onlineDevicesBySerial[device.serialNumber] = device
+            onlineDevicesById[device.deviceId] = device
             allDevicesById[device.deviceId] = device
             emit(Added(device))
           }
@@ -69,30 +68,30 @@ constructor(private val deviceProvisioner: DeviceProvisioner, private val preexi
         // If a previously known device comes online, we emit StateChanged
         // If previously online device is missing from the list, we emit a StateChanged.
         deviceProvisioner
-          .mapStateNotNull { _, state -> state.asConnectedReady() }
-          .collect { states ->
-            val onlineStatesBySerial = states.associateBy { it.connectedDevice.serialNumber }
-            onlineStatesBySerial.values.forEach { state ->
-              val device = state.toDevice() ?: return@forEach
-              if (!onlineDevicesBySerial.containsKey(device.serialNumber)) {
+          .mapStateNotNull { handle, state -> handle.takeIf { state.isReady } }
+          .collect { handles ->
+            val onlineHandlesById = handles.associateBy { it.id }
+            onlineHandlesById.values.forEach { handle ->
+              val device = handle.toDevice() ?: return@forEach
+              if (!onlineDevicesById.containsKey(device.deviceId)) {
                 if (allDevicesById.containsKey(device.deviceId)) {
                   emit(StateChanged(device))
                 } else {
                   emit(Added(device))
                 }
-                onlineDevicesBySerial[device.serialNumber] = device
+                onlineDevicesById[device.deviceId] = device
                 allDevicesById[device.deviceId] = device
               }
             }
 
             // Find devices that were online and are not anymore, then remove them.
-            onlineDevicesBySerial.keys
-              .filter { !onlineStatesBySerial.containsKey(it) }
+            onlineDevicesById.keys
+              .filter { !onlineHandlesById.containsKey(it) }
               .forEach {
-                val device = onlineDevicesBySerial[it] ?: return@forEach
+                val device = onlineDevicesById[it] ?: return@forEach
                 val deviceOffline = device.copy(isOnline = false)
                 emit(StateChanged(deviceOffline))
-                onlineDevicesBySerial.remove(it)
+                onlineDevicesById.remove(it)
                 allDevicesById[device.deviceId] = deviceOffline
               }
           }
@@ -100,5 +99,3 @@ constructor(private val deviceProvisioner: DeviceProvisioner, private val preexi
       .flowOn(Dispatchers.IO)
   }
 }
-
-private fun DeviceState.asConnectedReady() = takeIf { it.isReady } as? DeviceState.Connected

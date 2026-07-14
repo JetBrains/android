@@ -93,10 +93,10 @@ class BlazeAndroidConfigurationExecutor(
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
       if (launchOptions.isOpenLogcatAutomatically) {
-        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
       } else {
         console.printHyperlink(getShowLogcatLinkText(device)) { project ->
-          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
         }
       }
     }

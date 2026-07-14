@@ -159,9 +159,11 @@ class DeviceComboBoxDeviceTrackerTest {
   }
 
   @Test
-  fun changeState_emulatorComesOnlineWithDifferentSerialNumber(): Unit = runBlockingWithTimeout {
-    val emulator = emulator1.withSerialNumber("emulator-1")
-    val deviceHandle = emulator.addDevice(plugin)
+  fun changeState_goesOfflineComesOnlineWithDifferentSerial(): Unit = runBlockingWithTimeout {
+    val device = device1.withId("same-id")
+    val original = device.withSerialNumber("original-serial")
+    val different = device.withSerialNumber("different-serial")
+    val deviceHandle = original.addDevice(plugin)
     val deviceTracker = deviceComboBoxDeviceTracker()
     val events = mutableListOf<DeviceEvent>()
 
@@ -170,17 +172,37 @@ class DeviceComboBoxDeviceTrackerTest {
         yieldUntil { events.size == 1 }
         deviceHandle.disconnect()
         yieldUntil { events.size == 2 }
-        val emulatorReconnectedOnDifferentPort = emulator1.withSerialNumber("emulator-2")
-        emulatorReconnectedOnDifferentPort.addDevice(plugin)
+        different.addDevice(plugin)
       }
       .join()
 
+    // Assert that we get `StateChanged` event when the device reconnects rather than an `Added`
     assertThat(events)
-      .containsExactly(
-        Added(emulator.device),
-        StateChanged(emulator1.withState(OFFLINE).device),
-        StateChanged(emulator1.withSerialNumber("emulator-2").device),
-      )
+      .containsExactly(Added(original.device), StateChanged(original.withState(OFFLINE).device), StateChanged(different.device))
+      .inOrder()
+  }
+
+  @Test
+  fun changeState_emulatorComesOnlineWithDifferentSerialNumber(): Unit = runBlockingWithTimeout {
+    val emulator = emulator1.withId("same-id")
+    val original = emulator.withSerialNumber("emulator-1")
+    val different = emulator.withSerialNumber("emulator-2")
+    val deviceHandle = original.addDevice(plugin)
+    val deviceTracker = deviceComboBoxDeviceTracker()
+    val events = mutableListOf<DeviceEvent>()
+
+    launch { deviceTracker.trackDevices().take(3).toList(events) }
+      .also {
+        yieldUntil { events.size == 1 }
+        deviceHandle.disconnect()
+        yieldUntil { events.size == 2 }
+        different.addDevice(plugin)
+      }
+      .join()
+
+    // Assert that we get `StateChanged` event when the device reconnects rather than an `Added`
+    assertThat(events)
+      .containsExactly(Added(original.device), StateChanged(original.withState(OFFLINE).device), StateChanged(different.device))
       .inOrder()
   }
 
