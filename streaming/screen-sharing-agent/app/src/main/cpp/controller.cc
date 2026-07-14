@@ -525,7 +525,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     event.display_id = display_id;
     event.action = action;
     event.button_state = message.button_state();
-    event.event_time_millis = duration_cast<milliseconds>(event_time).count();;
+    event.event_time_millis = duration_cast<milliseconds>(event_time).count();
     if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_ENTER &&
         action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL) {
       if (action == AMOTION_EVENT_ACTION_DOWN) {
