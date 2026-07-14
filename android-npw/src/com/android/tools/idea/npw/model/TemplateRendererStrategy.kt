@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.npw.model
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import com.intellij.ui.components.JBLabel
 import java.io.File
+import javax.swing.JComponent
 
 /**
  * The New Project Template machinery is deeply tied to Gradle. This strategy gives us hooks to customize it for alternate template
  * rendering strategies, even though it also intercepts project creation and sync.
  */
-interface TemplateRendererStrategy {
+interface TemplateRendererStrategy<AdditionalUserSettingsT : TemplateRendererStrategy.AdditionalUserSettings> {
   val id: String
   val displayName: String
 
-  fun createRecipeExecutor(context: RenderingContext): RecipeExecutor
+  fun createRecipeExecutor(context: RenderingContext, additionalUserSettings: AdditionalUserSettingsT): RecipeExecutor
 
   fun createProject(projectName: String, projectBaseDirectory: File): Project
 
@@ -52,11 +55,29 @@ interface TemplateRendererStrategy {
   /** Returns true if files should be opened immediately in the editor before indexing completes. */
   fun isOpenImmediate(): Boolean = false
 
+  /** Stateful additional settings that will be shown in the configure android project step when this render strategy is used. */
+  interface AdditionalUserSettings {
+
+    /** Components to render to allow the user to customize the settings */
+    val labeledComponents: List<Pair<JBLabel, JComponent>>
+
+    /** Background work to initialize the user settings, such as by fetching available versions. */
+    @WorkerThread fun backgroundInitialize()
+  }
+
+  /**
+   * Instantiates the (stateful) additional settings holder for this custom template.
+   *
+   * This will always be called, even if the renderer strategy isn't selected by the user, so all computation should be deferred to
+   * backgroundInitialize.
+   */
+  fun createAdditionalUserSettings(): AdditionalUserSettingsT
+
   companion object {
-    @JvmField val EP_NAME = ExtensionPointName.create<TemplateRendererStrategy>("com.android.tools.idea.npw.templateRenderer")
+    @JvmField val EP_NAME = ExtensionPointName.create<TemplateRendererStrategy<*>>("com.android.tools.idea.npw.templateRenderer")
 
     @JvmStatic
-    fun getTemplateRendererStrategy(project: Project): TemplateRendererStrategy? {
+    fun getTemplateRendererStrategy(project: Project): TemplateRendererStrategy<*>? {
       return EP_NAME.extensions.firstOrNull { it.isProjectApplicable(project) }
     }
   }

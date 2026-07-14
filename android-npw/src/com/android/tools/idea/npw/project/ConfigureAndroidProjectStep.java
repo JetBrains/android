@@ -48,6 +48,7 @@ import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.validator.ProjectNameValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -101,6 +102,8 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,6 +111,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -115,6 +119,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import kotlin.Pair;
 import kotlin.Unit;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -266,11 +271,26 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myBindings.bind(myProjectModel.getTemplateRendererStrategy(), new SelectedItemProperty<>(myBuildConfigurationLanguageCombo).transform(
         selection -> {
           if (selection.isPresent() && selection.get() instanceof TemplateRendererStrategy) {
-            return Optional.of((TemplateRendererStrategy) selection.get());
+            //noinspection unchecked: Generic use
+            return Optional.of((TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>) selection.get());
           }
-          return Optional.<TemplateRendererStrategy>empty();
+          return Optional.empty();
         }
       ));
+      myProjectModel.getTemplateRenderStrategyAdditionalUserSettings().forEach((renderStrategy, settings) -> {
+        ObservableValue<Boolean> display =
+          new SelectedItemProperty<>(myBuildConfigurationLanguageCombo)
+            .transform(selection -> selection.isPresent() && selection.get() == renderStrategy);
+        for (Pair<@NotNull JBLabel, @NotNull JComponent> labeledComponent : settings.getLabeledComponents()) {
+          myBindings.bind(new VisibleProperty(labeledComponent.getFirst()), display);
+          myBindings.bind(new VisibleProperty(labeledComponent.getSecond()), display);
+        }
+
+      });
+
+    TemplateRenderStrategyInitializer initializer = new TemplateRenderStrategyInitializer();
+    myBuildConfigurationLanguageCombo.addActionListener(initializer);
+    initializer.ensureInitialInitialized();;
 
     if ((StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() && !ApplicationManager.getApplication().isUnitTestMode()) ||
         (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&
@@ -460,7 +480,16 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       .addComponentToRightColumn(myTvCheck)
       .addLabeledComponent(myCarPlatformComboLabel, myCarPlatformCombo)
       .addLabeledComponent(myBuildConfigurationLanguageLabel, myBuildConfigurationLanguageCombo)
-      .addLabeledComponent(myAndroidGradlePluginLabel, myAndroidGradlePluginCombo)
+      .addLabeledComponent(myAndroidGradlePluginLabel, myAndroidGradlePluginCombo);
+
+    for (TemplateRendererStrategy.AdditionalUserSettings additionalSettings : myProjectModel.getTemplateRenderStrategyAdditionalUserSettings()
+      .values()) {
+      for (Pair<JBLabel, JComponent> component : additionalSettings.getLabeledComponents()) {
+        builder.addLabeledComponent(component.getFirst(), component.getSecond());
+      }
+    }
+
+    builder
       .addComponent(myLaunchFirebasePanel)
       .addComponentFillVertically(new Spacer(), 0);
 
@@ -639,5 +668,35 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     int iconSize = JBUI.getInt("CheckBox.iconSize", 18);
     int textIconGap = JBUI.getInt("CheckBox.textIconGap", 5);
     return iconSize + textIconGap;
+  }
+
+  /**
+   * Listener to defer TemplateRendererStrategy.AdditionalUserSettings initialization,
+   * while ensuring that those initializations only happen once.
+   */
+  private class TemplateRenderStrategyInitializer implements ActionListener {
+    private final Set<TemplateRendererStrategy<?>> alreadyTriggeredInitialize = new HashSet<>();
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+      Object newValue = myBuildConfigurationLanguageCombo.getSelectedItem();
+      if (newValue instanceof TemplateRendererStrategy<?> ) {
+        ensureInitialized((TemplateRendererStrategy<?>)newValue);
+      }
+    }
+
+    public void ensureInitialInitialized() {
+      TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings> initialStrategy =
+        myProjectModel.getTemplateRendererStrategy().getValueOrNull();
+      if (initialStrategy == null) return;
+      ensureInitialized(initialStrategy);
+    }
+
+    private void ensureInitialized(TemplateRendererStrategy<?> strategy) {
+      if (!alreadyTriggeredInitialize.add(strategy)) return;
+      BackgroundTaskUtil.executeOnPooledThread(ConfigureAndroidProjectStep.this, () -> {
+        myProjectModel.getTemplateRenderStrategyAdditionalUserSettings().get(strategy).backgroundInitialize();
+      });
+    }
   }
 }
