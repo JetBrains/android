@@ -2807,6 +2807,11 @@ public final class StudioFlags {
                     "Disable native diff engine in Change Review details pane",
                     "When true, the Change Review details pane falls back to rendering file changes using markdown diff blocks instead of the native diff component.");
 
+  public static final Flag<Boolean> STUDIOBOT_ASK_USER_IN_QUERY_BOX =
+    new BooleanFlag(STUDIOBOT, "ask.user.in.query.box",
+                    "Replace the query box with the pending ask user tool call or permisisons request.",
+                    "When true, the query box UI will be completely replaced with the pending ask user tool call or permissions request instead of rendering them in the timeline.");
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
