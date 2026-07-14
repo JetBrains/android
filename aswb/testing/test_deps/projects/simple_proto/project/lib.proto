@@ -10,4 +10,12 @@ option java_multiple_files = true;
 message LibMessage {
   optional string message = 1;
   optional proto1_external.ExternalMessage external_message = 2;
+
+  enum LibEnum {
+    DEFAULT = 0;
+    VALUE_A = 1;
+    VALUE_B = 2;
+  }
+  optional LibEnum lib_enum = 3;
 }
+

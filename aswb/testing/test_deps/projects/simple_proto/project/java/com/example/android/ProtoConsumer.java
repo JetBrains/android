@@ -17,6 +17,7 @@ package com.example.android;
 
 import com.example.external.ExternalMessage;
 import com.example.lib.LibMessage;
+import com.example.lib.LibMessage.LibEnum;
 import com.example.lib.LibEdition2024OuterClass.MessageManager;
 import com.example.lib.LibEdition2024OuterClass.MessageContent;
 import com.example.lib.LibEdition2024Proto.LibMessageEdition2024DisableMultiFile;
@@ -34,6 +35,11 @@ public class ProtoConsumer {
                       .setContent("abc")
                       .build())
         .build();
+    System.out.println(LibEnum.values());
+    System.out.println(LibEnum.valueOf(0));
+    System.out.println(LibEnum.valueOf("VALUE_A"));
+    System.out.println(LibEnum.forNumber(1));
+    System.out.println(LibEnum.internalGetValueMap());
     return message.getMessage();
   }
 
@@ -75,6 +81,11 @@ public class ProtoConsumer {
 
     System.out.println(messageEdition2024EnableMultiFile.getLibEnum());
     System.out.println(messageEdition2024EnableMultiFile.getLibEnumValue());
+    System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.values());
+    System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.valueOf(1));
+    System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.valueOf("VALUE_A"));
+    System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.forNumber(1));
+    System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.internalGetValueMap());
 
     System.out.println(messageEdition2024EnableMultiFile.getRepeatedStringsList());
     System.out.println(messageEdition2024EnableMultiFile.getRepeatedStringsCount());
