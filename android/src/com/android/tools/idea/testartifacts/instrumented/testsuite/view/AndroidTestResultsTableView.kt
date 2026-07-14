@@ -103,6 +103,7 @@ import javax.swing.JTree
 import javax.swing.ListSelectionModel
 import javax.swing.SortOrder
 import javax.swing.SwingConstants
+import javax.swing.border.Border
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
@@ -447,7 +448,13 @@ private class AndroidTestResultsTableViewComponent(
           val renderComponent = originalDefaultHeaderRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
           val label = renderComponent as? JLabel ?: return renderComponent
           label.putClientProperty("html.disable", true)
-          if (column > 0) {
+          val modelColumnIndex = table.convertColumnIndexToModel(column)
+          val columnName = model.columnInfos.getOrNull(modelColumnIndex)?.name
+          val config = SpecialColumnConfiguration.get(columnName)
+          if (config != null) {
+            label.horizontalAlignment = config.horizontalAlignment
+            label.border = config.border
+          } else if (column > 0) {
             label.horizontalAlignment = SwingConstants.CENTER
             label.border = JBUI.Borders.empty()
           }
@@ -1000,7 +1007,8 @@ private object TestDurationColumnCellRenderer : DefaultTableCellRenderer() {
     super.getTableCellRendererComponent(table, durationText, isSelected, hasFocus, row, column)
     icon = null
     horizontalTextPosition = CENTER
-    horizontalAlignment = RIGHT
+    horizontalAlignment = SpecialColumnConfiguration.DURATION.horizontalAlignment
+    border = SpecialColumnConfiguration.DURATION.border
     foreground =
       if (isSelected && table.hasFocus()) {
         UIUtil.getTreeSelectionForeground(true)
@@ -1105,7 +1113,14 @@ private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer()
   ): Component {
     super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column)
     val stats = value as? AndroidTestResultStats ?: return this
-    horizontalAlignment = CENTER
+    val columnName = table.columnModel.getColumn(column).headerValue as? String
+    val config = SpecialColumnConfiguration.get(columnName)
+    if (config != null) {
+      horizontalAlignment = config.horizontalAlignment
+      border = config.border
+    } else {
+      horizontalAlignment = CENTER
+    }
     horizontalTextPosition = CENTER
     icon = getIconFor(stats.getSummaryResult())
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
@@ -1124,7 +1139,14 @@ private object AndroidTestAggregatedResultsColumnCellRenderer : DefaultTableCell
   ): Component {
     super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column)
     val stats = value as? AndroidTestResultStats ?: return this
-    horizontalAlignment = CENTER
+    val columnName = table.columnModel.getColumn(column).headerValue as? String
+    val config = SpecialColumnConfiguration.get(columnName)
+    if (config != null) {
+      horizontalAlignment = config.horizontalAlignment
+      border = config.border
+    } else {
+      horizontalAlignment = CENTER
+    }
     horizontalTextPosition = CENTER
     icon = null
     foreground =
@@ -1428,4 +1450,14 @@ private fun AndroidTestResultsRow.toAndroidTestResultsTreeNode(): AndroidTestRes
       )
     },
   )
+}
+
+private enum class SpecialColumnConfiguration(val columnName: String, val horizontalAlignment: Int, val border: Border) {
+  DURATION("Duration", SwingConstants.LEFT, JBUI.Borders.empty(0, 8, 0, 8)),
+  PREVIEW("Preview", SwingConstants.LEFT, JBUI.Borders.empty(0, 8, 0, 8)),
+  PREVIEWS("Previews", SwingConstants.LEFT, JBUI.Borders.empty(0, 8, 0, 8));
+
+  companion object {
+    fun get(columnName: String?): SpecialColumnConfiguration? = values().find { it.columnName == columnName }
+  }
 }
