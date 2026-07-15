@@ -17,6 +17,7 @@ package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation.AndroidStudioFlavor;
+import com.android.tools.asdriver.tests.metric.StepTimingRecorder;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.testlib.Adb;
 import com.android.tools.testlib.AndroidSdk;
@@ -230,9 +231,12 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public AndroidStudio runStudio(AndroidProject project) throws IOException, InterruptedException {
+    StepTimingRecorder.startSpan("runStudio");
     this.project = project;
     AndroidStudioInstallation install = getInstallation();
-    return install.run(display, env, project, sdk.getSourceDir());
+    AndroidStudio studio = install.run(display, env, project, sdk.getSourceDir());
+    StepTimingRecorder.endSpan("runStudio");
+    return studio;
   }
 
   public void runStudio(@NotNull final AndroidProject project,
@@ -322,6 +326,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
   /** Runs and returns an emulator using the given {@link Emulator.SystemImage}. */
   public Emulator runEmulator(Emulator.SystemImage systemImage, List<String> extraEmulatorFlags) throws IOException, InterruptedException {
+    StepTimingRecorder.startSpan("runEmulator");
     TestLogger.log("Emulator#runEmulator");
     String curEmulatorName = String.format("emu%d", emulators.size());
     Path systemImageDir = Workspace.getRoot(systemImage.path);
@@ -330,15 +335,22 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     // Increase grpc port by one after spawning an emulator to avoid conflict
     Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++, extraEmulatorFlags, useSnapshot ? Emulator.BootMode.FROM_SNAPSHOT_NO_SNAPSHOT_SAVE : Emulator.BootMode.COLD_BOOT_NO_SNAPSHOT_SAVE);
     emulators.add(emulator);
+    StepTimingRecorder.endSpan("runEmulator");
     return emulator;
   }
 
   public Adb runAdb() throws IOException {
-    return Adb.start(sdk, fileSystem);
+    StepTimingRecorder.startSpan("runAdb");
+    Adb adb = Adb.start(sdk, fileSystem);
+    StepTimingRecorder.endSpan("runAdb");
+    return adb;
   }
 
   public Adb runAdb(boolean startServer, String... args) throws IOException {
-    return Adb.start(sdk, fileSystem, startServer, args);
+    StepTimingRecorder.startSpan("runAdb");
+    Adb adb = Adb.start(sdk, fileSystem, startServer, args);
+    StepTimingRecorder.endSpan("runAdb");
+    return adb;
   }
 
   public void runAdb(Consumer<Adb> callback) throws IOException {
@@ -361,6 +373,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
   @Override
   public void close() throws Exception {
+    StepTimingRecorder.commitDynamicPerfBenchmarks();
     display.close();
     try {
       try {
