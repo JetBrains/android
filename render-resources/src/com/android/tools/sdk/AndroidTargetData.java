@@ -72,6 +72,8 @@ public class AndroidTargetData {
 
   private LayoutLibrary myLayoutLibrary;
 
+  private final Object myStaticConstantsLock = new Object();
+  @GuardedBy("myStaticConstantsLock")
   private volatile MyStaticConstantsData myStaticConstantsData;
 
   @VisibleForTesting
@@ -202,11 +204,18 @@ public class AndroidTargetData {
   }
 
   @NotNull
-  public synchronized MyStaticConstantsData getStaticConstantsData() {
-    if (myStaticConstantsData == null) {
-      myStaticConstantsData = new MyStaticConstantsData();
+  public MyStaticConstantsData getStaticConstantsData() {
+    MyStaticConstantsData data = myStaticConstantsData;
+    if (data == null) {
+      synchronized (myStaticConstantsLock) {
+        data = myStaticConstantsData;
+        if (data == null) {
+          data = new MyStaticConstantsData();
+          myStaticConstantsData = data;
+        }
+      }
     }
-    return myStaticConstantsData;
+    return data;
   }
 
   /**
@@ -221,8 +230,8 @@ public class AndroidTargetData {
    */
   @Slow
   @Nullable
-  public synchronized ResourceRepository getFrameworkResources(@NotNull Set<String> languages,
-                                                               @NotNull List<? extends FrameworkOverlay> overlays) {
+  public ResourceRepository getFrameworkResources(@NotNull Set<String> languages,
+                                                  @NotNull List<? extends FrameworkOverlay> overlays) {
     return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
       myTarget.getPath(IAndroidTarget.RESOURCES),
       myTarget instanceof CompatibilityRenderTarget,
@@ -307,19 +316,23 @@ public class AndroidTargetData {
   private static final Map<AndroidSdkData, Map<String, SoftReference<AndroidTargetData>>> myTargetDataCache = new WeakHashMap<>();
 
   public static AndroidTargetData get(@NotNull AndroidSdkData sdk, @NotNull IAndroidTarget target) {
-    Map<String, SoftReference<AndroidTargetData>> targetDataByTarget = myTargetDataCache.computeIfAbsent(sdk, s -> Maps.newHashMap());
-    String key = target.hashString();
-    final SoftReference<AndroidTargetData> targetDataRef = targetDataByTarget.get(key);
-    AndroidTargetData targetData = targetDataRef != null ? targetDataRef.get() : null;
-    if (targetData == null) {
-      targetData = new AndroidTargetData(sdk, target);
-      targetDataByTarget.put(key, new SoftReference<>(targetData));
+    synchronized (myTargetDataCache) {
+      Map<String, SoftReference<AndroidTargetData>> targetDataByTarget = myTargetDataCache.computeIfAbsent(sdk, s -> Maps.newHashMap());
+      String key = target.hashString();
+      final SoftReference<AndroidTargetData> targetDataRef = targetDataByTarget.get(key);
+      AndroidTargetData targetData = targetDataRef != null ? targetDataRef.get() : null;
+      if (targetData == null) {
+        targetData = new AndroidTargetData(sdk, target);
+        targetDataByTarget.put(key, new SoftReference<>(targetData));
+      }
+      return targetData;
     }
-    return targetData;
   }
 
   @TestOnly
   public static void clearCache() {
-    myTargetDataCache.clear();
+    synchronized (myTargetDataCache) {
+      myTargetDataCache.clear();
+    }
   }
 }
