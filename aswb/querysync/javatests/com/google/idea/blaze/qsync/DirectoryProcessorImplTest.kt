@@ -57,7 +57,7 @@ class DirectoryProcessorImplTest {
   fun testProcessDirectory_emptyDir() {
     runBlocking {
       createDirectory("empty")
-      val processor = DirectoryProcessorImpl(context, emptySet())
+      val processor = directoryProcessor(context) { _, _, c -> c }
       val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("empty"))
 
       assertThat(result).isEqualTo(DirectoryContents(emptyList(), emptyList()))
@@ -72,60 +72,11 @@ class DirectoryProcessorImplTest {
       createDirectory("dir1/subdir1")
       createDirectory("dir1/subdir2")
 
-      val processor = DirectoryProcessorImpl(context, emptySet())
+      val processor = directoryProcessor(context) { _, _, c -> c }
       val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1"))
 
       assertThat(result?.files).containsExactly(workspaceRoot.resolve("dir1/file1.txt"), workspaceRoot.resolve("dir1/file2.txt"))
       assertThat(result?.subDirectories).containsExactly(workspaceRoot.resolve("dir1/subdir1"), workspaceRoot.resolve("dir1/subdir2"))
-    }
-  }
-
-  @Test
-  fun testProcessDirectory_excludes() {
-    runBlocking {
-      createFile("dir1/file1.txt")
-      createDirectory("dir1/excluded")
-      createFile("dir1/excluded/file2.txt")
-
-      val excludes = setOf(workspaceRoot.resolve("dir1/excluded"))
-      val processor = DirectoryProcessorImpl(context, excludes)
-
-      // Processing a directory within the excluded set
-      val excludedResult = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1/excluded"))
-      assertThat(excludedResult).isNull()
-
-      // Processing the parent, the excluded subdir should not be listed in subDirectories
-      val parentResult = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1"))
-      assertThat(parentResult?.files).containsExactly(workspaceRoot.resolve("dir1/file1.txt"))
-      assertThat(parentResult?.subDirectories).isEmpty()
-    }
-  }
-
-  @Test
-  fun testProcessDirectory_nestedWorkspace_moduleBazel() {
-    runBlocking {
-      createFile("dir1/file1.txt")
-      createDirectory("dir1/nested")
-      createFile("dir1/nested/MODULE.bazel")
-      createFile("dir1/nested/file2.txt")
-
-      val processor = DirectoryProcessorImpl(context, emptySet())
-      val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1/nested"))
-      assertThat(result).isNull()
-    }
-  }
-
-  @Test
-  fun testProcessDirectory_nestedWorkspace_workspaceFile() {
-    runBlocking {
-      createFile("dir1/file1.txt")
-      createDirectory("dir1/nested")
-      createFile("dir1/nested/WORKSPACE")
-      createFile("dir1/nested/file2.txt")
-
-      val processor = DirectoryProcessorImpl(context, emptySet())
-      val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1/nested"))
-      assertThat(result).isNull()
     }
   }
 
@@ -140,7 +91,7 @@ class DirectoryProcessorImplTest {
       assertThat(success).isTrue()
 
       try {
-        val processor = DirectoryProcessorImpl(context, emptySet())
+        val processor = directoryProcessor(context) { _, _, c -> c }
         val result = processor.processDirectory(workspaceRoot, unreadableDir)
         assertThat(result).isNull() // Expect null because the directory is not readable
       } finally {
