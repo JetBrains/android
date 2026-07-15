@@ -75,4 +75,40 @@ public class AndroidTargetDataTest extends AndroidTestCase {
 
     assertThat(publicAttrs.getAttrs()).containsExactly(ResourceReference.attr(ResourceNamespace.ANDROID, "realAttr"));
   }
+
+  public void testNoSynchronizationOnTargetDataInstance() throws Exception {
+    IAndroidTarget target = mock(IAndroidTarget.class);
+    File tempDir = new File(myFixture.getTempDirPath());
+    File resDir = new File(tempDir, "sdk/res");
+    File actionsDir = new File(tempDir, "sdk/actions");
+    assertTrue(resDir.mkdirs());
+    assertTrue(actionsDir.mkdirs());
+    File actionFile = new File(actionsDir, "actions.txt");
+    asCharSink(actionFile, UTF_8).write("android.intent.action.MAIN\n");
+
+    when(target.getPath(eq(IAndroidTarget.RESOURCES))).thenReturn(resDir.toPath());
+    when(target.getPath(eq(IAndroidTarget.ACTIONS_ACTIVITY))).thenReturn(actionFile.toPath());
+    when(target.getPath(eq(IAndroidTarget.ACTIONS_SERVICE))).thenReturn(actionFile.toPath());
+    when(target.getPath(eq(IAndroidTarget.ACTIONS_BROADCAST))).thenReturn(actionFile.toPath());
+    when(target.getPath(eq(IAndroidTarget.CATEGORIES))).thenReturn(actionFile.toPath());
+
+    AndroidTargetData targetData = new AndroidTargetData(mock(AndroidSdkData.class), target);
+
+    java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+    java.util.concurrent.atomic.AtomicBoolean completedWithoutBlocking = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    Thread testThread = new Thread(() -> {
+      targetData.getFrameworkResources(java.util.Collections.emptySet(), java.util.Collections.emptyList());
+      targetData.getStaticConstantsData();
+      completedWithoutBlocking.set(true);
+      latch.countDown();
+    });
+
+    synchronized (targetData) {
+      testThread.start();
+      boolean finished = latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
+      assertTrue("Methods getFrameworkResources or getStaticConstantsData blocked waiting for targetData monitor lock", finished);
+      assertTrue(completedWithoutBlocking.get());
+    }
+  }
 }
