@@ -35,12 +35,17 @@ fun findCatalogKey(tomlFile: TomlFile, declarationPath: String): PsiElement? {
   val prefix = listOf("versions.", "bundles.", "plugins.")
   val section: String
   val target: String
-  if (prefix.none { declarationPath.startsWith(it) }) {
+
+  // Handle the case when the key part is wrapped in backticks.
+  // E.g., if it is a Kotlin hard word: libs.foo.`for`.bar
+  val normalizedDeclarationPath = declarationPath.replace("`", "")
+
+  if (prefix.none { normalizedDeclarationPath.startsWith(it) }) {
     section = "libraries"
-    target = declarationPath
+    target = normalizedDeclarationPath
   } else {
-    section = declarationPath.substringBefore('.')
-    target = declarationPath.substringAfter('.')
+    section = normalizedDeclarationPath.substringBefore('.')
+    target = normalizedDeclarationPath.substringAfter('.')
   }
 
   // At the root level, look for the right section (versions, libraries, etc)
