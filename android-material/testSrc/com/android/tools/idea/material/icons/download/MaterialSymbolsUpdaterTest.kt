@@ -373,4 +373,28 @@ class MaterialSymbolsUpdaterTest {
     assertThat(updatedFontFile).exists()
     assertEquals(NEW_FILE_CONTENT, updatedFontFile.readText())
   }
+
+  @Test
+  fun testUrlStringChangesWithFilledAndOtherConfigurations() {
+    val unFilledConfig = SymbolConfiguration(Symbols.OUTLINED, 400, 0, 24, filled = false)
+    val filledConfig = SymbolConfiguration(Symbols.OUTLINED, 400, 0, 24, filled = true)
+    val customConfig = SymbolConfiguration(Symbols.OUTLINED, 700, 200, 48, filled = true)
+
+    assertEquals(
+      "https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/favorite/default/24px.xml",
+      unFilledConfig.toUrlString("favorite"),
+    )
+    assertEquals(
+      "https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/favorite/fill1/24px.xml",
+      filledConfig.toUrlString("favorite"),
+    )
+    assertEquals(
+      "https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/favorite/wght700grad200fill1/48px.xml",
+      customConfig.toUrlString("favorite"),
+    )
+
+    assertEquals("favorite_24px.xml", unFilledConfig.toFileName("favorite"))
+    assertEquals("favorite_fill1_24px.xml", filledConfig.toFileName("favorite"))
+    assertEquals("favorite_wght700grad200fill1_48px.xml", customConfig.toFileName("favorite"))
+  }
 }
