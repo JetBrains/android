@@ -1,3 +1,4 @@
+# Bug component: 147363
 #
 # Project system APIs should be general to be applicable to multiple
 # Android Studio subsystems.
