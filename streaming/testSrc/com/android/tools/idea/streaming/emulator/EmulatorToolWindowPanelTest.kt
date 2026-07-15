@@ -1352,11 +1352,12 @@ class EmulatorToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
 
     val container = HeadlessRootPaneContainer(panel)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
     val glassPane = container.glassPane
 
     val initialMousePosition = Point(glassPane.x + glassPane.width / 2, glassPane.y + glassPane.height / 2)
     val pointerInfo = mock<PointerInfo>()
-    whenever(pointerInfo.location).thenReturn(initialMousePosition)
+    whenever(pointerInfo.location).thenAnswer { Point(initialMousePosition) }
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
     mouseInfoMock.whenever<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
@@ -1418,7 +1419,7 @@ class EmulatorToolWindowPanelTest {
     glassPane.dispatch(event)
     var call = emulator.getNextGrpcCall(2.seconds, callFilter)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 2.3561945 y: 1.5707964")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: -0.07853982 y: -0.03926991")
 
     val rotationExpectations =
       mapOf(

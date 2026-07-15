@@ -46,6 +46,7 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.KeyboardFocusManager
+import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
@@ -54,6 +55,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import javax.swing.Icon
 import javax.swing.JEditorPane
+import javax.swing.SwingUtilities
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 import kotlin.math.abs
@@ -235,6 +237,21 @@ internal fun Component.containsFocus(): Boolean {
     component = component.parent
   }
   return false
+}
+
+/** Checks if the mouse pointer is inside this [Component]. */
+fun Component.isMouseInside(): Boolean {
+  // Ensure the component is showing on the screen before converting screen coordinates.
+  if (!isShowing) {
+    return false
+  }
+  // Get the current mouse pointer location on the screen.
+  val pointerInfo = MouseInfo.getPointerInfo() ?: return false
+  val mouseLocation = pointerInfo.location
+  // Convert the screen coordinates to the component's coordinate space.
+  SwingUtilities.convertPointFromScreen(mouseLocation, this)
+  // Check if the converted point is inside the component.
+  return contains(mouseLocation)
 }
 
 internal inline fun <reified T : Any> Component.findAncestor(): T? = ComponentUtil.getStrictParentOfType(T::class.java, this)
