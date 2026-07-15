@@ -83,7 +83,7 @@ private fun getDisplayName(name: String): String {
 
 private fun getFileName(symbolConfiguration: SymbolConfiguration, metadata: MaterialMetadataIcon): String {
   val shortenedType = symbolConfiguration.type.localName.removePrefix("materialsymbols")
-  return "${shortenedType}_${symbolConfiguration.toFileName(metadata.name)}"
+  return "${shortenedType}_${metadata.name}.xml"
 }
 
 /**

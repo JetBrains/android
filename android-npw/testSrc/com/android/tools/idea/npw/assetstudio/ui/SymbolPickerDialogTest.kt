@@ -22,7 +22,6 @@ import com.android.tools.idea.material.icons.common.Symbols
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.npw.assetstudio.assets.MaterialSymbolsVirtualFile
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
@@ -68,12 +67,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), JComboBox::class.java).forEach { box ->
@@ -94,12 +88,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), JComboBox::class.java).forEach { box ->
@@ -118,12 +107,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       UIUtil.findComponentOfType(symbolsPicker.createCenterPanel(), JBTable::class.java).let { table ->
@@ -140,12 +124,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), JComboBox::class.java).forEach { box ->
@@ -167,12 +146,7 @@ class SymbolPickerDialogTest {
     runBlocking(Dispatchers.Main) {
       val testDirectory = createTempDirectory()
       val dialog =
-        SymbolPickerDialog(
-          projectRule.fixture.module.androidFacet!!,
-          projectRule.fixture.testRootDisposable,
-          TestSymbolsUrlProvider(testDirectory),
-          TestSymbolsMetadataUrlProvider,
-        )
+        SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
       val symbolsPicker = getInitializedIconPickerDialog(dialog)
 
       UIUtil.findComponentsOfType(symbolsPicker.createCenterPanel(), SearchTextField::class.java).first().let { searchField ->
@@ -206,12 +180,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val dialog =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       val centerPanel = dialog.createCenterPanel()
@@ -227,12 +196,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       val refreshButton =
@@ -247,12 +211,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       val centerPanel = symbolsPicker.createCenterPanel()
@@ -292,12 +251,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       val table = UIUtil.findComponentOfType(symbolsPicker.createCenterPanel(), JBTable::class.java)
@@ -312,12 +266,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            TestSymbolsMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), TestSymbolsMetadataUrlProvider)
         )
 
       val table = UIUtil.findComponentOfType(symbolsPicker.createCenterPanel(), JBTable::class.java)
@@ -346,12 +295,7 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val symbolsPicker =
         getInitializedIconPickerDialog(
-          SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
-            projectRule.fixture.testRootDisposable,
-            TestSymbolsUrlProvider(testDirectory),
-            slowMetadataUrlProvider,
-          )
+          SymbolPickerDialog(projectRule.fixture.testRootDisposable, TestSymbolsUrlProvider(testDirectory), slowMetadataUrlProvider)
         )
 
       assertThat(symbolsPicker.isRefreshButtonEnabled()).isTrue()
@@ -409,7 +353,6 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val dialog =
         SymbolPickerDialog(
-          projectRule.fixture.module.androidFacet!!,
           projectRule.fixture.testRootDisposable,
           TestSymbolsUrlProvider(testDirectory),
           TestSymbolsMetadataUrlProvider,
@@ -447,7 +390,6 @@ class SymbolPickerDialogTest {
       val testDirectory = createTempDirectory()
       val dialog =
         SymbolPickerDialog(
-          projectRule.fixture.module.androidFacet!!,
           projectRule.fixture.testRootDisposable,
           TestSymbolsUrlProvider(testDirectory),
           TestSymbolsMetadataUrlProvider,
@@ -492,7 +434,6 @@ class SymbolPickerDialogTest {
       val dialog =
         object :
           SymbolPickerDialog(
-            projectRule.fixture.module.androidFacet!!,
             projectRule.fixture.testRootDisposable,
             TestSymbolsUrlProvider(testDirectory),
             TestSymbolsMetadataUrlProvider,
