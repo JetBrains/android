@@ -582,7 +582,7 @@ PROJECT                       : project
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : debug
+            SelectedBuildVariant          : basicBarDebug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -608,13 +608,13 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:assembleDebugAndroidTest, :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugAndroidTestSources, :dyn_feature:compileDebugSources, :dyn_feature:compileDebugUnitTestSources
-                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateDebugAndroidTestSources, :dyn_feature:generateDebugSources
-                APK_FROM_BUNDLE               : :dyn_feature:assembleDebugAndroidTest
-                BASELINE_PROFILE_GEN          : :dyn_feature:generateDebugBaselineProfile
+                CLEAN                         : :dyn_feature:createMockableJar, :dyn_feature:generateBasicBarDebugAndroidTestSources, :dyn_feature:generateBasicBarDebugSources
+                ASSEMBLE                      : :dyn_feature:assembleBasicBarDebug, :dyn_feature:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleBasicBarDebugUnitTest
+                REBUILD                       : :dyn_feature:assembleBasicBarDebug, :dyn_feature:assembleBasicBarDebugAndroidTest, :dyn_feature:assembleBasicBarDebugUnitTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :dyn_feature:compileBasicBarDebugAndroidTestSources, :dyn_feature:compileBasicBarDebugSources, :dyn_feature:compileBasicBarDebugUnitTestSources
+                SOURCE_GEN                    : :dyn_feature:createMockableJar, :dyn_feature:generateBasicBarDebugAndroidTestSources, :dyn_feature:generateBasicBarDebugSources
+                APK_FROM_BUNDLE               : :dyn_feature:assembleBasicBarDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :dyn_feature:generateBasicBarDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :dyn_feature:generateBaselineProfile
     MODULE                        : project.dyn_feature.androidTest
         LINKED_ANDROID_MODULE_GROUP
@@ -627,7 +627,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -635,7 +635,7 @@ PROJECT                       : project
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : debug
+            SelectedBuildVariant          : basicBarDebug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -649,10 +649,14 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/androidTest [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/androidTestBar [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/androidTestBasic [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/androidTestBasicBar [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/androidTestBasicBarDebug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/baselineProfiles [-]
@@ -661,6 +665,34 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBar/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBar/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBar/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBar/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBar/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBar/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBar/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasic/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasic/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasic/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasic/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasic/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasic/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasic/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasicBar/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasicBar/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasicBar/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasicBar/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasicBar/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasicBar/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasicBar/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasicBarDebug/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasicBarDebug/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasicBarDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasicBarDebug/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestBasicBarDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasicBarDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestBasicBarDebug/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestDebug/java [-]
@@ -673,16 +705,80 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.dyn_feature.main
             Scope                         : Test
         BUILD_TASKS
-                CLEAN                         : :dyn_feature:generateDebugAndroidTestSources
-                ASSEMBLE                      : :dyn_feature:assembleDebugAndroidTest
-                REBUILD                       : :dyn_feature:assembleDebugAndroidTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugAndroidTestSources
-                SOURCE_GEN                    : :dyn_feature:generateDebugAndroidTestSources
-                APK_FROM_BUNDLE               : :dyn_feature:assembleDebugAndroidTest
-                BASELINE_PROFILE_GEN          : :dyn_feature:generateDebugBaselineProfile
+                CLEAN                         : :dyn_feature:generateBasicBarDebugAndroidTestSources
+                ASSEMBLE                      : :dyn_feature:assembleBasicBarDebugAndroidTest
+                REBUILD                       : :dyn_feature:assembleBasicBarDebugAndroidTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :dyn_feature:compileBasicBarDebugAndroidTestSources
+                SOURCE_GEN                    : :dyn_feature:generateBasicBarDebugAndroidTestSources
+                APK_FROM_BUNDLE               : :dyn_feature:assembleBasicBarDebugAndroidTest
+                BASELINE_PROFILE_GEN          : :dyn_feature:generateBasicBarDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :dyn_feature:generateBaselineProfile
     MODULE                        : project.dyn_feature.main
         LINKED_ANDROID_MODULE_GROUP
@@ -695,13 +791,13 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : debug
+            SelectedBuildVariant          : basicBarDebug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -715,11 +811,43 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebug/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/bar [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/basic [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/basicBar [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/basicBarDebug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/main
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebug/out [-]
             Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/bar/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/bar/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/bar/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/bar/keepRules [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/bar/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/bar/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/bar/resources [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basic/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basic/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basic/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basic/keepRules [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basic/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basic/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basic/resources [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basicBar/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basicBar/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basicBar/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basicBar/keepRules [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basicBar/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basicBar/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basicBar/resources [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basicBarDebug/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basicBarDebug/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basicBarDebug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basicBarDebug/keepRules [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/basicBarDebug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basicBarDebug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/basicBarDebug/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/debug/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/debug/java [-]
@@ -739,13 +867,45 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar [=]
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        ORDER_ENTRY                   : project.app.main
         BUILD_TASKS
-                CLEAN                         : :dyn_feature:generateDebugSources
-                ASSEMBLE                      : :dyn_feature:assembleDebug
-                REBUILD                       : :dyn_feature:assembleDebug, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugSources
-                SOURCE_GEN                    : :dyn_feature:generateDebugSources
-                BASELINE_PROFILE_GEN          : :dyn_feature:generateDebugBaselineProfile
+                CLEAN                         : :dyn_feature:generateBasicBarDebugSources
+                ASSEMBLE                      : :dyn_feature:assembleBasicBarDebug
+                REBUILD                       : :dyn_feature:assembleBasicBarDebug, :dyn_feature:clean
+                COMPILE_JAVA                  : :dyn_feature:compileBasicBarDebugSources
+                SOURCE_GEN                    : :dyn_feature:generateBasicBarDebugSources
+                BASELINE_PROFILE_GEN          : :dyn_feature:generateBasicBarDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :dyn_feature:generateBaselineProfile
     MODULE                        : project.dyn_feature.unitTest
         LINKED_ANDROID_MODULE_GROUP
@@ -758,7 +918,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/dyn_feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -766,7 +926,7 @@ PROJECT                       : project
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : debug
+            SelectedBuildVariant          : basicBarDebug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -780,10 +940,14 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/test [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/testBar [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/testBasic [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/testBasicBar [-]
+        CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/testBasicBarDebug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/testDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/test/baselineProfiles [-]
@@ -792,6 +956,33 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/test/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBar/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBar/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBar/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBar/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBar/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBar/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBar/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasic/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasic/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasic/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasic/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasic/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasic/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasic/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasicBar/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasicBar/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasicBar/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasicBar/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasicBar/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasicBar/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasicBar/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasicBarDebug/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasicBarDebug/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasicBarDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasicBarDebug/keepRules [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testBasicBarDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testBasicBarDebug/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testDebug/java [-]
@@ -804,15 +995,79 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : project.app.main
+            Scope                         : Test
         ORDER_ENTRY                   : project.dyn_feature.main
             Scope                         : Test
         BUILD_TASKS
                 CLEAN                         : :dyn_feature:createMockableJar
-                ASSEMBLE                      : :dyn_feature:assembleDebugUnitTest
-                REBUILD                       : :dyn_feature:assembleDebugUnitTest, :dyn_feature:clean
-                COMPILE_JAVA                  : :dyn_feature:compileDebugUnitTestSources
+                ASSEMBLE                      : :dyn_feature:assembleBasicBarDebugUnitTest
+                REBUILD                       : :dyn_feature:assembleBasicBarDebugUnitTest, :dyn_feature:clean
+                COMPILE_JAVA                  : :dyn_feature:compileBasicBarDebugUnitTestSources
                 SOURCE_GEN                    : :dyn_feature:createMockableJar
-                BASELINE_PROFILE_GEN          : :dyn_feature:generateDebugBaselineProfile
+                BASELINE_PROFILE_GEN          : :dyn_feature:generateBasicBarDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :dyn_feature:generateBaselineProfile
     MODULE                        : project.jav
         ExternalModuleGroup           : project
@@ -2739,11 +2994,11 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     BUILD_TASKS
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateDebugAndroidTestSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugAndroidTest, <PROJECT>::dyn_feature:assembleDebugUnitTest, <PROJECT>::jav:assemble, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::dyn_feature:assembleDebug, <PROJECT>::dyn_feature:assembleDebugAndroidTest, <PROJECT>::dyn_feature:assembleDebugUnitTest, <PROJECT>::dyn_feature:clean, <PROJECT>::jav:assemble, <PROJECT>::jav:clean, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:clean, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested1:deep:clean, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:clean, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:deep:clean, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileBasicBarDebugAndroidTestSources, <PROJECT>::app:compileBasicBarDebugSources, <PROJECT>::app:compileBasicBarDebugUnitTestSources, <PROJECT>::dyn_feature:compileDebugAndroidTestSources, <PROJECT>::dyn_feature:compileDebugSources, <PROJECT>::dyn_feature:compileDebugUnitTestSources, <PROJECT>::jav:compileJava, <PROJECT>::jav:compileTestJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::nested1:compileDebugAndroidTestSources, <PROJECT>::nested1:compileDebugSources, <PROJECT>::nested1:compileDebugUnitTestSources, <PROJECT>::nested1:deep:compileDebugAndroidTestSources, <PROJECT>::nested1:deep:compileDebugSources, <PROJECT>::nested1:deep:compileDebugUnitTestSources, <PROJECT>::nested2:compileBasicDebugAndroidTestSources, <PROJECT>::nested2:compileBasicDebugSources, <PROJECT>::nested2:compileBasicDebugUnitTestSources, <PROJECT>::nested2:deep:compileDebugAndroidTestSources, <PROJECT>::nested2:deep:compileDebugSources, <PROJECT>::nested2:deep:compileDebugUnitTestSources, <PROJECT>::nested2:trans:deep2:compileDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:compileDebugSources, <PROJECT>::nested2:trans:deep2:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateDebugAndroidTestSources, <PROJECT>::dyn_feature:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
+            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateBasicBarDebugAndroidTestSources, <PROJECT>::dyn_feature:generateBasicBarDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::dyn_feature:assembleBasicBarDebug, <PROJECT>::dyn_feature:assembleBasicBarDebugAndroidTest, <PROJECT>::dyn_feature:assembleBasicBarDebugUnitTest, <PROJECT>::jav:assemble, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::dyn_feature:assembleBasicBarDebug, <PROJECT>::dyn_feature:assembleBasicBarDebugAndroidTest, <PROJECT>::dyn_feature:assembleBasicBarDebugUnitTest, <PROJECT>::dyn_feature:clean, <PROJECT>::jav:assemble, <PROJECT>::jav:clean, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:clean, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested1:deep:clean, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:clean, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:deep:clean, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileBasicBarDebugAndroidTestSources, <PROJECT>::app:compileBasicBarDebugSources, <PROJECT>::app:compileBasicBarDebugUnitTestSources, <PROJECT>::dyn_feature:compileBasicBarDebugAndroidTestSources, <PROJECT>::dyn_feature:compileBasicBarDebugSources, <PROJECT>::dyn_feature:compileBasicBarDebugUnitTestSources, <PROJECT>::jav:compileJava, <PROJECT>::jav:compileTestJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources, <PROJECT>::nested1:compileDebugAndroidTestSources, <PROJECT>::nested1:compileDebugSources, <PROJECT>::nested1:compileDebugUnitTestSources, <PROJECT>::nested1:deep:compileDebugAndroidTestSources, <PROJECT>::nested1:deep:compileDebugSources, <PROJECT>::nested1:deep:compileDebugUnitTestSources, <PROJECT>::nested2:compileBasicDebugAndroidTestSources, <PROJECT>::nested2:compileBasicDebugSources, <PROJECT>::nested2:compileBasicDebugUnitTestSources, <PROJECT>::nested2:deep:compileDebugAndroidTestSources, <PROJECT>::nested2:deep:compileDebugSources, <PROJECT>::nested2:deep:compileDebugUnitTestSources, <PROJECT>::nested2:trans:deep2:compileDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:compileDebugSources, <PROJECT>::nested2:trans:deep2:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateBasicBarDebugAndroidTestSources, <PROJECT>::dyn_feature:generateBasicBarDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
             BUNDLE                        : :app:bundleBasicBarDebug
             APK_FROM_BUNDLE               : :app:extractApksForBasicBarDebug
             BASELINE_PROFILE_GEN          : :app:generateBasicBarDebugBaselineProfile

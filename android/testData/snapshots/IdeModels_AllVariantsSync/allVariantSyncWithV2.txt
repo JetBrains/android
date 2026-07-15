@@ -1210,11 +1210,11 @@ LIBRARY_TABLE
         projectPath                   : :app
         sourceSet                     : MAIN
         variant                       : basicBarDebug
-    - library                     : <ROOT>::dyn_feature@debug (IdeModuleLibraryImpl)
+    - library                     : <ROOT>::dyn_feature@basicBarDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :dyn_feature
         sourceSet                     : MAIN
-        variant                       : debug
+        variant                       : basicBarDebug
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :lib

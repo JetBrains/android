@@ -812,36 +812,197 @@ MODULE                        : project.dyn_feature
         HtmlReport                    : true
         XmlReport                     : true
         CheckReleaseBuilds            : true
-    LintModelVariant              : debug
+    LintModelVariant              : basicBarDebug
         BuildFeatures
             ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
         MainArtifact
-            - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebug/out [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
+                    __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
+                    android.arch.core:common      : null => android.arch.core:common:1.1.1
+                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
+                    android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
+                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    artifacts::app                : null => :app@main
+                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
+                    com.android.support:collections         : null => com.android.support:collections:28.0.0
+                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                    com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                    com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                    com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
+                    com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
+                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 PackageDependencies
-            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
-            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
+                    __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
+                    android.arch.core:common      : null => android.arch.core:common:1.1.1
+                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
+                    android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
+                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    artifacts::app                : null => :app@main
+                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
+                    com.android.support:collections         : null => com.android.support:collections:28.0.0
+                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                    com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                    com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                    com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
+                    com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
+                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_r_class_jar/basicBarDebug/generateBasicBarDebugRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
+                    __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
+                    android.arch.core:common      : null => android.arch.core:common:1.1.1
+                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
+                    android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
+                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    artifacts::app                : null => :app@main
                     artifacts::dyn_feature        : null => :dyn_feature@main
+                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
+                    com.android.support:collections         : null => com.android.support:collections:28.0.0
+                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                    com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                    com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                    com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
+                    com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
+                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 PackageDependencies
+                    __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
+                    android.arch.core:common      : null => android.arch.core:common:1.1.1
+                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
+                    android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
+                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    artifacts::app                : null => :app@main
                     artifacts::dyn_feature        : null => :dyn_feature@main
-            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar [-]
-            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
+                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
+                    com.android.support:collections         : null => com.android.support:collections:28.0.0
+                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                    com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                    com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                    com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
+                    com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
+                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.dyn_feature.test
-        - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        - GeneratedSourceFolders      : <ROOT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
+                __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
+                android.arch.core:common      : null => android.arch.core:common:1.1.1
+                android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
+                android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
+                android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                artifacts::app                : null => :app@main
                 artifacts::dyn_feature        : null => :dyn_feature@main
+                com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
+                com.android.support:collections         : null => com.android.support:collections:28.0.0
+                com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
+                com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
+                com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
             PackageDependencies
+                artifacts::app                : null => :app@main
                 artifacts::dyn_feature        : null => :dyn_feature@main
-        - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
-        - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
+        - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_r_class_jar/basicBarDebugAndroidTest/generateBasicBarDebugAndroidTestRFile/R.jar [-]
+        - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 1
         SourceProviders
             - ManifestFiles               : <ROOT>/dyn_feature/src/main/AndroidManifest.xml
@@ -849,11 +1010,31 @@ MODULE                        : project.dyn_feature
             - JavaDirectories             : <ROOT>/dyn_feature/src/main/kotlin [-]
             - ResDirectories              : <ROOT>/dyn_feature/src/main/res [-]
             - AssetsDirectories           : <ROOT>/dyn_feature/src/main/assets [-]
+            - ManifestFiles               : <ROOT>/dyn_feature/src/basic/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/basic/java [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/basic/kotlin [-]
+            - ResDirectories              : <ROOT>/dyn_feature/src/basic/res [-]
+            - AssetsDirectories           : <ROOT>/dyn_feature/src/basic/assets [-]
+            - ManifestFiles               : <ROOT>/dyn_feature/src/bar/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/bar/java [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/bar/kotlin [-]
+            - ResDirectories              : <ROOT>/dyn_feature/src/bar/res [-]
+            - AssetsDirectories           : <ROOT>/dyn_feature/src/bar/assets [-]
+            - ManifestFiles               : <ROOT>/dyn_feature/src/basicBar/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/basicBar/java [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/basicBar/kotlin [-]
+            - ResDirectories              : <ROOT>/dyn_feature/src/basicBar/res [-]
+            - AssetsDirectories           : <ROOT>/dyn_feature/src/basicBar/assets [-]
             - ManifestFiles               : <ROOT>/dyn_feature/src/debug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/dyn_feature/src/debug/java [-]
             - JavaDirectories             : <ROOT>/dyn_feature/src/debug/kotlin [-]
             - ResDirectories              : <ROOT>/dyn_feature/src/debug/res [-]
             - AssetsDirectories           : <ROOT>/dyn_feature/src/debug/assets [-]
+            - ManifestFiles               : <ROOT>/dyn_feature/src/basicBarDebug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/basicBarDebug/java [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/basicBarDebug/kotlin [-]
+            - ResDirectories              : <ROOT>/dyn_feature/src/basicBarDebug/res [-]
+            - AssetsDirectories           : <ROOT>/dyn_feature/src/basicBarDebug/assets [-]
         TestSourceProviders
             - ManifestFiles               : <ROOT>/dyn_feature/src/androidTest/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/dyn_feature/src/androidTest/java [-]
@@ -865,6 +1046,26 @@ MODULE                        : project.dyn_feature
             - JavaDirectories             : <ROOT>/dyn_feature/src/test/kotlin [-]
             - ResDirectories              : <ROOT>/dyn_feature/src/test/res [-]
             - AssetsDirectories           : <ROOT>/dyn_feature/src/test/assets [-]
+            - ManifestFiles               : <ROOT>/dyn_feature/src/androidTestBasic/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/androidTestBasic/java [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/androidTestBasic/kotlin [-]
+            - ResDirectories              : <ROOT>/dyn_feature/src/androidTestBasic/res [-]
+            - AssetsDirectories           : <ROOT>/dyn_feature/src/androidTestBasic/assets [-]
+            - ManifestFiles               : <ROOT>/dyn_feature/src/testBasic/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/testBasic/java [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/testBasic/kotlin [-]
+            - ResDirectories              : <ROOT>/dyn_feature/src/testBasic/res [-]
+            - AssetsDirectories           : <ROOT>/dyn_feature/src/testBasic/assets [-]
+            - ManifestFiles               : <ROOT>/dyn_feature/src/androidTestBar/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/androidTestBar/java [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/androidTestBar/kotlin [-]
+            - ResDirectories              : <ROOT>/dyn_feature/src/androidTestBar/res [-]
+            - AssetsDirectories           : <ROOT>/dyn_feature/src/androidTestBar/assets [-]
+            - ManifestFiles               : <ROOT>/dyn_feature/src/testBar/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/testBar/java [-]
+            - JavaDirectories             : <ROOT>/dyn_feature/src/testBar/kotlin [-]
+            - ResDirectories              : <ROOT>/dyn_feature/src/testBar/res [-]
+            - AssetsDirectories           : <ROOT>/dyn_feature/src/testBar/assets [-]
             - ManifestFiles               : <ROOT>/dyn_feature/src/androidTestDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/dyn_feature/src/androidTestDebug/java [-]
             - JavaDirectories             : <ROOT>/dyn_feature/src/androidTestDebug/kotlin [-]
@@ -877,9 +1078,352 @@ MODULE                        : project.dyn_feature
             - AssetsDirectories           : <ROOT>/dyn_feature/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
+            LintModelLibrary              : AndroidLibrary(__non_maven__:./app/libs/lib1-1.0.aar:)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/jars/classes.jar
+                Identifier                    : ./app/libs/lib1-1.0.aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/res
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/proguard.txt [-]
+                ResolvedCoordinates           : __non_maven__:./app/libs/lib1-1.0.aar:
+            LintModelLibrary              : LocalLibrary(:app)
+                Identifier                    : :app@main
+                ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:dyn_feature)
                 Identifier                    : :dyn_feature@main
                 ProjectPath                   : :dyn_feature
+            LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
+                - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
+                Identifier                    : android.arch.core:common:1.1.1
+                ResolvedCoordinates           : android.arch.core:common:1.1.1
+            LintModelLibrary              : AndroidLibrary(android.arch.core:runtime:1.1.1)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+                Identifier                    : android.arch.core:runtime:1.1.1@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/proguard.txt [-]
+                ResolvedCoordinates           : android.arch.core:runtime:1.1.1
+            LintModelLibrary              : JavaLibrary(android.arch.lifecycle:common:1.1.1)
+                - JarFiles                    : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
+                Identifier                    : android.arch.lifecycle:common:1.1.1
+                ResolvedCoordinates           : android.arch.lifecycle:common:1.1.1
+            LintModelLibrary              : AndroidLibrary(android.arch.lifecycle:livedata-core:1.1.1)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
+                Identifier                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/proguard.txt [-]
+                ResolvedCoordinates           : android.arch.lifecycle:livedata-core:1.1.1
+            LintModelLibrary              : AndroidLibrary(android.arch.lifecycle:livedata:1.1.1)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
+                Identifier                    : android.arch.lifecycle:livedata:1.1.1@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/proguard.txt [-]
+                ResolvedCoordinates           : android.arch.lifecycle:livedata:1.1.1
+            LintModelLibrary              : AndroidLibrary(android.arch.lifecycle:runtime:1.1.1)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+                Identifier                    : android.arch.lifecycle:runtime:1.1.1@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/proguard.txt
+                ResolvedCoordinates           : android.arch.lifecycle:runtime:1.1.1
+            LintModelLibrary              : AndroidLibrary(android.arch.lifecycle:viewmodel:1.1.1)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
+                Identifier                    : android.arch.lifecycle:viewmodel:1.1.1@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
+                ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
+            LintModelLibrary              : AndroidLibrary(com.android.support:animated-vector-drawable:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:animated-vector-drawable:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/proguard.txt
+                ResolvedCoordinates           : com.android.support:animated-vector-drawable:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:appcompat-v7:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:appcompat-v7:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/res
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/public.txt
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/proguard.txt
+                ResolvedCoordinates           : com.android.support:appcompat-v7:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:asynclayoutinflater:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:asynclayoutinflater:28.0.0
+            LintModelLibrary              : JavaLibrary(com.android.support:collections:28.0.0)
+                - JarFiles                    : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                Identifier                    : com.android.support:collections:28.0.0
+                ResolvedCoordinates           : com.android.support:collections:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:coordinatorlayout:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:coordinatorlayout:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/res
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/public.txt
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/proguard.txt
+                ResolvedCoordinates           : com.android.support:coordinatorlayout:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:cursoradapter:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:cursoradapter:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:cursoradapter:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:customview:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:customview:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:customview:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:documentfile:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:documentfile:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:documentfile:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:drawerlayout:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:drawerlayout:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:drawerlayout:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:interpolator:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:interpolator:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:interpolator:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:loader:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:loader:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:loader:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:localbroadcastmanager:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:localbroadcastmanager:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:print:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:print:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:print:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:slidingpanelayout:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:slidingpanelayout:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:slidingpanelayout:28.0.0
+            LintModelLibrary              : JavaLibrary(com.android.support:support-annotations:28.0.0)
+                - JarFiles                    : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                Identifier                    : com.android.support:support-annotations:28.0.0
+                ResolvedCoordinates           : com.android.support:support-annotations:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:support-compat:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:support-compat:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/res
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/public.txt
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/proguard.txt
+                ResolvedCoordinates           : com.android.support:support-compat:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:support-core-ui:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:support-core-ui:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:support-core-ui:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:support-core-utils:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:support-core-utils:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:support-core-utils:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:support-fragment:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:support-fragment:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:support-fragment:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:support-vector-drawable:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:support-vector-drawable:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:support-vector-drawable:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:swiperefreshlayout:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/annotations.zip
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:swiperefreshlayout:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:versionedparcelable:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:versionedparcelable:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/proguard.txt
+                ResolvedCoordinates           : com.android.support:versionedparcelable:28.0.0
+            LintModelLibrary              : AndroidLibrary(com.android.support:viewpager:28.0.0)
+                - JarFiles                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
+                Identifier                    : com.android.support:viewpager:28.0.0@aar
+                Manifest                      : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0
+                ResFolder                     : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res [-]
+                AssetsFolder                  : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/assets [-]
+                PublicResources               : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
+                ResolvedCoordinates           : com.android.support:viewpager:28.0.0
 MODULE                        : project.dyn_feature.androidTest
 MODULE                        : project.dyn_feature.main
 MODULE                        : project.dyn_feature.unitTest
