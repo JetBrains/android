@@ -159,6 +159,19 @@ aswb_test(
 )
 
 aswb_test(
+    name = "BazelProjectFilteringProcessorTest",
+    srcs = ["BazelProjectFilteringProcessorTest.kt"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/traverser",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
+        "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
+    ],
+)
+
+aswb_test(
     name = "ProjectStructureReaderTest",
     srcs = ["ProjectStructureReaderTest.kt"],
     deps = [

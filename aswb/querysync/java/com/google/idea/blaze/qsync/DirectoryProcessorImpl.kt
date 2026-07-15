@@ -25,55 +25,33 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 
 /**
- * This class is an implementation of the [DirectoryProcessor] interface. Its purpose is to list the files and subdirectories within a
- * single directory, to be used for workspace traversal.
+ * This factory function provides an implementation of the [DirectoryProcessor] interface. Its purpose is to list the files and
+ * subdirectories within a single directory, to be used for workspace traversal, before delegating the raw results to a callback.
  */
-class DirectoryProcessorImpl(private val context: Context<*>, private val excludeAbsolute: Set<Path>) : DirectoryProcessor {
-
-  private companion object {
-    val WORKSPACE_FILE_NAMES = setOf("MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel")
-  }
-
-  override fun processDirectory(rootDir: Path, currentDir: Path): DirectoryContents? {
-    if (excludeAbsolute.any { currentDir.startsWith(it) }) {
-      return null
-    }
-
-    if (isNestedWorkspace(currentDir)) {
-      return null
-    }
-
-    val files = mutableListOf<Path>()
-    val subDirs = mutableListOf<Path>()
-    try {
-      Files.newDirectoryStream(currentDir).use { stream ->
-        for (child in stream) {
-          try {
-            val attrs = Files.readAttributes(child, BasicFileAttributes::class.java)
-            if (attrs.isRegularFile) {
-              files.add(child)
-            } else if (attrs.isDirectory) {
-              if (excludeAbsolute.none { child.startsWith(it) }) {
-                subDirs.add(child)
-              }
-            }
-          } catch (e: IOException) {
-            // Ignore files/directories we cannot read attributes for
+fun directoryProcessor(
+  context: Context<*>,
+  processContents: (rootDir: Path, currentDir: Path, contents: DirectoryContents) -> DirectoryContents?,
+): DirectoryProcessor = DirectoryProcessor { rootDir, currentDir ->
+  val files = mutableListOf<Path>()
+  val subDirs = mutableListOf<Path>()
+  try {
+    Files.newDirectoryStream(currentDir).use { stream ->
+      for (child in stream) {
+        try {
+          val attrs = Files.readAttributes(child, BasicFileAttributes::class.java)
+          if (attrs.isRegularFile) {
+            files.add(child)
+          } else if (attrs.isDirectory) {
+            subDirs.add(child)
           }
+        } catch (e: IOException) {
+          // Ignore files/directories we cannot read attributes for
         }
       }
-    } catch (e: IOException) {
-      context.output(PrintOutput.log("Error reading directory $currentDir: ${e.message}"))
-      return null
     }
-    return DirectoryContents(files, subDirs)
+  } catch (e: IOException) {
+    context.output(PrintOutput.log("Error reading directory $currentDir: ${e.message}"))
+    return@DirectoryProcessor null
   }
-
-  private fun isNestedWorkspace(path: Path): Boolean {
-    val found = WORKSPACE_FILE_NAMES.any { Files.exists(path.resolve(it)) }
-    if (found) {
-      context.output(PrintOutput.log("Skipping nested workspace at $path"))
-    }
-    return found
-  }
+  processContents(rootDir, currentDir, DirectoryContents(files, subDirs))
 }
