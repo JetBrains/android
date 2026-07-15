@@ -24,7 +24,9 @@ option java_package = "com.google.play.developer.reporting";
 //  views of your app icon, app details page, promotional content, and other
 //  content directly related to your app.
 //  * `deviceImpressions` (`google.type.Decimal`): The number of unique devices
-//  that viewed your app on the Google Play Store on a particular day.
+//  that viewed your app on the Google Play Store on a particular day. This
+//  includes views of your app icon, app details page, promotional content,
+//  and other content directly related to your app.
 //  * `totalImpressions` (`google.type.Decimal`): The number of times your app
 //  was seen on the Google Play Store. This includes views of your app icon, app
 //  details page, promotional content, and other content directly related to
@@ -101,7 +103,8 @@ message QueryImpressionsMetricSetRequest {
   //  and other content directly related to your app.
   //  * `deviceImpressions` (`google.type.Decimal`): The number of unique
   //  devices that viewed your app on the Google Play Store on a particular
-  //  day.
+  //  day. This includes views of your app icon, app details page,
+  //  promotional content, and other content directly related to your app.
   //  * `totalImpressions` (`google.type.Decimal`): The number of times your app
   //  was seen on the Google Play Store. This includes views of your app icon,
   //  app details page, promotional content, and other content directly related
