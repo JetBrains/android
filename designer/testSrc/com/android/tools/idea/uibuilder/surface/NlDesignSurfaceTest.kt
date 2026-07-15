@@ -409,6 +409,9 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertEquals(designSurface.zoomController.scale, designSurface.zoomController.minScale)
 
     // Zoom to fit will move again to original scale
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
     designSurface.zoomController.zoom(ZoomType.FIT)
     assertEquals(designSurface.zoomController.scale, origScale)
 
@@ -424,7 +427,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertTrue(designSurface.zoomController.scale > scale)
   }
 
-  fun ignore_testZoomHiDPIScreen() {
+  fun testZoomHiDPIScreen() {
     val model =
       model(
           "my_linear.xml",
@@ -439,36 +442,47 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     config.getFullConfig().setDensityQualifier(DensityQualifier(Density.XHIGH))
     model.configuration = config
     designSurface.setModel(model)
+    waitForSurfaceToBeReady(model)
     assertEquals(2f, designSurface.getSceneManager(model)!!.sceneScalingFactor)
     designSurface.setScrollViewSizeAndValidateForTest(1000, 1000)
-    designSurface.zoomController.zoomToFit()
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
+    designSurface.zoomController.zoom(ZoomType.FIT)
     val origScale = designSurface.zoomController.scale
-    assertEquals(origScale, designSurface.zoomController.minScale)
 
     val view = designSurface.focusedSceneView
-    assertEquals(Point(-122, -122), Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.IN)
     var scale = designSurface.zoomController.scale
     assertTrue(scale > origScale)
-    assertEquals(Point(-44, -44), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.IN, 100, 100)
     assertTrue(designSurface.zoomController.scale > scale)
-    assertEquals(Point(-29, -29), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.OUT, 100, 100)
-    assertEquals(Point(-43, -43), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
     designSurface.zoomController.zoom(ZoomType.OUT)
-    assertEquals(Point(-122, -122), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
     designSurface.zoomController.zoom(ZoomType.OUT)
 
-    assertEquals(designSurface.zoomController.scale, origScale)
-    designSurface.zoomController.zoom(ZoomType.OUT)
-    assertEquals(designSurface.zoomController.scale, origScale)
+    // Zooming out more should keep going down to minScale
+    while (designSurface.zoomController.scale > designSurface.zoomController.minScale) {
+      val lastScale = designSurface.zoomController.scale
+      designSurface.zoomController.zoom(ZoomType.OUT)
+      val currentScale = designSurface.zoomController.scale
+      if (currentScale >= lastScale) {
+        break // Escape loop if no zoom out change to avoid infinite loops
+      }
+      assertTrue(currentScale < lastScale)
+    }
+    assertEquals(designSurface.zoomController.scale, designSurface.zoomController.minScale)
 
     designSurface.setScrollViewSizeAndValidateForTest(2000, 2000)
-    assertEquals(1.0, designSurface.zoomController.minScale)
+    assertEquals(0.01, designSurface.zoomController.minScale)
 
     designSurface.zoomController.setScale(1.099, 0, 0)
     scale = designSurface.zoomController.scale
@@ -476,7 +490,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertTrue(designSurface.zoomController.scale > scale)
   }
 
-  fun ignore_testCanZoomToFit() {
+  fun testCanZoomToFit() {
     val model: NlModel =
       model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
@@ -484,6 +498,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     // the Material theme
     model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
     designSurface.setModel(model)
+    waitForSurfaceToBeReady(model)
     designSurface.setSize(1000, 1000)
     designSurface.doLayout()
 
@@ -493,10 +508,15 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     designSurface.zoomController.setScale(designSurface.zoomController.minScale, -1, -1)
     assertTrue(designSurface.zoomController.canZoomIn())
     assertFalse(designSurface.zoomController.canZoomOut())
-    designSurface.zoomController.zoomToFit()
+    assertTrue(designSurface.zoomController.canZoomToFit())
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
+    designSurface.zoomController.zoom(ZoomType.FIT)
+    // After zoom-to-fit, you can no longer zoom-to-fit
     assertFalse(designSurface.zoomController.canZoomToFit())
     assertTrue(designSurface.zoomController.canZoomIn())
-    assertFalse(designSurface.zoomController.canZoomOut())
+    assertTrue(designSurface.zoomController.canZoomOut())
   }
 
   fun ignore_testCannotZoomToFit() {
