@@ -2599,6 +2599,7 @@ android-studio/plugins/gemini/lib/aida_grpc.jar
 android-studio/plugins/gemini/lib/aida_proto.jar
 android-studio/plugins/gemini/lib/aida_protobuf.jar
 android-studio/plugins/gemini/lib/aiplugin.jar
+android-studio/plugins/gemini/lib/android_studio_model_service_proto.jar
 android-studio/plugins/gemini/lib/annotation-jvm-1.7.1.jar
 android-studio/plugins/gemini/lib/anthropic-java-client-okhttp-2.26.0.jar
 android-studio/plugins/gemini/lib/anthropic-java-core-2.26.0.jar

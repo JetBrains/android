@@ -930,6 +930,7 @@ studio_plugin(
         "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
         "//tools/vendor/google/ml/aiplugin/backends/aicode:aicode_grpc",
         "//tools/vendor/google/ml/aiplugin/backends/baicode:baicode_grpc",
+        "//tools/vendor/google/ml/gemini-coder:android_studio_model_service_proto",
         "//tools/vendor/google/ml/gemini-coder:gemini-coder_proto_shaded",
     ],
     modules = {

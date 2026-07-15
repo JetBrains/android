@@ -3321,6 +3321,7 @@
 +++Android Studio.app/Contents/plugins/gemini/lib/aida_proto.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/aida_protobuf.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/aiplugin.jar
++++Android Studio.app/Contents/plugins/gemini/lib/android_studio_model_service_proto.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/annotation-jvm-1.7.1.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/anthropic-java-client-okhttp-2.26.0.jar
 +++Android Studio.app/Contents/plugins/gemini/lib/anthropic-java-core-2.26.0.jar
@@ -7352,6 +7353,7 @@
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.jar
+---Android Studio Preview.app/Contents/plugins/gemini/lib/android_studio_model_service_proto.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/annotation-jvm-1.7.1.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/anthropic-java-client-okhttp-2.26.0.jar
 ---Android Studio Preview.app/Contents/plugins/gemini/lib/anthropic-java-core-2.26.0.jar
