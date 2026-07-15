@@ -20,7 +20,9 @@ import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.surface.DesignSurfaceZoomController
 import com.android.tools.idea.common.surface.ScenesOwner
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.common.surface.ZoomConstants
 import com.android.tools.idea.flags.StudioFlags
+import org.jetbrains.annotations.TestOnly
 
 /**
  * [DesignSurfaceZoomController] for the [NlDesignSurface]. It contains all the zooming logic of [NlDesignSurface].
@@ -36,6 +38,22 @@ class NlDesignSurfaceZoomController(
   selectionModel: SelectionModel?,
   scenesOwner: ScenesOwner?,
 ) : DesignSurfaceZoomController(designerAnalyticsManager, selectionModel, scenesOwner) {
+
+  override var minScale: Double = ZoomConstants.DEFAULT_MIN_SCALE
+    private set
+
+  override var maxScale: Double = ZoomConstants.DEFAULT_MAX_SCALE
+    private set
+
+  @TestOnly
+  fun overrideMinScaleForTests(scale: Double) {
+    minScale = scale
+  }
+
+  @TestOnly
+  fun overrideMaxScaleForTests(scale: Double) {
+    maxScale = scale
+  }
 
   override fun getFitScale() = fitScaleProvider()
 
