@@ -20,6 +20,10 @@ import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An adapter from intellij.android.environment-services Logger to android.sdktools.common ILogger.
+ * (See com.android.tools.idea.log.LogWrapper for adapting IntelliJ's Logger.)
+ */
 public class LogWrapper implements ILogger {
   private final Logger myLog;
 
@@ -29,12 +33,12 @@ public class LogWrapper implements ILogger {
 
   @Override
   public void warning(@NotNull String warningFormat, Object... args) {
-    myLog.debug(String.format(warningFormat, args));
+    myLog.warn(String.format(warningFormat, args));
   }
 
   @Override
   public void info(@NotNull String msgFormat, Object... args) {
-    myLog.debug(String.format(msgFormat, args));
+    myLog.info(String.format(msgFormat, args));
   }
 
   @Override
@@ -43,12 +47,10 @@ public class LogWrapper implements ILogger {
 
   @Override
   public void error(@Nullable Throwable t, @Nullable String errorFormat, Object... args) {
-    if (t != null) {
-      myLog.debug(t);
-    }
     if (errorFormat != null) {
-      String message = String.format(errorFormat, args);
-      myLog.debug(message);
+      myLog.error(String.format(errorFormat, args), t);
+    } else if (t != null) {
+      myLog.error(t);
     }
   }
 }
