@@ -8,6 +8,7 @@ import "first_opens.proto";
 import "impressions.proto";
 import "ratings.proto";
 import "releases.proto";
+import "retention.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "ReportingServiceProto";
@@ -70,6 +71,14 @@ service ReportingService {
   // Queries the metrics in the impressions metric set.
   rpc QueryImpressionsMetricSet(QueryImpressionsMetricSetRequest)
       returns (QueryImpressionsMetricSetResponse) {}
+
+  // Describes the properties of the retention metric set.
+  rpc GetRetentionMetricSet(GetRetentionMetricSetRequest)
+      returns (RetentionMetricSet) {}
+
+  // Queries the metrics in the retention metric set.
+  rpc QueryRetentionMetricSet(QueryRetentionMetricSetRequest)
+      returns (QueryRetentionMetricSetResponse) {}
 }
 
 // Request message for
