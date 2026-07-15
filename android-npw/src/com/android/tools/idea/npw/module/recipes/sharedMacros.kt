@@ -254,7 +254,6 @@ fun RecipeExecutor.copyIcons(destination: File, minApi: Int) {
   }
 
   copyMipmapFolder(destination)
-  copyMipmapFolder(destination)
   copyAdaptiveIcons()
 }
 

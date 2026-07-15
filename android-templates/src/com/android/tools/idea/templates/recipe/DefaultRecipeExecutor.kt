@@ -392,7 +392,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val target = getTargetFile(to)
 
     contextClass.classLoader
-      .getAndroidResources(from.toString())
+      // JetBrains patch: use '/'-separated path so classloader resource lookup finds resources on Windows (File.toString() yields '\').
+      .getAndroidResources(from.invariantSeparatorsPath)
       .distinctBy { it.path }
       .mapNotNull { fileUrl -> findFileByURL(fileUrl) }
       .forEach { fileToCopy ->
