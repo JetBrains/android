@@ -703,7 +703,7 @@ class EmulatorViewTest {
   fun testMouseMoveNotSendWhenCameraOperating() {
     val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
-    fakeUi = FakeUi(container.rootPane)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     fakeUi.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame()
@@ -922,7 +922,7 @@ class EmulatorViewTest {
   fun testHideCameraNotificationDuringHardwareInput() {
     val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
-    fakeUi = FakeUi(container.rootPane)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     // Activate the virtual scene camera
     focusManager.focusOwner = view
@@ -946,7 +946,7 @@ class EmulatorViewTest {
   fun testCameraNotificationHasOperatingMessageWhenHardwareInputDisabledWithShift() {
     val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
-    fakeUi = FakeUi(container.rootPane)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     // Enable hardware input
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
@@ -969,7 +969,7 @@ class EmulatorViewTest {
   fun testAiGlassesCameraRotation360() {
     val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
     container.rootPane.size = Dimension(200, 300)
-    fakeUi = FakeUi(container.rootPane)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     // Initially, environment is empty, no prompt.
     focusManager.focusOwner = view
@@ -996,7 +996,7 @@ class EmulatorViewTest {
   fun testAiGlassesCameraTranslation360Disabled() {
     val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
     container.rootPane.size = Dimension(200, 300)
-    fakeUi = FakeUi(container.rootPane)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     focusManager.focusOwner = view
     val environmentTracker = EnvironmentTracker.forEmulator(view.emulator)!!
