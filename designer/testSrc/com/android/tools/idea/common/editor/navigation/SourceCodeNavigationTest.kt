@@ -20,6 +20,7 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.testFramework.EditorTestUtil
+import com.intellij.testFramework.awaitPendingNavigation
 import com.intellij.testFramework.builders.ModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase
 import com.intellij.testFramework.replaceService
@@ -42,6 +43,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
         .trimIndent(),
     )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_DECLARATION)
+    awaitPendingNavigation(project)
     myFixture.checkResult(
       """
       class <caret>AA {}
@@ -51,6 +53,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
         .trimIndent()
     )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_BACK)
+    awaitPendingNavigation(project)
     myFixture.checkResult(
       """
       class AA {}
@@ -60,6 +63,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
         .trimIndent()
     )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_FORWARD)
+    awaitPendingNavigation(project)
     myFixture.checkResult(
       """
       class <caret>AA {}

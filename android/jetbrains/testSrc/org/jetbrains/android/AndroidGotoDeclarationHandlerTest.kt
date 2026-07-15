@@ -38,6 +38,7 @@ import com.intellij.psi.util.PsiUtilCore
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
+import com.intellij.testFramework.awaitPendingNavigation
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
@@ -72,9 +73,10 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
         val destinationFile = element!!.navigationElement.containingFile.virtualFile
         assertThat(destinationFile).isNotEqualTo(myFixture.file.virtualFile)
 
-        openFileInEditor(destinationFile)
-        (element as Navigatable).navigate(true)
-      }
+      openFileInEditor(destinationFile)
+      (element as Navigatable).navigate(true)
+      awaitPendingNavigation(project)
+    }
   }
 
   protected val JavaCodeInsightTestFixture.elementAtCurrentOffset: PsiElement
