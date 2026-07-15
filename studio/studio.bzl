@@ -1809,7 +1809,7 @@ def intellij_platform(
         is_v2_module = len(jars) == 1 and ("/modules/" in jars[0] or jars[0].startswith("lib/"))
         kind = "module" if is_v2_module else "plugin"
         jars_target_name = "%s-plugin-%s_jars" % (name, plugin)
-        _gen_plugin_jars_import_target(jars_target_name, spec, sdk_dirs, plugin, jars)
+        _gen_plugin_jars_import_target(jars_target_name, spec, sdk_dirs, plugin, jars, srcjar = src + "/android-studio-sources.zip")
         _intellij_plugin_import(
             name = name + "-plugin-%s" % plugin,
             id = plugin,
@@ -1833,10 +1833,11 @@ def intellij_platform(
             "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents/lib/testFramework.jar"],
             "//conditions:default": [sdk_dirs.linux + "/lib/testFramework.jar"],
         }),
+        srcjar = src + "/android-studio-sources.zip",
         visibility = ["@intellij//:__subpackages__"],
     )
 
-def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars):
+def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars, srcjar):
     """Generates a jvm_import target for the specified plugin."""
     add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
     jars_windows = [sdk_dirs.windows + "/" + jar for jar in jars + add_windows]
@@ -1855,6 +1856,7 @@ def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars):
             "//tools/base/bazel/platforms:macos-arm64": jars_darwin_aarch64,
             "//conditions:default": jars_linux,
         }),
+        srcjar = srcjar,
     )
 
 def _studio_project_model_generator_impl(ctx):
