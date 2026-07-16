@@ -533,6 +533,9 @@ iml_test(
     jvm_flags = emulator_snapshot_jvm_flags(INTEGRATION_TEST_SYSTEM_IMAGE),
     module = ":intellij.android.core.integration",
     tags = [
+        # Disabling on Windows due to b/535449641.
+        # Recommend to never enable this due to DirectAccess / Device Streaming API(s) flakiness.
+        "noci:studio-win",
         "studio-e2e-test",
     ],
     tags_linux = ["block-network"],
