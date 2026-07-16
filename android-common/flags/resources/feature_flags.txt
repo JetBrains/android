@@ -192,6 +192,7 @@ studiobot.ask.mode.in.dropdown.enabled=INTERNAL
 studiobot.ask.user.in.query.box=INTERNAL
 studiobot.ask.user.tool.enabled=COMPLETE:2026
 studiobot.askgemini.include.build.files.in.context=PREVIEW
+studiobot.baicode=INTERNAL
 studiobot.chat.context.attachment.changes=INTERNAL
 studiobot.chat.query.status.banner.enabled=INTERNAL
 studiobot.compiler.error.context.enabled=INTERNAL
