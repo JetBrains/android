@@ -31,6 +31,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
@@ -528,6 +529,47 @@ class RenderExecutorTest {
       assertTrue(completeActionLatch.await(5, TimeUnit.SECONDS))
       // Cancellation's topic was different from the action's topic
       assertTrue(completedWithoutInterruption)
+    } finally {
+      executor.shutdown()
+    }
+  }
+
+  @Test
+  fun testEvictionCompletionDoesNotHoldLock() {
+    val actionExecutor = OnDemandExecutorService()
+    val timeoutExecutorProvider = VirtualTimeScheduler()
+    val executor =
+      RenderExecutor.createForTests(
+        executorService = TestSingleThreadExecutorService(actionExecutor),
+        scheduledExecutorService = timeoutExecutorProvider,
+      )
+    try {
+      val lockHeldDuringCompletion = AtomicBoolean(false)
+      val completionCalled = CountDownLatch(1)
+
+      // Add soft limit (50) actions that sit in the queue without running
+      repeat(50) { executor.runAsyncActionWithTestDefault(topic = RenderingTopic.NOT_SPECIFIED) {} }
+
+      // Enqueueing action 51 exceeds the soft limit and causes eviction of the lowest priority task right inside runAsyncActionWithTimeout
+      val overflowFuture = executor.runAsyncActionWithTestDefault(topic = getLowPriorityRenderingTopicForTest()) {}
+      overflowFuture.whenComplete { _, exception ->
+        if (exception != null) {
+          try {
+            // Verify that we can invoke queue operations from inside the completion callback without deadlock or holding
+            // pendingActionsQueueLock
+            executor.runAsyncActionWithTestDefault(topic = getHighPriorityRenderingTopicForTest()) {}
+          } catch (_: Throwable) {
+            lockHeldDuringCompletion.set(true)
+          }
+          completionCalled.countDown()
+        }
+      }
+
+      // Enqueue one more task to trigger eviction of overflowFuture (or the earlier task) if needed
+      executor.runAsyncActionWithTestDefault(topic = getLowPriorityRenderingTopicForTest()) {}
+
+      assertTrue(completionCalled.await(5, TimeUnit.SECONDS))
+      assertFalse(lockHeldDuringCompletion.get())
     } finally {
       executor.shutdown()
     }

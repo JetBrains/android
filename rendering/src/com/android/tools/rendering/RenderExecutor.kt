@@ -35,6 +35,7 @@ import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.LongAdder
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -155,6 +156,7 @@ private constructor(
         // added to the queue.
         null
       }
+    val evictedTasks = mutableListOf<Pair<PriorityCompletableFuture<*>, EvictedException>>()
     pendingActionsQueueLock.withLock {
       allPendingActionsQueue.add(future)
       pendingActionsQueueByTopic.getOrPut(renderingTopic) { PriorityQueue() }.add(future)
@@ -164,10 +166,11 @@ private constructor(
         val evictedException = if (tasksQueueHardLimitExceeded()) createHardLimitExceededException() else createSoftLimitExceededException()
         allPendingActionsQueue.remove().let {
           pendingActionsQueueByTopic[it.renderingTopic]?.remove(it)
-          it.completeExceptionally(evictedException)
+          evictedTasks.add(it to evictedException)
         }
       }
     }
+    evictedTasks.forEach { (task, exception) -> task.completeExceptionally(exception) }
     renderingExecutorService.execute(
       PriorityRunnable(renderingTopic) {
         runningRenderLock.withLock { runningRender = future }
@@ -265,6 +268,8 @@ private constructor(
   fun isRenderThread(): Boolean = renderingExecutorService.hasSpawnedCurrentThread()
 
   companion object {
+    private val sequenceCounter = AtomicLong(0)
+
     @JvmStatic
     fun create(): RenderExecutor {
       val scheduledExecutorService =
@@ -305,7 +310,7 @@ private constructor(
    */
   private class PriorityRunnable(val renderingTopic: RenderingTopic, val runnable: Runnable) : Runnable, Comparable<PriorityRunnable> {
 
-    private val creationTime = System.currentTimeMillis()
+    private val sequenceNumber = sequenceCounter.getAndIncrement()
 
     override fun run() {
       runnable.run()
@@ -317,7 +322,7 @@ private constructor(
       if (priorityComparison != 0) {
         return priorityComparison
       }
-      return creationTime.compareTo(other.creationTime)
+      return sequenceNumber.compareTo(other.sequenceNumber)
     }
   }
 
@@ -334,7 +339,7 @@ private constructor(
   private open class PriorityCompletableFuture<T : Any?>(val renderingTopic: RenderingTopic) :
     Comparable<PriorityCompletableFuture<Any?>>, CompletableFuture<T>() {
 
-    private val creationTime = System.currentTimeMillis()
+    private val sequenceNumber = sequenceCounter.getAndIncrement()
 
     override fun compareTo(other: PriorityCompletableFuture<Any?>): Int {
       // Plus sign as we want the lowest priority first to be removed from the wait list when
@@ -343,7 +348,7 @@ private constructor(
       if (priorityComparison != 0) {
         return priorityComparison
       }
-      return creationTime.compareTo(other.creationTime)
+      return sequenceNumber.compareTo(other.sequenceNumber)
     }
   }
 
