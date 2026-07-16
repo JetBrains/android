@@ -2402,6 +2402,11 @@ public final class StudioFlags {
                     "Enable the inactivity monitor for tool calls",
                     "When enabled, tool execution will be monitored for inactivity and cancelled after a timeout");
 
+  public static final Flag<Boolean> STUDIOBOT_CENTRAL_TOOL_TOKEN_CAPPING_ENABLED =
+    new BooleanFlag(STUDIOBOT, "central.tool.token.capping.enabled",
+                    "Central tool token capping enabled",
+                    "When enabled, truncates/caps any tool output exceeding max tokens at the central level.");
+
   public static final Flag<Integer> STUDIOBOT_MAX_TOOL_OUTPUT_TOKENS =
     new IntFlag(STUDIOBOT, "max.tool.output.tokens",
                 "Max tokens for tool outputs",
