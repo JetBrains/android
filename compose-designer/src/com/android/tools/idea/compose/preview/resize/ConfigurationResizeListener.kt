@@ -104,6 +104,9 @@ class ConfigurationResizeListener(
           currentScale > requiredScale || // Preview is larger than the viewport
             requiredScale > currentScale * ZOOM_TO_FIT_RESCALE_THRESHOLD // Preview is too small
         ) {
+          // Since the preview has been resized, we reset the zoom-to-fit settings to reopen the mask
+          // without waiting for another design surface layout creation or resize event.
+          surface.zoomController.resetZoomToFitSettings(shouldWaitForResize = false, shouldWaitForLayoutCreated = false)
           surface.zoomController.zoomToFit()
         }
       }

@@ -42,6 +42,9 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.dispatchAllEventsInIdeEventQueue
 import java.util.concurrent.CompletableFuture
 import kotlin.test.assertEquals
 import kotlinx.coroutines.CompletableDeferred
@@ -66,6 +69,7 @@ import org.mockito.kotlin.whenever
 @RunWith(JUnit4::class)
 class ConfigurationResizeListenerTest {
 
+  @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
 
   private val layoutlibSceneManagerConfiguration = mock<LayoutlibSceneRenderConfiguration>()
@@ -92,14 +96,14 @@ class ConfigurationResizeListenerTest {
     Disposer.dispose(sceneManager)
   }
 
-  private fun createSceneManager(showDecorations: Boolean): LayoutlibSceneManager {
+  private fun createSceneManager(showDecorations: Boolean, isCanvasResizing: Boolean = true): LayoutlibSceneManager {
     this.showDecoration = showDecorations
     return mock<LayoutlibSceneManager>().also {
       whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
       val surface = mock<NlDesignSurface>()
       val zoomController = mock<ZoomController>()
       whenever(surface.zoomController).thenReturn(zoomController)
-      whenever(surface.isCanvasResizing).thenReturn(true)
+      whenever(surface.isCanvasResizing).thenReturn(isCanvasResizing)
       whenever(it.designSurface).thenReturn(surface)
     }
   }
@@ -288,6 +292,59 @@ class ConfigurationResizeListenerTest {
 
     // Verify that requestRenderWithNewSize was called the expected number of times.
     verify(sceneManager, times(3)).requestRenderWithNewSize(any(), any())
+    Disposer.dispose(sceneManager)
+  }
+
+  @RunsInEdt
+  @Test
+  fun `listener triggers zoom-to-fit when not canvas resizing and scale differs significantly`() = runTest {
+    val sceneManager = createSceneManager(showDecorations = true, isCanvasResizing = false)
+    val zoomController = sceneManager.designSurface.zoomController
+    whenever(zoomController.scale).thenReturn(1.0)
+
+    // Required scale 0.25 (much smaller than current scale 1.0).
+    whenever(zoomController.getFitScale()).thenReturn(0.25)
+
+    // Setup the listener with a custom configuration size.
+    val configuration = createConfiguration(500, 600)
+    val listener =
+      ConfigurationResizeListener(sceneManager, configuration, StandardTestDispatcher(testScheduler)).also { advanceUntilIdle() }
+    configuration.addListener(listener)
+
+    configuration.updateScreenSize(700, 800)
+    advanceUntilIdle()
+    dispatchAllEventsInIdeEventQueue()
+
+    // Verify that resetZoomToFitSettings was called with the expected parameters.
+    verify(zoomController, times(1)).resetZoomToFitSettings(shouldWaitForResize = false, shouldWaitForLayoutCreated = false)
+
+    // Verify that zoom-to-fit was triggered because the scale differs significantly.
+    verify(zoomController, times(1)).zoomToFit()
+    Disposer.dispose(sceneManager)
+  }
+
+  @RunsInEdt
+  @Test
+  fun `listener does not trigger zoom-to-fit when scale does not differ significantly`() = runTest {
+    val sceneManager = createSceneManager(showDecorations = true, isCanvasResizing = false)
+    val zoomController = sceneManager.designSurface.zoomController
+    whenever(zoomController.scale).thenReturn(1.0)
+
+    // Required scale 1.1 (close to current scale 1.0, and current scale is not larger than required scale).
+    whenever(zoomController.getFitScale()).thenReturn(1.1)
+
+    // Setup the listener with a custom configuration size.
+    val configuration = createConfiguration(500, 600)
+    val listener =
+      ConfigurationResizeListener(sceneManager, configuration, StandardTestDispatcher(testScheduler)).also { advanceUntilIdle() }
+    configuration.addListener(listener)
+
+    configuration.updateScreenSize(700, 800)
+    advanceUntilIdle()
+    dispatchAllEventsInIdeEventQueue()
+
+    // Verify that zoom-to-fit was not triggered because the scale does not differ significantly.
+    verify(zoomController, never()).zoomToFit()
     Disposer.dispose(sceneManager)
   }
 
