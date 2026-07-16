@@ -28,6 +28,11 @@ import icons.StudioIcons.Common.ANDROID_HEAD
 import icons.StudioIcons.Common.WARNING
 import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.Icon
 import org.junit.Before
 import org.junit.Rule
@@ -119,5 +124,120 @@ class GutterIconCacheTest {
 
     icon = ANDROID_HEAD
     assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(ANDROID_HEAD)
+  }
+
+  @Test
+  fun concurrentRequestsForSameFileAreDeduplicated() {
+    val renderCount = AtomicInteger(0)
+    val latch = CountDownLatch(1)
+    cache =
+      GutterIconCache(projectRule.project, ::highDpiDisplay) { _, _, _ ->
+        renderCount.incrementAndGet()
+        latch.await(5, TimeUnit.SECONDS)
+        ANDROID_HEAD
+      }
+
+    val numThreads = 5
+    val executor = Executors.newFixedThreadPool(numThreads)
+    try {
+      val futures = (1..numThreads).map { CompletableFuture.supplyAsync({ cache.getIcon(sampleSvgFile, null, facet) }, executor) }
+      Thread.sleep(200)
+      latch.countDown()
+      futures.forEach { assertThat(it.get(5, TimeUnit.SECONDS)).isEqualTo(ANDROID_HEAD) }
+      assertThat(renderCount.get()).isEqualTo(1)
+    } finally {
+      executor.shutdownNow()
+    }
+  }
+
+  @Test
+  fun concurrentRequestsAreThrottled() {
+    val activeRenders = AtomicInteger(0)
+    val maxObservedActive = AtomicInteger(0)
+    val startLatch = CountDownLatch(1)
+
+    cache =
+      GutterIconCache(projectRule.project, ::highDpiDisplay) { _, _, _ ->
+        val active = activeRenders.incrementAndGet()
+        maxObservedActive.updateAndGet { max -> maxOf(max, active) }
+        startLatch.await(5, TimeUnit.SECONDS)
+        activeRenders.decrementAndGet()
+        ANDROID_HEAD
+      }
+
+    val numFiles = 5
+    val files =
+      (1..numFiles).map { i ->
+        val path = FileSystems.getDefault().getPath(projectRule.project.basePath!!, "File$i.xml")
+        TestFileUtils.writeFileAndRefreshVfs(path, "content $i")
+      }
+
+    val executor = Executors.newFixedThreadPool(numFiles)
+    try {
+      val futures = files.map { file -> CompletableFuture.supplyAsync({ cache.getIcon(file, null, facet) }, executor) }
+      Thread.sleep(200)
+      startLatch.countDown()
+      futures.forEach { assertThat(it.get(5, TimeUnit.SECONDS)).isEqualTo(ANDROID_HEAD) }
+      assertThat(maxObservedActive.get()).isAtMost(2)
+    } finally {
+      executor.shutdownNow()
+    }
+  }
+
+  @Test
+  fun testDpiChangeCancelsPendingRendersAndDoesNotPolluteCache() {
+    val renderLatch = CountDownLatch(1)
+    val renderStartedLatch = CountDownLatch(1)
+
+    cache =
+      GutterIconCache(projectRule.project, ::highDpiDisplay) { _, _, _ ->
+        renderStartedLatch.countDown()
+        renderLatch.await(5, TimeUnit.SECONDS)
+        ANDROID_HEAD
+      }
+
+    val executor = Executors.newSingleThreadExecutor()
+    try {
+      val future = CompletableFuture.supplyAsync({ cache.getIcon(sampleSvgFile, null, facet) }, executor)
+
+      // Wait for render to actually start
+      renderStartedLatch.await(5, TimeUnit.SECONDS)
+
+      // Change DPI while render is in flight
+      highDpiDisplay = true
+
+      // Release the render task
+      renderLatch.countDown()
+
+      // The future should throw or be completed
+      try {
+        future.get(5, TimeUnit.SECONDS)
+      } catch (_: Exception) {
+        // Expected since the future is cancelled
+      }
+
+      // Verify that cache remains empty after DPI changed and render completed
+      assertThat(cache.getIconIfCached(sampleSvgFile)).isNull()
+    } finally {
+      executor.shutdownNow()
+    }
+  }
+
+  @Test
+  fun testRenderFailureIsCachedAndDoesNotSpam() {
+    val renderCount = AtomicInteger(0)
+    cache =
+      GutterIconCache(projectRule.project, ::highDpiDisplay) { _, _, _ ->
+        renderCount.incrementAndGet()
+        throw RuntimeException("Boom!")
+      }
+
+    // First attempt throws and should return null
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isNull()
+    assertThat(renderCount.get()).isEqualTo(1)
+
+    // Second attempt should return cached null without calling renderer again
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isNull()
+    assertThat(renderCount.get()).isEqualTo(1)
   }
 }
