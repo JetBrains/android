@@ -149,6 +149,14 @@ message StudioPushNotification {
     }
   }
 
+  // Defines the priority level of the notification.
+  enum Priority {
+    PRIORITY_UNSPECIFIED = 0;
+    P0 = 1;  // Highest priority
+    P1 = 2;  // Medium priority
+    P2 = 3;  // Low priority
+  }
+
   // List of requirements that need to be met for the notification to be shown.
   // All requirements need to be met for the notification to be shown.
   repeated Requirement requirements = 1;
@@ -158,4 +166,7 @@ message StudioPushNotification {
     NotificationSpec notification_spec = 2;
     GotItTooltipSpec got_it_tooltip_spec = 3;
   }
+
+  // Add the priority field to the main message
+  optional Priority priority = 4;
 }
