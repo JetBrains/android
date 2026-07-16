@@ -17,7 +17,10 @@ package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
+import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.traverser.DirectoryContents
+import com.google.idea.blaze.traverser.traverseIncludedDirectories
+import java.nio.file.Files
 import java.nio.file.Path
 
 private val WORKSPACE_FILE_NAMES = setOf("MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel")
@@ -37,4 +40,29 @@ fun bazelProjectFilteringProcessor(
     val filtered = contents.copy(subDirectories = contents.subDirectories.filter { child -> excludeAbsolute.none { child.startsWith(it) } })
     processContents(rootDir, currentDir, filtered)
   }
+}
+
+/**
+ * Concurrently traverses the directories included in [projectDefinition], filtering out excluded paths and nested workspaces.
+ *
+ * For each valid directory, delegates to [processContents], which returns the [DirectoryContents] whose subdirectories should be traversed
+ * next (or `null` to prune recursion). Note: [processContents] is invoked concurrently on `QuerySyncDispatchers.IO` and must be
+ * thread-safe.
+ */
+suspend fun traverseProjectDirectories(
+  context: Context<*>,
+  workspaceRoot: Path,
+  projectDefinition: ProjectDefinition,
+  processContents: (rootDir: Path, currentDir: Path, contents: DirectoryContents) -> DirectoryContents?,
+) {
+  val includeAbsolute =
+    projectDefinition.projectIncludes.map { workspaceRoot.resolve(it) }.filter { Files.exists(it) && Files.isDirectory(it) }
+  if (includeAbsolute.isEmpty()) {
+    return
+  }
+  val excludeAbsolute = projectDefinition.projectExcludes.map { workspaceRoot.resolve(it) }.toSet()
+
+  val processor =
+    directoryProcessor(context, processContents = bazelProjectFilteringProcessor(workspaceRoot, excludeAbsolute, context, processContents))
+  traverseIncludedDirectories(includeAbsolute, processor)
 }

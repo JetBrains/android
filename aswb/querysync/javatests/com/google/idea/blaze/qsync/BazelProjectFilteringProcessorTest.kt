@@ -17,10 +17,13 @@ package com.google.idea.blaze.qsync
 
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.NoopContext
+import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.traverser.DirectoryContents
 import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -114,5 +117,42 @@ class BazelProjectFilteringProcessorTest {
     val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1/nested"))
 
     assertThat(result).isNull()
+  }
+
+  @Test
+  fun testTraverseProjectDirectories_emptyIncludes() {
+    runBlocking {
+      val def = ProjectDefinition.EMPTY.copy(projectIncludes = setOf(Path.of("nonexistent")))
+      var callbackCalled = false
+      traverseProjectDirectories(context, workspaceRoot, def) { _, _, c ->
+        callbackCalled = true
+        c
+      }
+      assertThat(callbackCalled).isFalse()
+    }
+  }
+
+  @Test
+  fun testTraverseProjectDirectories_traversesAndFilters() {
+    runBlocking {
+      createFile("dir1/file1.txt")
+      createDirectory("dir1/excluded")
+      createDirectory("dir1/validChild")
+      createFile("dir1/nested/MODULE.bazel")
+      createFile("dir1/nested/file2.txt")
+
+      val def = ProjectDefinition.EMPTY.copy(projectIncludes = setOf(Path.of("dir1")), projectExcludes = setOf(Path.of("dir1/excluded")))
+      val visitedDirs = ConcurrentHashMap.newKeySet<Path>()
+      val visitedFiles = ConcurrentHashMap.newKeySet<Path>()
+
+      traverseProjectDirectories(context, workspaceRoot, def) { _, currentDir, contents ->
+        visitedDirs.add(currentDir)
+        visitedFiles.addAll(contents.files)
+        contents
+      }
+
+      assertThat(visitedDirs).containsExactly(workspaceRoot.resolve("dir1"), workspaceRoot.resolve("dir1/validChild"))
+      assertThat(visitedFiles).containsExactly(workspaceRoot.resolve("dir1/file1.txt"))
+    }
   }
 }

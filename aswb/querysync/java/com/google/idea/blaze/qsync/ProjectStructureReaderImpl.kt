@@ -26,7 +26,6 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.google.idea.blaze.qsync.project.SourceSet
-import com.google.idea.blaze.traverser.traverseIncludedDirectories
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Optional
@@ -39,13 +38,6 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
   ProjectStructureReader {
 
   override fun read(context: Context<*>, workspaceRoot: Path, projectDefinition: ProjectDefinition): ProjectStructureData {
-    val includeAbsolute =
-      projectDefinition.projectIncludes.map { workspaceRoot.resolve(it) }.filter { Files.exists(it) && Files.isDirectory(it) }
-    val excludeAbsolute = projectDefinition.projectExcludes.map { workspaceRoot.resolve(it) }.toSet()
-
-    if (includeAbsolute.isEmpty()) {
-      return ProjectStructureData.EMPTY
-    }
 
     /**
      * Map storing discovered source files grouped by:
@@ -133,27 +125,23 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
       }
     }
 
-    val processor =
-      directoryProcessor(
-        context,
-        processContents =
-          bazelProjectFilteringProcessor(workspaceRoot, excludeAbsolute, context) { rootDir, currentDir, contents ->
-            val includeRoot = workspaceRoot.relativize(rootDir)
-            val candidateFiles =
-              choosePackageCandidates(contents.files, fileExtensions) { Files.exists(workspaceRoot.resolve(currentDir).resolve(it)) }
-            val javaPackage =
-              candidateFiles.firstNotNullOfOrNull { packageReader.readPackage(context, workspaceRoot.resolve(currentDir).resolve(it)) }
-                ?: ""
+    val duration = measureTime {
+      runBlocking {
+        traverseProjectDirectories(context, workspaceRoot, projectDefinition) { rootDir, currentDir, contents ->
+          val includeRoot = workspaceRoot.relativize(rootDir)
+          val candidateFiles =
+            choosePackageCandidates(contents.files, fileExtensions) { Files.exists(workspaceRoot.resolve(currentDir).resolve(it)) }
+          val javaPackage =
+            candidateFiles.firstNotNullOfOrNull { packageReader.readPackage(context, workspaceRoot.resolve(currentDir).resolve(it)) } ?: ""
 
-            for (file in contents.files) {
-              val result = fileProcessor.processRegularFile(file, currentDir)
-              aggregateResult(includeRoot, result, javaPackage)
-            }
-            contents
-          },
-      )
-
-    val duration = measureTime { runBlocking { traverseIncludedDirectories(includeAbsolute, processor) } }
+          for (file in contents.files) {
+            val result = fileProcessor.processRegularFile(file, currentDir)
+            aggregateResult(includeRoot, result, javaPackage)
+          }
+          contents
+        }
+      }
+    }
 
     val roots =
       sourcesMap.map { (includeRoot, packageMap) ->

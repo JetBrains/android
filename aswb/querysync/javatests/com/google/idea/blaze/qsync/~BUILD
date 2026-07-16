@@ -154,7 +154,7 @@ aswb_test(
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
-        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )
 
@@ -163,11 +163,13 @@ aswb_test(
     srcs = ["BazelProjectFilteringProcessorTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/traverser",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )
 
