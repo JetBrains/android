@@ -102,15 +102,16 @@ internal class EnvironmentTracker(private val emulator: EmulatorController) {
 }
 
 /**
- * Extracts the image file path from the emulator [Environment] message. Returns null if the environment mode is not an image-based mode,
- * e.g. if it is empty or a camera.
+ * Extracts the file path from the emulator [Environment] message. Returns null if the environment mode does not contain a file path, e.g.
+ * if it is empty or a camera.
  */
-internal fun Environment.getImagePath(): Path? {
+internal fun Environment.getEnvironmentFile(): Path? {
   val mode = environmentMap["scene.mode"] ?: return null
   val pathStr =
     when {
       mode.startsWith("imagefile:") -> mode.removePrefix("imagefile:")
       mode.startsWith("image360:") -> mode.removePrefix("image360:")
+      mode.startsWith("mesh3d:") -> mode.removePrefix("mesh3d:")
       else -> return null
     }
   return try {

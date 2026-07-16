@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
@@ -55,7 +56,9 @@ import com.intellij.testFramework.replaceService
 import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.TimeoutException
 import java.util.zip.Deflater
+import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -92,6 +95,7 @@ class EmulatorEnvironmentActionTest {
   @Before
   fun setUp() {
     StudioFlags.EMBEDDED_EMULATOR_CAMERA_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.overrideForTest(true, testRootDisposable)
   }
 
   @Test
@@ -147,6 +151,94 @@ class EmulatorEnvironmentActionTest {
   }
 
   @Test
+  fun testCustom3dEnvironment() {
+    val objFileContent =
+      """
+      # Wavefront OBJ file
+      v 0.0 0.0 0.0
+      v 1.0 0.0 0.0
+      v 0.0 1.0 0.0
+      f 1 2 3
+      """
+        .trimIndent()
+    val objPath = tempDirRule.newPath("test_scene.obj")
+    Files.write(objPath, objFileContent.toByteArray(Charsets.UTF_8))
+
+    val objFile = mock<VirtualFile>()
+    whenever(objFile.path).thenReturn(objPath.toString())
+    testRootDisposable.registerFakeFileChooserFactory(objFile)
+
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request))
+      .isEqualTo("environment { key: \"scene.mode\" value: \"mesh3d:${objPath.systemIndependentString}\" }")
+  }
+
+  @Test
+  fun testCustom3dEnvironment_invalidFile() {
+    val objFileContent =
+      """
+      This is not a valid Wavefront OBJ file
+      random text
+      """
+        .trimIndent()
+    val objPath = tempDirRule.newPath("test_scene_invalid.obj")
+    Files.write(objPath, objFileContent.toByteArray(Charsets.UTF_8))
+
+    val objFile = mock<VirtualFile>()
+    whenever(objFile.path).thenReturn(objPath.toString())
+    testRootDisposable.registerFakeFileChooserFactory(objFile)
+
+    var dialogShownMessage: String? = null
+    val previousDialog =
+      TestDialogManager.setTestDialog { message ->
+        dialogShownMessage = message
+        0 // OK
+      }
+    try {
+      val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
+      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+      assertFailsWith<TimeoutException> { emulator.getNextGrpcCall(1.seconds) }
+
+      assertThat(dialogShownMessage).isEqualTo("The selected file is not a valid Wavefront 3D scene file.")
+    } finally {
+      TestDialogManager.setTestDialog(previousDialog)
+    }
+  }
+
+  @Test
+  fun testCustom3dEnvironment_binaryFile() {
+    val binaryContent = byteArrayOf(0x4C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00) // Looks like Intel 386 COFF header
+    val objPath = tempDirRule.newPath("test_scene_binary.obj")
+    Files.write(objPath, binaryContent)
+
+    val objFile = mock<VirtualFile>()
+    whenever(objFile.path).thenReturn(objPath.toString())
+    testRootDisposable.registerFakeFileChooserFactory(objFile)
+
+    var dialogShownMessage: String? = null
+    val previousDialog =
+      TestDialogManager.setTestDialog { message ->
+        dialogShownMessage = message
+        0 // OK
+      }
+    try {
+      val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
+      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+      assertFailsWith<TimeoutException> { emulator.getNextGrpcCall(1.seconds) }
+
+      assertThat(dialogShownMessage).isEqualTo("The selected file is not a valid Wavefront 3D scene file.")
+    } finally {
+      TestDialogManager.setTestDialog(previousDialog)
+    }
+  }
+
+  @Test
   fun testRecentCustomEnvironment() {
     val filePath = "/tmp/recent_image.png"
     val action = EmulatorEnvironmentAction.RecentCustom(Path.of(filePath))
@@ -155,6 +247,44 @@ class EmulatorEnvironmentActionTest {
     val call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
     assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:$filePath\" }")
+  }
+
+  @Test
+  fun testRecentCustom3dEnvironment() {
+    val filePath = "/tmp/recent_scene.obj"
+    val action = EmulatorEnvironmentAction.RecentCustom(Path.of(filePath))
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"mesh3d:$filePath\" }")
+  }
+
+  @Test
+  fun testRecentEnvironmentsExcludes3dWhenFlagOff() {
+    val file1 = tempDirRule.newPath("file1.png")
+    val file2 = tempDirRule.newPath("file2.obj")
+    Files.createFile(file1)
+    Files.createFile(file2)
+
+    val properties = PropertiesComponent.getInstance()
+    properties.setValue("EmulatorEnvironmentAction.recentFiles", "")
+    EmulatorEnvironmentAction.addRecentFile(file1.toString())
+    EmulatorEnvironmentAction.addRecentFile(file2.toString())
+
+    val group = EmulatorRecentEnvironmentsActionGroup()
+    val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    // With flag ON, both should be shown
+    StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    var children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(2)
+
+    // With flag OFF, file2 (.obj) should be filtered out
+    StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.overrideForTest(false, testRootDisposable)
+    children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(1)
+    assertThat(children[0].templatePresentation.text).isEqualTo(file1.fileName.toString())
   }
 
   @Test
@@ -659,6 +789,16 @@ class EmulatorEnvironmentActionTest {
     assertThat(Toggleable.isSelected(updateAndGetActionPresentation(builtInAction, builtInEvent))).isFalse()
 
     // And customAction should be SELECTED!
+    assertThat(Toggleable.isSelected(updateAndGetActionPresentation(customAction, customEvent))).isTrue()
+
+    // 3. Set environment to custom 3D scene
+    val custom3dPath = "/tmp/my_custom_scene.obj"
+    val recentAction3d = EmulatorEnvironmentAction.RecentCustom(Path.of(custom3dPath))
+    val recentEvent3d = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+    executeAction(recentAction3d, project = projectRule.project, extra = dataSnapshotProvider)
+    waitForCondition(5.seconds) { Toggleable.isSelected(updateAndGetActionPresentation(recentAction3d, recentEvent3d)) }
+
+    // customAction should STILL be SELECTED!
     assertThat(Toggleable.isSelected(updateAndGetActionPresentation(customAction, customEvent))).isTrue()
   }
 
