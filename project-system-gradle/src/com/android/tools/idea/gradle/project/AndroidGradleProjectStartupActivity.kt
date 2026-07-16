@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.Version
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.entities.setGradleAndroidModelFromDataNode
 import com.android.tools.idea.gradle.project.entities.setGradleModuleModelFromDataNode
@@ -397,9 +396,9 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
     moduleSetupData.flatMap { data ->
       fun GradleAndroidModelData.validate() =
         shouldDisableForceUpgrades() ||
-          AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
-            !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
-          }
+          !ApplicationManager.getApplication()
+            .getService(AgpVersionChecker::class.java)
+            .versionsAreIncompatible(agpVersion, AgpVersions.latestKnown)
 
       /** Returns an action that attaches a model from the data node to the appropriate place. */
       fun <T, V : Facet<*>> prepare(

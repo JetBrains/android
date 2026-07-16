@@ -34,6 +34,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.ResourceIdResolver;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintResult;
@@ -218,7 +219,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Override
   public @Nullable Object getClientProperty(@NotNull String key) {
     if (key.equals(KEY_IDE_AGP_VERSION)) {
-      return ANDROID_GRADLE_PLUGIN_VERSION;
+      return AgpVersions.getLatestKnown();
     }
     return super.getClientProperty(key);
   }
