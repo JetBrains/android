@@ -102,9 +102,6 @@ class ExistingProjectModelData(
   override val modelId = StringValueProperty("")
   override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
-  override val sourceProjectType = ObjectValueProperty(SourceProjectType.UNKNOWN)
-  override val importSourcePath = StringValueProperty("")
-  override val userSkillDirectories: ObjectValueProperty<List<java.io.File>> = ObjectValueProperty(listOf())
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {

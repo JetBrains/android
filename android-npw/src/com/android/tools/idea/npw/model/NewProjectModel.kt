@@ -21,6 +21,8 @@ import com.android.io.CancellableFileIo
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.SourceProjectType
+import com.android.tools.idea.gemini.TargetProjectType
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleNewProjectConfiguration
@@ -96,18 +98,6 @@ private val logger: Logger
 
 private const val MIGRATION_IMPORT_DIR_NAME = ".migration/import"
 
-/**
- * The source project type for migration/import.
- *
- * @param importProjectType The equivalent [GeminiPluginApi.ImportProjectType].
- */
-enum class SourceProjectType(val importProjectType: GeminiPluginApi.ImportProjectType) {
-  IOS(GeminiPluginApi.ImportProjectType.IOS),
-  REACT_NATIVE(GeminiPluginApi.ImportProjectType.REACT_NATIVE),
-  FLUTTER(GeminiPluginApi.ImportProjectType.FLUTTER),
-  UNKNOWN(GeminiPluginApi.ImportProjectType.UNKNOWN),
-}
-
 interface ProjectModelData {
   val projectSyncInvoker: ProjectSyncInvoker
   val applicationName: StringProperty
@@ -129,10 +119,7 @@ interface ProjectModelData {
   val prompt: StringProperty
   val modelId: StringProperty
   val displayText: StringProperty
-  val sourceProjectType: ObjectValueProperty<SourceProjectType>
-  val importSourcePath: StringProperty
   val imageAttachments: ObjectValueProperty<List<VirtualFile>>
-  val userSkillDirectories: ObjectValueProperty<List<File>>
 }
 
 class NewProjectModel : WizardModel(), ProjectModelData {
@@ -155,7 +142,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val modelId = StringValueProperty("")
   override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
-  override val userSkillDirectories: ObjectValueProperty<List<File>> = ObjectValueProperty(listOf())
+  val userSkillDirectories: ObjectValueProperty<List<File>> = ObjectValueProperty(listOf())
+  val migrationImportConfig = OptionalValueProperty<MigrationImportConfig>()
   val launchFirebaseWizard = BoolValueProperty(false)
   @Suppress("UNCHECKED_CAST") // Ugly generics here make the extension point itself slightly neater
   override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>> =
@@ -168,9 +156,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings> =
     TemplateRendererStrategy.EP_NAME.extensions.associateWith { it.createAdditionalUserSettings() }
       as Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings>
-
-  override val sourceProjectType = ObjectValueProperty<SourceProjectType>(SourceProjectType.IOS)
-  override val importSourcePath = StringValueProperty("")
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     val customStrategy = templateRendererStrategy.valueOrNull
@@ -212,15 +197,14 @@ class NewProjectModel : WizardModel(), ProjectModelData {
               // ExternalToolWindowManager). We want the Gemini window to be shown instead, so
               // delay opening the Gemini window until after Gradle has finished.
               ToolWindowManager.getInstance(newProject).invokeLater {
-                val sPath = importSourcePath.get()
-                if (sPath.isNotEmpty()) {
+                val config = migrationImportConfig.valueOrNull
+                if (config != null && config.importSourcePath.isNotEmpty()) {
                   GeminiPluginApi.getInstance()
                     .launchImportProjectAgent(
                       newProject,
                       prompt.get(),
                       imageAttachments.get(),
                       displayText.get().takeIf { it.isNotBlank() },
-                      importProjectType = sourceProjectType.get().importProjectType,
                       modelId = modelId.get().takeIf { it.isNotBlank() },
                     )
                 } else {
@@ -282,15 +266,14 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
             if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
               ToolWindowManager.getInstance(newProject).invokeLater {
-                val sPath = importSourcePath.get()
-                if (sPath.isNotEmpty()) {
+                val config = migrationImportConfig.valueOrNull
+                if (config != null && config.importSourcePath.isNotEmpty()) {
                   GeminiPluginApi.getInstance()
                     .launchImportProjectAgent(
                       newProject,
                       prompt.get(),
                       imageAttachments.get(),
                       displayText.get().takeIf { it.isNotBlank() },
-                      importProjectType = sourceProjectType.get().importProjectType,
                       modelId = modelId.get().takeIf { it.isNotBlank() },
                     )
                 } else {
@@ -425,21 +408,14 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
       try {
         val projectRoot = VfsUtilCore.virtualToIoFile(project.baseDir)
-        setGradleWrapperExecutable(projectRoot)
-
-        val sPath = importSourcePath.get()
-        if (sPath.isNotEmpty()) {
-          val migrationImportDir = File(projectRoot, MIGRATION_IMPORT_DIR_NAME)
-          migrationImportDir.mkdirs()
-          val importSourceLink = File(migrationImportDir, "source")
-          if (!importSourceLink.exists()) {
-            Files.createSymbolicLink(importSourceLink.toPath(), Paths.get(sPath))
-            // This is required so the new link is visible to the VFS
-            VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
-          }
+        try {
+          setGradleWrapperExecutable(projectRoot)
+        } catch (e: Exception) {
+          logger.warn("Failed to set Gradle wrapper executable permissions", e)
         }
+        migrationImportConfig.valueOrNull?.let { config -> setupMigrationSettingsAndSourceLink(projectRoot, project, config) }
       } catch (e: Exception) {
-        logger.warn("Failed to update Gradle wrapper permissions or create symbolic link", e)
+        logger.warn("Failed to obtain project root or write migration configuration", e)
       }
     }
 
@@ -535,6 +511,17 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     @Suppress("InconsistentThreadingAnnotation")
     override fun render() {
       performCreateProject(false)
+      try {
+        val projectRoot = VfsUtilCore.virtualToIoFile(project.baseDir)
+        try {
+          setGradleWrapperExecutable(projectRoot)
+        } catch (e: Exception) {
+          logger.warn("Failed to set Gradle wrapper executable permissions", e)
+        }
+        migrationImportConfig.valueOrNull?.let { config -> setupMigrationSettingsAndSourceLink(projectRoot, project, config) }
+      } catch (e: Exception) {
+        logger.warn("Failed to obtain project root or write migration configuration for custom template", e)
+      }
     }
 
     private fun performCreateProject(dryRun: Boolean) {
@@ -556,6 +543,30 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     @UiThread override fun finish() {}
 
     override fun logUsage() {}
+  }
+
+  private fun setupMigrationSettingsAndSourceLink(projectRoot: File, project: Project, config: MigrationImportConfig) {
+    try {
+      val sPath = config.importSourcePath
+      if (sPath.isNotEmpty()) {
+        val propertiesComp = PropertiesComponent.getInstance(project)
+        propertiesComp.setValue(GeminiPluginApi.PROPERTIES_MIGRATION_SOURCE_KEY, config.sourceProjectType.name)
+        propertiesComp.setValue(GeminiPluginApi.PROPERTIES_MIGRATION_TARGET_KEY, config.targetProjectType.name)
+
+        val migrationImportDir = File(projectRoot, MIGRATION_IMPORT_DIR_NAME)
+        migrationImportDir.mkdirs()
+
+        val importSourceLink = File(migrationImportDir, "source")
+        if (!importSourceLink.exists()) {
+          Files.createSymbolicLink(importSourceLink.toPath(), Paths.get(sPath))
+        }
+
+        // This is required so the new link is visible to the VFS
+        VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
+      }
+    } catch (e: Exception) {
+      logger.warn("Failed to create symbolic link or set migration project properties", e)
+    }
   }
 
   fun findNewModuleRecommendedBuildSdk(): AndroidVersion? {
@@ -678,3 +689,9 @@ internal const val PROPERTIES_BYTECODE_LEVEL_KEY = "SAVED_BYTECODE_LEVEL"
 
 internal val properties
   get() = PropertiesComponent.getInstance()
+
+data class MigrationImportConfig(
+  val sourceProjectType: SourceProjectType,
+  val targetProjectType: TargetProjectType,
+  val importSourcePath: String,
+)
