@@ -17,14 +17,18 @@ package com.google.idea.blaze.base.run.testmap;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.BlazeProjectData;
-import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.primitives.GenericBlazeRules;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.RuleType;
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.model.primitives.WorkspaceType;
+import com.google.idea.blaze.base.qsync.QuerySyncProjectData;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.run.SourceToTargetFinder;
 import com.google.idea.blaze.base.settings.BazelImportSettingsManager;
@@ -33,6 +37,10 @@ import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncCache;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
+import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
+import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
+import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
+import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
 import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
@@ -49,10 +57,10 @@ import org.junit.runners.JUnit4;
 
 /** Tests for the test map */
 @RunWith(JUnit4.class)
-@Ignore("b/466350110")
 public class TestMapTest extends BlazeTestCase {
 
   private MockBlazeProjectDataManager mockBlazeProjectDataManager;
+  private ProjectSourceToTargetFinder finder;
 
   @Override
   protected void initTest(
@@ -69,9 +77,10 @@ public class TestMapTest extends BlazeTestCase {
         java.nio.file.Path.of(""), BuildSystemName.Blaze);
     projectServices.register(BazelImportSettingsManager.class, importSettingsManager);
 
+    finder = new ProjectSourceToTargetFinder();
     ExtensionPointImpl<SourceToTargetFinder> ep =
         registerExtensionPoint(SourceToTargetFinder.EP_NAME, SourceToTargetFinder.class);
-    ep.registerExtension(new ProjectSourceToTargetFinder());
+    ep.registerExtension(finder);
 
     ExtensionPointImpl<Kind.Provider> kindProvider =
         registerExtensionPoint(Kind.Provider.EP_NAME, Kind.Provider.class);
@@ -79,27 +88,40 @@ public class TestMapTest extends BlazeTestCase {
     applicationServices.register(Kind.ApplicationState.class, new Kind.ApplicationState());
   }
 
+  private QuerySyncProjectData createMockProjectData(ProjectTarget... targets) {
+    WorkspacePathResolver resolver =
+        new WorkspacePathResolverImpl(new WorkspaceRoot(new File("/")));
+    return new QuerySyncProjectData(
+        resolver, new WorkspaceLanguageSettings(WorkspaceType.JAVA, ImmutableSet.of())) {
+      @Override
+      public Collection<ProjectTarget> getReverseDeps(java.nio.file.Path sourcePath) {
+        return ImmutableList.copyOf(targets);
+      }
+    };
+  }
+
   @Test
   public void testTrivialTestMap() throws Exception {
-    // mockBlazeProjectDataManager.targetMap =
-    //    TargetMapBuilder.builder()
-    //        .addTarget(
-    //            TargetIdeInfo.builder()
-    //                .setBuildFile(sourceRoot("test/BUILD"))
-    //                .setLabel("//test:test")
-    //                .setKind("sh_test")
-    //                .addSource(sourceRoot("test/Test.java")))
-    //        .build();
+    ProjectTarget target =
+        ProjectTarget.builder()
+            .label(com.google.idea.blaze.common.Label.of("//test:test"))
+            .kind("sh_test")
+            .tags(ImmutableList.of())
+            .build();
+    mockBlazeProjectDataManager.projectData = createMockProjectData(target);
 
     Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(
-            project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
+        finder
+            .targetsForSourceFiles(
+                project, ImmutableSet.of(new File("/test/Test.java")), Optional.of(RuleType.TEST))
+            .get();
 
     assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"));
   }
 
   @Test
+  @Ignore("b/466350110")
   public void testOneStepRemovedTestMap() throws Exception {
     // mockBlazeProjectDataManager.targetMap =
     //    TargetMapBuilder.builder()
@@ -118,14 +140,17 @@ public class TestMapTest extends BlazeTestCase {
     //        .build();
 
     Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(
-            project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
+        finder
+            .targetsForSourceFiles(
+                project, ImmutableSet.of(new File("/test/Test.java")), Optional.of(RuleType.TEST))
+            .get();
 
     assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"));
   }
 
   @Test
+  @Ignore("b/466350110")
   public void testTwoCandidatesTestMap() throws Exception {
     // mockBlazeProjectDataManager.targetMap =
     //    TargetMapBuilder.builder()
@@ -150,14 +175,17 @@ public class TestMapTest extends BlazeTestCase {
     //        .build();
 
     Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(
-            project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
+        finder
+            .targetsForSourceFiles(
+                project, ImmutableSet.of(new File("/test/Test.java")), Optional.of(RuleType.TEST))
+            .get();
 
     assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"), Label.create("//test:test2"));
   }
 
   @Test
+  @Ignore("b/466350110")
   public void testBfsPreferred() throws Exception {
     // mockBlazeProjectDataManager.targetMap =
     //    TargetMapBuilder.builder()
@@ -186,10 +214,12 @@ public class TestMapTest extends BlazeTestCase {
     //                .setKind("sh_test")
     //                .addDependency("//test:lib"))
     //        .build();
-    //
+
     Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(
-            project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
+        finder
+            .targetsForSourceFiles(
+                project, ImmutableSet.of(new File("/test/Test.java")), Optional.of(RuleType.TEST))
+            .get();
 
     assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"), Label.create("//test:test2"))
@@ -197,6 +227,7 @@ public class TestMapTest extends BlazeTestCase {
   }
 
   @Test
+  @Ignore("b/466350110")
   public void testSourceIncludedMultipleTimesFindsAll() throws Exception {
     // mockBlazeProjectDataManager.targetMap =
     //    TargetMapBuilder.builder()
@@ -227,14 +258,17 @@ public class TestMapTest extends BlazeTestCase {
     //        .build();
 
     Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(
-            project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
+        finder
+            .targetsForSourceFiles(
+                project, ImmutableSet.of(new File("/test/Test.java")), Optional.of(RuleType.TEST))
+            .get();
 
     assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"), Label.create("//test:test2"));
   }
 
   @Test
+  @Ignore("b/466350110")
   public void testSourceIncludedMultipleTimesShouldOnlyGiveOneInstanceOfTest() throws Exception {
     // mockBlazeProjectDataManager.targetMap =
     //    TargetMapBuilder.builder()
@@ -260,8 +294,10 @@ public class TestMapTest extends BlazeTestCase {
     //        .build();
 
     Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(
-            project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
+        finder
+            .targetsForSourceFiles(
+                project, ImmutableSet.of(new File("/test/Test.java")), Optional.of(RuleType.TEST))
+            .get();
 
     assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
         .containsExactly(Label.create("//test:test"));
@@ -269,32 +305,33 @@ public class TestMapTest extends BlazeTestCase {
 
   @Test
   public void testTargetWithNoKindDoesNotCauseNpe() throws Exception {
-    // mockBlazeProjectDataManager.targetMap =
-    //    TargetMapBuilder.builder()
-    //        .addTarget(
-    //            TargetIdeInfo.builder()
-    //                .setBuildFile(sourceRoot("test/BUILD"))
-    //                .setLabel("//test:test")
-    //                // .setKind("") // Intentionally not set.
-    //                .addSource(sourceRoot("test/Test.java")))
-    //        .build();
-    //
-    Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(
-            project, new File("/test/Test.java"), Optional.of(RuleType.TEST));
+    ProjectTarget target =
+        ProjectTarget.builder()
+            .label(com.google.idea.blaze.common.Label.of("//test:test"))
+            .kind("unrecognized_rule")
+            .tags(ImmutableList.of())
+            .build();
+    mockBlazeProjectDataManager.projectData = createMockProjectData(target);
 
-    // Unknown rule type does not match the test rule type but the intention of this test is to make
-    // sure unknown rule types
-    // do not cause NPE crashes.
-    assertThat(targets).isEmpty();
+    Collection<TargetInfo> targets =
+        finder
+            .targetsForSourceFiles(
+                project, ImmutableSet.of(new File("/test/Test.java")), Optional.empty())
+            .get();
+
+    // Unknown rule type does not match specific rule types, but when queried with Optional.empty()
+    // (no rule type filter), it must not cause an NPE when sorting target priorities.
+    assertThat(targets.stream().map(t -> t.label()).collect(Collectors.toList()))
+        .containsExactly(Label.create("//test:test"));
   }
 
   private static class MockBlazeProjectDataManager implements BlazeProjectDataManager {
+    @Nullable public BlazeProjectData projectData;
 
     @Nullable
     @Override
     public BlazeProjectData getBlazeProjectData() {
-      return MockBlazeProjectDataBuilder.builder().build();
+      return projectData;
     }
 
     @Nullable

@@ -47,7 +47,7 @@ public class ProjectSourceToTargetFinder implements SourceToTargetFinder {
   public ListenableFuture<Collection<TargetInfo>> targetsForSourceFiles(
       Project project, Set<? extends File> sourceFiles, Optional<RuleType> ruleType) {
     QuerySyncProjectData projectData =
-      (QuerySyncProjectData)BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
+        (QuerySyncProjectData) BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
     if (projectData == null) {
       return Futures.immediateFuture(ImmutableList.of());
     }
@@ -70,7 +70,11 @@ public class ProjectSourceToTargetFinder implements SourceToTargetFinder {
                 })
             .map(TargetInfo::fromBuildTarget)
             .sorted(
-              Comparator.comparingInt(target -> target.getKind().getKindPriority()))
+                Comparator.comparingInt(
+                    target ->
+                        (target.getKind() != null && target.getKind() != Kind.UNKNOWN)
+                            ? target.getKind().getKindPriority()
+                            : Integer.MAX_VALUE))
             .collect(toImmutableSet());
     return Futures.immediateFuture(targets);
   }
