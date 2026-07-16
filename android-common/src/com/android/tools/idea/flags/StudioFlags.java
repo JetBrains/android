@@ -1278,6 +1278,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT = new BooleanFlag(
     EMBEDDED_EMULATOR, "360.image.environment", "Enable 360 Image Environment",
     "Enables 360 image support for AI Glasses environments");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT = new BooleanFlag(
+    EMBEDDED_EMULATOR, "3d.scene.environment", "Enable 3D Scene Environment",
+    "Enables 3D scene (.obj) support for AI Glasses environments");
   public static final Flag<Boolean> RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME = new BooleanFlag(
     EMBEDDED_EMULATOR, "hide.tool.window.name", "Hide Tool Window Name",
     "Hides the name of the Running Devices window when it contains any device tabs");

@@ -91,6 +91,7 @@ internal class EmulatorRecentEnvironmentsActionGroup : DefaultActionGroup(), Dum
       EmulatorEnvironmentAction.getRecentFiles()
         .map { Path.of(it) }
         .filter { Files.isRegularFile(it) }
+        .filter { StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get() || !it.fileName.toString().endsWith(".obj", ignoreCase = true) }
         .any { currentEnvironmentPath == null || it.toAbsolutePath().normalize() != currentEnvironmentPath }
     presentation.isVisible = hasRecentFiles && EmulatorEnvironmentAction.isApplicable(event)
     presentation.isEnabled = presentation.isVisible && isEmulatorConnected(event)
@@ -102,6 +103,7 @@ internal class EmulatorRecentEnvironmentsActionGroup : DefaultActionGroup(), Dum
       EmulatorEnvironmentAction.getRecentFiles()
         .map { Path.of(it) }
         .filter { Files.isRegularFile(it) }
+        .filter { StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get() || !it.fileName.toString().endsWith(".obj", ignoreCase = true) }
         .filter { currentEnvironmentPath == null || it.toAbsolutePath().normalize() != currentEnvironmentPath }
     return recentFiles.map { EmulatorEnvironmentAction.RecentCustom(it) }.toTypedArray()
   }
@@ -109,7 +111,7 @@ internal class EmulatorRecentEnvironmentsActionGroup : DefaultActionGroup(), Dum
   private fun getCurrentCustomEnvironmentPath(event: AnActionEvent?): Path? {
     val emulator = event?.let(::getEmulatorController) ?: return null
     val env = EnvironmentTracker.forEmulator(emulator)?.environment ?: return null
-    return env.getImagePath()?.toAbsolutePath()?.normalize()
+    return env.getEnvironmentFile()?.toAbsolutePath()?.normalize()
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
