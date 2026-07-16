@@ -1,7 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_binary")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
-load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/intellij-bazel:intellij.bzl", "intellij_plugin")
 
 java_binary(
@@ -12,16 +11,10 @@ java_binary(
     ],
 )
 
-kotlin_library(
-    name = "wrapper_class_file",
-    srcs = glob(["plugin/src/com/android/tools/asdriver/plugin/*.kt"]),
-)
-
 intellij_plugin(
     name = "asdriver.plugin",
     directory = "asdriver.plugin",
     libs = [
-        "wrapper_class_file",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
