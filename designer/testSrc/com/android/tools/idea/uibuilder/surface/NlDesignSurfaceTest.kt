@@ -26,6 +26,8 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
+import com.android.tools.idea.common.surface.SceneViewPanel
+import com.android.tools.idea.common.surface.ZoomConstants
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
@@ -574,26 +576,38 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     surface.removeModels(listOf(model))
   }
 
-  /** Test that we don't have any negative scale in case the windows size becomes too small */
-  fun ignore_testsMinScale() {
+  /** Test that we don't go below the minimum scale in case the window size becomes too small */
+  fun testMinScale() {
     val model: NlModel =
       model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
-    val surface = designSurface
-    surface.setModel(model)
-    surface.setBounds(0, 0, 1000, 1000)
-    surface.validate()
-    surface.getLayout().layoutContainer(surface)
-    surface.validateScrollArea()
-    surface.zoomController.zoomToFit()
-    assertEquals(0.5, surface.zoomController.scale, 0.1)
+    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
+    model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
 
-    surface.setBounds(0, 0, 1, 1)
-    surface.revalidateScrollArea()
-    surface.validate()
-    surface.layout.layoutContainer(surface)
-    surface.zoomController.zoomToFit()
-    assertEquals(0.01, surface.zoomController.scale)
+    val surface = builder(project, getTestRootDisposable()).build()
+    surface.setScrollViewSizeAndValidateForTest(1000, 1000)
+    surface.setModel(model)
+    waitForSurfaceToBeReady(model, surface)
+    val sceneViewPanel = surface.interactionPane as SceneViewPanel
+    sceneViewPanel.doLayout()
+    // Now wait for the asynchronous launchLayoutUpdate flow collection to finish adding components to the panel
+    waitAndDispatchEvents { sceneViewPanel.positionableContent.isNotEmpty() }
+
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
+    surface.zoomController.zoom(ZoomType.FIT)
+    val fitScale = surface.zoomController.scale
+    // Zoom to fit should work and the scale should be within valid bounds (greater than minScale)
+    assertTrue(fitScale > ZoomConstants.DEFAULT_MIN_SCALE)
+
+    // Now resize the viewport to be extremely small (1x1)
+    surface.setScrollViewSizeAndValidateForTest(1, 1)
+    surface.doLayout()
+
+    // Zoom to fit shouldn't go below the minimum scale
+    surface.zoomController.zoom(ZoomType.FIT)
+    assertEquals(ZoomConstants.DEFAULT_MIN_SCALE, surface.zoomController.scale, 0.001)
   }
 
   fun testNlSupportedActions() {
