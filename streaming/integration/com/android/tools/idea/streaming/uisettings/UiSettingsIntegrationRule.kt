@@ -200,11 +200,11 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
           density = 480
         }
       )
-    val deviceClient = DeviceClient(emulator.serialNumber, emptyDeviceConfiguration, "x86_64")
-    Disposer.register(testRootDisposable, deviceClient)
     val deviceProvisioner = project.getService(DeviceProvisionerService::class.java).deviceProvisioner
     val selector = DeviceSelector.fromSerialNumber(emulator.serialNumber)
     val handle = deviceProvisioner.findConnectedDeviceHandle(selector, 30.seconds) ?: error("No handle found")
+    val deviceClient = DeviceClient(handle.id, emulator.serialNumber, emptyDeviceConfiguration, "x86_64")
+    Disposer.register(testRootDisposable, deviceClient)
     return DeviceToolWindowPanel(testRootDisposable, project, handle, deviceClient)
   }
 

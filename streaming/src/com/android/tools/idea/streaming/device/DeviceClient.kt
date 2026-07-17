@@ -25,6 +25,7 @@ import com.android.adblib.isKnownDevice
 import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
 import com.android.annotations.concurrency.GuardedBy
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
@@ -116,11 +117,15 @@ private val logger = Logger.getInstance(DeviceClient::class.java)
 
 private val pushSerializer = ExecutionSerializer()
 
-class DeviceClient(val deviceSerialNumber: String, val deviceConfig: DeviceConfiguration, private val deviceAbi: String) : Disposable {
+class DeviceClient(
+  deviceId: DeviceId,
+  val deviceSerialNumber: String,
+  val deviceConfig: DeviceConfiguration,
+  private val deviceAbi: String,
+) : Disposable {
 
   val deviceName: String = deviceConfig.deviceName
-  val deviceId: StreamingDeviceId =
-    StreamingDeviceId.ofPhysicalDevice(deviceSerialNumber, deviceConfig.deviceProperties.wearPairingId ?: deviceSerialNumber)
+  val deviceId: StreamingDeviceId = StreamingDeviceId.ofPhysicalDevice(deviceSerialNumber, deviceId)
 
   internal val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
   private val clientScope = createCoroutineScope()
