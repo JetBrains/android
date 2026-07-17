@@ -29,7 +29,7 @@ android {
         versionName "1.0.0"
     }
     buildFeatures {
-        compose true
+        compose = true
         buildConfig false
     }
     compileOptions {

@@ -446,7 +446,7 @@ enum class TestProject(
         .appendText(
           """
 
-          android.buildFeatures.buildConfig true
+          android.buildFeatures.buildConfig = true
           """
             .trimIndent()
         )

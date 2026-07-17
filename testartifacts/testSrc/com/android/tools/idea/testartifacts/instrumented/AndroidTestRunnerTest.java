@@ -139,7 +139,7 @@ public class AndroidTestRunnerTest {
         throw new RuntimeException(e);
       }
       StringBuilder sb = new StringBuilder(text);
-      sb.append("\nandroid.testOptions.execution \"android_test_orchestrator\"");
+      sb.append("\nandroid.testOptions.execution = \"android_test_orchestrator\"");
       try {
         Files.writeString(appBuildFile.toPath(), sb.toString());
       }

@@ -19,7 +19,7 @@ plugins {
 }
 
 android {
-  namespace 'google.simpleapplicationlib'
+  namespace = 'google.simpleapplicationlib'
   compileSdk 35 // compileSdk version will be replaced by AndroidGradleTestCase
 
   defaultConfig {

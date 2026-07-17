@@ -38,7 +38,7 @@ android {
         }
     }
     buildFeatures {
-        compose true
+        compose = true
     }
     packaging {
         resources {

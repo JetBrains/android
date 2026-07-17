@@ -14,7 +14,7 @@ android {
     versionName "1.0"
     testInstrumentationRunnerArguments size: "medium", foo: "bar"
     testOptions {
-      animationsDisabled true
+      animationsDisabled = true
     }
   }
   buildTypes {
