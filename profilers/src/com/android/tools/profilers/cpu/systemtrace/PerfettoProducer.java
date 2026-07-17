@@ -25,9 +25,14 @@ import com.intellij.util.containers.Predicate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,18 +75,37 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
    * @return true if one {@link PerfettoTrace.TracePacket} was able to be read from the file.
    */
   public static boolean verifyFileHasPerfettoTraceHeader(@NotNull File file) {
-    try {
-      CodedInputStream inputStream = CodedInputStream.newInstance(new FileInputStream(file));
-      ExtensionRegistryLite packetRegistry = ExtensionRegistryLite.newInstance();
-      PerfettoTrace.registerAllExtensions(packetRegistry);
-      PerfettoTrace.TracePacket packet = readOnePacket(inputStream, packetRegistry, true);
-      // If we can load 1 packet then we assume this is a perfetto file.
-      return packet != null;
+    // 1. Try to read it as a ZIP archive, as Tracing 2.0 captures are zipped.
+    try (ZipFile zipFile = new ZipFile(file)) {
+      Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      while (entries.hasMoreElements()) {
+        try (InputStream entryStream = zipFile.getInputStream(entries.nextElement())) {
+          if (isPerfettoStream(entryStream)) {
+            return true;
+          }
+        }
+      }
+      return false; // Valid zip, but no Perfetto entries found
+    } catch (Exception e) {
+      getLogger().info(String.format("File %s is not a ZIP archive (or threw %s), falling back to raw Perfetto check.", file.getName(), e.getClass().getSimpleName()));
     }
-    catch (IOException ex) {
-      getLogger().error(ex);
+
+    // 2. Fall back to reading it as a raw file
+    try (FileInputStream fis = new FileInputStream(file)) {
+      return isPerfettoStream(fis);
+    } catch (IOException e) {
       return false;
     }
+  }
+
+  /**
+   * Helper function to verify if an InputStream starts with a valid Perfetto trace packet.
+   */
+  private static boolean isPerfettoStream(@NotNull InputStream is) {
+    CodedInputStream codedStream = CodedInputStream.newInstance(is);
+    ExtensionRegistryLite packetRegistry = ExtensionRegistryLite.newInstance();
+    PerfettoTrace.registerAllExtensions(packetRegistry);
+    return readOnePacket(codedStream, packetRegistry, true) != null;
   }
 
   /**

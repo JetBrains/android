@@ -27,24 +27,42 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.android.tools.profilers.TraceConfigOptionsUtils
+import com.android.tools.profilers.cpu.TraceMerger
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata.HandshakeResult
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.testFramework.ApplicationRule
 import java.nio.charset.Charset
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 
 class CpuTraceInterceptCommandHandlerTest {
+  @get:Rule val applicationRule = ApplicationRule()
   private val timer = FakeTimer()
   private val service = FakeTransportService(timer)
 
   @get:Rule var grpcChannel = FakeGrpcChannel("CpuTraceInterceptCommandHandlerTest", service)
   private val channel: ManagedChannel = InProcessChannelBuilder.forName(grpcChannel.name).usePlaintext().directExecutor().build()
+
+  @After
+  fun tearDown() {
+    TraceMerger.activeV2Sessions.clear()
+    TraceMerger.appTracePathCache.clear()
+  }
 
   @Test
   fun `ShouldHandle filters request non perfetto`() {
@@ -91,8 +109,8 @@ class CpuTraceInterceptCommandHandlerTest {
     val returnValue = commandHandler.execute(startTrackCommand)
     Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
     val captor = ArgumentCaptor.forClass(String::class.java)
-    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), any())
-    Truth.assertThat(captor.value).contains("broadcast")
+    verify(commandHandler.device, times(2)).executeShellCommand(captor.capture(), any(), any(), any())
+    Truth.assertThat(captor.value).contains("ENABLE_TRACING")
   }
 
   @Test
@@ -110,8 +128,8 @@ class CpuTraceInterceptCommandHandlerTest {
     val returnValue = commandHandler.execute(startTrackCommand)
     Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
     val captor = ArgumentCaptor.forClass(String::class.java)
-    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), any())
-    Truth.assertThat(captor.value).contains("broadcast")
+    verify(commandHandler.device, times(2)).executeShellCommand(captor.capture(), any(), any(), any())
+    Truth.assertThat(captor.value).contains("ENABLE_TRACING")
     Truth.assertThat(commandHandler.lastResponseCode).isEqualTo(ResponseResultCodes.RESULT_CODE_ALREADY_ENABLED)
     with(commandHandler.lastMetricsEvent!!) {
       Truth.assertThat(hasAndroidProfilerEvent()).isTrue()
@@ -136,14 +154,65 @@ class CpuTraceInterceptCommandHandlerTest {
     val returnValue = commandHandler.execute(startTrackCommand)
     Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
     val captor = ArgumentCaptor.forClass(String::class.java)
-    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), any())
-    Truth.assertThat(captor.value).contains("broadcast")
+    verify(commandHandler.device, times(2)).executeShellCommand(captor.capture(), any(), any(), any())
+    Truth.assertThat(captor.value).contains("ENABLE_TRACING")
     Truth.assertThat(commandHandler.lastResponseCode).isEqualTo(ResponseResultCodes.RESULT_CODE_ERROR_BINARY_MISSING)
     with(commandHandler.lastMetricsEvent!!) {
       Truth.assertThat(hasAndroidProfilerEvent()).isTrue()
       Truth.assertThat(androidProfilerEvent.hasPerfettoSdkHandshakeMetadata()).isTrue()
       Truth.assertThat(androidProfilerEvent.perfettoSdkHandshakeMetadata.handshakeResult)
         .isEqualTo(HandshakeResult.ERROR_BINARY_UNAVAILABLE)
+    }
+  }
+
+  @Test
+  fun `Tracing 2_0 START success skips Tracing 1_0`() {
+    val testPid = 1
+    val cmdId = 1
+    val commandHandler = setupInterceptForTracing2Test(testPid, 1)
+    val startTrackCommand = buildCommand(cmdId, TraceType.PERFETTO)
+    val returnValue = commandHandler.execute(startTrackCommand)
+    Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
+
+    val captor = ArgumentCaptor.forClass(String::class.java)
+    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), any(), any(), any())
+    Truth.assertThat(captor.value).contains("action.START")
+    Truth.assertThat(captor.value).doesNotContain("ENABLE_TRACING")
+    Truth.assertThat(TraceMerger.getAppName(testPid.toLong())).isNotNull()
+    verify(commandHandler.device, never()).pushFile(any(), any())
+  }
+
+  @Test
+  fun `Tracing 2_0 START returns error shows UI notification and skips Tracing 1_0`() {
+    val testPid = 1
+    val cmdId = 1
+    val commandHandler = setupInterceptForTracing2Test(testPid, -1)
+    val startTrackCommand = buildCommand(cmdId, TraceType.PERFETTO)
+    mockStatic(NotificationGroupManager::class.java).use { mockedManager ->
+      val mockNotificationGroupManager = mock(NotificationGroupManager::class.java)
+      val mockNotificationGroup = mock(NotificationGroup::class.java)
+      val mockNotification = mock(Notification::class.java)
+
+      mockedManager.`when`<Any> { NotificationGroupManager.getInstance() }.thenReturn(mockNotificationGroupManager)
+      whenever(mockNotificationGroupManager.getNotificationGroup("Android Notification Group")).thenReturn(mockNotificationGroup)
+      whenever(mockNotificationGroup.createNotification(any<String>(), any<String>(), any<NotificationType>())).thenReturn(mockNotification)
+
+      val returnValue = commandHandler.execute(startTrackCommand)
+      Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
+
+      val captor = ArgumentCaptor.forClass(String::class.java)
+      verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), any(), any(), any())
+      Truth.assertThat(captor.value).contains("action.START")
+      Truth.assertThat(captor.value).doesNotContain("ENABLE_TRACING")
+      Truth.assertThat(TraceMerger.getAppName(testPid.toLong())).isNotNull()
+
+      verify(mockNotificationGroup, times(1))
+        .createNotification(
+          eq("Compose Tracing Error"),
+          eq("Tracing initialization returned -1. Final merged trace might contain partial or no Compose data."),
+          eq(NotificationType.WARNING),
+        )
+      verify(mockNotification, times(1)).notify(null)
     }
   }
 
@@ -160,19 +229,43 @@ class CpuTraceInterceptCommandHandlerTest {
     val mockClient = LegacyCpuTraceCommandHandlerTest.createMockClient(testPid)
     val commandCaptor = ArgumentCaptor.forClass(String::class.java)
     val shellCaptor = ArgumentCaptor.forClass(IShellOutputReceiver::class.java)
-    whenever(mockClient.device.executeShellCommand(commandCaptor.capture(), shellCaptor.capture())).then {
-      val data = broadcast.toByteArray(Charset.defaultCharset())
+    whenever(mockClient.device.executeShellCommand(commandCaptor.capture(), shellCaptor.capture(), any(), any())).then {
+      val cmd = commandCaptor.value ?: ""
+      val data =
+        if (cmd.contains("action.START")) {
+          "Broadcast completed: result=0\n".toByteArray(Charset.defaultCharset())
+        } else {
+          broadcast.toByteArray(Charset.defaultCharset())
+        }
       shellCaptor.value.addOutput(data, 0, data.size)
     }
     val commandHandler = CpuTraceInterceptCommandHandler(mockClient.device, TransportServiceGrpc.newBlockingStub(channel))
     return commandHandler
   }
 
-  fun buildCommand(cmdId: Int, traceType: TraceType) =
+  private fun setupInterceptForTracing2Test(testPid: Int, startResult: Int): CpuTraceInterceptCommandHandler {
+    val mockClient = LegacyCpuTraceCommandHandlerTest.createMockClient(testPid)
+    val commandCaptor = ArgumentCaptor.forClass(String::class.java)
+    val shellCaptor = ArgumentCaptor.forClass(IShellOutputReceiver::class.java)
+    whenever(mockClient.device.executeShellCommand(commandCaptor.capture(), shellCaptor.capture(), any(), any())).then {
+      val cmd = commandCaptor.value ?: ""
+      val data =
+        if (cmd.contains("action.START")) {
+          "Broadcast completed: result=$startResult\n".toByteArray(Charset.defaultCharset())
+        } else {
+          "Broadcast completed: result=0\n".toByteArray(Charset.defaultCharset())
+        }
+      shellCaptor.value.addOutput(data, 0, data.size)
+    }
+    return CpuTraceInterceptCommandHandler(mockClient.device, TransportServiceGrpc.newBlockingStub(channel))
+  }
+
+  fun buildCommand(cmdId: Int, traceType: TraceType, testPid: Int = 1) =
     Commands.Command.newBuilder()
       .apply {
         type = Commands.Command.CommandType.START_TRACE
         commandId = cmdId
+        pid = testPid
         startTrace =
           Trace.StartTrace.newBuilder()
             .apply {

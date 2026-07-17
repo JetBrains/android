@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.ProfilerTaskMetadataProto
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.cpu.CpuCaptureParserUtil
+import com.android.tools.profilers.cpu.TraceMerger
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
@@ -76,6 +77,13 @@ object ProfilerCaptureFileUtils {
     val captureFile = getCaptureAsFile(profilers, traceId) ?: return null
     val finalFile = renameToTargetFile(captureFile, getTraceFile(traceId).name) ?: return null
     writeMetadataToFile(profilers, session, finalFile)
+
+    // TRACING 2.0: Check if this was a Tracing 2.0 CPU session, and if so, wait for and Zip the Compose traces.
+    // This overwrites the file inline so downstream parsers can seamlessly render everything together.
+    if (TraceMerger.activeV2Sessions.containsKey(session.pid.toLong())) {
+      TraceMerger.mergeAndCleanUp(session.pid.toLong(), finalFile)
+    }
+
     return finalFile
   }
 
