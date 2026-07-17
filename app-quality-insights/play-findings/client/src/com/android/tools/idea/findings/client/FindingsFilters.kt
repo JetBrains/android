@@ -44,14 +44,15 @@ data class FindingsFilters(val findingTypes: Set<FindingType> = emptySet(), val 
 fun FindingsFilters.toFilterString(): String {
   val parts = mutableListOf<String>()
 
-  val filteredTypes = findingTypes.filter { it != FindingType.UNKNOWN }
-  if (filteredTypes.isNotEmpty()) {
-    val typesStr = filteredTypes.sortedBy { it.name }.joinToString(separator = " OR ") { "finding_type = \"${it.name}\"" }
+  val typeNames = findingTypes.mapNotNull { it.toProto()?.name }.sorted()
+  if (typeNames.isNotEmpty()) {
+    val typesStr = typeNames.joinToString(separator = " OR ") { "finding_type = \"$it\"" }
     parts.add("($typesStr)")
   }
 
-  if (severities.isNotEmpty()) {
-    val severitiesStr = severities.sortedBy { it.name }.joinToString(separator = " OR ") { "finding_severity = \"${it.name}\"" }
+  val severityNames = severities.map { it.toProto().name }.sorted()
+  if (severityNames.isNotEmpty()) {
+    val severitiesStr = severityNames.joinToString(separator = " OR ") { "finding_severity = \"$it\"" }
     parts.add("($severitiesStr)")
   }
 

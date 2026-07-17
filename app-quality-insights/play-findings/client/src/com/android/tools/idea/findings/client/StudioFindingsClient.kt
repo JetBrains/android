@@ -20,8 +20,8 @@ import com.android.tools.findings.client.PlayFindingsClient
 import com.android.tools.idea.findings.model.AffectedScope
 import com.android.tools.idea.findings.model.AppFinding
 import com.android.tools.idea.findings.model.FindingData
-import com.android.tools.idea.findings.model.FindingSeverity
 import com.android.tools.idea.findings.model.FindingType
+import com.android.tools.idea.findings.model.toDomain
 import com.android.tools.idea.insights.LoadingState
 import com.google.play.androidpublisher.v3.ComputeFindingsResponse as ProtoComputeFindingsResponse
 import com.google.play.androidpublisher.v3.Finding as ProtoFinding
@@ -77,31 +77,15 @@ class StudioFindingsClient(private val playClient: PlayFindingsClient) : Finding
 }
 
 private fun ProtoFinding.toDomain(): AppFinding {
-  val domainSeverity =
-    when (findingSeverity) {
-      ProtoFinding.Severity.INFO -> FindingSeverity.INFO
-      ProtoFinding.Severity.WARNING -> FindingSeverity.WARNING
-      ProtoFinding.Severity.SEVERE -> FindingSeverity.SEVERE
-      ProtoFinding.Severity.BLOCKING -> FindingSeverity.BLOCKING
-      else -> {
-        LOG.warn("Encountered unknown severity: $findingSeverity (name: $name)")
-        // The Severity enum is officially frozen in the API.
-        // Fall back to INFO as a safe default for robustness.
-        FindingSeverity.INFO
-      }
-    }
-
+  val domainSeverity = findingSeverity.toDomain()
   val domainScopes = inAppLocationsList.mapNotNull { it.toDomain() }
   val domainData = if (hasFindingData()) findingData.toDomain() else FindingData.Empty
 
-  return when (findingType) {
-    ProtoFinding.Type.DRM_APP_COMPAT -> {
-      AppFinding.Supported(name, FindingType.DRM_APP_COMPAT, domainSeverity, domainData, domainScopes)
-    }
-    else -> {
-      LOG.warn("Encountered unknown finding type: $findingType (name: $name)")
-      AppFinding.Unknown(name, domainSeverity, FindingData.Empty, domainScopes)
-    }
+  val domainType = findingType.toDomain()
+  return if (domainType != FindingType.UNKNOWN) {
+    AppFinding.Supported(name, domainType, domainSeverity, domainData, domainScopes)
+  } else {
+    AppFinding.Unknown(name, domainSeverity, FindingData.Empty, domainScopes)
   }
 }
 

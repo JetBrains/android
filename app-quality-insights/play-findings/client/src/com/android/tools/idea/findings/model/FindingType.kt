@@ -15,11 +15,33 @@
  */
 package com.android.tools.idea.findings.model
 
+import com.google.play.androidpublisher.v3.Finding as ProtoFinding
+import com.intellij.openapi.diagnostic.Logger
+
+private val LOG = Logger.getInstance(FindingType::class.java)
+
 /** Represents the type of Play Finding. */
 enum class FindingType {
   /** DRM App Compatibility finding. */
   DRM_APP_COMPAT,
 
   /** Fallback for unrecognized finding types to ensure forward compatibility. */
-  UNKNOWN,
+  UNKNOWN;
+
+  /** Converts this domain [FindingType] to its Protobuf [ProtoFinding.Type] counterpart, or null if [UNKNOWN]. */
+  fun toProto(): ProtoFinding.Type? =
+    when (this) {
+      DRM_APP_COMPAT -> ProtoFinding.Type.DRM_APP_COMPAT
+      UNKNOWN -> null
+    }
 }
+
+/** Extension to convert a Protobuf [ProtoFinding.Type] to its domain [FindingType] counterpart. */
+fun ProtoFinding.Type.toDomain(): FindingType =
+  when (this) {
+    ProtoFinding.Type.DRM_APP_COMPAT -> FindingType.DRM_APP_COMPAT
+    else -> {
+      LOG.warn("Encountered unknown finding type: $this")
+      FindingType.UNKNOWN
+    }
+  }
