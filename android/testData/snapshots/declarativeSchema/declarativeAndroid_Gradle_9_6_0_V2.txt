@@ -7923,6 +7923,8 @@ Projects:
                       Property ReferenceType        : com.android.build.api.dsl.EmulatorControl
                     - PropertyName                  : execution
                       Property SimpleType           : STRING
+                    - PropertyName                  : instrumentInPrivateComputeCore
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : managedDevices
                       Property ReferenceType        : com.android.build.api.dsl.ManagedDevices
                     - PropertyName                  : reportDir
@@ -18017,6 +18019,8 @@ Settings:
                       Property ReferenceType        : com.android.build.api.dsl.EmulatorControl
                     - PropertyName                  : execution
                       Property SimpleType           : STRING
+                    - PropertyName                  : instrumentInPrivateComputeCore
+                      Property SimpleType           : BOOLEAN
                     - PropertyName                  : managedDevices
                       Property ReferenceType        : com.android.build.api.dsl.ManagedDevices
                     - PropertyName                  : reportDir
