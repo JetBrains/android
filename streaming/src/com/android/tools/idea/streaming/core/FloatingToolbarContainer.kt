@@ -35,6 +35,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneEx
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.AbstractLayoutManager
 import com.intellij.util.ui.Animator
 import com.intellij.util.ui.GraphicsUtil.disableAAPainting
@@ -43,6 +44,7 @@ import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Toolbar.SEPARATOR_COLOR
 import com.intellij.util.ui.components.BorderLayoutPanel
+import java.awt.AWTEvent
 import java.awt.AlphaComposite
 import java.awt.Component
 import java.awt.Container
@@ -53,7 +55,9 @@ import java.awt.Insets
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Shape
+import java.awt.Toolkit
 import java.awt.Transparency
+import java.awt.event.AWTEventListener
 import java.awt.event.HierarchyEvent
 import java.awt.event.HierarchyListener
 import java.awt.event.MouseAdapter
@@ -97,6 +101,18 @@ internal class FloatingToolbarContainer(
   private var deactivationAnimator: Animator? = null
   private var pendingDeactivation = false
 
+  private val awtListener = AWTEventListener { event ->
+    val component = (event as HierarchyEvent).component
+    if (
+      event.changeFlags.toInt() and HierarchyEvent.SHOWING_CHANGED != 0 &&
+        (component == this || component.findAncestor<FloatingToolbarContainer>() == this@FloatingToolbarContainer) &&
+        component.background == JBUI.CurrentTheme.ToolWindow.background()
+    ) {
+      // Restore the original background modified by the IslandsUICustomization class.
+      component.background = JBColor.PanelBackground
+    }
+  }
+
   val isActive: Boolean
     get() = (activationFactor > 0 || activationAnimator != null) && !pendingDeactivation && deactivationAnimator == null
 
@@ -139,6 +155,7 @@ internal class FloatingToolbarContainer(
 
   init {
     require(inactiveAlpha in 0.0..1.0)
+    background = JBColor.PanelBackground
     isOpaque = false
     layout = Layout()
 
@@ -147,6 +164,16 @@ internal class FloatingToolbarContainer(
         onVisibilityChanged()
       }
     }
+  }
+
+  override fun addNotify() {
+    Toolkit.getDefaultToolkit().addAWTEventListener(awtListener, AWTEvent.HIERARCHY_EVENT_MASK)
+    super.addNotify()
+  }
+
+  override fun removeNotify() {
+    Toolkit.getDefaultToolkit().removeAWTEventListener(awtListener)
+    super.removeNotify()
   }
 
   /** Adds a floating toolbar. */
@@ -340,7 +367,6 @@ internal class FloatingToolbarContainer(
 
     init {
       isOpaque = false
-      background = JBUI.CurrentTheme.Popup.toolbarPanelColor()
       layout = Layout()
       toolbar.component.addHierarchyListener(hierarchyListener)
       add(toolbar.component)

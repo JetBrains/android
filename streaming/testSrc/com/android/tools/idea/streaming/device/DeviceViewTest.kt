@@ -1272,7 +1272,7 @@ internal class DeviceViewTest {
     val displayPanel = DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
     displayPanel.size = Dimension(width, height)
     view = displayPanel.displayView
-    fakeUi = FakeUi(displayPanel, createFakeWindow = true)
+    fakeUi = FakeUi(displayPanel, createFakeWindow = true, parentDisposable = testRootDisposable)
   }
 
   private fun assertAppearance(goldenImageName: String) {
