@@ -17,17 +17,17 @@ package org.jetbrains.android.dom;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.intellij.ide.structureView.StructureView;
 import com.intellij.ide.structureView.StructureViewModel;
-import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
+import com.intellij.lang.LanguageStructureViewBuilder;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
-import com.intellij.util.xml.structure.DomStructureViewBuilder;
-import com.intellij.util.xml.structure.DomStructureViewBuilderProvider;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilder;
@@ -137,9 +137,11 @@ public class StructureViewTest extends AndroidDomTestCase {
     final VirtualFile file = copyFileToProject("manifest/structure_view_test.xml", "AndroidManifest.xml");
     final PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertInstanceOf(psiFile, XmlFile.class);
-    final DomStructureViewBuilder builder =
-      new DomStructureViewBuilder(((XmlFile)psiFile), DomStructureViewBuilderProvider.DESCRIPTOR);
-    final StructureViewTreeElement root = builder.createStructureViewModel(null).getRoot();
+    final var builder = LanguageStructureViewBuilder.getInstance().forLanguage(psiFile.getLanguage()).getStructureViewBuilder(psiFile);
+    assertNotNull(builder);
+    final var structureView = builder.createStructureView(null, getProject());
+    Disposer.register(getTestRootDisposable(), structureView);
+    final var root = structureView.getTreeModel().getRoot();
     assertNotNull(root);
 
     final String expected = "Manifest\n" +
