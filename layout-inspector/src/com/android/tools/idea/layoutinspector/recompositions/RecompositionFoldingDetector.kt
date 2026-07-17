@@ -16,14 +16,9 @@
 package com.android.tools.idea.layoutinspector.recompositions
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.FoldingModelEx
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.utils.indexOfFirst
 
 private const val RECORD_READ_OF = "at androidx.compose.runtime.CompositionImpl.recordReadOf"
@@ -103,20 +98,18 @@ private val STATE_READ_STARTS = listOf(SNAPSHOT_READABLE, DERIVED_SNAPSHOT_STATE
  * - the start of the exception stacktrace (common to all/most state reads)
  * - the end of the exception stacktrace (usually doesn't hold informative data)
  */
-internal class RecompositionFoldingDetector(private val editor: Editor, private val scope: CoroutineScope) {
+internal class RecompositionFoldingDetector(private val editor: Editor) {
   private val document = editor.document
   private val foldingModel = editor.foldingModel as? FoldingModelEx
   private var lines: List<String> = emptyList()
 
-  fun detectFolding(): Job? {
-    val model = foldingModel ?: return null
-    return scope.launch(Dispatchers.EDT) {
-      edtWriteAction {
-        model.runBatchFoldingOperation {
-          fetchLines()
-          model.clearFoldRegions()
-          foldLines()
-        }
+  suspend fun detectFolding() {
+    val model = foldingModel ?: return
+    edtWriteAction {
+      model.runBatchFoldingOperation {
+        fetchLines()
+        model.clearFoldRegions()
+        foldLines()
       }
     }
   }
