@@ -25,7 +25,6 @@ import com.intellij.openapi.help.WebHelpProvider
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestCase
-import java.io.File
 import java.nio.file.Path
 
 class AndroidStudioHelpTest : AndroidTestCase() {
@@ -62,8 +61,6 @@ class AndroidStudioHelpTest : AndroidTestCase() {
     override fun open(url: String) {
       lastUrl = url
     }
-
-    override fun browse(file: File) { }
 
     override fun browse(file: Path) { }
 
