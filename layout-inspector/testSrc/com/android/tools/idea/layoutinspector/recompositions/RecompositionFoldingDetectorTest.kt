@@ -37,8 +37,8 @@ class RecompositionFoldingDetectorTest {
     val file = "${TEST_DATA_PATH}/state_reads_1_2.txt"
     val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
     val editor = runInEdtAndGet { projectRule.createEditorWithContent(text) }
-    val detector = RecompositionFoldingDetector(editor, this)
-    detector.detectFolding()?.join()
+    val detector = RecompositionFoldingDetector(editor)
+    detector.detectFolding()
     validateFoldingModel(editor.foldingModel) {
       fold(3, 12, "<detailed value...>")
       fold(16, 26, "<detailed value...>")
@@ -54,8 +54,8 @@ class RecompositionFoldingDetectorTest {
     val file = "${TEST_DATA_PATH}/state_reads_unrecognized_exception.txt"
     val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
     val editor = runInEdtAndGet { projectRule.createEditorWithContent(text) }
-    val detector = RecompositionFoldingDetector(editor, this)
-    detector.detectFolding()?.join()
+    val detector = RecompositionFoldingDetector(editor)
+    detector.detectFolding()
     validateFoldingModel(editor.foldingModel) {
       fold(39, 47, "<9 more...>")
       fold(52, 79, "<28 more...>")
@@ -67,8 +67,8 @@ class RecompositionFoldingDetectorTest {
     val file = "${TEST_DATA_PATH}/state_reads_derived_snapshot_state_read.txt"
     val text = TestUtils.resolveWorkspacePathUnchecked(file).readText()
     val editor = runInEdtAndGet { projectRule.createEditorWithContent(text) }
-    val detector = RecompositionFoldingDetector(editor, this)
-    detector.detectFolding()?.join()
+    val detector = RecompositionFoldingDetector(editor)
+    detector.detectFolding()
     validateFoldingModel(editor.foldingModel) {
       fold(2, 5, "<4 more...>")
       fold(9, 45, "<37 more...>")
