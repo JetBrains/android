@@ -98,7 +98,8 @@ class ViewBindingEnabledTest {
     assertThat(facet.isViewBindingEnabled()).isTrue()
     assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount).isGreaterThan(lastModificationCount)
     lastModificationCount = ViewBindingEnabledTrackingService.getInstance().modificationCount
-    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNotNull()
+    val contextAfterSync = fixture.findClass("com.android.example.viewbinding.MainActivity")
+    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", contextAfterSync)).isNotNull()
 
     enableViewBinding(buildFile, false)
     projectRule.requestSyncAndWait()
@@ -106,6 +107,7 @@ class ViewBindingEnabledTest {
 
     assertThat(facet.isViewBindingEnabled()).isFalse()
     assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount).isGreaterThan(lastModificationCount)
-    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNull()
+    val contextAfterDisable = fixture.findClass("com.android.example.viewbinding.MainActivity")
+    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", contextAfterDisable)).isNull()
   }
 }
