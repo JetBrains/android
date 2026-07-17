@@ -15,10 +15,39 @@
  */
 package com.android.tools.idea.findings.model
 
+import com.google.play.androidpublisher.v3.Finding as ProtoFinding
+import com.intellij.openapi.diagnostic.Logger
+
+private val LOG = Logger.getInstance(FindingSeverity::class.java)
+
 /** Represents the severity level of a Play Finding. */
 enum class FindingSeverity {
   INFO,
   WARNING,
   SEVERE,
-  BLOCKING,
+  BLOCKING;
+
+  /** Converts this domain [FindingSeverity] to its Protobuf [ProtoFinding.Severity] counterpart. */
+  fun toProto(): ProtoFinding.Severity =
+    when (this) {
+      INFO -> ProtoFinding.Severity.INFO
+      WARNING -> ProtoFinding.Severity.WARNING
+      SEVERE -> ProtoFinding.Severity.SEVERE
+      BLOCKING -> ProtoFinding.Severity.BLOCKING
+    }
 }
+
+/** Extension to convert a Protobuf [ProtoFinding.Severity] to its domain [FindingSeverity] counterpart. */
+fun ProtoFinding.Severity.toDomain(): FindingSeverity =
+  when (this) {
+    ProtoFinding.Severity.INFO -> FindingSeverity.INFO
+    ProtoFinding.Severity.WARNING -> FindingSeverity.WARNING
+    ProtoFinding.Severity.SEVERE -> FindingSeverity.SEVERE
+    ProtoFinding.Severity.BLOCKING -> FindingSeverity.BLOCKING
+    else -> {
+      LOG.warn("Encountered unknown severity: $this")
+      // The Severity enum is officially frozen in the API.
+      // Fall back to INFO as a safe default for robustness.
+      FindingSeverity.INFO
+    }
+  }

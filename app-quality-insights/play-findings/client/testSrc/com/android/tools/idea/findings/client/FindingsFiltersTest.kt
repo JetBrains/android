@@ -24,6 +24,11 @@ import org.junit.Test
 class FindingsFiltersTest {
 
   @Test
+  fun testUnknownToProtoReturnsNull() {
+    assertThat(FindingType.UNKNOWN.toProto()).isNull()
+  }
+
+  @Test
   fun testToFilterString_All() {
     val filters = FindingsFilters.ALL
     assertThat(filters.toFilterString()).isEmpty()
@@ -37,13 +42,6 @@ class FindingsFiltersTest {
 
   @Test
   fun testToFilterString_MultipleTypes_Sorted() {
-    // UNKNOWN is excluded, so we need at least two known types to test OR/sorting.
-    // Since we only have DRM_APP_COMPAT and UNKNOWN in FindingType right now,
-    // we can't test multiple types OR-joining unless we define more types.
-    // Currently we only have DRM_APP_COMPAT.
-    // If we add another type to the enum, it might affect other things.
-    // For now, we only have one queryable type.
-    // But we can verify that UNKNOWN is pruned.
     val filters = FindingsFilters(findingTypes = setOf(FindingType.DRM_APP_COMPAT, FindingType.UNKNOWN))
     assertThat(filters.toFilterString()).isEqualTo("(finding_type = \"DRM_APP_COMPAT\")")
   }
@@ -62,18 +60,18 @@ class FindingsFiltersTest {
 
   @Test
   fun testToFilterString_MultipleSeverities_SortedAndJoinedWithOr() {
-    // We have INFO, WARNING, SEVERE, BLOCKING. We can test sorting here.
-    val filters = FindingsFilters(severities = setOf(FindingSeverity.WARNING, FindingSeverity.INFO, FindingSeverity.BLOCKING))
-    // Alphabetical sort of names: BLOCKING, INFO, WARNING
+    val filters =
+      FindingsFilters(severities = setOf(FindingSeverity.WARNING, FindingSeverity.INFO, FindingSeverity.BLOCKING, FindingSeverity.SEVERE))
     assertThat(filters.toFilterString())
-      .isEqualTo("(finding_severity = \"BLOCKING\" OR finding_severity = \"INFO\" OR finding_severity = \"WARNING\")")
+      .isEqualTo(
+        "(finding_severity = \"BLOCKING\" OR finding_severity = \"INFO\" OR finding_severity = \"SEVERE\" OR finding_severity = \"WARNING\")"
+      )
   }
 
   @Test
   fun testToFilterString_CombinedTypeAndSeverity() {
     val filters =
       FindingsFilters(findingTypes = setOf(FindingType.DRM_APP_COMPAT), severities = setOf(FindingSeverity.WARNING, FindingSeverity.INFO))
-    // Alphabetical sort of severities: INFO, WARNING
     assertThat(filters.toFilterString())
       .isEqualTo("(finding_type = \"DRM_APP_COMPAT\") AND (finding_severity = \"INFO\" OR finding_severity = \"WARNING\")")
   }
