@@ -10,7 +10,7 @@
  * reading. If some assumption of the script changes substantially, I recommend simply recreating this script from
  * scratch using AI.
  *
- * DESCRIPTION
+ * DESCRIPTION:
  * Throwaway script to scan test execution output logs (e.g., from remote test executions in Bazel)
  * for Gradle problem reports (`problems-report.html`) and aggregates all discovered problems into
  * a single unified HTML report with problematic code snippets included for easier discovery.
@@ -26,8 +26,7 @@
  * - "Full problem message": Displays detailed label, description, solutions, and documentation links.
  * - "Targets/Tests": Lists affected test targets and exact location paths.
  *
- * USAGE
- *
+ * USAGE:
  * 1. Run a special bazel test which includes all test projects and Gradle daemon logs in the outputs
  * Recommended invocation to be run remotely to detect all failures:
  *
@@ -36,14 +35,21 @@
  * 	--jvmopt=-DCOLLECT_GRADLE_DIAGNOSTICS \
  * 	--test_tag_filters=-noci:studio-linux,-qa_smoke,-qa_fast,-qa_unreliable,-perfgate-release,-no_k2 -- //tools/...
  *
- * Or run smaller suites with the work-in-progress fixes instead of using //tools/...
  *
- * 2. Then run this script itself:
+ * 2. Then run this script itself, replacing the bazel_output_dir with the one initially specified:
  *
  * prebuilts/studio/intellij-sdk/AI/linux/android-studio/plugins/Kotlin/kotlinc/bin/kotlin \
- *   tools/adt/idea/project-system-gradle/scripts/report_gradle_problems.main.kts <bazel_output_dir> <output_html>
+ *   tools/adt/idea/project-system-gradle/scripts/report_gradle_problems.main.kts `bazel --output_base='<bazel_output_dir>' info bazel-testlogs` <output_html>
  *
  * This should output the report at <output_html> path.
+ *
+ * RECOMMENDED WORKFLOW:
+ * When fixing individual issues, one should run smaller suites with the work-in-progress fixes instead of using the catch all //tools/...
+ * target and generate reports based on that.
+ *
+ * NOTE:
+ * Currently the execution above contains AGP upgrade assistant tests as well, causing reports to be inflated with a bunch of older
+ * deprecations that are not relevant. Ideally we should tag those tests and filter them out from executions (or from script processing)
  * ```
  *
  * ## Arguments
