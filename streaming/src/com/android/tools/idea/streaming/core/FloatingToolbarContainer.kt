@@ -548,8 +548,12 @@ internal class FloatingToolbarContainer(
     return false
   }
 
-  /** Action that triggers collapse of the floating toolbar. */
-  class CollapserAction : DumbAwareAction(AllIcons.Actions.ArrowExpand), CustomComponentAction {
+  /**
+   * Action that triggers collapse of the floating toolbar. The value of the [horizontal] parameter must match orientation of the containing
+   * toolbar.
+   */
+  class CollapserAction(private val horizontal: Boolean) :
+    DumbAwareAction(if (horizontal) AllIcons.Actions.ArrowExpand else AllIcons.Actions.FindAndShowNextMatches), CustomComponentAction {
 
     override fun actionPerformed(event: AnActionEvent) {
       triggerDeactivation(event)
@@ -557,8 +561,15 @@ internal class FloatingToolbarContainer(
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-    override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-      ActionButton(this, presentation, place, JBDimension(0, DEFAULT_MINIMUM_BUTTON_SIZE.height, true))
+    override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+      val minimumSize =
+        if (horizontal) {
+          JBDimension(0, DEFAULT_MINIMUM_BUTTON_SIZE.height, true)
+        } else {
+          JBDimension(DEFAULT_MINIMUM_BUTTON_SIZE.width, 0, true)
+        }
+      return ActionButton(this, presentation, place, minimumSize)
+    }
   }
 
   companion object {
