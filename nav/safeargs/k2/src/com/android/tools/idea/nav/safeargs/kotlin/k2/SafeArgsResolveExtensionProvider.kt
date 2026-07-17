@@ -28,12 +28,11 @@ import org.jetbrains.kotlin.idea.base.projectStructure.openapiModule
 @OptIn(KaExperimentalApi::class, KaSpiExtensionPoint::class)
 class SafeArgsResolveExtensionProvider : KaResolveExtensionProvider() {
   @KaSpiExtensionPoint
-  override fun provideExtensionsFor(module: KaModule): List<KaResolveExtension> =
-    when (module) {
+  override fun provideExtensionsFor(module: KaModule): List<KaResolveExtension> {
+    ChangeListenerProjectService.ensureListening(module.project)
+    return when (module) {
       is KaSourceModule -> {
         val ideaModule = module.openapiModule
-        ChangeListenerProjectService.ensureListening(ideaModule.project)
-
         if (NavInfoFetcher.isSafeArgsModule(ideaModule, SafeArgsMode.KOTLIN)) {
           listOf(SafeArgsResolveExtension(ideaModule))
         } else {
@@ -42,4 +41,5 @@ class SafeArgsResolveExtensionProvider : KaResolveExtensionProvider() {
       }
       else -> emptyList()
     }
+  }
 }
