@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.commands.CpuTraceInterceptCommandHandler;
+import com.android.tools.idea.profilers.commands.CpuTraceStopCommandHandler;
 import com.android.tools.idea.profilers.commands.LeakCanaryAnalysisCommandHandler;
 import com.android.tools.idea.profilers.commands.GcCommandHandler;
 import com.android.tools.idea.profilers.commands.LeakCanaryLogcatCommandHandler;
@@ -76,6 +77,11 @@ public class ProfilerTransportConfigContributor implements TransportConfigContri
         new CpuTraceInterceptCommandHandler(device,
                                             TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()));
       proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_TRACE, cpuTraceHandler);
+
+      CpuTraceStopCommandHandler cpuTraceStopHandler =
+        new CpuTraceStopCommandHandler(device,
+                                       TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()));
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_TRACE, cpuTraceStopHandler);
     }
 
     SimpleperfPipelinePreprocessor traceProcessor =

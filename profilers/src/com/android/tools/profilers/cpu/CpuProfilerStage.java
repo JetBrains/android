@@ -405,11 +405,11 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
 
   @VisibleForTesting
   void stopCapturing() {
-    LogUtils.log(getClass(), "CPU capture stop attempted");
     // We need to send the trace configuration that was used to initiate the capture. Return early if no in-progress trace exists.
     if (Trace.TraceInfo.getDefaultInstance().equals(myInProgressTraceInfo)) {
       return;
     }
+    LogUtils.log(getClass(), "CPU capture stop attempted");
 
     setCaptureState(CaptureState.STOPPING);
     CpuProfiler.stopTracing(getStudioProfilers(), mySession, myInProgressTraceInfo.getConfiguration(), this::stopCapturingCallback, null, listener -> myListenerTracker.trackListener(listener, true));
