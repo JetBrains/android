@@ -37,8 +37,6 @@ private class TestDisposableImage : RecyclableImage {
 
   override fun getHeight(): Int = 0
 
-  override fun getImage(): BufferedImage? = null
-
   override fun drawImageTo(g: Graphics, dx1: Int, dy1: Int, dx2: Int, dy2: Int, sx1: Int, sy1: Int, sx2: Int, sy2: Int) {}
 
   override fun paint(command: Consumer<Graphics2D>) {}
