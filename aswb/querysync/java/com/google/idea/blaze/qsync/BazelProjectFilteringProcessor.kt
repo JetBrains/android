@@ -19,6 +19,7 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.traverser.DirectoryContents
+import com.google.idea.blaze.traverser.ScanTask
 import com.google.idea.blaze.traverser.traverseIncludedDirectories
 import java.nio.file.Files
 import java.nio.file.Path
@@ -64,5 +65,5 @@ suspend fun traverseProjectDirectories(
 
   val processor =
     directoryProcessor(context, processContents = bazelProjectFilteringProcessor(workspaceRoot, excludeAbsolute, context, processContents))
-  traverseIncludedDirectories(includeAbsolute, processor)
+  traverseIncludedDirectories(includeAbsolute.map { ScanTask(it, it) }, processor)
 }
