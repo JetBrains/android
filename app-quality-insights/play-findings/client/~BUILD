@@ -13,6 +13,7 @@ iml_module(
     name = "intellij.android.app-quality-insights.play-findings.client",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.play-findings.client.iml"],
+    test_class = "com.android.tools.idea.findings.client.PlayFindingsClientTestSuite",
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",
@@ -20,6 +21,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
