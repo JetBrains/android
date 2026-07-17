@@ -147,7 +147,7 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
         add(actionManager.getAction("android.streaming.zoom.fit.inner"))
         add(Separator())
         add(ZoomLevelIndicator())
-        add(FloatingToolbarContainer.CollapserAction())
+        add(FloatingToolbarContainer.CollapserAction(horizontal = true))
       }
     val toolbar =
       FloatingToolbarContainer(horizontal = true, inactiveAlpha = 0.8, collapsedStateSelector = { it.action is ZoomLevelIndicator }).apply {
@@ -174,7 +174,7 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
           if (recenterGroup != null) {
             group.add(recenterGroup)
           }
-          group.add(FloatingToolbarContainer.CollapserAction())
+          group.add(FloatingToolbarContainer.CollapserAction(horizontal = true))
           addToolbar("XrNavigationToolbar", group)
         }
 
