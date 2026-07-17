@@ -39,6 +39,8 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.util.PathUtil
 import javax.swing.JLabel
+import javax.swing.UIManager
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -70,13 +72,21 @@ class AlternativeSourceNotificationProviderTest {
       ),
     )
 
-  @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val rule = RuleChain.outerRule(EdtRule()).around(projectRule)
 
   private lateinit var provider: AlternativeSourceNotificationProvider
+  private var originalDiffPanelUI: Any? = null
 
   @Before
   fun setUp() {
+    originalDiffPanelUI = UIManager.get("Diff.HeaderToolbarPanelUI")
+    UIManager.put("Diff.HeaderToolbarPanelUI", "com.intellij.diff.impl.ui.DiffToolbarPlainPanelUI")
     provider = AlternativeSourceNotificationProvider()
+  }
+
+  @After
+  fun tearDown() {
+    UIManager.put("Diff.HeaderToolbarPanelUI", originalDiffPanelUI)
   }
 
   @Test
@@ -186,7 +196,7 @@ class AlternativeSourceNotificationProviderTest {
   }
 
   private fun EditorNotificationPanel.assertContents() {
-    val labels = flatten().filterIsInstance<JLabel>().map { it.text }.filterNot { it.isEmpty() }
+    val labels = flatten().filterIsInstance<JLabel>().map { it.text }.filterNot { it.isNullOrEmpty() }
     assertThat(labels).containsExactly(provider.TEXT_WARNING, "Alternative sources: ")
 
     val comboBoxes = flatten().filterIsInstance<ComboBox<AlternativeSourceNotificationProvider.ComboBoxFileElement>>()
