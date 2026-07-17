@@ -65,6 +65,7 @@ import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewDisplaySettings.Background
 import com.android.tools.visuallint.VisualLintErrorType
@@ -1347,7 +1348,7 @@ class ComposePreviewRepresentationTest {
 
       surfaceSpy.visualLintIssueProvider.addAllIssues(listOf(issue))
 
-      val issueModel = com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService.getInstance(project).issueModel
+      val issueModel = VisualLintService.getInstance(project).issueModel
 
       // Associate the issue with the Composable instance ID so the notification is not filtered out.
       issueModel.uiCheckInstanceId = uiCheckElement.instanceId
