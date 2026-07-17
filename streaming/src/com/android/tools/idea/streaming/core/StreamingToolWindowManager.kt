@@ -1123,7 +1123,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   private fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient {
     return adoptDeviceClient(serialNumber, deviceHandle) {
         deviceClientRegistry.getOrCreateDeviceClient(serialNumber, this@StreamingToolWindowManager) {
-          DeviceClient(serialNumber, config, config.deviceProperties.primaryAbi.toString()).apply {
+          DeviceClient(deviceHandle.id, serialNumber, config, config.deviceProperties.primaryAbi.toString()).apply {
             establishAgentConnectionWithoutVideoStreamAsync(project)
           }
         }

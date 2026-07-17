@@ -89,8 +89,8 @@ private val AnActionEvent.hardwareInputStateStorage: HardwareInputStateStorage?
 internal class HardwareInputStateStorage : PersistentStateComponent<HardwareInputStateStorage> {
 
   /**
-   * The keys are IDs of devices for which Hardware Input is enabled. The values are times of
-   * the last device access in milliseconds since epoch.
+   * The keys are IDs of devices for which Hardware Input is enabled. The values are times of the last device access in milliseconds since
+   * epoch.
    */
   private val enabledDevices = ConcurrentHashMap<String, Long>()
 
@@ -127,7 +127,7 @@ internal class HardwareInputStateStorage : PersistentStateComponent<HardwareInpu
     get() =
       when (this) {
         is StreamingDeviceId.EmulatorDeviceId -> emulatorId.avdId
-        is StreamingDeviceId.PhysicalDeviceId -> deviceId
+        is StreamingDeviceId.PhysicalDeviceId -> deviceId.toString()
       }
 
   private fun pruneOldDevices() {

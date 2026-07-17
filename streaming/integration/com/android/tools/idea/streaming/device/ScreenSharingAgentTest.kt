@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.testutils.TestUtils.getBinPath
 import com.android.testutils.waitForCondition
@@ -439,7 +440,13 @@ class ScreenSharingAgentTest {
         waitForLog("0", SHORT_DEVICE_OPERATION_TIMEOUT)
       }
 
-      val deviceClient = DeviceClient(emulator.serialNumber, emptyDeviceConfiguration, "x86_64")
+      val deviceClient =
+        DeviceClient(
+          DeviceId("PhysicalDevice", false, "serial=${emulator.serialNumber}"),
+          emulator.serialNumber,
+          emptyDeviceConfiguration,
+          "x86_64",
+        )
       Disposer.register(testRootDisposable, deviceClient)
       deviceView = DeviceView(testRootDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, 0)
 

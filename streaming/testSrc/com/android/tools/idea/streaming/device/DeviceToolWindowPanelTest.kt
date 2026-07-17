@@ -766,7 +766,7 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun createToolWindowPanel(): DeviceToolWindowPanel {
-    val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
+    val deviceClient = DeviceClient(device.handle.id, device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
     val panel = DeviceToolWindowPanel(testRootDisposable, project, device.handle, deviceClient)
     panel.size = Dimension(310, 300)

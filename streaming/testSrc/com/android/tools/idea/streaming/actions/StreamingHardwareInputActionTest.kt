@@ -171,9 +171,9 @@ class StreamingHardwareInputActionTest {
 
     storage.serializedEnabledDevices =
       mapOf(
-        "device1" to now - 61.days.inWholeMilliseconds, // Should be pruned.
-        "device2" to now - 10.days.inWholeMilliseconds, // Should be kept.
-        "device3" to now - 70.days.inWholeMilliseconds, // Should be pruned.
+        "PhysicalDevice::serial=device1" to now - 61.days.inWholeMilliseconds, // Should be pruned.
+        "PhysicalDevice::serial=device2" to now - 10.days.inWholeMilliseconds, // Should be kept.
+        "PhysicalDevice::serial=device3" to now - 70.days.inWholeMilliseconds, // Should be pruned.
       )
 
     storage.getState()
@@ -190,7 +190,7 @@ class StreamingHardwareInputActionTest {
 
     val devicesMap = mutableMapOf<String, Long>()
     for (i in 0 until 105) {
-      devicesMap["device$i"] = now - (105 - i) * 1000
+      devicesMap["PhysicalDevice::serial=device$i"] = now - (105 - i) * 1000
     }
     storage.serializedEnabledDevices = devicesMap
 
@@ -218,7 +218,7 @@ class StreamingHardwareInputActionTest {
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {
-    val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
+    val deviceClient = DeviceClient(device.handle.id, device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
     val panel = DeviceDisplayPanel(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
     return panel.displayView
