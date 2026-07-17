@@ -141,6 +141,7 @@ npw.xr.template=COMPLETE:2025
 phased.sync.dependency.resolution.enabled=PREVIEW
 phased.sync.disable.bridge.data.service=PREVIEW
 phased.sync.enabled=PREVIEW
+play.publishing.play.publishing.build.menu.action=PREVIEW
 playpolicyinsights.play.policy.insights=COMPLETE:2025
 preview.essentials.mode=PREVIEW
 preview.render.sandbox.enabled=PREVIEW
