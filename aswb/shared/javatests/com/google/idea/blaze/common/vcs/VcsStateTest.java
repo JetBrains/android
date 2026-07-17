@@ -53,16 +53,7 @@ public class VcsStateTest {
   }
 
   @Test
-  public void testModifiedFiles_deletedFile_returnsEmpty() {
-    ImmutableSet<WorkspaceFileChange> workingSet =
-        ImmutableSet.of(
-            new WorkspaceFileChange(Operation.DELETE, Path.of("com/example/Deleted.java")));
-    VcsState vcsState = new VcsState("workspaceId", "1", workingSet, Optional.empty());
-    assertThat(vcsState.modifiedFiles()).isEmpty();
-  }
-
-  @Test
-  public void testModifiedFiles_allOperations_returnsOnlyModifiedAndCreatedFiles() {
+  public void testModifiedFiles_allOperations_returnsAllFiles() {
     ImmutableSet<WorkspaceFileChange> workingSet =
         ImmutableSet.of(
             new WorkspaceFileChange(Operation.MODIFY, Path.of("com/example/Modified.java")),
@@ -70,6 +61,9 @@ public class VcsStateTest {
             new WorkspaceFileChange(Operation.DELETE, Path.of("com/example/Deleted.java")));
     VcsState vcsState = new VcsState("workspaceId", "1", workingSet, Optional.empty());
     assertThat(vcsState.modifiedFiles())
-        .containsExactly(Path.of("com/example/Modified.java"), Path.of("com/example/Created.java"));
+        .containsExactly(
+            Path.of("com/example/Modified.java"),
+            Path.of("com/example/Created.java"),
+            Path.of("com/example/Deleted.java"));
   }
 }
