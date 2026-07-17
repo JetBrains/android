@@ -155,4 +155,59 @@ class BazelProjectFilteringProcessorTest {
       assertThat(visitedFiles).containsExactly(workspaceRoot.resolve("dir1/file1.txt"))
     }
   }
+
+  @Test
+  fun testTraverseProjectDirectories_withStartDirs() {
+    runBlocking {
+      createFile("a/sub/file1.txt")
+      createDirectory("a/sub/child")
+      createFile("b/file2.txt")
+      createDirectory("c/d/e")
+      createFile("c/d/e/file3.txt")
+      // An include that is not matched by startDirs
+      createFile("f/file4.txt")
+
+      val def = ProjectDefinition.EMPTY.copy(projectIncludes = setOf(Path.of("a"), Path.of("b"), Path.of("c/d"), Path.of("f")))
+      val startDirs = setOf(workspaceRoot.resolve("a/sub"), workspaceRoot.resolve("b"), workspaceRoot.resolve("c/d/e"))
+
+      val visitedRootDirs = ConcurrentHashMap.newKeySet<Path>()
+      val visitedDirs = ConcurrentHashMap.newKeySet<Path>()
+
+      traverseProjectDirectories(context, workspaceRoot, def, startDirs) { rootDir, currentDir, contents ->
+        visitedRootDirs.add(rootDir)
+        visitedDirs.add(currentDir)
+        contents
+      }
+
+      assertThat(visitedRootDirs).containsExactly(workspaceRoot.resolve("a"), workspaceRoot.resolve("b"), workspaceRoot.resolve("c/d"))
+      assertThat(visitedDirs)
+        .containsExactly(
+          workspaceRoot.resolve("a/sub"),
+          workspaceRoot.resolve("a/sub/child"),
+          workspaceRoot.resolve("b"),
+          workspaceRoot.resolve("c/d/e"),
+        )
+    }
+  }
+
+  @Test
+  fun testTraverseProjectDirectories_withStartDirsMatchingOverlappingIncludes() {
+    runBlocking {
+      createDirectory("a/b/c")
+      createFile("a/b/c/file1.txt")
+
+      // Both 'a' and 'a/b' are includes. The startDir 'a/b/c' should match the most specific one ('a/b').
+      val def = ProjectDefinition.EMPTY.copy(projectIncludes = setOf(Path.of("a"), Path.of("a/b")))
+      val startDirs = setOf(workspaceRoot.resolve("a/b/c"))
+
+      val visitedRootDirs = ConcurrentHashMap.newKeySet<Path>()
+
+      traverseProjectDirectories(context, workspaceRoot, def, startDirs) { rootDir, _, contents ->
+        visitedRootDirs.add(rootDir)
+        contents
+      }
+
+      assertThat(visitedRootDirs).containsExactly(workspaceRoot.resolve("a/b"))
+    }
+  }
 }

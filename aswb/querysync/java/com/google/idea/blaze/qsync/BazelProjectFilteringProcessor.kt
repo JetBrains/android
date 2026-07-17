@@ -54,6 +54,7 @@ suspend fun traverseProjectDirectories(
   context: Context<*>,
   workspaceRoot: Path,
   projectDefinition: ProjectDefinition,
+  startDirs: Set<Path>? = null,
   processContents: (rootDir: Path, currentDir: Path, contents: DirectoryContents) -> DirectoryContents?,
 ) {
   val includeAbsolute =
@@ -65,5 +66,18 @@ suspend fun traverseProjectDirectories(
 
   val processor =
     directoryProcessor(context, processContents = bazelProjectFilteringProcessor(workspaceRoot, excludeAbsolute, context, processContents))
-  traverseIncludedDirectories(includeAbsolute.map { ScanTask(it, it) }, processor)
+
+  val initialTasks =
+    if (startDirs == null) {
+      includeAbsolute.map { ScanTask(it, it) }
+    } else {
+      startDirs.mapNotNull { startDir ->
+        val rootDir = includeAbsolute.filter { startDir.startsWith(it) }.maxByOrNull { it.nameCount }
+        rootDir?.let { ScanTask(it, startDir) }
+      }
+    }
+
+  if (initialTasks.isNotEmpty()) {
+    traverseIncludedDirectories(initialTasks, processor)
+  }
 }
