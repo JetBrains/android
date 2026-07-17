@@ -6,14 +6,16 @@ maven_repository(
     # keep sorted
     artifacts = [
         "@maven//:androidx.activity.activity_1.0.0",
+        "@maven//:androidx.annotation.annotation_1.9.1",
         "@maven//:androidx.appcompat.appcompat_1.1.0",
         "@maven//:androidx.lifecycle.lifecycle-common_2.1.0",
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.1.0",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.1.0",
         "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.3.1",
-        "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.5.3",
+        "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.9.8",
         "@maven//:androidx.savedstate.savedstate_1.0.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
+        "@maven//:com.squareup.kotlinpoet_2.0.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:junit.junit_4.12",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
