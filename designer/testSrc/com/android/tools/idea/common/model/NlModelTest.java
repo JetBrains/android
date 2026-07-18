@@ -448,10 +448,16 @@ public class NlModelTest extends LayoutTestCase {
       model.getFile());
     model.notifyModified(ChangeType.ADD_COMPONENTS);
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x72, instance=2}",
-                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
+    String actualTree = myTreeDumper.toTree(model.getTreeReader().getComponents());
+    assertThat(actualTree).isAnyOf(
+      "NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+      "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+      "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x71, instance=2}",
+      // Remove when IntelliJ 2026.2 is merged
+      "NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+      "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+      "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x72, instance=2}"
+    );
   }
 
   public void testAddComponentsWithDependencyCheck() {
@@ -498,10 +504,16 @@ public class NlModelTest extends LayoutTestCase {
       }
     }
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x72, instance=2}",
-                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
+    String actualTree = myTreeDumper.toTree(model.getTreeReader().getComponents());
+    assertThat(actualTree).isAnyOf(
+      "NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+      "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+      "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x71, instance=2}",
+      // Remove when IntelliJ 2026.2 is merged
+      "NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+      "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+      "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x72, instance=2}"
+    );
   }
 
   public void testAddComponentsNoDependencyCheckOnMove() {
