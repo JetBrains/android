@@ -18,7 +18,6 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.common.DeployerException
-// TODO studio-merge
 import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -69,7 +68,6 @@ class AndroidWatchFaceConfigurationExecutor(
 
     val outputReceiver = RecordOutputReceiver { indicator.isCanceled == true }
     try {
-      // TODO studio-merge
       getActivator(app)
         .activate(
           watchFaceLaunchOptions.componentType,
