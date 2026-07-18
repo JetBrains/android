@@ -17,7 +17,6 @@ package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Activator
-// TODO studio-merge
 import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -91,7 +90,6 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)
     val receiver = AndroidBackgroundTaskReceiver(console)
     val activator = Activator(app, ConsoleLogger(logger, console))
-    // TODO studio-merge
     activator.activate(componentType, activityQualifiedName, extraFlags, mode, receiver, DeviceHolder(device, null))
     val matcher = activityDoesNotExistPattern.matcher(receiver.output.joinToString())
     if (matcher.find()) {

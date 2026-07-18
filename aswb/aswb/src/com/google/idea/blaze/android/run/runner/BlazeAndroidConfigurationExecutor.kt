@@ -17,6 +17,7 @@ package com.google.idea.blaze.android.run.runner
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.common.ApkVerifierTracker
+import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
@@ -121,7 +122,7 @@ class BlazeAndroidConfigurationExecutor(
 
       if (launchOptions.isDeploy) {
         val userIdFlags = UserIdHelper.getFlagsFromUserId(userId)
-        val skipVerification = ApkVerifierTracker.getSkipVerificationInstallationFlag(device, packageName)
+        val skipVerification = ApkVerifierTracker.getSkipVerificationInstallationFlag(DeviceHolder(device, null), packageName)
         val pmInstallOption = if (skipVerification != null) "$userIdFlags $skipVerification" else userIdFlags
         val deployOptions =
           DeployOptions(

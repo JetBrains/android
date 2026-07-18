@@ -147,7 +147,7 @@ public class DeployTask extends AbstractDeployTask {
     }
 
     // Skip verification if possible.
-    options.setSkipVerification(new DeviceHolder(device, null), apkInfo.getApplicationId()); // TODO studio-merge
+    options.setSkipVerification(new DeviceHolder(device, null), apkInfo.getApplicationId());
 
     LOG.info("Installing application: " + apkInfo.getApplicationId());
     InstallMode installMode = InstallMode.DELTA;
