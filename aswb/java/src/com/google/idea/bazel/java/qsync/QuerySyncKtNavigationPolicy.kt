@@ -15,6 +15,7 @@
  */
 package com.google.idea.bazel.java.qsync
 
+import com.google.idea.blaze.base.projectview.section.sections.MiscSection
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
 import com.google.idea.common.experiments.BoolExperiment
@@ -81,9 +82,11 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
   }
 
   override fun getNavigationElement(ktDeclaration: KtDeclaration): KtElement {
-    if (DebuggerManagerThreadImpl.isManagerThread() || !ENABLED_NAVIGATION_POLICY.value) return super.getNavigationElement(ktDeclaration)
+    if (DebuggerManagerThreadImpl.isManagerThread()) return super.getNavigationElement(ktDeclaration)
 
     val project = ktDeclaration.project
+    if (!MiscSection.isExperimentEnabled(project, ENABLED_NAVIGATION_POLICY)) return super.getNavigationElement(ktDeclaration)
+
     if (!eligibleToRun(project)) {
       return super.getNavigationElement(ktDeclaration)
     }

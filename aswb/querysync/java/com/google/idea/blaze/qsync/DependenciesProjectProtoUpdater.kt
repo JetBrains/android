@@ -25,6 +25,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.AddCompiledJavaDeps
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars
+import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
 import com.google.idea.blaze.qsync.java.AddDependencySrcJars
 import com.google.idea.blaze.qsync.java.AddProjectGenAndroidRes
 import com.google.idea.blaze.qsync.java.AddProjectGenSrcJars
@@ -38,13 +39,17 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
+import kotlin.jvm.JvmOverloads
 
 /** A [ProjectProtoTransform] that adds built artifact information to the project proto, based on all artifacts that have been built. */
-class DependenciesProjectProtoUpdater(
+class DependenciesProjectProtoUpdater
+@JvmOverloads
+constructor(
   projectDefinition: ProjectDefinition,
   pathResolver: ProjectPath.Resolver,
   emptyJarDigests: Set<String>,
   attachDepsSrcjarsExperiment: Supplier<Boolean>,
+  navigationPolicyExperiment: Supplier<Boolean> = Supplier { ENABLED_NAVIGATION_POLICY.value },
 ) : ProjectProtoUpdateOperation {
   private val updateOperations: List<ProjectProtoUpdateOperation>
 
@@ -63,8 +68,8 @@ class DependenciesProjectProtoUpdater(
       ) +
         if (attachDepsSrcjarsExperiment.get())
           listOf(
-            AddDependencySrcJars(projectDefinition, pathResolver, srcJarInnerPathFinder),
-            AddDependencyGenSrcsJars(projectDefinition, SrcJarPackageRootsExtractor(srcJarInnerPathFinder)),
+            AddDependencySrcJars(projectDefinition, pathResolver, srcJarInnerPathFinder, navigationPolicyExperiment),
+            AddDependencyGenSrcsJars(projectDefinition, SrcJarPackageRootsExtractor(srcJarInnerPathFinder), navigationPolicyExperiment),
           )
         else emptyList()
   }

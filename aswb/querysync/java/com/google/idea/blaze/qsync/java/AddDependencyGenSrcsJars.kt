@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.java
 
+import com.google.common.base.Supplier
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
@@ -30,14 +31,18 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.common.experiments.BoolExperiment
 import java.nio.file.Path
 import kotlin.jvm.JvmField
+import kotlin.jvm.JvmOverloads
 
 /**
  * Adds generated `.srcjar` files from external dependencies to the `.dependencies` library. This means that when navigating to these
  * dependencies, we see the generated sources rather than decompiled code.
  */
-class AddDependencyGenSrcsJars(
+class AddDependencyGenSrcsJars
+@JvmOverloads
+constructor(
   private val projectDefinition: ProjectDefinition,
   private val srcJarPathsMetadata: ArtifactMetadata.Extractor<SrcJarJavaPackageRoots>,
+  private val navigationPolicyExperiment: Supplier<Boolean> = Supplier { ENABLED_NAVIGATION_POLICY.value },
 ) : ProjectProtoUpdateOperation {
   companion object {
     @JvmField val ENABLED_NAVIGATION_POLICY = BoolExperiment("querysync.navigationpolicy", true)
@@ -81,7 +86,7 @@ class AddDependencyGenSrcsJars(
             val innerJavaRoots = genSrc.getMetadata(SrcJarJavaPackageRoots::class.java)?.roots() ?: setOf(Path.of(""))
             innerJavaRoots.map { projectPath.withInnerJarPath(it) }
           }
-        if (!ENABLED_NAVIGATION_POLICY.value) {
+        if (!navigationPolicyExperiment.get()) {
           update.library(target.label) { addSourceJars(projectPaths) }
         }
       }

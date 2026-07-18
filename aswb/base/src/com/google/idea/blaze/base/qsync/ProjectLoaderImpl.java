@@ -33,6 +33,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeriveTargetsSection;
+import com.google.idea.blaze.base.projectview.section.sections.MiscSection;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
@@ -60,6 +61,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars;
 import com.google.idea.blaze.qsync.java.AddProjectKotlinCompilerFlags;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.PackageReader;
@@ -276,7 +278,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
             latestProjectDef,
             projectPathResolver,
             buildSystem.getEmptyJarDigests(),
-            QuerySync.ATTACH_DEP_SRCJARS::getValue));
+            QuerySync.ATTACH_DEP_SRCJARS::getValue,
+            () -> MiscSection.isExperimentEnabled(project, AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY)));
     projectTransformRegistry.add(new AddProjectKotlinCompilerFlags());
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(

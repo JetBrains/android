@@ -63,6 +63,7 @@ class AddDependencyGenSrcsJarsTest {
   private val syncer = TestDataSyncRunner(NoopContext())
 
   private lateinit var original: QuerySyncProjectSnapshot
+  private lateinit var mockExperimentService: MockExperimentService
 
   private val innerRootsMetadata = SrcJarPackageRootsExtractor(null)
 
@@ -72,7 +73,8 @@ class AddDependencyGenSrcsJarsTest {
 
   @Before
   fun setUp() {
-    intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
+    mockExperimentService = MockExperimentService()
+    intellij.registerApplicationService(ExperimentService::class.java, mockExperimentService)
     original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
   }
 
@@ -129,9 +131,26 @@ class AddDependencyGenSrcsJarsTest {
   @Test
   @Throws(Exception::class)
   fun external_gensrcs_added() {
-    val experimentService = ApplicationManager.getApplication().getService(ExperimentService::class.java) as? MockExperimentService
-    experimentService?.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
+    mockExperimentService.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
     val addGenSrcJars = AddDependencyGenSrcsJars(original.projectDefinition, innerRootsMetadata)
+    external_gensrcs_added(
+      addGenSrcJars,
+      ProjectProto.Library(
+        name = Label.of("//java/com/google/common/collect:collect"),
+        classesJarList = listOf(),
+        sourcesList =
+          listOf(
+            ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar")).withInnerJarPath(Path.of("root")),
+            ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar")).withInnerJarPath(Path.of("root2")),
+          ),
+      ),
+    )
+  }
+
+  @Test
+  @Throws(Exception::class)
+  fun external_gensrcs_added_via_supplier_override() {
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.projectDefinition, innerRootsMetadata, { false })
     external_gensrcs_added(
       addGenSrcJars,
       ProjectProto.Library(
