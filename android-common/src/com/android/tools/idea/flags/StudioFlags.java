@@ -1290,6 +1290,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNNING_DEVICES_CONTEXT_MENU = new BooleanFlag(
     EMBEDDED_EMULATOR, "context.menu", "Enable Context Menu",
     "Enables context menu in the Running Devices tool window");
+  public static final Flag<Boolean> RUNNING_DEVICES_VERTICAL_FLOATING_TOOLBARS = new BooleanFlag(
+    EMBEDDED_EMULATOR, "vertical.floating.toolbars", "Vertical Floating Toolbars",
+    "Makes floating toolbars in the Running Devices tool window vertical.");
   //endregion
 
   //region Device Mirroring
