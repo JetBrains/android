@@ -45,6 +45,7 @@ import com.google.idea.blaze.base.projectview.section.sections.ExcludeTargetSect
 import com.google.idea.blaze.base.projectview.section.sections.ExcludedSourceSection;
 import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
 import com.google.idea.blaze.base.projectview.section.sections.ImportTargetOutputSection;
+import com.google.idea.blaze.base.projectview.section.sections.MiscSection;
 import com.google.idea.blaze.base.projectview.section.sections.RunConfigurationsSection;
 import com.google.idea.blaze.base.projectview.section.sections.Sections;
 import com.google.idea.blaze.base.projectview.section.sections.ShardBlazeBuildsSection;
@@ -61,10 +62,12 @@ import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocation
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.BlazeSyncPlugin;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -126,6 +129,9 @@ public class ProjectViewSetTest extends BlazeTestCase {
                             .set(new WorkspacePath("test")))
                     .add(ScalarSection.builder(AgentsMdSection.KEY).set(new WorkspacePath("test")))
                     .add(ScalarSection.builder(SkillsMdSection.KEY).set(new WorkspacePath("test")))
+                    .add(
+                        ListSection.builder(MiscSection.KEY)
+                            .add("querysync.navigationpolicy=false"))
                     .build())
             .build();
 
@@ -150,5 +156,31 @@ public class ProjectViewSetTest extends BlazeTestCase {
     assertThat(parser.getResult().getTopLevelProjectViewFile()).isNotNull();
     ProjectView projectView = parser.getResult().getTopLevelProjectViewFile().projectView;
     assertThat(projectView.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY)).isTrue();
+  }
+
+  @Test
+  public void testMiscSectionParsingAndExperimentOverride() {
+    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
+    parser.parseProjectViewFile(
+        "misc:\n  querysync.navigationpolicy=false\n  some.other.flag: 1",
+        List.of(MiscSection.PARSER));
+    assertThat(parser.getResult().getTopLevelProjectViewFile()).isNotNull();
+    ProjectViewSet projectViewSet = parser.getResult();
+    assertThat(projectViewSet.listItems(MiscSection.KEY))
+        .containsExactly("querysync.navigationpolicy=false", "some.other.flag: 1");
+    assertThat(MiscSection.getOverride(projectViewSet, "querysync.navigationpolicy"))
+        .isEqualTo("false");
+    assertThat(
+            MiscSection.isExperimentEnabled(
+                projectViewSet, new BoolExperiment("querysync.navigationpolicy", true)))
+        .isFalse();
+    assertThat(
+            MiscSection.isExperimentEnabled(
+                projectViewSet, new BoolExperiment("some.other.flag", false)))
+        .isTrue();
+    assertThat(
+            MiscSection.isExperimentEnabled(
+                projectViewSet, new BoolExperiment("unspecified.flag", true)))
+        .isTrue();
   }
 }

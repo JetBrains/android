@@ -15,6 +15,7 @@
  */
 package com.google.idea.bazel.java.qsync
 
+import com.google.idea.blaze.base.projectview.section.sections.MiscSection
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
@@ -27,9 +28,8 @@ import com.intellij.psi.util.CachedValuesManager
 class QuerySyncNavigationPolicy : QuerySyncNavigationPolicyBase {
 
   override fun getNavigationElement(clsFile: ClsFileImpl): PsiElement? {
-    if (!ENABLED_NAVIGATION_POLICY.value) return null
-
     val project = clsFile.project
+    if (!MiscSection.isExperimentEnabled(project, ENABLED_NAVIGATION_POLICY)) return null
 
     if (!project.isQuerySyncProject() || DaemonCodeAnalyzer.getInstance(project).isRunning) {
       return null
