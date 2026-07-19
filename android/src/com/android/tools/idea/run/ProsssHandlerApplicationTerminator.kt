@@ -18,7 +18,6 @@ package com.android.tools.idea.run
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerApplicationTerminator
-// TODO studio-merge
 import com.android.tools.deployer.DeployerDevice
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.flags.StudioFlags
@@ -26,11 +25,9 @@ import com.intellij.openapi.progress.ProgressIndicator
 
 class ProcessHandlerApplicationTerminator(indicator: ProgressIndicator, devices: List<IDevice>, appId: String) :
   DeployerApplicationTerminator(
-    // TODO studio-merge
     devices.map { DeployerDevice(it.serialNumber) },
     appId,
     { targetDevice, targetAppId ->
-      // TODO studio-merge
       val iDevice = devices.firstOrNull { it.serialNumber == targetDevice.serialNumber }
       if (iDevice != null) {
         if (StudioFlags.INSTALL_USE_PM_TERMINATE.get() && iDevice.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)) {
