@@ -2738,6 +2738,11 @@ public final class StudioFlags {
                     "Enable project-wide symbol linkification and navigation",
                     "Enables one-click navigation to code symbols mentioned in Studio Bot responses");
 
+  public static final Flag<Boolean> STUDIOBOT_SYMBOL_LINKS_FROM_MODEL =
+    new BooleanFlag(STUDIOBOT, "symbol.links.from.model",
+                    "Enable symbol links from model",
+                    "Enables the new explicit model-provided link translation and disables legacy index-based recognition by default");
+
   public static final Flag<Boolean> STUDIOBOT_TASK_ROADMAP_ENABLED =
     new BooleanFlag(STUDIOBOT, "task.roadmap.enabled",
                     "Enable Task Roadmap progress panels",
