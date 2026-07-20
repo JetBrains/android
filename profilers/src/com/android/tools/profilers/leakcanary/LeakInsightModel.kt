@@ -42,7 +42,7 @@ class LeakInsightModel(private val ideServices: IdeProfilerServices, private val
   fun setInsightAutoGenerateEnabled(enabled: Boolean) {
     _isInsightAutoGenerateEnabled.value = enabled
     ideServices.persistentProfilerPreferences.setBoolean(KEY_LEAKCANARY_INSIGHT_AUTO_GENERATE, enabled)
-    if (enabled) {
+    if (enabled && _isInsightVisible.value) {
       selectedLeak?.let { leak ->
         val cached = insightCache[leak.signature]
         if (cached == null || (cached is LoadingState.Ready && cached.value == null)) {
@@ -81,7 +81,9 @@ class LeakInsightModel(private val ideServices: IdeProfilerServices, private val
           _currentInsight.value = cached
         } else {
           _currentInsight.value = LoadingState.Ready(null)
-          fetchInsight(selected)
+          if (isInsightAutoGenerateEnabled.value) {
+            fetchInsight(selected)
+          }
         }
       } else {
         _currentInsight.value = LoadingState.Ready(null)

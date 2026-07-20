@@ -783,6 +783,45 @@ class LeakCanaryModelTest : WithFakeTimer {
     assertEquals("Insight text", (state2 as LoadingState.Ready).value?.rawInsight)
   }
 
+  @Test
+  fun `test fetchInsight skips resolution if auto-generate is disabled when panel becomes visible`() {
+    val leak = createMockLeak()
+    customInsightFlow = flow {
+      emit("Should not run")
+    }
+
+    stage.insightModel.setInsightVisible(false)
+    stage.insightModel.setInsightAutoGenerateEnabled(false)
+    stage.onLeakSelection(leak)
+
+    // Make visible
+    stage.insightModel.setInsightVisible(true)
+
+    // Should NOT trigger fetchInsight, and state should remain Ready(null)
+    val state = stage.insightModel.currentInsight.value
+    assertTrue(state is LoadingState.Ready && state.value == null)
+  }
+
+  @Test
+  fun `test enabling auto-generate when panel is hidden does not trigger fetchInsight`() {
+    val leak = createMockLeak()
+    customInsightFlow = flow {
+      emit("Should not run")
+    }
+
+    stage.insightModel.setInsightVisible(false)
+    stage.insightModel.setInsightAutoGenerateEnabled(false)
+    stage.onLeakSelection(leak)
+
+    // Enable auto-generate while hidden
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+
+    // Should NOT trigger fetchInsight, state remains Ready(null), visibility remains false
+    val state = stage.insightModel.currentInsight.value
+    assertTrue(state is LoadingState.Ready && state.value == null)
+    assertFalse(stage.insightModel.isInsightVisible.value)
+  }
+
   private fun createTestNode(
     className: String,
     leakingStatus: LeakingStatus = LeakingStatus.UNKNOWN,
