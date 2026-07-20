@@ -111,7 +111,6 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
     emulateStartupActivityForTest(getProject());
 
     // TODO(b/418973297): Consolidate all init logic in the different test frameworks
-    WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
     GradleSpecificInitializer.initializePhasedSync();
 
     // Use per-project code style settings so we never modify the IDE defaults.

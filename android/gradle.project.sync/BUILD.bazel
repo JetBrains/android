@@ -79,6 +79,8 @@ jvm_library(
         "//plugins/gradle/plugin:plugin_test_lib",
         "//platform/analysis-api:analysis",
         "//platform/analysis-api:analysis_test_lib",
+        "//platform/backend/workspace",
+        "//platform/backend/workspace:workspace_test_lib",
         "//java/testFramework",
         "//java/testFramework:testFramework_test_lib",
         "//platform/core-api:core",

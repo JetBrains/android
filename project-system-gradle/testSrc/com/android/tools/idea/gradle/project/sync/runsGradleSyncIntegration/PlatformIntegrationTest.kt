@@ -58,10 +58,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
 import com.intellij.task.ProjectTaskManager
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.jetbrains.annotations.SystemIndependent
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -70,6 +72,11 @@ class PlatformIntegrationTest {
   @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
+
+  @Before
+  fun setUp() {
+    WorkspaceModelCacheImpl.forceEnableCaching(projectRule.testRootDisposable)
+  }
 
   @Test
   fun testModelBuildServiceInCompositeBuilds() {
