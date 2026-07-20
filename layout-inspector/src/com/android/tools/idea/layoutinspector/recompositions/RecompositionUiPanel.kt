@@ -104,7 +104,7 @@ internal class RecompositionUiPanel(
   init {
     isVisible = false
     isFocusable = false
-    scope.launch {
+    scope.launch(Dispatchers.EDT) {
       model.show.collect { show ->
         isVisible = show
         innerPanel =
@@ -187,8 +187,8 @@ private class InnerStateInspectionPanel(
     add(contentPanel, BorderLayout.CENTER)
     border = JBUI.Borders.empty()
 
-    parentScope.launch { model.content.collect { update(it) } }
-    parentScope.launch { model.recompositions.collect { updateButtons(next) } }
+    parentScope.launch(Dispatchers.EDT) { model.content.collect { update(it) } }
+    parentScope.launch(Dispatchers.EDT) { model.recompositions.collect { updateButtons(next) } }
   }
 
   override fun dispose() {
