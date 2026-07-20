@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
@@ -584,6 +585,33 @@ fake-plugin = { id = "fake.plugin", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agpVersion" }
     """,
     )
+  }
+
+  @Test
+  fun testAddCompileSdk_betaVersion_newBlock() {
+    skipGradleDeclarativeTemporary()
+    whenever(mockProjectTemplateData.agpVersion).thenReturn(AgpVersion.parse("9.4.0-alpha03"))
+    writeToBuildFile("")
+
+    val androidVersion = AndroidVersion.fromString("37.1-beta2")
+    recipeExecutor.addCompileSdk(androidVersion, isKotlinMultiplatform = false, isDeclarative = false)
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    val expectedContent =
+      """
+      android {
+          compileSdk {
+              version = beta(37) {
+                  minorApiLevel = 1
+                  betaVersion = 2
+              }
+          }
+      }
+      """
+        .trimIndent()
+
+    verifyFileContents(myBuildFile, expectedContent)
   }
 
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {

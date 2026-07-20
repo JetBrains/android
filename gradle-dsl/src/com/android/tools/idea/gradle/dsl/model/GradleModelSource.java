@@ -24,6 +24,10 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
+// TODO: android-merge; imports for the AGP version propagation in createContext, which is commented out below.
+//  import com.android.ide.common.repository.AgpVersion;
+//  import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
+//  import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -177,6 +181,16 @@ public final class GradleModelSource extends GradleModelProvider {
 
   @NotNull
   private static BuildModelContext createContext(@NotNull Project project) {
+    // TODO: android-merge; the AGP version in use is not propagated to the context here. GradleProjectSystemUtil is
+    //  not in the studio-platform jar, and the only copy in this tree is in intellij.android.projectSystem.gradle,
+    //  which already depends on intellij.android.gradle.dsl, so this module cannot call it without a dependency
+    //  cycle. Restore this once the AGP version in use is readable from gradle-dsl.
+    //  BuildModelContext context = BuildModelContext.create(project, myResolvedConfigurationFileLocationProvider);
+    //  AgpVersion agpVersion = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project);
+    //  if (agpVersion != null) {
+    //    context.setAgpVersion(AndroidGradlePluginVersion.Companion.parse(agpVersion.toString()));
+    //  }
+    //  return context;
     return BuildModelContext.create(project, myResolvedConfigurationFileLocationProvider);
   }
 
