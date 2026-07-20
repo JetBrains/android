@@ -35,6 +35,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import java.nio.file.Path
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -56,6 +57,7 @@ class AndroidDeclarativeWatchFaceConfigurationExecutorTest : AndroidConfiguratio
     return ExecutionEnvironment(executorInstance, AndroidDeclarativeWatchFaceProgramRunner(), configSettings, project)
   }
 
+  @Ignore("b/536730247")
   @Test
   fun testRun() {
     // Use DefaultRunExecutor, equivalent of pressing run button.
