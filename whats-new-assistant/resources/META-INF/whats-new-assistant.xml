@@ -22,6 +22,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.whatsnew.assistant.v2.ui.WhatsNewEditorProvider"/>
+    <editorTabTitleProvider implementation="com.android.tools.idea.whatsnew.assistant.v2.ui.WhatsNewEditorTabTitleProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.whatsnew.assistant.WhatsNewStartupActivity$WhatsNewService"/>
     <postStartupActivity implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewStartupActivity"
                          order="before TipOfTheDayActivity"/>
