@@ -21,7 +21,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class TriggerSampleThreadingViolationAction() : AnAction() {
-  @Suppress("UnsatisfiableThreadConstraint") // expected (b/397753387)
+  @Suppress("UnsatisfiableThreadConstraint", "WrongThread") // expected (b/397753387, b/534488382)
   override fun actionPerformed(e: AnActionEvent) {
     workerThreadMethod()
     uiThreadMethod()
