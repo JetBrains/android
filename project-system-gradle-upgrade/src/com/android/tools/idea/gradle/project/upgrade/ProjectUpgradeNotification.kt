@@ -52,7 +52,7 @@ sealed class ProjectUpgradeNotification(title: String, content: String, type: No
         override fun actionPerformed(e: AnActionEvent) {
           this@ProjectUpgradeNotification.expire(false)
           LOG.info("Starting AGP Upgrade Assistant")
-          e.project?.let { performRecommendedPluginUpgrade(it) }
+          project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
         }
       }
     )
@@ -61,7 +61,7 @@ sealed class ProjectUpgradeNotification(title: String, content: String, type: No
         override fun actionPerformed(e: AnActionEvent) {
           this@ProjectUpgradeNotification.expire(false)
           LOG.info("AGP Upgrade notification postponed for 24 hours")
-          e.project?.let { RecommendedUpgradeReminder(it).updateLastTimestamp() }
+          RecommendedUpgradeReminder(project).updateLastTimestamp()
         }
       }
     )
@@ -70,7 +70,7 @@ sealed class ProjectUpgradeNotification(title: String, content: String, type: No
         override fun actionPerformed(e: AnActionEvent) {
           this@ProjectUpgradeNotification.expire(true)
           LOG.info("AGP Upgrade notification disabled for this project")
-          e.project?.let { RecommendedUpgradeReminder(it).doNotAskForProject = true }
+          RecommendedUpgradeReminder(project).doNotAskForProject = true
         }
       }
     )
@@ -79,7 +79,7 @@ sealed class ProjectUpgradeNotification(title: String, content: String, type: No
         override fun actionPerformed(e: AnActionEvent) {
           this@ProjectUpgradeNotification.expire(true)
           LOG.info("AGP Upgrade notification disabled application-wide")
-          e.project?.let { RecommendedUpgradeReminder(it).doNotAskForApplication = true }
+          RecommendedUpgradeReminder(project).doNotAskForApplication = true
         }
       }
     )
