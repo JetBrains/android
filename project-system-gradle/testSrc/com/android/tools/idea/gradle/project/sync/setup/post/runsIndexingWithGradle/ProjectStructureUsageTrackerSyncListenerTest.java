@@ -43,6 +43,7 @@ import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.RunsInEdt;
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -64,6 +65,7 @@ public class ProjectStructureUsageTrackerSyncListenerTest {
 
   @Before
   public void setUp() throws Exception {
+    WorkspaceModelCacheImpl.forceEnableCaching(projectRule.getTestRootDisposable());
     // Used to test the scheduling of usage tracking.
     VirtualTimeScheduler scheduler = new VirtualTimeScheduler();
     myUsageTracker = new TestUsageTracker(scheduler);

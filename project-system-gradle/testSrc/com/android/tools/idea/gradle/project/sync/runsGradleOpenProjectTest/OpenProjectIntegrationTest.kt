@@ -55,10 +55,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.utils.io.deleteRecursively
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import java.io.File
 import java.nio.file.Path
 import org.gradle.util.GradleVersion
 import org.junit.After
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -70,6 +72,11 @@ class OpenProjectIntegrationTest {
   @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule val expect = Expect.createAndEnableStackTrace()!!
+
+  @Before
+  fun setUp() {
+    WorkspaceModelCacheImpl.forceEnableCaching(projectRule.testRootDisposable)
+  }
 
   @After
   fun tearDown() {

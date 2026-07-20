@@ -165,7 +165,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myModule = moduleFixtureBuilder.getFixture().getModule();
 
     // TODO(b/418973297): Consolidate all init logic in the different test frameworks
-    WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
     GradleSpecificInitializer.initializePhasedSync();
 
     // Must be done before addAndroidFacet, and must always be done, even if a test provides

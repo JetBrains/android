@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServicesKt;
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,6 +51,7 @@ public class IdeaSyncCachesTest {
 
   @Before
   public void setup() throws Exception {
+    WorkspaceModelCacheImpl.forceEnableCaching(rule.getTestRootDisposable());
     myInvalidator = new IdeaSyncCachesInvalidator();
   }
 
