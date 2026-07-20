@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
+import kotlinx.coroutines.launch
 
 /** Action to stop the animation inspector, displayed when the inspector is open for the current preview. */
 class StopAnimationInspectorAction(private val isDisabled: (e: AnActionEvent) -> Boolean) :
@@ -41,7 +42,7 @@ class StopAnimationInspectorAction(private val isDisabled: (e: AnActionEvent) ->
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    navigateBack(e)
+    e.coroutineScope.launch { navigateBack(e) }
   }
 
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */

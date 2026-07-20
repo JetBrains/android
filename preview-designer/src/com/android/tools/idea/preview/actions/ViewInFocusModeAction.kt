@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
+import kotlinx.coroutines.launch
 
 /** [AnAction] that open the selected scene view in Focus Mode. The action is not enabled if the current [PreviewMode] is Focus already. */
 class ViewInFocusModeAction : AnAction(message("action.view.in.focus.mode")) {
@@ -61,11 +62,13 @@ class ViewInFocusModeAction : AnAction(message("action.view.in.focus.mode")) {
       return
     }
 
-    val modeManager = e.dataContext.findPreviewManager(PreviewModeManager.KEY)
-    if (modeManager == null) {
-      logger.error("Cannot find any preview manager")
-      return
+    e.coroutineScope.launch {
+      val modeManager = e.dataContext.findPreviewManager(PreviewModeManager.KEY)
+      if (modeManager == null) {
+        logger.error("Cannot find any preview manager")
+        return@launch
+      }
+      modeManager.setMode(PreviewMode.Focus(previewElementInstance))
     }
-    modeManager.setMode(PreviewMode.Focus(previewElementInstance))
   }
 }
