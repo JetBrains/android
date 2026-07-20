@@ -39,6 +39,8 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.TestActionEvent
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
@@ -159,7 +161,7 @@ class ViewInFocusModeActionTest {
   }
 
   @Test
-  fun `selected preview opens to focus correctly`() {
+  fun `selected preview opens to focus correctly`() = runTest {
     // We are right-clicking a scene view.
     val previewInstanceOfClickedSceneView = createSingleElementInstance("Right Clicked")
     val sceneManagerMock = createSceneManagerMock(previewElement = previewInstanceOfClickedSceneView)
@@ -171,9 +173,10 @@ class ViewInFocusModeActionTest {
         .build()
 
     val viewInFocusModeAction = ViewInFocusModeAction()
-    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext).apply { installCoroutineScope(this@runTest) }
 
     viewInFocusModeAction.actionPerformed(event)
+    advanceUntilIdle()
 
     // The Mode we are going to open is Focus with the selected preview element.
     verify(modeManager).setMode(PreviewMode.Focus(previewInstanceOfClickedSceneView))
@@ -182,7 +185,7 @@ class ViewInFocusModeActionTest {
   }
 
   @Test
-  fun `selected preview opens to focus correctly with parametrized previews`() {
+  fun `selected preview opens to focus correctly with parametrized previews`() = runTest {
     // List of compose preview element.
     val parametrizedPreviewElements =
       ParametrizedComposePreviewElementInstance(
@@ -204,9 +207,10 @@ class ViewInFocusModeActionTest {
         .build()
 
     val viewInFocusModeAction = ViewInFocusModeAction()
-    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext)
+    val event = TestActionEvent.createTestEvent(viewInFocusModeAction, dataContext).apply { installCoroutineScope(this@runTest) }
 
     viewInFocusModeAction.actionPerformed(event)
+    advanceUntilIdle()
 
     // The Mode we are going to open is Focus with the selected preview element.
     verify(modeManager).setMode(PreviewMode.Focus(parametrizedPreviewElements))
