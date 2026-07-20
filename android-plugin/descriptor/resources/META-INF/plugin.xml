@@ -31,6 +31,9 @@
     <module name="intellij.platform.jewel.markdown.core"/>
     <module name="intellij.platform.jewel.markdown.ideLafBridgeStyling"/>
     <module name="intellij.platform.jewel.ui"/>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+    <module name="intellij.platform.ide.internal"/>
+    <!-- endregion -->
   </dependencies>
 
   <xi:include href="/META-INF/android-plugin.xml"/>
