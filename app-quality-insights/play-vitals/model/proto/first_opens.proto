@@ -20,6 +20,8 @@ option java_package = "com.google.play.developer.reporting";
 //
 //  * `deviceFirstOpens` (`google.type.Decimal`): The number of unique
 //     devices that opened the app for the first time.
+//  * `userFirstOpens` (`google.type.Decimal`): The number of unique
+//     users who opened the app for the first time.
 //
 // **Supported dimensions:**
 //
@@ -122,6 +124,8 @@ message QueryFirstOpensMetricSetRequest {
   //
   //  * `deviceFirstOpens` (`google.type.Decimal`): The number of unique
   //     devices that opened the app for the first time.
+  //  * `userFirstOpens` (`google.type.Decimal`): The number of unique
+  //     users who opened the app for the first time.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
