@@ -15,10 +15,10 @@
  */
 package com.google.idea.blaze.base.model;
 
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.common.BuildTarget;
+import com.google.idea.blaze.common.Label;
 import javax.annotation.Nullable;
 
 /** Interface to persistent project data. */
@@ -26,11 +26,6 @@ public interface BlazeProjectData {
 
   @Nullable
   BuildTarget getBuildTarget(Label label);
-
-  @Nullable
-  default BuildTarget getBuildTarget(com.google.idea.blaze.common.Label label) {
-    return getBuildTarget(Label.create(label));
-  }
 
   WorkspacePathResolver getWorkspacePathResolver();
 

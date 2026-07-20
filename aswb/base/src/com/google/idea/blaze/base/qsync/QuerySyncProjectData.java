@@ -22,10 +22,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BazelVersion;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.intellij.openapi.diagnostic.Logger;
@@ -75,12 +75,6 @@ public class QuerySyncProjectData implements BlazeProjectData {
   @Nullable
   @Override
   public ProjectTarget getBuildTarget(Label label) {
-    return getBuildTarget(com.google.idea.blaze.common.Label.of(label.toString()));
-  }
-
-  @Nullable
-  @Override
-  public ProjectTarget getBuildTarget(com.google.idea.blaze.common.Label label) {
     return blazeProject.map(it -> it.getStaleGraph().getProjectTarget(label)).orElse(null);
   }
 
