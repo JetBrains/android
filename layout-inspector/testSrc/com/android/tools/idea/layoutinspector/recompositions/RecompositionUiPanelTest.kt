@@ -21,6 +21,7 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.getDescendant
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.FakeSessionStats
 import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -35,12 +36,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ui.getUserData
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
-import com.intellij.testFramework.RunsInEdt
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -50,25 +50,25 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import javax.swing.text.JTextComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.NonNls
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-@RunsInEdt
 class RecompositionUiPanelTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fileOpenRule = FileOpenCaptureRule(projectRule)
 
-  @get:Rule val chain = RuleChain(TestScopeRule(), projectRule, fileOpenRule, EdtRule())
+  @get:Rule val chain = RuleChain(TestScopeRule(), projectRule, fileOpenRule)
 
   private val model = TestRecompositionUiModel()
   private val stats = FakeSessionStats()
-  private val testDispatcher = StandardTestDispatcher()
-  private val testScope = TestScope(testDispatcher)
   private lateinit var disposable: Disposable
 
   @Before
@@ -77,89 +77,94 @@ class RecompositionUiPanelTest {
   }
 
   @Test
-  fun testNoEditorCreatedInitially() {
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    testDispatcher.scheduler.advanceUntilIdle()
-    assertThat(panel.componentCount).isEqualTo(0)
-    assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
-    Disposer.dispose(disposable)
-  }
+  fun testNoEditorCreatedInitially() =
+    runTestInEdt(disposable) {
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      advanceUntilIdle()
+      assertThat(panel.componentCount).isEqualTo(0)
+      assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
+    }
 
   @Test
-  fun testEditorDestroyedWhenHidden() {
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    assertThat(panel.componentCount).isEqualTo(0)
-    assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
-    testDispatcher.scheduler.advanceUntilIdle()
+  fun testEditorDestroyedWhenHidden() =
+    runTestInEdt(disposable) {
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      assertThat(panel.componentCount).isEqualTo(0)
+      assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
+      advanceUntilIdle()
 
-    model.show.value = true
-    testDispatcher.scheduler.advanceUntilIdle()
-    assertThat(panel.componentCount).isEqualTo(1)
-    assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNotNull()
+      model.show.value = true
+      advanceUntilIdle()
+      assertThat(panel.componentCount).isEqualTo(1)
+      assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNotNull()
 
-    model.show.value = false
-    testDispatcher.scheduler.advanceUntilIdle()
-    assertThat(panel.componentCount).isEqualTo(0)
-    assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
-  }
-
-  @Test
-  fun testRecompositionText() {
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    model.show.value = true
-    advanceUntilIdle()
-    val label = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
-    assertThat(label.text).isEqualTo("")
-
-    model.content.value = RecompositionContent(recompositionText = "Testing")
-    advanceUntilIdle()
-    assertThat(label.text).isEqualTo("Testing")
-  }
+      model.show.value = false
+      advanceUntilIdle()
+      assertThat(panel.componentCount).isEqualTo(0)
+      assertThat(panel.getUserData(STATE_READ_EDITOR_KEY)).isNull()
+    }
 
   @Test
-  fun testEmptyStateText() {
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    model.show.value = true
-    advanceUntilIdle()
-    assertThat(panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }).isNull()
+  fun testRecompositionText() =
+    runTestInEdt(disposable) {
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      model.show.value = true
+      advanceUntilIdle()
+      val label = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
+      assertThat(label.text).isEqualTo("")
 
-    model.content.value = RecompositionContent(emptyStateText = "Hello\nWorld")
-    advanceUntilIdle()
-    val emptyState = panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }
-    assertThat(emptyState?.text).isEqualTo("<html><p>Hello</p><p>World</p></html>")
-
-    model.show.value = false
-    testDispatcher.scheduler.advanceUntilIdle()
-    assertThat(panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }).isNull()
-  }
+      model.content.value = RecompositionContent(recompositionText = "Testing")
+      advanceUntilIdle()
+      assertThat(label.text).isEqualTo("Testing")
+    }
 
   @Test
-  fun testStateReadText() {
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    model.show.value = true
-    advanceUntilIdle()
-    val label = panel.getDescendant<JLabel> { it.name == STATE_READ_TEXT_LABEL_NAME }
-    assertThat(label.text).isEqualTo("")
+  fun testEmptyStateText() =
+    runTestInEdt(disposable) {
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      model.show.value = true
+      advanceUntilIdle()
+      assertThat(panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }).isNull()
 
-    model.content.value = RecompositionContent(stateReadsText = "Testing")
-    advanceUntilIdle()
-    assertThat(label.text).isEqualTo("Testing")
-  }
+      model.content.value = RecompositionContent(emptyStateText = "Hello\nWorld")
+      advanceUntilIdle()
+      val emptyState = panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }
+      assertThat(emptyState?.text).isEqualTo("<html><p>Hello</p><p>World</p></html>")
+
+      model.show.value = false
+      advanceUntilIdle()
+      assertThat(panel.findDescendant<JLabel> { it.name == EMPTY_STATE_NAME }).isNull()
+    }
 
   @Test
-  fun testStackTraceText() {
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    model.show.value = true
-    testDispatcher.scheduler.advanceUntilIdle()
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
-    assertThat(editor.document.text).isEqualTo("")
+  fun testStateReadText() =
+    runTestInEdt(disposable) {
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      model.show.value = true
+      advanceUntilIdle()
+      val label = panel.getDescendant<JLabel> { it.name == STATE_READ_TEXT_LABEL_NAME }
+      assertThat(label.text).isEqualTo("")
 
-    model.content.value = RecompositionContent(detailsText = "Testing")
-    testDispatcher.scheduler.advanceUntilIdle()
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    assertThat(editor.document.text).isEqualTo("Testing")
-  }
+      model.content.value = RecompositionContent(stateReadsText = "Testing")
+      advanceUntilIdle()
+      assertThat(label.text).isEqualTo("Testing")
+    }
+
+  @Test
+  fun testStackTraceText() =
+    runTestInEdt(disposable) {
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      model.show.value = true
+      advanceUntilIdle()
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+      val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
+      assertThat(editor.document.text).isEqualTo("")
+
+      model.content.value = RecompositionContent(detailsText = "Testing")
+      advanceUntilIdle()
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+      assertThat(editor.document.text).isEqualTo("Testing")
+    }
 
   @Test
   fun testPrevAction() {
@@ -177,183 +182,198 @@ class RecompositionUiPanelTest {
   }
 
   @Test
-  fun testStateInspectionData() {
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    model.show.value = true
-    advanceUntilIdle()
-    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
-    assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isNull()
+  fun testStateInspectionData() =
+    runTestInEdt(disposable) {
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      model.show.value = true
+      advanceUntilIdle()
+      val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
+      assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isNull()
 
-    val data = ComposableDefinition("composable", "MyFile.kt")
-    model.content.value = RecompositionContent(composableInspected = data)
-    advanceUntilIdle()
-    assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isEqualTo(data)
-  }
+      val data = ComposableDefinition("composable", "MyFile.kt")
+      model.content.value = RecompositionContent(composableInspected = data)
+      advanceUntilIdle()
+      assertThat(editor.getUserData(LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY)).isEqualTo(data)
+    }
 
-  private fun advanceUntilIdle() {
+  private fun TestScope.advanceUntilIdle() {
     // The write action in StateInspectionPanel.setTextInEditor may not complete with...
-    testDispatcher.scheduler.advanceUntilIdle()
+    this.testScheduler.advanceUntilIdle()
 
     // Perform the write action:
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     // Finish the coroutine after the write action finishes:
-    testDispatcher.scheduler.advanceUntilIdle()
+    this.testScheduler.advanceUntilIdle()
   }
 
-  private fun testButton(buttonAction: TestAction) {
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    model.show.value = true
-    advanceUntilIdle()
-    val button = panel.getDescendant<ActionButton> { it.action == buttonAction }
-    assertThat(button.isEnabled).isFalse()
+  private fun testButton(buttonAction: TestAction) =
+    runTestInEdt(disposable) {
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      model.show.value = true
+      advanceUntilIdle()
+      val button = panel.getDescendant<ActionButton> { it.action == buttonAction }
+      assertThat(button.isEnabled).isFalse()
 
-    buttonAction.enabled = true
-    model.content.value = RecompositionContent(updates = 2)
-    advanceUntilIdle()
-    assertThat(button.isEnabled).isTrue()
+      buttonAction.enabled = true
+      model.content.value = RecompositionContent(updates = 2)
+      advanceUntilIdle()
+      assertThat(button.isEnabled).isTrue()
 
-    panel.size = Dimension(600, 800)
-    val ui = FakeUi(panel, createFakeWindow = true)
-    val point = SwingUtilities.convertPoint(button, 8, 8, panel)
-    ui.mouse.focus = button
-    ui.mouse.click(point.x, point.y)
-    assertThat(buttonAction.performedCount).isEqualTo(1)
-    ui.mouse.click(point.x, point.y)
-    assertThat(buttonAction.performedCount).isEqualTo(2)
+      panel.size = Dimension(600, 800)
+      val ui = FakeUi(panel, createFakeWindow = true)
+      val point = SwingUtilities.convertPoint(button, 8, 8, panel)
+      ui.mouse.focus = button
+      ui.mouse.click(point.x, point.y)
+      assertThat(buttonAction.performedCount).isEqualTo(1)
+      ui.mouse.click(point.x, point.y)
+      assertThat(buttonAction.performedCount).isEqualTo(2)
 
-    buttonAction.enabled = false
-    model.content.value = RecompositionContent(updates = 3)
-    testDispatcher.scheduler.advanceUntilIdle()
-    assertThat(button.isEnabled).isFalse()
-  }
-
-  @Test
-  fun testFocusTraversal() {
-    val container = JPanel(BorderLayout())
-    val button = JButton()
-    button.isFocusable = true
-    container.add(button, BorderLayout.NORTH)
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable)
-    model.show.value = true
-    model.prevAction.enabled = true
-    model.nextAction.enabled = true
-    model.minimizeAction.enabled = true
-    testDispatcher.scheduler.advanceUntilIdle()
-    container.add(panel, BorderLayout.CENTER)
-    val prev = panel.getDescendant<ActionButton> { it.action == model.prevAction }
-    val next = panel.getDescendant<ActionButton> { it.action == model.nextAction }
-    val minimize = panel.getDescendant<ActionButton> { it.action == model.minimizeAction }
-    val editor = panel.getDescendant<JTextComponent>()
-
-    container.size = Dimension(800, 600)
-    val ui = FakeUi(container, createFakeWindow = true)
-    val focusManager = FakeKeyboardFocusManager(disposable)
-    button.requestFocus()
-
-    // Transfer focus forward
-    assertThat(focusManager.focusOwner).isSameAs(button)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
-    assertThat(focusManager.focusOwner).isSameAs(prev)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
-    assertThat(focusManager.focusOwner).isSameAs(next)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
-    assertThat(focusManager.focusOwner).isSameAs(minimize)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
-    assertThat(focusManager.focusOwner).isSameAs(editor)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
-    assertThat(focusManager.focusOwner).isSameAs(button)
-
-    // Transfer focus backward
-    ui.keyboard.backTab()
-    assertThat(focusManager.focusOwner).isSameAs(editor)
-    ui.keyboard.backTab()
-    assertThat(focusManager.focusOwner).isSameAs(minimize)
-    ui.keyboard.backTab()
-    assertThat(focusManager.focusOwner).isSameAs(next)
-    ui.keyboard.backTab()
-    assertThat(focusManager.focusOwner).isSameAs(prev)
-    ui.keyboard.backTab()
-    assertThat(focusManager.focusOwner).isSameAs(button)
-  }
-
-  @Test
-  fun testActiveContent() {
-    // Necessary to properly update toolbar button states.
-    HeadlessDataManager.fallbackToProductionDataManager(disposable)
-
-    installFakeExtensionPoints(projectRule.testRootDisposable)
-    projectRule.fixture.addFileToProject("src/com/example/recompositiontest/MainActivity.kt", "")
-    val detectorFactory = SynchronousHyperLinkDetectorFactory()
-    val panel = RecompositionUiPanel(model, projectRule.project, { stats }, testScope, disposable, detectorFactory)
-    model.prevAction.enabled = true
-    model.nextAction.enabled = true
-    model.show.value = true
-    model.content.value =
-      RecompositionContent(
-        detailsText =
-          """
-          State read value: [b, c] <invalidated> (Explain with AI)
-              at com.example.recompositiontest.MainActivityKt.Item(MainActivity.kt:60)
-
-          """
-            .trimIndent()
-      )
-    advanceUntilIdle()
-    val prev = panel.getDescendant<ActionButton> { it.action == model.prevAction }
-    val next = panel.getDescendant<ActionButton> { it.action == model.nextAction }
-    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
-      object : DataProvider {
-        override fun getData(dataId: @NonNls String): Any? {
-          if (CommonDataKeys.EDITOR.`is`(dataId)) {
-            return editor
-          }
-          if (CommonDataKeys.PROJECT.`is`(dataId)) {
-            return projectRule.project
-          }
-          return null
-        }
-      },
-      disposable,
-    )
-
-    // Pressing space button on prev action causes the action to be performed:
-    panel.size = Dimension(800, 600)
-    val ui = FakeUi(panel, createFakeWindow = true)
-    val focusManager = FakeKeyboardFocusManager(disposable)
-    prev.requestFocus()
-    assertThat(focusManager.focusOwner).isSameAs(prev)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
-    ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
-    assertThat(model.prevAction.performedCount).isEqualTo(3)
-
-    // Auto transfer focus away from disabled prev button:
-    model.prevAction.enabled = false
-    model.show.value = true
-    model.content.value = model.content.value.copy(updates = 1)
-    advanceUntilIdle()
-    assertThat(focusManager.focusOwner).isSameAs(next)
-
-    // Activate a link in the editor:
-    assertThat(editor.markupModel.allHighlighters.size).isEqualTo(3)
-    validateMarkupModel(editor.markupModel) {
-      region(1, "<invalidated>")
-      region(1, "(Explain with AI)")
-      region(2, "MainActivity.kt:60")
+      buttonAction.enabled = false
+      model.content.value = RecompositionContent(updates = 3)
+      advanceUntilIdle()
+      assertThat(button.isEnabled).isFalse()
     }
-    ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
-    assertThat(focusManager.focusOwner).isSameAs(editor.contentComponent)
 
-    val text = editor.document.text
-    val offset = text.indexOf("MainActivity.kt:60")
-    editor.caretModel.moveToOffset(offset + 2)
-    val queue = IdeEventQueue.getInstance()
+  @Test
+  fun testFocusTraversal() =
+    runTestInEdt(disposable) {
+      val container = JPanel(BorderLayout())
+      val button = JButton()
+      button.isFocusable = true
+      container.add(button, BorderLayout.NORTH)
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable)
+      model.show.value = true
+      model.prevAction.enabled = true
+      model.nextAction.enabled = true
+      model.minimizeAction.enabled = true
+      advanceUntilIdle()
+      container.add(panel, BorderLayout.CENTER)
+      val prev = panel.getDescendant<ActionButton> { it.action == model.prevAction }
+      val next = panel.getDescendant<ActionButton> { it.action == model.nextAction }
+      val minimize = panel.getDescendant<ActionButton> { it.action == model.minimizeAction }
+      val editor = panel.getDescendant<JTextComponent>()
 
-    // The action shortcuts are handled by the IdeEventQueue not the standard keyboard listeners:
-    queue.pressAndRelease(editor.contentComponent, KeyEvent.VK_B, getActionMask())
-    fileOpenRule.checkEditorOpened("MainActivity.kt", true)
+      container.size = Dimension(800, 600)
+      val ui = FakeUi(container, createFakeWindow = true)
+      val focusManager = FakeKeyboardFocusManager(disposable)
+      button.requestFocus()
+
+      // Transfer focus forward
+      assertThat(focusManager.focusOwner).isSameAs(button)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
+      assertThat(focusManager.focusOwner).isSameAs(prev)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
+      assertThat(focusManager.focusOwner).isSameAs(next)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
+      assertThat(focusManager.focusOwner).isSameAs(minimize)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
+      assertThat(focusManager.focusOwner).isSameAs(editor)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
+      assertThat(focusManager.focusOwner).isSameAs(button)
+
+      // Transfer focus backward
+      ui.keyboard.backTab()
+      assertThat(focusManager.focusOwner).isSameAs(editor)
+      ui.keyboard.backTab()
+      assertThat(focusManager.focusOwner).isSameAs(minimize)
+      ui.keyboard.backTab()
+      assertThat(focusManager.focusOwner).isSameAs(next)
+      ui.keyboard.backTab()
+      assertThat(focusManager.focusOwner).isSameAs(prev)
+      ui.keyboard.backTab()
+      assertThat(focusManager.focusOwner).isSameAs(button)
+    }
+
+  @Test
+  fun testActiveContent() =
+    runTestInEdt(disposable) {
+      // Necessary to properly update toolbar button states.
+      HeadlessDataManager.fallbackToProductionDataManager(disposable)
+
+      installFakeExtensionPoints(projectRule.testRootDisposable)
+      projectRule.fixture.addFileToProject("src/com/example/recompositiontest/MainActivity.kt", "")
+      val detectorFactory = SynchronousHyperLinkDetectorFactory()
+      val panel = RecompositionUiPanel(model, projectRule.project, { stats }, createChildScope(), disposable, detectorFactory)
+      model.prevAction.enabled = true
+      model.nextAction.enabled = true
+      model.show.value = true
+      model.content.value =
+        RecompositionContent(
+          detailsText =
+            """
+            State read value: [b, c] <invalidated> (Explain with AI)
+                at com.example.recompositiontest.MainActivityKt.Item(MainActivity.kt:60)
+
+            """
+              .trimIndent()
+        )
+      advanceUntilIdle()
+      val prev = panel.getDescendant<ActionButton> { it.action == model.prevAction }
+      val next = panel.getDescendant<ActionButton> { it.action == model.nextAction }
+      val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
+      (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
+        object : DataProvider {
+          override fun getData(dataId: @NonNls String): Any? {
+            if (CommonDataKeys.EDITOR.`is`(dataId)) {
+              return editor
+            }
+            if (CommonDataKeys.PROJECT.`is`(dataId)) {
+              return projectRule.project
+            }
+            return null
+          }
+        },
+        disposable,
+      )
+
+      // Pressing space button on prev action causes the action to be performed:
+      panel.size = Dimension(800, 600)
+      val ui = FakeUi(panel, createFakeWindow = true)
+      val focusManager = FakeKeyboardFocusManager(disposable)
+      prev.requestFocus()
+      assertThat(focusManager.focusOwner).isSameAs(prev)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
+      assertThat(model.prevAction.performedCount).isEqualTo(3)
+
+      // Auto transfer focus away from disabled prev button:
+      model.prevAction.enabled = false
+      model.show.value = true
+      model.content.value = model.content.value.copy(updates = 1)
+      advanceUntilIdle()
+      assertThat(focusManager.focusOwner).isSameAs(next)
+
+      // Activate a link in the editor:
+      assertThat(editor.markupModel.allHighlighters.size).isEqualTo(3)
+      validateMarkupModel(editor.markupModel) {
+        region(1, "<invalidated>")
+        region(1, "(Explain with AI)")
+        region(2, "MainActivity.kt:60")
+      }
+      ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
+      assertThat(focusManager.focusOwner).isSameAs(editor.contentComponent)
+
+      val text = editor.document.text
+      val offset = text.indexOf("MainActivity.kt:60")
+      editor.caretModel.moveToOffset(offset + 2)
+      val queue = IdeEventQueue.getInstance()
+
+      // The action shortcuts are handled by the IdeEventQueue not the standard keyboard listeners:
+      queue.pressAndRelease(editor.contentComponent, KeyEvent.VK_B, getActionMask())
+      fileOpenRule.checkEditorOpened("MainActivity.kt", true)
+    }
+
+  private fun runTestInEdt(disposable: Disposable, testBody: suspend TestScope.() -> Unit) = runTest {
+    withContext(Dispatchers.EDT) {
+      testBody()
+      Disposer.dispose(disposable)
+    }
+  }
+
+  private fun TestScope.createChildScope(): CoroutineScope {
+    return this.createChildScope(parentDisposable = disposable)
   }
 
   class TestRecompositionUiModel : RecompositionUiModel {
