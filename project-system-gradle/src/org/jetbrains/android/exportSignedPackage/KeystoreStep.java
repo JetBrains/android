@@ -4,7 +4,9 @@ package org.jetbrains.android.exportSignedPackage;
 
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
+import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
@@ -375,7 +377,9 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
   /**
    * Execute task in background unless it is a unit test. Otherwise testing passwords loading becomes very tricky.
    */
-  private void executeInBackground(Runnable runnable) {
+  @SuppressWarnings("WrongThread")
+  @AnyThread
+  private void executeInBackground(@WorkerThread Runnable runnable) {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       runnable.run();
     }
