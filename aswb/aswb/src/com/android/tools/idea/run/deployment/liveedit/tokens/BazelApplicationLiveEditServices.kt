@@ -32,10 +32,10 @@ import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 import org.jetbrains.android.sdk.getInstance
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArgumentsConfigurator
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.arguments.toLanguageVersionSettings
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -104,7 +104,10 @@ class BazelApplicationLiveEditServices(
     val flags = javaInfo.kotlinCompilerFlags
 
     return CompilerConfiguration.create().apply {
-      setOptions(parseCommandLineArguments<K2JVMCompilerArguments>(flags).toLanguageVersionSettings(MessageCollector.NONE))
+      setOptions(
+        parseCommandLineArguments<K2JVMCompilerArguments>(flags)
+          .toLanguageVersionSettings(CommonCompilerArgumentsConfigurator.Reporter.DoNothing)
+      )
       put(CommonConfigurationKeys.MODULE_NAME, label.toString())
 
       // Add a TODO for improvement on target selection if needed.

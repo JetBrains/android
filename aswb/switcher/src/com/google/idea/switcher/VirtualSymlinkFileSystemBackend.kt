@@ -16,7 +16,7 @@
 package com.google.idea.switcher
 
 import com.intellij.openapi.application.PathManager
-import com.intellij.platform.eel.provider.MultiRoutingFileSystemBackend
+import com.intellij.platform.eel.nioFs.impl.MultiRoutingFileSystemBackend
 import java.io.IOException
 import java.nio.file.FileStore
 import java.nio.file.FileSystem

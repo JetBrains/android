@@ -28,7 +28,7 @@ class GradleAndroidTestRunConfigurationExecutorProvider : AndroidConfigurationEx
   override fun createAndroidConfigurationExecutor(env: ExecutionEnvironment): AndroidConfigurationExecutor? {
     val configuration =
       if (env.runProfile is ImportAndroidTestMatrixRunProfile) {
-        (env.runProfile as ImportAndroidTestMatrixRunProfile).initialConfiguration
+        (env.runProfile as ImportAndroidTestMatrixRunProfile).getInitialConfiguration()
       } else {
         env.runProfile
       }

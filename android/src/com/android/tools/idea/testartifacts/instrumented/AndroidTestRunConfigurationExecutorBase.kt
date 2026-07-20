@@ -38,7 +38,7 @@ import com.intellij.xdebugger.XSessionStartedResult
 abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnvironment) : AndroidConfigurationExecutor {
   final override val configuration: AndroidTestRunConfiguration =
     if (env.runProfile is ImportAndroidTestMatrixRunProfile) {
-      (env.runProfile as ImportAndroidTestMatrixRunProfile).initialConfiguration
+      (env.runProfile as ImportAndroidTestMatrixRunProfile).getInitialConfiguration()
     } else {
       env.runProfile as AndroidTestRunConfiguration
     }

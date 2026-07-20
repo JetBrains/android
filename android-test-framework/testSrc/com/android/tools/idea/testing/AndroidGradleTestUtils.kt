@@ -2567,7 +2567,7 @@ private fun <T> openPreparedProject(
         emulateStartupActivityForTest(project)
         val awaitGradleStartupActivity =
           project.coroutineScope.launch {
-            ProjectSynchronizerUtil.backgroundPostStartupProjectLoading(project)
+            ProjectSynchronizerUtil.getInstance(project).applyJpsModelToProjectModel()
             project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
           }
         val defaultTestTimeoutMinutes = 15L

@@ -54,14 +54,6 @@ public class BlazeKotlinProjectConfigurator implements KotlinProjectConfigurator
   }
 
   @Override
-  public void addLibraryDependency(
-      @NotNull Module module,
-      @NotNull PsiElement psiElement,
-      @NotNull ExternalLibraryDescriptor externalLibraryDescriptor,
-      @NotNull LibraryJarDescriptor libraryJarDescriptor,
-      @NotNull DependencyScope dependencyScope) {}
-
-  @Override
   public void changeGeneralFeatureConfiguration(
       @NotNull Module module,
       @NotNull LanguageFeature languageFeature,

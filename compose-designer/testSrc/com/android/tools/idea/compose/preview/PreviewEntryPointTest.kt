@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.intellij.codeInspection.InspectionProfileEntry
 import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.idea.codeInsight.inspections.UnusedSymbolInspection as K2UnusedSymbolInspection
+import org.jetbrains.kotlin.idea.codeInsight.inspections.UnusedSymbolInspection
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -32,7 +32,7 @@ class PreviewEntryPointTest {
 
   @Before
   fun setUp() {
-    val unusedSymbolInspection = K2UnusedSymbolInspection()
+    val unusedSymbolInspection = UnusedSymbolInspection()
     fixture.enableInspections(unusedSymbolInspection as InspectionProfileEntry)
   }
 

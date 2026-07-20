@@ -107,7 +107,7 @@ public class CcProjectModelUpdateOperation implements Disposable {
 
   private void visitCompilationContext(CcTarget target, CcCompilationContext ccCc) {
     OCResolveConfiguration.ModifiableModel config =
-        modifiableOcWorkspace.addConfiguration(ccCc.getId(), ccCc.getHumanReadableName());
+        modifiableOcWorkspace.addConfiguration(ccCc.getId(), ccCc.getHumanReadableName(), null);
 
     visitLanguageCompilerSettingsMap(ccCc.getLanguageToCompilerSettings(), config);
     for (CcSourceFile source : target.getSources().values()) {

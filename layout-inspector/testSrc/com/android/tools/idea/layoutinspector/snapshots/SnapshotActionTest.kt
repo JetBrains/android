@@ -149,11 +149,13 @@ class SnapshotActionTest {
           }
         }
 
-        override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog =
-          object : FileChooserDialog {
-            override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> =
-              arrayOf(fileToReturn!!.virtualFile!!)
+        override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
+          return object : FileChooserDialog {
+            override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> {
+              return arrayOf(fileToReturn!!.virtualFile!!)
+            }
           }
+        }
       }
     projectRule.replaceService(FileChooserFactory::class.java, factory)
   }

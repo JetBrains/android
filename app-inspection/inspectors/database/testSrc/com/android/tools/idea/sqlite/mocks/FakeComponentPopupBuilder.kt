@@ -43,6 +43,8 @@ open class FakeComponentPopupBuilder : ComponentPopupBuilder {
 
   override fun createPopup() = mockPopUp
 
+  override fun setHeaderAlwaysFocusable(headerAlwaysFocusable: Boolean) = this
+
   override fun setTitleIcon(icon: ActiveIcon) = this
 
   override fun setProject(project: Project?) = this
@@ -94,8 +96,6 @@ open class FakeComponentPopupBuilder : ComponentPopupBuilder {
   override fun setMaskProvider(maskProvider: MaskProvider?) = this
 
   override fun setNormalWindowLevel(b: Boolean) = this
-
-  override fun setHeaderAlwaysFocusable(b: Boolean): ComponentPopupBuilder = this
 
   override fun setMovable(forceMovable: Boolean) = this
 
