@@ -176,28 +176,39 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
     """
         .trimIndent()
     )
-    runSyncAndCheckBuildIssueFailure(
+    runSyncAndCheckBuildIssuesFailure(
       preparedProject,
       overrideGradleJdkPath = File(JdkConstants.JDK_17_PATH),
-      verifyBuildIssue = { _, buildIssue ->
-        expect.that(buildIssue).isNotNull()
+      verifyBuildIssues = { _, buildIssues ->
         expect
-          .that(buildIssue.description)
+          .that(buildIssues.descriptions())
           .isEqualTo(
             """
+          Gradle Sync issues.:
           Could not install Gradle distribution from 'https://$unknownHost/distributions/gradle-8.3-rc-2-bin.zip'.
           Reason: java.net.UnknownHostException: $unknownHost
           
           Please ensure <a href="open_gradle_wrapper_settings">gradle distribution url</a> is correct.
           If you are behind an HTTP proxy, please <a href="open.proxy.settings">configure the proxy settings</a>.
+          ---
+          Gradle Sync issues.:
+          Unknown host 'services.gradle.org.invalid'. You may need to adjust the proxy settings in Gradle.
+          <a href="enable.disable.offline.mode">Enable Gradle 'offline mode' and sync project</a>
+          <a href="open.more.details">Learn about configuring HTTP proxies in Gradle</a>
         """
               .trimIndent()
           )
-        expect
-          .that(buildIssue.quickFixes.map { it::class.java })
-          .isEqualTo(listOf(GradleWrapperSettingsOpenQuickFix::class.java, OpenStudioProxySettingsQuickFix::class.java))
+        buildIssues.verifyIssueSafely(0) { buildIssue ->
+          expect
+            .that(buildIssue.quickFixes.map { it::class.java })
+            .isEqualTo(listOf(GradleWrapperSettingsOpenQuickFix::class.java, OpenStudioProxySettingsQuickFix::class.java))
+        }
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
+      // TODO (b/537264151): adopt multiple failures in metrics
+      // As now multiple issue checkers can be triggered (see platform's db0c12c0ed93a329d2ceff8917dd7aa7455d8b95),
+      // it becomes a valid situation that multiple failure values are reported. Current logic treats this as not intended behavior,
+      // logs warning and only saves the last value. Hence change in expectation here.
+      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.UNKNOWN_HOST,
       expectedPhasesReported =
         """
         FAILURE : SYNC_TOTAL

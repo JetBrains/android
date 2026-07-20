@@ -63,7 +63,7 @@ class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
             failure {
               error {
                 exception: org.gradle.tooling.BuildActionFailureException
-                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
                 exception: java.lang.RuntimeException
                   at: [0]org.gradle.api.internal.catalog.DefaultDependenciesAccessors#generateAccessors
                 exception: org.gradle.api.InvalidUserDataException

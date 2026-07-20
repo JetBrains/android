@@ -102,7 +102,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
             failure {
               error {
                 exception: org.gradle.tooling.BuildActionFailureException
-                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
                 exception: org.gradle.api.ProjectConfigurationException
                   at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
                 exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
@@ -185,7 +185,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
             failure {
               error {
                 exception: org.gradle.tooling.BuildActionFailureException
-                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
                 exception: org.gradle.api.ProjectConfigurationException
                   at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
                 exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
@@ -273,9 +273,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           expect.that((it as? BuildIssueEvent)?.issue).isInstanceOf(UnresolvedDependencyIssue::class.java)
           // In offline mode toggle offline mode quickfix is expected.
           expect.that((it as? BuildIssueEvent)?.issue?.quickFixes).hasSize(1)
-          expect
-            .that((it as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull()?.id)
-            .isEqualTo("disable_offline_mode(0)")
+          expect.that((it as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull()?.id).isEqualTo("disable_offline_mode(0)")
         }
       }
       // TODO (b/355417764): Currently we also generate issue from CachedDependencyNotFoundIssueChecker in this case.
@@ -309,7 +307,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
             failure {
               error {
                 exception: org.gradle.tooling.BuildActionFailureException
-                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
                 exception: org.gradle.api.ProjectConfigurationException
                   at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
                 exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException

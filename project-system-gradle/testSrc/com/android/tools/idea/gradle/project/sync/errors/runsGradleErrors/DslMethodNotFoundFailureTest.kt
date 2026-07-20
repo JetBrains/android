@@ -83,7 +83,7 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
             exception: org.gradle.api.GradleScriptException
               at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
             exception: org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMessageMissingMethodException
@@ -118,7 +118,7 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
             exception: org.gradle.api.GradleScriptException
@@ -155,7 +155,7 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
             exception: org.gradle.api.GradleScriptException
@@ -192,7 +192,7 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
             exception: org.gradle.api.GradleScriptException
@@ -231,7 +231,7 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
             exception: org.gradle.api.GradleScriptException
@@ -272,7 +272,7 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
             exception: org.gradle.api.GradleScriptException

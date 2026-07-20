@@ -72,7 +72,7 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
             exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
@@ -125,7 +125,7 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
             exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
@@ -189,7 +189,7 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
             failure {
               error {
                 exception: org.gradle.tooling.BuildActionFailureException
-                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
                 exception: org.gradle.api.ProjectConfigurationException
                   at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
                 exception: org.gradle.internal.exceptions.LocationAwareException

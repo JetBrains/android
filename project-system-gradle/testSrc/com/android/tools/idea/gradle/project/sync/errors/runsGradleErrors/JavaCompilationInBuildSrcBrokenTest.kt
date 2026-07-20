@@ -74,7 +74,7 @@ class JavaCompilationInBuildSrcBrokenTest : AbstractSyncFailureIntegrationTest()
             failure {
               error {
                 exception: org.gradle.tooling.BuildActionFailureException
-                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#doRun
                 exception: org.gradle.internal.exceptions.LocationAwareException
                   at: [0]org.gradle.initialization.exception.DefaultExceptionAnalyser#transform
                 exception: org.gradle.api.tasks.TaskExecutionException

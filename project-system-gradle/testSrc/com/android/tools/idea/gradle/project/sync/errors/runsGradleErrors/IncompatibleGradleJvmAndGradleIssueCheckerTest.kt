@@ -70,32 +70,35 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
         agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74,
       )
 
-    runSyncAndCheckBuildIssueFailure(
+    runSyncAndCheckBuildIssuesFailure(
       preparedProject = preparedProject,
       overrideGradleJdkPath = File(JdkConstants.JDK_21_PATH),
-      verifyBuildIssue = { project, buildIssue ->
-        expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
-        expect
-          .that(buildIssue.description)
-          .contains(
-            "The project's Gradle version 7.5 is incompatible with the Gradle JVM version 21 currently selected to run Gradle build. " +
-              "Gradle 7.5 supports Java versions between 1.8 and 18. Please update the selected JVM to a compatible version."
-          )
+      verifyBuildIssues = { project, buildIssues ->
+        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version", "Incompatible Gradle JVM").inOrder()
+        buildIssues.verifyIssueSafely(0) { buildIssue ->
+          expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
+          expect
+            .that(buildIssue.description)
+            .contains(
+              "The project's Gradle version 7.5 is incompatible with the Gradle JVM version 21 currently selected to run Gradle build. " +
+                "Gradle 7.5 supports Java versions between 1.8 and 18. Please update the selected JVM to a compatible version."
+            )
 
-        expect
-          .that(buildIssue.quickFixes.map { it::class.java })
-          .isEqualTo(
-            listOf(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix::class.java, SelectJdkFromFileSystemQuickFix::class.java)
-          )
+          expect
+            .that(buildIssue.quickFixes.map { it::class.java })
+            .isEqualTo(
+              listOf(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix::class.java, SelectJdkFromFileSystemQuickFix::class.java)
+            )
 
-        // Execute quick-fix to apply compatible Gradle JDK configuration and sync
-        val quickFix = buildIssue.quickFixes.first() as UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix
-        PlatformTestUtil.waitForFuture(quickFix.runQuickFix(project, mock()))
-        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isSameAs(SUCCESS)
+          // Execute quick-fix to apply compatible Gradle JDK configuration and sync
+          val quickFix = buildIssue.quickFixes.first() as UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix
+          PlatformTestUtil.waitForFuture(quickFix.runQuickFix(project, mock()))
+          expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isSameAs(SUCCESS)
 
-        runBlocking {
-          val gradleJdk = AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, project.basePath.orEmpty())
-          expect.that(gradleJdk).isEqualTo(JdkConstants.JDK_17_PATH)
+          runBlocking {
+            val gradleJdk = AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, project.basePath.orEmpty())
+            expect.that(gradleJdk).isEqualTo(JdkConstants.JDK_17_PATH)
+          }
         }
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP,
@@ -112,23 +115,26 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
         agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_73,
       )
 
-    runSyncAndCheckBuildIssueFailure(
+    runSyncAndCheckBuildIssuesFailure(
       preparedProject = preparedProject,
       overrideGradleJdkPath = File(JdkConstants.JDK_21_PATH),
-      verifyBuildIssue = { _, buildIssue ->
-        expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
-        expect
-          .that(buildIssue.description)
-          .contains(
-            "The project's Gradle version 7.4 is incompatible with the Gradle JVM version 21 currently selected to run Gradle build. " +
-              "Gradle 7.4 supports Java versions between 1.8 and 17. Please update the selected JVM to a compatible version."
-          )
+      verifyBuildIssues = { _, buildIssues ->
+        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version", "Incompatible Gradle JVM").inOrder()
+        buildIssues.verifyIssueSafely(0) { buildIssue ->
+          expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
+          expect
+            .that(buildIssue.description)
+            .contains(
+              "The project's Gradle version 7.4 is incompatible with the Gradle JVM version 21 currently selected to run Gradle build. " +
+                "Gradle 7.4 supports Java versions between 1.8 and 17. Please update the selected JVM to a compatible version."
+            )
 
-        expect
-          .that(buildIssue.quickFixes.map { it::class.java })
-          .isEqualTo(
-            listOf(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix::class.java, SelectJdkFromFileSystemQuickFix::class.java)
-          )
+          expect
+            .that(buildIssue.quickFixes.map { it::class.java })
+            .isEqualTo(
+              listOf(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix::class.java, SelectJdkFromFileSystemQuickFix::class.java)
+            )
+        }
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP,
       expectedFailureDetailsString = null,
@@ -149,35 +155,38 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
         agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST,
       )
 
-    runSyncAndCheckBuildIssueFailure(
+    runSyncAndCheckBuildIssuesFailure(
       preparedProject = preparedProject,
       overrideGradleJdkPath = null,
-      verifyBuildIssue = { project, buildIssue ->
-        val expectedMinimumJavaVersion = GradleJvmSupportMatrix.suggestOldestSupportedJavaVersion(gradleVersion)
-        val expectedMaximumJavaVersion = GradleJvmSupportMatrix.suggestLatestSupportedJavaVersion(gradleVersion)
-        expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
-        expect
-          .that(buildIssue.description)
-          .contains(
-            "The project's Gradle version ${gradleVersion.version} is incompatible with the Gradle JVM version 11 currently selected to " +
-              "run Gradle build. Gradle ${gradleVersion.version} supports Java versions between $expectedMinimumJavaVersion and " +
-              "$expectedMaximumJavaVersion. Please update the selected JVM to a compatible version."
-          )
+      verifyBuildIssues = { project, buildIssues ->
+        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version", "Incompatible Gradle JVM").inOrder()
+        buildIssues.verifyIssueSafely(0) { buildIssue ->
+          val expectedMinimumJavaVersion = GradleJvmSupportMatrix.suggestOldestSupportedJavaVersion(gradleVersion)
+          val expectedMaximumJavaVersion = GradleJvmSupportMatrix.suggestLatestSupportedJavaVersion(gradleVersion)
+          expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
+          expect
+            .that(buildIssue.description)
+            .contains(
+              "The project's Gradle version ${gradleVersion.version} is incompatible with the Gradle JVM version 11 currently selected to " +
+                "run Gradle build. Gradle ${gradleVersion.version} supports Java versions between $expectedMinimumJavaVersion and " +
+                "$expectedMaximumJavaVersion. Please update the selected JVM to a compatible version."
+            )
 
-        expect
-          .that(buildIssue.quickFixes.map { it::class.java })
-          .isEqualTo(
-            listOf(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix::class.java, OpenGradleDaemonJvmSettingsQuickFix::class.java)
-          )
+          expect
+            .that(buildIssue.quickFixes.map { it::class.java })
+            .isEqualTo(
+              listOf(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix::class.java, OpenGradleDaemonJvmSettingsQuickFix::class.java)
+            )
 
-        // Execute quick-fix to apply compatible Gradle JVM criteria configuration and sync
-        val quickFix = buildIssue.quickFixes.first() as UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
-        PlatformTestUtil.waitForFuture(quickFix.runQuickFix(project, mock()))
-        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isSameAs(SUCCESS)
+          // Execute quick-fix to apply compatible Gradle JVM criteria configuration and sync
+          val quickFix = buildIssue.quickFixes.first() as UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
+          PlatformTestUtil.waitForFuture(quickFix.runQuickFix(project, mock()))
+          expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isSameAs(SUCCESS)
 
-        val gradleJvmVersion = GradleDaemonJvmPropertiesFile.getProperties(project.basePath!!.asPath()).version?.value
-        val expectedJvmVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(project, gradleVersion)
-        expect.that(gradleJvmVersion).isEqualTo(expectedJvmVersion.toFeatureString())
+          val gradleJvmVersion = GradleDaemonJvmPropertiesFile.getProperties(project.basePath!!.asPath()).version?.value
+          val expectedJvmVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(project, gradleVersion)
+          expect.that(gradleJvmVersion).isEqualTo(expectedJvmVersion.toFeatureString())
+        }
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP,
       expectedFailureDetailsString = null,
