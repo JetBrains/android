@@ -28,7 +28,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.EdtAndroidGradleProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.testFramework.RunsInEdt
 import kotlin.test.assertIs
@@ -90,7 +90,7 @@ class KotlinMultiplatformLibraryMultiPreviewTest {
     val uAnnotation = annotation.toUElement()
     assertIs<UAnnotation>(uAnnotation)
 
-    assertTrue(runReadAction { uAnnotation.isMultiPreviewAnnotation() })
+    assertTrue(readAction { uAnnotation.isMultiPreviewAnnotation() })
   }
 
   @Test
