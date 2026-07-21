@@ -19,10 +19,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.io.CancellableFileIo
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.gemini.buildLlmPrompt
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleNewProjectConfiguration
@@ -71,7 +69,6 @@ import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
@@ -91,12 +88,6 @@ import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
 import java.util.regex.Pattern
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
 
@@ -574,47 +565,12 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     return null
   }
 
-  /** Generates a project name based on user provided description of the project. */
-  private suspend fun generateAppNameAsync(onStart: () -> Unit, onFinish: () -> Unit) {
-    withContext(Dispatchers.Main) {
-      onStart()
-      try {
-        val project = ProjectManager.getInstance().defaultProject
-        val llmPrompt =
-          buildLlmPrompt(project) {
-            userMessage {
-              text(
-                "Generate a short, cool, and unique name for an Android application with the following description: ${prompt.get()} " +
-                  "\n" +
-                  "Only return the name, with no additional text.",
-                filesUsed = emptyList(),
-              )
-            }
-          }
-        val suggestedNameFlow = GeminiPluginApi.getInstance().generate(project, prompt = llmPrompt)
-        val suggestedName =
-          withContext(Dispatchers.Default) { withTimeout(GENERATE_APP_NAME_TIMEOUT) { suggestedNameFlow.toList().joinToString("") } }
-        applicationName.set(suggestedName)
-      } catch (e: Exception) {
-        logger.warn("Failed to generate an application name.", e)
-        applicationName.set("My Application")
-      } finally {
-        onFinish()
-      }
-    }
-  }
-
-  fun generateAppName(onStart: () -> Unit, onFinish: () -> Unit) {
-    createCoroutineScope().launch { generateAppNameAsync(onStart, onFinish) }
-  }
-
   companion object {
     @VisibleForTesting const val PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE"
     @VisibleForTesting const val PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT"
     @VisibleForTesting const val PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE"
     @VisibleForTesting const val PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE"
     const val PROPERTIES_NPW_DSL_LANGUAGE_KEY = "SAVED_ANDROID_NPW_DSL_LANGUAGE"
-    private val GENERATE_APP_NAME_TIMEOUT = 10.seconds
 
     private const val EXAMPLE_DOMAIN = "example.com"
     private val DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]")
