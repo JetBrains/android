@@ -43,3 +43,6 @@ import_run_configurations:
 
 enable_code_analysis_on_sync: true
 
+misc:
+  querysync.navigationpolicy=0
+
