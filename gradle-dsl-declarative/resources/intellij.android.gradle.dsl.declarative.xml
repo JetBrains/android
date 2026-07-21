@@ -9,6 +9,7 @@
     <plugin id="com.android.tools.gradle.dcl"/>
     <module name="intellij.android.gradle.declarative.lang"/>
     <module name="intellij.kotlin.base.codeInsight"/>
+    <module name="intellij.kotlin.base.util"/>
   </dependencies>
   <!-- endregion -->
 </idea-plugin>
