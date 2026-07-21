@@ -135,7 +135,7 @@ public class Sherlock extends Ide {
     try {
       quit(false);
       try {
-        install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
+        install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS (dispose|disconnect) completed.*", 30, TimeUnit.SECONDS);
       } catch (InterruptedException e) {
         // Sometimes, it just doesn't print the shutdown.
         TestLogger.log("VFS dispose did not occur/complete during shutdown.");
