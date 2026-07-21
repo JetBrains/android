@@ -59,9 +59,7 @@ interface ConfigurablePreviewElement<T> : PreviewElement<T> {
 }
 
 /** Contains settings for rendering. */
-data class PreviewConfiguration
-// JetBrains patch: public constructor (upstream: internal). With Kotlin 2.4 copy() takes the constructor's visibility, and preview-designer (UiCheckModeFilter) calls copy() from another module.
-constructor(
+data class PreviewConfiguration(
   val apiLevel: Int,
   val width: Int,
   val height: Int,
