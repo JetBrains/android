@@ -35,7 +35,8 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import java.nio.file.Path
-import org.junit.Ignore
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 
@@ -57,7 +58,6 @@ class AndroidDeclarativeWatchFaceConfigurationExecutorTest : AndroidConfiguratio
     return ExecutionEnvironment(executorInstance, AndroidDeclarativeWatchFaceProgramRunner(), configSettings, project)
   }
 
-  @Ignore("b/536730247")
   @Test
   fun testRun() {
     // Use DefaultRunExecutor, equivalent of pressing run button.
@@ -99,16 +99,16 @@ class AndroidDeclarativeWatchFaceConfigurationExecutorTest : AndroidConfiguratio
         appInstaller,
       )
 
-    var shownLogcatDeviceInfo: ShowLogcatListener.DeviceInfo? = null
-    var shownLogcatAppId: String? = null
+    val shownLogcatDeviceInfo = CompletableFuture<ShowLogcatListener.DeviceInfo>()
+    val shownLogcatAppId = CompletableFuture<String?>()
     projectRule.project.messageBus
       .connect(projectRule.disposable)
       .subscribe(
         ShowLogcatListener.TOPIC,
         object : ShowLogcatListener {
           override fun showLogcat(deviceInfo: ShowLogcatListener.DeviceInfo, applicationId: String?) {
-            shownLogcatDeviceInfo = deviceInfo
-            shownLogcatAppId = applicationId
+            shownLogcatDeviceInfo.complete(deviceInfo)
+            shownLogcatAppId.complete(applicationId)
           }
 
           override fun showLogcatFile(path: Path, displayName: String?) {}
@@ -126,8 +126,8 @@ class AndroidDeclarativeWatchFaceConfigurationExecutorTest : AndroidConfiguratio
     assertThat(receivedAmCommands[2]).isEqualTo(showWatchFace)
 
     // Verify that a logcat window for the watch face runtime application is shown
-    assertThat(shownLogcatDeviceInfo?.serialNumber).isEqualTo(device.serialNumber)
-    assertThat(shownLogcatAppId).isEqualTo("com.google.wear.watchface.runtime")
+    assertThat(shownLogcatDeviceInfo.get(10, TimeUnit.SECONDS).serialNumber).isEqualTo(device.serialNumber)
+    assertThat(shownLogcatAppId.get(10, TimeUnit.SECONDS)).isEqualTo("com.google.wear.watchface.runtime")
 
     // Verify that the app component type is set in the run event
     RunStats.from(env).success()
