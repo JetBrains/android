@@ -17,6 +17,7 @@ package com.android.tools.profilers.leakcanary
 
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.profilers.IdeProfilerServices
+import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +26,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class LeakInsightModel(private val ideServices: IdeProfilerServices, private val scope: CoroutineScope) {
+class LeakInsightModel(
+  private val ideServices: IdeProfilerServices,
+  private val scope: CoroutineScope,
+  private val trackUiAction: (LeakCanaryUiAction) -> Unit = {},
+) {
   private val _currentInsight = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
   val currentInsight = _currentInsight.asStateFlow()
 
@@ -42,13 +47,18 @@ class LeakInsightModel(private val ideServices: IdeProfilerServices, private val
   fun setInsightAutoGenerateEnabled(enabled: Boolean) {
     _isInsightAutoGenerateEnabled.value = enabled
     ideServices.persistentProfilerPreferences.setBoolean(KEY_LEAKCANARY_INSIGHT_AUTO_GENERATE, enabled)
-    if (enabled && _isInsightVisible.value) {
-      selectedLeak?.let { leak ->
-        val cached = insightCache[leak.signature]
-        if (cached == null || (cached is LoadingState.Ready && cached.value == null)) {
-          fetchInsight(leak)
+    if (enabled) {
+      trackUiAction(LeakCanaryUiAction.INSIGHT_AUTO_GENERATE_ENABLED)
+      if (_isInsightVisible.value) {
+        selectedLeak?.let { leak ->
+          val cached = insightCache[leak.signature]
+          if (cached == null || (cached is LoadingState.Ready && cached.value == null)) {
+            fetchInsight(leak)
+          }
         }
       }
+    } else {
+      trackUiAction(LeakCanaryUiAction.INSIGHT_AUTO_GENERATE_DISABLED)
     }
   }
 
@@ -74,6 +84,7 @@ class LeakInsightModel(private val ideServices: IdeProfilerServices, private val
   fun setInsightVisible(visible: Boolean) {
     _isInsightVisible.value = visible
     if (visible) {
+      trackUiAction(LeakCanaryUiAction.INSIGHT_PANEL_OPENED)
       val selected = selectedLeak
       if (selected != null) {
         val cached = insightCache[selected.signature]
@@ -88,10 +99,14 @@ class LeakInsightModel(private val ideServices: IdeProfilerServices, private val
       } else {
         _currentInsight.value = LoadingState.Ready(null)
       }
+    } else {
+      trackUiAction(LeakCanaryUiAction.INSIGHT_PANEL_CLOSED)
+      insightJob?.cancel()
     }
   }
 
   fun fetchInsight(leak: Leak) {
+    trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_TRIGGERED)
     val loadingState = LoadingState.Loading()
     _currentInsight.value = loadingState
     insightCache[leak.signature] = loadingState
@@ -106,12 +121,14 @@ class LeakInsightModel(private val ideServices: IdeProfilerServices, private val
           flow.collect { chunk -> result.append(chunk) }
           val finalResult = result.toString()
           if (finalResult.isEmpty()) {
+            trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_FAILED)
             val emptyState = LoadingState.Failure("AI Assistant returned an empty response.")
             if (selectedLeak == leak) {
               _currentInsight.value = emptyState
             }
             insightCache[leak.signature] = emptyState
           } else {
+            trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_SUCCEEDED)
             val readyState = LoadingState.Ready(AiInsight(finalResult))
             if (selectedLeak == leak) {
               _currentInsight.value = readyState
@@ -120,11 +137,13 @@ class LeakInsightModel(private val ideServices: IdeProfilerServices, private val
           }
         } catch (e: Exception) {
           if (e is CancellationException) {
+            trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_CANCELLED)
             if (insightCache[leak.signature] === loadingState) {
               insightCache.remove(leak.signature)
             }
             throw e
           }
+          trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_FAILED)
           val errorMessage =
             if (isNetworkError(e)) {
               NETWORK_ERROR_MESSAGE
@@ -140,17 +159,26 @@ class LeakInsightModel(private val ideServices: IdeProfilerServices, private val
       }
   }
 
-  fun submitInsightFeedback(feedback: InsightFeedback) {
+  fun submitInsightFeedback(feedback: InsightFeedback?) {
     val insight = (_currentInsight.value as? LoadingState.Ready)?.value ?: return
+    val previousFeedback = insight.feedback
+    if (previousFeedback != feedback) {
+      val action =
+        when (feedback) {
+          InsightFeedback.THUMBS_UP -> LeakCanaryUiAction.INSIGHT_SENTIMENT_UP
+          InsightFeedback.THUMBS_DOWN -> LeakCanaryUiAction.INSIGHT_SENTIMENT_DOWN
+          null -> LeakCanaryUiAction.INSIGHT_SENTIMENT_CLEARED
+        }
+      trackUiAction(action)
+    }
     val newInsightState = LoadingState.Ready(insight.copy(feedback = feedback))
     _currentInsight.value = newInsightState
     selectedLeak?.let { leak -> insightCache[leak.signature] = newInsightState }
   }
 
   private fun isNetworkError(t: Throwable): Boolean {
-    return generateSequence(t) { it.cause }.any {
-      it is java.net.UnknownHostException || it is java.net.SocketTimeoutException || it is java.net.SocketException
-    }
+    return generateSequence(t) { it.cause }
+      .any { it is java.net.UnknownHostException || it is java.net.SocketTimeoutException || it is java.net.SocketException }
   }
 
   fun clearInsights() {

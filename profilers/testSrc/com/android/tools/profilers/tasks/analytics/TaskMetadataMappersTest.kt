@@ -90,4 +90,12 @@ class TaskMetadataMappersTest {
     val statsProto = trackStatus.toStatsProto()
     assertThat(statsProto.status).isEqualTo(AllocationTrackStatus.Status.UNRECOGNIZED)
   }
+
+  @Test
+  fun testLeakCanaryUiActionToStatsProto() {
+    for (action in LeakCanaryUiAction.entries) {
+      val statsProto = action.toStatsProto()
+      assertThat(statsProto.name).isEqualTo(action.name)
+    }
+  }
 }

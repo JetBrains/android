@@ -77,7 +77,7 @@ fun LeakInsightPanel(
   autoGenerateEnabled: Boolean,
   onAutoGenerateChange: (Boolean) -> Unit,
   onClose: () -> Unit,
-  onFeedback: (InsightFeedback) -> Unit,
+  onFeedback: (InsightFeedback?) -> Unit,
   onGenerateFix: (String) -> Unit,
   onCopy: () -> Unit,
   onRefresh: () -> Unit,
@@ -203,7 +203,7 @@ private fun InsightFailureState(errorMessage: String, onRefresh: () -> Unit, mod
 @Composable
 private fun InsightContent(
   insight: AiInsight,
-  onFeedback: (InsightFeedback) -> Unit,
+  onFeedback: (InsightFeedback?) -> Unit,
   onCopyClick: () -> Unit,
   onRefresh: () -> Unit,
   modifier: Modifier = Modifier,
@@ -227,8 +227,8 @@ private fun InsightContent(
 
 @Composable
 private fun InsightFeedbackToolbar(
-  feedback: InsightFeedback,
-  onFeedback: (InsightFeedback) -> Unit,
+  feedback: InsightFeedback?,
+  onFeedback: (InsightFeedback?) -> Unit,
   onCopyClick: () -> Unit,
   onRefresh: () -> Unit,
   modifier: Modifier = Modifier,
@@ -237,7 +237,7 @@ private fun InsightFeedbackToolbar(
     IconButton(
       onClick = {
         if (feedback == InsightFeedback.THUMBS_UP) {
-          onFeedback(InsightFeedback.NONE)
+          onFeedback(null)
         } else {
           onFeedback(InsightFeedback.THUMBS_UP)
         }
@@ -255,7 +255,7 @@ private fun InsightFeedbackToolbar(
     IconButton(
       onClick = {
         if (feedback == InsightFeedback.THUMBS_DOWN) {
-          onFeedback(InsightFeedback.NONE)
+          onFeedback(null)
         } else {
           onFeedback(InsightFeedback.THUMBS_DOWN)
         }

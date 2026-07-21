@@ -15,21 +15,16 @@
  */
 package com.android.tools.profilers.leakcanary
 
-/**
- * Feedback for AI-generated insights.
- */
+/** Feedback for AI-generated insights. */
 enum class InsightFeedback {
-  NONE,
   THUMBS_UP,
   THUMBS_DOWN,
 }
 
-/**
- * A simple wrapper for AI-generated insights.
- */
+/** A simple wrapper for AI-generated insights. */
 data class AiInsight(
   val rawInsight: String,
-  val feedback: InsightFeedback = InsightFeedback.NONE,
+  val feedback: InsightFeedback? = null,
   // Retrieve the active model name officially from GeminiPluginApi once it is exposed,
-  val modelName: String = "AI Assistant"
+  val modelName: String = "AI Assistant",
 )

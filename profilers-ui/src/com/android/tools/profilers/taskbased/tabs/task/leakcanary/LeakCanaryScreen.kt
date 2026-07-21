@@ -16,10 +16,8 @@
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,15 +40,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.cpu.CpuProfilerStage
@@ -64,7 +62,6 @@ import com.android.tools.profilers.taskbased.tabs.task.leakcanary.insight.LeakIn
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails.LeakDetailsPanel
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leaklist.LeakListView
 import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
-import icons.StudioIconsCompose
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
@@ -145,28 +142,29 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
         val isRecording by leakCanaryModel.isRecording.collectAsState()
         val isLeakCanaryPresent by leakCanaryModel.isLeakCanaryPresent.collectAsState()
 
-        val mainWorkspace = @Composable {
-          HorizontalSplitLayout(
-            state = innerSplitState,
-            firstPaneMinWidth = 150.dp,
-            secondPaneMinWidth = 450.dp,
-            first = { LeakListView(leakCanaryModel) },
-            second = {
-              LeakDetailsPanel(
-                selectedLeak = selectedLeak,
-                gotoDeclaration = leakCanaryModel::goToDeclaration,
-                isRecording = isRecording,
-                isLeakCanaryPresent = isLeakCanaryPresent,
-                isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
-                openStates = openStates,
-                onOpenStatesChange = { newStates -> openStates = newStates },
-                onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.COPY_TRACE_CLICKED) },
-                trackUiAction = leakCanaryModel::trackUiAction,
-              )
-            },
-            modifier = Modifier.fillMaxSize()
-          )
-        }
+        val mainWorkspace =
+          @Composable {
+            HorizontalSplitLayout(
+              state = innerSplitState,
+              firstPaneMinWidth = 150.dp,
+              secondPaneMinWidth = 450.dp,
+              first = { LeakListView(leakCanaryModel) },
+              second = {
+                LeakDetailsPanel(
+                  selectedLeak = selectedLeak,
+                  gotoDeclaration = leakCanaryModel::goToDeclaration,
+                  isRecording = isRecording,
+                  isLeakCanaryPresent = isLeakCanaryPresent,
+                  isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
+                  openStates = openStates,
+                  onOpenStatesChange = { newStates -> openStates = newStates },
+                  onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.COPY_TRACE_CLICKED) },
+                  trackUiAction = leakCanaryModel::trackUiAction,
+                )
+              },
+              modifier = Modifier.fillMaxSize(),
+            )
+          }
 
         if (isStudioBotEnabled && isInsightVisible) {
           HorizontalSplitLayout(
@@ -182,14 +180,18 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
                 onAutoGenerateChange = insightModel::setInsightAutoGenerateEnabled,
                 onClose = { insightModel.setInsightVisible(false) },
                 onFeedback = { feedback -> insightModel.submitInsightFeedback(feedback) },
-                onGenerateFix = { _ -> selectedLeak?.let { leakCanaryModel.analyzeLeakWithStudioBot(it) } },
-                // TODO(b/503615686): Add analytics tracking for AI insight copy action in a subsequent CL.
-                onCopy = {},
+                onGenerateFix = { _ ->
+                  selectedLeak?.let {
+                    leakCanaryModel.trackUiAction(LeakCanaryUiAction.INSIGHT_GENERATE_FIX_CLICKED)
+                    leakCanaryModel.analyzeLeakWithStudioBot(it)
+                  }
+                },
+                onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.INSIGHT_COPY_CLICKED) },
                 onRefresh = { selectedLeak?.let { insightModel.fetchInsight(it) } },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
               )
             },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
           )
         } else {
           mainWorkspace()
@@ -199,38 +201,34 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
       if (isStudioBotEnabled) {
         ToolWindowVerticalDivider()
 
-        Column(
-          modifier = Modifier.width(26.dp).fillMaxHeight(),
-          horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-          val activeBgColor = if (isInsightVisible) {
-            JewelTheme.globalColors.borders.normal.copy(alpha = 0.4f)
-          } else {
-            Color.Transparent
-          }
-          val activeTextColor = if (isInsightVisible) {
-            JewelTheme.globalColors.text.info
-          } else {
-            JewelTheme.globalColors.text.normal
-          }
+        Column(modifier = Modifier.width(26.dp).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+          val activeBgColor =
+            if (isInsightVisible) {
+              JewelTheme.globalColors.borders.normal.copy(alpha = 0.4f)
+            } else {
+              Color.Transparent
+            }
+          val activeTextColor =
+            if (isInsightVisible) {
+              JewelTheme.globalColors.text.info
+            } else {
+              JewelTheme.globalColors.text.normal
+            }
 
           Box(
-            modifier = Modifier
-              .fillMaxWidth()
-              .background(activeBgColor)
-              .clickable { insightModel.setInsightVisible(!isInsightVisible) }
-              .padding(top = 8.dp),
-            contentAlignment = Alignment.Center
+            modifier =
+              Modifier.fillMaxWidth()
+                .background(activeBgColor)
+                .clickable { insightModel.setInsightVisible(!isInsightVisible) }
+                .padding(top = 8.dp),
+            contentAlignment = Alignment.Center,
           ) {
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.rotateVertically()
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.rotateVertically()) {
               Icon(
                 key = AllIconsKeys.Actions.IntentionBulbGrey,
                 contentDescription = "AI Insights",
                 tint = activeTextColor,
-                modifier = Modifier.graphicsLayer(rotationZ = -90f)
+                modifier = Modifier.graphicsLayer(rotationZ = -90f),
               )
               Spacer(Modifier.width(6.dp))
               Text("Insights", color = activeTextColor, maxLines = 1, softWrap = false)
@@ -244,23 +242,22 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
   }
 }
 
-private fun Modifier.rotateVertically() = this.layout { measurable, constraints ->
-  val placeable = measurable.measure(
-    constraints.copy(
-      minWidth = constraints.minHeight,
-      maxWidth = constraints.maxHeight,
-      minHeight = constraints.minWidth,
-      maxHeight = constraints.maxWidth
-    )
-  )
-  layout(placeable.height, placeable.width) {
-    placeable.placeWithLayer(
-      x = 0,
-      y = 0
-    ) {
-      transformOrigin = TransformOrigin(0f, 0f)
-      rotationZ = 90f
-      translationX = placeable.height.toFloat()
+private fun Modifier.rotateVertically() =
+  this.layout { measurable, constraints ->
+    val placeable =
+      measurable.measure(
+        constraints.copy(
+          minWidth = constraints.minHeight,
+          maxWidth = constraints.maxHeight,
+          minHeight = constraints.minWidth,
+          maxHeight = constraints.maxWidth,
+        )
+      )
+    layout(placeable.height, placeable.width) {
+      placeable.placeWithLayer(x = 0, y = 0) {
+        transformOrigin = TransformOrigin(0f, 0f)
+        rotationZ = 90f
+        translationX = placeable.height.toFloat()
+      }
     }
   }
-}

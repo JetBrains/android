@@ -55,20 +55,15 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.Flow
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
 
 /**
@@ -83,7 +78,7 @@ private const val METADATA_KEY_SHARK_VERSION = "shark_version"
 class LeakCanaryModel(
   @NotNull private val profilers: StudioProfilers,
   heapDumper: LeakCanaryHeapDumper? = null,
-  coroutineContext: CoroutineContext = Dispatchers.Main
+  coroutineContext: CoroutineContext = Dispatchers.Main,
 ) : ModelStage(profilers), Updatable {
 
   private lateinit var statusListener: TransportEventListener
@@ -134,7 +129,7 @@ class LeakCanaryModel(
   private val _isStopping = MutableStateFlow(false)
   val isStopping = _isStopping.asStateFlow()
   private val scope = CoroutineScope(coroutineContext + SupervisorJob())
-  val insightModel = LeakInsightModel(profilers.ideServices, scope)
+  val insightModel = LeakInsightModel(profilers.ideServices, scope, ::trackUiAction)
   private val _isForceDumpExecuting = MutableStateFlow(false)
   val isForceDumpExecuting = _isForceDumpExecuting.asStateFlow()
   private val isSharkVersionEmitted = AtomicBoolean(false)
