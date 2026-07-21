@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
@@ -134,7 +135,13 @@ fun NavigationControlsPanel(
     }
   }
 
-  Column(modifier.padding(16.dp).fillMaxWidth().testTag(NavigationControlsPanelTestTags.panel)) {
+  Column(modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().testTag(NavigationControlsPanelTestTags.panel)) {
+    // Add a horizontal divider at the top of the panel to clearly indicate the splitter boundary
+    Divider(
+      orientation = org.jetbrains.jewel.ui.Orientation.Horizontal,
+      modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag(NavigationControlsPanelTestTags.divider),
+    )
+
     FlowRow(
       modifier = Modifier.padding(vertical = DEFAULT_SPACING).fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
@@ -259,4 +266,7 @@ object NavigationControlsPanelTestTags {
 
   /** Tag for the navigation edge selection dropdown. */
   const val edgeDropdown = "$base.edgeDropdown"
+
+  /** Tag for the horizontal divider. */
+  const val divider = "$base.divider"
 }

@@ -70,6 +70,9 @@ class NavigationControlsPanelUiTest {
     // Verify main panel is displayed
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.panel).assertIsDisplayed()
 
+    // Verify divider is displayed
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.divider).assertIsDisplayed()
+
     // Emulate the update from the fps counter
     fpsUpdater.tryEmit(Unit)
 
@@ -221,6 +224,9 @@ class NavigationControlsPanelUiTest {
 
     // Verify main panel is displayed
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.panel).assertIsDisplayed()
+
+    // Verify divider is displayed
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.divider).assertIsDisplayed()
     // Verify Back button is displayed
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.backButton).assertIsDisplayed()
     // Verify Dropdown is displayed but disabled
