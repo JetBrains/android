@@ -831,6 +831,53 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
+  fun testInteractivePreviewNavigationPanelAndZoomToFitState() = runComposePreviewRepresentationTest {
+    val composePreviewRepresentation = createPreviewAndCompile(expectedModelCount = 2)
+    val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val selectedPreviewElement = previewElements.first()
+    val interactiveNavigationController = composePreviewRepresentation.getInteractiveNavigationControllerForTestOnly()
+
+    // When interactivePreviewNavigationController.canShowNavigationPanel() is true, starting Interactive Preview mode should automatically
+    // display the bottom navigation panel
+    val composeViewAdapterWithNavigationDisplay = TestComposeViewAdapterViewObj(onBackPressProgressCallback = { _, _ -> })
+    interactiveNavigationController.updateObjects(
+      currentNavigationEventDispatcherOwnerObj = null,
+      currentComposeViewAdapterObj = composeViewAdapterWithNavigationDisplay,
+      hasNavDisplay = true,
+    )
+    assertThat(interactiveNavigationController.canShowNavigationPanel()).isTrue()
+
+    setModeAndWaitForRefresh(PreviewMode.Interactive(selectedPreviewElement))
+
+    assertThat(interactiveNavigationController.canShowNavigationPanel()).isTrue()
+    assertThat(composePreviewRepresentation.getBottomPanelForTestOnly()).isNotNull()
+
+    // Ensure the view to zoom-to-fit (canZoomToFit is false).
+    assertThat(mainSurface.zoomController.canZoomToFit()).isFalse()
+
+    // Switch back to Default mode.
+    setModeAndWaitForRefresh(PreviewMode.Default())
+
+    // When interactivePreviewNavigationController.canShowNavigationPanel() is false starting Interactive Preview mode should keep the
+    // bottom navigation panel null.
+    val composeViewAdapterWithoutNavigationDisplay = TestComposeViewAdapterViewObj(onBackPressProgressCallback = { _, _ -> })
+    interactiveNavigationController.updateObjects(
+      currentNavigationEventDispatcherOwnerObj = null,
+      currentComposeViewAdapterObj = composeViewAdapterWithoutNavigationDisplay,
+      hasNavDisplay = false,
+    )
+    assertThat(interactiveNavigationController.canShowNavigationPanel()).isFalse()
+
+    setModeAndWaitForRefresh(PreviewMode.Interactive(selectedPreviewElement))
+
+    assertThat(interactiveNavigationController.canShowNavigationPanel()).isFalse()
+    assertThat(composePreviewRepresentation.getBottomPanelForTestOnly()).isNull()
+
+    // Ensure the view is in zoom-to-fit (canZoomToFit is false).
+    assertThat(mainSurface.zoomController.canZoomToFit()).isFalse()
+  }
+
+  @Test
   fun testResizePanelIsCreatedInFocusMode_flagTrue() = runComposePreviewRepresentationTest {
     StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(true, projectRule.fixture.testRootDisposable)
     createPreviewAndCompile()
