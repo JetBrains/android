@@ -141,12 +141,6 @@
       "hit": "Access sensitive files"
     },
     {
-      "hit": "Add custom instructions"
-    },
-    {
-      "hit": "Additional prompt:"
-    },
-    {
       "hit": "Agent Permissions"
     },
     {
@@ -157,6 +151,9 @@
     },
     {
       "hit": "Automatically run safe shell commands"
+    },
+    {
+      "hit": "Customize..."
     },
     {
       "hit": "Delete or rename files in the project"
@@ -202,9 +199,6 @@
     },
     {
       "hit": "Read files outside the project"
-    },
-    {
-      "hit": "Show Full Prompt..."
     },
     {
       "hit": "Strict"
