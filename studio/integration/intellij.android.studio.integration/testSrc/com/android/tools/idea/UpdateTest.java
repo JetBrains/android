@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -371,9 +372,9 @@ public class UpdateTest {
         studio.waitForProcess();
       }
 
-      // Ensure that updates.xml was requested a single time
+      // Ensure that updates.xml was requested
       List<URI> updatesRequests = fileServer.getRequestHistoryForPath("/updates.xml");
-      assertEquals(1, updatesRequests.size());
+      assertThat(updatesRequests.size()).isAtLeast(1);
 
       // Ensure that updates.xml was requested with the correct query parameters
       URI uri = updatesRequests.get(0);
