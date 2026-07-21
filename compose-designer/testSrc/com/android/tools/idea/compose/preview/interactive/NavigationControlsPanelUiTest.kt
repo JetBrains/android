@@ -179,7 +179,7 @@ class NavigationControlsPanelUiTest {
 
     val controller =
       InteractivePreviewNavigationController(usageTrackerProvider = { tracker }, fpsUpdater = fpsUpdater).apply {
-        updateObjects(null, composeViewAdapterObjFake)
+        updateObjects(null, composeViewAdapterObjFake, hasNavDisplay = false)
       }
 
     composeTestRule.setContent {

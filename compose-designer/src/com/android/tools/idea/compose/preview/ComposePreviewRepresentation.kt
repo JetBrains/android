@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceZoomController
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
@@ -611,6 +612,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
     // Currently it will re-create classloader and will be slower than switch from static
     usageTrackerProvider().logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
     interactiveManager.start()
+    withContext(Dispatchers.EDT) {
+      if (interactivePreviewNavigationController.canShowNavigationPanel()) {
+        // When interactive navigation controls can be shown, reset the zoom-to-fit settings
+        // and re-trigger zoomToFit so that the design surface adjusts its viewport and scale
+        // properly to accommodate the bottom navigation controls panel.
+        val zoomController = surface.zoomController as DesignSurfaceZoomController
+        zoomController.resetZoomToFitSettings()
+        interactivePreviewNavigationController.showNavigationControls(instance)
+        zoomController.zoomToFit()
+      }
+    }
     requestVisibilityAndNotificationsUpdate()
     ActivityTracker.getInstance().inc()
   }

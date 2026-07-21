@@ -63,9 +63,9 @@ class PredictiveBackNavigationControlsAction : DumbAwareAction(null, null, Studi
   override fun update(e: AnActionEvent) {
     val interactivePreviewNavigationController: InteractivePreviewNavigationController =
       e.dataContext.getData(InteractivePreviewNavigationController.KEY) ?: return
-    val isPredictiveBackReady = interactivePreviewNavigationController.isPredictiveBackReady()
+    val canShowNavigationPanel = interactivePreviewNavigationController.canShowNavigationPanel()
 
-    e.presentation.isVisible = isPredictiveBackReady && StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.get()
+    e.presentation.isVisible = canShowNavigationPanel && StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.get()
     e.presentation.text =
       if (interactivePreviewNavigationController.isNavigationControlsShown()) {
         message("action.navigate.hide.options")

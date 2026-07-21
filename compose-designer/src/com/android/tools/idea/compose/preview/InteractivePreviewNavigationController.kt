@@ -78,6 +78,7 @@ class InteractivePreviewNavigationController(
   private var onBackPressProgressMethod: Method? = null
   private var onBackPressCompletedMethod: Method? = null
   private var onBackPressCancelledMethod: Method? = null
+  private var hasNavDisplayInViewTree: Boolean = false
 
   private val logger = Logger.getInstance(InteractivePreviewNavigationController::class.java)
 
@@ -91,14 +92,16 @@ class InteractivePreviewNavigationController(
    * @param currentNavigationEventDispatcherOwnerObj The local object [LocalNavigationEventDispatcherOwner] loaded from
    *   [LocalNavigationEventTransform].
    * @param currentComposeViewAdapterObj The object of the actual `androidx.compose.ui.tooling.ComposeViewAdapter`.
+   * @param hasNavDisplay Whether a `NavDisplay` component exists in the preview hierarchy.
    */
-  fun updateObjects(currentNavigationEventDispatcherOwnerObj: Any?, currentComposeViewAdapterObj: Any) {
+  fun updateObjects(currentNavigationEventDispatcherOwnerObj: Any?, currentComposeViewAdapterObj: Any, hasNavDisplay: Boolean) {
     backPressDispatcherOwner = getBackPressDispatcherOwner(currentNavigationEventDispatcherOwnerObj, currentComposeViewAdapterObj)
 
     isBackGestureInProgress = false
 
     // Reset the cached values
     canBackPressMethod = null
+    hasNavDisplayInViewTree = hasNavDisplay
     onBackPressStartedMethod = null
     onBackPressProgressMethod = null
     onBackPressCompletedMethod = null
@@ -207,15 +210,19 @@ class InteractivePreviewNavigationController(
       null
 
   /**
-   * Checks, via reflection, if predictive back navigation can be performed.
+   * Checks, via reflection, if it is possible to show the navigation panel.
    *
-   * This method only supports the new (navigation3) back press API.
+   * This is possible if predictive back navigation can be performed and if `NavDisplay` is implemented in code. This method only supports
+   * the new (navigation3) back press API.
    *
-   * @return true if [backPressProgress] and [backPressCompleted] can be called, false otherwise.
+   * @return true if [backPressProgress] can be called and `NavDisplay` is implemented in code, false otherwise.
    */
-  fun isPredictiveBackReady(): Boolean =
-    (onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }) !=
-      null
+  fun canShowNavigationPanel(): Boolean {
+    val isPredictiveBackReady =
+      (onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }) !=
+        null
+    return isPredictiveBackReady && hasNavDisplayInViewTree
+  }
 
   /**
    * Shows the navigation controls for the given [instance].
