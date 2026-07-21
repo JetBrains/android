@@ -861,13 +861,14 @@ public class StudioInteractionService {
       Method getConfig = semanticsNode.getClass().getMethod("getConfig");
       Object config = getConfig.invoke(semanticsNode);
 
-      Class<?> actionsClass = Class.forName("androidx.compose.ui.semantics.SemanticsActions");
+      ClassLoader composeClassLoader = semanticsNode.getClass().getClassLoader();
+      Class<?> actionsClass = Class.forName("androidx.compose.ui.semantics.SemanticsActions", true, composeClassLoader);
       Field instanceField = actionsClass.getField("INSTANCE");
       Object actionsInstance = instanceField.get(null);
 
       Object actionKey = actionsClass.getMethod("getOnClick").invoke(actionsInstance);
 
-      Class<?> keyClass = Class.forName("androidx.compose.ui.semantics.SemanticsPropertyKey");
+      Class<?> keyClass = Class.forName("androidx.compose.ui.semantics.SemanticsPropertyKey", true, composeClassLoader);
       Method contains = config.getClass().getMethod("contains", keyClass);
       if (!(Boolean) contains.invoke(config, actionKey)) {
         return false;
