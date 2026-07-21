@@ -56,6 +56,7 @@ import org.jetbrains.jewel.foundation.modifier.thenIf
  *   vice versa. The boolean parameter is `true` if the content is overflowing, and thus expandable.
  * @param modifier The [Modifier] to apply to this layout.
  * @param maxCollapsedHeight The maximum height of the container when it is not expanded.
+ * @param maxExpandedHeight The maximum height of the container when it is expanded.
  * @param animateHeightChange Whether to animate the height change when expanding or collapsing.
  * @param heightAnimationSpec The [AnimationSpec] to use for the height change animation.
  * @param content The composable content to display inside the container. Must contain one and only one top-level composable.
@@ -66,11 +67,12 @@ fun ExpandableContainer(
   onExpandableChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
   maxCollapsedHeight: Dp = 150.dp,
+  maxExpandedHeight: Dp = Dp.Unspecified,
   animateHeightChange: Boolean = true,
   heightAnimationSpec: FiniteAnimationSpec<IntSize> = spring(),
   content: @Composable () -> Unit,
 ) {
-  val maxHeight = if (expanded) Dp.Unspecified else maxCollapsedHeight
+  val maxHeight = if (expanded) maxExpandedHeight else maxCollapsedHeight
   Layout(
     modifier =
       modifier
