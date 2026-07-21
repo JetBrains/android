@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails
 
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -31,7 +30,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -81,6 +79,7 @@ import java.util.concurrent.CompletableFuture
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.VerticalScrollbar
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 /**
@@ -124,12 +123,7 @@ fun LeakDetailsPanel(
   } else {
     val scrollState = rememberScrollState()
     Column(modifier = Modifier.fillMaxSize()) {
-      LeakActionToolbar(
-        selectedLeak = selectedLeak,
-        onExpandAll = onExpandAll,
-        onCollapseAll = onCollapseAll,
-        onCopy = onCopy,
-      )
+      LeakActionToolbar(selectedLeak = selectedLeak, onExpandAll = onExpandAll, onCollapseAll = onCollapseAll, onCopy = onCopy)
       ToolWindowHorizontalDivider()
       Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(10.dp)) {
@@ -153,7 +147,7 @@ fun LeakDetailsPanel(
             )
           }
         }
-        VerticalScrollbar(adapter = rememberScrollbarAdapter(scrollState), modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd))
+        VerticalScrollbar(scrollState = scrollState, modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd))
       }
     }
   }
