@@ -16,7 +16,6 @@
 package com.google.idea.blaze.common;
 
 import com.google.common.collect.ImmutableSet;
-import java.util.Set;
 
 /** Utility class for information about specific bazel rule kinds (java, cpp, etc.) */
 public final class RuleKinds {
@@ -32,6 +31,7 @@ public final class RuleKinds {
           "kt_jvm_library_helper",
           "kt_native_library",
           "java_test",
+          "kt_jvm_test",
           "java_proto_library",
           "java_lite_proto_library",
           "java_mutable_proto_library",
@@ -51,12 +51,15 @@ public final class RuleKinds {
           "kt_android_library_helper",
           "kt_android_library");
 
-  /**
-   * C++ rule kinds
-   */
+  /** C++ rule kinds */
   public static final ImmutableSet<String> CC_RULE_KINDS =
-    ImmutableSet.of("cc_library", "cc_binary", "cc_shared_library", "cc_test", "ndk_cc_library_rule",
-                    "ndk_cc_dynamic_library_force_android_rule");
+      ImmutableSet.of(
+          "cc_library",
+          "cc_binary",
+          "cc_shared_library",
+          "cc_test",
+          "ndk_cc_library_rule",
+          "ndk_cc_dynamic_library_force_android_rule");
 
   /** Rule kinds that have proto files for sources. */
   public static final ImmutableSet<String> PROTO_SOURCE_RULE_KINDS =
