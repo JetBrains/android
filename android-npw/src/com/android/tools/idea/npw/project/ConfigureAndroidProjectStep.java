@@ -35,7 +35,6 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gemini.GeminiPluginApi;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.npw.model.AgpVersionSelector;
@@ -89,7 +88,6 @@ import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
@@ -97,8 +95,6 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
-import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -113,14 +109,12 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import kotlin.Pair;
-import kotlin.Unit;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -147,8 +141,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JPanel myPanel;
   private TextFieldWithBrowseButton myProjectLocation;
   private JTextField myAppName;
-  private JPanel appNamePanel;
-  private JBLoadingPanel generateAppNamePanel;
 
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
@@ -406,8 +398,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     if (isWatchFace) {
       myProjectModel.getApplicationName().set("My Watch Face");
     }
-
-    generateAppNamePanel.setVisible(StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && newTemplate.getFlags().contains(TemplateFlag.NewProjectAgent) && GeminiPluginApi.Companion.getInstance().isAvailable());
   }
 
   @Override
@@ -470,7 +460,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       .addVerticalGap(10)
       .addComponent(createDocumentationLinkPanel())
       .addVerticalGap(10)
-      .addLabeledComponent("&Name",  appNamePanel)
+      .addLabeledComponent("&Name",  myAppName)
       .addLabeledComponent("&Package name", myPackageName)
       .addLabeledComponent("&Save location", myProjectLocation)
       .addLabeledComponent(myProjectLanguageLabel, myProjectLanguage)
@@ -570,28 +560,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myAppName = new JTextField();
     myAppName.setToolTipText("The name that will be shown in the Android launcher for this application");
-
-    JButton generateAppName = new JButton(StudioIcons.StudioBot.GENERIC_AI_ACTION);
-    generateAppName.setToolTipText(message("android.wizard.project.new.create.with.ai.tooltip"));
-    generateAppName.addActionListener(e -> myProjectModel.generateAppName(() -> {
-      generateAppName.setEnabled(false);
-      myAppName.requestFocus();
-      generateAppNamePanel.startLoading();
-      return Unit.INSTANCE;
-    }, () -> {
-      generateAppName.setEnabled(true);
-      generateAppNamePanel.stopLoading();
-      return Unit.INSTANCE;
-    }));
-
-    generateAppNamePanel = new JBLoadingPanel(new BorderLayout(), this);
-    generateAppNamePanel.setVisible(false);
-    generateAppNamePanel.add(generateAppName, BorderLayout.CENTER);
-
-    // Create a panel to hold the text field and the button
-    appNamePanel = new JPanel(new BorderLayout(5, 0)); // 5px horizontal gap
-    appNamePanel.add(myAppName, BorderLayout.CENTER);
-    appNamePanel.add(generateAppNamePanel, BorderLayout.LINE_END);
 
     myPackageName = new JTextField();
     myProjectLocation = new TextFieldWithBrowseButton();
