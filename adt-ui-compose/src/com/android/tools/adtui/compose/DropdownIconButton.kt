@@ -17,9 +17,8 @@ package com.android.tools.adtui.compose
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.Dp
@@ -40,21 +39,22 @@ fun DropdownIconButton(
   badgeColor: Color = if (enabled) JewelTheme.globalColors.text.info else JewelTheme.globalColors.text.disabled,
   icon: @Composable () -> Unit,
 ) {
-  val path = remember { Path() }
   IconButton(onClick = onClick, modifier = modifier, enabled = enabled) {
     Box(
       modifier =
-        Modifier.drawWithContent {
-          drawContent()
-          val width = size.width
-          val height = size.height
+        Modifier.drawWithCache {
           val triangleSize = badgeSize.toPx()
-          path.reset()
-          path.moveTo(width, height)
-          path.lineTo(width - triangleSize, height)
-          path.lineTo(width, height - triangleSize)
-          path.close()
-          drawPath(path, color = badgeColor)
+          val path =
+            Path().apply {
+              moveTo(size.width, size.height)
+              lineTo(size.width - triangleSize, size.height)
+              lineTo(size.width, size.height - triangleSize)
+              close()
+            }
+          onDrawWithContent {
+            drawContent()
+            drawPath(path, color = badgeColor)
+          }
         }
     ) {
       icon()

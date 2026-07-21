@@ -53,6 +53,7 @@ class DropdownIconButtonTest {
     val node = composeTestRule.onNodeWithText("Disabled Icon Content")
     node.assertIsDisplayed()
     node.assertIsNotEnabled()
+    node.performClick()
     assertFalse(clicked)
   }
 }
