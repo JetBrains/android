@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.whatsnew.assistant.v2.ui
 
+import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewAssets
 import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewDocumentLoaderImpl
 import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewMarkdownDocument
 import com.intellij.openapi.application.EDT
@@ -32,7 +33,8 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.NonNls
 
 class WhatsNewEditorProvider : AsyncFileEditorProvider {
-  private var cachedDocuments: List<WhatsNewMarkdownDocument>? = null
+  private var cachedMarkdownDocuments: List<WhatsNewMarkdownDocument>? = null
+  private var cachedAssets: WhatsNewAssets? = null
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
     return file is WhatsNewVirtualFileImpl
@@ -42,7 +44,7 @@ class WhatsNewEditorProvider : AsyncFileEditorProvider {
     // This is a fallback for when the async provider is not used.
     // It returns an editor with empty documents, which is not ideal, but `createEditor`
     // shouldn't be called if the platform prefers async providers.
-    return WhatsNewEditor(file as WhatsNewVirtualFile, emptyList(), project)
+    return WhatsNewEditor(file as WhatsNewVirtualFile, emptyList(), WhatsNewAssets(), project)
   }
 
   @Suppress("UnstableApiUsage")
@@ -52,8 +54,10 @@ class WhatsNewEditorProvider : AsyncFileEditorProvider {
     document: Document?,
     editorCoroutineScope: CoroutineScope,
   ): FileEditor {
-    val documents = cachedDocuments ?: WhatsNewDocumentLoaderImpl().loadDocuments().also { cachedDocuments = it }
-    return withContext(Dispatchers.EDT) { WhatsNewEditor(file as WhatsNewVirtualFile, documents, project) }
+    val loader = WhatsNewDocumentLoaderImpl()
+    val markdownDocs = cachedMarkdownDocuments ?: loader.loadDocuments().also { cachedMarkdownDocuments = it }
+    val assets = cachedAssets ?: loader.loadAssets().also { cachedAssets = it }
+    return withContext(Dispatchers.EDT) { WhatsNewEditor(file as WhatsNewVirtualFile, markdownDocs, assets, project) }
   }
 
   override fun getEditorTypeId(): @NonNls String {

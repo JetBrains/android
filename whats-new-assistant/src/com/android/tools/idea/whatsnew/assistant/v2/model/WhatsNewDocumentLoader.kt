@@ -21,12 +21,38 @@ import java.util.zip.ZipInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * @property assetId Arbitrary identifier used for fast equals/hashCode in recomposition.
+ * @property dotsDark The background dots image for dark theme, or null if failed to load.
+ * @property dotsLight The background dots image for light theme, or null if failed to load.
+ */
+data class WhatsNewAssets(
+  val assetId: String = "empty",
+  val dotsDark: ByteArray? = null,
+  val dotsLight: ByteArray? = null,
+) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as WhatsNewAssets
+
+    return assetId == other.assetId
+  }
+
+  override fun hashCode(): Int {
+    return assetId.hashCode()
+  }
+}
+
 /** Loads the list of [WhatsNewMarkdownDocument] to be displayed by the "What's New" window. */
 interface WhatsNewDocumentLoader {
   suspend fun loadDocuments(): List<WhatsNewMarkdownDocument>
+
+  suspend fun loadAssets(): WhatsNewAssets
 }
 
-internal class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
+class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
   override suspend fun loadDocuments(): List<WhatsNewMarkdownDocument> {
     return withContext(Dispatchers.IO) {
       val documents = mutableListOf<Pair<Revision, String>>()
@@ -55,8 +81,20 @@ internal class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
     }
   }
 
+  override suspend fun loadAssets(): WhatsNewAssets {
+    return withContext(Dispatchers.IO) {
+      val dotsDark = loadImageResource("/v2/dots_at_bottom_dark.png")
+      val dotsLight = loadImageResource("/v2/dots_at_bottom_light.png")
+      WhatsNewAssets("loaded", dotsDark, dotsLight)
+    }
+  }
+
   @WorkerThread
   private fun loadMarkdownDocument(revision: Revision, content: String): WhatsNewMarkdownDocument {
     return WhatsNewMarkdownParser.parseMarkdown(revision, content)
+  }
+
+  private fun loadImageResource(path: String): ByteArray? {
+    return javaClass.getResourceAsStream(path)?.use { it.readBytes() }
   }
 }
