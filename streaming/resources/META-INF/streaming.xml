@@ -157,7 +157,7 @@
         <separator/>
         <action id="android.emulator.environment.darkness"
                 class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Darkness"
-                text="Pitch Dark" description="Select a completely dark environment"/>
+                text="No Environment (Black Background)" description="Select a completely dark environment"/>
       </group>
       <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">
