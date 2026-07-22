@@ -111,7 +111,9 @@ private fun updateFile(sourceDir: Path, destinationDir: Path, relativePath: Path
   val source = sourceDir.resolve(relativePath)
   val destination = destinationDir.resolve(relativePath.toString())
   val sourceTimestamp = Files.getLastModifiedTime(source)
-  if (!Files.exists(destination) || Files.getLastModifiedTime(destination) < sourceTimestamp) {
+  if (
+    !Files.exists(destination) || Files.getLastModifiedTime(destination) < sourceTimestamp || Files.size(destination) != Files.size(source)
+  ) {
     Files.createDirectories(destination.parent!!)
     FileUtils.copyFile(source, destination)
     if (System.getProperty("os.name").lowercase().contains("windows")) { // FileUtils.copyFile doesn't preserve timestamp on Windows.
