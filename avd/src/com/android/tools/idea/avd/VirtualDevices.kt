@@ -36,9 +36,9 @@ internal class VirtualDevices(private val avdManager: AvdManager) {
     return avdManager.createAvd(avdBuilder)
   }
 
-  private suspend fun getDefaultEnvironmentFile(): Path {
+  private suspend fun getDefaultEnvironmentFile(): Path? {
     val environments = EnvironmentsUpdater.getInstance().getEnvironments()
-    val defaultImage = environments.find { it.isDefault } ?: environments.firstOrNull() ?: throw RuntimeException("No environments found")
+    val defaultImage = environments.find { it.isDefault } ?: environments.firstOrNull() ?: return null
     return defaultImage.path
   }
 }
