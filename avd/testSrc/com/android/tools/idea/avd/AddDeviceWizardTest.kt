@@ -226,9 +226,7 @@ class AddDeviceWizardTest {
 
       composeTestRule.onNodeWithText(api34XrOst.displayName).assertIsSelected()
       composeTestRule.onNodeWithText("Additional settings").performClick()
-      // XR Glasses have skin, not background.
-      composeTestRule.onNodeWithText("Background").assertDoesNotExist()
-      composeTestRule.onNodeWithText("Device skin").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Device skin").assertDoesNotExist()
       // We need to disable the external storage, since we can't run mksdcard.
       composeTestRule.onNode(hasText("None") and hasParent(hasTestTag("StorageGroup"))).performClick()
 

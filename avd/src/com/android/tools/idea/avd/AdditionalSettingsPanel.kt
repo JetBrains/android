@@ -31,7 +31,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.CameraLocation
-// TODO studio-merge
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
@@ -43,7 +42,6 @@ import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-// TODO studio-merge
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
@@ -56,7 +54,6 @@ import org.jetbrains.jewel.ui.component.Text
 internal fun AdditionalSettingsPanel(state: ConfigureDevicePanelState, modifier: Modifier = Modifier) {
   val device = state.device
   Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
-    // TODO studio-merge
     if (device.isSkinAllowed) {
       SkinSelector(device, state.skins())
     }
@@ -85,7 +82,6 @@ private fun SkinSelector(device: VirtualDevice, skins: Iterable<Skin>) {
       Modifier.alignByBaseline().testTag("DeviceSkinDropdown"),
       !device.isFoldable,
     )
-  // TODO studio-merge
   }
 }
 

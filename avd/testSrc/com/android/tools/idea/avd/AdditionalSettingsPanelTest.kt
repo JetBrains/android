@@ -26,7 +26,6 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
-// TODO studio-merge
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onChild
@@ -35,11 +34,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
-// TODO studio-merge
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
-// TODO studio-merge
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.LocalFileSystem
@@ -47,7 +44,6 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-// TODO studio-merge
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Files
 import kotlin.math.max
@@ -63,7 +59,6 @@ import org.mockito.kotlin.whenever
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
   @get:Rule val rule = createStudioComposeTestRule()
-// TODO studio-merge
 
   @Test
   fun deviceSkinDropdownOnSelectedItemChange() {
@@ -178,7 +173,6 @@ class AdditionalSettingsPanelTest {
   }
 
   @Test
-  // TODO studio-merge
   fun aiGlassesSkinDisabled() {
     val device = TestDevices.aiGlasses()
     val fileSystem = createInMemoryFileSystem()
@@ -189,7 +183,6 @@ class AdditionalSettingsPanelTest {
       provideCompositionLocals { CompositionLocalProvider(LocalFileSystem provides fileSystem) { AdditionalSettingsPanel(state) } }
     }
 
-    // TODO studio-merge
     rule.onNodeWithTag("DeviceSkinDropdown").assertDoesNotExist()
   }
 
