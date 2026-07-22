@@ -114,17 +114,6 @@
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="private val DEFAULT_IMAGE_SIZE = JBUI.scale(48)"
-        errorLine2="                                      ~~~~~">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/DrawableGrid.kt"
-            line="47"
-            column="39"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
         errorLine1="private val FLOW_LAYOUT_GAP = JBUI.scale(4)"
         errorLine2="                                   ~~~~~">
         <location

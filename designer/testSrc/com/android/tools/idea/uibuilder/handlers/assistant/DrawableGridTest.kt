@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser
+package com.android.tools.idea.uibuilder.handlers.assistant
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRenderer
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
@@ -46,6 +45,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import org.jetbrains.android.AndroidTestBase
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
@@ -58,7 +58,7 @@ class DrawableGridTest {
     @JvmStatic
     @BeforeClass
     fun setUp() {
-      rule.fixture.testDataPath = getTestDataDirectory()
+      rule.fixture.testDataPath = AndroidTestBase.getTestDataPath() + "/resourceExplorer"
     }
   }
 
