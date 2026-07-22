@@ -40,6 +40,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.ui.EDT;
 import com.intellij.util.ui.UIUtil;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -48,7 +50,6 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -185,6 +186,11 @@ public class RenderTestUtil {
         .withTopic(topic)
         .setTestEventListener(testEventListener)
         .build();
+    if (EDT.isCurrentThreadEdt()) {
+      while (!taskFuture.isDone()) {
+        PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+      }
+    }
     RenderTask task = Futures.getUnchecked(taskFuture);
     assertNotNull(task);
     return task;
