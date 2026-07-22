@@ -138,7 +138,6 @@ public class DomPsiConverter {
 
   @Nullable
   static DomNode findNodeAt(@NonNull DomNode element, int offset) {
-    ProgressManager.checkCanceled();
     TextRange range = element.getTextRange();
     if (range == null) {
       return null;
@@ -147,32 +146,48 @@ public class DomPsiConverter {
       return null;
     }
 
-    DomNode child = element.getLastChild();
-    if (child == null) {
-      if (element instanceof DomElement) {
-        NamedNodeMap attributes = ((DomElement)element).getAttributes();
-        if (attributes instanceof DomNamedNodeMap) {
-          for (DomNode node : ((DomNamedNodeMap)attributes).getItems()) {
-            TextRange attrRange = node.getTextRange();
-            if (attrRange.containsOffset(offset)) {
-              return node;
-            }
+    DomNode node = element;
+    while (true) {
+      ProgressManager.checkCanceled();
+      DomNodeList children = node.getChildNodes();
+      int count = children.getLength();
+      if (count == 0) {
+        if (node instanceof DomElement && node.getAttributes() instanceof DomNamedNodeMap attributes) {
+          for (DomNode attribute : attributes.getItems()) {
+            if (attribute.getTextRange().containsOffset(offset)) return attribute;
+          }
+        }
+
+        return node;
+      }
+
+      // The children are sorted by offset and don't overlap, so binary search for
+      // the last child which starts at or before the offset. (When the offset is on
+      // the boundary between two siblings this picks the later sibling, which both
+      // ranges contain since TextRange#containsOffset includes the end offset.)
+      int candidate = -1;
+      {
+        int low = 0;
+        int high = count - 1;
+        while (low <= high) {
+          int mid = (low + high) >>> 1;
+          if (children.item(mid).getTextRange().getStartOffset() <= offset) {
+            candidate = mid;
+            low = mid + 1;
+          }
+          else {
+            high = mid - 1;
           }
         }
       }
 
-      return element;
-    }
-
-    while (child != null) {
-      DomNode match = findNodeAt(child, offset);
-      if (match != null) {
-        return match;
+      if (candidate == -1 || !children.item(candidate).getTextRange().containsOffset(offset)) {
+        // The offset is not inside any of the modeled children; e.g. it points into
+        // the open or close tag markup of the element itself
+        return node;
       }
-      child = child.getPreviousSibling();
+      node = children.item(candidate);
     }
-
-    return element;
   }
 
   /**
@@ -499,6 +514,7 @@ public class DomPsiConverter {
     @Nullable protected DomNodeList myChildren;
     @Nullable protected DomNode myNext;
     @Nullable protected DomNode myPrevious;
+    @Nullable protected TextRange myRange;
 
     protected DomNode(@Nullable Document owner, @Nullable DomNode parent, @NotNull XmlElement element) {
       myOwner = owner;
@@ -516,35 +532,46 @@ public class DomPsiConverter {
     @Override
     public DomNodeList getChildNodes() {
       if (myChildren == null) {
-        // Nothing is cached yet at this point, so an aborted call leaves no
-        // partially initialized state behind
-        ProgressManager.checkCanceled();
-        PsiElement[] children = myElement.getChildren();
-        if (children.length > 0) {
-          DomNodeList list = new DomNodeList();
-          myChildren = list;
-          // True except for in DomDocument, which has custom getChildNodes
-          assert myOwner != null;
+        PsiElement child = myElement.getFirstChild();
+        if (child == null) {
+          myChildren = EMPTY;
+          return myChildren;
+        }
 
-          for (PsiElement child : children) {
-            if (child instanceof XmlTag) {
-              list.add(new DomElement(myOwner, this, (XmlTag)child), true);
-            }
-            else if (child instanceof XmlText) {
-              list.add(new DomText(myOwner, this, (XmlText)child), true);
-            }
-            else if (child instanceof XmlComment) {
-              list.add(new DomComment(myOwner, this, (XmlComment)child), true);
-            }
-            else {
+        DomNodeList list = new DomNodeList();
+        // True except for in DomDocument, which has custom getChildNodes
+        assert myOwner != null;
+
+        // Track the child offsets ourselves in a single pass: asking each child for
+        // its text range makes PSI walk all of the child's preceding siblings to
+        // compute its start offset, which adds up to quadratic time in the number
+        // of children and has caused multi-second UI freezes on large XML files.
+        TextRange range = getTextRange();
+        int offset = range != null ? range.getStartOffset() : 0;
+        while (child != null) {
+          ProgressManager.checkCanceled();
+          int length = child.getTextLength();
+          DomNode node =
+            switch (child) {
+              case XmlTag tag -> new DomElement(myOwner, this, tag);
+              case XmlText text -> new DomText(myOwner, this, text);
+              case XmlComment comment -> new DomComment(myOwner, this, comment);
               // Skipping other types for now; lint doesn't care about them.
               // TODO: Consider whether we need CDATA.
+              default -> null;
+            };
+          if (node != null) {
+            if (range != null) {
+              node.myRange = new TextRange(offset, offset + length);
             }
+            list.add(node, true);
           }
+          offset += length;
+          child = child.getNextSibling();
         }
-        else {
-          myChildren = EMPTY;
-        }
+        // Assigned only once fully populated; the loop above can be interrupted
+        // by a ProcessCanceledException
+        myChildren = list;
       }
       return myChildren;
     }
@@ -768,7 +795,13 @@ public class DomPsiConverter {
     }
 
     public TextRange getTextRange() {
-      return myElement.getTextRange();
+      TextRange range = myRange;
+      if (range == null) {
+        // TextRange is immutable, so a benign race here at worst computes the
+        // range twice
+        myRange = range = myElement.getTextRange();
+      }
+      return range;
     }
   }
 
