@@ -38,7 +38,7 @@ public class DocStringFormatter {
       }
       line = trimStart(line, initialIndent);
       if (!line.isEmpty()) {
-        output.append(line);
+        output.append(StringUtil.escapeXmlEntities(line));
       }
       output.append("<br>");
     }
