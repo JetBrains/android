@@ -15,3 +15,16 @@ java_test(
         "@rules_android_maven//:junit_junit",
     ],
 )
+
+java_test(
+    name = "ConcreteTestCase",
+    srcs = [
+        "java/com/example/tests/AbstractTestCase.java",
+        "java/com/example/tests/ConcreteTestCase.java",
+        "java/com/example/tests/ConcreteTestCase2.java",
+    ],
+    test_class = "com.example.tests.ConcreteTestCase",
+    deps = [
+        "@rules_android_maven//:junit_junit",
+    ],
+)
