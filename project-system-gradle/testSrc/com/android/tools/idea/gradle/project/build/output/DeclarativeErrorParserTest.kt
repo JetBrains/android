@@ -135,7 +135,6 @@ class DeclarativeErrorParserTest {
     val parentEventId = "Test Id"
     val parsers = ExternalSystemOutputParserProvider.EP_NAME.extensions.flatMap { it.getBuildOutputParsers(taskId) }
     val parser = BuildOutputInstantReaderImpl(taskId, parentEventId, progressListener, parsers)
-    parser.disableActiveReading()
     buildOutput(file!!.path).lineSequence().forEach { parser.appendLine(it) }
     parser.closeAndGetFuture().join()
     val iterator = consumer.messageEvents.filterIsInstance<MessageEvent>().listIterator()

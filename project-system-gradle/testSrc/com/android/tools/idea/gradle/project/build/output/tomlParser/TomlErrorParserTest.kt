@@ -363,7 +363,6 @@ class TomlErrorParserTest {
 
     val parsers = ExternalSystemOutputParserProvider.EP_NAME.extensions.flatMap { it.getBuildOutputParsers(taskId) }
     val parser = BuildOutputInstantReaderImpl(taskId, parentEventId, progressListener, parsers)
-    parser.disableActiveReading()
     buildOutput.lineSequence().forEach { parser.appendLine(it) }
     parser.closeAndGetFuture().join()
     return consumer
