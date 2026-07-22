@@ -17,6 +17,7 @@ package com.android.tools.idea.whatsnew.assistant.v2.ui
 
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker
+import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewAssets
 import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewMarkdownDocument
 import com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.DefaultImagePainterLoader
 import com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.ImagePainterLoader
@@ -32,14 +33,14 @@ import org.jetbrains.annotations.Nls
 class WhatsNewEditor(
   val virtualFile: WhatsNewVirtualFile,
   markdownDocuments: List<WhatsNewMarkdownDocument>,
+  whatsNewAssets: WhatsNewAssets,
   val project: Project,
 ) : UserDataHolderBase(), FileEditor {
   private val imageLoader: ImagePainterLoader = DefaultImagePainterLoader()
 
-  private val panel: JComponent =
-    StudioComposePanel {
-      WhatsNewEditorPanel(markdownDocuments = markdownDocuments, imageLoader = imageLoader)
-    }
+  private val panel: JComponent = StudioComposePanel {
+    WhatsNewEditorPanel(markdownDocuments = markdownDocuments, whatsNewAssets = whatsNewAssets, imageLoader = imageLoader)
+  }
 
   override fun getComponent(): JComponent = panel
 
