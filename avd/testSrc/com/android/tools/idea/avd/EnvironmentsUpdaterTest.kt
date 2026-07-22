@@ -56,7 +56,7 @@ class EnvironmentsUpdaterTest {
     assertThat(Files.readAllBytes(destDir.resolve("sub/file2.txt"))).isEqualTo("v2".toByteArray())
 
     // 2) Modify file in destination to simulate existing older file; recordExistingFile will also create parent directories if needed.
-    sourceDir.resolve("file1.txt").recordExistingFile(5000L, "v1_older".toByteArray())
+    sourceDir.resolve("file1.txt").recordExistingFile(5000L, "v0".toByteArray())
     updateDirectory(sourceDir, destDir)
 
     // Verify it wasn't overwritten by the older source.
