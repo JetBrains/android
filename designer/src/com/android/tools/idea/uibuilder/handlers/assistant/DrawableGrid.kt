@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser
+package com.android.tools.idea.uibuilder.handlers.assistant
 
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
@@ -44,7 +44,6 @@ import javax.swing.ListModel
 private const val ITEM_BORDER_WIDTH = 4
 private const val ITEM_SELECTED_BORDER_WIDTH = 2
 private const val DEFAULT_CACHE_SIZE = 128L
-private val DEFAULT_IMAGE_SIZE = JBUI.scale(48)
 private val EMPTY_ICON_COLOR = JBColor(Color(0xAA, 0xAA, 0xAA, 0x33), Color(0xAA, 0xAA, 0xAA, 0x33))
 private val ITEM_BORDER = JBUI.Borders.empty(ITEM_BORDER_WIDTH)
 private val ITEM_BORDER_SELECTED =
@@ -57,7 +56,7 @@ private val ITEM_BORDER_SELECTED =
 open class DrawableGrid(
   val module: Module,
   model: ListModel<ResourceValue>,
-  imageSize: Int = DEFAULT_IMAGE_SIZE,
+  imageSize: Int = JBUI.scale(48),
   private val cacheSize: Long = DEFAULT_CACHE_SIZE,
 ) : JList<ResourceValue>(model) {
 

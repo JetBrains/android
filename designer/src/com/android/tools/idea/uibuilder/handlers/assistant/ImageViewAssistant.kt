@@ -25,7 +25,6 @@ import com.android.tools.idea.res.SampleDataResourceItem.ContentType.IMAGE
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getDrawableResources
 import com.android.tools.idea.res.getSampleDataOfType
-import com.android.tools.idea.ui.resourcechooser.DrawableGrid
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
