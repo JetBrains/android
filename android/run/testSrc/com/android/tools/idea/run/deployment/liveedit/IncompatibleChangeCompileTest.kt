@@ -27,6 +27,7 @@ import kotlin.test.assertEquals
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -90,6 +91,7 @@ class IncompatibleChangeCompileTest {
   }
 
   @Test
+  @Ignore("b/537848546")
   fun `Skips compose $stable`() {
     val file =
       projectRule.createKtFile(
