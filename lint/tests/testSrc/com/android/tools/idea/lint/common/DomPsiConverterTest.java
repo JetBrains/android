@@ -41,6 +41,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -394,5 +395,69 @@ public class DomPsiConverterTest extends UsefulTestCase {
     assertNotNull(comment);
     assertEquals(Node.COMMENT_NODE, comment.getNodeType());
     assertEquals(" my comment ", comment.getNodeValue());
+  }
+
+  public void testFindNodeAtExhaustive() {
+    // findNodeAt uses a binary search over the children; make sure it agrees with a
+    // straightforward reverse linear scan (the previous implementation) for every
+    // offset in the document, including sibling boundaries, attribute regions and
+    // offsets inside the open/close tag markup
+    String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                 "<!-- header comment -->\n" +
+                 "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    android:orientation=\"vertical\" >\n" +
+                 "    <Button\n" +
+                 "        android:id=\"@+id/button1\"\n" +
+                 "        android:text=\"Button\" />\n" +
+                 "    <TextView android:text=\"abc\"/><TextView android:text=\"def\"/>\n" +
+                 "    <!-- my comment -->\n" +
+                 "    some text\n" +
+                 "    <empty></empty>\n" +
+                 "</LinearLayout>\n";
+
+    XmlFile xmlFile = (XmlFile)myFixture.configureByText("test.xml", xml);
+    final Document psiDocument = DomPsiConverter.convert(xmlFile);
+    assertNotNull(psiDocument);
+
+    for (int offset = 0; offset <= xml.length(); offset++) {
+      assertSame("offset " + offset, referenceFindNodeAt(psiDocument, offset), DomPsiConverter.findNodeAt(psiDocument, offset));
+    }
+  }
+
+  /** Reverse linear scan reference implementation of {@link DomPsiConverter#findNodeAt} */
+  private static Node referenceFindNodeAt(Node node, int offset) {
+    if (node instanceof Document) {
+      node = ((Document)node).getDocumentElement();
+      if (node == null) {
+        return null;
+      }
+    }
+    if (!DomPsiConverter.getTextRange(node).containsOffset(offset)) {
+      return null;
+    }
+
+    Node child = node.getLastChild();
+    if (child == null) {
+      if (node instanceof Element) {
+        NamedNodeMap attributes = node.getAttributes();
+        for (int i = 0; i < attributes.getLength(); i++) {
+          Node attribute = attributes.item(i);
+          if (DomPsiConverter.getTextRange(attribute).containsOffset(offset)) {
+            return attribute;
+          }
+        }
+      }
+      return node;
+    }
+
+    while (child != null) {
+      Node match = referenceFindNodeAt(child, offset);
+      if (match != null) {
+        return match;
+      }
+      child = child.getPreviousSibling();
+    }
+
+    return node;
   }
 }
