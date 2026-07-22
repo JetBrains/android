@@ -143,7 +143,8 @@
         <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X 10.5+"/>
       </action>
       <group id="android.emulator.environments" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentActionGroup"
-             icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT" text="Environment" description="Select environment for the Intelligent Eyewear device"
+             icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT"
+             text="Select Environment" description="Select environment for the Intelligent Eyewear device"
              popup="true">
         <group id="android.emulator.environments.builtin" class="com.android.tools.idea.streaming.emulator.actions.EmulatorBuiltInEnvironmentsActionGroup"/>
         <action id="android.emulator.environment.custom"

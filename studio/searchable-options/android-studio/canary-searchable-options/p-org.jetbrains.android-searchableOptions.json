@@ -939,10 +939,6 @@
       "path": "ActionManager"
     },
     {
-      "hit": "Environment",
-      "path": "ActionManager"
-    },
-    {
       "hit": "Environment Visibility",
       "path": "ActionManager"
     },
@@ -1568,6 +1564,10 @@
     },
     {
       "hit": "Select Device",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Select Environment",
       "path": "ActionManager"
     },
     {
