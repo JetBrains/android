@@ -40,6 +40,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -139,7 +140,7 @@ class DatabaseInspectorClient(
 
     if (response.trackDatabases.trackedAdditionalDriversCount != command.additionalDriversCount) {
       ideServices.showNotification(
-        message("notification.additional.driver.error", settings.additionalDriverClass),
+        message("notification.additional.driver.error", escapeXmlEntities(settings.additionalDriverClass)),
         message("database.inspector"),
         ERROR,
       )
