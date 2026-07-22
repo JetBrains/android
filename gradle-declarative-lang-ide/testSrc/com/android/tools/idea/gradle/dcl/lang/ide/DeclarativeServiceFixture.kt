@@ -40,7 +40,16 @@ internal fun createTestDeclarativeSchemas(path: String): BuildDeclarativeSchemas
 
   children?.forEach { fileName ->
     val file = File(folder, fileName)
-    val analysisSchema: AnalysisSchema = SchemaSerialization.schemaFromJsonString(file.readText())
+    val fileText = file.readText()
+    val analysisSchema: AnalysisSchema = try {
+      SchemaSerialization.schemaFromJsonString(fileText)
+    } catch (e: Exception) {
+      val updatedText = fileText.replace(
+        "\"type\": \"custom\"",
+        "\"type\": \"org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal.DefaultCustom\""
+      )
+      SchemaSerialization.schemaFromJsonString(updatedText)
+    }
     val ideSchema = analysisSchema.convert()
     if (fileName.startsWith("settings")) settingsSchemas.add(ideSchema) else projectSchemas.add(ideSchema)
   }
