@@ -15,6 +15,7 @@
  */
 package com.google.idea.bazel.java.run.producers;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.ide.util.PsiClassListCellRenderer;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -22,6 +23,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.swing.ListSelectionModel;
@@ -31,6 +33,9 @@ import javax.swing.ListSelectionModel;
  * abstract (or non-abstract super-class) test class/method.
  */
 public class SubclassTestChooser {
+
+  @VisibleForTesting
+  public static BiConsumer<List<PsiClass>, Consumer<PsiClass>> testSelectionHook = null;
 
   static void chooseSubclass(
       ConfigurationContext context,
@@ -45,6 +50,10 @@ public class SubclassTestChooser {
     }
     if (classes.size() == 1) {
       callbackOnClassSelection.accept(classes.get(0));
+      return;
+    }
+    if (testSelectionHook != null) {
+      testSelectionHook.accept(classes, callbackOnClassSelection);
       return;
     }
     PsiClassListCellRenderer renderer = new PsiClassListCellRenderer();
