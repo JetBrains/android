@@ -1263,6 +1263,10 @@
       "path": "ActionManager"
     },
     {
+      "hit": "No Environment (Black Background)",
+      "path": "ActionManager"
+    },
+    {
       "hit": "Obtain a screenshot from the device",
       "path": "ActionManager"
     },
@@ -1340,10 +1344,6 @@
     },
     {
       "hit": "Phone",
-      "path": "ActionManager"
-    },
-    {
-      "hit": "Pitch Dark",
       "path": "ActionManager"
     },
     {
