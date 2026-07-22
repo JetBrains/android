@@ -20,6 +20,7 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.utils.PositionXmlParser;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -137,6 +138,7 @@ public class DomPsiConverter {
 
   @Nullable
   static DomNode findNodeAt(@NonNull DomNode element, int offset) {
+    ProgressManager.checkCanceled();
     TextRange range = element.getTextRange();
     if (range == null) {
       return null;
@@ -514,6 +516,9 @@ public class DomPsiConverter {
     @Override
     public DomNodeList getChildNodes() {
       if (myChildren == null) {
+        // Nothing is cached yet at this point, so an aborted call leaves no
+        // partially initialized state behind
+        ProgressManager.checkCanceled();
         PsiElement[] children = myElement.getChildren();
         if (children.length > 0) {
           DomNodeList list = new DomNodeList();
@@ -1208,6 +1213,7 @@ public class DomPsiConverter {
       stack.add(new NodeWithIndex(this));
 
       while (true) {
+        ProgressManager.checkCanceled();
         NodeWithIndex top = stack.get(stack.size() - 1);
         if (top.nextNodeIndex < top.node.getChildNodes().getLength()) {
           Node next = top.node.getChildNodes().item(top.nextNodeIndex++);
