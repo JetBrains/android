@@ -84,6 +84,7 @@ public class SpecificActivityLaunchTest {
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
     state.ACTIVITY_CLASS = "com.example.app.MyActivity";
     IDevice device = Mockito.mock(IDevice.class);
+    Mockito.when(device.getSerialNumber()).thenReturn("1234");
     App app =
       createApp(device, "com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
 
