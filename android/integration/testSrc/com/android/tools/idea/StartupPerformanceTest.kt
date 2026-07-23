@@ -56,7 +56,6 @@ class StartupPerformanceTest {
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
-
       studio.waitForFinishedCodeAnalysis(null)
     }
 
@@ -119,7 +118,7 @@ class StartupPerformanceTest {
         benchmark.logWithoutAnalyzer(it.metricLabel, it.metricValue)
         return
       }
-      metricConstTerms[it.metricLabel]?.get(if (SystemInfo.isWindows) 0 else 1)?.toLong()?.let { constTerm ->
+      metricConstTerms[it.metricLabel]?.get(if (SystemInfo.isWindows) 1 else 0)?.toLong()?.let { constTerm ->
         benchmark.log(it.metricLabel, it.metricValue, constTerm)
         return
       }

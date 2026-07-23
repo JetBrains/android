@@ -251,10 +251,14 @@ public class AndroidStudio extends Ide {
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
     TestLogger.log("Waiting up to %d %s for Gradle sync", timeout, unit);
     Matcher matcher = install.getIdeaLog()
-      .waitForMatchingLine(".*Gradle sync finished in (.*)",
+      .waitForMatchingLine(".*(?:Gradle sync finished in (.*)|Up-to-date models found in the cache\\. Not invoking Gradle sync.*)",
                            "(.*org\\.gradle\\.tooling\\.\\w+Exception.*)|" +
                            "(.*Gradle sync failed in (.*))", timeout, unit);
-    TestLogger.log("Sync took %s", matcher.group(1));
+    if (matcher.group(1) != null) {
+      TestLogger.log("Sync took %s", matcher.group(1));
+    } else {
+      TestLogger.log("Sync was skipped (Up-to-date models found in cache)");
+    }
   }
 
   private void benchmarkLog(String name){
