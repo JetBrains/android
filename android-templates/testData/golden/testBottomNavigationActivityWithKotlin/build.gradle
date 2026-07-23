@@ -1,4 +1,0 @@
-// This file should not be edited manually! See go/template-diff-tests
-plugins {
-    alias(libs.plugins.android.application) apply false
-}
