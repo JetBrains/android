@@ -20,9 +20,7 @@ import com.intellij.util.xml.Attribute
 import com.intellij.util.xml.Convert
 import com.intellij.util.xml.CustomChildren
 import com.intellij.util.xml.DefinesXml
-import com.intellij.util.xml.PsiPackageConverter
 import com.intellij.util.xml.Required
-import com.intellij.util.xml.converters.ClassValueConverterImpl
 import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.LookupClass
 import org.jetbrains.android.dom.LookupPrefix
@@ -45,9 +43,9 @@ interface PreferenceElementBase : XmlResourceElement {
     @Convert(ConstantFieldConverter::class)
     fun getAction(): AndroidAttributeValue<String>
 
-    @Convert(ClassValueConverterImpl::class) @Attribute("targetClass") fun getTargetClass(): AndroidAttributeValue<PsiClass>
+    @Attribute("targetClass") fun getTargetClass(): AndroidAttributeValue<PsiClass>
 
-    @Convert(PsiPackageConverter::class) @Attribute("targetPackage") fun getTargetPackage(): AndroidAttributeValue<String>
+    @Attribute("targetPackage") fun getTargetPackage(): AndroidAttributeValue<String>
 
     val extras: List<Extra>
     val categories: List<Category>
