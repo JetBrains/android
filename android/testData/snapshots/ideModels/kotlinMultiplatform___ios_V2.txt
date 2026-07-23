@@ -4760,7 +4760,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
-                        - unknownArgs                 : -no-endorsed-libs
                         - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
@@ -4900,7 +4899,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
-                        - unknownArgs                 : -no-endorsed-libs
                         - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
@@ -4979,7 +4977,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
-                        - unknownArgs                 : -no-endorsed-libs
                         - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
@@ -5053,7 +5050,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
-                        - unknownArgs                 : -no-endorsed-libs
                         - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
@@ -5132,7 +5128,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
-                        - unknownArgs                 : -no-endorsed-libs
                         - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
@@ -5206,7 +5201,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     errors                        : ArgumentParseErrors
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
-                        - unknownArgs                 : -no-endorsed-libs
                         - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
