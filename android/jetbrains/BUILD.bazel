@@ -201,6 +201,8 @@ jvm_library(
         "//platform/refactoring:refactoring_test_lib",
         "//platform/remote-core",
         "//platform/remote-core:remote-core_test_lib",
+        "//platform/service-container",
+        "//platform/service-container:service-container_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
         "//platform/testFramework/common",

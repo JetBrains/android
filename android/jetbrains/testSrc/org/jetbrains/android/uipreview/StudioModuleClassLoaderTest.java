@@ -53,11 +53,15 @@ import com.android.tools.idea.testing.ModuleModelBuilder;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
+import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.components.ComponentManagerEx;
+import com.intellij.openapi.components.TestMutableComponentManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.impl.ModuleImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
@@ -66,7 +70,10 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.ComponentManagerImpl;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
+import com.intellij.workspaceModel.ide.impl.legacyBridge.module.ModuleBridgeImpl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -157,9 +164,10 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
   }
 
   private void doTestAARPriority() throws IOException {
-    testResourceIdManager = TestResourceIdManager.Companion.getManager(myModule);
-    testResourceIdManager.setFinalIdsUsed(false);
     Module module = myFixture.getModule();
+    testResourceIdManager = TestResourceIdManager.Companion.createManagerForTest();
+    ServiceContainerUtil.replaceService(module, ResourceIdManager.class, testResourceIdManager, myFixture.getTestRootDisposable());
+    testResourceIdManager.setFinalIdsUsed(false);
     File tmpDir = Files.createTempDirectory("testProject").toFile();
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + module.getName() + "/test");
     assertTrue(FileUtil.createDirectory(outputDir));
@@ -245,7 +253,6 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
   }
 
   private void doTestLibRClass(boolean finalIdsUsed) throws Exception {
-
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(Objects.requireNonNull(getProject().getBasePath())),
@@ -254,7 +261,8 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
         "debug",
         createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, "p1.p2")));
     final var mainModule = getMainModule(gradleModule(getProject(), ":"));
-    testResourceIdManager = TestResourceIdManager.Companion.getManager(mainModule);
+    testResourceIdManager = TestResourceIdManager.Companion.createManagerForTest();
+    ServiceContainerUtil.replaceService(mainModule, ResourceIdManager.class, testResourceIdManager, myFixture.getTestRootDisposable());
     testResourceIdManager.setFinalIdsUsed(finalIdsUsed);
     final var mainFacet = AndroidFacet.getInstance(mainModule);
     SourceProviders sourceProviderManager = SourceProviderManager.getInstance(mainFacet);

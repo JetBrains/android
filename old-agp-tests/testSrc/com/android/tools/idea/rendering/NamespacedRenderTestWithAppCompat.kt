@@ -20,9 +20,11 @@ import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -47,7 +49,11 @@ class NamespacedRenderTestWithAppCompat {
     projectRule.loadProject(TestProjectPaths.NAMESPACES_WITH_APPCOMPAT)
     projectRule.generateSources()
     waitUntilIndexesAreReady(project)
-    resourceIdManger = TestResourceIdManager.getManager(projectRule.getModule("app.main"))
+
+    resourceIdManger = TestResourceIdManager.createManagerForTest()
+    projectRule
+      .getModule("app.main")
+      .replaceService(ResourceIdManager::class.java, resourceIdManger, projectRule.fixture.testRootDisposable)
     // Disable final IDs for this test, so it can use light classes to resolve resources.
     // Final IDs being enabled/disabled are covered by other tests, namely ModuleClassLoaderTest and
     // LibraryResourceClassLoaderTest.
