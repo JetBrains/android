@@ -23,7 +23,9 @@ import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.module.Module
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -54,7 +56,8 @@ class LibraryResourceClassLoaderTest {
 
   @Before
   fun setup() {
-    resourceIdManger = TestResourceIdManager.getManager(androidProjectRule.module)
+    resourceIdManger = TestResourceIdManager.createManagerForTest()
+    androidProjectRule.module.replaceService(ResourceIdManager::class.java, resourceIdManger, androidProjectRule.testRootDisposable)
     resourceIdManger.setFinalIdsUsed(false)
 
     addAarDependency(androidProjectRule.fixture, androidProjectRule.module, "aarLib", "com.example.mylibrary") { resDir ->
