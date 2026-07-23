@@ -287,6 +287,9 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
       if (result == null || userPreferences.refreshQueryDataOnStartup) {
         val lastProjectStructureData = scanDirectoryAndConfigureModule(context)
+        if (userPreferences.commitProjectStructureAfterInitialScan) {
+          updateProjectStructureAndSnapshot(context, lastProjectStructureData)
+        }
         val duration = measureTime {
           syncStatsScope(context) { context ->
             runQueryAndReadProjectStructureAndApply(
@@ -297,9 +300,6 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
           }
         }
         QuerySyncActionStatsScope.fromContext(context).ifPresent { it.setStartupBazelQueryTime(ofMillis(duration.inWholeMilliseconds)) }
-        if (userPreferences.commitProjectStructureAfterQuery) {
-          updateProjectStructureAndSnapshot(context)
-        }
       } else {
         updateCurrentSnapshot(context) {
           val coreSyncResult = assertProjectLoaded().syncQueryCore(context, result.existingPostQuerySyncData)
@@ -314,7 +314,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
 
   private fun scanDirectoryAndConfigureModule(context: BlazeContext): ProjectStructureData? =
     userPreferences
-      .takeIf { it.commitProjectStructureAfterQuery }
+      .takeIf { it.commitProjectStructureAfterInitialScan }
       ?.let {
         val loadedProject = assertProjectLoaded()
         context.output(StatusOutput("Scanning directory structure..."))
@@ -323,7 +323,6 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
           QuerySyncActionStatsScope.fromContext(context).ifPresent {
             it.setStartupDirectoryScanTime(ofMillis(duration.inWholeMilliseconds))
           }
-          updateProjectStructureAndSnapshot(context, it)
         }
       }
 
@@ -367,7 +366,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       syncStatsScope(context) { context ->
         runQueryAndReadProjectStructureAndApply(context, lastQuery = null, lastProjectStructureData = null)
       }
-      if (userPreferences.commitProjectStructureAfterQuery) {
+      if (userPreferences.commitProjectStructureAfterInitialScan) {
         updateProjectStructureAndSnapshot(context)
       }
       autoEnableCodeAnalysis(context)
@@ -386,7 +385,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       syncStatsScope(context) { context ->
         runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
       }
-      if (userPreferences.commitProjectStructureAfterQuery) {
+      if (userPreferences.commitProjectStructureAfterInitialScan) {
         updateProjectStructureAndSnapshot(context)
       }
       autoEnableCodeAnalysis(context)
