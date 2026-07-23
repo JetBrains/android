@@ -6715,6 +6715,14 @@ Projects:
                       Receiver ReferenceType        : com.android.build.api.dsl.Lint
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.TargetSdkSpec
+                    - MemberFunctionName            : toolchain
+                      Receiver ReferenceType        : com.android.build.api.dsl.Lint
+                      Parameters
+                      Block ReferenceType           : org.gradle.jvm.toolchain.JavaToolchainSpec
+                    - MemberFunctionName            : toolchain
+                      Receiver ReferenceType        : com.android.build.api.dsl.Lint
+                      Parameters
+                      Block ReferenceType           : org.gradle.jvm.toolchain.JavaToolchainSpec
                 Properties
                     - PropertyName                  : abortOnError
                       Property SimpleType           : BOOLEAN
@@ -6794,6 +6802,8 @@ Projects:
                       Property ReferenceType        : java.io.File
                     - PropertyName                  : textReport
                       Property SimpleType           : BOOLEAN
+                    - PropertyName                  : toolchain
+                      Property ReferenceType        : org.gradle.jvm.toolchain.JavaToolchainSpec
                     - PropertyName                  : warning
                       Property DataClassWithType    : kotlin.collections.Set
                       GenericTypes
@@ -8230,6 +8240,13 @@ Projects:
                 Name                          : kotlin.collections.Set
                 GenericArguments
                     ConcreteGeneric ReferenceType : org.gradle.api.artifacts.DependencyArtifact
+            org.gradle.api.Describable
+                Name                          : org.gradle.api.Describable
+                MemberFunctions
+                Properties
+                    - PropertyName                  : displayName
+                      Property SimpleType           : STRING
+                Supertypes                    : kotlin.Any
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -8759,6 +8776,90 @@ Projects:
                 Properties
                     - PropertyName                  : layout
                       Property ReferenceType        : org.gradle.api.file.ProjectLayout
+                Supertypes                    : kotlin.Any
+            org.gradle.jvm.toolchain.JavaLanguageVersion
+                Name                          : org.gradle.jvm.toolchain.JavaLanguageVersion
+                MemberFunctions
+                    - MemberFunctionName            : asInt
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                      Function SimpleType           : INT
+                    - MemberFunctionName            : canCompileOrRun
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                          - Name                          : otherVersion
+                            Value SimpleType              : INT
+                      Function SimpleType           : BOOLEAN
+                    - MemberFunctionName            : canCompileOrRun
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                          - Name                          : other
+                            Value ReferenceType           : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Function SimpleType           : BOOLEAN
+                    - MemberFunctionName            : current
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                    - MemberFunctionName            : of
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                          - Name                          : version
+                            Value SimpleType              : INT
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                    - MemberFunctionName            : of
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                          - Name                          : version
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                Properties
+                Supertypes                    : kotlin.Comparable,kotlin.Any
+            org.gradle.jvm.toolchain.JavaToolchainSpec
+                Name                          : org.gradle.jvm.toolchain.JavaToolchainSpec
+                MemberFunctions
+                Properties
+                    - PropertyName                  : displayName
+                      Property SimpleType           : STRING
+                    - PropertyName                  : implementation
+                      Property ReferenceType        : org.gradle.jvm.toolchain.JvmImplementation
+                    - PropertyName                  : languageVersion
+                      Property ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                    - PropertyName                  : nativeImageCapable
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : vendor
+                      Property ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                Supertypes                    : org.gradle.api.Describable,kotlin.Any
+            org.gradle.jvm.toolchain.JvmImplementation
+                Name                          : org.gradle.jvm.toolchain.JvmImplementation
+                MemberFunctions
+                    - MemberFunctionName            : toString
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JvmImplementation
+                      Parameters
+                      Function SimpleType           : STRING
+                Properties
+                Supertypes                    : kotlin.Any
+            org.gradle.jvm.toolchain.JvmVendorSpec
+                Name                          : org.gradle.jvm.toolchain.JvmVendorSpec
+                MemberFunctions
+                    - MemberFunctionName            : matches
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                      Parameters
+                          - Name                          : vendor
+                            Value SimpleType              : STRING
+                      Function SimpleType           : BOOLEAN
+                    - MemberFunctionName            : matching
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                      Parameters
+                          - Name                          : match
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                    - MemberFunctionName            : of
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                      Parameters
+                          - Name                          : vendor
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                Properties
                 Supertypes                    : kotlin.Any
             org.gradle.process.CommandLineArgumentProvider
                 Name                          : org.gradle.process.CommandLineArgumentProvider
@@ -16811,6 +16912,14 @@ Settings:
                       Receiver ReferenceType        : com.android.build.api.dsl.Lint
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.TargetSdkSpec
+                    - MemberFunctionName            : toolchain
+                      Receiver ReferenceType        : com.android.build.api.dsl.Lint
+                      Parameters
+                      Block ReferenceType           : org.gradle.jvm.toolchain.JavaToolchainSpec
+                    - MemberFunctionName            : toolchain
+                      Receiver ReferenceType        : com.android.build.api.dsl.Lint
+                      Parameters
+                      Block ReferenceType           : org.gradle.jvm.toolchain.JavaToolchainSpec
                 Properties
                     - PropertyName                  : abortOnError
                       Property SimpleType           : BOOLEAN
@@ -16890,6 +16999,8 @@ Settings:
                       Property ReferenceType        : java.io.File
                     - PropertyName                  : textReport
                       Property SimpleType           : BOOLEAN
+                    - PropertyName                  : toolchain
+                      Property ReferenceType        : org.gradle.jvm.toolchain.JavaToolchainSpec
                     - PropertyName                  : warning
                       Property DataClassWithType    : kotlin.collections.Set
                       GenericTypes
@@ -18326,6 +18437,13 @@ Settings:
                 Name                          : kotlin.collections.Set
                 GenericArguments
                     ConcreteGeneric ReferenceType : org.gradle.api.artifacts.DependencyArtifact
+            org.gradle.api.Describable
+                Name                          : org.gradle.api.Describable
+                MemberFunctions
+                Properties
+                    - PropertyName                  : displayName
+                      Property SimpleType           : STRING
+                Supertypes                    : kotlin.Any
             org.gradle.api.JavaVersion
                 Name                          : org.gradle.api.JavaVersion
                 EntryNames
@@ -18869,6 +18987,90 @@ Settings:
                       Receiver ReferenceType        : org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
                       Parameters
                       Block ReferenceType           : com.android.build.api.dsl.LibraryDeclarativeDefinition
+                Properties
+                Supertypes                    : kotlin.Any
+            org.gradle.jvm.toolchain.JavaLanguageVersion
+                Name                          : org.gradle.jvm.toolchain.JavaLanguageVersion
+                MemberFunctions
+                    - MemberFunctionName            : asInt
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                      Function SimpleType           : INT
+                    - MemberFunctionName            : canCompileOrRun
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                          - Name                          : otherVersion
+                            Value SimpleType              : INT
+                      Function SimpleType           : BOOLEAN
+                    - MemberFunctionName            : canCompileOrRun
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                          - Name                          : other
+                            Value ReferenceType           : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Function SimpleType           : BOOLEAN
+                    - MemberFunctionName            : current
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                    - MemberFunctionName            : of
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                          - Name                          : version
+                            Value SimpleType              : INT
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                    - MemberFunctionName            : of
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                      Parameters
+                          - Name                          : version
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                Properties
+                Supertypes                    : kotlin.Comparable,kotlin.Any
+            org.gradle.jvm.toolchain.JavaToolchainSpec
+                Name                          : org.gradle.jvm.toolchain.JavaToolchainSpec
+                MemberFunctions
+                Properties
+                    - PropertyName                  : displayName
+                      Property SimpleType           : STRING
+                    - PropertyName                  : implementation
+                      Property ReferenceType        : org.gradle.jvm.toolchain.JvmImplementation
+                    - PropertyName                  : languageVersion
+                      Property ReferenceType        : org.gradle.jvm.toolchain.JavaLanguageVersion
+                    - PropertyName                  : nativeImageCapable
+                      Property SimpleType           : BOOLEAN
+                    - PropertyName                  : vendor
+                      Property ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                Supertypes                    : org.gradle.api.Describable,kotlin.Any
+            org.gradle.jvm.toolchain.JvmImplementation
+                Name                          : org.gradle.jvm.toolchain.JvmImplementation
+                MemberFunctions
+                    - MemberFunctionName            : toString
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JvmImplementation
+                      Parameters
+                      Function SimpleType           : STRING
+                Properties
+                Supertypes                    : kotlin.Any
+            org.gradle.jvm.toolchain.JvmVendorSpec
+                Name                          : org.gradle.jvm.toolchain.JvmVendorSpec
+                MemberFunctions
+                    - MemberFunctionName            : matches
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                      Parameters
+                          - Name                          : vendor
+                            Value SimpleType              : STRING
+                      Function SimpleType           : BOOLEAN
+                    - MemberFunctionName            : matching
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                      Parameters
+                          - Name                          : match
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                    - MemberFunctionName            : of
+                      Receiver ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
+                      Parameters
+                          - Name                          : vendor
+                            Value SimpleType              : STRING
+                      Function ReferenceType        : org.gradle.jvm.toolchain.JvmVendorSpec
                 Properties
                 Supertypes                    : kotlin.Any
             org.gradle.process.CommandLineArgumentProvider
