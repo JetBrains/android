@@ -28,7 +28,7 @@ import java.util.function.Supplier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<List<FormFactor>>) {
+class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<List<FormFactor>>, private val initialTarget: String? = null) {
   var onGridItemDoubleClick: () -> Unit = {}
 
   var chooseAndroidProjectEntries by mutableStateOf<List<ChooseAndroidProjectEntry>>(emptyList())
@@ -68,8 +68,17 @@ class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<Lis
         }
       }
     }
+
+    if (!initialTarget.isNullOrBlank()) {
+      entries.firstOrNull { matchesTarget(it, initialTarget) }?.let { selectedAndroidProjectEntry = it }
+    }
+
     chooseAndroidProjectEntries = entries
     isLoading = false
+  }
+
+  private fun matchesTarget(entry: ChooseAndroidProjectEntry, target: String): Boolean {
+    return entry.entryId.contains(target, ignoreCase = true)
   }
 
   fun updateSelectedCell(entry: ChooseAndroidProjectEntry?) {

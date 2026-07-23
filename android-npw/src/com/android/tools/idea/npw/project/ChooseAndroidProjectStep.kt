@@ -45,10 +45,10 @@ import org.jetbrains.android.util.AndroidBundle.message
  * First page in the New Project wizard that allows user to select the [FormFactor] (Mobile, Wear, TV, etc.) and its template ("Empty
  * Activity", "Basic", "Navigation Drawer", etc.)
  */
-class ChooseAndroidProjectStep(model: NewProjectModel) :
+class ChooseAndroidProjectStep(model: NewProjectModel, private val initialTarget: String? = null) :
   ModelWizardStep<NewProjectModel>(model, message("android.wizard.project.new.choose")) {
   private val formFactors: Supplier<List<FormFactor>> = Suppliers.memoize { createFormFactors() }
-  private val uiModel = ChooseAndroidProjectStepModel(formFactors)
+  private val uiModel = ChooseAndroidProjectStepModel(formFactors, initialTarget)
   private val rootView = StudioComposePanel { ChooseAndroidProjectStepUI(model = uiModel) }
   private val canGoForward = BoolValueProperty()
   private var newProjectModuleModel: NewProjectModuleModel? = null

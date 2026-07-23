@@ -31,6 +31,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 
 interface ChooseAndroidProjectEntry {
+  val entryId: String
+    get() = javaClass.simpleName
+
   @Composable fun AndroidProjectListEntry(isSelected: Boolean, isFocused: Boolean)
 
   @Composable fun AndroidProjectEntryDetails()
@@ -66,6 +69,9 @@ class FormFactorProjectEntry(
   selectedGridItem: GridItem?,
   val onGridItemDoubleClick: () -> Unit = {},
 ) : ChooseAndroidProjectEntry {
+  override val entryId: String
+    get() = formFactorTitle
+
   var selectedGridItem by mutableStateOf(selectedGridItem)
 
   @Composable

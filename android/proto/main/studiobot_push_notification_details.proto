@@ -46,6 +46,8 @@ message StudioPushNotification {
       // enum in OpenUiAction.
       string ui_screen_id = 4;
     }
+    // Optional parameter for ui_screen_id
+    optional string ui_screen_param = 5;
   }
   // A spec for showing a push notification as an IntelliJ notification -
   // https://plugins.jetbrains.com/docs/intellij/balloon.html
