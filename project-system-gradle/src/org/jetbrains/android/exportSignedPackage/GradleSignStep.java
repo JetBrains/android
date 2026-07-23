@@ -39,6 +39,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.TitledSeparator;
 import com.android.tools.idea.publishing.AdiClient;
+import com.android.tools.idea.publishing.AppPublisherAvailability;
+import com.android.tools.idea.publishing.AppPublishingService;
+import com.android.tools.idea.publishing.AppPublishingSource;
 import com.android.tools.idea.publishing.RegistrationState;
 import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBLabel;
@@ -112,6 +115,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private final JBLabel myWarningText = new JBLabel();
   final JCheckBox myContinueToPlayCheckBox = new JCheckBox();
   final BorderLayoutPanel myPublishingPanel = new BorderLayoutPanel();
+  private final JBLabel myPublishingCheckboxLabel = new JBLabel("Continue to the Publish for Testing Wizard");
+  private final JBLabel myPublishingDescriptionLabel = new JBLabel("Upload the signed App Bundle to a new or existing Play app listing.");
 
   private final AdiClient myAdiClient;
 
@@ -235,13 +240,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       updateAdiStatus();
     }
 
-    boolean isBundle = targetType == BUNDLE;
-    if (StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.get() && isBundle) {
-      myPublishingPanel.setVisible(true);
-    } else {
-      myPublishingPanel.setVisible(false);
-      myContinueToPlayCheckBox.setSelected(false);
-    }
+    updatePublishingSection(targetType);
   }
 
   @Override
@@ -407,18 +406,18 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
       BorderLayoutPanel textPanel = new BorderLayoutPanel(0, 5);
       textPanel.setBorder(JBUI.Borders.empty(2));
-      JBLabel checkboxLabel = new JBLabel("Continue to the Publish for Testing Wizard");
-      checkboxLabel.addMouseListener(new MouseAdapter() {
+      myPublishingCheckboxLabel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
-          myContinueToPlayCheckBox.setSelected(!myContinueToPlayCheckBox.isSelected());
+          if (myContinueToPlayCheckBox.isEnabled()) {
+            myContinueToPlayCheckBox.setSelected(!myContinueToPlayCheckBox.isSelected());
+          }
         }
       });
-      JBLabel descriptionLabel = new JBLabel("Upload the signed App Bundle to a new or existing Play app listing.");
-      descriptionLabel.setForeground(DISABLED_TEXT_COLOR);
+      myPublishingDescriptionLabel.setForeground(DISABLED_TEXT_COLOR);
 
-      textPanel.addToTop(checkboxLabel);
-      textPanel.addToCenter(descriptionLabel);
+      textPanel.addToTop(myPublishingCheckboxLabel);
+      textPanel.addToCenter(myPublishingDescriptionLabel);
 
       BorderLayoutPanel publishingPanel = new BorderLayoutPanel();
       BorderLayoutPanel checkBoxPanel = new BorderLayoutPanel();
@@ -567,6 +566,37 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       return variant.getApplicationId();
     }
     return null;
+  }
+
+  private void updatePublishingSection(@NotNull TargetType targetType) {
+    boolean isBundle = targetType == BUNDLE;
+    boolean showPublishing = false;
+    boolean enableCheckbox = false;
+
+    if (isBundle) {
+      AppPublisherAvailability availability = AppPublishingService.getInstance(myWizard.getProject())
+          .isPublisherAvailable("Google Play", AppPublishingSource.EXPORT_SIGNED_PACKAGE_WIZARD);
+
+      if (availability.isExecutable()) {
+        showPublishing = true;
+        enableCheckbox = true;
+        myPublishingCheckboxLabel.setText("Continue to the Publish for Testing Wizard");
+        myPublishingDescriptionLabel.setText("Upload the signed App Bundle to a new or existing Play app listing.");
+        myPublishingDescriptionLabel.setForeground(DISABLED_TEXT_COLOR);
+      } else if (availability instanceof AppPublisherAvailability.Unsupported unsupported) {
+        showPublishing = true;
+        myPublishingCheckboxLabel.setText(unsupported.getHeader());
+        myPublishingDescriptionLabel.setText("<html>" + unsupported.getDescription() + "</html>");
+        myPublishingDescriptionLabel.setForeground(DISABLED_TEXT_COLOR);
+      }
+    }
+
+    myPublishingPanel.setVisible(showPublishing);
+    myContinueToPlayCheckBox.setEnabled(enableCheckbox);
+    myContinueToPlayCheckBox.setVisible(enableCheckbox);
+    if (!enableCheckbox) {
+      myContinueToPlayCheckBox.setSelected(false);
+    }
   }
 
   private @Nullable Boolean registrationStateToBoolean() {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.publishing
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -24,19 +23,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 class PublishActionGroup : ActionGroup() {
 
   override fun getChildren(e: AnActionEvent?): Array<AnAction> {
-    if (!StudioFlags.PLAY_PUBLISHING_BUILD_MENU_ACTION.get()) {
-      return emptyArray()
-    }
-    return AppPublisher.EP_NAME.extensionList.filter { it.isAvailable() }.map { publisher -> PublishAppAction(publisher) }.toTypedArray()
+    return AppPublisher.EP_NAME.extensionList
+      .filter { it.isPublisherAvailable(AppPublishingSource.BUILD_MENU).isExecutable }
+      .map { publisher -> PublishAppAction(publisher) }
+      .toTypedArray()
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible =
-      e.project != null &&
-        StudioFlags.PLAY_PUBLISHING_BUILD_MENU_ACTION.get() &&
-        AppPublisher.EP_NAME.extensionList.any { it.isAvailable() }
+      e.project != null && AppPublisher.EP_NAME.extensionList.any { it.isPublisherAvailable(AppPublishingSource.BUILD_MENU).isExecutable }
   }
 }
 
@@ -50,6 +47,6 @@ class PublishAppAction(private val publisher: AppPublisher) : AnAction(publisher
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = publisher.isAvailable()
+    e.presentation.isEnabledAndVisible = publisher.isPublisherAvailable(AppPublishingSource.BUILD_MENU).isExecutable
   }
 }

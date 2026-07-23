@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.publishing
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
@@ -35,7 +33,6 @@ class PublishActionGroupTest {
 
   @Test
   fun testGetChildren_empty() {
-    StudioFlags.PLAY_PUBLISHING_BUILD_MENU_ACTION.overrideForTest(true, projectRule.disposable)
     ExtensionTestUtil.maskExtensions(AppPublisher.EP_NAME, emptyList(), projectRule.disposable)
 
     val group = PublishActionGroup()
@@ -46,13 +43,12 @@ class PublishActionGroupTest {
 
   @Test
   fun testGetChildren_filtersUnavailable() {
-    StudioFlags.PLAY_PUBLISHING_BUILD_MENU_ACTION.overrideForTest(true, projectRule.disposable)
     val availablePublisher =
       object : AppPublisher {
         override val id = "AvailableId"
         override val displayName = "Available"
 
-        override fun isAvailable() = true
+        override fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability = AppPublisherAvailability.Available
 
         override fun publishApp(project: Project, context: AppPublishingContext) {}
       }
@@ -61,7 +57,8 @@ class PublishActionGroupTest {
         override val id = "UnavailableId"
         override val displayName = "Unavailable"
 
-        override fun isAvailable() = false
+        override fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability =
+          AppPublisherAvailability.Unsupported("", "")
 
         override fun publishApp(project: Project, context: AppPublishingContext) {}
       }
@@ -76,14 +73,34 @@ class PublishActionGroupTest {
   }
 
   @Test
+  fun testGetChildren_deprecatedIsAllowed() {
+    val deprecatedPublisher =
+      object : AppPublisher {
+        override val id = "DeprecatedId"
+        override val displayName = "Deprecated"
+
+        override fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability = AppPublisherAvailability.Deprecated
+
+        override fun publishApp(project: Project, context: AppPublishingContext) {}
+      }
+
+    ExtensionTestUtil.maskExtensions(AppPublisher.EP_NAME, listOf(deprecatedPublisher), projectRule.disposable)
+
+    val group = PublishActionGroup()
+    val event = TestActionEvent.createTestEvent()
+    val children = group.getChildren(event)
+    assertThat(children).hasLength(1)
+    assertThat(children[0].templateText).isEqualTo("Deprecated")
+  }
+
+  @Test
   fun testUpdate_visibleWhenPublisherAvailable() {
-    StudioFlags.PLAY_PUBLISHING_BUILD_MENU_ACTION.overrideForTest(true, projectRule.disposable)
     val publisher =
       object : AppPublisher {
         override val id = "TestPublisherId"
         override val displayName = "TestPublisher"
 
-        override fun isAvailable() = true
+        override fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability = AppPublisherAvailability.Available
 
         override fun publishApp(project: Project, context: AppPublishingContext) {}
       }
@@ -97,13 +114,13 @@ class PublishActionGroupTest {
 
   @Test
   fun testUpdate_invisibleWhenNoPublisherAvailable() {
-    StudioFlags.PLAY_PUBLISHING_BUILD_MENU_ACTION.overrideForTest(true, projectRule.disposable)
     val publisher =
       object : AppPublisher {
         override val id = "TestPublisherId"
         override val displayName = "TestPublisher"
 
-        override fun isAvailable() = false
+        override fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability =
+          AppPublisherAvailability.Unsupported("", "")
 
         override fun publishApp(project: Project, context: AppPublishingContext) {}
       }
@@ -116,14 +133,13 @@ class PublishActionGroupTest {
   }
 
   @Test
-  fun testUpdate_invisibleWhenFlagDisabled() {
-    StudioFlags.PLAY_PUBLISHING_BUILD_MENU_ACTION.overrideForTest(false, projectRule.disposable)
+  fun testUpdate_invisibleWhenPublisherFlagDisabled() {
     val publisher =
       object : AppPublisher {
         override val id = "TestPublisherId"
         override val displayName = "TestPublisher"
 
-        override fun isAvailable() = true
+        override fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability = AppPublisherAvailability.FlagDisabled
 
         override fun publishApp(project: Project, context: AppPublishingContext) {}
       }
@@ -143,7 +159,7 @@ class PublishActionGroupTest {
         override val id = "TestPublisherId"
         override val displayName = "TestPublisher"
 
-        override fun isAvailable() = true
+        override fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability = AppPublisherAvailability.Available
 
         override fun publishApp(project: Project, context: AppPublishingContext) {
           published = true

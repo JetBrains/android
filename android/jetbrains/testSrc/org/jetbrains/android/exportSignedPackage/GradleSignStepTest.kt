@@ -23,6 +23,10 @@ import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.publishing.AdiClient
+import com.android.tools.idea.publishing.AppPublisher
+import com.android.tools.idea.publishing.AppPublisherAvailability
+import com.android.tools.idea.publishing.AppPublishingContext
+import com.android.tools.idea.publishing.AppPublishingSource
 import com.android.tools.idea.publishing.RegistrationState
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
@@ -30,7 +34,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.ide.wizard.CommitStepException
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.TitledSeparator
@@ -70,6 +76,8 @@ class GradleSignStepTest {
 
   private var myWizard: ExportSignedPackageWizard = mock()
 
+  private var fakePublisherAvailability: AppPublisherAvailability = AppPublisherAvailability.Available
+
   private val project
     get() = projectRule.project
 
@@ -88,6 +96,25 @@ class GradleSignStepTest {
     val cert: X509Certificate = mock()
     whenever(cert.encoded).thenReturn(byteArrayOf())
     whenever(myWizard.certificate).thenReturn(cert)
+
+    fakePublisherAvailability = AppPublisherAvailability.Available
+
+    val defaultPublisher =
+      object : AppPublisher {
+        override val id = "Google Play"
+        override val displayName = "Google Play"
+
+        override fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability {
+          return if (StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.get()) {
+            fakePublisherAvailability
+          } else {
+            AppPublisherAvailability.FlagDisabled
+          }
+        }
+
+        override fun publishApp(project: Project, context: AppPublishingContext) {}
+      }
+    ExtensionTestUtil.maskExtensions(AppPublisher.EP_NAME, listOf(defaultPublisher), projectRule.disposable)
   }
 
   @Test
@@ -306,6 +333,7 @@ class GradleSignStepTest {
     gradleSignStep._init(testAndroidModel)
 
     assertThat(gradleSignStep.myPublishingPanel.isVisible).isTrue()
+    assertThat(gradleSignStep.myContinueToPlayCheckBox.isVisible).isTrue()
   }
 
   @Test
@@ -455,5 +483,64 @@ class GradleSignStepTest {
 
     gradleSignStep.commitForNext()
     verify(myWizard).setUploadToPlay(true)
+  }
+
+  @Test
+  fun testPublishingPanelUnsupported() {
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
+    whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+
+    fakePublisherAvailability = AppPublisherAvailability.Unsupported("Unsupported Header", "This is an important unsupported explanation.")
+
+    val gradleSignStep = GradleSignStep(myWizard)
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+    whenever(testAndroidModel.rootDirPath).thenReturn(File(homePath))
+
+    gradleSignStep._init(testAndroidModel)
+
+    // Verify section is shown (visible)
+    assertThat(gradleSignStep.myPublishingPanel.isVisible).isTrue()
+    // Verify checkbox is disabled, hidden, and deselected
+    assertThat(gradleSignStep.myContinueToPlayCheckBox.isEnabled).isFalse()
+    assertThat(gradleSignStep.myContinueToPlayCheckBox.isVisible).isFalse()
+    assertThat(gradleSignStep.myContinueToPlayCheckBox.isSelected).isFalse()
+    // Verify label and description texts
+    val textLabels = UIUtil.findComponentsOfType(gradleSignStep.component, JBLabel::class.java)
+    val checkboxLabelText = textLabels.find { it.text == "Unsupported Header" }
+    assertThat(checkboxLabelText).isNotNull()
+    val descLabelText = textLabels.find { it.text == "<html>This is an important unsupported explanation.</html>" }
+    assertThat(descLabelText).isNotNull()
+  }
+
+  @Test
+  fun testUnsupportedLabelToggleIsNoOp() {
+    StudioFlags.PLAY_PUBLISHING_WIZARD_INTEGRATION.overrideForTest(true, projectRule.disposable)
+    whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+
+    fakePublisherAvailability = AppPublisherAvailability.Unsupported("Unsupported Header", "This is an important unsupported explanation.")
+
+    val gradleSignStep = GradleSignStep(myWizard)
+    val testAndroidModel: GradleAndroidModelImpl = mock()
+    whenever(testAndroidModel.moduleName).thenReturn(name)
+    whenever(testAndroidModel.filteredVariantNames).thenReturn(listOf("release"))
+    whenever(testAndroidModel.rootDirPath).thenReturn(File(homePath))
+
+    gradleSignStep._init(testAndroidModel)
+
+    val labels = UIUtil.findComponentsOfType(gradleSignStep.component, JBLabel::class.java)
+    val label = labels.find { it.text == "Unsupported Header" }
+    assertThat(label).isNotNull()
+
+    val checkbox = gradleSignStep.myContinueToPlayCheckBox
+    assertThat(checkbox.isEnabled).isFalse()
+    assertThat(checkbox.isSelected).isFalse()
+
+    val mouseEvent = MouseEvent(label, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 0, 0, 1, false)
+    label!!.mouseListeners.forEach { it.mouseClicked(mouseEvent) }
+
+    // Click should be a no-op on disabled checkbox/label
+    assertThat(checkbox.isSelected).isFalse()
   }
 }

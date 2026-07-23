@@ -23,7 +23,13 @@ import kotlinx.coroutines.CoroutineScope
 @Service(Service.Level.PROJECT)
 class AppPublishingService(private val project: Project, val coroutineScope: CoroutineScope) {
 
-  fun isPublisherAvailable(publisherId: String) = AppPublisher.getPublisher(publisherId)?.isAvailable() ?: false
+  fun isPublisherAvailable(
+    publisherId: String,
+    source: AppPublishingSource = AppPublishingSource.EXPORT_SIGNED_PACKAGE_WIZARD,
+  ): AppPublisherAvailability {
+    val publisher = AppPublisher.getPublisher(publisherId) ?: return AppPublisherAvailability.PublisherNotFound
+    return publisher.isPublisherAvailable(source)
+  }
 
   /**
    * Calls the publisher [publisherId] to start the process of publishing the app. The publisher may have additional steps that require user
@@ -31,8 +37,8 @@ class AppPublishingService(private val project: Project, val coroutineScope: Cor
    */
   fun publishApp(publisherId: String, context: AppPublishingContext) {
     val publisher = AppPublisher.getPublisher(publisherId) ?: throw IllegalArgumentException("Publisher with ID $publisherId not found")
-    if (!isPublisherAvailable(publisherId)) {
-      throw IllegalStateException("Publisher with ID $publisherId is not available.")
+    if (!isPublisherAvailable(publisherId, context.publishingSource).isExecutable) {
+      throw IllegalStateException("Publisher with ID $publisherId is not available for publishing.")
     }
     publisher.publishApp(project, context)
   }

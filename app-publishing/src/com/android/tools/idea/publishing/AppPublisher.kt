@@ -18,6 +18,21 @@ package com.android.tools.idea.publishing
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
+sealed interface AppPublisherAvailability {
+  val isExecutable: Boolean
+    get() = this is Available || this is Deprecated
+
+  data object PublisherNotFound : AppPublisherAvailability
+
+  data object Available : AppPublisherAvailability
+
+  data object Deprecated : AppPublisherAvailability
+
+  data object FlagDisabled : AppPublisherAvailability
+
+  data class Unsupported(val header: String, val description: String) : AppPublisherAvailability
+}
+
 interface AppPublisher {
   /** The unique identifier of the app publisher. */
   val id: String
@@ -26,12 +41,12 @@ interface AppPublisher {
   val displayName: String
 
   /**
-   * Determines if the publisher is available.
+   * Determines the availability of the publisher.
    *
    * This method must remain fast, non-blocking, and free of heavy computations since it is queried frequently by the action system to
    * determine menu visibility.
    */
-  fun isAvailable(): Boolean
+  fun isPublisherAvailable(source: AppPublishingSource): AppPublisherAvailability
 
   /**
    * Publisher can decide on the next steps they would like to take to publish the app. These can be showing wizard, background task,
