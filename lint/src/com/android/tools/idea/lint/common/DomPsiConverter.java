@@ -320,23 +320,7 @@ public class DomPsiConverter {
     }
   }
 
-  private static final DomNodeList EMPTY = new DomNodeList() {
-    @NotNull
-    @Override
-    public DomNode item(int i) {
-      throw new IllegalArgumentException();
-    }
-
-    @Override
-    public int getLength() {
-      return 0;
-    }
-
-    @Override
-    void add(@NotNull DomNode node, boolean updateSiblings) {
-      throw new UnsupportedOperationException("The shared EMPTY instance of DomNodeList isn't supposed to be modified.");
-    }
-  };
+  private static final DomNodeList EMPTY = new DomNodeList.Builder().build();
 
   @Nullable
   private static final NamedNodeMap EMPTY_ATTRIBUTES = new NamedNodeMap() {
@@ -388,30 +372,41 @@ public class DomPsiConverter {
     }
   };
 
-  public static class DomNodeList implements NodeList {
-    protected final List<DomNode> myChildren = new ArrayList<>();
+  public static final class DomNodeList implements NodeList {
+    private final DomNode[] myChildren;
+    DomNodeList(DomNode[] children) {
+      myChildren = children;
+    }
 
     @NotNull
     @Override
     public DomNode item(int i) {
-      return myChildren.get(i);
+      return myChildren[i];
     }
 
     @Override
     public int getLength() {
-      return myChildren.size();
+      return myChildren.length;
     }
 
-    void add(@NotNull DomNode node, boolean updateSiblings) {
-      if (updateSiblings) {
-        int size = myChildren.size();
-        if (size > 0) {
-          DomNode last = myChildren.get(size - 1);
-          node.myPrevious = last;
-          last.myNext = node;
+    static class Builder {
+      private final List<DomNode> myChildren = new ArrayList<>();
+
+      void add(@NotNull DomNode node, boolean updateSiblings) {
+        if (updateSiblings) {
+          int size = myChildren.size();
+          if (size > 0) {
+            DomNode last = myChildren.get(size - 1);
+            node.myPrevious = last;
+            last.myNext = node;
+          }
         }
+        myChildren.add(node);
       }
-      myChildren.add(node);
+
+      DomNodeList build() {
+        return new DomNodeList(myChildren.toArray(new DomNode[0]));
+      }
     }
   }
 
@@ -538,7 +533,7 @@ public class DomPsiConverter {
           return myChildren;
         }
 
-        DomNodeList list = new DomNodeList();
+        var list = new DomNodeList.Builder();
         // True except for in DomDocument, which has custom getChildNodes
         assert myOwner != null;
 
@@ -571,7 +566,7 @@ public class DomPsiConverter {
         }
         // Assigned only once fully populated; the loop above can be interrupted
         // by a ProcessCanceledException
-        myChildren = list;
+        myChildren = list.build();
       }
       return myChildren;
     }
@@ -850,8 +845,7 @@ public class DomPsiConverter {
     @Override
     public DomNodeList getChildNodes() {
       if (myChildren == null) {
-        DomNodeList list = new DomNodeList();
-        myChildren = list;
+        var list = new DomNodeList.Builder();
         // Include siblings as well such as the root comment
         PsiElement element = myPsiDocument.getFirstChild();
         while (element != null) {
@@ -875,6 +869,8 @@ public class DomPsiConverter {
           }
           element = element.getNextSibling();
         }
+
+        myChildren = list.build();
       }
 
       return myChildren;
@@ -1236,12 +1232,12 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public NodeList getElementsByTagName(@NotNull String s) {
-      if (getChildNodes() == EMPTY) {
+      if (getChildNodes().getLength() == 0) {
         return EMPTY;
       }
 
       // Depth-first pre-order traversal.
-      DomNodeList matches = new DomNodeList();
+      var matches = new DomNodeList.Builder();
       List<NodeWithIndex> stack = new ArrayList<>();
       stack.add(new NodeWithIndex(this));
 
@@ -1262,7 +1258,7 @@ public class DomPsiConverter {
         }
       }
 
-      return matches;
+      return matches.build();
     }
 
     @NotNull
