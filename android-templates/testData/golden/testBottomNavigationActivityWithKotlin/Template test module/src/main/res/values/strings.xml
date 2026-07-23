@@ -1,7 +1,0 @@
-<!-- This file should not be edited manually! See go/template-diff-tests -->
-<resources>
-    <string name="app_name">Template Test App Title</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
-</resources>
