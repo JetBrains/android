@@ -19,7 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.module.Module
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaIdeApi
-import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
+import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArgumentsConfigurator
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments

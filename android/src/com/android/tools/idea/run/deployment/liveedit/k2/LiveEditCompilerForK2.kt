@@ -34,9 +34,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
-import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
-import org.jetbrains.kotlin.analysis.api.components.KaCompilationTarget
+import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptions
+import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptionsBuilder
+import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationResult
+import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationTarget
+import org.jetbrains.kotlin.analysis.api.compilation.compile
 import org.jetbrains.kotlin.analysis.api.diagnostics.KaDiagnostic
 import org.jetbrains.kotlin.analysis.api.diagnostics.KaDiagnosticWithPsi
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
@@ -106,7 +108,7 @@ fun backendCodeGenForK2(file: KtFile, module: Module, configurator: KaCompilatio
 
   val substituteFile = getCompileTargetFile(file, module)
   analyze(substituteFile) {
-    val options = createCompilationOptions {
+    val options: KaCompilationOptions = createCompilationOptions {
       target(KaCompilationTarget.JVM)
       allowedErrorFilter {
         // `compiler` API internally filters diagnostic errors with  `allowedErrorFilter`.
@@ -117,7 +119,7 @@ fun backendCodeGenForK2(file: KtFile, module: Module, configurator: KaCompilatio
       configurator()
     }
 
-    when (val result = this@analyze.compile(substituteFile, options)) {
+    when (val result = compile(substituteFile, options)) {
       is KaCompilationResult.Success -> return result
       is KaCompilationResult.Failure -> throw compilationError(result.errors.map{it.getErrorMessage()})
     }

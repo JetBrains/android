@@ -35,7 +35,7 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
+import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile

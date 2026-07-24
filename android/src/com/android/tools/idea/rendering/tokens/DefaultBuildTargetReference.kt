@@ -40,7 +40,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Path
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
+import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.idea.base.util.module
 

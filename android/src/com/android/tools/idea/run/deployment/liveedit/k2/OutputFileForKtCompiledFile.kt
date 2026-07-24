@@ -17,7 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit.k2
 
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.components.KaCompiledFile
+import org.jetbrains.kotlin.analysis.api.compilation.KaCompiledFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import java.io.File
 
