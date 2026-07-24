@@ -41,7 +41,9 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileEditor.AsyncFileEditorProvider
@@ -62,6 +64,7 @@ import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.findDocument
 import com.intellij.openapi.vfs.limits.FileSizeLimit
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
@@ -193,7 +196,13 @@ internal class ApkEditor(
 
   /** Changes the editor displayed based on the path selected in the tree. */
   override fun selectionChanged(entries: Array<ArchiveTreeNode>?) {
-    val editor = getEditor(entries)
+    val editor =
+      try {
+        getEditor(entries)
+      } catch (e: Throwable) {
+        thisLogger().error("Failed to create editor", e)
+        return
+      }
     if (currentEditor != null) {
       Disposer.dispose(currentEditor!!)
       // Null out the field immediately after disposal, in case an exception is thrown later in the method.
@@ -537,7 +546,10 @@ internal class ApkEditor(
     private fun AsyncFileEditorProvider.createEditor(project: Project, disposable: Disposable, file: VirtualFile): FileEditor {
       val scope = disposable.createCoroutineScope()
       @Suppress("UnstableApiUsage")
-      return runWithModalProgressBlocking(project, "Creating editor...") { createFileEditor(project, file, null, scope) }
+      return runWithModalProgressBlocking(project, "Creating editor...") {
+        // findDocument() requires a read lock in this platform (IJPL-244698), so it cannot be called directly on the worker thread.
+        createFileEditor(project, file, readAction { file.findDocument() }, scope)
+      }
     }
   }
 }
