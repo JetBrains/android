@@ -156,6 +156,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   public void unload() {
     myIsLoadingError = false;
     myIsDoneLoading = false;
+    myIdeProfilerServices.getTraceProcessorService().unloadTrace(myStartTimeNs);
   }
 
   @Override

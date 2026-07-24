@@ -41,18 +41,36 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /** See {@link TraceProcessorService} for API details. */
 @Service
-class TraceProcessorServiceImpl(
+class TraceProcessorServiceImpl
+@VisibleForTesting
+constructor(
   private val ticker: Ticker = Ticker.systemTicker(),
-  private val client: TraceProcessorDaemonClient = TraceProcessorDaemonClient(ticker),
+  private val clientFactory: (Ticker) -> TraceProcessorDaemonClient = { TraceProcessorDaemonClient(it) },
 ) : TraceProcessorService, Disposable {
-  private val loadedTraces = mutableMapOf<Long, File>()
+  private val loadedTraces = ConcurrentHashMap<Long, File>()
+  private val clients = ConcurrentHashMap<Long, TraceProcessorDaemonClient>()
 
-  init {
-    Disposer.register(this, client)
+  /** Terminates the Trace Processor Daemon associated with the given [traceId] and cleans up its resources. */
+  override fun unloadTrace(traceId: Long) {
+    loadedTraces.remove(traceId)
+    clients.remove(traceId)?.let { Disposer.dispose(it) }
+  }
+
+  /**
+   * Retrieves an existing daemon client for the given [traceId], or spawns a new isolated TraceProcessorDaemon process and registers it for
+   * lifecycle disposal.
+   */
+  private fun getClient(traceId: Long): TraceProcessorDaemonClient {
+    return clients.computeIfAbsent(traceId) {
+      val newClient = clientFactory(ticker)
+      Disposer.register(this, newClient)
+      newClient
+    }
   }
 
   companion object {
@@ -167,7 +185,7 @@ class TraceProcessorServiceImpl(
         .setSymbolizedOutputPath(symbolsFile.absolutePath)
         .build()
 
-    val queryResult = client.loadTrace(requestProto, ideProfilerServices.featureTracker)
+    val queryResult = getClient(traceId).loadTrace(requestProto, ideProfilerServices.featureTracker)
     stopwatch.stop()
 
     val queryTimeMs = stopwatch.elapsed(TimeUnit.MILLISECONDS)
@@ -343,6 +361,10 @@ class TraceProcessorServiceImpl(
     query: QueryBatchRequest,
     ideProfilerServices: IdeProfilerServices,
   ): TraceProcessorDaemonQueryResult<QueryBatchResponse> {
+    val client =
+      clients[traceId]
+        ?: return TraceProcessorDaemonQueryResult(IllegalStateException("Trace $traceId needs to be loaded before querying."))
+
     var queryResult = client.queryBatchRequest(query, ideProfilerServices.featureTracker)
 
     // If we got a response from TPD, we check if TPD could execute the query correctly or if there was any error we can try to

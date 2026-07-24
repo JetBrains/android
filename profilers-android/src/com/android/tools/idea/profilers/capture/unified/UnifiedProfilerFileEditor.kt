@@ -144,6 +144,5 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
 
   override fun dispose() {
     delegate?.let { Disposer.dispose(it) }
-    offlineProfilers?.stop()
   }
 }
