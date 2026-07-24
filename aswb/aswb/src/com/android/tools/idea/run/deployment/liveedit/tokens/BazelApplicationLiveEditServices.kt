@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.liveedit.tokens
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.run.classes.BuildOutcome
 import com.android.tools.idea.run.deployment.liveedit.setOptions
+import com.android.tools.sdk.AndroidPlatform
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.common.Label
@@ -25,10 +26,12 @@ import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.TargetsToBuild
 import com.google.idea.blaze.qsync.project.pathToLabel
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
+import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.arguments.toLanguageVersionSettings
@@ -67,7 +70,12 @@ class BazelApplicationLiveEditServices(
 
   override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
     val outcome = buildOutcomeProvider.lastBuildOutcome() ?: return null
-    return CompilationDependenciesImpl(outcome.externalJars.toList())
+    return CompilationDependenciesImpl(outcome.externalJars.toList(), getAndroidPlatform().target.bootClasspath.map(Path::of))
+  }
+
+  private fun getAndroidPlatform(): AndroidPlatform {
+    val sdk = checkNotNull(ProjectRootManager.getInstance(project).projectSdk) { "ASwB projects require Android SDKs" }
+    return checkNotNull(getInstance(sdk)) { "The SDK is required to contain at least android-stable and android-experimental" }
   }
 
   override fun getClassContent(file: VirtualFile, className: String): ClassContent? {
