@@ -72,7 +72,7 @@ class BazelApplicationLiveEditServices(
 
   override fun getClassContent(file: VirtualFile, className: String): ClassContent? {
     val outcome = buildOutcomeProvider.lastBuildOutcome() ?: return null
-    return outcome.classFileFinder?.findClassFile(className)
+    return outcome.classFileFinder.findClassFile(className)
   }
 
   override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
