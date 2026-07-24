@@ -52,6 +52,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.findDocument
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.readText
 import com.intellij.testFramework.DisposableRule
@@ -627,7 +628,9 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
 
     provider.createEditor(project, disposableRule.disposable, file)
 
-    assertThat(provider.calls).containsExactly(EditorCall(project, file, document = null))
+    val document = file.findDocument()
+    assertThat(document).isNotNull()
+    assertThat(provider.calls).containsExactly(EditorCall(project, file, document))
   }
 
   private fun apkEditor(path: String, isResource: Boolean = true): ApkEditor {
