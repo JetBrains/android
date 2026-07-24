@@ -9,6 +9,7 @@ import "impressions.proto";
 import "ratings.proto";
 import "releases.proto";
 import "retention.proto";
+import "store_listings.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "ReportingServiceProto";
@@ -79,6 +80,14 @@ service ReportingService {
   // Queries the metrics in the retention metric set.
   rpc QueryRetentionMetricSet(QueryRetentionMetricSetRequest)
       returns (QueryRetentionMetricSetResponse) {}
+
+  // Describes the properties of the store listing metric set.
+  rpc GetStoreListingMetricSet(GetStoreListingMetricSetRequest)
+      returns (StoreListingMetricSet) {}
+
+  // Queries the metrics in the store listing metric set.
+  rpc QueryStoreListingMetricSet(QueryStoreListingMetricSetRequest)
+      returns (QueryStoreListingMetricSetResponse) {}
 }
 
 // Request message for
