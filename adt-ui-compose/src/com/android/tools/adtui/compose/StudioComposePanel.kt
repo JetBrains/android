@@ -19,7 +19,11 @@ import androidx.compose.runtime.Composable
 import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.JewelComposeNoThemePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
-@Suppress("FunctionName")
+@Suppress("FunctionName", "UnstableApiUsage")
 @OptIn(ExperimentalJewelApi::class)
-fun StudioComposePanel(content: @Composable () -> Unit): JComponent = JewelComposeNoThemePanel { StudioTheme(content) }
+fun StudioComposePanel(content: @Composable () -> Unit): JComponent {
+  enableNewSwingCompositing()
+  return JewelComposeNoThemePanel { StudioTheme(content) }
+}

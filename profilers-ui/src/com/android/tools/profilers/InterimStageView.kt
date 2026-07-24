@@ -23,7 +23,6 @@ import com.intellij.openapi.application.ApplicationManager
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
 @OptIn(ExperimentalJewelApi::class)
 class InterimStageView<T>(profilersView: StudioProfilersView, stage: T) : StageView<T>(profilersView, stage)
@@ -40,8 +39,6 @@ class InterimStageView<T>(profilersView: StudioProfilersView, stage: T) : StageV
     if (stage is MainMemoryProfilerStage) {
       stage.enableSelectLatestCapture(true, ApplicationManager.getApplication()::invokeLater)
     }
-
-    enableNewSwingCompositing()
 
     val composePanel = StudioComposePanel { RecordingScreen(recordingScreenModel) }
 

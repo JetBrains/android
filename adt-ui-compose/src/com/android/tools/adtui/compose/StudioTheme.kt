@@ -30,6 +30,7 @@ import org.jetbrains.jewel.markdown.extensions.LocalMarkdownStyling
 import org.jetbrains.jewel.markdown.processing.MarkdownProcessor
 import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 
+@Suppress("UnstableApiUsage")
 @OptIn(ExperimentalJewelApi::class)
 @Composable
 fun StudioTheme(content: @Composable () -> Unit) {
