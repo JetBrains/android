@@ -22,13 +22,10 @@ import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
 @OptIn(ExperimentalJewelApi::class)
 class LeakCanaryTaskView(profilersView: StudioProfilersView, model: LeakCanaryModel) : StageView<LeakCanaryModel>(profilersView, model) {
   init {
-    enableNewSwingCompositing()
-
     val composePanel = StudioComposePanel { LeakCanaryScreen(model, profilersView.ideProfilerComponents) }
 
     component.add(composePanel, BorderLayout.CENTER)

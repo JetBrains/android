@@ -43,7 +43,6 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
@@ -115,7 +114,6 @@ fun OrganizationHeader(group: OrganizationGroup, onScrollEvent: (MouseEvent) -> 
 /** Wraps [OrganizationHeader] into [JComponent]. */
 @OptIn(ExperimentalJewelApi::class)
 fun createOrganizationHeader(group: OrganizationGroup): JComponent {
-  enableNewSwingCompositing()
   var component: JComponent? = null
   component = StudioComposePanel { OrganizationHeader(group, onScrollEvent = { e -> component?.dispatchEvent(e) }) }
   return component

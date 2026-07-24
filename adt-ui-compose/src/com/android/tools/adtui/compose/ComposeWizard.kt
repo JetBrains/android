@@ -54,8 +54,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.Divider
@@ -131,7 +129,6 @@ class ComposeWizard(
   override fun createSouthPanel(): JComponent? = null
 
   override fun createCenterPanel(): JComponent {
-    @OptIn(ExperimentalJewelApi::class) (enableNewSwingCompositing())
     val component = StudioComposePanel {
       CompositionLocalProvider(LocalProject provides project) {
         currentPageScope.apply { WizardPageScaffold(wizardDialogScope, currentPage) }
