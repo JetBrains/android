@@ -191,8 +191,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     private set(value) {
       if (value != null && value != field) {
         field = value
-        notificationStreamObserver?.sendStreamingResponse(createPostureNotification(value))
         foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
+        executor.execute { notificationStreamObserver?.sendStreamingResponse(createPostureNotification(value)) }
       }
     }
 
@@ -201,7 +201,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     private set(value) {
       if (value != field) {
         field = value
-        notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setXrOptions(value).build())
+        executor.execute { notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setXrOptions(value).build()) }
       }
     }
 
@@ -210,7 +210,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     private set(value) {
       if (value != field) {
         field = value
-        notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setMicrophoneState(value).build())
+        executor.execute { notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setMicrophoneState(value).build()) }
       }
     }
 
@@ -226,7 +226,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
     val led = ledBuilder.build()
     ledStates = ledStates + (facing to led)
-    notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setLedIndicator(led).build())
+    executor.execute { notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setLedIndicator(led).build()) }
   }
 
   private var foldedDisplay: FoldedDisplay? = null
