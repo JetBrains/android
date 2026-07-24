@@ -22,6 +22,7 @@ import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -263,6 +264,10 @@ internal class DeviceView(
     addMouseWheelListener(mouseListener)
 
     addKeyListener(MyKeyListener())
+    if (StudioFlags.DEVICE_MIRRORING_UNICODE_TYPING.get()) {
+      enableInputMethods(true)
+    }
+
     project.messageBus.connect(this).subscribe(DeviceMirroringSettingsListener.TOPIC, this)
   }
 

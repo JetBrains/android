@@ -153,10 +153,7 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
     background = primaryPanelBackground
     addToCenter(disconnectedStatePanel)
     initializeFocusHandling()
-    if (StudioFlags.DEVICE_MIRRORING_UNICODE_TYPING.get()) {
-      enableInputMethods(true)
-      addInputMethodListener(MyInputMethodListener())
-    }
+    addInputMethodListener(MyInputMethodListener())
   }
 
   /** Sends the given text to the device as if it was typed. */
