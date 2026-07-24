@@ -319,18 +319,32 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     if (appResources != null) {
       return appResources;
     }
+    if (myFacet.isDisposed()) {
+      return new EmptyRepository<>(getNamespace());
+    }
 
     getLibraryResources(); // Precompute library resources to do less work inside the read action below.
 
+    AppResourceRepository appResourceRepository = AppResourceRepository.create(myFacet, this);
+    LocalResourceRepository<VirtualFile> appResourceRepositoryToReturn;
     synchronized (APP_RESOURCES_LOCK) {
-      if (myAppResources == null) {
-        if (myFacet.isDisposed()) {
-          return new EmptyRepository<>(getNamespace());
-        }
-        myAppResources = AppResourceRepository.create(myFacet, this);
+      if (myFacet.isDisposed()) {
+        Disposer.dispose(appResourceRepository);
+        return new EmptyRepository<>(getNamespace());
       }
-      return myAppResources;
+      if (myAppResources == null) {
+        myAppResources = appResourceRepository;
+      }
+      appResourceRepositoryToReturn = myAppResources;
     }
+
+    if (appResourceRepositoryToReturn != appResourceRepository) {
+      // If we ended up not using the new one we have allocated, dispose it.
+      // This could happen if there was another call that allocated myAppResources before we could have the result.
+      Disposer.dispose(appResourceRepository);
+    }
+
+    return appResourceRepositoryToReturn;
   }
 
   /**
@@ -476,15 +490,32 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @NotNull
   public LocalResourceRepository<VirtualFile> getTestAppResources() {
-    synchronized (TEST_RESOURCES_LOCK) {
-      if (myTestAppResources == null) {
-        if (myFacet.isDisposed()) {
-          return new EmptyRepository<>(getTestNamespace());
-        }
-        myTestAppResources = TestAppResourceRepository.create(myFacet, this);
-      }
-      return myTestAppResources;
+    LocalResourceRepository<VirtualFile> testAppResources = getCachedTestAppResources();
+    if (testAppResources != null) {
+      return testAppResources;
     }
+    if (myFacet.isDisposed()) {
+      return new EmptyRepository<>(getTestNamespace());
+    }
+
+    TestAppResourceRepository testAppResourceRepository = TestAppResourceRepository.create(myFacet, this);
+    LocalResourceRepository<VirtualFile> testAppResourceRepositoryToReturn;
+    synchronized (TEST_RESOURCES_LOCK) {
+      if (myFacet.isDisposed()) {
+        Disposer.dispose(testAppResourceRepository);
+        return new EmptyRepository<>(getTestNamespace());
+      }
+      if (myTestAppResources == null) {
+        myTestAppResources = testAppResourceRepository;
+      }
+      testAppResourceRepositoryToReturn = myTestAppResources;
+    }
+
+    if (testAppResourceRepositoryToReturn != testAppResourceRepository) {
+      Disposer.dispose(testAppResourceRepository);
+    }
+
+    return testAppResourceRepositoryToReturn;
   }
 
   @Nullable
@@ -524,16 +555,28 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     if (sampleDataResources != null) {
       return sampleDataResources;
     }
-
-    synchronized (mySampleDataLock) {
-      if (mySampleDataResources == null) {
-        if (myFacet.isDisposed()) {
-          return new EmptyRepository<>(getNamespace());
-        }
-        mySampleDataResources = new SampleDataResourceRepository(myFacet, this);
-      }
-      return mySampleDataResources;
+    if (myFacet.isDisposed()) {
+      return new EmptyRepository<>(getNamespace());
     }
+
+    SampleDataResourceRepository sampleDataResourceRepository = new SampleDataResourceRepository(myFacet, this);
+    LocalResourceRepository<VirtualFile> sampleDataResourceRepositoryToReturn;
+    synchronized (mySampleDataLock) {
+      if (myFacet.isDisposed()) {
+        Disposer.dispose(sampleDataResourceRepository);
+        return new EmptyRepository<>(getNamespace());
+      }
+      if (mySampleDataResources == null) {
+        mySampleDataResources = sampleDataResourceRepository;
+      }
+      sampleDataResourceRepositoryToReturn = mySampleDataResources;
+    }
+
+    if (sampleDataResourceRepositoryToReturn != sampleDataResourceRepository) {
+      Disposer.dispose(sampleDataResourceRepository);
+    }
+
+    return sampleDataResourceRepositoryToReturn;
   }
 
   @Nullable

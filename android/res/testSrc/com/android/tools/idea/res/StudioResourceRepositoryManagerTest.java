@@ -77,6 +77,24 @@ public class StudioResourceRepositoryManagerTest extends AndroidTestCase {
     }
   }
 
+  public void testConcurrentGetAppResources() throws Exception {
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myFacet);
+
+    @SuppressWarnings("unchecked")
+    LocalResourceRepository<VirtualFile>[] repos = new LocalResourceRepository[2];
+    Thread thread1 = new Thread(() -> repos[0] = repositoryManager.getAppResources());
+    Thread thread2 = new Thread(() -> repos[1] = repositoryManager.getAppResources());
+
+    thread1.start();
+    thread2.start();
+    thread1.join();
+    thread2.join();
+
+    assertThat(repos[0]).isNotNull();
+    assertThat(repos[1]).isNotNull();
+    assertThat(repos[0]).isSameAs(repos[1]);
+  }
+
   public static class AllRepositoriesDisposedTest extends AndroidTestCase {
     Set<ResourceRepository> repositoriesToDispose = new HashSet<>();
 
