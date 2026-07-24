@@ -115,8 +115,11 @@ object OfflineProfilerSessionFactory {
       val localFileEmpty = if (localFileExists) localFile.length() == 0L else true
 
       ideServices.mainExecutor.execute {
+        if (Disposer.isDisposed(parentDisposable)) return@execute
+
         val client = ProfilerClient("OfflineProfiler")
         val profilers = StudioProfilers(client, ideServices, true)
+        Disposer.register(parentDisposable) { profilers.stop() }
         ideServices.codeNavigator.cpuArchSource = Supplier {
           val metadataAbi = offlineMetadata?.sessionMetadata?.processAbi
           if (!metadataAbi.isNullOrEmpty()) {
@@ -137,12 +140,14 @@ object OfflineProfilerSessionFactory {
           val errorMessage = if (!localFileExists) "The trace file could not be found." else "The trace file is empty."
           context.onParseFailure(errorMessage)
         } else {
+          val traceId = System.nanoTime()
           val stage =
             if (ProfilerFormat.isMemoryFormat(ProfilerFormat.find(file.extension, getLazyTraceType(file)))) {
-              createMemoryCaptureStage(profilers, context, ideServices, file)
+              createMemoryCaptureStage(profilers, context, ideServices, file, traceId)
             } else {
-              CpuCaptureStage(profilers, context, configuration, localFile, 0, null, 0)
+              CpuCaptureStage(profilers, context, configuration, localFile, traceId, null, 0)
             }
+          Disposer.register(parentDisposable) { stage.exit() }
 
           stageView =
             if (stage is MemoryCaptureStage) {
@@ -163,6 +168,7 @@ object OfflineProfilerSessionFactory {
     context: ProfilerContext,
     ideServices: IntellijProfilerServices,
     file: VirtualFile,
+    traceId: Long,
   ): MemoryCaptureStage {
     val loader = CaptureObjectLoader()
     val extension = file.extension?.lowercase()
@@ -172,15 +178,15 @@ object OfflineProfilerSessionFactory {
       when (extension) {
         "hprof",
         "prof" -> {
-          val info = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).build()
+          val info = HeapDumpInfo.newBuilder().setStartTime(traceId).setEndTime(Long.MAX_VALUE).build()
           HeapDumpCaptureObject(profilers.client, profilers.session, info, null, ideServices.featureTracker, ideServices) { localFile }
         }
         "heapprofd" -> {
-          val info = TraceInfo.newBuilder().setFromTimestamp(System.nanoTime()).setToTimestamp(Long.MAX_VALUE).build()
+          val info = TraceInfo.newBuilder().setFromTimestamp(traceId).setToTimestamp(Long.MAX_VALUE).build()
           NativeAllocationSampleCaptureObject(profilers.client, profilers.session, info, ideServices, "") { localFile }
         }
         else -> {
-          val info = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setSuccess(true).build()
+          val info = AllocationsInfo.newBuilder().setStartTime(traceId).setEndTime(Long.MAX_VALUE).setSuccess(true).build()
           LegacyAllocationCaptureObject(profilers.client, profilers.session, info, ideServices.featureTracker) { localFile }
         }
       }

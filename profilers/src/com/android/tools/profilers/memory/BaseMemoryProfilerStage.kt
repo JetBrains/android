@@ -55,6 +55,7 @@ abstract class BaseMemoryProfilerStage(
   }
 
   override fun onExit() {
+    captureSelection.selectCaptureEntry(null)
     hasExited = true
   }
 

@@ -35,6 +35,12 @@ interface TraceProcessorService {
    */
   fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean
 
+  /**
+   * Unloads a trace and terminates its corresponding Trace Processor Daemon process. This should be called when the trace is no longer
+   * needed to prevent memory leaks and dangling processes.
+   */
+  fun unloadTrace(traceId: Long) {}
+
   /** Query the Perfetto trace processor processes and threads information available in a trace. */
   fun getProcessMetadata(traceId: Long, ideProfilerServices: IdeProfilerServices): List<ProcessModel>
 
