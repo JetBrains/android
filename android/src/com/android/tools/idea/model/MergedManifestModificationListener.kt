@@ -164,7 +164,7 @@ class MergedManifestModificationListener(
    * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestModificationListener]
    * subscribed to listen for both VFS and Document changes once the initial project sync has completed.
    */
-  private class SubscriptionStartupActivity : ProjectActivity {
+  internal class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       project.getService(SubscriptionService::class.java).onProjectOpened()
     }

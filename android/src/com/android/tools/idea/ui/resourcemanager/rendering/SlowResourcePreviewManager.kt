@@ -215,5 +215,5 @@ class SlowResourcePreviewManager(
  *
  * Is an Application Service, backed by the AppExecutorService.
  */
-private class FetchImageExecutor : ExecutorService by
+internal class FetchImageExecutor : ExecutorService by
                                    AppExecutorUtil.createBoundedApplicationPoolExecutor(FetchImageExecutor::class.java.simpleName, 1)

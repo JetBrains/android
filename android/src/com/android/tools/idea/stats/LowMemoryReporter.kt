@@ -77,7 +77,7 @@ class LowMemoryReporter : Disposable {
     lowMemoryWatcherAfterGc = null
   }
 
-  private class OnStartup : ApplicationInitializedListener {
+  internal class OnStartup : ApplicationInitializedListener {
     override suspend fun execute() {
       getInstance();
     }

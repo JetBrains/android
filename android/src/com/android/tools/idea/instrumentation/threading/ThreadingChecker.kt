@@ -29,7 +29,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-private class ThreadingChecker : ApplicationInitializedListener {
+internal class ThreadingChecker : ApplicationInitializedListener {
   /** Start receiving notifications from the threading agent. */
   override suspend fun execute() {
     val agentLoadedAtStartup = try {

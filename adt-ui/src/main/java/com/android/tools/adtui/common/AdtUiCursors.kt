@@ -64,7 +64,7 @@ interface AdtUiCursorsProvider {
   }
 }
 
-private class AdtUiCursorProviderImpl : AdtUiCursorsProvider {
+internal class AdtUiCursorProviderImpl : AdtUiCursorsProvider {
   private val cursorMap = mutableMapOf<AdtUiCursorType, Cursor>()
 
   override fun getCursor(type: AdtUiCursorType) = cursorMap.getOrPut(type) { makeCursor(type) }

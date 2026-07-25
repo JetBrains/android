@@ -116,7 +116,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    * [StartupActivity.DumbAware] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
    * subscribed to listen for VFS changes once the initial project sync has completed.
    */
-  private class SubscriptionStartupActivity : ProjectActivity {
+  internal class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       val subscriber = object : LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project) {
         override fun subscribe() {

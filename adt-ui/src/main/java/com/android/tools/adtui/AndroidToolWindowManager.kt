@@ -40,7 +40,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
-private class AndroidToolWindowManager : ProjectActivity {
+internal class AndroidToolWindowManager : ProjectActivity {
   init {
     val app = ApplicationManager.getApplication()
     if (app.isUnitTestMode || app.isHeadlessEnvironment) {

@@ -100,7 +100,7 @@ class ServerFlagDownloader {
     }
   }
 
-  private class Initializer : ProjectActivity {
+  internal class Initializer : ProjectActivity {
     override suspend fun execute(project: Project) {
       // Trigger initialization of ServerFlagDownloader
       getInstance()

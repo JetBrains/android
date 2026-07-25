@@ -39,7 +39,7 @@ interface AssistantToolWindowService : Disposable {
   }
 }
 
-private class AssistantToolWindowServiceImpl(private val project: Project) :
+internal class AssistantToolWindowServiceImpl(private val project: Project) :
   AssistantToolWindowService {
 
   private val assistSidePanel: AssistSidePanel by lazy { AssistSidePanel(project) }

@@ -73,7 +73,7 @@ interface LayoutInspectorManager : Disposable {
 
 /** This class is meant to be used on the UI thread, to avoid concurrency issues. */
 @UiThread
-private class LayoutInspectorManagerImpl(private val project: Project) : LayoutInspectorManager {
+internal class LayoutInspectorManagerImpl(private val project: Project) : LayoutInspectorManager {
 
   /** Tabs on which Layout Inspector is enabled. */
   private var tabsWithLayoutInspector = setOf<DeviceId>()

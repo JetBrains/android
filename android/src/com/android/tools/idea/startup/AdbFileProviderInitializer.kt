@@ -30,7 +30,7 @@ import java.io.File
 // that have not been factored out. Ideally, this class should be part
 // of the "android-adb" module.
 
-private abstract class AdbFileProviderBase(private val project: Project?, private val userData: UserDataHolder) : AdbFileProvider {
+internal abstract class AdbFileProviderBase(private val project: Project?, private val userData: UserDataHolder) : AdbFileProvider {
   companion object {
     private val LOG_ERROR_KEY: Key<Boolean> = Key.create(::LOG_ERROR_KEY.qualifiedName<AdbFileProviderBase>())
   }
@@ -53,6 +53,6 @@ private abstract class AdbFileProviderBase(private val project: Project?, privat
   }
 }
 
-private class ApplicationAdbFileProvider : AdbFileProviderBase(null, ApplicationManager.getApplication())
+internal class ApplicationAdbFileProvider : AdbFileProviderBase(null, ApplicationManager.getApplication())
 
-private class ProjectAdbFileProvider(project: Project) : AdbFileProviderBase(project, project)
+internal class ProjectAdbFileProvider(project: Project) : AdbFileProviderBase(project, project)
