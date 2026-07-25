@@ -137,13 +137,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "android-test-plugin-host-device-info-proto",
-    jars = ["//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "asm-tools",
     # do not sort: must match IML order
     jars = ["//prebuilts/tools/common/m2:asm-tools_files"],
