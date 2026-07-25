@@ -2509,7 +2509,6 @@
 +++Android Studio Nightly.app/Contents/plugins/android/lib/libjava_version.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/libjourneys-java-proto.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
-+++Android Studio Nightly.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/libstudio.android-test-engine-result-listener-proto.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/libstudio.proto.jar
 +++Android Studio Nightly.app/Contents/plugins/android/lib/libstudio.test-result-proto.jar
@@ -6484,7 +6483,6 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/libjourneys-java-proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
----Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-engine-result-listener-proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/libstudio.test-result-proto.jar

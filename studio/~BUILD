@@ -99,7 +99,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/.idea/libraries:android-core-proto",
-        "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/.idea/libraries:androidx-tracing",
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/adt/idea/.idea/libraries:emulator-proto",

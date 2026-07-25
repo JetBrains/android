@@ -94,7 +94,6 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin",
         "//tools/adt/idea/lint:intellij.lint",
         "//tools/adt/idea/.idea/libraries:test-result-proto",
-        "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
@@ -301,7 +300,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model",
         "//tools/adt/idea/.idea/libraries:test-result-proto",
-        "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags",
         "@intellij//:org.jetbrains.kotlin",
@@ -404,7 +402,6 @@ filegroup(
     srcs = [
         "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/.idea/libraries:android-core-proto",
-        "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
