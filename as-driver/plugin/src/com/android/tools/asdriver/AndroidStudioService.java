@@ -878,7 +878,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         List.of(
           ASDriver.ComponentMatcher.newBuilder()
             .setSwingClassRegexMatch(
-              ASDriver.SwingClassRegexMatch.newBuilder().setRegex(".*BasicComboBoxEditor\\$BorderlessTextField$")
+              ASDriver.SwingClassRegexMatch.newBuilder().setRegex(".*(BasicComboBoxEditor\\$BorderlessTextField|NioPathTextField)$")
             ).build());
 
       studioInteractionService.waitForComponent(projectPathFieldMatcher, false);
