@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.TransactionGuard;
@@ -48,6 +49,8 @@ import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -81,6 +84,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.ListModel;
 import javax.swing.event.HyperlinkEvent;
 
@@ -171,9 +175,23 @@ public class StudioInteractionService {
   }
 
   private void setTextOnComponent(Component component, String text) {
-    if (component instanceof JTextField componentAsJTextField) {
-      log("Setting text on JTextField: " + componentAsJTextField);
-      componentAsJTextField.setText(text);
+    if (component instanceof JTextField) {
+      JTextField componentAsJTextField = (JTextField) component;
+      log("Setting text on JTextField: " + componentAsJTextField.getClass().getName());
+      if (ApplicationInfo.getInstance().getBuild().getBaselineVersion() >= 262) {
+        SwingUtilities.invokeLater(() -> {
+          componentAsJTextField.setText(text);
+          KeyEvent enterEvent = new KeyEvent(
+              componentAsJTextField, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, '\n');
+          for (KeyListener listener : componentAsJTextField.getKeyListeners()) {
+            listener.keyPressed(enterEvent);
+          }
+          componentAsJTextField.dispatchEvent(enterEvent);
+          componentAsJTextField.postActionEvent();
+        });
+      } else {
+        componentAsJTextField.setText(text);
+      }
     } else {
       throw new IllegalArgumentException(String.format(Locale.ROOT, "Don't know how to invoke set text on class \"%s\"", component.getClass()));
     }
