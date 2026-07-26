@@ -1,4 +1,4 @@
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/adt/idea/emulator-snapshots:emulator_test_env.bzl", "emulator_snapshot_data", "emulator_snapshot_jvm_flags")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -25,7 +25,7 @@ iml_module(
 profilers_test_common_data_base = [
     ":minapp",
     ":minapp_deps",
-    "//prebuilts/studio/sdk:build-tools/33.0.1",
+    "//prebuilts/studio/sdk:build-tools/36.0.0",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     "//prebuilts/studio/sdk:system_image_android-33_default",
@@ -386,18 +386,16 @@ maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
-        "@maven//:com.android.tools.build.gradle_8.1.0",
-        "@maven//:com.android.tools.lint.lint-gradle_30.4.1",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_9.0.0",
+        "@maven//:com.android.tools.build.aapt2_9.0.0-14304508",
+        "@maven//:com.android.tools.build.gradle_9.0.0",
+        "@maven//:com.android.tools.lint.lint-gradle_32.0.0",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java-util_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
 filegroup(
