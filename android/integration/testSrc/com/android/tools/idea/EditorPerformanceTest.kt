@@ -153,6 +153,7 @@ class EditorPerformanceTest {
           161,
           34,
           "completed_tasks_cleared",
+          false,
         ),
         CompletionPosition(
           "app/src/main/java/com/example/android/architecture/blueprints/todoapp/statistics/StatisticsViewModel.kt",

@@ -81,7 +81,7 @@ class SamplesImportTest {
         .walkTopDown()
         .onEnter { it.name != ".idea" && it.name != ".gradle" }
         .filterNot { it.isDirectory }
-        .filterNot { it.name == "local.properties" }
+        .filterNot { it.name == "local.properties" || it.name == "problems-report.html" }
         .map { FileUtil.toSystemIndependentName(it.relativeTo(expectedProjectDir).toString()) }
         .sorted()
         .joinToString(separator = "\n")
