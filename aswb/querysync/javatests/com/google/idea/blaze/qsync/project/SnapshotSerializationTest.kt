@@ -17,7 +17,6 @@ package com.google.idea.blaze.qsync.project
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
-import com.google.common.truth.Truth8
 import com.google.idea.blaze.common.TargetPattern.Companion.parse
 import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange
@@ -47,29 +46,31 @@ class SnapshotSerializationTest {
         testSources = setOf("javatests/*"),
         systemExcludes = setOf(Path.of(".aswb")),
       )
-    val original =
-      PostQuerySyncData.builder()
-        .setVcsState(
-          Optional.of(
-            VcsState(
-              "workspaceId",
-              "123",
-              ImmutableSet.of(
-                WorkspaceFileChange(WorkspaceFileChange.Operation.ADD, Path.of("project/path/Added.java")),
-                WorkspaceFileChange(WorkspaceFileChange.Operation.DELETE, Path.of("project/path/Deleted.java")),
-                WorkspaceFileChange(WorkspaceFileChange.Operation.MODIFY, Path.of("project/path/Modified.java")),
-              ),
-              Optional.empty(),
-            )
-          )
-        )
-        .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
-        .setBazelVersion(Optional.of("1.2.3"))
-        .build()
+    val vcsState =
+      VcsState(
+        "workspaceId",
+        "123",
+        ImmutableSet.of(
+          WorkspaceFileChange(WorkspaceFileChange.Operation.ADD, Path.of("project/path/Added.java")),
+          WorkspaceFileChange(WorkspaceFileChange.Operation.DELETE, Path.of("project/path/Deleted.java")),
+          WorkspaceFileChange(WorkspaceFileChange.Operation.MODIFY, Path.of("project/path/Modified.java")),
+        ),
+        Optional.empty(),
+      )
+    val bazelVersion = "1.2.3"
+    val original = PostQuerySyncData.builder().setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path")).build()
     val serialized =
-      SnapshotSerializer().visit(projectDefinition).visit(original).visit(createDefaultProjectStructureData()).toProto().toByteArray()
+      SnapshotSerializer()
+        .visit(projectDefinition)
+        .visit(original)
+        .visit(createDefaultProjectStructureData())
+        .visitVcsState(vcsState)
+        .visitBazelVersion(bazelVersion)
+        .toProto()
+        .toByteArray()
     val deserialized = SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
-    Truth8.assertThat(deserialized?.queryData?.vcsState()).isEqualTo(original.vcsState())
+    Truth.assertThat(deserialized?.vcsState).isEqualTo(vcsState)
+    Truth.assertThat(deserialized?.bazelVersion).isEqualTo(bazelVersion)
     Truth.assertThat(deserialized?.queryData).isEqualTo(original)
     Truth.assertThat(deserialized?.projectDefinition).isEqualTo(projectDefinition)
   }
@@ -78,16 +79,20 @@ class SnapshotSerializationTest {
   @Throws(IOException::class)
   fun testSerialization_withVcsState_including_workspaceSnapshot() {
     val projectDefinition = ProjectDefinition.EMPTY
-    val original =
-      PostQuerySyncData.builder()
-        .setVcsState(Optional.of(VcsState("workspaceId", "123", ImmutableSet.of(), Optional.of(Path.of("/snapshot/user/snapshot/1")))))
-        .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
-        .setBazelVersion(Optional.of("1.2.3"))
-        .build()
+    val vcsState = VcsState("workspaceId", "123", ImmutableSet.of(), Optional.of(Path.of("/snapshot/user/snapshot/1")))
+    val bazelVersion = "1.2.3"
+    val original = PostQuerySyncData.builder().setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path")).build()
     val serialized =
-      SnapshotSerializer().visit(projectDefinition).visit(original).visit(createDefaultProjectStructureData()).toProto().toByteArray()
+      SnapshotSerializer()
+        .visit(projectDefinition)
+        .visit(original)
+        .visit(createDefaultProjectStructureData())
+        .visitVcsState(vcsState)
+        .visitBazelVersion(bazelVersion)
+        .toProto()
+        .toByteArray()
     val deserialized = SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
-    Truth8.assertThat(deserialized?.queryData?.vcsState()).isEqualTo(original.vcsState())
+    Truth.assertThat(deserialized?.vcsState).isEqualTo(vcsState)
     Truth.assertThat(deserialized?.queryData).isEqualTo(original)
     Truth.assertThat(deserialized?.projectDefinition).isEqualTo(projectDefinition)
   }
@@ -106,15 +111,11 @@ class SnapshotSerializationTest {
         testSources = setOf("javatests/*"),
         systemExcludes = emptySet(),
       )
-    val original =
-      PostQuerySyncData.builder()
-        .setVcsState(Optional.empty())
-        .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
-        .build()
+    val original = PostQuerySyncData.builder().setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path")).build()
     val serialized =
       SnapshotSerializer().visit(projectDefinition).visit(original).visit(createDefaultProjectStructureData()).toProto().toByteArray()
     val deserialized = SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
-    Truth8.assertThat(deserialized?.queryData?.vcsState()).isEqualTo(original.vcsState())
+    Truth.assertThat(deserialized?.vcsState).isEqualTo(null)
     Truth.assertThat(deserialized?.queryData).isEqualTo(original)
     Truth.assertThat(deserialized?.projectDefinition).isEqualTo(projectDefinition)
   }
@@ -133,11 +134,7 @@ class SnapshotSerializationTest {
         testSources = setOf("javatests/*"),
         systemExcludes = emptySet(),
       )
-    val original =
-      PostQuerySyncData.builder()
-        .setVcsState(Optional.empty())
-        .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
-        .build()
+    val original = PostQuerySyncData.builder().setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path")).build()
     val serialized = SnapshotSerializer(-1).visit(projectDefinition).visit(original).toProto().toByteArray()
     Truth.assertThat(SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)).isNull()
   }
@@ -156,11 +153,7 @@ class SnapshotSerializationTest {
         testSources = setOf("javatests/*"),
         systemExcludes = setOf(Path.of(".aswb")),
       )
-    val original =
-      PostQuerySyncData.builder()
-        .setVcsState(Optional.empty())
-        .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
-        .build()
+    val original = PostQuerySyncData.builder().setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path")).build()
     val serialized =
       SnapshotSerializer().visit(projectDefinition).visit(original).visit(createDefaultProjectStructureData()).toProto().toByteArray()
     val deserialized = SnapshotDeserializer.readFrom(ByteArrayInputStream(serialized), QuerySyncTestUtils.NOOP_CONTEXT)
@@ -250,9 +243,6 @@ class SnapshotSerializationTest {
   }
 
   private fun createDefaultSyncData(): PostQuerySyncData {
-    return PostQuerySyncData.builder()
-      .setVcsState(Optional.empty())
-      .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path"))
-      .build()
+    return PostQuerySyncData.builder().setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//project/path:path")).build()
   }
 }

@@ -37,25 +37,28 @@ import java.util.Set;
 public class RefreshParameters {
 
   final PostQuerySyncData currentProject;
+  final Optional<VcsState> snapshotVcsState;
   final Optional<VcsState> latestVcsState;
+  final Optional<String> snapshotBazelVersion;
   final Optional<String> latestBazelVersion;
   final ProjectDefinition currentProjectDefinition;
   final ProjectDefinition latestProjectDefinition;
-  final VcsStateDiffer vcsDiffer;
 
-  RefreshParameters(
+  public RefreshParameters(
       PostQuerySyncData currentProject,
       ProjectDefinition currentProjectDefinition,
+      Optional<VcsState> snapshotVcsState,
       Optional<VcsState> latestVcsState,
+      Optional<String> snapshotBazelVersion,
       Optional<String> latestBazelVersion,
-      ProjectDefinition latestProjectDefinition,
-      VcsStateDiffer vcsDiffer) {
+      ProjectDefinition latestProjectDefinition) {
     this.currentProject = currentProject;
     this.currentProjectDefinition = currentProjectDefinition;
+    this.snapshotVcsState = snapshotVcsState;
     this.latestVcsState = latestVcsState;
+    this.snapshotBazelVersion = snapshotBazelVersion;
     this.latestBazelVersion = latestBazelVersion;
     this.latestProjectDefinition = latestProjectDefinition;
-    this.vcsDiffer = vcsDiffer;
   }
 
   boolean requiresFullUpdate(Context<?> context) {
@@ -67,7 +70,7 @@ public class RefreshParameters {
       context.output(PrintOutput.output("Project definition has changed; performing full query"));
       return true;
     }
-    if (!currentProject.vcsState().isPresent()) {
+    if (!snapshotVcsState.isPresent()) {
       context.output(PrintOutput.output("No VCS state from last sync: performing full query"));
       return true;
     }
@@ -76,34 +79,33 @@ public class RefreshParameters {
           PrintOutput.output("VCS doesn't support delta updates: performing full query"));
       return true;
     }
-    if (!Objects.equals(
-        currentProject.vcsState().get().workspaceId, latestVcsState.get().workspaceId)) {
+    if (!Objects.equals(snapshotVcsState.get().workspaceId, latestVcsState.get().workspaceId)) {
       context.output(
           PrintOutput.output(
               "Workspace has changed %s -> %s: performing full query",
-              currentProject.vcsState().get().workspaceId, latestVcsState.get().workspaceId));
+              snapshotVcsState.get().workspaceId, latestVcsState.get().workspaceId));
       return true;
     }
     if (!Objects.equals(
-        currentProject.vcsState().get().upstreamRevision, latestVcsState.get().upstreamRevision)) {
+        snapshotVcsState.get().upstreamRevision, latestVcsState.get().upstreamRevision)) {
       context.output(
           PrintOutput.output(
               "Upstream revision has changed %s -> %s: performing full query",
-              currentProject.vcsState().get().upstreamRevision,
-              latestVcsState.get().upstreamRevision));
+              snapshotVcsState.get().upstreamRevision, latestVcsState.get().upstreamRevision));
       return true;
     }
-    if (!Objects.equals(currentProject.bazelVersion(), latestBazelVersion)) {
+    if (!Objects.equals(snapshotBazelVersion, latestBazelVersion)) {
       context.output(
           PrintOutput.output(
               "Bazel version has changed %s -> %s",
-              currentProject.bazelVersion().orElse(null), latestBazelVersion.orElse(null)));
+              snapshotBazelVersion.orElse(null), latestBazelVersion.orElse(null)));
       return true;
     }
     return false;
   }
 
-  AffectedPackages calculateAffectedPackages(Context<?> context) throws BuildException {
+  AffectedPackages calculateAffectedPackages(Context<?> context, VcsStateDiffer vcsDiffer)
+      throws BuildException {
     // Build the effective working set. This includes the working set as was when the original
     // sync query was run, as it's possible that files have been reverted since then but the
     // earlier query output will reflect the un-reverted file state.
@@ -116,16 +118,16 @@ public class RefreshParameters {
     // Files that were in the working set previously, but are no longer, must have been reverted.
     // Find them, and then invert them to ensure that all state is updated appropriately.
     ImmutableSet<WorkspaceFileChange> revertedChanges =
-        currentProject.vcsState().get().workingSet.stream()
+        snapshotVcsState.get().workingSet.stream()
             .filter(c -> !newWorkingSetFiles.contains(c.workspaceRelativePath))
             .map(WorkspaceFileChange::invert)
             .collect(toImmutableSet());
 
     Set<WorkspaceFileChange> changed = Sets.union(latestVcsState.get().workingSet, revertedChanges);
 
-    if (currentProject.vcsState().isPresent() && latestVcsState.isPresent()) {
+    if (snapshotVcsState.isPresent() && latestVcsState.isPresent()) {
       Optional<ImmutableSet<Path>> filesChanged =
-          vcsDiffer.getFilesChangedBetween(latestVcsState.get(), currentProject.vcsState().get());
+          vcsDiffer.getFilesChangedBetween(latestVcsState.get(), snapshotVcsState.get());
       if (filesChanged.isPresent()) {
         // filter out files that didn't actually change:
         changed =

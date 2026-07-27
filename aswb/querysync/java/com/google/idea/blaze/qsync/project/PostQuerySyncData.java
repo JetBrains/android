@@ -17,11 +17,9 @@ package com.google.idea.blaze.qsync.project;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.query.Query;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
-import java.util.Optional;
 
 /**
  * Represents state of the project after the query invocation has been completed, but without any
@@ -34,17 +32,7 @@ import java.util.Optional;
 public abstract class PostQuerySyncData {
 
   public static final PostQuerySyncData EMPTY =
-      builder()
-          .setVcsState(Optional.empty())
-          .setBazelVersion(Optional.empty())
-          .setQuerySummary(QuerySummary.EMPTY)
-          .build();
-
-  /** The VCS state at the time that the query was run. */
-  public abstract Optional<VcsState> vcsState();
-
-  /** The version of bazel that the query was run. */
-  public abstract Optional<String> bazelVersion();
+      builder().setQuerySummary(QuerySummary.EMPTY).build();
 
   /** The summarised output from the query. */
   public abstract QuerySummary querySummary();
@@ -58,10 +46,6 @@ public abstract class PostQuerySyncData {
   /** Builder for {@link PostQuerySyncData}. */
   @AutoValue.Builder
   public abstract static class Builder {
-
-    public abstract Builder setVcsState(Optional<VcsState> value);
-
-    public abstract Builder setBazelVersion(Optional<String> value);
 
     public abstract Builder setQuerySummary(QuerySummary value);
 

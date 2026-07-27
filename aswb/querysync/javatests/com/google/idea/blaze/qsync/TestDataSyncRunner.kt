@@ -31,7 +31,6 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.io.IOException
 import java.nio.file.Path
-import java.util.Optional
 
 /**
  * Builds a [QuerySyncProjectSnapshot] for a test project by running the logic from the various sync stages on the testdata query output.
@@ -51,8 +50,7 @@ class TestDataSyncRunner(private val context: Context<*>) {
         languageClasses = emptySet(),
       )
     val querySummary = QuerySyncTestUtils.getQuerySummary(testProject)
-    val pqsd =
-      PostQuerySyncData.builder().setQuerySummary(querySummary).setVcsState(Optional.empty()).setBazelVersion(Optional.empty()).build()
+    val pqsd = PostQuerySyncData.builder().setQuerySummary(querySummary).build()
     val buildGraphData =
       BlazeQueryParser(
           projectDefinition.effectiveTargetPatterns,
@@ -104,6 +102,8 @@ class TestDataSyncRunner(private val context: Context<*>) {
       project = project,
       incompleteTargets = emptySet(),
       projectDefinition = projectDefinition,
+      vcsState = null,
+      bazelVersion = null,
     )
   }
 }

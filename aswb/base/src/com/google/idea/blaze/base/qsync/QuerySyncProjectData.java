@@ -125,7 +125,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
     logger.warn("Usage of legacy getBlazeVersionData");
     BlazeVersionData.Builder data = BlazeVersionData.builder();
     blazeProject
-        .flatMap(p -> p.getQueryData().vcsState())
+        .map(p -> p.getVcsState())
         .map(q -> q.upstreamRevision)
         .ifPresent(
             revision -> {
@@ -136,7 +136,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
               }
             });
     blazeProject
-        .flatMap(p -> p.getQueryData().bazelVersion())
+        .map(p -> p.getBazelVersion())
         .ifPresent(version -> data.setBazelVersion(BazelVersion.parseVersion(version)));
 
     return data.build();

@@ -134,7 +134,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
       BuildGraphData.ProtoRules protoRules,
       ProjectStructureReader projectStructureReader,
       PackageReader packageReader,
-      PackageReader.ParallelReader parallelPackageReader) {}
+      PackageReader.ParallelReader parallelPackageReader,
+      Optional<BlazeVcsHandler> vcsHandler,
+      BazelVersionHandler bazelVersionProvider) {}
 
   public ProjectLoaderImpl(Project project) {
     this(
@@ -188,7 +190,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
             result.protoRules(),
             result.projectStructureReader(),
             result.packageReader(),
-            result.parallelPackageReader());
+            result.parallelPackageReader(),
+            result.vcsHandler().orElse(null),
+            result.bazelVersionProvider());
 
     return querySyncProject;
   }
@@ -279,7 +283,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
             projectPathResolver,
             buildSystem.getEmptyJarDigests(),
             QuerySync.ATTACH_DEP_SRCJARS::getValue,
-            () -> MiscSection.isExperimentEnabled(project, AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY)));
+            () ->
+                MiscSection.isExperimentEnabled(
+                    project, AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY)));
     projectTransformRegistry.add(new AddProjectKotlinCompilerFlags());
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
@@ -302,9 +308,11 @@ public class ProjectLoaderImpl implements ProjectLoader {
     DependencyTracker dependencyTracker =
         new DependencyTrackerImpl(
             snapshotHolder, dependencyBuilder, artifactTracker, querySyncUserPreferences);
+    VcsStateDiffer vcsDiffer =
+        vcsHandler.map(it -> (VcsStateDiffer) it::diffVcsState).orElse(VcsStateDiffer.NONE);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
-            vcsHandler.map(it -> (VcsStateDiffer) it::diffVcsState).orElse(VcsStateDiffer.NONE),
+            vcsDiffer,
             workspaceRoot.path(),
             enableExperimentalQuery.getValue(),
             snapshotHolder::getCurrent);
@@ -313,12 +321,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
     ProjectBuilder snapshotBuilder = new ProjectBuilder(workspaceRoot.path());
     QueryRunner queryRunner = createQueryRunner(buildSystem);
-    ProjectQuerier projectQuerier =
-        createProjectQuerier(
-            projectRefresher,
-            queryRunner,
-            vcsHandler,
-            new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project)));
+    ProjectQuerier projectQuerier = createProjectQuerier(projectRefresher, queryRunner);
     QuerySyncSourceToTargetMap sourceToTargetMap =
         new QuerySyncSourceToTargetMap(snapshotHolder, workspaceRoot.path());
     return new QuerySyncProjectDeps(
@@ -345,7 +348,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
         buildSystem.getProtoRules(),
         projectStructureReader,
         new WorkspaceResolvingPackageReader(workspaceRoot.path(), createPackageReader()),
-        createParallelPackageReader());
+        createParallelPackageReader(),
+        vcsHandler,
+        new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project)));
   }
 
   private static Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>
@@ -370,11 +375,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
   }
 
   private ProjectQuerierImpl createProjectQuerier(
-      ProjectRefresher projectRefresher,
-      QueryRunner queryRunner,
-      Optional<BlazeVcsHandler> vcsHandler,
-      BazelVersionHandler bazelVersionProvider) {
-    return new ProjectQuerierImpl(queryRunner, projectRefresher, vcsHandler, bazelVersionProvider);
+      ProjectRefresher projectRefresher, QueryRunner queryRunner) {
+    return new ProjectQuerierImpl(queryRunner, projectRefresher);
   }
 
   protected QueryRunner createQueryRunner(BuildSystem buildSystem) {

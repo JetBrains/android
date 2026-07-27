@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
@@ -40,24 +39,18 @@ class PartialProjectRefresh implements RefreshOperation {
 
   private final Path workspaceRoot;
   private final PostQuerySyncData previousState;
-  private final Optional<VcsState> currentVcsState;
-  private final Optional<String> bazelVersion;
   @VisibleForTesting final ImmutableSet<Path> modifiedPackages;
   @VisibleForTesting final ImmutableSet<Path> deletedPackages;
 
   PartialProjectRefresh(
       Path workspaceRoot,
       PostQuerySyncData previousState,
-      Optional<VcsState> currentVcsState,
-      Optional<String> bazelVersion,
       Set<Path> modifiedPackages,
       Set<Path> deletedPackages) {
     this.workspaceRoot = workspaceRoot;
     this.previousState = previousState;
-    this.currentVcsState = currentVcsState;
     this.modifiedPackages = ImmutableSet.copyOf(modifiedPackages);
     this.deletedPackages = ImmutableSet.copyOf(deletedPackages);
-    this.bazelVersion = bazelVersion;
   }
 
   private Optional<QuerySpec> createQuerySpec() {
@@ -82,11 +75,7 @@ class PartialProjectRefresh implements RefreshOperation {
   public PostQuerySyncData createPostQuerySyncData(QuerySummary partialQuery) {
     Preconditions.checkNotNull(partialQuery, "queryOutput");
     QuerySummary effectiveQuery = applyDelta(partialQuery);
-    return PostQuerySyncData.builder()
-        .setVcsState(currentVcsState)
-        .setBazelVersion(bazelVersion)
-        .setQuerySummary(effectiveQuery)
-        .build();
+    return PostQuerySyncData.builder().setQuerySummary(effectiveQuery).build();
   }
 
   /**

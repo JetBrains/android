@@ -15,8 +15,12 @@
  */
 package com.google.idea.blaze.qsync.project
 
+import com.google.idea.blaze.common.vcs.VcsState
+
 data class SerializedProjectStructureAndQueryData(
   val queryData: PostQuerySyncData,
   val projectStructureData: ProjectStructureData,
   val projectDefinition: ProjectDefinition,
+  val vcsState: VcsState?,
+  val bazelVersion: String?,
 )
