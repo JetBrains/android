@@ -28,8 +28,6 @@ import java.util.Optional;
  */
 public interface ProjectQuerier {
 
-  PostQuerySyncData fullQuery(ProjectDefinition projectDef, BlazeContext context) throws BuildException;
-
   PostQuerySyncData update(
     ProjectDefinition currentProjectDef, PostQuerySyncData previousState, BlazeContext context) throws BuildException;
 

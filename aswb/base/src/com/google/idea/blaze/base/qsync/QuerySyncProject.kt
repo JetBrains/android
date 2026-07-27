@@ -127,10 +127,7 @@ class QuerySyncProject(
   }
 
   fun runQueryAndComputePostQuerySyncData(context: BlazeContext, lastQuery: PostQuerySyncData?): PostQuerySyncData {
-    val postQuerySyncData =
-      if (lastQuery == null) projectQuerier.fullQuery(projectDefinition, context)
-      else projectQuerier.update(projectDefinition, lastQuery, context)
-    return postQuerySyncData
+    return projectQuerier.update(projectDefinition, lastQuery ?: PostQuerySyncData.EMPTY, context)
   }
 
   fun computeProjectStructureData(context: BlazeContext, lastProjectStructureData: ProjectStructureData?): ProjectStructureData {
