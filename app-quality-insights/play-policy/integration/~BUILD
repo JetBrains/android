@@ -22,7 +22,7 @@ iml_test(
     data = [
         ":minapp",
         ":minapp_deps",
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:build-tools/36.0.0",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_GRADLE_VERSION,
@@ -46,8 +46,9 @@ maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
-        "@maven//:com.android.tools.build.gradle_8.1.0",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_9.0.0",
+        "@maven//:com.android.tools.build.aapt2_9.0.0-14304508",
+        "@maven//:com.android.tools.build.gradle_9.0.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ] + KOTLIN_ARTIFACTS_FOR_TESTS,
