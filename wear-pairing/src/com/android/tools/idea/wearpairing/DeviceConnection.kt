@@ -93,6 +93,7 @@ suspend fun IDevice.refreshEmulatorConnection() {
 }
 
 suspend fun IDevice.isCompanionAppInstalled(companionAppId: String): Boolean {
+  if (!PACKAGE_NAME_REGEX.matches(companionAppId)) return false
   val output = runShellCommand("dumpsys package $companionAppId | grep versionName")
   return output.contains("versionName=")
 }

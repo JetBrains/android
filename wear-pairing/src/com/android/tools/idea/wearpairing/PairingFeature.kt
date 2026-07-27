@@ -49,19 +49,30 @@ private const val OEM_COMPANION_PROPERTY_KEY = "ro.oem.companion_package"
 const val PIXEL_COMPANION_APP_ID = "com.google.android.apps.wear.companion"
 const val OEM_COMPANION_FALLBACK_APP_ID = "com.google.android.wearable.app"
 
-private suspend fun IDevice.getAppVersionCode(appId: String) =
-  VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))?.groupValues?.get(1)?.toInt()
+// Android package-name grammar (https://developer.android.com/guide/topics/manifest/manifest-element#package)
+// — also guarantees no shell metacharacters.
+internal val PACKAGE_NAME_REGEX = Regex("""[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+""")
+
+private suspend fun IDevice.getAppVersionCode(appId: String?) =
+  if (appId == null || !PACKAGE_NAME_REGEX.matches(appId)) null
+  else VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))?.groupValues?.get(1)?.toInt()
 
 private val availableCompanionAppIds = setOf(PIXEL_COMPANION_APP_ID, OEM_COMPANION_FALLBACK_APP_ID)
 
 suspend fun IDevice.getCompanionAppIdForWatch(): String {
   val settingValue = getSecureSetting(OEM_COMPANION_SETTING_KEY)
   if (settingValue.isNotBlank() && settingValue != "null") {
-    return settingValue
+    if (PACKAGE_NAME_REGEX.matches(settingValue)) {
+      return settingValue
+    }
+    Logger.getInstance(PairingFeature::class.java).warn("Ignoring malformed $OEM_COMPANION_SETTING_KEY from watch: '$settingValue'")
   }
   val propertyValue = getSystemProperty(OEM_COMPANION_PROPERTY_KEY).await()
   if (!propertyValue.isNullOrBlank() && propertyValue != "null") {
-    return propertyValue
+    if (PACKAGE_NAME_REGEX.matches(propertyValue)) {
+      return propertyValue
+    }
+    Logger.getInstance(PairingFeature::class.java).warn("Ignoring malformed $OEM_COMPANION_PROPERTY_KEY from watch: '$propertyValue'")
   }
   return OEM_COMPANION_FALLBACK_APP_ID
 }

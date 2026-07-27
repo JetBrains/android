@@ -55,6 +55,29 @@ class PairingFeaturesTest : LightPlatform4TestCase() {
 
     runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID) }
   }
+
+  @Test
+  fun onGettingCompanionAppId_malformedSetting_returnsFallbackOrProperty() {
+    val device = createDeviceWithShellCommandResult("x; touch /sdcard/PWNED; echo versionName=")
+    whenever(device.getSystemProperty(any())).thenReturn(Futures.immediateFuture("null"))
+
+    runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID) }
+  }
+
+  @Test
+  fun onGettingCompanionAppId_malformedProperty_returnsFallback() {
+    val device = createDeviceWithShellCommandResult("null")
+    whenever(device.getSystemProperty(any())).thenReturn(Futures.immediateFuture("com.example;rm -rf /"))
+
+    runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID) }
+  }
+
+  @Test
+  fun onIsCompanionAppInstalled_malformedPackageName_returnsFalse() {
+    val device = createDeviceWithShellCommandResult("versionName=1.0")
+
+    runBlocking { assertThat(device.isCompanionAppInstalled("x; touch /sdcard/PWNED; echo versionName=")).isFalse() }
+  }
 }
 
 @RunWith(Parameterized::class)
