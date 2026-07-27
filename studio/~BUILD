@@ -145,7 +145,7 @@ studio_plugin(
         "//tools/adt/idea/profilers:traceprocessor-proto",
         "//tools/profiler/common:sherlock-plugin-protos",
         "//tools/profiler/common:sherlock-perfetto-proto",
-        "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
+        "//tools/adt/idea/utp:libstudio.android-test-engine-result-listener-proto",
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:libjava_sites",
         "//tools/base/lint:liblint-checks-proto",

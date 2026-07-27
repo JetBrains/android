@@ -2510,7 +2510,7 @@
 +++Android Studio.app/Contents/plugins/android/lib/libjourneys-java-proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
 +++Android Studio.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
-+++Android Studio.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
++++Android Studio.app/Contents/plugins/android/lib/libstudio.android-test-engine-result-listener-proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/libstudio.proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/libstudio.test-result-proto.jar
 +++Android Studio.app/Contents/plugins/android/lib/lint-ide.jar
@@ -6486,7 +6486,7 @@
 ---Android Studio Preview.app/Contents/plugins/android/lib/libjourneys-java-proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
----Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
+---Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-engine-result-listener-proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/libstudio.test-result-proto.jar
 ---Android Studio Preview.app/Contents/plugins/android/lib/lint-ide.jar

@@ -23,7 +23,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-result-listener-gradle-proto/libstudio.android-test-plugin-result-listener-gradle-proto.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/android-test/android-test-engine-result-listener/libstudio.android-test-engine-result-listener-proto.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -1785,7 +1785,7 @@ android-studio/plugins/android/lib/libjava_version.jar
 android-studio/plugins/android/lib/libjourneys-java-proto.jar
 android-studio/plugins/android/lib/liblint-checks-proto.lib.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
-android-studio/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
+android-studio/plugins/android/lib/libstudio.android-test-engine-result-listener-proto.jar
 android-studio/plugins/android/lib/libstudio.proto.jar
 android-studio/plugins/android/lib/libstudio.test-result-proto.jar
 android-studio/plugins/android/lib/lint-ide.jar

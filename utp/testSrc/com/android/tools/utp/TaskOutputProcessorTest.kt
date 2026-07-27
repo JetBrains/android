@@ -15,7 +15,7 @@
  */
 package com.android.tools.utp
 
-import com.android.tools.androidtest.listener.proto.TestResultEventProto as GradleAndroidTestResultListenerProto // TODO studio-merge
+import com.android.tools.androidtest.listener.proto.TestResultEventProto as GradleAndroidTestResultListenerProto
 import com.android.tools.idea.protobuf.Any
 import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.google.common.truth.Truth.assertThat
