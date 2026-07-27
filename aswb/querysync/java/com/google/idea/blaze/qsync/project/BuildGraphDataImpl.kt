@@ -574,8 +574,15 @@ inline fun <N, V> Collection<N>.traverseDag(
 }
 
 private fun ProjectTarget.allDeps(): Sequence<Label> = sequence {
-  yieldAll(deps())
-  testRule().getOrNull()?.let { yield(it) }
+  val seen = mutableSetOf<Label>()
+  deps().let {
+    seen.addAll(it)
+    yieldAll(it)
+  }
+  testRule().getOrNull()?.let { if (seen.add(it)) yield(it) }
+  testApp().getOrNull()?.let { if (seen.add(it)) yield(it) }
+  instruments().getOrNull()?.let { if (seen.add(it)) yield(it) }
+  library().getOrNull()?.let { if (seen.add(it)) yield(it) }
 }
 
 // TODO: b/465698133 - find a way to move such configuration to _deps.bzl files.

@@ -21,8 +21,11 @@ import static com.google.idea.blaze.qsync.query.QuerySummaryTestUtil.createProto
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.devtools.build.lib.query2.proto.proto2api.Build;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.testdata.TestData;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.Test;
@@ -237,5 +240,34 @@ public class QuerySummaryTest {
     QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(aliasLabel);
     assertThat(rule.ruleClass()).isEqualTo("alias");
     assertThat(rule.deps()).containsExactly(Label.of(TestData.ROOT_PACKAGE + "/nodeps:nodeps"));
+  }
+
+  @Test
+  public void testCreate_libraryAttributePopulated() throws Exception {
+    Build.Target target =
+        Build.Target.newBuilder()
+            .setType(Build.Target.Discriminator.RULE)
+            .setRule(
+                Build.Rule.newBuilder()
+                    .setName("//foo:bar")
+                    .setRuleClass("android_local_test")
+                    .addAttribute(
+                        Build.Attribute.newBuilder()
+                            .setName("library")
+                            .setType(Build.Attribute.Discriminator.LABEL)
+                            .setStringValue("//foo:lib")))
+            .build();
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    target.writeDelimitedTo(out);
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+    QuerySummary qs = QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, in);
+
+    Label barLabel = Label.of("//foo:bar");
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs).keySet()).contains(barLabel);
+    QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(barLabel);
+    assertThat(rule.library()).isEqualTo(Label.of("//foo:lib"));
+    assertThat(rule.deps()).containsExactly(Label.of("//foo:lib"));
   }
 }
