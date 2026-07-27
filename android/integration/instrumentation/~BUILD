@@ -32,7 +32,7 @@ iml_test(
     name = "BuildAndRunInstrumentedTest",
     timeout = "long",
     data = [
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:build-tools/36.0.0",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/adt/idea/android/integration:instrumenttestapp",
@@ -60,7 +60,7 @@ iml_test(
     name = "MultipleDevicesInstrumentedTest",
     timeout = "long",
     data = [
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:build-tools/36.0.0",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/adt/idea/android/integration:instrumenttestapp",
