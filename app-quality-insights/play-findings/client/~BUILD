@@ -28,9 +28,12 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
+        "//tools/base/flags:studio.android.sdktools.flags",
+        "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/app-quality-insights/client:intellij.android.app-quality-insights.client",
         "//tools/adt/idea/app-quality-insights/play-findings/client:play_findings_proto",
         "//tools/vendor/google/play-client/findings:google-play-client-findings",
+        "//tools/vendor/google/login:google-login",
         "//tools/adt/idea/.idea/libraries:protobuf-kotlin",
         "//tools/adt/idea/.idea/libraries:protobuf-java-util",
     ],

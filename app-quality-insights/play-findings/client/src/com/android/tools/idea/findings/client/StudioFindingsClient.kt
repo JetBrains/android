@@ -16,12 +16,15 @@
 package com.android.tools.idea.findings.client
 
 import com.android.tools.findings.client.PlayFindingsClient
+import com.android.tools.findings.client.PlayFindingsEndpoints
 import com.android.tools.idea.findings.model.AffectedScope
 import com.android.tools.idea.findings.model.AppFinding
 import com.android.tools.idea.findings.model.FindingData
 import com.android.tools.idea.findings.model.FindingType
 import com.android.tools.idea.findings.model.toDomain
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.LoadingState
+import com.google.gct.login2.fstLoginFeature
 import com.google.play.androidpublisher.v3.ComputeFindingsResponse as ProtoComputeFindingsResponse
 import com.google.play.androidpublisher.v3.Finding as ProtoFinding
 import com.google.play.androidpublisher.v3.FindingData as ProtoFindingData
@@ -37,6 +40,13 @@ import kotlinx.coroutines.withContext
 
 private val LOG = Logger.getInstance(StudioFindingsClient::class.java)
 
+val StudioFlags.PlayFindingsEndpoint.url: String
+  get() =
+    when (this) {
+      StudioFlags.PlayFindingsEndpoint.PRODUCTION -> PlayFindingsEndpoints.PRODUCTION
+      StudioFlags.PlayFindingsEndpoint.STAGING -> PlayFindingsEndpoints.STAGING
+    }
+
 /**
  * Production implementation of [FindingsClient] that communicates with the Play Developer API over HTTP.
  *
@@ -46,6 +56,16 @@ class StudioFindingsClient(private val playClient: PlayFindingsClient, parentDis
 
   init {
     Disposer.register(parentDisposable) { playClient.close() }
+  }
+
+  companion object {
+    /** Creates a production [StudioFindingsClient] by instantiating the underlying [PlayFindingsClient]. */
+    fun create(parentDisposable: Disposable): StudioFindingsClient =
+      StudioFindingsClient(
+        playClient =
+          PlayFindingsClient(baseUrl = StudioFlags.PLAY_FINDINGS_ENDPOINT.get().url, tokenProvider = { fstLoginFeature.oAuthToken() }),
+        parentDisposable = parentDisposable,
+      )
   }
 
   /** Fetches the findings for the specified application package from the Play Console. Logs any unknown finding types encountered. */
@@ -67,6 +87,7 @@ class StudioFindingsClient(private val playClient: PlayFindingsClient, parentDis
         // PermissionDenied, ServerFailure) based on the HTTP status code for better error handling and display.
         LoadingState.NetworkFailure("Failed to fetch findings: ${e.response.status.value} ${e.message}", e)
       } catch (e: IOException) {
+        // TODO(b/517599039): Handle TokenResponseException to return LoadingState.Unauthorized if token fetching/refresh fails.
         LoadingState.NetworkFailure("Network error fetching findings", e)
       } catch (e: Exception) {
         LoadingState.UnknownFailure("Unknown error fetching findings", e)

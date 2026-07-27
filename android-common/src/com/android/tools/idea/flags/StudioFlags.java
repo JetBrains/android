@@ -2034,6 +2034,20 @@ public final class StudioFlags {
       "Enable Play Findings integration."
     );
 
+  public enum PlayFindingsEndpoint {
+    PRODUCTION,
+    STAGING,
+  }
+
+  public static final Flag<PlayFindingsEndpoint> PLAY_FINDINGS_ENDPOINT =
+    new EnumFlag<>(
+      APP_INSIGHTS,
+      "play.findings.endpoint",
+      "Play Findings Endpoint",
+      "Target API server for Play Findings (PRODUCTION vs STAGING).",
+      PlayFindingsEndpoint.STAGING
+    );
+
   // endregion App Insights
 
   // region App Links Assistant
