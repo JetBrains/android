@@ -29,15 +29,43 @@ import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonSt
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 
 /** Creates run configurations from a BUILD file targets. */
 class BlazeBuildFileRunConfigurationProducer :
-  BlazeRunConfigurationProducer<BlazeCommandRunConfiguration>(BlazeCommandRunConfigurationType.getInstance()) {
+  BlazeRunConfigurationProducer<BlazeBuildFileRunConfigurationProducer.BuildTarget>(BlazeCommandRunConfigurationType.getInstance()) {
 
-  class BuildTarget(@JvmField val rule: FuncallExpression, @JvmField val ruleType: RuleType, @JvmField val label: Label) {
+  class BuildTarget(@JvmField val rule: FuncallExpression, @JvmField val ruleType: RuleType, @JvmField val label: Label) :
+    RunConfigurationContext {
+    override val sourceElement: PsiElement
+      get() = rule
+
+    override fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+      val project = config.project
+      val blazeProjectData = BlazeProjectDataManager.getInstance(project).blazeProjectData ?: return false
+      setupConfiguration(project, blazeProjectData, config, this)
+      return true
+    }
+
+    override fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+      if (config.targetPatterns != listOf(label.toString())) {
+        return false
+      }
+      val blazeProjectData = BlazeProjectDataManager.getInstance(config.project).blazeProjectData ?: return false
+      val generatedConfiguration = BlazeCommandRunConfiguration(config.project, config.factory, config.name)
+      setupConfiguration(config.project, blazeProjectData, generatedConfiguration, this)
+
+      // ignore filtered test configs, produced by other configuration producers.
+      val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
+      if (handlerState?.testFilterFlag != null) {
+        return false
+      }
+
+      return config.suggestedName() == generatedConfiguration.suggestedName() &&
+        config.handler?.commandName == generatedConfiguration.handler?.commandName
+    }
+
     fun guessTargetInfo(): TargetInfo? {
       val ruleName = rule.functionName ?: return null
       val kind = Kind.fromRuleName(ruleName)
@@ -45,36 +73,8 @@ class BlazeBuildFileRunConfigurationProducer :
     }
   }
 
-  override fun doSetupConfigFromContext(
-    configuration: BlazeCommandRunConfiguration,
-    context: ConfigurationContext,
-    sourceElement: Ref<PsiElement>,
-  ): Boolean {
-    val project = configuration.project
-    val blazeProjectData = BlazeProjectDataManager.getInstance(project).blazeProjectData ?: return false
-    val target = getBuildTarget(context) ?: return false
-    sourceElement.set(target.rule)
-    setupConfiguration(configuration.project, blazeProjectData, configuration, target)
-    return true
-  }
-
-  override fun doIsConfigFromContext(configuration: BlazeCommandRunConfiguration, context: ConfigurationContext): Boolean {
-    val target = getBuildTarget(context) ?: return false
-    if (configuration.targetPatterns != listOf(target.label.toString())) {
-      return false
-    }
-    val blazeProjectData = BlazeProjectDataManager.getInstance(configuration.project).blazeProjectData ?: return false
-    val generatedConfiguration = BlazeCommandRunConfiguration(configuration.project, configuration.factory, configuration.name)
-    setupConfiguration(configuration.project, blazeProjectData, generatedConfiguration, target)
-
-    // ignore filtered test configs, produced by other configuration producers.
-    val handlerState = configuration.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
-    if (handlerState?.testFilterFlag != null) {
-      return false
-    }
-
-    return configuration.suggestedName() == generatedConfiguration.suggestedName() &&
-      configuration.handler?.commandName == generatedConfiguration.handler?.commandName
+  override fun findContext(context: ConfigurationContext): BlazeBuildFileRunConfigurationProducer.BuildTarget? {
+    return getBuildTarget(context)
   }
 
   companion object {

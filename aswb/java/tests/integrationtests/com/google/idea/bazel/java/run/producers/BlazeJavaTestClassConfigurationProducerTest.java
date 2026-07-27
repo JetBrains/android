@@ -239,7 +239,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
         (BlazeCommandRunConfiguration) context.getConfiguration().getConfiguration();
     assertThat(config).isNotNull();
 
-    assertThat(new TestContextRunConfigurationProducer().doIsConfigFromContext(config, context))
+    assertThat(
+            new TestContextRunConfigurationProducer().isConfigurationFromContext(config, context))
         .isTrue();
   }
 
@@ -276,7 +277,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
     // modify the label, and check that is enough for the producer to class it as different.
     config.setTargetPattern("//java/com/google/test:TestClass2");
 
-    assertThat(new TestContextRunConfigurationProducer().doIsConfigFromContext(config, context))
+    assertThat(
+            new TestContextRunConfigurationProducer().isConfigurationFromContext(config, context))
         .isFalse();
   }
 
@@ -317,7 +319,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
     flags.add(BlazeFlags.TEST_FILTER + "=com.google.test.OtherTestClass#");
     handlerState.getBlazeFlagsState().setRawFlags(flags);
 
-    assertThat(new TestContextRunConfigurationProducer().doIsConfigFromContext(config, context))
+    assertThat(
+            new TestContextRunConfigurationProducer().isConfigurationFromContext(config, context))
         .isFalse();
   }
 }

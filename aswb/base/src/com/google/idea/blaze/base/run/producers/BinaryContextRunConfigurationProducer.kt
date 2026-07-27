@@ -15,18 +15,12 @@
  */
 package com.google.idea.blaze.base.run.producers
 
-import com.google.common.annotations.VisibleForTesting
-import com.google.idea.blaze.base.command.BlazeCommandName
 import com.google.idea.blaze.base.qsync.QuerySyncManager
-import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType
 import com.google.idea.blaze.base.run.producers.BinaryContextProvider.BinaryRunContext
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils
-import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.Ref
-import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.ParameterizedCachedValue
@@ -35,7 +29,7 @@ import com.intellij.psi.util.PsiModificationTracker
 
 /** Produces run configurations via [BinaryContextProvider]. */
 class BinaryContextRunConfigurationProducer :
-  BlazeRunConfigurationProducer<BlazeCommandRunConfiguration>(BlazeCommandRunConfigurationType.getInstance()) {
+  BlazeRunConfigurationProducer<BinaryRunContext>(BlazeCommandRunConfigurationType.getInstance()) {
 
   companion object {
     private val cacheKey =
@@ -51,37 +45,12 @@ class BinaryContextRunConfigurationProducer :
       }
   }
 
-  private fun findRunContext(context: ConfigurationContext): BinaryRunContext? {
+  override fun findContext(context: ConfigurationContext): BinaryRunContext? {
     if (SmRunnerUtils.getSelectedSmRunnerTreeElements(context).isNotEmpty()) {
       // not a binary run context
       return null
     }
     val psi = context.psiLocation ?: return null
     return CachedValuesManager.getManager(context.project).getParameterizedCachedValue(psi, cacheKey, PROVIDER, false, context)
-  }
-
-  override fun doSetupConfigFromContext(
-    configuration: BlazeCommandRunConfiguration,
-    context: ConfigurationContext,
-    sourceElement: Ref<PsiElement>,
-  ): Boolean {
-    val runContext = findRunContext(context) ?: return false
-    sourceElement.set(runContext.sourceElement)
-    configuration.setTargetInfo(runContext.target)
-    val handlerState = configuration.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java) ?: return false
-    handlerState.commandState.command = BlazeCommandName.RUN
-    configuration.setGeneratedName()
-    return true
-  }
-
-  @VisibleForTesting
-  public override fun doIsConfigFromContext(configuration: BlazeCommandRunConfiguration, context: ConfigurationContext): Boolean {
-    val commonState = configuration.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java) ?: return false
-    if (commonState.commandState.command != BlazeCommandName.RUN) {
-      return false
-    }
-    val runContext = findRunContext(context) ?: return false
-    val targets = configuration.targetPatterns
-    return targets.size == 1 && runContext.target.label().toString() == targets[0]
   }
 }
