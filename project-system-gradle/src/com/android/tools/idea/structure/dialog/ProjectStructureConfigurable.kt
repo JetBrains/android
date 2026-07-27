@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.impl.LaterInvocator
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
@@ -330,6 +331,8 @@ class ProjectStructureConfigurable(private val myProject: Project) :
   private fun showDialog(advanceInit: Runnable) {
     val dialog =
       object : SettingsDialog(myProject, "#PSD", this, true, false) {
+        override fun isProgressDialog(): Boolean = true
+
         override fun doOKAction() {
           inDoOK = true
           try {
@@ -370,7 +373,14 @@ class ProjectStructureConfigurable(private val myProject: Project) :
 
     UiNotifyConnector.doWhenFirstShown(dialog.contentPane) { advanceInit.run() }
     invokeLater(ModalityState.stateForComponent(myDetails)) { myProjectStructureEventDispatcher.multicaster.projectStructureInitializing() }
-    dialog.showAndGet()
+
+    // Defer showAndGet() lock-free to prevent deadlocks with background write actions (backgroundWriteAction).
+    // Component creation ran synchronously above under the Action's Write Intent Lock (populating UI components with Read Access).
+    // Setting isProgressDialog() = true during showAndGet() prevents DialogWrapperPeerImpl from re-acquiring the lock
+    // during the modal event loop.
+    LaterInvocator.invokeLater(ModalityState.any(), myProject.disposed, false) {
+      dialog.showAndGet()
+    }
   }
 
   private fun initSidePanel() {
