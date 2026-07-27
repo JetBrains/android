@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.findings.client
 
-import com.android.tools.findings.client.HttpException
 import com.android.tools.findings.client.PlayFindingsClient
 import com.android.tools.idea.findings.model.AffectedScope
 import com.android.tools.idea.findings.model.AppFinding
@@ -28,9 +27,11 @@ import com.google.play.androidpublisher.v3.Finding as ProtoFinding
 import com.google.play.androidpublisher.v3.FindingData as ProtoFindingData
 import com.google.play.androidpublisher.v3.InAppLocation as ProtoInAppLocation
 import com.google.protobuf.util.JsonFormat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
+import io.ktor.client.plugins.ResponseException
 import java.io.IOException
-import java.net.http.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -41,13 +42,11 @@ private val LOG = Logger.getInstance(StudioFindingsClient::class.java)
  *
  * Delegates the actual HTTP call to [PlayFindingsClient] and handles parsing and mapping to domain models.
  */
-class StudioFindingsClient(private val playClient: PlayFindingsClient) : FindingsClient {
+class StudioFindingsClient(private val playClient: PlayFindingsClient, parentDisposable: Disposable) : FindingsClient {
 
-  constructor(
-    httpClient: HttpClient = HttpClient.newHttpClient(),
-    baseUrl: String,
-    tokenProvider: suspend () -> String?,
-  ) : this(PlayFindingsClient(httpClient, baseUrl, tokenProvider))
+  init {
+    Disposer.register(parentDisposable) { playClient.close() }
+  }
 
   /** Fetches the findings for the specified application package from the Play Console. Logs any unknown finding types encountered. */
   override suspend fun fetchFindings(request: FetchFindingsRequest): LoadingState.Done<List<AppFinding>> {
@@ -63,10 +62,10 @@ class StudioFindingsClient(private val playClient: PlayFindingsClient) : Finding
         val findings = responseProto.findingsList.map { protoFinding -> protoFinding.toDomain() }
 
         LoadingState.Ready(findings)
-      } catch (e: HttpException) {
+      } catch (e: ResponseException) {
         // TODO(b/517599039): Narrow down error categorization and map to more specific LoadingState.Failure subclasses (e.g. Unauthorized,
         // PermissionDenied, ServerFailure) based on the HTTP status code for better error handling and display.
-        LoadingState.NetworkFailure("Failed to fetch findings: ${e.statusCode} ${e.responseBody}", e)
+        LoadingState.NetworkFailure("Failed to fetch findings: ${e.response.status.value} ${e.message}", e)
       } catch (e: IOException) {
         LoadingState.NetworkFailure("Network error fetching findings", e)
       } catch (e: Exception) {

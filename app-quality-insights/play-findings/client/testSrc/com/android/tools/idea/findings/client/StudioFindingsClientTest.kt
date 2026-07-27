@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.findings.client
 
+import com.android.tools.findings.client.PlayFindingsClient
 import com.android.tools.idea.findings.model.AffectedScope
 import com.android.tools.idea.findings.model.FindingData
 import com.android.tools.idea.findings.model.FindingSeverity
@@ -27,16 +28,19 @@ import com.google.play.androidpublisher.v3.Finding as ProtoFinding
 import com.google.play.androidpublisher.v3.FindingData as ProtoFindingData
 import com.google.play.androidpublisher.v3.InAppLocation as ProtoInAppLocation
 import com.google.protobuf.util.JsonFormat
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
 import java.io.IOException
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 
 /**
@@ -48,15 +52,15 @@ import org.mockito.kotlin.whenever
  */
 class StudioFindingsClientTest {
 
-  private lateinit var mockHttpClient: HttpClient
-  private lateinit var mockResponse: HttpResponse<String>
+  private lateinit var mockPlayClient: PlayFindingsClient
+  private lateinit var parentDisposable: com.intellij.openapi.Disposable
   private lateinit var client: StudioFindingsClient
 
   @Before
   fun setUp() {
-    mockHttpClient = mock(HttpClient::class.java)
-    mockResponse = mock(HttpResponse::class.java) as HttpResponse<String>
-    client = StudioFindingsClient(mockHttpClient, "http://test-api.com") { "mock-token" }
+    mockPlayClient = mock(PlayFindingsClient::class.java)
+    parentDisposable = com.intellij.openapi.util.Disposer.newDisposable()
+    client = StudioFindingsClient(mockPlayClient, parentDisposable)
   }
 
   @Test
@@ -83,9 +87,7 @@ class StudioFindingsClientTest {
 
     val jsonResponse = JsonFormat.printer().print(responseProto)
 
-    whenever(mockResponse.statusCode()).thenReturn(200)
-    whenever(mockResponse.body()).thenReturn(jsonResponse)
-    whenever(mockHttpClient.send(any(), any<HttpResponse.BodyHandler<String>>())).thenReturn(mockResponse)
+    whenever(mockPlayClient.fetchFindings(any(), anyOrNull())).thenReturn(jsonResponse)
 
     val result = client.fetchFindings(FetchFindingsRequest("com.example.app"))
 
@@ -118,9 +120,10 @@ class StudioFindingsClientTest {
 
   @Test
   fun testFetchFindings_Non200() = runBlocking {
-    whenever(mockResponse.statusCode()).thenReturn(500)
-    whenever(mockResponse.body()).thenReturn("Internal Server Error")
-    whenever(mockHttpClient.send(any(), any<HttpResponse.BodyHandler<String>>())).thenReturn(mockResponse)
+    val mockResponse = mock(HttpResponse::class.java)
+    whenever(mockResponse.status).thenReturn(HttpStatusCode.InternalServerError)
+    val mockException = object : ResponseException(mockResponse, "Internal Server Error") {}
+    whenever(mockPlayClient.fetchFindings(any(), anyOrNull())).thenThrow(mockException)
 
     val result = client.fetchFindings(FetchFindingsRequest("com.example.app"))
 
@@ -131,7 +134,7 @@ class StudioFindingsClientTest {
 
   @Test
   fun testFetchFindings_NetworkError() = runBlocking {
-    whenever(mockHttpClient.send(any(), any<HttpResponse.BodyHandler<String>>())).thenThrow(IOException("Network down"))
+    whenever(mockPlayClient.fetchFindings(any(), anyOrNull())).thenThrow(IOException("Network down"))
 
     val result = client.fetchFindings(FetchFindingsRequest("com.example.app"))
 
@@ -161,9 +164,7 @@ class StudioFindingsClientTest {
       """
         .trimIndent()
 
-    whenever(mockResponse.statusCode()).thenReturn(200)
-    whenever(mockResponse.body()).thenReturn(jsonResponse)
-    whenever(mockHttpClient.send(any(), any<HttpResponse.BodyHandler<String>>())).thenReturn(mockResponse)
+    whenever(mockPlayClient.fetchFindings(any(), anyOrNull())).thenReturn(jsonResponse)
 
     val result = client.fetchFindings(FetchFindingsRequest("com.example.app"))
 
@@ -191,9 +192,7 @@ class StudioFindingsClientTest {
       """
         .trimIndent()
 
-    whenever(mockResponse.statusCode()).thenReturn(200)
-    whenever(mockResponse.body()).thenReturn(jsonResponse)
-    whenever(mockHttpClient.send(any(), any<HttpResponse.BodyHandler<String>>())).thenReturn(mockResponse)
+    whenever(mockPlayClient.fetchFindings(any(), anyOrNull())).thenReturn(jsonResponse)
 
     val result = client.fetchFindings(FetchFindingsRequest("com.example.app"))
 
@@ -210,22 +209,15 @@ class StudioFindingsClientTest {
 
   @Test
   fun testFetchFindings_WithFilters() = runBlocking {
-    val jsonResponse = """{ "findings": [] }"""
-    whenever(mockResponse.statusCode()).thenReturn(200)
-    whenever(mockResponse.body()).thenReturn(jsonResponse)
-    val requestCaptor: ArgumentCaptor<HttpRequest> = ArgumentCaptor.forClass(HttpRequest::class.java)
-    whenever(mockHttpClient.send(requestCaptor.capture(), any<HttpResponse.BodyHandler<String>>())).thenReturn(mockResponse)
+    whenever(mockPlayClient.fetchFindings(any(), anyOrNull())).thenReturn("""{ "findings": [] }""")
 
     val filters =
       FindingsFilters(findingTypes = setOf(FindingType.DRM_APP_COMPAT, FindingType.UNKNOWN), severities = setOf(FindingSeverity.WARNING))
     client.fetchFindings(FetchFindingsRequest("com.example.app", filters))
 
-    val sentRequest = requestCaptor.value
-    val uri = sentRequest.uri()
-    val query = uri.query
-    assertThat(query).contains("filter=")
-    val decodedQuery = java.net.URLDecoder.decode(query, "UTF-8")
-    assertThat(decodedQuery).isEqualTo("filter=(finding_type = \"DRM_APP_COMPAT\") AND (finding_severity = \"WARNING\")")
+    val filterCaptor = ArgumentCaptor.forClass(String::class.java)
+    verify(mockPlayClient).fetchFindings(eq("com.example.app"), filterCaptor.capture())
+    assertThat(filterCaptor.value).isEqualTo("(finding_type = \"DRM_APP_COMPAT\") AND (finding_severity = \"WARNING\")")
   }
 }
 
