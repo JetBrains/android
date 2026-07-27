@@ -110,12 +110,15 @@ class TableTest {
 
     // Arrow down to Bella.
     composeTestRule.onRoot().performKeyInput { keyPress(Key.DirectionDown) }
+    // Table updates the selection from a coroutine when the new row has to be scrolled into view.
+    composeTestRule.waitForIdle()
 
     assertThat(tableSelectionState.selection).isEqualTo(bella)
     composeTestRule.onNodeWithText(bella.name).assertIsSelected()
 
     // Bella is the last cat; down again should stay there.
     composeTestRule.onRoot().performKeyInput { keyPress(Key.DirectionDown) }
+    composeTestRule.waitForIdle()
 
     assertThat(tableSelectionState.selection).isEqualTo(bella)
     composeTestRule.onNodeWithText(bella.name).assertIsSelected()
@@ -126,6 +129,7 @@ class TableTest {
       keyPress(Key.DirectionUp)
       keyPress(Key.DirectionUp)
     }
+    composeTestRule.waitForIdle()
 
     assertThat(tableSelectionState.selection).isEqualTo(scooter)
     composeTestRule.onNodeWithText(scooter.name).assertIsSelected()
