@@ -123,6 +123,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
           request.contains("grep versionName") -> "versionName=1.0.0"
           request.contains("grep versionCode") -> "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
           request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
+          request.contains("dumpsys activity service WearableService | grep 'local: '") -> "local: phoneNodeId"
           else -> "Unknown executeShellCommand request $request"
         }
       }
@@ -155,6 +156,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
           request.contains("grep versionCode") -> "versionCode=${PairingFeature.REVERSE_PORT_FORWARD.minVersion}"
           request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
           request.contains("settings get secure") -> "null"
+          request.contains("dumpsys activity service WearableService | grep 'local: '") -> "local: wearNodeId"
           else -> "Unknown executeShellCommand request $request"
         }
       }
