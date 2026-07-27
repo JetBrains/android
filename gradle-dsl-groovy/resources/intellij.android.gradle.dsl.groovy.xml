@@ -1,13 +1,16 @@
 <!-- Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. -->
 <idea-plugin package="com.android.tools.idea.gradle.dsl.parser.groovy">
+  <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
   <dependencies>
     <plugin id="org.intellij.groovy"/>
     <module name="intellij.android.gradle.dsl.flags"/>
-    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <module name="intellij.java.frontback.psi"/>
     <module name="intellij.java.psi"/>
-    <!-- endregion -->
+    <module name="intellij.libraries.guava"/>
+    <module name="intellij.platform.core"/>
+    <module name="intellij.platform.core.impl"/>
   </dependencies>
+  <!-- endregion -->
 
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslTransformerFactory"/>

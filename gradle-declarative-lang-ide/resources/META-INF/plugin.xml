@@ -32,6 +32,21 @@
     <plugin id="com.intellij.gradle"/>
     <module name="intellij.java.psi"/>
     <module name="intellij.kotlin.base.util"/>
+    <module name="intellij.libraries.commons.lang3"/>
+    <module name="intellij.libraries.guava"/>
+    <module name="intellij.libraries.jsoup"/>
+    <module name="intellij.platform.analysis"/>
+    <module name="intellij.platform.codeStyle"/>
+    <module name="intellij.platform.core"/>
+    <module name="intellij.platform.core.impl"/>
+    <module name="intellij.platform.core.ui"/>
+    <module name="intellij.platform.editor.ui"/>
+    <module name="intellij.platform.ide.core"/>
+    <module name="intellij.platform.ide.impl"/>
+    <module name="intellij.platform.lang"/>
+    <module name="intellij.platform.lang.impl"/>
+    <module name="intellij.platform.projectModel"/>
+    <module name="intellij.platform.util.ui"/>
     <module name="intellij.gradle"/>
     <module name="intellij.gradle.java"/>
     <!-- endregion -->

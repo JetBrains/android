@@ -10,6 +10,13 @@
     <module name="intellij.android.gradle.declarative.lang"/>
     <module name="intellij.kotlin.base.codeInsight"/>
     <module name="intellij.kotlin.base.util"/>
+    <module name="intellij.libraries.commons.lang3"/>
+    <module name="intellij.libraries.guava"/>
+    <module name="intellij.platform.analysis"/>
+    <module name="intellij.platform.core"/>
+    <module name="intellij.platform.core.impl"/>
+    <module name="intellij.platform.lang"/>
+    <module name="intellij.platform.lang.impl"/>
   </dependencies>
   <!-- endregion -->
 </idea-plugin>
