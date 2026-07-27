@@ -15,18 +15,18 @@
  */
 package com.google.idea.blaze.base.run.producers
 
+import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.settings.Blaze
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.ConfigurationFromContext
 import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationType
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 
 /** Base class for Blaze run configuration producers. */
-abstract class BlazeRunConfigurationProducer<T : RunConfiguration>(configurationType: ConfigurationType) :
-  RunConfigurationProducer<T>(configurationType) {
+abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(configurationType: ConfigurationType) :
+  RunConfigurationProducer<BlazeCommandRunConfiguration>(configurationType) {
 
   override fun isPreferredConfiguration(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean {
     return Blaze.isBlazeProject(self.configuration.project)
@@ -36,23 +36,31 @@ abstract class BlazeRunConfigurationProducer<T : RunConfiguration>(configuration
     return Blaze.isBlazeProject(self.configuration.project) && !other.isProducedBy(BlazeRunConfigurationProducer::class.java)
   }
 
-  override fun setupConfigurationFromContext(configuration: T, context: ConfigurationContext, sourceElement: Ref<PsiElement>): Boolean {
+  override fun setupConfigurationFromContext(
+    configuration: BlazeCommandRunConfiguration,
+    context: ConfigurationContext,
+    sourceElement: Ref<PsiElement>,
+  ): Boolean {
     if (!validContext(context)) {
       return false
     }
-    return doSetupConfigFromContext(configuration, context, sourceElement)
+    val runContext = findContext(context) ?: return false
+    if (!runContext.setupRunConfiguration(configuration)) {
+      return false
+    }
+    sourceElement.set(runContext.sourceElement)
+    return true
   }
 
-  protected abstract fun doSetupConfigFromContext(configuration: T, context: ConfigurationContext, sourceElement: Ref<PsiElement>): Boolean
-
-  override fun isConfigurationFromContext(configuration: T, context: ConfigurationContext): Boolean {
+  override fun isConfigurationFromContext(configuration: BlazeCommandRunConfiguration, context: ConfigurationContext): Boolean {
     if (!validContext(context)) {
       return false
     }
-    return doIsConfigFromContext(configuration, context)
+    val runContext = findContext(context) ?: return false
+    return runContext.matchesRunConfiguration(configuration)
   }
 
-  protected abstract fun doIsConfigFromContext(configuration: T, context: ConfigurationContext): Boolean
+  protected abstract fun findContext(context: ConfigurationContext): C?
 
   /** Returns true if the producer should ignore contexts outside the project. Defaults to false. */
   protected open fun restrictedToProjectFiles(): Boolean {

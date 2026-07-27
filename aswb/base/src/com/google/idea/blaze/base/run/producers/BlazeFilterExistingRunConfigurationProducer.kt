@@ -23,7 +23,6 @@ import com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 
 /**
@@ -33,36 +32,39 @@ import com.intellij.psi.PsiElement
  * language-specific filter calculation to [BlazeTestEventsHandler].
  */
 class BlazeFilterExistingRunConfigurationProducer :
-  BlazeRunConfigurationProducer<BlazeCommandRunConfiguration>(BlazeCommandRunConfigurationType.getInstance()) {
+  BlazeRunConfigurationProducer<BlazeFilterExistingRunConfigurationProducer.FilterContext>(BlazeCommandRunConfigurationType.getInstance()) {
 
-  override fun doSetupConfigFromContext(
-    configuration: BlazeCommandRunConfiguration,
-    context: ConfigurationContext,
-    sourceElement: Ref<PsiElement>,
-  ): Boolean {
-    val testFilter = getTestFilter(context) ?: return false
-    val handlerState = configuration.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
-    if (handlerState == null || BlazeCommandName.TEST != handlerState.commandState.command) {
-      return false
-    }
-    // replace old test filter flag if present
-    val flags = ArrayList(handlerState.blazeFlagsState.rawFlags)
-    flags.removeIf { flag -> flag.startsWith(BlazeFlags.TEST_FILTER) }
-    flags.add(testFilter)
+  class FilterContext(override val sourceElement: PsiElement, val testFilter: String, val countSelectedTestCases: Int) :
+    RunConfigurationContext {
 
-    if (SmRunnerUtils.countSelectedTestCases(context) == 1 && !flags.contains(BlazeFlags.DISABLE_TEST_SHARDING)) {
-      flags.add(BlazeFlags.DISABLE_TEST_SHARDING)
+    override fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+      val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java) ?: return false
+      if (BlazeCommandName.TEST != handlerState.commandState.command) {
+        return false
+      }
+      val flags = ArrayList(handlerState.blazeFlagsState.rawFlags)
+      flags.removeIf { flag -> flag.startsWith(BlazeFlags.TEST_FILTER) }
+      flags.add(testFilter)
+
+      if (countSelectedTestCases == 1 && !flags.contains(BlazeFlags.DISABLE_TEST_SHARDING)) {
+        flags.add(BlazeFlags.DISABLE_TEST_SHARDING)
+      }
+      handlerState.blazeFlagsState.rawFlags = flags
+      config.name = config.name + " (filtered)"
+      config.setNameChangedByUser(true)
+      return true
     }
-    handlerState.blazeFlagsState.rawFlags = flags
-    configuration.name = configuration.name + " (filtered)"
-    configuration.setNameChangedByUser(true)
-    return true
+
+    override fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+      val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java) ?: return false
+      return handlerState.commandState.command == BlazeCommandName.TEST && testFilter == handlerState.testFilterFlag
+    }
   }
 
-  override fun doIsConfigFromContext(configuration: BlazeCommandRunConfiguration, context: ConfigurationContext): Boolean {
-    val testFilter = getTestFilter(context) ?: return false
-    val handlerState = configuration.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
-    return handlerState != null && handlerState.commandState.command == BlazeCommandName.TEST && testFilter == handlerState.testFilterFlag
+  override fun findContext(context: ConfigurationContext): FilterContext? {
+    val psi = context.psiLocation ?: return null
+    val testFilter = getTestFilter(context) ?: return null
+    return FilterContext(psi, testFilter, SmRunnerUtils.countSelectedTestCases(context))
   }
 
   companion object {

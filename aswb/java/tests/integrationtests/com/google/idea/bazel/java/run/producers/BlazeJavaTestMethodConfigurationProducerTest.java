@@ -123,7 +123,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
         (BlazeCommandRunConfiguration) context.getConfiguration().getConfiguration();
 
     boolean isConfigFromContext =
-        new TestContextRunConfigurationProducer().doIsConfigFromContext(config, context);
+        new TestContextRunConfigurationProducer().isConfigurationFromContext(config, context);
 
     assertThat(isConfigFromContext).isTrue();
   }
@@ -140,7 +140,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
 
     // Act
     boolean isConfigFromContext =
-        new TestContextRunConfigurationProducer().doIsConfigFromContext(config, context);
+        new TestContextRunConfigurationProducer().isConfigurationFromContext(config, context);
 
     // Assert
     assertThat(isConfigFromContext).isFalse();
@@ -164,7 +164,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
 
     // Act
     boolean isConfigFromContext =
-        new TestContextRunConfigurationProducer().doIsConfigFromContext(config, context);
+        new TestContextRunConfigurationProducer().isConfigurationFromContext(config, context);
 
     // Assert
     assertThat(isConfigFromContext).isFalse();

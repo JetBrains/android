@@ -15,7 +15,10 @@
  */
 package com.google.idea.blaze.base.run.producers
 
+import com.google.idea.blaze.base.command.BlazeCommandName
 import com.google.idea.blaze.base.dependencies.TargetInfo
+import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
+import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiElement
@@ -24,7 +27,24 @@ import com.intellij.psi.PsiElement
 interface BinaryContextProvider {
 
   /** A context related to a blaze binary target, used to configure a run configuration. */
-  data class BinaryRunContext(val sourceElement: PsiElement, val target: TargetInfo) {
+  data class BinaryRunContext(override val sourceElement: PsiElement, val target: TargetInfo) : RunConfigurationContext {
+    override fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+      config.setTargetInfo(target)
+      val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java) ?: return false
+      handlerState.commandState.command = BlazeCommandName.RUN
+      config.setGeneratedName()
+      return true
+    }
+
+    override fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+      val commonState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java) ?: return false
+      if (commonState.commandState.command != BlazeCommandName.RUN) {
+        return false
+      }
+      val targets = config.targetPatterns
+      return targets.size == 1 && target.label().toString() == targets[0]
+    }
+
     companion object {
       @JvmStatic
       fun create(sourceElement: PsiElement, target: TargetInfo): BinaryRunContext {

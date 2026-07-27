@@ -19,9 +19,9 @@ import com.google.idea.blaze.android.run.test.BlazeAndroidTestRunConfigurationSt
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducer
+import com.google.idea.blaze.base.run.producers.RunConfigurationContext
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
@@ -31,36 +31,35 @@ import com.intellij.psi.PsiMethod
  * / methods from the test UI tree. This producer only handles android instrumentation tests run without using blaze test or mobile-install.
  */
 class BlazeFilterAndroidTestRunConfigurationProducer :
-  BlazeRunConfigurationProducer<BlazeCommandRunConfiguration>(BlazeCommandRunConfigurationType.getInstance()) {
+  BlazeRunConfigurationProducer<BlazeFilterAndroidTestRunConfigurationProducer.AndroidTestFilterContext>(
+    BlazeCommandRunConfigurationType.getInstance()
+  ) {
 
   private class TestLocationName(val className: String, val methodName: String)
 
-  override fun doSetupConfigFromContext(
-    configuration: BlazeCommandRunConfiguration,
-    context: ConfigurationContext,
-    sourceElement: Ref<PsiElement>,
-  ): Boolean {
-    val handlerState = configuration.getHandlerStateIfType(BlazeAndroidTestRunConfigurationState::class.java) ?: return false
-    val locationName = getTestLocationName(context) ?: return false
+  class AndroidTestFilterContext(override val sourceElement: PsiElement, val className: String, val methodName: String) :
+    RunConfigurationContext {
 
-    handlerState.className = locationName.className
-    handlerState.methodName = locationName.methodName
-    handlerState.testingType =
-      if (locationName.methodName.isEmpty()) BlazeAndroidTestRunConfigurationState.TEST_CLASS
-      else BlazeAndroidTestRunConfigurationState.TEST_METHOD
+    override fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+      val handlerState = config.getHandlerStateIfType(BlazeAndroidTestRunConfigurationState::class.java) ?: return false
+      handlerState.className = className
+      handlerState.methodName = methodName
+      handlerState.testingType =
+        if (methodName.isEmpty()) BlazeAndroidTestRunConfigurationState.TEST_CLASS else BlazeAndroidTestRunConfigurationState.TEST_METHOD
+      config.setGeneratedName()
+      return true
+    }
 
-    configuration.setGeneratedName()
-    return true
+    override fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+      val handlerState = config.getHandlerStateIfType(BlazeAndroidTestRunConfigurationState::class.java) ?: return false
+      return className == handlerState.className && methodName == handlerState.methodName
+    }
   }
 
-  override fun doIsConfigFromContext(configuration: BlazeCommandRunConfiguration, context: ConfigurationContext): Boolean {
-    val handlerState = configuration.getHandlerStateIfType(BlazeAndroidTestRunConfigurationState::class.java) ?: return false
-    val locationName = getTestLocationName(context) ?: return false
-
-    if (locationName.className != handlerState.className) {
-      return false
-    }
-    return locationName.methodName == handlerState.methodName
+  override fun findContext(context: ConfigurationContext): AndroidTestFilterContext? {
+    val locationName = getTestLocationName(context) ?: return null
+    val psi = context.psiLocation ?: return null
+    return AndroidTestFilterContext(psi, locationName.className, locationName.methodName)
   }
 
   companion object {

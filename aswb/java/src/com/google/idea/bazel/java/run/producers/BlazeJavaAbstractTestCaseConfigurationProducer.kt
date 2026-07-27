@@ -19,13 +19,13 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducer
+import com.google.idea.blaze.base.run.producers.RunConfigurationContext
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.ConfigurationFromContext
 import com.intellij.execution.junit.JUnitUtil
-import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
@@ -33,26 +33,27 @@ import com.intellij.psi.util.PsiTreeUtil
 
 /** Producer for abstract test classes/methods. */
 class BlazeJavaAbstractTestCaseConfigurationProducer :
-  BlazeRunConfigurationProducer<BlazeCommandRunConfiguration>(BlazeCommandRunConfigurationType.getInstance()) {
+  BlazeRunConfigurationProducer<RunConfigurationContext>(BlazeCommandRunConfigurationType.getInstance()) {
 
   private class AbstractTestLocation(val abstractClass: PsiClass, val method: PsiMethod? = null)
 
-  override fun doSetupConfigFromContext(
-    configuration: BlazeCommandRunConfiguration,
-    context: ConfigurationContext,
-    sourceElement: Ref<PsiElement>,
-  ): Boolean {
-    val location = getAbstractLocation(context) ?: return false
-    sourceElement.set(location.method ?: location.abstractClass)
-    configuration.name = "Choose subclass for ${configName(location.abstractClass, location.method)}"
-    configuration.setNameChangedByUser(true)
-    return true
-  }
+  override fun findContext(context: ConfigurationContext): RunConfigurationContext? {
+    val location = getAbstractLocation(context) ?: return null
+    return object : RunConfigurationContext {
+      override val sourceElement: PsiElement = location.method ?: location.abstractClass
 
-  override fun doIsConfigFromContext(configuration: BlazeCommandRunConfiguration, context: ConfigurationContext): Boolean {
-    // this is an intermediate type -- when it's fully instantiated (via 'onFirstRun') it will be
-    // recognized by a different producer.
-    return false
+      override fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+        config.name = "Choose subclass for ${configName(location.abstractClass, location.method)}"
+        config.setNameChangedByUser(true)
+        return true
+      }
+
+      override fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
+        // this is an intermediate type -- when it's fully instantiated (via 'onFirstRun') it will be
+        // recognized by a different producer.
+        return false
+      }
+    }
   }
 
   override fun onFirstRun(configuration: ConfigurationFromContext, context: ConfigurationContext, startRunnable: Runnable) {
