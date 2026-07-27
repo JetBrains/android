@@ -1994,6 +1994,14 @@ public final class StudioFlags {
       "Enable project creation in the device streaming setup dialog instead of during login."
     );
 
+  public static final Flag<Boolean> DIRECT_ACCESS_QUOTA_SWITCH =
+    new BooleanFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.quota.switch",
+      "Migrate Device Streaming quota metrics from FTL to DDP",
+      "Activate migration of device streaming quota metrics from FTL to DDP"
+    );
+
   // endregion Firebase Test Lab
 
   // region App Insights
