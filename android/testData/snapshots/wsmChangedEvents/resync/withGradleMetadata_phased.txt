@@ -2,33 +2,28 @@ Workspace model changed #1, phase: INITIAL_PHASE
     Roots changed
     Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
     Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
-Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+Workspace model changed #2, phase: BASE_SCRIPT_MODEL_PHASE
     Roots changed
     Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app)
     Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+    Added(newEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinGradleScriptTemplate))
+    Added(newEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinProjectScriptTemplate))
+    Added(newEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate))
+    Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinGradleScriptTemplate))
+    Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinProjectScriptTemplate))
+    Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate))
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Roots changed
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app)
+    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app)
+    Added JavaModuleSettingsEntity for withGradleMetadata.app
+    Removed JavaModuleSettingsEntity for withGradleMetadata.app
 Workspace model changed #4, phase: ADDITIONAL_MODEL_PHASE
+    Roots changed
     Replaced: JavaProjectSettingsEntity for the IDE project
     With:     JavaProjectSettingsEntity for the IDE project
 Workspace model changed #5, phase: N/A
 Workspace model changed #6, phase: N/A
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app)
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.main)
-    Replaced: ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
-    With:     ModuleEntity for ModuleId(name=withGradleMetadata.app.unitTest)
     Replaced: LibraryEntity: Gradle: org.gradle.sample:library:1.1
     With:     LibraryEntity: Gradle: org.gradle.sample:library:1.1
     Replaced: LibraryEntity: Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.5.30
@@ -47,6 +42,8 @@ Workspace model changed #6, phase: N/A
     With:     LibraryEntity: Gradle: org.jetbrains:annotations:13.0
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=withGradleMetadata.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=withGradleMetadata.app))
+    Replaced: JavaModuleSettingsEntity for withGradleMetadata.app
+    With:     JavaModuleSettingsEntity for withGradleMetadata.app
     Added LibraryMavenCoordinateEntity for Gradle: org.gradle.sample:library:1.1
     Added LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.5.30
     Added LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.30

@@ -1024,6 +1024,8 @@ MODULE                        : Kotlin_Multiplatform
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/kmpJvmOnly/build/classes/java/jvmMain [-]
                                 - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
                                 - files                       : <ROOT>/kmpJvmOnly/build/processedResources/jvm/main [-]
@@ -1051,6 +1053,8 @@ MODULE                        : Kotlin_Multiplatform
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/kmpJvmOnly/build/classes/java/jvmTest [-]
                                 - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
@@ -1110,6 +1114,8 @@ MODULE                        : Kotlin_Multiplatform
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
                                 - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
                                 - files                       : <ROOT>/kmpSecondLib/build/processedResources/jvm/main [-]
@@ -1135,6 +1141,8 @@ MODULE                        : Kotlin_Multiplatform
                                 - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmTest [-]
                                 - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
@@ -2748,6 +2756,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         swiftExport                   : KotlinSwiftExportModelImpl
+        swiftPMImportModel            : KotlinMultiplatformLinkedPackage (KotlinSwiftPMImportModelImpl)
+            integrateLinkagePackageTaskPath         : :kmpFirstLib:integrateLinkagePackage [-]
         - targets                     : android (KotlinTargetImpl)
             - compilations                : deviceTest (KotlinCompilationImpl)
                 - allSourceSets               : commonTest (KotlinSourceSetImpl)
@@ -2800,7 +2810,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     moduleName                    : Kotlin Multiplatform:kmpFirstLib_deviceTest
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2864,7 +2873,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     moduleName                    : Kotlin Multiplatform:kmpFirstLib_hostTest
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2937,7 +2945,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     moduleName                    : Kotlin Multiplatform:kmpFirstLib
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3020,6 +3027,8 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         swiftExport                   : KotlinSwiftExportModelImpl
+        swiftPMImportModel            : KotlinMultiplatformLinkedPackage (KotlinSwiftPMImportModelImpl)
+            integrateLinkagePackageTaskPath         : :kmpJvmOnly:integrateLinkagePackage [-]
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3065,7 +3074,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     moduleName                    : Kotlin Multiplatform:kmpJvmOnly
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3147,7 +3155,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     moduleName                    : Kotlin Multiplatform:kmpJvmOnly_test
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3357,6 +3364,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         swiftExport                   : KotlinSwiftExportModelImpl
+        swiftPMImportModel            : KotlinMultiplatformLinkedPackage (KotlinSwiftPMImportModelImpl)
+            integrateLinkagePackageTaskPath         : :kmpSecondLib:integrateLinkagePackage [-]
         - targets                     : android (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3402,7 +3411,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     moduleName                    : Kotlin Multiplatform:kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3466,7 +3474,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     moduleName                    : Kotlin Multiplatform:kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3548,7 +3555,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     moduleName                    : Kotlin Multiplatform:kmpSecondLib_test
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3846,6 +3852,8 @@ MODULE                        : build-logic.lib-foo
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         swiftExport                   : KotlinSwiftExportModelImpl
+        swiftPMImportModel            : KotlinMultiplatformLinkedPackage (KotlinSwiftPMImportModelImpl)
+            integrateLinkagePackageTaskPath         : :lib-foo:integrateLinkagePackage [-]
         - targets                     : android (KotlinTargetImpl)
             - compilations                : deviceTest (KotlinCompilationImpl)
                 - allSourceSets               : androidDeviceTest (KotlinSourceSetImpl)
@@ -3878,7 +3886,6 @@ MODULE                        : build-logic.lib-foo
                     moduleName                    : build-logic:lib-foo_deviceTest
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3957,7 +3964,6 @@ MODULE                        : build-logic.lib-foo
                     moduleName                    : build-logic:lib-foo_hostTest
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4030,7 +4036,6 @@ MODULE                        : build-logic.lib-foo
                     moduleName                    : build-logic:lib-foo
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable

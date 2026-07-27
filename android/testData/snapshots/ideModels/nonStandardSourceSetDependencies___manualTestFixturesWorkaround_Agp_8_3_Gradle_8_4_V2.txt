@@ -804,6 +804,8 @@ MODULE                        : NonStandardSourceSetDependencies
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/common/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/common/build/classes/java/jvmMain [-]
                                 - files                       : <ROOT>/common/build/classes/kotlin/jvm/main [-]
                                 - files                       : <ROOT>/common/build/processedResources/jvm/main [-]
@@ -831,6 +833,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/common/build/classes/kotlin/jvm/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/common/build/classes/java/jvmTest [-]
                                 - files                       : <ROOT>/common/build/classes/kotlin/jvm/test [-]
@@ -886,6 +890,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/desktop/build/classes/java/main [-]
                                 - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
                                 - files                       : <ROOT>/desktop/build/resources/main [-]
@@ -914,6 +920,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/desktop/build/classes/kotlin/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/desktop/build/classes/java/test [-]
                                 - files                       : <ROOT>/desktop/build/classes/kotlin/test [-]
@@ -1060,6 +1068,8 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLibrary/build/classes/java/main [-]
                                 - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
                                 - files                       : <ROOT>/javaLibrary/build/resources/main [-]
@@ -1094,6 +1104,8 @@ MODULE                        : NonStandardSourceSetDependencies
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLibrary/build/classes/kotlin/test [-]
+                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLibrary/build/classes/java/test [-]
                                 - files                       : <ROOT>/javaLibrary/build/classes/kotlin/test [-]
                                 - files                       : <ROOT>/javaLibrary/build/resources/test [-]
@@ -1116,6 +1128,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLibrary/build/classes/java/testEnv [-]
                                 - files                       : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
@@ -1236,6 +1250,8 @@ MODULE                        : NonStandardSourceSetDependencies
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                    - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmMain [-]
@@ -1262,11 +1278,14 @@ MODULE                        : NonStandardSourceSetDependencies
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                     - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                                    - dependencies                : DefaultFileCollectionDependency
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/test [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/classes/java/jvmTest [-]
                                         - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
-                                    - dependencies                : DefaultFileCollectionDependency (*seen*)
+                                    - dependencies                : DefaultFileCollectionDependency
+                                        - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
                                     sources
                                         TEST                          : alljava (DefaultExternalSourceDirectorySet)
                                             - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
@@ -2128,7 +2147,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2147,7 +2165,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2166,7 +2183,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2273,7 +2289,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     moduleName                    : common
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2355,7 +2370,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     moduleName                    : common_test
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2428,7 +2442,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     moduleName                    : desktop
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2453,7 +2466,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     moduleName                    : desktop_test
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3494,7 +3506,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3513,7 +3524,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3532,7 +3542,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4028,7 +4037,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     moduleName                    : feature-b_debug
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4102,7 +4110,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     moduleName                    : feature-b_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4178,7 +4185,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     moduleName                    : feature-b_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4263,7 +4269,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     moduleName                    : javaLibrary
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4288,7 +4293,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     moduleName                    : javaLibrary_test
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4313,7 +4317,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     moduleName                    : javaLibrary_testEnv
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4442,7 +4445,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     moduleName                    : sample
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4526,7 +4528,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     moduleName                    : sample_test
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -5343,7 +5344,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -5362,7 +5362,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -5381,7 +5380,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable

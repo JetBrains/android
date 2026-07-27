@@ -664,6 +664,8 @@ MODULE                        : kotlinMultiPlatform
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/module2/build/classes/java/jvmMain [-]
                                 - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
                                 - files                       : <ROOT>/module2/build/processedResources/jvm/main [-]
@@ -691,6 +693,8 @@ MODULE                        : kotlinMultiPlatform
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/module2/build/classes/java/jvmTest [-]
                                 - files                       : <ROOT>/module2/build/classes/kotlin/jvm/test [-]
@@ -1749,7 +1753,6 @@ MODULE                        : kotlinMultiPlatform.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -1769,7 +1772,6 @@ MODULE                        : kotlinMultiPlatform.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -1789,7 +1791,6 @@ MODULE                        : kotlinMultiPlatform.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2250,6 +2251,8 @@ MODULE                        : kotlinMultiPlatform.module2
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         swiftExport                   : KotlinSwiftExportModelImpl
+        swiftPMImportModel            : KotlinMultiplatformLinkedPackage (KotlinSwiftPMImportModelImpl)
+            integrateLinkagePackageTaskPath         : :module2:integrateLinkagePackage [-]
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -2308,7 +2311,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     moduleName                    : kotlinMultiPlatform:module2_debug
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2383,7 +2385,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     moduleName                    : kotlinMultiPlatform:module2_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -2478,7 +2479,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     moduleName                    : kotlinMultiPlatform:module2_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2547,7 +2547,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     moduleName                    : kotlinMultiPlatform:module2
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2612,7 +2611,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     moduleName                    : kotlinMultiPlatform:module2_test
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable

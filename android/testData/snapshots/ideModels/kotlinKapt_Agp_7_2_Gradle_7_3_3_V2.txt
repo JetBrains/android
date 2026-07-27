@@ -791,6 +791,8 @@ MODULE                        : MainActivity
                                 file                          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
                                 source                        : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLib/build/classes/java/main [-]
                                 - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
                                 - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
@@ -828,6 +830,8 @@ MODULE                        : MainActivity
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
                                 source                        : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLib/build/classes/kotlin/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLib/build/classes/java/test [-]
                                 - files                       : <ROOT>/javaLib/build/classes/kotlin/test [-]
@@ -1725,7 +1729,6 @@ MODULE                        : MainActivity.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -1744,7 +1747,6 @@ MODULE                        : MainActivity.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -1763,7 +1765,6 @@ MODULE                        : MainActivity.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -1845,7 +1846,6 @@ MODULE                        : MainActivity.javaLib
                     moduleName                    : javaLib
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -1863,7 +1863,6 @@ MODULE                        : MainActivity.javaLib
                     moduleName                    : javaLib_test
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2969,7 +2968,6 @@ MODULE                        : MainActivity.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2988,7 +2986,6 @@ MODULE                        : MainActivity.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3007,7 +3004,6 @@ MODULE                        : MainActivity.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable

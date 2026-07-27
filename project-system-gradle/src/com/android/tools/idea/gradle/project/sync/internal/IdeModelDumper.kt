@@ -208,8 +208,8 @@ private val jbModelDumpers =
         prop("versionString", kotlinGradlePluginVersion.versionString.replaceBuiltInKotlinVersion())
       }
     },
-    SpecializedDumper(property = K2JVMCompilerArguments::configurator),
-    SpecializedDumper(property = K2JVMCompilerArguments::explicitArguments),
+    SpecializedDumper(property = CommonCompilerArguments::configurator),
+    SpecializedDumper(property = CommonCompilerArguments::explicitArguments),
     // Custom dumper to avoid configurations with empty artifacts being printed
     SpecializedDumper<DefaultGradleSourceSetModel> { gradleSourceSet ->
       prop(propertyName, gradleSourceSet::class.simpleName)

@@ -2,10 +2,16 @@ Workspace model changed #1, phase: INITIAL_PHASE
     Roots changed
     Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
     Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
-Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+Workspace model changed #2, phase: BASE_SCRIPT_MODEL_PHASE
     Roots changed
     Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
     Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+    Added(newEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinGradleScriptTemplate))
+    Added(newEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinProjectScriptTemplate))
+    Added(newEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate))
+    Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinGradleScriptTemplate))
+    Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinProjectScriptTemplate))
+    Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate))
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
     Replaced: ModuleEntity for ModuleId(name=p.test)
     With:     ModuleEntity for ModuleId(name=p.test)
