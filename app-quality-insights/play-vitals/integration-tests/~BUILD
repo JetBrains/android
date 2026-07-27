@@ -1,4 +1,4 @@
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "KOTLIN_VERSION_FOR_TESTS")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "KOTLIN_ARTIFACTS_FOR_TESTS", "KOTLIN_VERSION_FOR_TESTS")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -32,14 +32,12 @@ maven_repository(
     name = "openproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.gradle_8.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_" + KOTLIN_VERSION_FOR_TESTS,
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KOTLIN_VERSION_FOR_TESTS,
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KOTLIN_VERSION_FOR_TESTS,
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + KOTLIN_VERSION_FOR_TESTS,
+        "@maven//:com.android.application.com.android.application.gradle.plugin_9.0.0",
+        "@maven//:com.android.tools.build.aapt2_9.0.0-14304508",
+        "@maven//:com.android.tools.build.gradle_9.0.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
 iml_test(
