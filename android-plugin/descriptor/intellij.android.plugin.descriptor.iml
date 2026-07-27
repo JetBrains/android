@@ -11,5 +11,12 @@
     <orderEntry type="module" module-name="intellij.groovy" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle.java.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.compose.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.groovy.scripting" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.java.aetherDependencyResolver.plugin" scope="RUNTIME" />
+    <!-- TODO: android-merge; intellij.libraries.misc.plugin was removed by IJPL-248701, its library modules are back in the platform -->
+    <orderEntry type="module" module-name="intellij.platform.structuralSearch.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.structureView.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.testRunner.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.todo.plugin" scope="RUNTIME" />
   </component>
 </module>
