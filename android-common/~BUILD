@@ -32,6 +32,8 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/analytics-library/shared:analytics-shared",
+        "//tools/analytics-library/tracker:analytics-tracker",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch",
         "//tools/base/sdklib:studio.android.sdktools.sdklib",
@@ -70,6 +72,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/.idea/libraries:android-core-proto",
     ],
+    test_friends = ["//tools/adt/idea/android-common:intellij.android.common"],
     test_srcs = ["test"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

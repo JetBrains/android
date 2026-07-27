@@ -20,6 +20,10 @@
     <extensionPoint qualifiedName="com.android.googleapis.googleApiKeyProvider"
                     interface="com.android.tools.idea.googleapis.GoogleApiKeyProvider"
                     dynamic="true"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.project.notification.server.bridge"
+                    interface="com.android.tools.idea.project.notification.server.ServerPushNotificationBridge"
+                    area="IDEA_PROJECT"
+                    dynamic="true"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.concurrency.AndroidIoManager"
@@ -29,5 +33,11 @@
     <applicationService serviceInterface="com.android.tools.sdk.DeviceManagerDeviceFilter"
                         serviceImplementation="com.android.tools.sdk.StudioDeviceManagerDeviceFilter" />
     <aboutPopupDescriptionProvider implementation="com.android.tools.idea.about.DisabledPluginsAboutPopupProvider" />
+    <postStartupActivity implementation="com.android.tools.idea.project.notification.server.StudioServerPushNotificationRenderer"/>
+    <notificationGroup id="Studio Server Push Notifications" displayType="STICKY_BALLOON"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.project.notification.server">
+    <bridge implementation="com.android.tools.idea.project.notification.server.DefaultServerPushNotificationBridge" order="last"/>
   </extensions>
 </idea-plugin>

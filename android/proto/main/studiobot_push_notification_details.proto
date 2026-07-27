@@ -46,8 +46,14 @@ message StudioPushNotification {
       // enum in OpenUiAction.
       string ui_screen_id = 4;
     }
-    // Optional parameter for ui_screen_id
-    optional string ui_screen_param = 5;
+    // Optional parameter passed to the UI action or command execution.
+    // Deprecated: Use `data_context_params` map to pass key-value DataContext parameters instead.
+    optional string ui_screen_param = 5 [deprecated = true];
+
+    // Optional key-value DataContext parameters for ui_screen_id execution:
+    // - Map key: The string identifier of the IntelliJ DataKey<String> expected by the action.
+    // - Map value: The string parameter value associated with the DataKey.
+    map<string, string> data_context_params = 6;
   }
   // A spec for showing a push notification as an IntelliJ notification -
   // https://plugins.jetbrains.com/docs/intellij/balloon.html
