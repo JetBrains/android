@@ -7770,6 +7770,8 @@ Projects:
                 Properties
                     - PropertyName                  : engineVersion
                       Property SimpleType           : STRING
+                    - PropertyName                  : imageDifferenceThreshold
+                      Property ReferenceType        : kotlin.Float
                     - PropertyName                  : targetVariants
                       Property DataClassWithType    : kotlin.collections.List
                       GenericTypes
@@ -8249,6 +8251,11 @@ Projects:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Float
+                Name                          : kotlin.Float
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Number,kotlin.Any,java.io.Serializable,kotlin.Comparable
             kotlin.Int
                 Name                          : kotlin.Int
                 MemberFunctions
@@ -18033,6 +18040,8 @@ Settings:
                 Properties
                     - PropertyName                  : engineVersion
                       Property SimpleType           : STRING
+                    - PropertyName                  : imageDifferenceThreshold
+                      Property ReferenceType        : kotlin.Float
                     - PropertyName                  : targetVariants
                       Property DataClassWithType    : kotlin.collections.List
                       GenericTypes
@@ -18512,6 +18521,11 @@ Settings:
                 MemberFunctions
                 Properties
                 Supertypes                    : kotlin.Any
+            kotlin.Float
+                Name                          : kotlin.Float
+                MemberFunctions
+                Properties
+                Supertypes                    : kotlin.Number,kotlin.Any,java.io.Serializable,kotlin.Comparable
             kotlin.Int
                 Name                          : kotlin.Int
                 MemberFunctions
