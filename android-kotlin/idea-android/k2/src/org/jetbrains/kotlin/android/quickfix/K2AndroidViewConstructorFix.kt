@@ -20,8 +20,12 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic.SupertypeNotInitialized
+import org.jetbrains.kotlin.analysis.api.scopes.scope
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.analysis.api.types.KaType
+import org.jetbrains.kotlin.analysis.api.types.expandedSymbol
+import org.jetbrains.kotlin.analysis.api.types.isSubtypeOf
+import org.jetbrains.kotlin.analysis.api.types.type
 import org.jetbrains.kotlin.idea.codeinsight.api.applicable.fixes.AbstractKotlinApplicableQuickFix
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
@@ -47,7 +51,8 @@ class K2AndroidViewConstructorFix(
 
     companion object {
         // Called from a background thread in an open analysis session.
-        private fun KaSession.createForDiagnostic(diagnostic: SupertypeNotInitialized): K2AndroidViewConstructorFix? {
+        context(session: KaSession)
+        private fun createForDiagnostic(diagnostic: SupertypeNotInitialized): K2AndroidViewConstructorFix? {
             val superTypeReference = diagnostic.psi as? KtTypeReference ?: return null
             val superTypeEntry = superTypeReference.getNonStrictParentOfType<KtSuperTypeEntry>() ?: return null
             val ktClass = superTypeEntry.containingClass() ?: return null
@@ -88,8 +93,10 @@ class K2AndroidViewConstructorFix(
 
         }
 
-        private fun KaSession.classId(type: KaType): ClassId? = type.expandedSymbol?.classId
-        private fun KaSession.isAndroidView(type: KaType): Boolean = type.isSubtypeOf(KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE)
+        context(session: KaSession)
+        private fun classId(type: KaType): ClassId? = type.expandedSymbol?.classId
+        context(session: KaSession)
+        private fun isAndroidView(type: KaType): Boolean = type.isSubtypeOf(KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE)
     }
 }
 
