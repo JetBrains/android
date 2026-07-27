@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.FullProjectUpdate;
 import com.google.idea.blaze.qsync.ProjectRefresher;
 import com.google.idea.blaze.qsync.RefreshOperation;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
@@ -55,42 +56,13 @@ public class ProjectQuerierImpl implements ProjectQuerier {
     this.bazelVersionProvider = bazelVersionProvider;
   }
 
-  /**
-   * Performs a full query for the project, starting from scratch.
-   *
-   * <p>This includes reloading the project view.
-   */
-  @Override
-  public PostQuerySyncData fullQuery(ProjectDefinition projectDef, BlazeContext context)
-      throws BuildException {
-
-    Optional<VcsState> vcsState = getVcsState(context);
-    SyncQueryStatsScope.fromContext(context)
-        .ifPresent(stats -> stats.setSyncMode(SyncQueryStats.SyncMode.FULL));
-
-    logger.info(
-        String.format(
-            "Starting full query update; upstream rev=%s; snapshot path=%s",
-            vcsState.map(s -> s.upstreamRevision).orElse("<unknown>"),
-            vcsState.flatMap(s -> s.workspaceSnapshotPath).map(Object::toString).orElse("<none>")));
-
-    RefreshOperation fullQuery =
-        projectRefresher.startFullUpdate(
-            context, projectDef, vcsState, bazelVersionProvider.getBazelVersion(context));
-
-    QuerySpec querySpec = fullQuery.getQuerySpec().get();
-    return fullQuery.createPostQuerySyncData(queryRunner.runQuery(querySpec, context));
-  }
-
-  @Override
   public Optional<VcsState> getVcsState(BlazeContext context) {
     Optional<ListenableFuture<VcsState>> stateFuture =
         vcsHandler.flatMap(h -> h.getVcsState(context, BlazeExecutor.getInstance().getExecutor()));
     if (stateFuture.isEmpty()) {
       return Optional.empty();
     }
-    try {
-      return Optional.of(Uninterruptibles.getUninterruptibly(stateFuture.get()));
+    try {return Optional.of(Uninterruptibles.getUninterruptibly(stateFuture.get()));
     } catch (ExecutionException e) {
       // We can continue without the VCS state, but it means that when we update later on
       // we have to re-run the entire query rather than performing an minimal update.
@@ -104,7 +76,7 @@ public class ProjectQuerierImpl implements ProjectQuerier {
    * Performs a delta query to update the state based on the state from the last query run, if
    * possible. The project view is not reloaded.
    *
-   * <p>There are various cases when we will fall back to {@link #fullQuery}, including:
+   * <p>There are various cases when we will fall back, including:
    *
    * <ul>
    *   <li>if the VCS state is not available for any reason
@@ -117,8 +89,6 @@ public class ProjectQuerierImpl implements ProjectQuerier {
       throws BuildException {
 
     Optional<VcsState> vcsState = getVcsState(context);
-    SyncQueryStatsScope.fromContext(context)
-        .ifPresent(stats -> stats.setSyncMode(SyncQueryStats.SyncMode.DELTA));
     logger.info(
         String.format(
             "Starting partial query update; upstream rev=%s; snapshot path=%s",
@@ -136,13 +106,19 @@ public class ProjectQuerierImpl implements ProjectQuerier {
         projectRefresher.startPartialRefresh(
             context, previousState, vcsState, bazelVersion, currentProjectDef);
 
+    // We set the sync mode here because SyncQueryStatsScope is part of the `base` plugin,
+    // which cannot be depended upon by the core `qsync` library where ProjectRefresher lives.
+    SyncQueryStatsScope.fromContext(context)
+        .ifPresent(
+            stats ->
+                stats.setSyncMode(
+                    refresh instanceof FullProjectUpdate
+                        ? SyncQueryStats.SyncMode.FULL
+                        : SyncQueryStats.SyncMode.DELTA));
+
     Optional<QuerySpec> spec = refresh.getQuerySpec();
-    QuerySummary querySummary;
-    if (spec.isPresent()) {
-      querySummary = queryRunner.runQuery(spec.get(), context);
-    } else {
-      querySummary = QuerySummary.EMPTY;
-    }
+    QuerySummary querySummary =
+        spec.isPresent() ? queryRunner.runQuery(spec.get(), context) : QuerySummary.EMPTY;
     return refresh.createPostQuerySyncData(querySummary);
   }
 }
