@@ -445,7 +445,7 @@ filegroup(
         "//tools/adt/idea/project-system-gradle-psd:liblint-checks-proto.lib",
         "//tools/adt/idea/server-flags:libserver-flag-test-proto",
         "//tools/adt/idea/testartifacts:libjourneys-java-proto",
-        "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
+        "//tools/adt/idea/utp:libstudio.android-test-engine-result-listener-proto",
         "//tools/adt/idea/whats-new-assistant:whats-new-content",
         "//tools/base/adb-proxy:adb_proxy_proto",
         "//tools/base/deploy/deployer:deploy_java_proto",
