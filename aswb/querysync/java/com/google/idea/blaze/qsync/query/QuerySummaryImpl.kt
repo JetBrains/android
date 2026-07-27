@@ -415,6 +415,10 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
                 attributeName == "hdrs" -> {
                   rule.addAllHdrs(indexer.indexLabels(a.asLabelListSafe()))
                 }
+                attributeName == "library" || attributeName == "cc_library" -> {
+                  a.asLabelSafe()?.let { rule.setLibrary(indexer.indexLabel(it)) }
+                  rule.addAllDeps(indexer.indexLabels(a.asLabelListSafe()))
+                }
                 attributeIsTrackedDependency(attributeName, target) -> {
                   rule.addAllDeps(indexer.indexLabels(a.asLabelListSafe()))
                 }
@@ -441,9 +445,6 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
                 }
                 attributeName == "test_app" -> {
                   rule.setTestApp(indexer.index(a.getStringValue()))
-                }
-                attributeName == "library" || attributeName == "cc_library" -> {
-                  a.asLabelSafe()?.let { rule.setLibrary(indexer.indexLabel(it)) }
                 }
                 attributeName == "instruments" -> {
                   rule.setInstruments(indexer.index(a.getStringValue()))
