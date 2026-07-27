@@ -211,6 +211,7 @@ categories: {
     label: "vfs"
     package_names: "com.intellij.openapi.vfs"
     class_names: "com.intellij.workspaceModel.ide.impl.IdeVirtualFileUrlManagerImpl"
+    class_names: "com.intellij.workspaceModel.ide.impl.ConcurrentIdeVirtualFileUrlManagerImpl"
     class_names: "com.intellij.workspaceModel.ide.impl.legacyBridge.watcher.VirtualFileUrlWatcher"
   }
   components: {
