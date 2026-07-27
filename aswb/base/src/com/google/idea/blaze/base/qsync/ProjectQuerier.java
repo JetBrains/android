@@ -16,11 +16,9 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.RefreshParameters;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
-import com.google.idea.blaze.qsync.project.ProjectDefinition;
-import java.util.Optional;
 
 /**
  * A query sync service that knows how to issue and run project structure queries over the bazel
@@ -28,9 +26,6 @@ import java.util.Optional;
  */
 public interface ProjectQuerier {
 
-  PostQuerySyncData update(
-    ProjectDefinition currentProjectDef, PostQuerySyncData previousState, BlazeContext context) throws BuildException;
-
-  // TODO(b/308807019): Move vcs calculation out of ProjectQuerier
-  Optional<VcsState> getVcsState(BlazeContext context);
+  PostQuerySyncData update(RefreshParameters refreshParameters, BlazeContext context)
+      throws BuildException;
 }

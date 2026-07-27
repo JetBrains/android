@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.io.ByteSource
 import com.google.common.io.MoreFiles
+import com.google.common.util.concurrent.Uninterruptibles
+import com.google.idea.blaze.base.async.executor.BlazeExecutor
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
@@ -28,6 +30,7 @@ import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver
 import com.google.idea.blaze.base.util.SaveUtil
+import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
@@ -37,6 +40,7 @@ import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.ProjectBuilder
 import com.google.idea.blaze.qsync.ProjectStructureReader
+import com.google.idea.blaze.qsync.RefreshParameters
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.BuildGraphData
@@ -50,7 +54,7 @@ import com.intellij.openapi.project.Project
 import java.io.IOException
 import java.nio.file.Path
 import java.util.Optional
-import java.util.function.Supplier
+import java.util.concurrent.ExecutionException
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -107,6 +111,8 @@ class QuerySyncProject(
   private val projectStructureReader: ProjectStructureReader,
   val packageReader: PackageReader,
   val parallelPackageReader: PackageReader.ParallelReader,
+  val vcsHandler: BlazeVcsHandler?,
+  val bazelVersionProvider: BazelVersionHandler,
 ) : ReadonlyQuerySyncProject {
   override val projectData: QuerySyncProjectData
     get() {
@@ -126,8 +132,46 @@ class QuerySyncProject(
     return QueryCoreSyncResult(postQuerySyncData, graph)
   }
 
-  fun runQueryAndComputePostQuerySyncData(context: BlazeContext, lastQuery: PostQuerySyncData?): PostQuerySyncData {
-    return projectQuerier.update(projectDefinition, lastQuery ?: PostQuerySyncData.EMPTY, context)
+  fun getBazelVersion(context: BlazeContext): String? {
+    return try {
+      bazelVersionProvider.getBazelVersion(context).orElse(null)
+    } catch (e: BuildException) {
+      context.handleExceptionAsWarning("Could not get bazel version", e)
+      null
+    }
+  }
+
+  fun getVcsState(context: BlazeContext): VcsState? {
+    val stateFuture = vcsHandler?.getVcsState(context, BlazeExecutor.getInstance().executor) ?: return null
+    if (stateFuture.isEmpty()) {
+      return null
+    }
+    return try {
+      Uninterruptibles.getUninterruptibly(stateFuture.get())
+    } catch (e: ExecutionException) {
+      context.handleExceptionAsWarning("WARNING: Could not get VCS state, future updates may be suboptimal", e.cause)
+      null
+    }
+  }
+
+  fun runQueryAndComputePostQuerySyncData(
+    context: BlazeContext,
+    lastQuery: PostQuerySyncData?,
+    vcsState: VcsState?,
+    bazelVersion: String?,
+  ): PostQuerySyncData {
+    val refreshParameters =
+      RefreshParameters(
+        lastQuery ?: PostQuerySyncData.EMPTY,
+        snapshotHolder.current.getOrNull()?.projectDefinition ?: projectDefinition,
+        Optional.ofNullable(snapshotHolder.current.getOrNull()?.vcsState),
+        Optional.ofNullable(vcsState),
+        Optional.ofNullable(snapshotHolder.current.getOrNull()?.bazelVersion),
+        Optional.ofNullable(bazelVersion),
+        projectDefinition,
+      )
+    val postQuerySyncData = projectQuerier.update(refreshParameters, context)
+    return postQuerySyncData
   }
 
   fun computeProjectStructureData(context: BlazeContext, lastProjectStructureData: ProjectStructureData?): ProjectStructureData {
@@ -148,13 +192,13 @@ class QuerySyncProject(
   override fun getWorkingSet(context: BlazeContext): Set<Path> {
     SaveUtil.saveAllFiles()
     val vcsState: VcsState
-    val computed = projectQuerier.getVcsState(context)
-    if (computed.isPresent) {
-      vcsState = computed.get()
+    val computed = getVcsState(context)
+    if (computed != null) {
+      vcsState = computed
     } else {
       context.output(PrintOutput("Failed to compute working set. Falling back on sync data"))
       val snapshot = snapshotHolder.current.orElseThrow()
-      vcsState = snapshot.queryData.vcsState().orElseThrow(Supplier { BuildException("No VCS state, cannot calculate affected targets") })
+      vcsState = snapshot.vcsState ?: throw BuildException("No VCS state, cannot calculate affected targets")
     }
     return vcsState.modifiedFiles()
   }
@@ -270,7 +314,7 @@ class QuerySyncProject(
       return Optional.of<Boolean>(false)
     }
 
-    val snapshotPath = snapshotHolder.current.flatMap { it.queryData.vcsState() }.flatMap { it.workspaceSnapshotPath }
+    val snapshotPath = snapshotHolder.current.map { it.vcsState }.flatMap { it?.workspaceSnapshotPath }
 
     return snapshotPath.map { !it.resolve(workspaceRelative).toFile().exists() }
   }

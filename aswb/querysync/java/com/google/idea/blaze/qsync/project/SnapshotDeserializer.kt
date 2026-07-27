@@ -30,11 +30,16 @@ import java.io.InputStream
 import java.nio.file.Path
 import java.util.Optional
 
-/** Deserializes a [PostQuerySyncData] and [ProjectStructureData] instance from an input stream. */
+/**
+ * Deserializes project snapshot components from an input stream, including [PostQuerySyncData], [ProjectStructureData], VcsState,
+ * BazelVersion, and ProjectDefinition.
+ */
 class SnapshotDeserializer private constructor() {
   private val syncDataBuilder = PostQuerySyncData.builder()
   private var projectStructureData: ProjectStructureData? = null
   private var projectDefinition: ProjectDefinition? = null
+  private var vcsState: VcsState? = null
+  private var bazelVersion: String? = null
 
   companion object {
     @Throws(IOException::class)
@@ -50,12 +55,12 @@ class SnapshotDeserializer private constructor() {
         deserializer.visitVcsState(proto.vcsState)
       }
       if (!proto.getBazelVersion().isEmpty()) {
-        deserializer.syncDataBuilder.setBazelVersion(Optional.of(proto.getBazelVersion()))
+        deserializer.bazelVersion = proto.getBazelVersion()
       }
       if (proto.hasProjectStructureData()) {
         deserializer.projectStructureData = deserializer.visitProjectStructureData(proto.projectStructureData)
       }
-      deserializer.visitQuerySummay(proto.querySummary)
+      deserializer.visitQuerySummary(proto.querySummary)
       return SerializedProjectStructureAndQueryData(
         deserializer.syncDataBuilder.build(),
         deserializer.projectStructureData
@@ -64,6 +69,8 @@ class SnapshotDeserializer private constructor() {
             return@readFrom null
           },
         deserializer.projectDefinition ?: ProjectDefinition.EMPTY,
+        deserializer.vcsState,
+        deserializer.bazelVersion,
       )
     }
   }
@@ -83,10 +90,10 @@ class SnapshotDeserializer private constructor() {
   }
 
   private fun visitVcsState(proto: SnapshotProto.VcsState) {
-    syncDataBuilder.setVcsState(Optional.of<VcsState?>(convertVcsState(proto)))
+    vcsState = convertVcsState(proto)
   }
 
-  private fun visitQuerySummay(proto: Query.Summary?) {
+  private fun visitQuerySummary(proto: Query.Summary?) {
     syncDataBuilder.setQuerySummary(proto)
   }
 

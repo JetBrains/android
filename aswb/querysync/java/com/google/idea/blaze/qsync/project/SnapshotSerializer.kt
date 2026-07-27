@@ -19,12 +19,16 @@ import com.android.tools.idea.protobuf.AbstractMessageLite
 import com.google.common.annotations.VisibleForTesting
 import com.google.errorprone.annotations.CanIgnoreReturnValue
 import com.google.idea.blaze.common.vcs.VcsState
+import com.google.idea.blaze.common.vcs.WorkspaceFileChange as CommonWorkspaceFileChange
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation
 import com.google.idea.blaze.qsync.project.SnapshotProto.WorkspaceFileChange.VcsOperation
 import com.google.idea.blaze.qsync.project.SnapshotProto.WorkspaceSnapshot
 import com.google.idea.blaze.qsync.query.QuerySummary
 
-/** Serializes a [PostQuerySyncData] instance to a proto message. */
+/**
+ * Serializes a [QuerySyncProjectSnapshot] instance to a proto message, including VcsState, BazelVersion, ProjectDefinition, and
+ * ProjectStructureData.
+ */
 class SnapshotSerializer() {
 
   private val proto: SnapshotProto.Snapshot.Builder = SnapshotProto.Snapshot.newBuilder().setVersion(PROTO_VERSION)
@@ -36,9 +40,23 @@ class SnapshotSerializer() {
 
   @CanIgnoreReturnValue
   fun visit(snapshot: PostQuerySyncData): SnapshotSerializer {
-    snapshot.vcsState().ifPresent(::visitVcsState)
     visitQuerySummary(snapshot.querySummary())
-    visitBazelVersion(snapshot.bazelVersion().orElse(null))
+    return this
+  }
+
+  @CanIgnoreReturnValue
+  fun visitVcsState(vcsState: VcsState?): SnapshotSerializer {
+    if (vcsState != null) {
+      visitVcsStateInternal(vcsState)
+    }
+    return this
+  }
+
+  @CanIgnoreReturnValue
+  fun visitBazelVersion(bazelVersion: String?): SnapshotSerializer {
+    if (bazelVersion != null) {
+      proto.setBazelVersion(bazelVersion)
+    }
     return this
   }
 
@@ -69,7 +87,7 @@ class SnapshotSerializer() {
     }
   }
 
-  private fun visitVcsState(vcsState: VcsState) {
+  private fun visitVcsStateInternal(vcsState: VcsState) {
     proto.vcsStateBuilder.setWorkspaceId(vcsState.workspaceId).setUpstreamRevision(vcsState.upstreamRevision)
     vcsState.workingSet.forEach { change -> proto.vcsStateBuilder.addWorkingSet(toProto(change)) }
     vcsState.workspaceSnapshotPath
@@ -77,7 +95,7 @@ class SnapshotSerializer() {
       .ifPresent { proto.vcsStateBuilder.setWorkspaceSnapshot(it) }
   }
 
-  private fun toProto(change: com.google.idea.blaze.common.vcs.WorkspaceFileChange): SnapshotProto.WorkspaceFileChange =
+  private fun toProto(change: CommonWorkspaceFileChange): SnapshotProto.WorkspaceFileChange =
     SnapshotProto.WorkspaceFileChange.newBuilder()
       .setOperation(change.operation.toProto())
       .setWorkspaceRelativePath(change.workspaceRelativePath.toString())
@@ -85,12 +103,6 @@ class SnapshotSerializer() {
 
   private fun visitQuerySummary(summary: QuerySummary) {
     proto.setQuerySummary(summary.protoForSerializationOnly())
-  }
-
-  private fun visitBazelVersion(value: String?) {
-    if (value != null) {
-      proto.setBazelVersion(value)
-    }
   }
 
   private fun visitProjectStructureData(projectStructureData: ProjectStructureData) {

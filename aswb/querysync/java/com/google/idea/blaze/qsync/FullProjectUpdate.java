@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync;
 
 import com.google.idea.blaze.common.Context;
-import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.query.QuerySpec;
@@ -35,22 +34,16 @@ public class FullProjectUpdate implements RefreshOperation {
   private final Context<?> context;
   private final Path workspaceRoot;
   private final ProjectDefinition projectDefinition;
-  private final Optional<VcsState> vcsState;
-  private final Optional<String> bazelVersion;
   private final QuerySpec.QueryStrategy queryStrategy;
 
   public FullProjectUpdate(
       Context<?> context,
       Path workspaceRoot,
       ProjectDefinition definition,
-      Optional<VcsState> vcsState,
-      Optional<String> bazelVersion,
       QuerySpec.QueryStrategy queryStrategy) {
     this.context = context;
     this.workspaceRoot = workspaceRoot;
     this.projectDefinition = definition;
-    this.vcsState = vcsState;
-    this.bazelVersion = bazelVersion;
     this.queryStrategy = queryStrategy;
   }
 
@@ -65,10 +58,6 @@ public class FullProjectUpdate implements RefreshOperation {
 
   @Override
   public PostQuerySyncData createPostQuerySyncData(QuerySummary output) {
-    return PostQuerySyncData.builder()
-        .setVcsState(vcsState)
-        .setBazelVersion(bazelVersion)
-        .setQuerySummary(output)
-        .build();
+    return PostQuerySyncData.builder().setQuerySummary(output).build();
   }
 }

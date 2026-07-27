@@ -29,7 +29,6 @@ import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import java.nio.file.Path
-import java.util.Optional
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -67,7 +66,7 @@ class SnapshotHolderTest {
       BlazeContext.create(),
       readonlyQuerySyncProjectStub,
       QuerySyncProjectSnapshot.EMPTY.copy(
-        queryData = PostQuerySyncData.EMPTY.toBuilder().setBazelVersion(Optional.of("1.2.3")).build(),
+        queryData = PostQuerySyncData.EMPTY,
         artifactState = ArtifactTracker.State.forJavaLabels(Label.of("//a/b/c:d")),
         project = project(),
       ),

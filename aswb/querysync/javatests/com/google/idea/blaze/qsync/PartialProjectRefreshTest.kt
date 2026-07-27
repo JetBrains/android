@@ -28,7 +28,6 @@ import com.google.idea.blaze.qsync.query.QuerySummaryImpl
 import com.google.idea.blaze.qsync.query.rulesMapForTests
 import com.google.idea.blaze.qsync.query.sourceFilesMapForTests
 import java.nio.file.Path
-import java.util.Optional
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -65,16 +64,14 @@ class PartialProjectRefreshTest {
         .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf()))
         .build()
 
-    val queryStrategy =
+    val refresh =
       PartialProjectRefresh(
         Path.of("/workspace/root"),
         baseProject,
-        QuerySyncTestUtils.CLEAN_VCS_STATE,
-        Optional.empty(),
         /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
         ImmutableSet.of(),
       )
-    val applied = queryStrategy.applyDelta(delta)
+    val applied = refresh.applyDelta(delta)
     Truth.assertThat(applied.rulesMapForTests.keys)
       .containsExactly(Label.of("//my/build/package1:newrule"), Label.of("//my/build/package2:rule"))
     Truth.assertThat(applied.sourceFilesMapForTests.keys)
@@ -110,8 +107,6 @@ class PartialProjectRefreshTest {
       PartialProjectRefresh(
         Path.of("/workspace/root"),
         baseProject,
-        QuerySyncTestUtils.CLEAN_VCS_STATE,
-        Optional.empty(),
         ImmutableSet.of(),
         /* deletedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
       )
@@ -148,8 +143,6 @@ class PartialProjectRefreshTest {
       PartialProjectRefresh(
         Path.of("/workspace/root"),
         baseProject,
-        QuerySyncTestUtils.CLEAN_VCS_STATE,
-        Optional.empty(),
         /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package2")),
         ImmutableSet.of(),
       )
@@ -193,8 +186,6 @@ class PartialProjectRefreshTest {
       PartialProjectRefresh(
         Path.of("/workspace/root"),
         baseProject,
-        QuerySyncTestUtils.CLEAN_VCS_STATE,
-        Optional.empty(),
         /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package2")),
         ImmutableSet.of(),
       )
