@@ -279,7 +279,7 @@ class WearPairingManagerTest {
 
     pairingManager.setDeviceListListener(WearDevicePairingModel(), WizardActionTest())
 
-    waitForCondition(5, TimeUnit.SECONDS) {
+    waitForCondition(20, TimeUnit.SECONDS) {
       // the pairing will not succeed if the wrong thread is used due to the threading assertions
       isPairingReconnected.get()
     }

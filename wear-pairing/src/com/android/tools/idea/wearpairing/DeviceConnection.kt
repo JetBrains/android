@@ -27,8 +27,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 private const val REFRESH_CONNECTION_COMMAND =
   "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation refresh-emulator-connection"
 private const val GET_PAIRING_STATUS_COMMAND = "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation get-pairing-status"
-private val LOCAL_NODE_REGEX = "Local:\\[([^\\[\\]]+)]".toRegex()
+private val LOCAL_NODE_REGEX = "Local:\\[([a-zA-Z0-9_.-]{1,64})]".toRegex()
 private val PEER_NODE_REGEX = "Peer:\\[([^\\[\\],]+),(true|false),(true|false)]".toRegex()
+private val VALID_NODE_ID = Regex("^[a-zA-Z0-9_.-]{1,64}$")
 private const val GMS_PACKAGE = "com.google.android.gms"
 
 object DeviceConnection
@@ -53,6 +54,15 @@ private suspend fun IDevice.localNodeFromPairingStatus(): String? =
 suspend fun IDevice.isPairingStatusAvailable(): Boolean = localNodeFromPairingStatus() != null
 
 suspend fun IDevice.loadNodeID(): String {
+  val nodeIdRaw = loadNodeIDRaw()
+  return nodeIdRaw.takeIf { it.isEmpty() || VALID_NODE_ID.matches(it) }
+    ?: run {
+      LOG.warn("[$name] Rejecting malformed Wearable node ID: $nodeIdRaw")
+      ""
+    }
+}
+
+private suspend fun IDevice.loadNodeIDRaw(): String {
   if (hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
     localNodeFromPairingStatus()?.let {
       return it
