@@ -38,7 +38,7 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
     if (xr_simulated_input_manager_.IsNull()) {
       Log::E("The \"xrsimulatedinputmanager\" service is not running");
       string value =
-          RTrim(ExecuteShellCommand("getprop persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env"));
+          RTrim(ExecuteShellCommand("getprop persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env").output);
       status_ = value != "true" && value != "1" ? Status::PROPERTY_NOT_SET : Status::SERVICE_NOT_RUNNING;
       return;
     }

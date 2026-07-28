@@ -75,7 +75,7 @@ bool UnicodeCompositionSupported() {
   if (state < 0) {
     state = 0;
     if (Settings::Get(Settings::Table::SECURE, "default_input_method").rfind("com.google.android.inputmethod.latin", 0) == 0) {
-      string output = RTrim(ExecuteShellCommand("dumpsys package com.google.android.inputmethod.latin"));
+      string output = RTrim(ExecuteShellCommand("dumpsys package com.google.android.inputmethod.latin").output);
       basic_regex version_regex(R"(versionCode=(\d+)\s)");
       auto iter = sregex_iterator(output.begin(), output.end(), version_regex);
       if (iter != sregex_iterator()) {
