@@ -17,7 +17,6 @@
 package com.android.tools.idea.compose.preview.interactive
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +25,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -55,6 +53,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Icon
@@ -141,12 +140,6 @@ fun NavigationControlsPanel(
   }
 
   Column(modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().testTag(NavigationControlsPanelTestTags.panel)) {
-    // Add a horizontal divider at the top of the panel to clearly indicate the splitter boundary
-    Divider(
-      orientation = org.jetbrains.jewel.ui.Orientation.Horizontal,
-      modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag(NavigationControlsPanelTestTags.divider),
-    )
-
     FlowRow(
       modifier = Modifier.padding(vertical = DEFAULT_SPACING).fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
@@ -194,15 +187,15 @@ fun NavigationControlsPanel(
       )
     }
     Row(
-      modifier =
-        Modifier.padding(vertical = DEFAULT_SPACING)
-          .widthIn(min = 16.dp, max = 800.dp)
-          .align(Alignment.CenterHorizontally)
-          .border(width = 1.dp, color = JewelTheme.globalColors.borders.normal, shape = RoundedCornerShape(4.dp)),
+      modifier = Modifier.padding(vertical = DEFAULT_SPACING).widthIn(min = 16.dp, max = 800.dp).align(Alignment.CenterHorizontally),
       horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Column {
+        Divider(
+          orientation = Orientation.Horizontal,
+          modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag(NavigationControlsPanelTestTags.divider),
+        )
         Text(modifier = Modifier.padding(DEFAULT_SPACING), text = message("action.navigate.back.predictive.back.progress", sliderPosition))
         Slider(
           modifier = Modifier.padding(DEFAULT_SPACING).testTag(NavigationControlsPanelTestTags.progressSlider),

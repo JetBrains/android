@@ -69,9 +69,6 @@ class NavigationControlsPanelUiTest {
     // Verify main panel is displayed
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.panel).assertIsDisplayed()
 
-    // Verify divider is displayed
-    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.divider).assertIsDisplayed()
-
     // Emulate the update from the fps counter
     fpsUpdater.tryEmit(Unit)
 
@@ -86,6 +83,9 @@ class NavigationControlsPanelUiTest {
     composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed().performClick()
     assertEquals(1, edgeDropdownPressCallCount)
     composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed()
+
+    // Verify divider is displayed
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.divider).assertIsDisplayed()
 
     // Verify Progress slider triggers start, progress and track callbacks
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.progressSlider).assertIsDisplayed().assertIsEnabled().performTouchInput {
