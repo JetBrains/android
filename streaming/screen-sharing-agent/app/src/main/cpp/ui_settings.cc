@@ -338,19 +338,19 @@ void GetApplicationLocales(const vector<string>& application_ids, UiSettingsStat
     command += "echo " APP_LOCALES_DIVIDER;
     command += StringPrintf("cmd locale get-app-localeconfig-ignore-override %s", it->c_str());
   }
-  string output = ExecuteShellCommand(command);
+  string output = ExecuteShellCommand(command).output;
   ProcessAdbOutput(TrimEnd(output), state, nullptr);
 }
 
 bool IsFontScaleSettable(int32_t font_scale) {
   ShellCommand command = StringPrintf("settings put system font_scale %g 2>&1 >/dev/null", font_scale / 100.0f);
-  string error = ExecuteShellCommand(command);
+  string error = ExecuteShellCommand(command).output;
   return error.empty();
 }
 
 bool IsScreenDensitySettable(int32_t density) {
   ShellCommand command = StringPrintf("wm density %d 2>&1 >/dev/null", density);
-  string error = ExecuteShellCommand(command);
+  string error = ExecuteShellCommand(command).output;
   return error.empty();
 }
 
@@ -373,7 +373,7 @@ void GetSecureSettings(CommandContext* context) {
       "settings get secure " ENABLED_ACCESSIBILITY_SERVICES ";\n"
       "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER ";\n"
       "settings get secure " ACCESSIBILITY_BUTTON_TARGETS;
-    string output = ExecuteShellCommand(command);
+    string output = ExecuteShellCommand(command).output;
     TokenIterator it(output);
     while (it.has_next()) {
       string line = it.next();
@@ -522,7 +522,7 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
     command += "echo " OEM_GESTURES_DIVIDER "";
   }
 
-  string output = ExecuteShellCommand(command);
+  string output = ExecuteShellCommand(command).output;
   ProcessAdbOutput(TrimEnd(output), state, context);
 
   auto foreground_application_id = context->foreground_application_id;

@@ -20,10 +20,15 @@
 
 namespace screensharing {
 
-// Invokes a shell command and returns its output. Returns when the command finishes execution.
-std::string ExecuteShellCommand(const char* command);
+struct ShellCommandResult {
+  int exit_code = -1;
+  std::string output;
+};
 
-inline std::string ExecuteShellCommand(const std::string command) {
+// Invokes a shell command and returns its result. Returns when the command finishes execution.
+ShellCommandResult ExecuteShellCommand(const char* command);
+
+inline ShellCommandResult ExecuteShellCommand(const std::string command) {
   return ExecuteShellCommand(command.c_str());
 }
 
