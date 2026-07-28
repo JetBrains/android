@@ -125,7 +125,7 @@ fun NavigationControlsPanel(
   var sliderPosition by remember { mutableFloatStateOf(0f) }
   var backStarted by remember { mutableStateOf(false) }
   val showEdgeNavigation by produceState(false, isEdgeNavigationImplemented) { value = isEdgeNavigationImplemented() }
-  val selectedEdge = remember { mutableStateOf(BackNavigationEdge.EDGE_LEFT) }
+  val selectedEdge = remember { mutableStateOf(BackNavigationEdge.EDGE_NONE) }
   val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
 
   LaunchedEffect(backPressCompletedFlow) {
