@@ -190,8 +190,8 @@ class NavigationControlsPanelUiTest {
       )
     }
 
-    // Verify initially dropdown shows "Left"
-    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_LEFT.visibleName).assertIsDisplayed()
+    // Verify initially dropdown shows "None"
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_NONE.visibleName).assertIsDisplayed()
 
     // Click on the edge dropdown to select "Right"
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).assertIsDisplayed().performClick()

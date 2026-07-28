@@ -152,7 +152,7 @@ class InteractivePreviewNavigationController(
    *
    * @param edge The [BackNavigationEdge] of the device on which the progress is performed.
    */
-  fun backPressStart(edge: BackNavigationEdge = BackNavigationEdge.EDGE_LEFT) {
+  fun backPressStart(edge: BackNavigationEdge = BackNavigationEdge.EDGE_NONE) {
     isBackGestureInProgress = true
     val resolvedMethod =
       onBackPressStartedMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_STARTED).also { onBackPressStartedMethod = it }
@@ -165,7 +165,7 @@ class InteractivePreviewNavigationController(
    * @param progress The progress of the gesture, from 0.0 to 1.0.
    * @param edge The [BackNavigationEdge] of the device on which the progress is performed.
    */
-  fun backPressProgress(progress: Float, edge: BackNavigationEdge = BackNavigationEdge.EDGE_LEFT) {
+  fun backPressProgress(progress: Float, edge: BackNavigationEdge = BackNavigationEdge.EDGE_NONE) {
     // If we move progress back, to 0f we cancel the back press
     if (progress <= 0.0f) {
       backPressCancelled()
