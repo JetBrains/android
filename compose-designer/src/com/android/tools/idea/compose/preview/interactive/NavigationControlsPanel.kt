@@ -17,14 +17,20 @@
 package com.android.tools.idea.compose.preview.interactive
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -40,10 +46,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.tools.idea.compose.preview.BackNavigationEdge
 import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags
 import icons.StudioIconsCompose
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
@@ -73,6 +81,7 @@ fun NavigationControlsContent(
   Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
     NavigationControlsPanel(
       isEdgeNavigationImplemented = isEdgeNavigationImplemented,
+      getNavigationHistory = { interactivePreviewNavigationController.getNavigationHistory() },
       canBackPress = { interactivePreviewNavigationController.canBackPress() },
       onBackPress = {
         interactivePreviewNavigationController.backPressCompleted()
@@ -100,6 +109,7 @@ fun NavigationControlsContent(
  * - A slider to simulate predictive back progress.
  *
  * @param modifier The modifier to be applied to this Composable.
+ * @param getNavigationHistory A callback returning the list of items in the navigation back stack.
  * @param isEdgeNavigationImplemented A callback returning whether the back navigation edge represents an implemented capability.
  * @param canBackPress A callback that returns whether back navigation is currently available.
  * @param onBackPress A callback invoked when the back button is clicked.
@@ -114,6 +124,7 @@ fun NavigationControlsContent(
 @Composable
 fun NavigationControlsPanel(
   modifier: Modifier = Modifier,
+  getNavigationHistory: () -> List<Any> = { emptyList() },
   isEdgeNavigationImplemented: suspend () -> Boolean,
   canBackPress: () -> Boolean,
   onBackPress: () -> Unit,
@@ -130,6 +141,7 @@ fun NavigationControlsPanel(
   val showEdgeNavigation by produceState(false, isEdgeNavigationImplemented) { value = isEdgeNavigationImplemented() }
   val selectedEdge = rememberSaveable { mutableStateOf(BackNavigationEdge.EDGE_NONE) }
   val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
+  val navigationHistory by produceState(getNavigationHistory(), fpsUpdater) { fpsUpdater.collect { value = getNavigationHistory() } }
 
   LaunchedEffect(backPressCompletedFlow) {
     backPressCompletedFlow.collect {
@@ -222,6 +234,99 @@ fun NavigationControlsPanel(
         }
       }
     }
+    if (StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.get()) {
+      BackStack(navigationHistory)
+    }
+  }
+}
+
+@Composable
+private fun BackStack(navigationHistory: List<Any>) {
+  Column(
+    modifier = Modifier.padding(vertical = DEFAULT_SPACING).fillMaxWidth().testTag(NavigationControlsPanelTestTags.visualStack),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Text(text = message("action.navigate.back.stack.title"), fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+    if (navigationHistory.isEmpty()) {
+      Text(
+        text = message("action.navigate.back.stack.empty"),
+        color = JewelTheme.globalColors.text.info,
+        modifier = Modifier.padding(DEFAULT_SPACING),
+      )
+    } else {
+      Column(
+        modifier =
+          Modifier.fillMaxWidth()
+            // Stacks up to 240.dp before we enable the scrollbar.
+            .heightIn(max = 240.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        // Display in reverse order so the newest/active item is on top of the stack.
+        navigationHistory.asReversed().forEachIndexed { index, navigationInfoItem ->
+          BackStackItem(
+            navigationInfoItem = navigationInfoItem,
+            isCurrentActiveNavigationItem = index == 0,
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun BackStackItem(
+  navigationInfoItem: Any,
+  isCurrentActiveNavigationItem: Boolean,
+) {
+  val activeAccent = JewelTheme.globalColors.outlines.focused
+  val borderColors = if (isCurrentActiveNavigationItem) activeAccent else JewelTheme.globalColors.borders.normal
+  val backGroundColor = if (isCurrentActiveNavigationItem) activeAccent.copy(alpha = 0.12f) else JewelTheme.globalColors.panelBackground
+  val textColor = if (isCurrentActiveNavigationItem) activeAccent else JewelTheme.globalColors.text.normal
+
+  val navKeys = parseNavigationItems(navigationInfoItem)
+  Row(
+    modifier =
+      Modifier.border(
+          width = 1.dp,
+          color = borderColors,
+          shape = RoundedCornerShape(8.dp),
+        )
+        .background(
+          color = backGroundColor,
+          shape = RoundedCornerShape(8.dp),
+        )
+        .padding(12.dp)
+        .fillMaxWidth()
+        .widthIn(max = 500.dp),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+      // In adaptive layouts on larger screens (such as foldables, tablets, or desktop displaying two-pane or list-detail
+      // scenes), a single back stack entry can contain multiple active navigation keys displayed side by side.
+      // We render each navigation key on its own line for clarity.
+      navKeys.forEach { navKey ->
+        Text(
+          text = message("action.navigate.back.stack.navkey", navKey),
+          fontWeight = FontWeight.Bold,
+          color = textColor,
+        )
+      }
+    }
+    if (isCurrentActiveNavigationItem) {
+      Box(
+        modifier =
+          Modifier.background(activeAccent.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)
+      ) {
+        Text(
+          text = message("action.navigate.back.stack.current"),
+          fontWeight = FontWeight.Bold,
+          color = activeAccent,
+        )
+      }
+    }
   }
 }
 
@@ -292,4 +397,40 @@ object NavigationControlsPanelTestTags {
 
   /** Tag for the horizontal divider. */
   const val divider = "$base.divider"
+
+  /** Tag for the visual stack. */
+  const val visualStack = "$base.visualStack"
+}
+
+/**
+ * Extracts the value of `key=...` from string representations of navigation objects (e.g., `NavigationInfo(key=HomeScreen, ...)` or
+ * `NavEntry(key=[Pane1, Pane2], ...)`), capturing until the next named property or closing parenthesis/end-of-string.
+ */
+private val KEY_REGEX = Regex("""\bkey\s*=\s*(.+?)(?:,\s*\w+\s*=|\)$|$)""")
+
+/**
+ * Matches commas that are at the top level (i.e. not enclosed within nested parentheses, square brackets, or curly braces) via negative
+ * lookahead, allowing compound navigation keys like `Home, Product(id=1, name=foo)` to split only at top-level separators.
+ */
+private val TOP_LEVEL_COMMA_REGEX = Regex(""",\s*(?![^()\[\]{}]*[)\]}])""")
+
+/**
+ * Parses a navigation info object into a list of navigation key names.
+ *
+ * In adaptive layouts (e.g. on bigger screens like tablets, foldables, or desktop using two-pane, supporting pane, or list-detail
+ * patterns), multiple screens can be displayed simultaneously. In Navigation3, these are represented as compound entries (such as a Pair,
+ * List, or tuple) in the back stack history.
+ *
+ * @param navigationInfoItem The navigation history item object or string.
+ * @return A list of parsed navigation keys.
+ */
+private fun parseNavigationItems(navigationInfoItem: Any): List<String> {
+  // Extract the `key` property value from the toString() output if present (e.g. "NavigationInfo(key=...)"), otherwise use the full string.
+  val key = KEY_REGEX.find(navigationInfoItem.toString())?.groupValues?.get(1)?.trim() ?: navigationInfoItem.toString()
+  // Remove enclosing parentheses or brackets for compound entries (e.g. tuples or lists like "(ScreenA, ScreenB)").
+  val unwrapped = key.trim().removeSurrounding("(", ")").removeSurrounding("[", "]").trim()
+  // Guard against empty strings to avoid returning a single-element list with an empty string.
+  if (unwrapped.isEmpty()) return emptyList()
+  // Split on top-level commas (ignoring commas inside nested brackets/parens) and trim whitespace from each key.
+  return unwrapped.split(TOP_LEVEL_COMMA_REGEX).map { it.trim() }.filter { it.isNotEmpty() }
 }

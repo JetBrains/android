@@ -37,6 +37,7 @@ class TestComposeViewAdapterViewObj(
   private val onBackPressProgressCallback: (Float, String) -> Unit = { _, _ -> },
   private val onBackPressCompletedCallback: () -> Unit = {},
   private val onBackPressCancelledCallback: () -> Unit = {},
+  private val history: List<Any> = emptyList(),
 ) {
   @Suppress("unused", "PrivatePropertyName")
   private val FakeOnBackPressedDispatcherOwner =
@@ -65,6 +66,10 @@ class TestComposeViewAdapterViewObj(
       fun onBackPressCancelled() {
         onBackPressCancelledCallback()
       }
+
+      fun getHistory(): List<Any> {
+        return history
+      }
     }
 }
 
@@ -74,6 +79,7 @@ class TestNavigationEventDispatcherObj(
   private val onBackPressProgressCallback: (Float, String) -> Unit = { _, _ -> },
   private val onBackPressCompletedCallback: () -> Unit = {},
   private val onBackPressCancelledCallback: () -> Unit = {},
+  private val history: List<Any> = emptyList(),
 ) : NavigationEventDispatcherOwner {
 
   override val navigationEventDispatcher = NavigationEventDispatcher()
@@ -96,5 +102,9 @@ class TestNavigationEventDispatcherObj(
 
   fun onBackPressCancelled() {
     onBackPressCancelledCallback()
+  }
+
+  fun getHistory(): List<Any> {
+    return history
   }
 }

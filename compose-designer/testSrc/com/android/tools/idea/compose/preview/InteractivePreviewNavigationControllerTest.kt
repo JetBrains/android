@@ -227,4 +227,20 @@ class InteractivePreviewNavigationControllerTest {
     assertThat(BackNavigationEdge.EDGE_RIGHT.visibleName).isEqualTo("Swipe Right")
     assertThat(BackNavigationEdge.EDGE_NONE.visibleName).isEqualTo("None")
   }
+
+  @Test
+  fun testGetNavigationHistoryFromDispatcherOwner() {
+    val localNavigationEventDispatcherObj = TestNavigationEventDispatcherObj(canBackPress = true, history = listOf("Screen1", "Screen2"))
+    val controller = InteractivePreviewNavigationController({ InteractiveNopTracker() }, fpsUpdater = MutableSharedFlow())
+    controller.updateObjects(localNavigationEventDispatcherObj, TestComposeViewAdapterViewObj(), hasNavDisplay = false)
+    assertThat(controller.getNavigationHistory()).containsExactly("Screen1", "Screen2").inOrder()
+  }
+
+  @Test
+  fun testGetNavigationHistoryFromComposeViewAdapterObj() {
+    val composeViewAdapterObj = TestComposeViewAdapterViewObj(history = listOf("ScreenA", "ScreenB"))
+    val controller = InteractivePreviewNavigationController({ InteractiveNopTracker() }, fpsUpdater = MutableSharedFlow())
+    controller.updateObjects(null, composeViewAdapterObj, hasNavDisplay = false)
+    assertThat(controller.getNavigationHistory()).containsExactly("ScreenA", "ScreenB").inOrder()
+  }
 }

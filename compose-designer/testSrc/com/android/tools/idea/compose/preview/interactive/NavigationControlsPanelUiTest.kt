@@ -33,7 +33,9 @@ import com.android.tools.idea.compose.preview.BackNavigationEdge
 import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.TestComposeViewAdapterViewObj
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -270,6 +272,161 @@ class NavigationControlsPanelUiTest {
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).performMouseInput { moveTo(center) }
     composeTestRule.mainClock.advanceTimeBy(1201L) // org.jetbrains.jewel.ui.component.styling.TooltipMetrics delay is 1200ms
     composeTestRule.onNodeWithText(message("action.navigate.back.navigation.edge.disabled.tooltip")).assertIsDisplayed()
+  }
+
+  @Test
+  fun testVisualStackRendering() {
+    StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.overrideForTest(true, projectRule.project)
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    var historyList = emptyList<String>()
+
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
+        getNavigationHistory = { historyList },
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        fpsUpdater = fpsUpdater,
+      )
+    }
+
+    // Verify visual stack displays the empty state message when navigation history is empty
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.visualStack).assertIsDisplayed()
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.empty")).assertIsDisplayed()
+
+    // Now, let's set a navigation history with elements and recompose
+    historyList = listOf("Preview A", "Preview B")
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
+        getNavigationHistory = { historyList },
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        fpsUpdater = fpsUpdater,
+      )
+    }
+
+    // Verify visual stack is now displayed
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.visualStack).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Preview A", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Preview B", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.empty")).assertDoesNotExist()
+  }
+
+  @Test
+  fun testVisualStackRenderingWithNavigationHistory() {
+    StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.overrideForTest(true, projectRule.project)
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val historyList = listOf("ScreenX", "ScreenY", "ScreenZ")
+
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
+        getNavigationHistory = { historyList },
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        fpsUpdater = fpsUpdater,
+      )
+    }
+
+    // Verify visual stack displays the dynamic navigation history screen names
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.visualStack).assertIsDisplayed()
+    composeTestRule.onNodeWithText("ScreenX", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("ScreenY", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("ScreenZ", substring = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun testVisualStackRenderingWithMultiScreenEntry() {
+    StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.overrideForTest(true, projectRule.project)
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val historyList = listOf(listOf("com.example.Home@23434242", "Product(id=1)"))
+
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
+        getNavigationHistory = { historyList },
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        fpsUpdater = fpsUpdater,
+      )
+    }
+
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.visualStack).assertIsDisplayed()
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.navkey", "com.example.Home@23434242")).assertIsDisplayed()
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.navkey", "Product(id=1)")).assertIsDisplayed()
+  }
+
+  @Test
+  fun testVisualStackRenderingWithNavigationInfoObjects() {
+    StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.overrideForTest(true, projectRule.project)
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    data class FakeNavigationInfo(val key: Any)
+    val historyList = listOf(FakeNavigationInfo("ScreenReflected1"), FakeNavigationInfo(listOf("ScreenA", "ScreenB")))
+
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
+        getNavigationHistory = { historyList },
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        fpsUpdater = fpsUpdater,
+      )
+    }
+
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.visualStack).assertIsDisplayed()
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.navkey", "ScreenReflected1")).assertIsDisplayed()
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.navkey", "ScreenA")).assertIsDisplayed()
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.navkey", "ScreenB")).assertIsDisplayed()
+  }
+
+  @Test
+  fun testVisualStackNotRenderedWhenFlagDisabled() {
+    StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.overrideForTest(false, projectRule.project)
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val historyList = listOf("ScreenX", "ScreenY", "ScreenZ")
+
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
+        getNavigationHistory = { historyList },
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        fpsUpdater = fpsUpdater,
+      )
+    }
+
+    // Verify main panel and navigation controls are displayed
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.panel).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.backButton).assertIsDisplayed()
+
+    // Verify visual stack is NOT displayed when flag is disabled
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.visualStack).assertDoesNotExist()
   }
 
   @Test

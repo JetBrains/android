@@ -1698,6 +1698,9 @@ public final class StudioFlags {
     COMPOSE, "interactive.preview.predictive.back", "Enable predictive back navigation in Interactive Preview",
     "When using navigation3, enables a bottom panel to interact with the predictive back feature.");
 
+  public static final Flag<Boolean> COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL = new BooleanFlag(
+    COMPOSE, "interactive.preview.predictive.back.stack.visual", "Show the back stack in Interactive Preview",
+    "When using navigation3, shows and interacts the back stack in Interactive Preview");
   //endregion
 
   // region Wear surfaces
