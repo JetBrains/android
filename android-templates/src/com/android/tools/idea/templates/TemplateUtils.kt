@@ -33,11 +33,13 @@ import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
 import java.io.File
@@ -60,18 +62,15 @@ object TemplateUtils {
    */
   @JvmStatic
   fun openEditors(project: Project, files: Collection<File>, select: Boolean) {
-    var last: VirtualFile? = null
-
-    files
-      .filter(File::exists)
-      .mapNotNull { VfsUtil.findFileByIoFile(it, true) }
-      .forEach {
-        last = it
-        openEditor(project, it)
+    val virtualFiles =
+      runWithModalProgressBlocking(project, "Opening Files") {
+        files.filter(File::exists).mapNotNull { LocalFileSystem.getInstance().refreshAndFindFileByIoFile(it) }
       }
 
-    if (select && last != null) {
-      selectEditor(project, last!!)
+    virtualFiles.forEach { openEditor(project, it) }
+
+    if (select && virtualFiles.isNotEmpty()) {
+      selectEditor(project, virtualFiles.last())
     }
   }
 
