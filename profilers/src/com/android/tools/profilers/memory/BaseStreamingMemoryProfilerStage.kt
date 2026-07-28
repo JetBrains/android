@@ -43,6 +43,7 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.sessions.SessionAspect
+import com.android.tools.profilers.sessions.SessionsManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.Logger
@@ -188,6 +189,9 @@ abstract class BaseStreamingMemoryProfilerStage(
 
   /** Trigger a change to the sampling mode that should be used for live allocation tracking. */
   fun requestLiveAllocationSamplingModeUpdate(mode: LiveAllocationSamplingMode) {
+    if (!SessionsManager.isSessionAlive(sessionData)) {
+      return
+    }
     try {
       val samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.value).build()
       studioProfilers.client.transportClient.execute(
