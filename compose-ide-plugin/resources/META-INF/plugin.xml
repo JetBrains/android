@@ -81,6 +81,7 @@
     <module name="kotlin.fir.frontend-independent"/>
   </dependencies>
   <!-- endregion -->
+  <content namespace="jetbrains"/>
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
 
