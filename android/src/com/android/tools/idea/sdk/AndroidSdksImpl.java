@@ -56,8 +56,6 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.JdkOrderEntry;
-import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
@@ -65,6 +63,7 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.platform.workspace.jps.entities.SdkEntity;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.serviceContainer.NonInjectable;
@@ -502,14 +501,12 @@ public class AndroidSdksImpl implements AndroidSdks {
   @Override
   public boolean isInAndroidSdk(@NotNull Project project, @NotNull VirtualFile file) {
     ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-    List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(file);
-    for (OrderEntry entry : entries) {
-      if (entry instanceof JdkOrderEntry) {
-        Sdk sdk = ((JdkOrderEntry)entry).getJdk();
+    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
 
-        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
-          return true;
-        }
+    for (SdkEntity sdk : projectFileIndex.findContainingSdks(file)) {
+      var sdkType = jdkTable.getSdkTypeByName(sdk.getType());
+      if (sdkType instanceof AndroidSdkType) {
+        return true;
       }
     }
     return false;
