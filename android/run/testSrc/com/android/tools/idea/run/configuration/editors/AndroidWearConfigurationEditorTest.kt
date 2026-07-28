@@ -27,7 +27,9 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.SimpleListCellRenderer
+import javax.swing.JComponent
 import javax.swing.JList
+import javax.swing.plaf.basic.BasicHTML
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -91,5 +93,16 @@ class AndroidWearConfigurationEditorTest {
 
     assertThat(componentComboBox.isEnabled).isTrue()
     assertThat(componentComboBox.item).isEqualTo(watchFaceClass)
+  }
+
+  @Test
+  // Regression test for b/509615734
+  fun testHtmlDisabledInComponentComboBoxRenderer() {
+    val editor = settingsEditor.component as DialogPanel
+    val componentComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<String>>()[1]
+    val renderer = componentComboBox.renderer.getListCellRendererComponent(JList(), componentComboBox.item, -1, false, false) as JComponent
+
+    assertThat(renderer.getClientProperty("html.disable")).isEqualTo(true)
+    assertThat(renderer.getClientProperty(BasicHTML.propertyKey)).isNull()
   }
 }

@@ -55,9 +55,11 @@ import com.intellij.ui.layout.selectedValueIs
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ActionListener
+import java.lang.Boolean.TRUE
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
+import javax.swing.plaf.basic.BasicHTML
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -161,6 +163,11 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
               DefaultComboBoxModel(emptyArray<String>()),
               renderer =
                 object : SimpleListCellRenderer<String>() {
+                  init {
+                    putClientProperty(BasicHTML.propertyKey, null)
+                    putClientProperty("html.disable", TRUE)
+                  }
+
                   override fun customize(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
                     text =
                       when {
