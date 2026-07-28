@@ -2269,11 +2269,6 @@ public final class StudioFlags {
                     "Enable the integration with Google one.",
                     "When enabled, the studio-bot will show UI and upgrade paths corresponding to the Google one subscription held by the user.");
 
-  public static final Flag<Boolean> STUDIOBOT_IS_ASK_MODE_IN_DROPDOWN_ENABLED =
-    new BooleanFlag(STUDIOBOT, "ask.mode.in.dropdown.enabled",
-                    "Enable Ask mode in dropdown",
-                    "If enabled, Ask mode is available as a dropdown option instead of a separate tab.");
-
   public static final Flag<Boolean> STUDIOBOT_IS_SKILLS_ENABLED =
     new BooleanFlag(STUDIOBOT, "skills.enabled",
                     "Enable Studio Bot Skills.",
@@ -2329,8 +2324,6 @@ public final class StudioFlags {
                     "Enable Model Context Protocol (MCP) support",
                     "Allows the agent to use custom tools provided by Model Context Protocol (MCP) servers");
 
-
-
   public static final Flag<Boolean> STUDIOBOT_MCP_SETTINGS_ENABLED =
     new BooleanFlag(STUDIOBOT, "mcp.settings.enabled",
                     "Enable Model Context Protocol (MCP) Settings Page",
@@ -2356,26 +2349,15 @@ public final class StudioFlags {
                     "Enable thinking banner in Chat Timeline",
                     "When enabled, the chat timeline will show a banner that shows the thinking stream of an ongoing response.");
 
-  public static final Flag<Boolean> STUDIOBOT_PLAN_TOOL_ENABLED =
-    new BooleanFlag(STUDIOBOT, "agent.plan.tool.enabled",
-                    "Enable planning tool for the agent and showing the plan in the thinker",
-                    "When enabled, the agent mode will be able to use the plan tool and we will display the current plan state in the thinker (query status banner).");
-
-  public static final Flag<Boolean> STUDIOBOT_TLDR_MODE_ENABLED =
-    new BooleanFlag(STUDIOBOT, "agent.tldr.mode.enabled",
-                    "Enable tl;dr mode for the agent",
-                    "When enabled, the agent timeline UI will show a summary of each plan step execution.");
-
   public enum StudioBotPlanMode {
     NONE,
-    V2,
     GUIDED_MODE
   }
 
   public static final Flag<StudioBotPlanMode> STUDIOBOT_PLAN_MODE =
     new EnumFlag<>(STUDIOBOT, "plan.mode",
                    "Select Studio Bot planning mode",
-                   "Controls whether planning mode is disabled, uses v2 planning, or uses guided mode.",
+                   "Controls whether planning mode is disabled or uses guided mode.",
                    StudioBotPlanMode.GUIDED_MODE);
 
   public static final Flag<Boolean> STUDIOBOT_ASK_FOR_MORE_DETAIL_ENABLED =
