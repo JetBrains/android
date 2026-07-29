@@ -36,6 +36,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,8 +48,11 @@ import com.android.tools.idea.compose.preview.BackNavigationEdge
 import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.message
 import icons.StudioIconsCompose
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Divider
@@ -124,6 +128,7 @@ fun NavigationControlsPanel(
 ) {
   var sliderPosition by remember { mutableFloatStateOf(0f) }
   var backStarted by remember { mutableStateOf(false) }
+  val coroutineScope = rememberCoroutineScope()
   val showEdgeNavigation by produceState(false, isEdgeNavigationImplemented) { value = isEdgeNavigationImplemented() }
   val selectedEdge = remember { mutableStateOf(BackNavigationEdge.EDGE_NONE) }
   val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
@@ -151,7 +156,23 @@ fun NavigationControlsPanel(
         OutlinedButton(
           modifier = Modifier.testTag(NavigationControlsPanelTestTags.backButton).widthIn(min = 135.dp),
           enabled = backNavigationAvailable,
-          onClick = onBackPress,
+          onClick = {
+            coroutineScope.launch {
+              if (!backStarted) {
+                backStarted = true
+                val selectedEdge = selectedEdge.value
+                // TODO(b/539916536): This is a temporary solution for predictive back navigation.
+                // Currently, the limitation is about the predictive back gesture transition continuing to the end,
+                // but we expect it to hand off to a separate transition spec after the swipe passes the committed threshold.
+                // This should be properly fixed when new APIs for predictive back are released.
+                onBackPressStart(selectedEdge)
+                // Introduce a minor delay to allow the initial back navigation gesture animation frame
+                // to initialize properly before triggering the back press completion event.
+                delay(100.milliseconds)
+              }
+              onBackPress()
+            }
+          },
         ) {
           Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(
