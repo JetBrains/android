@@ -104,7 +104,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -134,23 +133,26 @@ class StudioLocalEmulatorProvisionerPlugin(
     avdScanner.rescan()
   }
 
-  override val devices: StateFlow<List<StudioLocalEmulatorDeviceHandle>> =
-    flow {
-        val handles = mutableMapOf<LocalEmulatorDeviceHandle, StudioLocalEmulatorDeviceHandle>()
-        basePlugin.devices.collect { baseHandles ->
-          val wrappedHandles = mutableListOf<StudioLocalEmulatorDeviceHandle>()
-          for (baseHandle in baseHandles) {
-            wrappedHandles.add(
-              handles.computeIfAbsent(baseHandle as LocalEmulatorDeviceHandle) {
-                StudioLocalEmulatorDeviceHandle(project, baseHandle, context, devices, ioDispatcher)
-              }
-            )
-          }
-          handles.keys.retainAll(baseHandles.toSet())
-          emit(wrappedHandles.toList())
+  private val _devices = MutableStateFlow<List<StudioLocalEmulatorDeviceHandle>>(emptyList())
+  override val devices: StateFlow<List<StudioLocalEmulatorDeviceHandle>> = _devices.asStateFlow()
+
+  init {
+    scope.launch {
+      val handles = mutableMapOf<LocalEmulatorDeviceHandle, StudioLocalEmulatorDeviceHandle>()
+      basePlugin.devices.collect { baseHandles ->
+        val wrappedHandles = mutableListOf<StudioLocalEmulatorDeviceHandle>()
+        for (baseHandle in baseHandles) {
+          wrappedHandles.add(
+            handles.computeIfAbsent(baseHandle as LocalEmulatorDeviceHandle) {
+              StudioLocalEmulatorDeviceHandle(project, baseHandle, context, devices, ioDispatcher)
+            }
+          )
         }
+        handles.keys.retainAll(baseHandles.toSet())
+        _devices.value = wrappedHandles.toList()
       }
-      .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    }
+  }
 
   private val notificationBanners: StateFlow<List<EditorNotificationPanel>> =
     combine(devices, accelerationError, dismissedErrors) { deviceList, accelError, dismissed ->
