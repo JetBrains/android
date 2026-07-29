@@ -43,5 +43,7 @@ iml_module(
         "//tools/vendor/google/login:google-login",
         "//tools/base/lint:studio.android.sdktools.lint-api",
         "//tools/adt/idea/android-lint:intellij.android.lint",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/adt/idea/server-flags:intellij.android.server-flags",
     ],
 )
