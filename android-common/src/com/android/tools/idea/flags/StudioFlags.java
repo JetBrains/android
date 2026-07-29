@@ -2493,7 +2493,7 @@ public final class StudioFlags {
 
   public static Flag<Boolean> MODEL_MANAGER_ENABLED =
     new BooleanFlag(STUDIOBOT, "model.manager.enabled",
-                    "Enable the model manager..",
+                    "Enable the model manager.",
                     "Allows individual features to use different models configured in model sets.");
 
 

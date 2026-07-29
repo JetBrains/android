@@ -111,9 +111,6 @@
       "hit": "Minor"
     },
     {
-      "hit": "Model:"
-    },
-    {
       "hit": "Moderate"
     },
     {
@@ -695,7 +692,20 @@
   "name": "Model Providers",
   "entries": [
     {
+      "hit": "Model Assignment"
+    }
+  ]
+}
+{
+  "id": "templates.modelproviders.configurable",
+  "name": "Model Providers",
+  "entries": [
+    {
       "hit": "Model Providers"
+    },
+    {
+      "hit": "Model Assignment",
+      "path": "Model Assignment"
     },
     {
       "hit": "API key header:",

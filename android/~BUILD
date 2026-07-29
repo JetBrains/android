@@ -482,6 +482,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core/aicore:gemini_plugin_proto",
+        "//tools/vendor/google/ml/aiplugin/editor/prediction-services/integration:aicode_grpc",
         "//tools/vendor/google/ml/aiplugin/editor/prediction-services/integration:aida_grpc",
         "//tools/vendor/google/ml/aiplugin/editor/prediction-services/integration:aida_proto",
         "//tools/vendor/google/ml/aiplugin/editor/prediction-services/integration:aida_protobuf",
