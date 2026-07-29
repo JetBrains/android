@@ -15,39 +15,48 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-
-import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
+import com.android.tools.idea.projectsystem.BuildApkActionToken;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.intellij.ide.trustedProjects.TrustedProjects;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class GenerateApkAction extends AndroidStudioGradleAction {
+public class GenerateApkAction extends AnAction {
   private static final String ACTION_TEXT = "Generate APKs";
 
   public GenerateApkAction() {
     super(ACTION_TEXT);
   }
 
+  @NotNull
   @Override
-  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    e.getPresentation().setEnabled(!isGradleSyncInProgress(project));
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
-  protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
-    List<Module> appModules = ProjectStructure.getInstance(project).getAppHolderModules().stream()
-      .flatMap(module -> GradleProjectSystemUtil.getModulesToBuild(module).stream())
-      .collect(Collectors.toList());
-    if (!appModules.isEmpty()) {
-      GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-      GoToApkLocationTask task = new GoToApkLocationTask(project, appModules, ACTION_TEXT);
-      Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-      task.executeWhenBuildFinished(gradleBuildInvoker.assemble(modulesToBuild), true);
+  public void update(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
+    if (project == null || !TrustedProjects.isProjectTrusted(project)) {
+      e.getPresentation().setEnabledAndVisible(false);
+      return;
+    }
+    boolean isSupported = BuildApkActionToken.isSupported(project);
+    e.getPresentation().setEnabledAndVisible(isSupported);
+    if (isSupported) {
+      boolean syncInProgress = ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncInProgress();
+      e.getPresentation().setEnabled(!syncInProgress);
+    }
+  }
+
+  @Override
+  public void actionPerformed(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
+    if (project != null && TrustedProjects.isProjectTrusted(project)) {
+      BuildApkActionToken.execute(project);
     }
   }
 }

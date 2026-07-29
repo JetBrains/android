@@ -246,6 +246,10 @@
   <extensions defaultExtensionNs="com.android.tools.idea.imports">
     <androidMavenImportToken implementation="com.android.tools.idea.imports.AndroidMavenImportGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.projectsystem">
+    <buildBundleActionToken implementation="com.android.tools.idea.projectsystem.gradle.BuildBundleActionTokenGradle"/>
+    <buildApkActionToken implementation="com.android.tools.idea.projectsystem.gradle.BuildApkActionTokenGradle"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
