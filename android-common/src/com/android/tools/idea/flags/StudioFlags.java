@@ -2746,8 +2746,13 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> STUDIOBOT_ASK_USER_IN_QUERY_BOX =
     new BooleanFlag(STUDIOBOT, "ask.user.in.query.box",
-                    "Replace the query box with the pending ask user tool call or permisisons request.",
-                    "When true, the query box UI will be completely replaced with the pending ask user tool call or permissions request instead of rendering them in the timeline.");
+                    "Replace the query box with the pending ask user tool call.",
+                    "When true, the query box UI will be completely replaced with the pending ask user tool call instead of rendering it in the timeline.");
+
+  public static final Flag<Boolean> STUDIOBOT_PERMISSION_REQUEST_IN_QUERY_BOX =
+    new BooleanFlag(STUDIOBOT, "permission.request.in.query.box",
+                    "Replace the query box with the pending permissions request.",
+                    "When true, the query box UI will be completely replaced with the pending permissions request instead of rendering it in the timeline.");
 
   public static final Flag<Boolean> STUDIOBOT_CONVERSATION_SEARCH_ENABLED =
     new BooleanFlag(STUDIOBOT, "conversation.search.enabled",
