@@ -1885,6 +1885,14 @@ public final class StudioFlags {
       "Play Policy Insights Holdout Ratio",
       "Holdout some Play Policy lint checks for a subset of applications.",
       "1.0");
+
+  public static final Flag<String> PLAY_POLICY_INSIGHTS_DETAILED_HOLDOUT_RATIO =
+    new StringFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights.detailed.holdout.ratio",
+      "Play Policy Insights Detailed Holdout Ratio",
+      "Holdout some Play Policy lint checks with different ratios.",
+      "[]");
   // endregion Play Policy Insights
 
   // region Firebase Test Lab

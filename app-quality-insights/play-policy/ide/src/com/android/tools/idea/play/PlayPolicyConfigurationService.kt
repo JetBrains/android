@@ -121,4 +121,9 @@ class PlayPolicyConfigurationService(private val project: Project, private val c
   }
 }
 
-data class PlayMetadata(val applicationId: String, val applicationInfoJson: String, val appContentDeclarationJson: String, val errorMessage: String = "")
+data class PlayMetadata(
+  val applicationId: String,
+  val applicationInfoJson: String,
+  val appContentDeclarationJson: String,
+  val errorMessage: String = "",
+)

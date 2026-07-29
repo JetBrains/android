@@ -17,7 +17,6 @@ package com.android.tools.idea.play
 
 import com.android.tools.idea.flags.StudioFlags
 import com.google.gson.Gson
-import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import java.util.function.Supplier
@@ -33,9 +32,13 @@ class MetadataProviderImpl(private val project: Project) : MetadataProvider {
 
   override fun get(): String {
     if (!StudioFlags.PLAY_POLICY_METADATA_EXPORT_ENABLED.get()) {
-      return "[]"
+      return "{}"
     }
     val service = PlayPolicyConfigurationService.getInstance(project)
-    return gson.toJson(service.cachedMetadata.value.values)
+    return gson.toJson(
+      Metadata(StudioFlags.PLAY_POLICY_INSIGHTS_DETAILED_HOLDOUT_RATIO.getLatest(), service.cachedMetadata.value.values.toList())
+    )
   }
+
+  private data class Metadata(val issueHoldouts: String, val metadata: List<PlayMetadata>)
 }

@@ -27,5 +27,5 @@ interface HoldoutRatioProvider : Supplier<Double> {
 }
 
 class HoldoutRatioProviderImpl : HoldoutRatioProvider {
-  override fun get(): Double = StudioFlags.PLAY_POLICY_INSIGHTS_HOLDOUT_RATIO.get()?.toDoubleOrNull() ?: 0.0
+  override fun get(): Double = StudioFlags.PLAY_POLICY_INSIGHTS_HOLDOUT_RATIO.getLatest().toDoubleOrNull() ?: 0.0
 }
