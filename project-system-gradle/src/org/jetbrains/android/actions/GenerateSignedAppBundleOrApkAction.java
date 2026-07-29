@@ -16,6 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.BuildBundleActionToken;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
@@ -54,16 +55,21 @@ public class GenerateSignedAppBundleOrApkAction extends AnAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    assert project != null;
+    if (project == null) return;
 
-    List<AndroidFacet> facets =
-      ProjectSystemUtil.getAndroidFacets(project).stream().filter(facet -> facet.getConfiguration().isAppProject())
-        .collect(Collectors.toList());
+    if (ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem) {
+      List<AndroidFacet> facets =
+        ProjectSystemUtil.getAndroidFacets(project).stream().filter(facet -> facet.getConfiguration().isAppProject())
+          .collect(Collectors.toList());
 
-    assert !facets.isEmpty();
-
-    ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets);
-    wizard.show();
+      if (!facets.isEmpty()) {
+        ExportSignedPackageWizard wizard = new ExportSignedPackageWizard(project, facets);
+        wizard.show();
+      }
+    }
+    else {
+      BuildBundleActionToken.executeSigned(project);
+    }
   }
 
   private static boolean hasAtLeastOneApp(@NotNull Project project) {
@@ -78,9 +84,7 @@ public class GenerateSignedAppBundleOrApkAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    boolean enabled = project != null && hasAtLeastOneApp(project) &&
-                      /* Available for Android Gradle projects only */
-                      (ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem);
+    boolean enabled = project != null && BuildBundleActionToken.isSupported(project);
     e.getPresentation().setEnabledAndVisible(enabled);
     if (enabled) {
       e.getPresentation().setText(AndroidBundle.message("android.generate.signed.app.bundle.or.apk.action.text"));

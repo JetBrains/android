@@ -43,6 +43,10 @@
                     interface="org.jetbrains.android.facet.ResourceFolderManagerToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.androidShowStructureSettingsActionToken"
                     interface="com.android.tools.idea.projectsystem.AndroidShowStructureSettingsActionToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.buildBundleActionToken"
+                    interface="com.android.tools.idea.projectsystem.BuildBundleActionToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.buildApkActionToken"
+                    interface="com.android.tools.idea.projectsystem.BuildApkActionToken"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSyncModificationTracker"/>

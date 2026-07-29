@@ -15,40 +15,48 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.intellij.notification.NotificationType.ERROR;
-
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.projectsystem.BuildBundleActionToken;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.intellij.ide.trustedProjects.TrustedProjects;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class GenerateBundleAction extends AndroidStudioGradleAction {
+public class GenerateBundleAction extends AnAction {
   private static final String ACTION_TEXT = "Generate Bundles";
 
   public GenerateBundleAction() {
     super(ACTION_TEXT);
   }
 
+  @NotNull
   @Override
-  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    e.getPresentation().setEnabled(!isGradleSyncInProgress(project));
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
-  protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
-    List<Module> appModules = GradleProjectSystemUtil.getAppHolderModulesSupportingBundleTask(project);
-    if (!appModules.isEmpty()) {
-      GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-      GoToBundleLocationTask task = new GoToBundleLocationTask(project, appModules, ACTION_TEXT);
-      Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-      task.executeWhenBuildFinished(gradleBuildInvoker.bundle(modulesToBuild), true);
+  public void update(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
+    if (project == null || !TrustedProjects.isProjectTrusted(project)) {
+      e.getPresentation().setEnabledAndVisible(false);
+      return;
     }
-    else {
-      AndroidNotification.getInstance(project).showBalloon(ACTION_TEXT, "No modules supporting bundles found", ERROR);
+    boolean isSupported = BuildBundleActionToken.isSupported(project);
+    e.getPresentation().setEnabledAndVisible(isSupported);
+    if (isSupported) {
+      boolean syncInProgress = ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncInProgress();
+      e.getPresentation().setEnabled(!syncInProgress);
+    }
+  }
+
+  @Override
+  public void actionPerformed(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
+    if (project != null && TrustedProjects.isProjectTrusted(project)) {
+      BuildBundleActionToken.execute(project);
     }
   }
 }
