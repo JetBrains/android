@@ -27,6 +27,7 @@ import com.android.tools.rendering.classloading.FirewalledResourcesClassLoader;
 import com.android.tools.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.rendering.classloading.RenderActionAllocationLimiterTransform;
 import com.android.tools.rendering.classloading.RepackageTransform;
+import com.android.tools.rendering.classloading.FontsContractCompatTransform;
 import com.android.tools.rendering.classloading.RequestExecutorTransform;
 import com.android.tools.rendering.classloading.ResourcesCompatTransform;
 import com.android.tools.rendering.classloading.SdkIntReplacer;
@@ -172,6 +173,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     PreviewAnimationClockMethodTransform::new,
     ResourcesCompatTransform::new,
     RequestExecutorTransform::new,
+    FontsContractCompatTransform::new,
     ViewTreeLifecycleTransform::new,
     LocalNavigationEventTransform::new,
     NavigationEventHandlerTransform::new,

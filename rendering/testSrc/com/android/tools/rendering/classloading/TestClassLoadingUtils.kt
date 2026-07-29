@@ -42,6 +42,7 @@ fun setupTestClassLoaderWithTransformation(
   classDefinitions: Map<String, Class<*>>,
   beforeTransformTrace: StringWriter = StringWriter(),
   afterTransformTrace: StringWriter = StringWriter(),
+  flags: Int = ClassWriter.COMPUTE_FRAMES,
   classTransformation: (ClassVisitor) -> ClassVisitor,
 ): TestClassLoader {
   // Create a SimpleRemapper that renames all the classes in `classDefinitions` from their old
@@ -54,7 +55,7 @@ fun setupTestClassLoaderWithTransformation(
         val testClassBytes = loadClassBytes(clazz)
 
         val classReader = ClassReader(testClassBytes)
-        val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+        val classOutputWriter = ClassWriter(flags)
         // Move the class
         val remapper =
           ClassRemapper(classTransformation(TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))), classNameRemapper)
