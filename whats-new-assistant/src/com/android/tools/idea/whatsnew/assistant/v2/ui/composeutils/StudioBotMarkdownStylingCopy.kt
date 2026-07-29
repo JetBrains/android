@@ -104,13 +104,13 @@ object StudioBotMarkdownStylingCopy {
                           inlineHtml = inlineHtml,
                         )
                       },
-                    underlineWidth = underlineWidth,
+                    underlineWidth = 0.dp,
                     underlineColor = underlineColor,
                     underlineGap = underlineGap,
                     padding =
                       PaddingValues(
-                        top = defaultHeadingPadding.calculateTopPadding() * 3,
-                        bottom = defaultHeadingPadding.calculateBottomPadding() * 3,
+                        top = 36.dp,
+                        bottom = 2.dp,
                       ),
                   )
                 },
