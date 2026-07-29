@@ -1,4 +1,4 @@
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -236,7 +236,7 @@ iml_module(
 
 compose_preview_data = [
     ":compose_preview_deps",
-    "//prebuilts/studio/sdk:build-tools/33.0.1",
+    "//prebuilts/studio/sdk:build-tools/36.0.0",
     "//tools/adt/idea/compose-designer/testData:composepreview",
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
@@ -255,15 +255,14 @@ maven_repository(
         "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.3.1",
-        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
-        "@maven//:com.android.tools.build.gradle_8.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
-        "@maven//:org.jetbrains.kotlin.kotlin-parcelize-compiler_1.7.20",
-        "@maven//:org.jetbrains.kotlin.kotlin-parcelize-runtime_1.7.20",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_9.0.0",
+        "@maven//:com.android.tools.build.aapt2_9.0.0-14304508",
+        "@maven//:com.android.tools.build.gradle_9.0.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-parcelize-compiler_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-parcelize-runtime_2.2.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KOTLIN_ARTIFACTS_FOR_TESTS,
 )
 
 iml_test(
