@@ -57,13 +57,13 @@ service ReportingService {
   rpc QueryEngagementMetricSet(QueryEngagementMetricSetRequest)
       returns (QueryEngagementMetricSetResponse) {}
 
-  // Describes the properties of the acquisition metric set.
-  rpc GetAcquisitionMetricSet(GetAcquisitionMetricSetRequest)
-      returns (AcquisitionMetricSet) {}
+  // Describes the properties of the acquisitions metric set.
+  rpc GetAcquisitionsMetricSet(GetAcquisitionsMetricSetRequest)
+      returns (AcquisitionsMetricSet) {}
 
-  // Queries the metrics in the acquisition metric set.
-  rpc QueryAcquisitionMetricSet(QueryAcquisitionMetricSetRequest)
-      returns (QueryAcquisitionMetricSetResponse) {}
+  // Queries the metrics in the acquisitions metric set.
+  rpc QueryAcquisitionsMetricSet(QueryAcquisitionsMetricSetRequest)
+      returns (QueryAcquisitionsMetricSetResponse) {}
 
   // Describes the properties of the impressions metric set.
   rpc GetImpressionsMetricSet(GetImpressionsMetricSetRequest)
