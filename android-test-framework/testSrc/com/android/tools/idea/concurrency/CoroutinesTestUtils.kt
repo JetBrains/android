@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.concurrency
 
-import com.intellij.openapi.progress.runBlockingMaybeCancellable
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.concurrency.annotations.RequiresEdt
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.yield
 
 /**
  * The methods block execution while coroutines in the corresponding job are not done. Usually it is required to get the proper result if
@@ -28,13 +25,8 @@ import kotlinx.coroutines.yield
  */
 @RequiresEdt(generateAssertion = false /* IJPL-115548 */)
 fun waitCoroutinesBlocking(job: Job) {
-  runBlockingMaybeCancellable {
-    while (true) {
-      UIUtil.dispatchAllInvocationEvents()
-      yield()
-      delay(1) // prevent too frequent polling, otherwise may load cpu with billions of context switches
-
-      if (job.isCompleted || job.isCancelled) break
-    }
-  }
+  val timeoutInSeconds = 120
+  val isDone = { job.isCompleted || job.isCancelled }
+  val err = "Timed out waiting for coroutine job to finish: $job"
+  PlatformTestUtil.waitWithEventsDispatching(err, isDone, timeoutInSeconds)
 }
