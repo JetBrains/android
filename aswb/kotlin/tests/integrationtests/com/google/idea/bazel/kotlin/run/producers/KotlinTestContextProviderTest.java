@@ -43,14 +43,12 @@ import javax.annotation.Nullable;
 import org.jetbrains.kotlin.psi.KtClass;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Integration tests for run configurations for Kotlin test classes. */
 @RunWith(JUnit4.class)
-@Ignore("b/466755859")
 public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducerTestCase {
 
   private static final Correspondence<RunConfiguration, Boolean> IS_BLAZE_RUN_CONFIGURATION =
@@ -101,7 +99,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
     // Fake the BUILD file.
     TargetInfo testTarget =
         new TargetInfo(Label.create("//com/google/test:TestClass"), "kt_jvm_test");
-    // query sync:    registerTargets(testTarget);
+    registerTargets(testTarget);
 
     ImmutableList<RunConfiguration> configurations = getRunConfigurations(testClass);
 
@@ -128,7 +126,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
     // Fake the BUILD file.
     TargetInfo testTarget =
         new TargetInfo(Label.create("//com/google/test:TestClass"), "kt_jvm_test");
-    // query sync: registerTargets(testTarget);
+    registerTargets(testTarget);
 
     ImmutableList<BlazeCommandRunConfiguration> configurations =
         getBlazeRunConfigurations(testClass);
@@ -160,7 +158,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
     // Fake the BUILD file.
     TargetInfo testTarget =
         new TargetInfo(Label.create("//com/google/test:TestClass"), "kt_jvm_test");
-    // query sync: registerTargets(testTarget);
+    registerTargets(testTarget);
 
     ImmutableList<RunConfiguration> configurations = getRunConfigurations(firstMethod);
 
@@ -189,7 +187,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
     // Fake the BUILD file.
     TargetInfo testTarget =
         new TargetInfo(Label.create("//com/google/test:TestClass"), "kt_jvm_test");
-    // query sync: registerTargets(testTarget);
+    registerTargets(testTarget);
 
     ImmutableList<BlazeCommandRunConfiguration> configurations =
         getBlazeRunConfigurations(firstMethod);
@@ -238,7 +236,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
             TestSize.SMALL,
             /* testClass= */ null,
             /* syncTime= */ null);
-    // query sync: registerTargets(testLibraryTarget, mediumTestsTarget, smallTestsTarget);
+    registerTargets(testLibraryTarget, mediumTestsTarget, smallTestsTarget);
 
     List<BlazeCommandRunConfiguration> runConfigurations = getBlazeRunConfigurations(testClass);
 
@@ -246,17 +244,6 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         .comparingElementsUsing(HAS_ONLY_TARGET)
         .containsExactly("//com/google/test:medium_tests");
   }
-
-  // private void registerTargets(TargetIdeInfo target, TargetIdeInfo... additionalTargets) {
-  //  MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
-  //  builder.setTargetMap(
-  //      TargetMapBuilder.builder()
-  //          .addTarget(target)
-  //          .addTargets(ImmutableList.copyOf(additionalTargets))
-  //          .build());
-  //  registerProjectService(
-  //      BlazeProjectDataManager.class, new MockBlazeProjectDataManager(builder.build()));
-  // }
 
   private static KtClass findClass(PsiFile kotlinFile) {
     KtClass kotlinClass = PsiUtils.findFirstChildOfClassRecursive(kotlinFile, KtClass.class);
@@ -294,7 +281,8 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
     // Request the run configurations from IntelliJ's API. This eventually calls into the extension
     // points we use to provide our custom run configurations.
     List<ConfigurationFromContext> configurationsFromContext =
-        Optional.ofNullable(context.getConfigurationsFromContext()).orElse(ImmutableList.of());
+        Optional.ofNullable(runWithProgress(context::getConfigurationsFromContext))
+            .orElse(ImmutableList.of());
 
     // Extract the actually created run configurations from the response context (which provides
     // additional data) as we're only interested in the run configurations in the tests.
