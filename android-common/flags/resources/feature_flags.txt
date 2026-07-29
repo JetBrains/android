@@ -242,7 +242,6 @@ studiobot.show.shimmer.placeholder=PREVIEW
 studiobot.skills.enabled=COMPLETE:2026
 studiobot.skills.v2.enabled=COMPLETE:2026
 studiobot.studiobot.apply.changes.action=INTERNAL
-studiobot.support.gias.enterprise=COMPLETE:2025
 studiobot.symbol.linkification=COMPLETE:2026
 studiobot.symbol.links.from.model=PREVIEW
 studiobot.tool.timeout.monitor.enabled=INTERNAL
