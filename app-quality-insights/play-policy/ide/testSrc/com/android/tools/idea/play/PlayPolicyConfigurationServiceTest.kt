@@ -117,6 +117,39 @@ class PlayPolicyConfigurationServiceTest {
   }
 
   @Test
+  fun testRefreshMetadataFailure() = runTest {
+    fakeMetadataClient.exceptions["com.example.app1"] = RuntimeException("Network error")
+    fakeMetadataClient.exceptions["com.example.app2"] = RuntimeException("Package not found")
+
+    val metadata = service.refreshMetadata()
+
+    assertThat(metadata).hasSize(2)
+    assertThat(metadata["com.example.app1"]).isEqualTo(PlayMetadata("com.example.app1", "", "", "Network error"))
+    assertThat(metadata["com.example.app2"]).isEqualTo(PlayMetadata("com.example.app2", "", "", "Package not found"))
+    assertThat(metadata["com.example.lib"]).isNull()
+
+    // Verify cache is updated
+    assertThat(service.cachedMetadata.value).isEqualTo(metadata)
+  }
+
+  @Test
+  fun testRefreshMetadataEmptyApplicationData() = runTest {
+    // Clear stub for app1 application data
+    fakeMetadataClient.applications.remove("com.example.app1")
+
+    val metadata = service.refreshMetadata()
+
+    assertThat(metadata).hasSize(2)
+    // com.example.app1 should still be present but with empty applicationInfoJson
+    assertThat(metadata["com.example.app1"]).isEqualTo(PlayMetadata("com.example.app1", "", "app1_declaration"))
+    assertThat(metadata["com.example.app2"]).isEqualTo(PlayMetadata("com.example.app2", "app2_info", "app2_declaration"))
+    assertThat(metadata["com.example.lib"]).isNull()
+
+    // Verify cache is updated
+    assertThat(service.cachedMetadata.value).isEqualTo(metadata)
+  }
+
+  @Test
   fun testSyncTriggersRefresh() = runTest {
     // Update server metadata to verify sync re-fetches
     fakeMetadataClient.applications["com.example.app1"] = "app1_info_updated"
@@ -206,10 +239,17 @@ class PlayPolicyConfigurationServiceTest {
 class FakePlayMetadataClient : PlayMetadataClient {
   val applications = mutableMapOf<String, String>()
   val declarations = mutableMapOf<String, String>()
+  val exceptions = mutableMapOf<String, Exception>()
 
-  override suspend fun getApplication(packageName: String): String = applications[packageName] ?: ""
+  override suspend fun getApplication(packageName: String): String {
+    exceptions[packageName]?.let { throw it }
+    return applications[packageName] ?: ""
+  }
 
-  override suspend fun getAppContentDeclaration(packageName: String): String = declarations[packageName] ?: ""
+  override suspend fun getAppContentDeclaration(packageName: String): String {
+    exceptions[packageName]?.let { throw it }
+    return declarations[packageName] ?: ""
+  }
 
   override fun close() {}
 }

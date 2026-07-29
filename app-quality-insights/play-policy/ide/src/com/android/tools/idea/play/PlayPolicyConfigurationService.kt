@@ -94,8 +94,8 @@ class PlayPolicyConfigurationService(private val project: Project, private val c
       return appIds
         .associateWithNotNull { appId ->
           try {
-            val applicationData = metadataClient.getApplication(appId).takeIf { it.isNotEmpty() } ?: return@associateWithNotNull null
-            val declarationData = metadataClient.getAppContentDeclaration(appId) ?: ""
+            val applicationData = metadataClient.getApplication(appId)
+            val declarationData = metadataClient.getAppContentDeclaration(appId)
             PlayMetadata(appId, applicationData, declarationData)
           } catch (e: CancellationException) {
             throw e
@@ -104,7 +104,7 @@ class PlayPolicyConfigurationService(private val project: Project, private val c
             if (e.message?.lowercase()?.contains("package not found") != true) {
               thisLogger().warn("Failed to fetch Play metadata for appId: $appId", e)
             }
-            null
+            PlayMetadata(appId, "", "", e.message ?: "Unknown error")
           }
         }
         .also { _cachedMetadata.value = it }
@@ -121,4 +121,4 @@ class PlayPolicyConfigurationService(private val project: Project, private val c
   }
 }
 
-data class PlayMetadata(val applicationId: String, val applicationInfoJson: String, val appContentDeclarationJson: String)
+data class PlayMetadata(val applicationId: String, val applicationInfoJson: String, val appContentDeclarationJson: String, val errorMessage: String = "")
