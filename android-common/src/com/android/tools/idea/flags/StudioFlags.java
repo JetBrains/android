@@ -2467,12 +2467,6 @@ public final class StudioFlags {
                       "Enable agentic automated unit test generation",
                       "When enabled, generate unit tests using studio bot agent.");
 
-
-  public static final Flag<Boolean> STUDIOBOT_SUPPORT_GIAS_ENTERPRISE =
-    new BooleanFlag(STUDIOBOT, "support.gias.enterprise",
-                    "Enable support for GCA Enterprise tier",
-                    "Enable support for GCA Enterprise tier");
-
   public static Flag<Boolean> STUDIOBOT_SHIMMER_PLACEHOLDER =
     new BooleanFlag(STUDIOBOT, "show.shimmer.placeholder",
                     "Enable shimmering placeholder in chat timeline.",
