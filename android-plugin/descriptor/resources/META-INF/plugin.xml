@@ -36,6 +36,15 @@
     <!-- endregion -->
   </dependencies>
 
+  <!-- Library wrapper module used only by this plugin. The <content> tag has no 'namespace' attribute on purpose:
+       that registers the module in this plugin's implicit private namespace, so other plugins may bundle their own
+       copy without a runtime module ID clash. loading="embedded" is required because intellij.android.streaming is
+       packed into lib/android.jar as a plain module and its sources import org.bytedeco.ffmpeg.* and
+       org.bytedeco.javacpp.* directly, so the classes must be on the plugin's main classloader. -->
+  <content>
+    <module name="intellij.libraries.ffmpeg" loading="embedded"/>
+  </content>
+
   <xi:include href="/META-INF/android-plugin.xml"/>
   <xi:include href="/META-INF/android-kotlin.xml"/>
   <xi:include href="/META-INF/android-adb.xml"/>
