@@ -1,4 +1,4 @@
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.kotlin.idea.k2` start
@@ -6,6 +6,11 @@ create_kotlinc_options(
     name = "custom_k2",
     opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"],
     x_context_parameters = True,
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
+    lib = "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
 )
 
 jvm_library(
@@ -30,7 +35,6 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-analysis-api-k2-provided",
         "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/android-common:common",
         "//android/android:core",
@@ -44,6 +48,7 @@ jvm_library(
         "//platform/util",
         "//plugins/kotlin/code-insight/api",
         "//plugins/kotlin/references",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
     ],
 )
 
@@ -63,7 +68,8 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-analysis-api-k2-provided",
+        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
+        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
         "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/android-common:common_test_lib",
         "//android/android:core_test_lib",
