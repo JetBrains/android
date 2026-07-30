@@ -18,16 +18,13 @@ option java_package = "com.google.play.developer.reporting";
 //
 // **Supported metrics:**
 //
-//  * `dailyActiveUsers` (`google.type.Decimal`): The number of users who opened
-//  your app on a given day.
-//  * `monthlyActiveUsers` (`google.type.Decimal`): The number of users who
-//  opened your app in a 28-day period
 //  * `dailyActiveDevices` (`google.type.Decimal`): The average number of active
 //  devices that open your app each day. An active device is one that has opened
 //  your app at least once on any given day. Data is updated daily and averaged
 //  over a selected time period (28 days by default).
 //  * `monthlyActiveDevices` (`google.type.Decimal`): The number of devices that
 //  have opened your app at least once in the last 28 days.
+//  monthlyActiveDevices data is available from April 8, 2026 onward.
 //
 // **Supported dimensions:**
 //
@@ -58,6 +55,7 @@ option java_package = "com.google.play.developer.reporting";
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     How the user got to your store listing (e.g., 'Google Play Search',
 //     'Google Play Explore', 'Ads and referrals').
+//     Traffic source is available from April 8, 2026 onward.
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     The version of the app that was running on the user's device.
@@ -124,26 +122,25 @@ message QueryEngagementMetricSetRequest {
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     How the user got to your store listing (e.g., 'Google Play Search',
   //     'Google Play Explore', 'Ads and referrals').
+  //     Traffic source is available from April 8, 2026 onward.
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
   //     The version of the app that was running on the user's device.
+  //
+  //  Multidimensional querying is available from April 8, 2026 onward.
   repeated string dimensions = 3;
 
   // Metrics to aggregate.
   //
   // **Supported metrics:**
   //
-  //  * `dailyActiveUsers` (`google.type.Decimal`): The number of users who
-  //  opened
-  //  your app on a given day.
-  //  * `monthlyActiveUsers` (`google.type.Decimal`): The number of users who
-  //  opened your app in a 28-day period
   //  * `dailyActiveDevices` (`google.type.Decimal`): The average number of
   //  active devices that open your app each day. An active device is one that
   //  has opened your app at least once on any given day. Data is updated daily
   //  and averaged over a selected time period (28 days by default).
   //  * `monthlyActiveDevices` (`google.type.Decimal`): The number of devices
   //  that have opened your app at least once in the last 28 days.
+  //  monthlyActiveDevices data is available from April 8, 2026 onward.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
