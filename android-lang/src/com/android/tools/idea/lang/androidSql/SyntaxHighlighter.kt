@@ -251,7 +251,7 @@ private val EMPTY_KEYS = emptyArray<TextAttributesKey>()
 class AndroidSqlSyntaxHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = AndroidSqlLexer()
 
-  override fun getTokenHighlights(tokenType: IElementType?): Array<TextAttributesKey> = when (tokenType) {
+  override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> = when (tokenType) {
     in KEYWORDS -> AndroidSqlTextAttributes.KEYWORD.keys
     in OPERATORS -> AndroidSqlTextAttributes.OPERATOR.keys
     in CONSTANTS -> AndroidSqlTextAttributes.CONSTANT.keys

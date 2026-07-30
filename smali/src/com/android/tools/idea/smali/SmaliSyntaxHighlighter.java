@@ -53,7 +53,7 @@ public class SmaliSyntaxHighlighter extends SyntaxHighlighterBase {
   }
 
   @Override
-  public @NotNull TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
+  public @NotNull TextAttributesKey @NotNull [] getTokenHighlights(@NotNull IElementType tokenType) {
     if (KEYWORD_TOKENS.contains(tokenType) || ACCESS_MODIFIER_TOKENS.contains(tokenType)) {
       return KEYWORD_ATTR_KEYS;
     }

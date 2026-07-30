@@ -58,9 +58,8 @@ public class RenderscriptSyntaxHighlighter extends SyntaxHighlighterBase {
     return new RenderscriptLexer();
   }
 
-  @NotNull
   @Override
-  public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
+  public @NotNull TextAttributesKey @NotNull [] getTokenHighlights(@NotNull IElementType tokenType) {
     return pack(sAttributes.get(tokenType));
   }
 }

@@ -59,8 +59,7 @@ public class AidlSyntaxHighlighter extends JavaFileHighlighter {
   }
 
   @Override
-  @NotNull
-  public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
+  public @NotNull TextAttributesKey @NotNull [] getTokenHighlights(@NotNull IElementType tokenType) {
     return pack(ATTRIBUTES.get(tokenType));
   }
 }

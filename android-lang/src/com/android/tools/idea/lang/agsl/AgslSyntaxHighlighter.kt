@@ -27,7 +27,7 @@ import com.intellij.psi.tree.IElementType
 class AgslSyntaxHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = AgslLexer()
 
-  override fun getTokenHighlights(tokenType: IElementType?): Array<TextAttributesKey> = when (tokenType) {
+  override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> = when (tokenType) {
     in AgslTokenTypeSets.KEYWORDS -> pack(DefaultLanguageHighlighterColors.KEYWORD)
     in AgslTokenTypeSets.NUMBERS -> pack(DefaultLanguageHighlighterColors.NUMBER)
     in AgslTokenTypeSets.OPERATORS -> pack(DefaultLanguageHighlighterColors.OPERATION_SIGN)
