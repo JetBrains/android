@@ -888,14 +888,21 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       Thread.sleep(2000);
 
       studioInteractionService.findAndSetTextOnComponent(projectPathFieldMatcher, request.getProjectPath());
+      // Allow EDT's invokeLater to finish setting the text and posting VK_ENTER before clicking OK.
+      Thread.sleep(2000);
 
       studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("OK"));
 
+      // Allow the FileChooser dialog to close and the project window prompt ("This Window" / "New Window") to appear.
+      Thread.sleep(2000);
       if (request.getNewWindow()) {
         studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("New Window"));
 
-        // Workaround for b/361777156: click "New Window" twice.
-        studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("New Window"));
+        // Workaround for b/361777156: click "New Window" twice if dialog is still open.
+        try {
+          studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("New Window"));
+        } catch (Throwable ignored) {
+        }
       }
       else {
         studioInteractionService.findAndInvokeComponent(createExactTextComponentMatcher("This Window"));
