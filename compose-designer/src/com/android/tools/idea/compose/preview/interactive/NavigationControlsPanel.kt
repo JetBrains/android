@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -125,11 +126,11 @@ fun NavigationControlsPanel(
   fpsUpdater: SharedFlow<Unit>,
   backPressCompletedFlow: SharedFlow<Unit> = remember { MutableSharedFlow() },
 ) {
-  var sliderPosition by remember { mutableFloatStateOf(0f) }
+  var sliderPosition by rememberSaveable { mutableFloatStateOf(0f) }
   var backStarted by remember { mutableStateOf(false) }
   val coroutineScope = rememberCoroutineScope()
   val showEdgeNavigation by produceState(false, isEdgeNavigationImplemented) { value = isEdgeNavigationImplemented() }
-  val selectedEdge = remember { mutableStateOf(BackNavigationEdge.EDGE_NONE) }
+  val selectedEdge = rememberSaveable { mutableStateOf(BackNavigationEdge.EDGE_NONE) }
   val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
 
   LaunchedEffect(backPressCompletedFlow) {
