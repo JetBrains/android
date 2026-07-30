@@ -101,9 +101,8 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return sdk;
   }
 
-  // TODO b/525444688 standard should use the bundled JRE
   public static AndroidSystem standard() {
-    return withCustomJdkForGradle(AndroidStudioFlavor.FOR_EXTERNAL_USERS, JdkVersion.JDK_21);
+    return withCustomJdkForGradle(AndroidStudioFlavor.FOR_EXTERNAL_USERS, null);
   }
 
   /**
@@ -111,10 +110,9 @@ public class AndroidSystem implements AutoCloseable, TestRule {
    * that contains a preinstalled version of android studio
    * from the distribution zips. The SDK is set up pointing
    * to the standard prebuilts one.
-   * TODO b/525444688 standard should use the bundled JRE
    */
   public static AndroidSystem standard(AndroidStudioFlavor androidStudioFlavor) {
-    return withCustomJdkForGradle(androidStudioFlavor, JdkVersion.JDK_21);
+    return withCustomJdkForGradle(androidStudioFlavor, null);
   }
 
   /**
@@ -130,20 +128,13 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       system.install.createGeneralPropertiesXml();
       system.install.setStartupLoginProperty();
 
-      // Point JAVA_HOME to Studio bundled JRE
-      final Path jdkDir;
       if (gradleJdk != null) {
-        jdkDir = gradleJdk.getPath();
+        String javaHome = gradleJdk.getPath().toAbsolutePath().toString();
+        system.setEnv("GRADLE_LOCAL_JAVA_HOME", javaHome);
+        system.setEnv("JAVA_HOME", javaHome);
+        system.setEnv("STUDIO_GRADLE_JDK", javaHome);
+        system.install.addVmOption("-Dgradle.jvm=" + javaHome);
       }
-      else {
-        jdkDir = system.install.bundledJdkPath();
-      }
-      String javaHome = jdkDir.toAbsolutePath().toString();
-      system.setEnv("GRADLE_LOCAL_JAVA_HOME", javaHome);
-      system.setEnv("JAVA_HOME", javaHome);
-      system.setEnv("STUDIO_GRADLE_JDK", javaHome);
-      system.setEnv("STUDIO_JDK", system.install.bundledJdkPath().toAbsolutePath().toString());
-      system.install.addVmOption("-Dgradle.jvm=" + javaHome);
 
       return system;
     }
