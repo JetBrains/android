@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea;
 
-import static com.android.tools.asdriver.tests.AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS;
-import static com.android.tools.asdriver.tests.AndroidSystem.JdkVersion.JDK_21;
-
 import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
@@ -51,8 +48,7 @@ import org.junit.Test;
  */
 public class CreateProjectTest {
   @Rule
-  // TODO(b/510866256) Test new project wizard with Studio's bundled JDK
-  public AndroidSystem system = AndroidSystem.withCustomJdkForGradle(FOR_EXTERNAL_USERS, JDK_21);
+  public AndroidSystem system = AndroidSystem.standard();
 
   @Rule
   public MemoryDashboardNameProviderWatcher watcher = new MemoryDashboardNameProviderWatcher();

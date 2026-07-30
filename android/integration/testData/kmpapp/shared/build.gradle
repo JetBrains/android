@@ -15,20 +15,18 @@
  */
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
 }
 
 version = '1.0'
 
 kotlin {
-    android()
-
     android {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
+        namespace = "com.google.samples.apps.kmp.shared"
+        compileSdk = 33
+        minSdk = 26
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 
@@ -50,22 +48,5 @@ kotlin {
         }
         androidMain
         androidUnitTest
-    }
-
-}
-
-android {
-    compileSdk = 33
-    namespace = "com.google.samples.apps.kmp.shared"
-    sourceSets["main"].manifest.srcFile "src/androidMain/AndroidManifest.xml"
-    buildFeatures {
-        buildConfig = false
-    }
-    defaultConfig {
-        minSdk = 26
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 }

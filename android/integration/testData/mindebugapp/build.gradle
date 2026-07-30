@@ -1,12 +1,6 @@
-buildscript {
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22"
-    }
+plugins {
+    id 'com.android.application' version '9.0.0'
 }
-
-apply plugin: 'com.android.application'
-apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdk 33
@@ -18,8 +12,9 @@ android {
       sourceCompatibility JavaVersion.VERSION_17
       targetCompatibility JavaVersion.VERSION_17
     }
-
-    kotlinOptions {
-      jvmTarget = '17'
+    kotlin {
+      compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+      }
     }
 }
