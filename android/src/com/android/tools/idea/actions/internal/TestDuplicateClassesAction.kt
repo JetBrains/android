@@ -70,69 +70,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "io.github.oshai.kotlinlogging.slf4j.internal",
           "io.github.oshai.kotlinlogging.jul.internal",
         ),
-
-      // The below are all coming from the platform: we can't do anything about them directly.
-      "com.intellij.cidr.base" to
-        setOf(
-          "org.objenesis.strategy",
-          "org.objenesis.instantiator.util",
-          "org.objenesis.instantiator.sun",
-          "org.objenesis.instantiator.perc",
-          "org.objenesis.instantiator.gcj",
-          "org.objenesis.instantiator.basic",
-          "org.objenesis.instantiator.annotations",
-          "org.objenesis.instantiator.android",
-          "org.objenesis.instantiator",
-          "org.objenesis",
-        ),
-      "com.intellij.java" to
-        setOf(
-          "com.jetbrains.jdi",
-          "com.jgoodies.common.swing",
-          "com.jgoodies.common.internal",
-          "com.jgoodies.common.format",
-          "com.jgoodies.common.collect",
-          "com.jgoodies.common.bean",
-          "com.jgoodies.common.base",
-        ),
-      "org.jetbrains.kotlin" to
-        setOf(
-          "kotlin.metadata.jvm.internal",
-          "kotlin.metadata.jvm",
-          "kotlin.metadata.internal.protobuf",
-          "kotlin.metadata.internal.metadata.serialization",
-          "kotlin.metadata.internal.metadata.jvm.serialization",
-          "kotlin.metadata.internal.metadata.jvm.deserialization",
-          "kotlin.metadata.internal.metadata.jvm",
-          "kotlin.metadata.internal.metadata.deserialization",
-          "kotlin.metadata.internal.metadata.builtins",
-          "kotlin.metadata.internal.metadata",
-          "kotlin.metadata.internal.extensions",
-          "kotlin.metadata.internal.common",
-          "kotlin.metadata.internal",
-          "kotlin.metadata",
-        ),
-      "com.intellij" to
-        setOf(
-          "com.intellij.openapi.util",
-          "org.jetbrains.annotations",
-          "org.objectweb.asm.tree",
-          "org.objectweb.asm.signature",
-          "org.objectweb.asm",
-          "org.jetbrains.coverage.org.objectweb.asm",
-          "org.jetbrains.coverage.gnu.trove",
-          "org.jspecify.annotations",
-          "com.intellij.rt.coverage.util",
-          "com.intellij.rt.coverage.instrumentation",
-          "com.intellij.rt.coverage.data",
-          "org.jetbrains.coverage.org.objectweb.asm",
-          "org.jetbrains.coverage.gnu.trove",
-          "com.intellij.rt.coverage.util",
-          "com.intellij.rt.coverage.instrumentation",
-          "com.intellij.rt.coverage.data",
-          "com.intellij.lang.properties",
-        ),
-      "com.intellij.properties" to setOf("com.intellij.lang.properties"),
     )
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -150,7 +87,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
 
   private fun checkPlugin(plugin: IdeaPluginDescriptor): Boolean {
     // We're only interested in plugins we're providing.
-    if ("Google" !in (plugin.vendor ?: "")) return false
+    if (!isGooglePlugin(plugin.pluginId)) return false
 
     // First look for duplicates within the current plugin itself.
     val myClasses = getAllClasses(plugin.classLoader)
@@ -195,15 +132,19 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
         }
         // Check for conflicts between classes in different dependant plugins
         parentClasses.keys.intersect(allParentClasses.keys).forEach { c ->
+          val allParentsJar = allParentClasses[c]!!
+          val directParentJar = parentClasses[c]!!
           if (
-            parentClasses[c]?.jar != allParentClasses[c]?.jar &&
+            directParentJar.jar != allParentsJar.jar &&
               c.toPackageName() !in
                 (
                 // We also exclude exception classes based on the dependant plugin
-                (exceptions[(parentClasses[c]?.classLoader as PluginClassLoader).pluginId.idString] ?: setOf()) +
-                  (exceptions[(allParentClasses[c]?.classLoader as? PluginClassLoader)?.pluginId?.idString ?: "com.intellij"] ?: setOf()))
+                (exceptions[(directParentJar.classLoader as PluginClassLoader).pluginId.idString] ?: setOf()) +
+                  (exceptions[(allParentsJar.classLoader as? PluginClassLoader)?.pluginId?.idString ?: "com.intellij"] ?: setOf()))
           ) {
-            conflictsBetweenParents.getOrPut(c) { mutableSetOf(allParentClasses[c]!!) }.add(parentClasses[c]!!)
+            if (isGooglePlugin(allParentsJar.plugin) || isGooglePlugin(directParentJar.plugin)) {
+              conflictsBetweenParents.getOrPut(c) { mutableSetOf(allParentsJar) }.add(directParentJar)
+            }
           }
         }
         allParentClasses.putAll(parentClasses)
@@ -240,6 +181,11 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
     return false
   }
 
+  private fun isGooglePlugin(pluginId: PluginId): Boolean {
+    val descriptor = PluginManager.getInstance().findEnabledPlugin(pluginId) ?: return false
+    return "Google" in (descriptor.vendor ?: "")
+  }
+
   private val classCache = mutableMapOf<URI, List<String>>()
 
   /** Get a list of all class filenames (like /foo/bar/MyClass.class) present in jar referenced by the given URL. */
@@ -263,7 +209,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
   private data class JarReference(val plugin: PluginId, val jar: URL, val classLoader: ClassLoader)
 
   // returns class file path to jar url. Classes can be duplicated.
-  private fun getAllClasses(classLoader: ClassLoader): List<Triple<String, URL, ClassLoader>> =
+  private fun <T : ClassLoader> getAllClasses(classLoader: T): List<Triple<String, URL, T>> =
     (classLoader as? UrlClassLoader)?.urls?.flatMap { url -> getAllClasses(url).map { Triple(it, url, classLoader) } } ?: listOf()
 
   // Map if class file path to jar reference. Note only one jar per class will be reported, and the
@@ -273,7 +219,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
       (listOf(cl) + cl.getAllParentsClassLoaders())
         .filterIsInstance<PluginClassLoader>()
         .flatMap { getAllClasses(it) }
-        .associate { (c, j, cl) -> c to JarReference(plugin.pluginId, j, cl) }
+        .associate { (c, j, cl) -> c to JarReference(cl.pluginId, j, cl) }
     } ?: mapOf()
 }
 
