@@ -21,6 +21,11 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
+    lib = "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
+)
+
 jvm_library(
     name = "templates",
     srcs = glob(
@@ -79,11 +84,11 @@ jvm_library(
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/project-structure",
         "//plugins/kotlin/base/util",
-        "@lib//:kotlinc-analysis-api-platform-interface-provided",
         "//platform/util-class-loader:util-classLoader",
         "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
     ],
 )
 
@@ -141,7 +146,8 @@ jvm_library(
         "//plugins/kotlin/base/util:util_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "@lib//:kotlinc-analysis-api-platform-interface-provided",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface_test_lib",
         "//platform/util-class-loader:util-classLoader_test_lib",
         "//android/gradle-declarative-lang-ide",
         "//android/gradle-declarative-lang-ide:gradle-declarative-lang-ide_test_lib",
@@ -314,7 +320,8 @@ jvm_library(
         "//android/adt-testutils:adt-testutils_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "@lib//:kotlinc-analysis-api-platform-interface-provided",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface_test_lib",
         "//platform/util-class-loader:util-classLoader",
         "//platform/util-class-loader:util-classLoader_test_lib",
         "//android/gradle-declarative-lang-ide",
