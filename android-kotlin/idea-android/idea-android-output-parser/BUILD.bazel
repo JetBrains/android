@@ -2,6 +2,11 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.kotlin.output.parser` start
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
+jvm_provided_library(
     name = "plugins_maven_artifactResolver-m31_provided",
     lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
 )
@@ -27,10 +32,10 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "//libraries/guava",
         "@lib//:kotlin-stdlib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/android:core",
         "//platform/util",
         "//platform/util-rt",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
         ":plugins_maven_artifactResolver-m31_provided",
     ],
 )
@@ -50,7 +55,8 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android:core_test_lib",
         "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
         "//plugins/maven/artifact-resolver-m31:artifactResolver-m31_test_lib",

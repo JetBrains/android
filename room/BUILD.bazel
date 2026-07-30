@@ -1,7 +1,12 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.room` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "room",
     srcs = glob(
@@ -25,7 +30,6 @@ jvm_library(
         "//libraries/gson",
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/android-lang:lang",
         "//android/project-system",
         "//java/openapi:java",
@@ -49,6 +53,7 @@ jvm_library(
         "//platform/util:util-ui",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//platform/util/concurrency",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -68,7 +73,8 @@ jvm_library(
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//libraries/gson:gson_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android-lang:lang_test_lib",
         "//android/project-system:project-system_test_lib",
         "//java/openapi:java_test_lib",
@@ -149,7 +155,8 @@ jvm_library(
         "//libraries/mockito",
         "//libraries/mockito:mockito_test_lib",
         "@lib//:mockito-kotlin",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android-lang:lang",
         "//android/android-lang:lang_test_lib",
         "//platform/projectModel-api:projectModel",

@@ -1,7 +1,12 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.lang` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "lang",
     srcs = glob(
@@ -25,7 +30,6 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "@lib//:studio-platform-provided",
         "//libraries/guava",
         "//android/artwork",
@@ -62,6 +66,7 @@ jvm_library(
         "//platform/ide-core",
         "//plugins/kotlin/base/util",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -78,7 +83,8 @@ jvm_library(
         # do not sort,
         ":lang",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
@@ -177,7 +183,8 @@ jvm_library(
         "//libraries/junit4:junit4_test_lib",
         "@lib//:jetbrains-annotations",
         "@lib//:truth",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android:core",
         "//android/android:core_test_lib",
         "//android/project-system",

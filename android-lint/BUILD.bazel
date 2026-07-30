@@ -1,11 +1,16 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.lint` start
 create_kotlinc_options(
     name = "custom_lint",
     opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"],
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
 jvm_library(
@@ -34,7 +39,6 @@ jvm_library(
         "@lib//:kxml2",
         "//libraries/protobuf",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "@lib//:kotlinc-kotlin-jps-common-provided",
         "//platform/editor-ui-api:editor-ui",
         "//jps/model-api:model",
@@ -99,6 +103,7 @@ jvm_library(
         "//platform/forms_rt:java-guiForms-rt",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//platform/util/concurrency",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -120,7 +125,8 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-jps-common-provided",
         "//platform/editor-ui-api:editor-ui_test_lib",
         "//jps/model-api:model_test_lib",
@@ -239,7 +245,8 @@ jvm_library(
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
         "@lib//:jetbrains-annotations",
-        "@lib//:kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//libraries/mockito",
         "//libraries/mockito:mockito_test_lib",
         "//libraries/protobuf",

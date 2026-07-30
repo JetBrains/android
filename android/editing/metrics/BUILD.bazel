@@ -1,7 +1,12 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.core.editing.metrics` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "metrics",
     srcs = glob(
@@ -30,7 +35,7 @@ jvm_library(
         "//platform/lang-impl",
         "//libraries/kotlinx/datetime",
         "//platform/refactoring",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -86,7 +91,8 @@ jvm_library(
         "//platform/ide-core",
         "//platform/util:util-ui",
         "//platform/util:util-ui_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
     ],

@@ -1,6 +1,11 @@
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.nav.safeargs.k2` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "k2",
     srcs = glob(
@@ -21,7 +26,6 @@ jvm_library(
         # do not sort,
         "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/project-system",
         "//platform/analysis-api:analysis",
         "//platform/core-api:core",
@@ -34,6 +38,7 @@ jvm_library(
         "//plugins/kotlin/base/analysis",
         "@lib//:kotlinc-analysis-api-provided",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -51,7 +56,8 @@ jvm_library(
         ":k2",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/project-system:project-system_test_lib",
         "//platform/analysis-api:analysis_test_lib",
         "//platform/core-api:core_test_lib",

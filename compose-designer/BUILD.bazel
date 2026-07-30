@@ -1,5 +1,5 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "resourcegroup")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.compose-designer` start
@@ -8,6 +8,11 @@ create_kotlinc_options(
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
     x_context_parameters = True,
     x_sam_conversions = "class",
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
 jvm_library(
@@ -48,7 +53,6 @@ jvm_library(
         "//libraries/kotlinx/coroutines/core",
         "//libraries/protobuf",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "//android/intellij.android.compose-common:compose-common",
@@ -117,6 +121,7 @@ jvm_library(
         "//android/visual-lint",
         "//platform/refactoring",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -150,7 +155,8 @@ jvm_library(
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "//android/intellij.android.compose-common:compose-common_test_lib",
@@ -520,7 +526,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "@lib//:truth",
         "@lib//:kotlinc-analysis-api",
-        "@lib//:kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/intellij.android.compose-common:compose-common",
         "//android/intellij.android.compose-common:compose-common_test_lib",
         "//android/artwork",

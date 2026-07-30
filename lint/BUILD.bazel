@@ -1,4 +1,4 @@
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.lint.common` start
@@ -8,6 +8,11 @@ create_kotlinc_options(
         "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
         "org.jetbrains.kotlin.K1Deprecation",
     ],
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
 jvm_library(
@@ -34,7 +39,6 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/android-common:common",
         "//plugins/gradle/java",
         "//plugins/groovy/groovy-psi:psi",
@@ -75,6 +79,7 @@ jvm_library(
         "//xml/xml-analysis-api:analysis",
         "//plugins/gradle/java/groovy",
         "//plugins/kotlin/code-insight/utils",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -95,7 +100,8 @@ jvm_library(
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android-common:common_test_lib",
         "//plugins/gradle/java:java_test_lib",
         "//plugins/groovy/groovy-psi:psi_test_lib",

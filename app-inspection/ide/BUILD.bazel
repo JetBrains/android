@@ -1,7 +1,12 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.app-inspection.ide` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "ide",
     srcs = glob(
@@ -25,7 +30,6 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//libraries/protobuf",
         "//android/adt-ui",
         "//android/adt-ui-model",
@@ -56,6 +60,7 @@ jvm_library(
         "//platform/util",
         "//platform/util-ex",
         "//platform/util:util-ui",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -79,7 +84,8 @@ jvm_library(
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/adt-ui-model:adt-ui-model_test_lib",

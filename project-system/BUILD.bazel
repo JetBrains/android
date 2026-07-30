@@ -1,7 +1,12 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.projectSystem` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "project-system",
     srcs = glob(
@@ -47,8 +52,8 @@ jvm_library(
         "//platform/util/base",
         "//platform/util-rt",
         "//xml/dom-openapi:dom",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//platform/core-impl",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -90,7 +95,8 @@ jvm_library(
         "//platform/util/base:base_test_lib",
         "//platform/util-rt:util-rt_test_lib",
         "//xml/dom-openapi:dom_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//platform/core-impl:core-impl_test_lib",
     ],
 )

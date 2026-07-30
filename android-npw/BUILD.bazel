@@ -1,11 +1,16 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.newProjectWizard` start
 create_kotlinc_options(
     name = "custom_newProjectWizard",
     x_sam_conversions = "class",
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
 jvm_library(
@@ -33,7 +38,6 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "@lib//:kxml2",
         "//libraries/protobuf",
         "//libraries/rd/core",
@@ -93,6 +97,7 @@ jvm_library(
         "//android/adt-ui-compose",
         "//platform/forms_rt:java-guiForms-rt",
         "//android/gradle-dsl-android",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -113,7 +118,8 @@ jvm_library(
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/rd/core:core_test_lib",
         "//android/android-adb:adb_test_lib",

@@ -1,6 +1,11 @@
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.kotlin.idea.common` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "common",
     srcs = glob(
@@ -24,7 +29,6 @@ jvm_library(
         "@lib//:kotlin-stdlib",
         "//libraries/protobuf",
         "//plugins/kotlin/references",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "@lib//:kotlinc-kotlin-jps-plugin-classpath-provided",
         "@lib//:kotlinc-analysis-api-provided",
         "//android/android-common:common",
@@ -71,6 +75,7 @@ jvm_library(
         "//plugins/kotlin/project-configuration",
         "//android/project-system-gradle:projectSystem-gradle",
         "//android/gmaven",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -91,7 +96,8 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "//plugins/kotlin/references:references_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-jps-plugin-classpath-provided",
         "@lib//:kotlinc-analysis-api-provided",
         "//android/android-common:common_test_lib",

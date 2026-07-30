@@ -1,11 +1,16 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.layout-inspector` start
 create_kotlinc_options(
     name = "custom_layout-inspector",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
 jvm_library(
@@ -28,7 +33,6 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//libraries/gson",
         "//libraries/guava",
@@ -100,6 +104,7 @@ jvm_library(
         "//xml/xml-psi-impl:psi-impl",
         "//platform/progress/shared:ide-progress",
         "//fleet/util/core",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -128,7 +133,8 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//libraries/gson",
         "//libraries/gson:gson_test_lib",
@@ -348,7 +354,8 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:layoutlib",
         "//android/as-driver/utils",
         "//android/as-driver/utils:utils_test_lib",
@@ -444,7 +451,8 @@ jvm_library(
         "//android/android-adb:adb_test_lib",
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:mockito-kotlin",
         "//libraries/kotlinx/coroutines/core",
         "//libraries/kotlinx/coroutines/core:core_test_lib",

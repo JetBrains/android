@@ -1,6 +1,11 @@
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl.kotlin` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "gradle-dsl-kotlin",
     srcs = glob(
@@ -23,7 +28,6 @@ jvm_library(
         "//libraries/guava",
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/gradle-dsl",
         "//java/java-psi-api:psi",
         "//java/java-psi-impl:psi-impl",
@@ -33,6 +37,7 @@ jvm_library(
         "//platform/util/base",
         "//platform/util-rt",
         "//plugins/kotlin/base/psi",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -51,7 +56,8 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/gradle-dsl:gradle-dsl_test_lib",
         "//java/java-psi-api:psi_test_lib",
         "//java/java-psi-impl:psi-impl_test_lib",

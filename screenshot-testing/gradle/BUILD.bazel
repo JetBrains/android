@@ -1,6 +1,11 @@
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.screenshot-test.gradle` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "gradle",
     srcs = glob(
@@ -28,7 +33,6 @@ jvm_library(
         "//android/project-system-gradle:projectSystem-gradle",
         "//android/android-common:common",
         "@lib//:kotlin-stdlib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/android:core",
         "//android/android-lang:lang",
         "//android/android-kotlin/idea-android/common",
@@ -53,6 +57,7 @@ jvm_library(
         "//platform/core-ui",
         "//plugins/gradle/java",
         "//java/execution/impl",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -76,7 +81,8 @@ jvm_library(
         "//android/screenshot-testing:screenshot-test_test_lib",
         "//android/project-system-gradle:projectSystem-gradle_test_lib",
         "//android/android-common:common_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android:core_test_lib",
         "//android/android-lang:lang_test_lib",
         "//android/android-kotlin/idea-android/common:common_test_lib",

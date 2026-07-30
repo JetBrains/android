@@ -1,11 +1,16 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.dagger` start
 create_kotlinc_options(
     name = "custom_dagger",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
 jvm_library(
@@ -34,7 +39,6 @@ jvm_library(
         "@lib//:kotlinc-analysis-api-provided",
         "@lib//:kotlinc-analysis-api-impl-base-provided",
         "@lib//:kotlinc-kotlin-compiler-cli-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//android/artwork",
         "//android/android-common:common",
@@ -66,6 +70,7 @@ jvm_library(
         "//plugins/kotlin/base/psi",
         "//plugins/kotlin/base/util",
         "//plugins/kotlin/base/scripting/scripting.shared",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -88,7 +93,8 @@ jvm_library(
         "@lib//:kotlinc-analysis-api-provided",
         "@lib//:kotlinc-analysis-api-impl-base-provided",
         "@lib//:kotlinc-kotlin-compiler-cli-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//android/artwork:artwork_test_lib",
         "//android/android-common:common_test_lib",
@@ -185,7 +191,8 @@ jvm_library(
         "//libraries/mockito:mockito_test_lib",
         "//libraries/protobuf",
         "//libraries/protobuf:protobuf_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-analysis-api-provided",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",

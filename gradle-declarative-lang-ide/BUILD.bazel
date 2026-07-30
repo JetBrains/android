@@ -1,7 +1,12 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.gradle.declarative.lang.ide` start
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "gradle-declarative-lang-ide",
     srcs = glob(
@@ -26,7 +31,6 @@ jvm_library(
         "//libraries/commons/lang3",
         "@lib//:jetbrains-annotations",
         "//libraries/jsoup",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//platform/code-style-api:codeStyle",
         "//platform/editor-ui-api:editor-ui",
         "//platform/platform-impl:ide-impl",
@@ -52,6 +56,7 @@ jvm_library(
         "//plugins/gradle/plugin",
         "//plugins/gradle/java",
         "//plugins/gradle/java/plugin",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -72,7 +77,8 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/commons/lang3:lang3_test_lib",
         "//libraries/jsoup:jsoup_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//platform/code-style-api:codeStyle_test_lib",
         "//platform/editor-ui-api:editor-ui_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",

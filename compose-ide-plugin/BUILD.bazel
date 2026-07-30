@@ -17,6 +17,11 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "compose-ide-plugin",
     srcs = glob(
@@ -44,7 +49,6 @@ jvm_library(
         "@lib//:kotlinc-kotlin-compiler-cli-provided",
         "@lib//:kotlinc-analysis-api-provided",
         "//plugins/kotlin/references",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "@lib//:kotlinc-kotlin-compiler-fir-provided",
@@ -120,6 +124,7 @@ jvm_library(
         "//platform/xdebugger-impl/shared",
         "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -145,7 +150,8 @@ jvm_library(
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
         "//plugins/kotlin/references:references_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "@lib//:kotlinc-kotlin-compiler-fir-provided",
@@ -293,7 +299,8 @@ jvm_library(
         "//libraries/kotlin/reflect",
         "//libraries/kotlin/reflect:reflect_test_lib",
         "@lib//:jetbrains-annotations",
-        "@lib//:kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10",
         "@lib//:kotlinc-analysis-api",
         "//libraries/kotlinx/coroutines/core",

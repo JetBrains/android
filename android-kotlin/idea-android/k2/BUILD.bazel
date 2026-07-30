@@ -13,6 +13,11 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+)
+
 jvm_library(
     name = "k2",
     srcs = glob(
@@ -35,7 +40,6 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
         "@lib//:kotlinc-analysis-api-provided",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
         "//android/android-common:common",
         "//android/android:core",
         "//android/android-kotlin/idea-android/common",
@@ -49,6 +53,7 @@ jvm_library(
         "//plugins/kotlin/code-insight/api",
         "//plugins/kotlin/references",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -70,7 +75,8 @@ jvm_library(
         "@lib//:kotlinc-analysis-api-provided",
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-common-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android-common:common_test_lib",
         "//android/android:core_test_lib",
         "//android/android-kotlin/idea-android/common:common_test_lib",

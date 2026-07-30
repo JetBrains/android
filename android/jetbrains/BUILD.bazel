@@ -59,7 +59,8 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:kotlinc-analysis-api",
-        "@lib//:kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
         "@lib//:truth",
