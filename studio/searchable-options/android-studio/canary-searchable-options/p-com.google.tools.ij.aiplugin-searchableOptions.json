@@ -647,6 +647,18 @@
       "path": "Available Models"
     },
     {
+      "hit": "Update",
+      "path": "Available Models"
+    },
+    {
+      "hit": "0 (Disabled)",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "1 draft token",
+      "path": "Host Configuration"
+    },
+    {
       "hit": "10 minutes of no requests",
       "path": "Host Configuration"
     },
@@ -655,11 +667,31 @@
       "path": "Host Configuration"
     },
     {
+      "hit": "2 draft tokens",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "3 draft tokens",
+      "path": "Host Configuration"
+    },
+    {
       "hit": "30 minutes of no requests",
       "path": "Host Configuration"
     },
     {
+      "hit": "4 draft tokens",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "5 draft tokens",
+      "path": "Host Configuration"
+    },
+    {
       "hit": "5 minutes of no requests",
+      "path": "Host Configuration"
+    },
+    {
+      "hit": "6 draft tokens",
       "path": "Host Configuration"
     },
     {
@@ -675,11 +707,11 @@
       "path": "Host Configuration"
     },
     {
-      "hit": "Never",
+      "hit": "Multi-Token Prediction (MTP) draft tokens:",
       "path": "Host Configuration"
     },
     {
-      "hit": "Parallel request processing",
+      "hit": "Never",
       "path": "Host Configuration"
     }
   ]
@@ -825,6 +857,18 @@
       "path": "Model Providers.Available Models"
     },
     {
+      "hit": "Update",
+      "path": "Model Providers.Available Models"
+    },
+    {
+      "hit": "0 (Disabled)",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "1 draft token",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
       "hit": "10 minutes of no requests",
       "path": "Model Providers.Host Configuration"
     },
@@ -833,11 +877,31 @@
       "path": "Model Providers.Host Configuration"
     },
     {
+      "hit": "2 draft tokens",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "3 draft tokens",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
       "hit": "30 minutes of no requests",
       "path": "Model Providers.Host Configuration"
     },
     {
+      "hit": "4 draft tokens",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "5 draft tokens",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
       "hit": "5 minutes of no requests",
+      "path": "Model Providers.Host Configuration"
+    },
+    {
+      "hit": "6 draft tokens",
       "path": "Model Providers.Host Configuration"
     },
     {
@@ -853,11 +917,11 @@
       "path": "Model Providers.Host Configuration"
     },
     {
-      "hit": "Never",
+      "hit": "Multi-Token Prediction (MTP) draft tokens:",
       "path": "Model Providers.Host Configuration"
     },
     {
-      "hit": "Parallel request processing",
+      "hit": "Never",
       "path": "Model Providers.Host Configuration"
     }
   ]
