@@ -37,8 +37,15 @@ import kotlinx.coroutines.runBlocking
 internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtensions, private val packageReader: PackageReader) :
   ProjectStructureReader {
 
-  override fun read(context: Context<*>, workspaceRoot: Path, projectDefinition: ProjectDefinition): ProjectStructureData {
+  override fun read(context: Context<*>, workspaceRoot: Path, projectDefinition: ProjectDefinition): ProjectStructureData =
+    scanDirectories(context, workspaceRoot, projectDefinition)
 
+  private fun scanDirectories(
+    context: Context<*>,
+    workspaceRoot: Path,
+    projectDefinition: ProjectDefinition,
+    locator: BuildPackageLocator = BuildPackageLocator(workspaceRoot),
+  ): ProjectStructureData {
     /**
      * Map storing discovered source files grouped by:
      * 1. Project structure root path (relative to workspace) (ConcurrentHashMap)
@@ -47,53 +54,16 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
      * 4. Java package content (JavaPackageContent)
      */
     val sourcesMap: ConcurrentHashMap<Path, ConcurrentHashMap<Path, ConcurrentHashMap<String, JavaPackageContent>>> = ConcurrentHashMap()
+
     val languages: MutableSet<QuerySyncLanguage> = ConcurrentHashMap.newKeySet()
     val warnedPackages: MutableSet<Path> = ConcurrentHashMap.newKeySet()
 
     val fileProcessor = FileProcessor(workspaceRoot, fileExtensions)
 
-    val buildPackageCache = ConcurrentHashMap<Path, Optional<Path>>()
-
-    fun findBuildPackage(filePath: Path): Path? {
-      val parent = filePath.parent ?: Path.of("")
-      val cached = buildPackageCache[parent]
-      if (cached != null) {
-        return cached.orElse(null)
-      }
-
-      val visited = mutableListOf<Path>()
-      var current = parent
-      var result: Path? = null
-      do {
-        val cachedParent = buildPackageCache[current]
-        if (cachedParent != null) {
-          result = cachedParent.orElse(null)
-          break
-        }
-        val resolved = workspaceRoot.resolve(current)
-        if (Files.exists(resolved.resolve("BUILD")) || Files.exists(resolved.resolve("BUILD.bazel"))) {
-          result = current
-          break
-        }
-        visited.add(current)
-        val reachedRoot = current == Path.of("")
-        current = current.parent ?: Path.of("")
-      } while (!reachedRoot)
-
-      val buildPackage = Optional.ofNullable(result)
-      for (dir in visited) {
-        buildPackageCache[dir] = buildPackage
-      }
-      if (result != null) {
-        buildPackageCache[result] = buildPackage
-      }
-      return result
-    }
-
     fun aggregateResult(includeRoot: Path, result: FileProcessResult, forcedPackage: String? = null) {
       when (result) {
         is FileProcessResult.SourceFile -> {
-          val buildPackage = findBuildPackage(result.relativePath)
+          val buildPackage = locator.findBuildPackage(result.relativePath.parent ?: Path.of(""))
           if (buildPackage != null) {
             if (buildPackage.startsWith(includeRoot)) {
               val javaPackage = if (result.language == QuerySyncLanguage.JVM) forcedPackage ?: "" else ""
@@ -185,4 +155,42 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
 private class JavaPackageContent {
   val javaSources: MutableSet<Path> = ConcurrentHashMap.newKeySet()
   val nonJavaSources: MutableSet<Path> = ConcurrentHashMap.newKeySet()
+}
+
+private class BuildPackageLocator(private val workspaceRoot: Path) {
+  private val cache = ConcurrentHashMap<Path, Optional<Path>>()
+
+  private fun isBuildPackageDirectory(dir: Path): Boolean = Files.exists(dir.resolve("BUILD")) || Files.exists(dir.resolve("BUILD.bazel"))
+
+  fun findBuildPackage(startPath: Path): Path? {
+    val cachedStart = cache[startPath]
+    if (cachedStart != null) {
+      return cachedStart.orElse(null)
+    }
+
+    val visited = mutableListOf<Path>()
+    var current = startPath
+    var result: Path? = null
+    do {
+      val cachedCurrent = cache[current]
+      if (cachedCurrent != null) {
+        result = cachedCurrent.orElse(null)
+        break
+      }
+      if (isBuildPackageDirectory(workspaceRoot.resolve(current))) {
+        result = current
+        break
+      }
+      visited.add(current)
+      val reachedRoot = current == Path.of("")
+      current = current.parent ?: Path.of("")
+    } while (!reachedRoot)
+
+    val cachedResult = Optional.ofNullable(result)
+    visited.forEach { cache[it] = cachedResult }
+    if (result != null) {
+      cache[result] = cachedResult
+    }
+    return result
+  }
 }
