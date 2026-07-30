@@ -14,6 +14,11 @@ jvm_provided_library(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-impl-base_provided",
+    lib = "//libraries/kotlinc/analysis-api-impl-base:libraries-kotlinc-analysis-api-impl-base",
+)
+
+jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
@@ -41,7 +46,6 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/protobuf",
-        "@lib//:kotlinc-analysis-api-impl-base-provided",
         "@lib//:kotlinc-kotlin-compiler-cli-provided",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//android/artwork",
@@ -75,6 +79,7 @@ jvm_library(
         "//plugins/kotlin/base/util",
         "//plugins/kotlin/base/scripting/scripting.shared",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api-impl-base_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
@@ -97,7 +102,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "@lib//:kotlinc-analysis-api-impl-base-provided",
+        "//libraries/kotlinc/analysis-api-impl-base:libraries-kotlinc-analysis-api-impl-base",
+        "//libraries/kotlinc/analysis-api-impl-base:libraries-kotlinc-analysis-api-impl-base_test_lib",
         "@lib//:kotlinc-kotlin-compiler-cli-provided",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
