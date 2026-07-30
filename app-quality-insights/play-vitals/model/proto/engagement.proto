@@ -62,7 +62,7 @@ option java_package = "com.google.play.developer.reporting";
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     The version of the app that was running on the user's device.
 //
-// (== resource_for v1beta1.engagement ==)
+// (== resource_for v1beta1.grow.engagement ==)
 message EngagementMetricSet {
   // The resource name.
   string name = 1;
