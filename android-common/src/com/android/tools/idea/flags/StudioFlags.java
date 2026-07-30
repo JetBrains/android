@@ -2548,6 +2548,11 @@ public final class StudioFlags {
                     "Enable Layout XML to Compose migration",
                     "Enables the AI-powered migration flow from Layout XML to Jetpack Compose.");
 
+  public static final Flag<Boolean> STUDIOBOT_LAYOUT_TO_COMPOSE_MIGRATION_ENABLE_SCREENSHOT_VERIFICATION =
+    new BooleanFlag(STUDIOBOT, "layout.to.compose.migration.enable.screenshot.verification",
+                    "Enable screenshot verification in Layout XML to Compose migration",
+                    "When enabled, baseline screenshot generation and screenshot verification steps are performed during layout migration.");
+
   public static final Flag<Boolean> IS_GEMINI_ONBOARDING_V2_ENABLED =
     new BooleanFlag(STUDIOBOT, "gemini.onboarding.v2.enabled",
                     "Enable the Gemini onboarding V2 support.",
