@@ -18,11 +18,25 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
+/**
+ * Project system extension point for triggering App Bundle build operations from top-level IDE actions (e.g. `GenerateBundleAction` under
+ * **Build > Build Bundle(s) / APK(s) > Build Bundle(s)**).
+ *
+ * Because top-level menu actions operate at the [Project] level, each project system implementation (`BuildBundleActionToken`) is
+ * responsible for:
+ * 1. Determining whether the project contains any app modules/targets suitable for bundle generation ([isAppModulePresent]).
+ * 2. Resolving the appropriate build targets or displaying target-selection UI/notifications as needed ([buildBundle],
+ *    [buildSignedBundle]).
+ * 3. Triggering the underlying build invoker for those targets.
+ */
 interface BuildBundleActionToken<P : AndroidProjectSystem> : Token {
+  /** Returns true if the project contains at least one app module that supports generating an App Bundle. */
   fun isAppModulePresent(project: Project): Boolean
 
+  /** Triggers building the App Bundle for app modules in the project. */
   fun buildBundle(project: Project)
 
+  /** Triggers building a signed App Bundle for app modules in the project. Defaults to calling [buildBundle]. */
   fun buildSignedBundle(project: Project) {
     buildBundle(project)
   }

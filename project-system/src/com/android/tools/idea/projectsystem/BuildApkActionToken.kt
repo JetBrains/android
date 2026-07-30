@@ -18,9 +18,21 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
+/**
+ * Project system extension point for triggering APK build operations from top-level IDE actions (e.g. `GenerateApkAction` under **Build >
+ * Build Bundle(s) / APK(s) > Build APK(s)**).
+ *
+ * Because top-level menu actions operate at the [Project] level, each project system implementation (`BuildApkActionToken`) is responsible
+ * for:
+ * 1. Determining whether the project contains any app modules/targets suitable for APK generation ([isAppModulePresent]).
+ * 2. Resolving the appropriate build targets or displaying target-selection UI/notifications as needed ([buildApk]).
+ * 3. Triggering the underlying build invoker for those targets.
+ */
 interface BuildApkActionToken<P : AndroidProjectSystem> : Token {
+  /** Returns true if the project contains at least one app module that supports generating an APK. */
   fun isAppModulePresent(project: Project): Boolean
 
+  /** Triggers building the APK(s) for app modules in the project. */
   fun buildApk(project: Project)
 
   companion object {
