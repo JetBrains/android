@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.compose.preview.interactive
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.LocalSaveableStateRegistry
+import androidx.compose.runtime.saveable.SaveableStateRegistry
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -267,5 +270,54 @@ class NavigationControlsPanelUiTest {
     composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).performMouseInput { moveTo(center) }
     composeTestRule.mainClock.advanceTimeBy(1201L) // org.jetbrains.jewel.ui.component.styling.TooltipMetrics delay is 1200ms
     composeTestRule.onNodeWithText(message("action.navigate.back.navigation.edge.disabled.tooltip")).assertIsDisplayed()
+  }
+
+  @Test
+  fun testStateRestorationPreservesSliderPositionAndSelectedEdge() {
+    var currentSaveableStateRegistry = SaveableStateRegistry(emptyMap()) { true }
+    val isPanelVisible = mutableStateOf(true)
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    composeTestRule.setContent {
+      if (isPanelVisible.value) {
+        CompositionLocalProvider(LocalSaveableStateRegistry provides currentSaveableStateRegistry) {
+          NavigationControlsPanel(
+            isEdgeNavigationImplemented = { true },
+            canBackPress = { true },
+            onBackPress = {},
+            onBackPressStart = {},
+            onBackPressProgress = { _, _ -> },
+            onBackPressTrackProgress = {},
+            onEdgeDropdownPress = {},
+            fpsUpdater = fpsUpdater,
+          )
+        }
+      }
+    }
+
+    // Change the edge to EDGE_RIGHT
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.edgeDropdown).assertIsDisplayed().performClick()
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed().performClick()
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed()
+
+    // Drag the slider to change slider position away from initial 0.0
+    composeTestRule.onNodeWithTag(NavigationControlsPanelTestTags.progressSlider).assertIsDisplayed().performTouchInput { swipeRight() }
+    composeTestRule.onNodeWithText(message("action.navigate.back.predictive.back.progress", 0.0f)).assertDoesNotExist()
+
+    // Save the state from the current registry and simulate unmounting/re-mounting
+    val savedState = currentSaveableStateRegistry.performSave()
+    isPanelVisible.value = false
+    composeTestRule.waitForIdle()
+
+    // Restore state using the saved registry values
+    currentSaveableStateRegistry = SaveableStateRegistry(savedState) { true }
+    isPanelVisible.value = true
+    composeTestRule.waitForIdle()
+
+    // Verify selected edge is still EDGE_RIGHT after restoration
+    composeTestRule.onNodeWithText(BackNavigationEdge.EDGE_RIGHT.visibleName).assertIsDisplayed()
+
+    // Verify slider position remains preserved (not reset to 0.0f)
+    composeTestRule.onNodeWithText(message("action.navigate.back.predictive.back.progress", 0.0f)).assertDoesNotExist()
   }
 }
