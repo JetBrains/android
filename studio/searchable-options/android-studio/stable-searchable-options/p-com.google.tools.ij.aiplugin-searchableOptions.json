@@ -369,6 +369,10 @@
       "path": "ActionManager"
     },
     {
+      "hit": "Inline Edit",
+      "path": "ActionManager"
+    },
+    {
       "hit": "Instantly loads the migration agent configured for resumption from disk artifacts.",
       "path": "ActionManager"
     },
@@ -430,10 +434,6 @@
     },
     {
       "hit": "Prompt Library",
-      "path": "ActionManager"
-    },
-    {
-      "hit": "Quick Edit",
       "path": "ActionManager"
     },
     {
