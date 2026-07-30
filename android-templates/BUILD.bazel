@@ -16,6 +16,11 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
+    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+)
+
 jvm_library(
     name = "templates",
     srcs = glob(
@@ -74,11 +79,11 @@ jvm_library(
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/project-structure",
         "//plugins/kotlin/base/util",
-        "@lib//:kotlinc-analysis-api-provided",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
         "//platform/util-class-loader:util-classLoader",
         "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     ],
 )
 
@@ -134,7 +139,8 @@ jvm_library(
         "//plugins/kotlin/base/plugin:plugin_test_lib",
         "//plugins/kotlin/base/project-structure:project-structure_test_lib",
         "//plugins/kotlin/base/util:util_test_lib",
-        "@lib//:kotlinc-analysis-api-provided",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
         "//platform/util-class-loader:util-classLoader_test_lib",
         "//android/gradle-declarative-lang-ide",
@@ -306,7 +312,8 @@ jvm_library(
         "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
-        "@lib//:kotlinc-analysis-api-provided",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
         "//platform/util-class-loader:util-classLoader",
         "//platform/util-class-loader:util-classLoader_test_lib",

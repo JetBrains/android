@@ -6,6 +6,11 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
+    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+)
+
 jvm_library(
     name = "common",
     srcs = glob(
@@ -30,7 +35,6 @@ jvm_library(
         "//libraries/protobuf",
         "//plugins/kotlin/references",
         "@lib//:kotlinc-kotlin-jps-plugin-classpath-provided",
-        "@lib//:kotlinc-analysis-api-provided",
         "//android/android-common:common",
         "//android/intellij.android.compose-common:compose-common",
         "//android/android:core",
@@ -76,6 +80,7 @@ jvm_library(
         "//android/project-system-gradle:projectSystem-gradle",
         "//android/gmaven",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     ],
 )
 
@@ -99,7 +104,8 @@ jvm_library(
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-jps-plugin-classpath-provided",
-        "@lib//:kotlinc-analysis-api-provided",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//android/android-common:common_test_lib",
         "//android/intellij.android.compose-common:compose-common_test_lib",
         "//android/android:core_test_lib",

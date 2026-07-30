@@ -25,6 +25,11 @@ kt_javac_options(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
+    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+)
+
+jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
@@ -88,7 +93,6 @@ jvm_library(
         "//libraries/kotlin/reflect",
         "@lib//:kxml2",
         "//libraries/protobuf",
-        "@lib//:kotlinc-analysis-api-provided",
         "//plugins/kotlin/references",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
@@ -271,6 +275,7 @@ jvm_library(
         "//xml/emmet",
         "//libraries/jspecify",
         "//plugins/gradle/java/groovy",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
         ":plugins_maven_artifactResolver-m31_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
@@ -320,7 +325,8 @@ jvm_library(
         "//libraries/kotlin/reflect:reflect_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "@lib//:truth",
-        "@lib//:kotlinc-analysis-api-provided",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//plugins/kotlin/references:references_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
@@ -959,7 +965,8 @@ jvm_library(
         "@lib//:mockito-kotlin",
         "@lib//:kotlinc-compose-compiler-plugin-provided",
         "@lib//:kotlinc-analysis-api-platform-interface",
-        "@lib//:kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled",
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10",

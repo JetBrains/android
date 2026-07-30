@@ -7,6 +7,11 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
+    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+)
+
 jvm_library(
     name = "glance-designer",
     srcs = glob(
@@ -57,9 +62,9 @@ jvm_library(
         "//platform/analysis-api:analysis",
         "//android/rendering",
         "//android/intellij.android.compose-common:compose-common",
-        "@lib//:kotlinc-analysis-api-provided",
         "//plugins/kotlin/code-insight/api",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     ],
 )
 
@@ -108,7 +113,8 @@ jvm_library(
         "//platform/analysis-api:analysis_test_lib",
         "//android/rendering:rendering_test_lib",
         "//android/intellij.android.compose-common:compose-common_test_lib",
-        "@lib//:kotlinc-analysis-api-provided",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//plugins/kotlin/code-insight/api:api_test_lib",
     ],
 )

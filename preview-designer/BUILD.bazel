@@ -13,6 +13,11 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
+    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+)
+
 jvm_library(
     name = "preview-designer",
     srcs = glob(
@@ -87,7 +92,6 @@ jvm_library(
         "//plugins/kotlin/highlighting/highlighting-minimal:kotlin-highlighting-minimal",
         "//android/preview-fast-compile",
         "//android/completion",
-        "@lib//:kotlinc-analysis-api-provided",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
         "//platform/util-ex",
         "//java/java-analysis-impl:analysis-impl",
@@ -95,6 +99,7 @@ jvm_library(
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/rd/core",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     ],
 )
 
@@ -165,7 +170,8 @@ jvm_library(
         "//plugins/kotlin/highlighting/highlighting-minimal:kotlin-highlighting-minimal_test_lib",
         "//android/preview-fast-compile:preview-fast-compile_test_lib",
         "//android/completion:completion_test_lib",
-        "@lib//:kotlinc-analysis-api-provided",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "@lib//:kotlinc-analysis-api-platform-interface-provided",
         "//platform/util-ex:util-ex_test_lib",
         "//java/java-analysis-impl:analysis-impl_test_lib",
@@ -314,7 +320,8 @@ jvm_library(
         "//android/preview-fast-compile:preview-fast-compile_test_lib",
         "//android/rendering:rendering-tests",
         "//android/rendering:rendering-tests_test_lib",
-        "@lib//:kotlinc-analysis-api-provided",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//android/designer:designer-tests",
         "//android/designer:designer-tests_test_lib",
         "@lib//:mockito-kotlin",

@@ -9,6 +9,11 @@ create_kotlinc_options(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
+    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+)
+
+jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
 )
@@ -30,7 +35,6 @@ jvm_library(
         # do not sort,
         "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
-        "@lib//:kotlinc-analysis-api-provided",
         "//plugins/kotlin/references",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//android/android-common:common",
@@ -52,6 +56,7 @@ jvm_library(
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/psi",
         "//plugins/kotlin/code-insight/api",
+        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
@@ -71,7 +76,8 @@ jvm_library(
         ":compose-common",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
-        "@lib//:kotlinc-analysis-api-provided",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//plugins/kotlin/references:references_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
