@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 /** Adds a folding region for a Modifier chain longer than two. */
 class ComposeFoldingBuilder : CustomFoldingBuilder() {
   override fun buildLanguageFoldRegions(descriptors: MutableList<FoldingDescriptor>, root: PsiElement, document: Document, quick: Boolean) {
-    if (root !is KtFile || DumbService.isDumb(root.project) || !isComposeEnabled(root)) {
+    if (quick || root !is KtFile || DumbService.isDumb(root.project) || !isComposeEnabled(root)) {
       return
     }
 
