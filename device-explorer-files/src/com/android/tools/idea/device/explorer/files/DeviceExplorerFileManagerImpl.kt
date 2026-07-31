@@ -158,15 +158,31 @@ constructor(private val project: Project, private val defaultDownloadPathSupplie
       entry = entry.parent
     }
     entryPathComponents.reverse()
+    // `destinationPath` is the host-side containment root (Studio cache dir or a
+    // user-chosen directory). Every `entry.name` above is derived from the connected
+    // ADB device's `ls -al` output (and, for external-services callers like the
+    // Database Inspector's offline-mode download, from a device-supplied gRPC path
+    // string). `mapName()` -> `PathUtilRt.suggestFileName(allowDots=true)` is *per-char*
+    // and therefore returns ".." unchanged, so a malicious device can drive
+    // `resolve("..")` here and write outside `destinationPath`.
+    // Normalise after resolving and assert containment.
+    val normalizedDestination = destinationPath.toAbsolutePath().normalize()
     var entryDestinationPath = destinationPath
     for (name in entryPathComponents) {
       entryDestinationPath = entryDestinationPath.resolve(name)
     }
-    return entryDestinationPath
+    val result = entryDestinationPath.toAbsolutePath().normalize()
+    if (!result.startsWith(normalizedDestination)) {
+      throw SecurityException("Device-supplied path '${file.fullPath}' resolves outside '$normalizedDestination'")
+    }
+    return result
   }
 
   private fun mapName(name: String): String {
-    return PathUtilRt.suggestFileName(name, /*allowDots*/ true, /*allowSpaces*/ true)
+    // suggestFileName is per-char only; explicitly neutralise the whole-string
+    // traversal tokens that it lets through.
+    val safe = PathUtilRt.suggestFileName(name, /*allowDots*/ true, /*allowSpaces*/ true)
+    return if (safe.isEmpty() || safe == "." || safe == "..") "_$safe" else safe
   }
 
   private fun deleteTemporaryFile(localPath: Path) {
