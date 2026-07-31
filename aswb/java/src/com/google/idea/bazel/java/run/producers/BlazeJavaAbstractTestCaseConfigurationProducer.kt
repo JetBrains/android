@@ -15,6 +15,7 @@
  */
 package com.google.idea.bazel.java.run.producers
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.google.common.annotations.VisibleForTesting
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType
@@ -26,10 +27,13 @@ import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.ConfigurationFromContext
 import com.intellij.execution.junit.JUnitUtil
+import com.intellij.openapi.application.EDT
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiTreeUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /** Producer for abstract test classes/methods. */
 class BlazeJavaAbstractTestCaseConfigurationProducer :
@@ -98,11 +102,12 @@ class BlazeJavaAbstractTestCaseConfigurationProducer :
         return
       }
       val location = locationFromConfiguration(configuration) ?: return
-      SubclassTestChooser.chooseSubclass(context, location.abstractClass) { psiClass ->
+      context.project.coroutineScope.launch(Dispatchers.EDT) {
+        val psiClass = SubclassTestChooser.chooseSubclass(context, location.abstractClass)
         if (psiClass != null) {
           setupContext(config, psiClass, location.method)
+          startRunnable.run()
         }
-        startRunnable.run()
       }
     }
 
