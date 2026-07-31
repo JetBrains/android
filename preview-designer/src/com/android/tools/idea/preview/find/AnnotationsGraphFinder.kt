@@ -17,6 +17,8 @@ package com.android.tools.idea.preview.find
 
 import com.android.annotations.concurrency.Slow
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.jetbrains.uast.UAnnotation
@@ -142,3 +144,105 @@ private suspend fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
 @Slow
 private suspend fun shouldTraverse(annotation: UAnnotation): Boolean =
   readAction { annotation.isPsiValid } && annotation.couldBeMultiPreviewAnnotation()
+
+/**
+ * Synchronous equivalent of [couldBeMultiPreviewAnnotation]. Returns true if this annotation could be a MultiPreview annotation based on
+ * its package name.
+ */
+@Slow
+@RequiresReadLock
+fun UAnnotation.couldBeMultiPreviewAnnotationSync(): Boolean {
+  val fqcn = this.qualifiedName ?: return false
+  return if (fqcn.startsWith("androidx.")) {
+    fqcn.contains(".preview.")
+  } else {
+    NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
+  }
+}
+
+/**
+ * Synchronous equivalent of [findAllAnnotationsInGraph] for short-circuiting checks under a read lock.
+ *
+ * Traverses the annotation graph in Breadth-First Search (BFS) order (unlike [findAllAnnotationsInGraph], which uses DFS), ensuring that
+ * direct annotations at depth 1 are evaluated before inspecting deeper MultiPreview subtrees. Must be called under a read lock.
+ */
+@RequiresReadLock
+fun UElement.anyAnnotationInGraphSync(
+  shouldTraverse: (UAnnotation) -> Boolean = { it.isPsiValid && it.couldBeMultiPreviewAnnotationSync() },
+  isLeaf: (UAnnotation) -> Boolean,
+): Boolean {
+  (this as? UAnnotation)?.let {
+    if (isLeaf(it)) {
+      return true
+    }
+  }
+
+  val visited = mutableSetOf<String>()
+  val queue = ArrayDeque<UElement>()
+  queue.add(this)
+
+  while (queue.isNotEmpty()) {
+    ProgressManager.checkCanceled()
+    val element = queue.removeFirst()
+
+    val annotations = element.getUAnnotationsSync()
+    for (annotation in annotations) {
+      if (isLeaf(annotation)) {
+        return true
+      }
+
+      val fqcn = annotation.qualifiedName
+      if (fqcn != null && visited.add(fqcn)) {
+        if (shouldTraverse(annotation)) {
+          queue.add(annotation)
+        }
+      }
+    }
+  }
+  return false
+}
+
+/**
+ * Synchronous equivalent of [findAllAnnotationsInGraph] returning all matching annotations under a read lock.
+ *
+ * Traverses the annotation graph in Breadth-First Search (BFS) order (unlike [findAllAnnotationsInGraph], which uses DFS). Must be called
+ * under a read lock.
+ */
+@RequiresReadLock
+fun UElement.findAllAnnotationsInGraphSync(
+  shouldTraverse: (UAnnotation) -> Boolean = { it.isPsiValid && it.couldBeMultiPreviewAnnotationSync() },
+  filter: (UAnnotation) -> Boolean,
+): List<UAnnotation> {
+  val visited = mutableSetOf<String>()
+  val queue = ArrayDeque<UElement>()
+  val results = mutableListOf<UAnnotation>()
+
+  (this as? UAnnotation)?.let {
+    if (filter(it)) {
+      results.add(it)
+      return results
+    }
+  }
+
+  queue.add(this)
+
+  while (queue.isNotEmpty()) {
+    ProgressManager.checkCanceled()
+    val element = queue.removeFirst()
+
+    val annotations = element.getUAnnotationsSync()
+    for (annotation in annotations) {
+      if (filter(annotation)) {
+        results.add(annotation)
+      } else {
+        val fqcn = annotation.qualifiedName
+        if (fqcn != null && visited.add(fqcn)) {
+          if (shouldTraverse(annotation)) {
+            queue.add(annotation)
+          }
+        }
+      }
+    }
+  }
+  return results
+}

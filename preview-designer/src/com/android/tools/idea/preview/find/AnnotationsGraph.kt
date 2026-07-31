@@ -19,14 +19,15 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiModifierListOwner
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.utils.ifEmpty
-import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
@@ -195,9 +196,9 @@ class AnnotationsGraph<S, T>(private val nodeInfoFactory: NodeInfoFactory<S>, pr
 suspend fun UElement.getUAnnotations(): List<UAnnotation> {
   val annotations = readAction {
     (this@getUAnnotations as? UMethod)?.uAnnotations
-      // UClass and UMethod both implement UAnnotated. This allows us to get annotations directly
+      // UClass and UMethod declarations allow us to get annotations directly
       // from UAST for classes (e.g. annotation classes) without resolving to PSI which might fail.
-      ?: (this@getUAnnotations as? UAnnotated)?.uAnnotations
+      ?: (this@getUAnnotations as? UClass)?.uAnnotations
       ?: (this@getUAnnotations.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
         ProgressManager.checkCanceled()
         it.toUElementOfType() as? UAnnotation
@@ -221,3 +222,27 @@ suspend fun UElement.getUAnnotations(): List<UAnnotation> {
 private suspend fun UAnnotation.extractFromContainer() = readAction {
   findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull { it.toUElement() as? UAnnotation } ?: emptyList()
 }
+
+/** Synchronous version of [getUAnnotations] to be used under a read lock without suspend functions or coroutines. */
+@RequiresReadLock
+fun UElement.getUAnnotationsSync(): List<UAnnotation> {
+  val annotations =
+    (this as? UMethod)?.uAnnotations
+      ?: (this as? UClass)?.uAnnotations
+      ?: (this.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
+        ProgressManager.checkCanceled()
+        it.toUElementOfType() as? UAnnotation
+      }
+      ?: resolveKaAnnotationAnnotations()
+      ?: emptyList()
+
+  return annotations.flatMap { annotation ->
+    ProgressManager.checkCanceled()
+    annotation.extractFromContainerSync().ifEmpty { listOf(annotation) }
+  }
+}
+
+/** Synchronous version of [extractFromContainer] to be used under a read lock without suspend functions or coroutines. */
+@RequiresReadLock
+private fun UAnnotation.extractFromContainerSync() =
+  findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull { it.toUElement() as? UAnnotation } ?: emptyList()

@@ -30,7 +30,8 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.kotlin.evaluateConstant
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
-import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.find.anyAnnotationInGraphSync
+import com.android.tools.idea.preview.find.findAllAnnotationsInGraphSync
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.layoutlib.isLayoutLibTarget
 import com.android.tools.preview.MAX_DIMENSION_DP
@@ -50,15 +51,11 @@ import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.readAction
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.toList
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
@@ -96,10 +93,7 @@ object ComposePreviewAnnotationChecker : PreviewAnnotationChecker {
 
     // Traverse the annotation graph and check if the annotation itself resolves to @Preview.
     // This allows identifying MultiPreview annotations even if the function is not yet annotated with @Composable.
-    return runBlockingCancellable {
-      uAnnotation.findAllAnnotationsInGraph(filter = { readAction { it.qualifiedName == COMPOSE_PREVIEW_ANNOTATION_FQN } }).firstOrNull() !=
-        null
-    }
+    return uAnnotation.anyAnnotationInGraphSync { it.qualifiedName == COMPOSE_PREVIEW_ANNOTATION_FQN }
   }
 }
 
@@ -244,9 +238,7 @@ class PreviewWrapperUsageInspection : AbstractKotlinInspection(), PreviewAnnotat
 
           val uMethod = function.toUElementOfType<UMethod>() ?: return
 
-          val wrapperAnnotations = runBlockingCancellable {
-            uMethod.findAllAnnotationsInGraph { readAction { it.isPreviewWrapper() } }.toList()
-          }
+          val wrapperAnnotations = uMethod.findAllAnnotationsInGraphSync { it.isPreviewWrapper() }
 
           if (wrapperAnnotations.size > 1) {
             holder.registerProblem(
@@ -266,9 +258,7 @@ class PreviewWrapperUsageInspection : AbstractKotlinInspection(), PreviewAnnotat
 
           val uClass = klass.toUElementOfType<UClass>() ?: return
 
-          val wrapperAnnotations = runBlockingCancellable {
-            uClass.findAllAnnotationsInGraph { readAction { it.isPreviewWrapper() } }.toList()
-          }
+          val wrapperAnnotations = uClass.findAllAnnotationsInGraphSync { it.isPreviewWrapper() }
 
           if (wrapperAnnotations.size > 1) {
             holder.registerProblem(
