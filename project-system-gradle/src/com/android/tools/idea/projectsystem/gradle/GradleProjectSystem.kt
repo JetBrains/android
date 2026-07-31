@@ -92,6 +92,7 @@ import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.plugins.gradle.model.projectModel.GradleProjectEntity
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 open class GradleProjectSystem(override val project: Project) : AndroidProjectSystem {
@@ -363,7 +364,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override fun getProjectSystemModuleTypeComparator(): Comparator<Module> = gradleProjectSystemModuleTypeComparator
 
   override fun getDisplayNameForRunConfiguration(module: Module): String {
-    val gradleIdentityPath = module.getGradleIdentityPath()
+    val gradleIdentityPath = resolveGradleIdentityPathForModule(module)
     if (gradleIdentityPath == null || gradleIdentityPath == ":") {
       // phased sync scenario, or non-gradle module, or root module.
       if (mySyncManager.getLastSyncResult() == ProjectSystemSyncManager.SyncResult.UNKNOWN && project.name == "project") {
@@ -633,4 +634,20 @@ class GradleApplicationProjectContextProvider : ApplicationProjectContextProvide
     val result = FacetFinder.tryFindFacetForProcess(projectSystem.project, info) ?: return null
     return FacetBasedApplicationProjectContext(result.applicationId, result.facet)
   }
+}
+
+/**
+ * Resolves the Gradle identity path for the module, falling back to querying the Workspace Model (GradleProjectEntity) directly if the
+ * legacy cache (ExternalProjectsDataStorage) is not yet populated (e.g. during early sync).
+ */
+private fun resolveGradleIdentityPathForModule(module: Module): String? {
+  val gradleIdentityPath = module.getGradleIdentityPath()
+  if (gradleIdentityPath != null) {
+    return gradleIdentityPath
+  }
+
+  val externalProjectId = ExternalSystemApiUtil.getExternalProjectId(module) ?: return null
+  val storage = module.project.workspaceModel.currentSnapshot
+  val gradleProject = storage.entities(GradleProjectEntity::class.java).firstOrNull { it.linkedProjectId == externalProjectId }
+  return gradleProject?.identityPath
 }
