@@ -81,6 +81,9 @@
       "hit": "AI next edit prediction"
     },
     {
+      "hit": "Automatically collapse diff chunks below:"
+    },
+    {
       "hit": "Change Review"
     },
     {
@@ -88,6 +91,9 @@
     },
     {
       "hit": "Dock thoughts to bottom"
+    },
+    {
+      "hit": "Don't Collapse"
     },
     {
       "hit": "Editor"
@@ -99,7 +105,16 @@
       "hit": "Enable AI smart rename suggestions"
     },
     {
+      "hit": "Major"
+    },
+    {
+      "hit": "Minor"
+    },
+    {
       "hit": "Model:"
+    },
+    {
+      "hit": "Moderate"
     },
     {
       "hit": "Next Edit Prediction"
