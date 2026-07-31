@@ -25,7 +25,6 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import org.apache.maven.artifact.versioning.ComparableVersion
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
@@ -301,7 +300,7 @@ private constructor(
     librarySignature =
       librarySignatureString?.let {
         val (groupId, artifactId, version) = it.split(":")
-        LibrarySignature(groupId, artifactId, ComparableVersion(version))
+        LibrarySignature(groupId, artifactId, version)
       },
   )
 
