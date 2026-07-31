@@ -20,7 +20,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -84,10 +84,10 @@ class ComposeFoldingBuilderTest {
   @Test
   fun `validate folding generated with quick = false`() {
     val composeFoldingBuilder = ComposeFoldingBuilder()
-    val descriptors = runReadAction { composeFoldingBuilder.buildFoldRegions(testFile, testFile.fileDocument, /* quick= */ false) }
+    val descriptors = runReadActionBlocking { composeFoldingBuilder.buildFoldRegions(testFile, testFile.fileDocument, /* quick= */ false) }
     assertThat(descriptors).hasLength(1)
 
-    runReadAction {
+    runReadActionBlocking {
       assertThat(descriptors[0].element.text).isEqualTo("Modifier\n    .adjust()\n    .adjust()")
 
       val placeholderText = composeFoldingBuilder.getPlaceholderText(descriptors[0].element, descriptors[0].range)
@@ -97,7 +97,7 @@ class ComposeFoldingBuilderTest {
 
   @Test
   fun `validate no foldings generated with quick = true`() {
-    val descriptors = runReadAction { ComposeFoldingBuilder().buildFoldRegions(testFile, testFile.fileDocument, /* quick= */ true) }
+    val descriptors = runReadActionBlocking { ComposeFoldingBuilder().buildFoldRegions(testFile, testFile.fileDocument, /* quick= */ true) }
     assertThat(descriptors).isEmpty()
   }
 }
