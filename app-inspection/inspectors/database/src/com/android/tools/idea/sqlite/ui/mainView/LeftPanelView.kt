@@ -270,7 +270,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val selected = selectedNode?.userObject
     val parent = selectedNode?.let { (it.parent as? DefaultMutableTreeNode)?.userObject }
     return when {
-      selected is ViewDatabase -> ExportDatabaseDialogParams(selected.databaseId, actionOrigin)
+      selected is ViewDatabase && selected.isOpen -> ExportDatabaseDialogParams(selected.databaseId, actionOrigin)
       selected is SqliteTable && parent is ViewDatabase -> ExportTableDialogParams(parent.databaseId, selected.name, actionOrigin)
       else -> null
     }
