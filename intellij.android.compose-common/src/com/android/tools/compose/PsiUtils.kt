@@ -29,10 +29,12 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentOfTypes
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.kotlin.analysis.api.KaSession
+import org.jetbrains.kotlin.analysis.api.components.resolveToCall
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.psi.hasInlineModifier
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -98,7 +100,7 @@ fun KtLambdaArgument.isComposableLambdaArgument(): Boolean {
   val lambdaExpression = getLambdaExpression() ?: return false
   analyze(callExpression) {
     val call = callExpression.resolveToCall()?.singleFunctionCallOrNull() ?: return false
-    val parameterTypeForLambda = call.argumentMapping[lambdaExpression]?.returnType ?: return false
+    val parameterTypeForLambda = call.valueArgumentMapping[lambdaExpression]?.returnType ?: return false
     return parameterTypeForLambda.annotations.classIds.any { it == COMPOSABLE_CLASS_ID }
   }
 }
@@ -136,10 +138,11 @@ fun PsiElement.isComposableAnnotation(): Boolean {
 }
 
 /** K2 version of [isComposableAnnotation]. */
-fun KaSession.isComposableAnnotation(element: PsiElement): Boolean {
+context(session: KaSession)
+fun isComposableAnnotation(element: PsiElement): Boolean {
   if (element !is KtAnnotationEntry) return false
 
-  return fqNameMatches(element, COMPOSABLE_ANNOTATION_FQ_NAME)
+  return useSiteSession.fqNameMatches(element, COMPOSABLE_ANNOTATION_FQ_NAME)
 }
 
 private const val DEPRECATED_ANNOTATION_NAME = "Deprecated"
