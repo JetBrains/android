@@ -92,7 +92,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
   fun testGetDefaultLocalPathForEntry() {
     val defaultLocalPath = myDeviceExplorerFileManager.getDefaultLocalPathForEntry(fooBar1Entry)
-    assertTrue(FileUtil.toSystemIndependentName(defaultLocalPath.toString()).endsWith("/fileSystem/foo/bar1"))
+    assertTrue(FileUtil.toSystemIndependentName(defaultLocalPath.toString()).endsWith("/fileSystem/_/foo/bar1"))
   }
 
   fun testDownloadFileEntry() =
