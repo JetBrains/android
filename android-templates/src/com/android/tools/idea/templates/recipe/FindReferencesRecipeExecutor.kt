@@ -150,7 +150,6 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
   }
 
   override fun useLibrary(name: String) {}
-  // TODO: android-merge; the interface we override this for had changed the signature
   override fun addCompileSdk(androidVersion: AndroidVersion, isKotlinMultiplatform: Boolean) {}
   override fun addJourneysTestSuite(testSuiteName: String, targetVariant: String?) {}
 }
