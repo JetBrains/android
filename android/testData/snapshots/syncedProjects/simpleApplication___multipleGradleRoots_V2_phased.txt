@@ -1104,14 +1104,14 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:createMockableJar
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
-    RUN_CONFIGURATION             : app
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : gradle_project_name.app
-        Module                        : gradle_project_name.app
     RUN_CONFIGURATION             : gradle_project_1.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : gradle_project_1.app
         Module                        : gradle_project_1.app
+    RUN_CONFIGURATION             : gradle_project_2.app
+        *class*                       : AndroidRunConfiguration
+        ModuleName                    : gradle_project_name.app
+        Module                        : gradle_project_name.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
