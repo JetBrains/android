@@ -314,6 +314,8 @@ object StudioIconsCompose {
       IntelliJIconKey("/studio/icons/common/export.svg", "/studio/icons/common/export.svg", StudioIconsCompose.javaClass) // 16x16
     val Filter: IntelliJIconKey =
       IntelliJIconKey("/studio/icons/common/filter.svg", "/studio/icons/common/filter.svg", StudioIconsCompose.javaClass) // 16x16
+    val GoogleCloud: IntelliJIconKey =
+      IntelliJIconKey("/studio/icons/common/google-cloud.svg", "/studio/icons/common/google-cloud.svg", StudioIconsCompose.javaClass) // 16x16
     val GridView: IntelliJIconKey =
       IntelliJIconKey("/studio/icons/common/grid-view.svg", "/studio/icons/common/grid-view.svg", StudioIconsCompose.javaClass) // 16x16
     val Group: IntelliJIconKey =
@@ -818,6 +820,31 @@ object StudioIconsCompose {
         "/studio/icons/device-explorer/firebase-device-wear.svg",
         StudioIconsCompose.javaClass,
       ) // 16x16
+    val GcDeviceCar: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/icons/device-explorer/gc-device-car.svg",
+        "/studio/icons/device-explorer/gc-device-car.svg",
+        StudioIconsCompose.javaClass) // 16x16
+    val GcDeviceDesktop: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/icons/device-explorer/gc-device-desktop.svg",
+        "/studio/icons/device-explorer/gc-device-desktop.svg",
+        StudioIconsCompose.javaClass) // 16x16
+    val GcDevicePhone: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/icons/device-explorer/gc-device-phone.svg",
+        "/studio/icons/device-explorer/gc-device-phone.svg",
+        StudioIconsCompose.javaClass) // 16x16
+    val GcDeviceTv: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/icons/device-explorer/gc-device-tv.svg",
+        "/studio/icons/device-explorer/gc-device-tv.svg",
+        StudioIconsCompose.javaClass) // 16x16
+    val GcDeviceWear: IntelliJIconKey =
+      IntelliJIconKey(
+        "/studio/icons/device-explorer/gc-device-wear.svg",
+        "/studio/icons/device-explorer/gc-device-wear.svg",
+        StudioIconsCompose.javaClass) // 16x16
     val MultipleDevices: IntelliJIconKey =
       IntelliJIconKey(
         "/studio/icons/device-explorer/multiple-devices.svg",

@@ -108,6 +108,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon ERROR = load("studio/icons/common/error.svg", 199177256, 2);
     /** 16x16 */ public static final @NotNull Icon EXPORT = load("studio/icons/common/export.svg", 968109450, 2);
     /** 16x16 */ public static final @NotNull Icon FILTER = load("studio/icons/common/filter.svg", 776625140, 2);
+    /** 16x16 */ public static final @NotNull Icon GOOGLE_CLOUD = load("studio/icons/common/google-cloud.svg", 1624301232, 2);
     /** 16x16 */ public static final @NotNull Icon GRID_VIEW = load("studio/icons/common/grid-view.svg", 960321313, 2);
     /** 16x16 */ public static final @NotNull Icon GROUP = load("studio/icons/common/group.svg", -304357428, 2);
     /** 16x16 */ public static final @NotNull Icon HELP = load("studio/icons/common/help.svg", 1643436072, 2);
@@ -229,6 +230,11 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_PHONE = load("studio/icons/device-explorer/firebase-device-phone.svg", -1553813838, 2);
     /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_TV = load("studio/icons/device-explorer/firebase-device-tv.svg", 706742507, 2);
     /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_WEAR = load("studio/icons/device-explorer/firebase-device-wear.svg", 2067550549, 2);
+    /** 16x16 */ public static final @NotNull Icon GC_DEVICE_CAR = load("studio/icons/device-explorer/gc-device-car.svg", 561871463, 2);
+    /** 16x16 */ public static final @NotNull Icon GC_DEVICE_DESKTOP = load("studio/icons/device-explorer/gc-device-desktop.svg", 373000469, 2);
+    /** 16x16 */ public static final @NotNull Icon GC_DEVICE_PHONE = load("studio/icons/device-explorer/gc-device-phone.svg", -1332969477, 2);
+    /** 16x16 */ public static final @NotNull Icon GC_DEVICE_TV = load("studio/icons/device-explorer/gc-device-tv.svg", -689231668, 2);
+    /** 16x16 */ public static final @NotNull Icon GC_DEVICE_WEAR = load("studio/icons/device-explorer/gc-device-wear.svg", 1468681207, 2);
     /** 16x16 */ public static final @NotNull Icon MULTIPLE_DEVICES = load("studio/icons/device-explorer/multiple-devices.svg", 1185288234, 2);
     /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_CAR = load("studio/icons/device-explorer/oem-lab-device-car.svg", -1476167647, 2);
     /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_DESKTOP = load("studio/icons/device-explorer/oem-lab-device-desktop.svg", -449943409, 2);
