@@ -18,7 +18,9 @@ package com.android.tools.profilers.memory.adapters.classifiers
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.MemoryObject
+import com.android.tools.profilers.memory.adapters.TraceProcessorHeapDumpInstance
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.NoneFilter
 import java.util.Collections
 import java.util.IdentityHashMap
 import java.util.concurrent.ConcurrentHashMap
@@ -48,6 +50,7 @@ import kotlin.streams.asStream
 abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   private sealed class State {
     @Volatile var retainedSize: Long = -1
+    @Volatile var retainedNativeSize: Long = -1
 
     sealed class Coalesced(
       // The set of instances that make up our baseline snapshot (e.g. live objects at the left of a selection range).
@@ -168,6 +171,40 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
         }
       }
 
+  open val totalRetainedNativeSize: Long
+    get() =
+      synchronized(this) {
+        when (val s = state) {
+          is State.Coalesced ->
+            when (s.retainedNativeSize) {
+              -1L -> {
+                val maxRetainedNativeSizeByClass =
+                  (s.snapshotInstances.asSequence() + s.deltaInstances.asSequence())
+                    .mapNotNull { it.classEntry }
+                    .distinct()
+                    .fold(0L) { sum, entry ->
+                      when {
+                        entry.retainedNativeSize == -1L || sum == Long.MAX_VALUE -> Long.MAX_VALUE
+                        else -> sum + entry.retainedNativeSize
+                      }
+                    }
+                val maxRetainedNativeSizeByInstances =
+                  (s.snapshotInstances.asSequence() + s.deltaInstances.asSequence()).sumOf { it.retainedNativeSize.validOrZero() }
+                val maxRetainedNativeSize = min(maxRetainedNativeSizeByClass, maxRetainedNativeSizeByInstances)
+                s.retainedNativeSize = maxRetainedNativeSize
+                maxRetainedNativeSize
+              }
+              else -> s.retainedNativeSize
+            }
+          is State.Partitioned -> {
+            if (s.retainedNativeSize == -1L) {
+              s.retainedNativeSize = s.classifier.classifierSetSequence.filter { !it.isFiltered }.sumOf { it.totalRetainedNativeSize }
+            }
+            s.retainedNativeSize
+          }
+        }
+      }
+
   @Volatile
   var deltaShallowSize = 0L
     private set
@@ -190,7 +227,11 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   // We need to apply filter to ClassifierSet again after any updates (insertion, deletion etc.)
   @JvmField @Volatile protected var needsRefiltering = false
 
-  val isEmpty: Boolean
+  fun forceRefiltering() {
+    needsRefiltering = true
+  }
+
+  open val isEmpty: Boolean
     get() = snapshotObjectCount == 0 && deltaAllocationCount == 0 && deltaDeallocationCount == 0
 
   val totalObjectCount: Int
@@ -199,8 +240,15 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   val totalRemainingSize: Long
     get() = allocationSize - deallocationSize
 
-  val instancesCount: Int
+  open val isClassFilterMatch: Boolean
+    get() = true
+
+  open val instancesCount: Int
     get() = instancesStream.count().toInt()
+
+  open fun getInstances(offset: Int, limit: Int): List<InstanceObject> {
+    return instancesStream.skip(offset.toLong()).limit(limit.toLong()).toList()
+  }
 
   /** Gets a stream of all instances (including all descendants) in this ClassifierSet. */
   val instancesStream: Stream<InstanceObject>
@@ -250,30 +298,27 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   open val isRetainedSizeCached: Boolean
     get() = state.retainedSize != -1L
 
+  open val isRetainedNativeSizeCached: Boolean
+    get() = state.retainedNativeSize != -1L
+
   open val retainedSizeCache: Long
     get() = state.retainedSize
 
+  open val retainedNativeSizeCache: Long
+    get() = state.retainedNativeSize
+
   private fun invalidateRetainedSizeCache() {
     state.retainedSize = -1L
+    state.retainedNativeSize = -1L
   }
 
   private fun ensurePartitioned() = synchronized(this) { state.forced().also { state = it } }
 
   protected fun coalesce() = synchronized(this) { state = state.retracted(::createSubClassifier) }
 
-  fun getInstanceFilterMatchCount(filter: CaptureObjectInstanceFilter): Int {
-    instanceFilterMatchCounts[filter]?.let {
-      return it
-    }
-    return synchronized(this) {
-      instanceFilterMatchCounts[filter]?.let {
-        return it
-      }
-      val count = countInstanceFilterMatch(filter)
-      instanceFilterMatchCounts[filter] = count
-      count
-    }
-  }
+  /** Returns the cached or computed match count of instances in this set that satisfy [filter]. */
+  fun getInstanceFilterMatchCount(filter: CaptureObjectInstanceFilter): Int =
+    instanceFilterMatchCounts.computeIfAbsent(filter) { countInstanceFilterMatch(it) }
 
   fun getCachedInstanceFilterMatchCount(filter: CaptureObjectInstanceFilter): Int = instanceFilterMatchCounts[filter] ?: -1
 
@@ -282,6 +327,44 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    * an allocation event.
    */
   fun addSnapshotInstanceObject(instanceObject: InstanceObject) = changeSnapshotInstanceObject(instanceObject, SetOperation.ADD)
+
+  /** Aggregates precomputed class overview metrics from Perfetto Trace Processor lazily into classifier tree nodes. */
+  fun addLazyClassOverview(
+    instanceObject: InstanceObject,
+    count: Int,
+    shallowSize: Long,
+    nativeSize: Long,
+    retainedNativeSize: Long,
+    retainedSize: Long,
+  ) {
+    synchronized(this) {
+      when (val s = ensurePartitioned()) {
+        is State.Partitioned -> {
+          val classifierSet = s.classifier.getClassifierSet(instanceObject, true)
+          classifierSet?.addLazyClassOverview(instanceObject, count, shallowSize, nativeSize, retainedNativeSize, retainedSize)
+        }
+        is State.Coalesced -> {
+          s.snapshotInstances.add(instanceObject)
+          if (s.retainedSize == -1L) {
+            s.retainedSize = 0L
+          }
+          if (retainedSize > 0) {
+            s.retainedSize += retainedSize
+          }
+          if (s.retainedNativeSize == -1L) {
+            s.retainedNativeSize = 0L
+          }
+          if (retainedNativeSize > 0) {
+            s.retainedNativeSize += retainedNativeSize
+          }
+        }
+      }
+      snapshotObjectCount += count
+      totalObjectSetCount += count
+      totalNativeSize += nativeSize
+      totalShallowSize += shallowSize
+    }
+  }
 
   /** Remove an instance from the baseline snapshot and update the accounting of the "total" values. */
   fun removeSnapshotInstanceObject(instanceObject: InstanceObject) = changeSnapshotInstanceObject(instanceObject, SetOperation.REMOVE)
@@ -300,9 +383,19 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
         }
       }
       if (changed) {
-        snapshotObjectCount += op.countChange
-        totalNativeSize += op.countChange * instanceObject.nativeSize.validOrZero()
-        totalShallowSize += op.countChange * instanceObject.shallowSize.toLong().validOrZero()
+        val instanceCount = instanceObject.instanceCount
+        snapshotObjectCount += op.countChange * instanceCount
+        val nativeSize = instanceObject.nativeSize.validOrZero()
+        if (nativeSize > 0) {
+          val sizeToAdd = if (instanceObject is TraceProcessorHeapDumpInstance) nativeSize else nativeSize * instanceCount
+          totalNativeSize += op.countChange * sizeToAdd
+        }
+
+        val shallowSize = instanceObject.shallowSize.toLong().validOrZero()
+        if (shallowSize > 0) {
+          val sizeToAdd = if (instanceObject is TraceProcessorHeapDumpInstance) shallowSize else shallowSize * instanceCount
+          totalShallowSize += op.countChange * sizeToAdd
+        }
         invalidateRetainedSizeCache()
         if (!instanceObject.isCallStackEmpty) {
           instancesWithStackInfoCount += op.countChange
@@ -429,7 +522,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    *
    * @return the set that contains the `target`, or null otherwise.
    */
-  fun findContainingClassifierSet(target: InstanceObject): ClassifierSet? =
+  open fun findContainingClassifierSet(target: InstanceObject): ClassifierSet? =
     synchronized(this) {
       state.let { s ->
         when {
@@ -536,11 +629,12 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       if (!filterChanged && !needsRefiltering) {
         return@synchronized
       }
-      isMatched = !isTopLevel && filter.matches(stringForMatching)
+      val matchesClassFilter = isClassFilterMatch
+      isMatched = !isTopLevel && filter.matches(stringForMatching) && matchesClassFilter
       filterMatchCount = if (isMatched) 1 else 0
       when (val s = ensurePartitioned()) {
         is State.Coalesced.Leaf -> {
-          myIsFiltered = !isMatched && !hasMatchedAncestor
+          myIsFiltered = (!isMatched && !hasMatchedAncestor) || !matchesClassFilter
           needsRefiltering = false
         }
         is State.Partitioned -> {
@@ -556,8 +650,9 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
           instancesWithStackInfoCount = 0
           totalObjectSetCount = s.classifier.classifierSetSequence.count()
           filteredObjectSetCount = 0
+          val childFilterChanged = filterChanged || needsRefiltering
           for (classifierSet in s.classifier.classifierSetSequence) {
-            classifierSet.applyFilter(filter, hasMatchedAncestor || isMatched, false, filterChanged)
+            classifierSet.applyFilter(filter, hasMatchedAncestor || isMatched, false, childFilterChanged)
             totalObjectSetCount += classifierSet.totalObjectSetCount
             if (!classifierSet.isFiltered) {
               myIsFiltered = false
@@ -583,11 +678,25 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
 
   private fun initState() = State.Coalesced.Delayed(::createSubClassifier, LinkedHashSet(0), LinkedHashSet(0))
 
-  private fun countInstanceFilterMatch(filter: CaptureObjectInstanceFilter): Int =
+  protected open fun countInstanceFilterMatch(filter: CaptureObjectInstanceFilter): Int =
     when (val s = state) {
       is State.Partitioned -> s.classifier.classifierSetSequence.sumOf { it.getInstanceFilterMatchCount(filter) }
       is State.Coalesced ->
-        s.deltaInstances.count(filter.instanceTest) + s.snapshotInstances.count { it !in s.deltaInstances && filter.instanceTest(it) }
+        s.deltaInstances.count(filter.instanceTest) +
+          s.snapshotInstances.sumOf { inst ->
+            if (inst in s.deltaInstances) return@sumOf 0
+            if (inst is TraceProcessorHeapDumpInstance) {
+              if (!inst.isSyntheticClass && filter !is NoneFilter) {
+                inst.captureObject.filterInstances.count { it.classEntry.classId == inst.classEntry.classId && filter.instanceTest(it) }
+              } else {
+                0
+              }
+            } else if (filter.instanceTest(inst)) {
+              1
+            } else {
+              0
+            }
+          }
     }
 
   private enum class SetOperation(val invoke: (MutableSet<InstanceObject>, InstanceObject) -> Unit, val countChange: Int) {

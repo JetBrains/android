@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
+import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.ClassDb
+import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.InstanceObject
 
 /** Classifies [InstanceObject]s based on their [Class]. */
-class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEntry.simpleClassName) {
+open class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEntry.simpleClassName) {
 
   override val stringForMatching
     get() = classEntry.className
@@ -31,20 +33,45 @@ class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEntry.si
         else -> size
       }
 
+  override val totalRetainedNativeSize: Long
+    get() =
+      when (val size = classEntry.retainedNativeSize) {
+        -1L -> super.totalRetainedNativeSize
+        else -> size
+      }
+
   override val isRetainedSizeCached: Boolean
     get() = classEntry.retainedSize != -1L || super.isRetainedSizeCached
+
+  override val isRetainedNativeSizeCached: Boolean
+    get() = classEntry.retainedNativeSize != -1L || super.isRetainedNativeSizeCached
 
   override val retainedSizeCache: Long
     get() = if (classEntry.retainedSize != -1L) classEntry.retainedSize else super.retainedSizeCache
 
+  override val retainedNativeSizeCache: Long
+    get() = if (classEntry.retainedNativeSize != -1L) classEntry.retainedNativeSize else super.retainedNativeSizeCache
+
   // Do nothing, as this is a leaf node (presently).
   public override fun createSubClassifier(): Classifier = Classifier.Id
+
+  /** Sets the sorting order for instances in this class set. Overridden by subclasses supporting server-side sorting. */
+  open fun setSort(attribute: CaptureObject.InstanceAttribute, isDescending: Boolean) {}
 
   companion object {
     @JvmField val EMPTY_SET = ClassSet(ClassDb.ClassEntry(ClassDb.INVALID_CLASS_ID.toLong(), ClassDb.INVALID_CLASS_ID.toLong(), "null", -1))
 
-    @JvmStatic fun createDefaultClassifier(): Classifier = classClassifier()
+    @JvmStatic
+    @JvmOverloads
+    fun createDefaultClassifier(captureObject: CaptureObject? = null, heapId: Int = 0): Classifier = classClassifier(captureObject, heapId)
 
-    private fun classClassifier() = Classifier.of(InstanceObject::getClassEntry, ::ClassSet)
+    private fun classClassifier(captureObject: CaptureObject?, heapId: Int) =
+      Classifier.of(InstanceObject::getClassEntry) { entry ->
+        if (captureObject != null && captureObject is HeapDumpCaptureObject && captureObject.isTraceProcessor) {
+          TraceProcessorHeapDumpClassSet(entry, heapId, captureObject)
+        } else {
+          ClassSet(entry)
+        }
+      }
   }
 }

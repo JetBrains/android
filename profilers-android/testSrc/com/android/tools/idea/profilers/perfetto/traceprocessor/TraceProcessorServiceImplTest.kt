@@ -296,7 +296,7 @@ class TraceProcessorServiceImplTest {
       ideService.loadCpuData(10, listOf(fakeProcess(33), fakeProcess(42)), fakeProcess, fakeIdeProfilerServices)
       fail()
     } catch (e: RuntimeException) {
-      assertThat(e.message).isEqualTo("TPD Service: Fail to get cpu data for trace 10: Trace 10 needs to be loaded before querying.")
+      assertThat(e.message).isEqualTo("TPD Service: Fail to get data for trace 10: Trace 10 needs to be loaded before querying.")
     }
 
     // We never issue a load trace since we don't know about the trace.

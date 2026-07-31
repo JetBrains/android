@@ -63,6 +63,10 @@ public interface ValueObject extends MemoryObject {
     return INVALID_VALUE;
   }
 
+  default long getRetainedNativeSize() {
+    return INVALID_VALUE;
+  }
+
   @NotNull
   ValueType getValueType();
 

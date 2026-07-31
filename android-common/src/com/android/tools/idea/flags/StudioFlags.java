@@ -374,6 +374,10 @@ public final class StudioFlags {
     PROFILER, "leakcanary.studiobot", "LeakCanary AI Integration",
     "Enables AI analysis for memory leaks detected by LeakCanary.");
 
+  public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR_FOR_HPROF = new BooleanFlag(
+    PROFILER, "use.traceprocessor.for.hprof", "Use Trace Processor for HPROF",
+    "Use Perfetto Trace Processor Daemon to parse and analyze HPROF heap dump files.");
+
   public static final Flag<Boolean> PROFILER_SYSTEM_TRACE_IN_EDITOR = new BooleanFlag(
     PROFILER, "system.trace.in.editor", "Open System Trace in Editor",
     "Opens System Trace files in a new editor tab");

@@ -302,7 +302,7 @@ public class MemoryInstanceDetailsViewTest {
     JScrollPane columnTreePane = (JScrollPane)myDetailsView.getReferenceColumnTree().getComponent(0);
     assertNotNull(columnTreePane);
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Reference", "Alloc Time", "Dealloc Time", "Depth", "Native Size", "Shallow Size", "Retained Size");
+    treeInfo.verifyColumnHeaders("Reference", "Alloc Time", "Dealloc Time", "Depth", "Native Size", "Shallow Size", "Retained Native Size", "Retained Size");
 
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
     assertEquals(references.size(), root.getChildCount());
@@ -315,6 +315,7 @@ public class MemoryInstanceDetailsViewTest {
                                     new String[]{NumberFormatter.formatInteger(ref.getDepth())},
                                     new String[]{NumberFormatter.formatInteger(ref.getNativeSize())},
                                     new String[]{NumberFormatter.formatInteger(ref.getShallowSize())},
+                                    new String[]{"-"},
                                     new String[]{NumberFormatter.formatInteger(ref.getRetainedSize())});
     }
   }

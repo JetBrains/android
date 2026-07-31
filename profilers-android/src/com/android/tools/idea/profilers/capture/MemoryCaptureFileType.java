@@ -21,12 +21,12 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.io.ByteSequence;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a heap dump file that can be imported into memory profiler.
@@ -36,7 +36,7 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
   @Deprecated
   public static final String EXTENSION = "hprof";
 
-  public static final List<String> EXTENSIONS = Arrays.asList("hprof", "prof");
+  public static final List<String> EXTENSIONS = Arrays.asList("hprof", "prof", "perfetto-java-heap-dump");
 
   private static final MemoryCaptureFileType INSTANCE = new MemoryCaptureFileType();
 

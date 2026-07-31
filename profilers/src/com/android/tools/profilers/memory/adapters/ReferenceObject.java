@@ -15,9 +15,8 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link MemoryObject} that describes an object instance having a reference to another.
@@ -81,6 +80,11 @@ public class ReferenceObject implements ValueObject {
   @Override
   public long getRetainedSize() {
     return myReferencingInstance.getRetainedSize();
+  }
+
+  @Override
+  public long getRetainedNativeSize() {
+    return myReferencingInstance.getRetainedNativeSize();
   }
 
   @NotNull

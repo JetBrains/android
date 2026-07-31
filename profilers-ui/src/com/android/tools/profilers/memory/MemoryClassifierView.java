@@ -19,7 +19,6 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
-
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -33,8 +32,8 @@ import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
@@ -62,8 +61,8 @@ import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Graphics;
 import java.awt.RenderingHints;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -189,6 +188,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     myAttributeColumns.put(
       ClassifierAttribute.SHALLOW_SIZE,
       makeColumn("Shallow Size", 120, ClassifierSet::getTotalShallowSize, Comparator.comparing(ClassifierSet::getName)));
+    myAttributeColumns.put(
+      ClassifierAttribute.RETAINED_NATIVE_SIZE,
+      makeColumn("Retained Native Size", 150, ClassifierSet::getRetainedNativeSizeCache, true));
     myAttributeColumns.put(
       ClassifierAttribute.RETAINED_SIZE,
       makeColumn("Retained Size", 130, ClassifierSet::getRetainedSizeCache, true));
@@ -577,10 +579,11 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     // Compute total retained size asynchronously to warm up the cache and repaint the tree when done.
     if (myTreeRoot != null) {
       ClassifierSet root = myTreeRoot.getAdapter();
-      if (!root.isRetainedSizeCached()) {
+      if (!root.isRetainedSizeCached() || !root.isRetainedNativeSizeCached()) {
         mySelection.getIdeServices().getPoolExecutor().execute(() -> {
           // TODO: Cleanup unused variable. Currently needed for test: /profilers-ui:intellij.android.profilers.ui_lint_test Test case: NoOp Code
           long unused = root.getTotalRetainedSize();
+          long unusedNative = root.getTotalRetainedNativeSize();
           mySelection.getIdeServices().getMainExecutor().execute(() -> {
             if (myTree != null) myTree.repaint();
           });

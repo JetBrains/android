@@ -32,6 +32,7 @@ import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
+import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
@@ -44,10 +45,12 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.FlowLayout
+import java.util.stream.Stream
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.streams.asStream
 
 class CapturePanel(
   profilersView: StudioProfilersView,
@@ -298,7 +301,17 @@ private class CapturePanelUi(
     classTypeFilter: CaptureObjectInstanceFilter?,
     instanceFilter: CaptureObjectInstanceFilter,
   ): Long {
-    val baseStream = classTypeFilter?.let { heapSet.instancesStream.filter { classTypeFilter.instanceTest(it) } } ?: heapSet.instancesStream
-    return baseStream.filter { instanceFilter.instanceTest(it) }.count()
+    val capture = selection.selectedCapture
+    val filteredByHeap =
+      if (capture is HeapDumpCaptureObject && capture.isTraceProcessor) {
+        val isAllHeap = heapSet is AllHeapSet
+        (capture.getIssueInstances(instanceFilter)?.asStream() ?: Stream.empty()).filter {
+          isAllHeap || it.heapId == (heapSet as HeapSet).id
+        }
+      } else {
+        heapSet.instancesStream.filter { instanceFilter.instanceTest(it) }
+      }
+    val withClassFilter = classTypeFilter?.let { filteredByHeap.filter { classTypeFilter.instanceTest(it) } } ?: filteredByHeap
+    return withClassFilter.count()
   }
 }

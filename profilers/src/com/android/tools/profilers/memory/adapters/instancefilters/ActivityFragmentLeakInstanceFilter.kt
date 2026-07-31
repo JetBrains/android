@@ -20,7 +20,7 @@ import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.google.common.annotations.VisibleForTesting
 
 /** A filter to locate possible leaked activity/fragment instances. */
-class ActivityFragmentLeakInstanceFilter(classDatabase: ClassDb) :
+open class ActivityFragmentLeakInstanceFilter(classDatabase: ClassDb) :
   CaptureObjectInstanceFilter(
     "Activity/Fragment leaks",
     "Show Activities and Fragments that are potentially causing memory leaks.",

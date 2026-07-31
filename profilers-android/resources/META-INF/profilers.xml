@@ -103,7 +103,8 @@
               extensions="trace"/>
     <fileType name="AndroidProfilerMemoryAllocation" implementationClass="com.android.tools.idea.profilers.capture.MemoryAllocationFileType"
               extensions="alloc"/>
-    <fileType name="AndroidProfilerMemoryCapture" implementationClass="com.android.tools.idea.profilers.capture.MemoryCaptureFileType"/>
+    <fileType name="AndroidProfilerMemoryCapture" implementationClass="com.android.tools.idea.profilers.capture.MemoryCaptureFileType"
+              extensions="perfetto-java-heap-dump"/>
     <fileTypeDetector implementation="com.android.tools.idea.profilers.capture.MemoryCaptureFileType$Detector"/>
     <fileType name="HeapProfd" implementationClass="com.android.tools.idea.profilers.capture.HeapProfdMemoryCaptureFileType"
               fieldName="INSTANCE" extensions="heapprofd"/>

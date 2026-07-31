@@ -895,6 +895,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
+    public boolean isUseTraceProcessorForHprofEnabled() {
+      return StudioFlags.PROFILER_USE_TRACEPROCESSOR_FOR_HPROF.get();
+    }
+
+    @Override
     public boolean isSystemTraceInEditorEnabled() {
       return StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.get();
     }

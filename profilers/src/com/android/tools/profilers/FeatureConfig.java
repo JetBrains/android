@@ -29,6 +29,7 @@ public interface FeatureConfig {
   boolean isTraceboxEnabled();
   boolean isLeakCanaryEnabled();
   boolean isLeakCanaryStudioBotEnabled();
+  boolean isUseTraceProcessorForHprofEnabled();
   boolean isSystemTraceInEditorEnabled();
   boolean isMethodTraceInEditorEnabled();
   boolean isCallstackSampleTraceInEditorEnabled();

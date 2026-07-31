@@ -60,7 +60,10 @@ public class HeapSet extends ClassifierSet {
   public void selectFilter(@NotNull Filter filter) {
     // If both the old and new filters are empty, no alloc/dealloc events will be filtered out and we do not need to do anything
     // even when HeapSet has content changes.
-    if (myFilter.isEmpty() && filter.isEmpty()) {
+    // However, if needsRefiltering is true and an issue filter or class filter is active on the capture object, we must re-apply the filter
+    // so that child class sets update their filtered match state.
+    if (myFilter.isEmpty() && filter.isEmpty() &&
+        (!needsRefiltering || (myCaptureObject != null && myCaptureObject.getSelectedInstanceFilters().isEmpty()))) {
       return;
     }
 
@@ -85,9 +88,9 @@ public class HeapSet extends ClassifierSet {
   public Classifier createSubClassifier() {
     switch (myClassGrouping) {
       case ARRANGE_BY_CLASS:
-        return ClassSet.createDefaultClassifier();
+        return ClassSet.createDefaultClassifier(myCaptureObject, getId());
       case ARRANGE_BY_PACKAGE:
-        return PackageSet.createDefaultClassifier(myCaptureObject);
+        return PackageSet.createDefaultClassifier(myCaptureObject, getId());
       case ARRANGE_BY_CALLSTACK:
         return ThreadSet.createDefaultClassifier(myCaptureObject);
       default:

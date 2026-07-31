@@ -85,6 +85,7 @@ class FakeTraceProcessorService : TraceProcessorService {
    * file.
    */
   var forceFailLoadTrace = false
+  var forceSucceedLoadTrace = false
 
   fun setTraceMetadataValue(traceId: Long, name: String, value: String) {
     if (!metadataValues.containsKey(traceId)) {
@@ -94,7 +95,7 @@ class FakeTraceProcessorService : TraceProcessorService {
   }
 
   override fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean {
-    if (validTraces.contains(traceFile) && !forceFailLoadTrace) {
+    if ((validTraces.contains(traceFile) || forceSucceedLoadTrace) && !forceFailLoadTrace) {
       loadedTraces[traceId] = traceFile
       return true
     } else {
@@ -132,9 +133,45 @@ class FakeTraceProcessorService : TraceProcessorService {
     }
   }
 
-  override fun loadMemoryData(traceId: Long, abi: String, memorySet: NativeMemoryHeapSet, ideProfilerServices: IdeProfilerServices) {
+  override fun loadNativeMemoryData(traceId: Long, abi: String, memorySet: NativeMemoryHeapSet, ideProfilerServices: IdeProfilerServices) {
     // Will populate as needed. Currently no test rely on this.
   }
+
+  var javaHeapDumpResult: TraceProcessor.HeapDumpResult? = null
+  var primitiveFieldsResult: TraceProcessor.GetPrimitiveFieldsResult? = null
+  var instancesResult: TraceProcessor.HeapDumpInstancesResult? = null
+  var instancesForClassesResult: TraceProcessor.HeapDumpInstancesResult? = null
+  var referencesResult: TraceProcessor.GetReferencesResult? = null
+
+  override fun loadHeapDumpData(traceId: Long, ideProfilerServices: IdeProfilerServices): TraceProcessor.HeapDumpResult {
+    return javaHeapDumpResult ?: TraceProcessor.HeapDumpResult.getDefaultInstance()
+  }
+
+  override fun getPrimitiveFields(
+    traceId: Long,
+    instanceIds: List<Long>,
+    ideProfilerServices: IdeProfilerServices,
+  ): TraceProcessor.GetPrimitiveFieldsResult = primitiveFieldsResult ?: TraceProcessor.GetPrimitiveFieldsResult.getDefaultInstance()
+
+  override fun getInstances(
+    traceId: Long,
+    request: TraceProcessor.QueryParameters.HeapDumpInstancesParameters,
+    ideProfilerServices: IdeProfilerServices,
+  ): TraceProcessor.HeapDumpInstancesResult = instancesResult ?: TraceProcessor.HeapDumpInstancesResult.getDefaultInstance()
+
+  override fun getInstancesForClasses(
+    traceId: Long,
+    classNames: List<String>,
+    ideProfilerServices: IdeProfilerServices,
+  ): TraceProcessor.HeapDumpInstancesResult = instancesForClassesResult ?: TraceProcessor.HeapDumpInstancesResult.getDefaultInstance()
+
+  override fun getReferences(
+    traceId: Long,
+    instanceIds: List<Long>,
+    fetchForward: Boolean,
+    fetchReverse: Boolean,
+    ideProfilerServices: IdeProfilerServices,
+  ): TraceProcessor.GetReferencesResult = referencesResult ?: TraceProcessor.GetReferencesResult.getDefaultInstance()
 
   private inner class EmptyModelAdapter : SystemTraceModelAdapter {
     override fun getCaptureStartTimestampUs() = 0L

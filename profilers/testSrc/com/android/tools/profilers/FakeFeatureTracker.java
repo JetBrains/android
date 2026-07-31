@@ -489,10 +489,22 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTraceProcessorMemoryData(
+  public void trackTraceProcessorNativeMemoryData(
     @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     myTpdQueryMetrics.add(Pair.of(
       AndroidProfilerEvent.Type.TPD_QUERY_LOAD_MEMORY_DATA,
+      TraceProcessorDaemonQueryStats.newBuilder()
+        .setQueryStatus(queryStatus)
+        .setMethodDurationMs(methodTimeMs)
+        .setGrpcQueryDurationMs(queryTimeMs)
+        .build()));
+  }
+
+  @Override
+  public void trackTraceProcessorHeapDumpData(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    myTpdQueryMetrics.add(Pair.of(
+      AndroidProfilerEvent.Type.TPD_QUERY_LOAD_HEAP_DUMP_DATA,
       TraceProcessorDaemonQueryStats.newBuilder()
         .setQueryStatus(queryStatus)
         .setMethodDurationMs(methodTimeMs)

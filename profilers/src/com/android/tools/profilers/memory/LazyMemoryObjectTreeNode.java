@@ -18,13 +18,12 @@ package com.android.tools.profilers.memory;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import java.util.Enumeration;
 import java.util.List;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class optimizes tree nodes building/expansion to prevent running out of memory on tree construction when there are many many nodes:
@@ -39,19 +38,21 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
 
   protected int myMemoizedChildrenCount = INVALID_CHILDREN_COUNT;
 
-  private int myCurrentPageCount;
+  protected int myCurrentPageCount;
   /**
    * A partial view into the full list of children. It always starts at 0 but will be bounded by:
    * Math.min(myChildren.size(), myCurrentPageCount * NUM_CHILDREN_PER_PAGE);
    */
-  private List<MemoryObjectTreeNode<T>> myChildrenView;
+  protected List<MemoryObjectTreeNode<T>> myChildrenView;
 
   @Nullable private DefaultTreeModel myTreeModel;
 
   @Nullable private MemoryObjectTreeNode<MemoryObject> myPagingNode;
+  private final boolean myUsePaging;
 
   public LazyMemoryObjectTreeNode(@NotNull T adapter, boolean usePaging) {
     super(adapter);
+    myUsePaging = usePaging;
 
     myCurrentPageCount = 1;
     myChildrenView = myChildren.subList(0, 0);
@@ -79,7 +80,7 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
     expandNode();
     ensureOrder();
 
-    if (myPagingNode != null && myChildren.size() == myChildrenView.size() && i >= myChildren.size()) {
+    if (myPagingNode != null && myMemoizedChildrenCount == myChildrenView.size() && i >= myChildrenView.size()) {
       // Custom exception handling for the case where all children are displayed.
       // Otherwise we allow the index to be myChildrenView.size() + 1 to account for the paging node.
       throw new IndexOutOfBoundsException();
@@ -158,40 +159,31 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
       0, Math.min(myChildren.size(), myPagingNode != null ? myCurrentPageCount * NUM_CHILDREN_PER_PAGE : myMemoizedChildrenCount));
   }
 
+  public void resetPaging() {
+    myCurrentPageCount = 1;
+    myChildren.clear();
+    myChildrenView = myChildren.subList(0, 0);
+    myMemoizedChildrenCount = -1;
+    if (myUsePaging) {
+      myPagingNode = new PagingNode(this);
+    }
+  }
+
   private static class PagingNode extends MemoryObjectTreeNode<MemoryObject> {
     @NotNull private final LazyMemoryObjectTreeNode myOwnerNode;
 
     public PagingNode(@NotNull LazyMemoryObjectTreeNode ownerNode) {
       super(() -> String.format("Click to see next %d...",
-                                Math.min(NUM_CHILDREN_PER_PAGE, ownerNode.myChildren.size() - ownerNode.myChildrenView.size())));
+                                Math.min(NUM_CHILDREN_PER_PAGE, ownerNode.myMemoizedChildrenCount - ownerNode.myChildrenView.size())));
       myOwnerNode = ownerNode;
     }
 
     @Override
     public void select() {
       myOwnerNode.myCurrentPageCount++;
-      int[] newIndices;
-      if (myOwnerNode.myCurrentPageCount * NUM_CHILDREN_PER_PAGE >= myOwnerNode.myChildren.size()) {
-        newIndices = new int[myOwnerNode.myChildren.size() - myOwnerNode.myChildrenView.size()];
-      }
-      else {
-        // Note the +1 offset to account for the paging node that needs to be appended to the end.
-        newIndices = new int[NUM_CHILDREN_PER_PAGE + 1];
-      }
-
-      for (int i = 0; i < newIndices.length; i++) {
-        newIndices[i] = myOwnerNode.myChildrenView.size() + i;
-      }
-
+      myOwnerNode.expandNode();
       assert myOwnerNode.myTreeModel != null;
-      int previousViewSize = myOwnerNode.myChildrenView.size();
-      myOwnerNode.myChildrenView =
-        myOwnerNode.myChildren
-          .subList(0, Math.min(myOwnerNode.myChildren.size(), myOwnerNode.myCurrentPageCount * NUM_CHILDREN_PER_PAGE));
-      // First remove the existing paging node.
-      myOwnerNode.myTreeModel.nodesWereRemoved(myOwnerNode, new int[]{previousViewSize}, new Object[]{this});
-      // Fires the rest of the new node insertion events.
-      myOwnerNode.myTreeModel.nodesWereInserted(myOwnerNode, newIndices);
+      myOwnerNode.myTreeModel.nodeStructureChanged(myOwnerNode);
     }
   }
 }

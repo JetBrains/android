@@ -22,7 +22,6 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeIntColumn;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeSizeColumn;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass;
-
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.StreamingTimeline;
@@ -37,8 +36,8 @@ import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
@@ -210,6 +209,9 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
       makeSizeColumn("Shallow Size", 120, ValueObject::getShallowSize));
+    myAttributeColumns.put(
+      InstanceAttribute.RETAINED_NATIVE_SIZE,
+      makeSizeColumn("Retained Native Size", 150, ValueObject::getRetainedNativeSize));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
       makeSizeColumn("Retained Size", 130, ValueObject::getRetainedSize));

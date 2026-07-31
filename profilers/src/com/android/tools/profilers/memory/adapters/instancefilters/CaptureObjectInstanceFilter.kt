@@ -34,12 +34,12 @@ open class CaptureObjectInstanceFilter(
   /** link pointing to further documentation if available, null otherwise. */
   val documentationLink: String?,
   /** The test on each individual instance */
-  val instanceTest: (InstanceObject) -> Boolean,
+  open val instanceTest: (InstanceObject) -> Boolean,
 ) {
 
   /**
    * @param instances The set of instances to filter
    * @return a subset of instances based on some arbitrary criteria.
    */
-  fun filter(instances: Set<InstanceObject>) = instances.filterTo(HashSet(), instanceTest)
+  open fun filter(instances: Set<InstanceObject>): Set<InstanceObject> = instances.filterTo(HashSet(), instanceTest)
 }

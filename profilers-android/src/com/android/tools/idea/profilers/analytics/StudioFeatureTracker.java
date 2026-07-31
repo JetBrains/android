@@ -661,7 +661,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTraceProcessorMemoryData(
+  public void trackTraceProcessorNativeMemoryData(
     @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
@@ -670,6 +670,18 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .build();
 
     newTracker(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_MEMORY_DATA).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorHeapDumpData(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_HEAP_DUMP_DATA).setTraceProcessorDaemonQueryStats(stats).track();
   }
 
   @Override

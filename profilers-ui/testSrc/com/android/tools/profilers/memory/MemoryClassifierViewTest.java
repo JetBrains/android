@@ -930,7 +930,7 @@ public class MemoryClassifierViewTest {
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
     treeInfo
-      .verifyColumnHeaders("Class Name", "Allocations", "Deallocations", "Total Count", "Native Size", "Shallow Size", "Retained Size",
+      .verifyColumnHeaders("Class Name", "Allocations", "Deallocations", "Total Count", "Native Size", "Shallow Size", "Retained Size", "Retained Native Size",
                            "Allocations Size", "Deallocations Size", "Remaining Size", "Module Name", "Shallow Size Change");
 
     Object root = tree.getModel().getRoot();
@@ -957,6 +957,7 @@ public class MemoryClassifierViewTest {
                                     new String[]{Long.toString(classSet.getTotalNativeSize())},
                                     new String[]{Long.toString(classSet.getTotalShallowSize())},
                                     new String[]{Long.toString(classSet.getTotalRetainedSize())},
+                                    new String[]{Long.toString(classSet.getTotalRetainedNativeSize())},
                                     new String[]{Long.toString(classSet.getAllocationSize())},
                                     new String[]{Long.toString(classSet.getDeallocationSize())},
                                     new String[]{Long.toString(classSet.getTotalRemainingSize())},

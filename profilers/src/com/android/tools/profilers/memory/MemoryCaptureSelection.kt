@@ -240,6 +240,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
       update(capture)
         .addListener(
           {
+            selectedHeapSet?.forceRefiltering()
             aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATED)
             refreshSelectedHeap()
           },

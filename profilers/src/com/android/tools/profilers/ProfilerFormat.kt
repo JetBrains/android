@@ -25,7 +25,7 @@ sealed interface ProfilerFormat {
   fun matches(extension: String?, traceTypeProvider: Lazy<TraceType?>): Boolean
 
   object Hprof : ProfilerFormat {
-    override val extensions = listOf("hprof", "prof")
+    override val extensions = listOf("hprof", "prof", "perfetto-java-heap-dump")
     override val taskType = ProfilerTaskType.HEAP_DUMP
 
     override fun matches(extension: String?, traceTypeProvider: Lazy<TraceType?>) = extension?.lowercase() in extensions

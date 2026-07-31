@@ -137,7 +137,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
       myIsLoadingError = true;
       return false;
     }
-    service.loadMemoryData(traceId, myProcessAbi, myDefaultHeapSet, myIdeProfilerServices);
+    service.loadNativeMemoryData(traceId, myProcessAbi, myDefaultHeapSet, myIdeProfilerServices);
     myIsDoneLoading = true;
     return true;
   }

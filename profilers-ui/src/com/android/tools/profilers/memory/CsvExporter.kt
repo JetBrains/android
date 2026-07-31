@@ -57,6 +57,7 @@ class CsvExporter(
         ClassifierAttribute.SHALLOW_SIZE to ClassifierSet::totalShallowSize,
         ClassifierAttribute.SHALLOW_DIFFERENCE to ClassifierSet::deltaShallowSize,
         ClassifierAttribute.RETAINED_SIZE to ClassifierSet::totalRetainedSize,
+        ClassifierAttribute.RETAINED_NATIVE_SIZE to ClassifierSet::totalRetainedNativeSize,
         ClassifierAttribute.ALLOCATIONS_SIZE to ClassifierSet::allocationSize,
         ClassifierAttribute.DEALLOCATIONS_SIZE to ClassifierSet::deallocationSize,
         ClassifierAttribute.REMAINING_SIZE to ClassifierSet::totalRemainingSize,
@@ -77,6 +78,7 @@ class CsvExporter(
         InstanceAttribute.NATIVE_SIZE to InstanceObject::getNativeSize,
         InstanceAttribute.SHALLOW_SIZE to InstanceObject::getShallowSize,
         InstanceAttribute.RETAINED_SIZE to InstanceObject::getRetainedSize,
+        InstanceAttribute.RETAINED_NATIVE_SIZE to InstanceObject::getRetainedNativeSize,
       ),
     )
 

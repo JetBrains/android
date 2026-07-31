@@ -24,7 +24,6 @@ import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeCondit
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeIntColumn;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeSizeColumn;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass;
-
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
@@ -37,8 +36,8 @@ import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
@@ -55,6 +54,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -85,6 +85,10 @@ public final class MemoryClassSetView extends AspectObserver {
   @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
   @NotNull private final Map<InstanceAttribute, AttributeColumn<MemoryObject>> myAttributeColumns = new HashMap<>();
+
+  @NotNull private final Map<Comparator<?>, InstanceAttribute> myComparatorAttributes = new java.util.IdentityHashMap<>();
+
+  @NotNull private final Map<Comparator<?>, Boolean> myComparatorIsDescending = new java.util.IdentityHashMap<>();
 
   @NotNull private final JPanel myInstancesPanel = new JPanel(new BorderLayout());
 
@@ -174,6 +178,9 @@ public final class MemoryClassSetView extends AspectObserver {
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
       makeSizeColumn("Shallow Size", 120, ValueObject::getShallowSize));
+    myAttributeColumns.put(
+      InstanceAttribute.RETAINED_NATIVE_SIZE,
+      makeSizeColumn("Retained Native Size", 150, ValueObject::getRetainedNativeSize));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
       makeSizeColumn("Retained Size", 130, ValueObject::getRetainedSize));
@@ -277,16 +284,37 @@ public final class MemoryClassSetView extends AspectObserver {
     for (InstanceAttribute attribute : supportedAttributes) {
       AttributeColumn<MemoryObject> column = myAttributeColumns.get(attribute);
       ColumnTreeBuilder.ColumnBuilder columnBuilder = column.getBuilder();
+
+      Comparator<MemoryObjectTreeNode<MemoryObject>> attrComparator = new AttributeComparator(attribute, column.getComparator());
+      columnBuilder.setComparator(attrComparator);
+
+      Comparator<MemoryObjectTreeNode<MemoryObject>> reversedComparator = Collections.reverseOrder(attrComparator);
+      myComparatorAttributes.put(attrComparator, attribute);
+      myComparatorIsDescending.put(attrComparator, false);
+      myComparatorAttributes.put(reversedComparator, attribute);
+      myComparatorIsDescending.put(reversedComparator, true);
+
       if (sortAttribute == attribute) {
         columnBuilder.setInitialOrder(attribute.getSortOrder());
         myInitialComparator =
-          attribute.getSortOrder() == SortOrder.ASCENDING ? column.getComparator() : Collections.reverseOrder(column.getComparator());
+          attribute.getSortOrder() == SortOrder.ASCENDING ? attrComparator : reversedComparator;
       }
       builder.addColumn(columnBuilder);
     }
     builder.setTreeSorter((Comparator<MemoryObjectTreeNode<MemoryObject>> comparator, SortOrder sortOrder) -> {
       if (myTreeRoot != null) {
         TreePath selectionPath = myTree.getSelectionPath();
+
+        // Extract attribute from comparator
+        InstanceAttribute sortAttr = myComparatorAttributes.get(comparator);
+        if (sortAttr != null && myClassSet != null) {
+            myClassSet.setSort(sortAttr, sortOrder == SortOrder.DESCENDING);
+            // If it's a trace processor set, sorting means we might have fetched the wrong pages initially if we already expanded.
+            // Reset the pagination.
+            myTreeRoot.resetPaging();
+            myTreeRoot.expandNode();
+        }
+
         myTreeRoot.sort(comparator);
         myTreeModel.nodeStructureChanged(myTreeRoot);
         if (selectionPath != null) {
@@ -348,15 +376,23 @@ public final class MemoryClassSetView extends AspectObserver {
         }
 
         myMemoizedChildrenCount = myClassSet.getInstancesCount();
-        myClassSet.getInstancesStream().forEach(subAdapter -> InstanceNodeKt.addChild(this, subAdapter, LeafNode::new));
 
-        if (myTreeModel != null) {
-          myTreeModel.nodeChanged(this);
+        int loaded = myChildren.size();
+        int toLoad = Math.min(myMemoizedChildrenCount, myCurrentPageCount * NUM_CHILDREN_PER_PAGE);
+        if (loaded < toLoad) {
+          myClassSet.getInstances(loaded, toLoad - loaded)
+            .forEach(subAdapter -> InstanceNodeKt.addChild(this, subAdapter, LeafNode::new));
         }
+
       }
     };
 
     if (comparator != null) {
+      InstanceAttribute sortAttr = myComparatorAttributes.get(comparator);
+      Boolean isDescending = myComparatorIsDescending.get(comparator);
+      if (sortAttr != null && isDescending != null && myClassSet != null) {
+        myClassSet.setSort(sortAttr, isDescending);
+      }
       myTreeRoot.sort(comparator);
     }
 
@@ -564,5 +600,24 @@ public final class MemoryClassSetView extends AspectObserver {
         return null;
       }
     };
+  }
+
+  private static class AttributeComparator implements Comparator<MemoryObjectTreeNode<MemoryObject>> {
+    private final InstanceAttribute myAttribute;
+    private final Comparator<MemoryObjectTreeNode<MemoryObject>> myDelegate;
+
+    public AttributeComparator(InstanceAttribute attribute, Comparator<MemoryObjectTreeNode<MemoryObject>> delegate) {
+      myAttribute = attribute;
+      myDelegate = delegate;
+    }
+
+    @Override
+    public int compare(MemoryObjectTreeNode<MemoryObject> o1, MemoryObjectTreeNode<MemoryObject> o2) {
+      return myDelegate.compare(o1, o2);
+    }
+
+    public InstanceAttribute getAttribute() {
+      return myAttribute;
+    }
   }
 }

@@ -26,27 +26,34 @@ import org.jetbrains.annotations.NotNull;
 public class PackageSet extends ClassifierSet {
   @NotNull private final CaptureObject myCaptureObject;
   private final int myPackageNameIndex;
+  private final int myHeapId;
+
+  @NotNull
+  public static Classifier createDefaultClassifier(@NotNull CaptureObject captureObject, int heapId) {
+    return packageClassifier(captureObject, 0, heapId);
+  }
 
   @NotNull
   public static Classifier createDefaultClassifier(@NotNull CaptureObject captureObject) {
-    return packageClassifier(captureObject, 0);
+    return createDefaultClassifier(captureObject, 0);
   }
 
-  public PackageSet(@NotNull CaptureObject captureObject, @NotNull String packageElementName, int packageNameIndex) {
+  public PackageSet(@NotNull CaptureObject captureObject, @NotNull String packageElementName, int packageNameIndex, int heapId) {
     super(packageElementName);
     myCaptureObject = captureObject;
     myPackageNameIndex = packageNameIndex;
+    myHeapId = heapId;
   }
 
   @NotNull
   @Override
   public Classifier createSubClassifier() {
-    return packageClassifier(myCaptureObject, myPackageNameIndex + 1);
+    return packageClassifier(myCaptureObject, myPackageNameIndex + 1, myHeapId);
   }
 
-  private static Classifier packageClassifier(CaptureObject captureObject, int packageNameIndex) {
-    return new Classifier.Join<>(packageElementAt(packageNameIndex), elem -> new PackageSet(captureObject, elem, packageNameIndex),
-                                 Classifier.of(InstanceObject::getClassEntry, ClassSet::new));
+  private static Classifier packageClassifier(CaptureObject captureObject, int packageNameIndex, int heapId) {
+    return new Classifier.Join<>(packageElementAt(packageNameIndex), elem -> new PackageSet(captureObject, elem, packageNameIndex, heapId),
+                                 ClassSet.createDefaultClassifier(captureObject, heapId));
   }
 
   private static Function1<InstanceObject, String> packageElementAt(int packageNameIndex) {

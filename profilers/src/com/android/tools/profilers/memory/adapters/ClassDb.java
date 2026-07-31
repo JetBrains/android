@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.intellij.util.ArrayUtil;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -74,6 +75,15 @@ public final class ClassDb {
   public ClassEntry getEntry(long classId) {
     assert myClassEntries.containsKey(classId);
     return myClassEntries.get(classId);
+  }
+
+  public boolean hasEntry(long classId) {
+    return myClassEntries.containsKey(classId);
+  }
+
+  @NotNull
+  public Collection<ClassEntry> getClassEntries() {
+    return myClassEntries.values();
   }
 
   @NotNull
@@ -138,7 +148,16 @@ public final class ClassDb {
     @NotNull private final String[] mySplitPackageName;
 
     // known exact retained size, or -1 if not know (e.g. for live allocations)
-    private final long myRetainedSize;
+    private long myRetainedSize;
+    private long myRetainedNativeSize = -1L;
+
+    public void setRetainedSize(long retainedSize) {
+      myRetainedSize = retainedSize;
+    }
+
+    public void setRetainedNativeSize(long retainedNativeSize) {
+      myRetainedNativeSize = retainedNativeSize;
+    }
 
     /**=
      * @param classId       unique identifier for the class.
@@ -200,6 +219,10 @@ public final class ClassDb {
 
     public long getRetainedSize() {
       return myRetainedSize;
+    }
+
+    public long getRetainedNativeSize() {
+      return myRetainedNativeSize;
     }
 
     @Override
