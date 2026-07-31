@@ -22,6 +22,7 @@ import com.android.tools.idea.preview.find.AnnotationPreviewNameHelper
 import com.android.tools.idea.preview.find.FilePreviewElementFinder
 import com.android.tools.idea.preview.find.NodeInfo
 import com.android.tools.idea.preview.find.UAnnotationSubtreeInfo
+import com.android.tools.idea.preview.find.anyAnnotationInGraphSync
 import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.find.findAnnotatedMethods
 import com.android.tools.idea.preview.find.findPreviewDefaultValues
@@ -32,12 +33,10 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.jetbrains.uast.UAnnotation
@@ -129,5 +128,4 @@ object AppWidgetPreviewElementFinder : GlancePreviewElementFinder()
 fun isMultiPreviewAnnotation(annotation: UAnnotation) =
   !isGlancePreview(annotation) &&
     annotation.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME) != null &&
-    // TODO(b/381827960): avoid using runBlockingCancellable
-    runBlockingCancellable { annotation.findAllAnnotationsInGraph(filter = ::isGlancePreview).firstOrNull() != null }
+    annotation.anyAnnotationInGraphSync { isGlancePreview(it) }

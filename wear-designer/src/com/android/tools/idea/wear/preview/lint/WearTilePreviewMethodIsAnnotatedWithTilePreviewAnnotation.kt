@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.find.anyAnnotationInGraphSync
 import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
 import com.android.tools.idea.wear.preview.TILE_PREVIEW_ANNOTATION_FQ_NAME
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
@@ -24,9 +24,8 @@ import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
-import kotlinx.coroutines.flow.firstOrNull
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 
@@ -76,10 +75,10 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation : WearTilePrevie
   override fun getStaticDescription() = message("inspection.preview.annotation.not.from.tile.package")
 }
 
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
-// TODO(b/381827960): avoid using runBlockingCancellable
-private fun UAnnotation.isMultiPreviewAnnotationFromInvalidPackage() = runBlockingCancellable {
-  findAllAnnotationsInGraph { it.qualifiedName.isPreviewFqnFromDifferentPackage() }.firstOrNull() != null
+private fun UAnnotation.isMultiPreviewAnnotationFromInvalidPackage() = anyAnnotationInGraphSync {
+  it.qualifiedName.isPreviewFqnFromDifferentPackage()
 }
 
 private fun String?.isPreviewFqnFromDifferentPackage() = this?.endsWith(".Preview") == true && this != TILE_PREVIEW_ANNOTATION_FQ_NAME

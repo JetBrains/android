@@ -1020,6 +1020,34 @@ class WearTilePreviewElementFinderTest {
 
     assertThat(isTileAnnotationUsed(project, composePreviewFile.virtualFile)).isFalse()
   }
+
+  @Test
+  fun testHasTilePreviewAnnotationOnUAnnotation() = runBlocking {
+    val previewsTest =
+      fixture.addFileToProjectAndInvalidate(
+        "app/src/main/java/com/android/test/TestTilePreviewAnnotationRoot.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+        @Preview
+        private fun tilePreview(): TilePreviewData {
+          return TilePreviewData()
+        }
+        """
+          .trimIndent(),
+      )
+
+    ReadAction.run<Throwable> {
+      val method = previewsTest.toUElementOfType<UFile>()?.method("tilePreview")
+      val annotation = method?.uAnnotations?.firstOrNull()
+      assertTrue(annotation.hasTilePreviewAnnotation())
+    }
+  }
 }
 
 private fun PsiFile.textRange(methodName: String): TextRange {
