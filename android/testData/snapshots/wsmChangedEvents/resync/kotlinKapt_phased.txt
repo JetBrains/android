@@ -13,60 +13,17 @@ Workspace model changed #2, phase: BASE_SCRIPT_MODEL_PHASE
     Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinProjectScriptTemplate))
     Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate))
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
-    Roots changed
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.app)
-    With:     ModuleEntity for ModuleId(name=MainActivity.app)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
-    With:     ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.main)
-    With:     ModuleEntity for ModuleId(name=MainActivity.app.main)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
-    With:     ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
-    With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
     Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
     With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib)
-    With:     ModuleEntity for ModuleId(name=MainActivity.lib)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
-    With:     ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.main)
-    With:     ModuleEntity for ModuleId(name=MainActivity.lib.main)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
-    With:     ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
     Removed TestModulePropertiesEntity for MainActivity.javaLib.test
-    Added JavaModuleSettingsEntity for MainActivity.app
-    Added JavaModuleSettingsEntity for MainActivity.lib
-    Removed JavaModuleSettingsEntity for MainActivity.app
-    Removed JavaModuleSettingsEntity for MainActivity.lib
     Replaced: GradleModuleModelEntity for MainActivity.app
     With:     GradleModuleModelEntity for MainActivity.app
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.app.androidTest)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.app.main)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.app.unitTest)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.javaLib.main)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.javaLib.test)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.lib.androidTest)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.lib.main)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.lib.unitTest)))
 Workspace model changed #4, phase: ADDITIONAL_MODEL_PHASE
 Workspace model changed #5, phase: N/A
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
-    With:     ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.main)
-    With:     ModuleEntity for ModuleId(name=MainActivity.app.main)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
-    With:     ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
     Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
     With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
     Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
     With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
-    With:     ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.main)
-    With:     ModuleEntity for ModuleId(name=MainActivity.lib.main)
-    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
-    With:     ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
     Replaced: LibraryEntity: Gradle: androidx.annotation:annotation:1.0.0
     With:     LibraryEntity: Gradle: androidx.annotation:annotation:1.0.0
     Replaced: LibraryEntity: Gradle: androidx.arch.core:core-common:2.0.0
@@ -104,10 +61,6 @@ Workspace model changed #5, phase: N/A
     Added TestModulePropertiesEntity for MainActivity.javaLib.test
     Added ModuleMavenCoordinateEntity for MainActivity.javaLib.main
     Removed ModuleMavenCoordinateEntity for MainActivity.javaLib.main
-    Replaced: JavaModuleSettingsEntity for MainActivity.app
-    With:     JavaModuleSettingsEntity for MainActivity.app
-    Replaced: JavaModuleSettingsEntity for MainActivity.lib
-    With:     JavaModuleSettingsEntity for MainActivity.lib
     Replaced: GradleModuleModelEntity for MainActivity.app
     With:     GradleModuleModelEntity for MainActivity.app
     Added LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.0.0
@@ -140,11 +93,3 @@ Workspace model changed #5, phase: N/A
     Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-library:1.3
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib:<AGP_BUILT_IN_KOTLIN_VERSION>
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.app.androidTest)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.app.main)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.app.unitTest)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.javaLib.main)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.javaLib.test)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.lib.androidTest)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.lib.main)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=MainActivity.lib.unitTest)))

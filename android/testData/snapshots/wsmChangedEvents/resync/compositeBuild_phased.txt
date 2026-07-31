@@ -13,61 +13,18 @@ Workspace model changed #2, phase: BASE_SCRIPT_MODEL_PHASE
     Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinProjectScriptTemplate))
     Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate))
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
-    Roots changed
     Replaced: ModuleEntity for ModuleId(name=TestCompositeLib2.test)
     With:     ModuleEntity for ModuleId(name=TestCompositeLib2.test)
     Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.TestCompositeLibNested_3.test)
     With:     ModuleEntity for ModuleId(name=TestCompositeLib3.TestCompositeLibNested_3.test)
-    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.app)
-    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.app)
-    Replaced: ModuleEntity for ModuleId(name=TestCompositeLib3.lib)
-    With:     ModuleEntity for ModuleId(name=TestCompositeLib3.lib)
     Replaced: ModuleEntity for ModuleId(name=TestCompositeLib4.test)
     With:     ModuleEntity for ModuleId(name=TestCompositeLib4.test)
     Replaced: ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.test)
     With:     ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.test)
-    Replaced: ModuleEntity for ModuleId(name=includedLib1.app)
-    With:     ModuleEntity for ModuleId(name=includedLib1.app)
-    Replaced: ModuleEntity for ModuleId(name=includedLib1.lib)
-    With:     ModuleEntity for ModuleId(name=includedLib1.lib)
-    Replaced: ModuleEntity for ModuleId(name=p.app)
-    With:     ModuleEntity for ModuleId(name=p.app)
-    Replaced: ModuleEntity for ModuleId(name=p.app.androidTest)
-    With:     ModuleEntity for ModuleId(name=p.app.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=p.app.main)
-    With:     ModuleEntity for ModuleId(name=p.app.main)
-    Replaced: ModuleEntity for ModuleId(name=p.app.unitTest)
-    With:     ModuleEntity for ModuleId(name=p.app.unitTest)
-    Replaced: ModuleEntity for ModuleId(name=p.lib)
-    With:     ModuleEntity for ModuleId(name=p.lib)
-    Replaced: ModuleEntity for ModuleId(name=p.lib.androidTest)
-    With:     ModuleEntity for ModuleId(name=p.lib.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=p.lib.main)
-    With:     ModuleEntity for ModuleId(name=p.lib.main)
-    Replaced: ModuleEntity for ModuleId(name=p.lib.unitTest)
-    With:     ModuleEntity for ModuleId(name=p.lib.unitTest)
     Removed TestModulePropertiesEntity for TestCompositeLib2.test
     Removed TestModulePropertiesEntity for TestCompositeLib3.TestCompositeLibNested_3.test
     Removed TestModulePropertiesEntity for TestCompositeLib4.test
     Removed TestModulePropertiesEntity for includedLib1.TestCompositeLibNested_1.test
-    Added JavaModuleSettingsEntity for TestCompositeLib3.app
-    Added JavaModuleSettingsEntity for TestCompositeLib3.lib
-    Added JavaModuleSettingsEntity for includedLib1.app
-    Added JavaModuleSettingsEntity for includedLib1.lib
-    Added JavaModuleSettingsEntity for p.app
-    Added JavaModuleSettingsEntity for p.lib
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.app
-    Removed JavaModuleSettingsEntity for TestCompositeLib3.lib
-    Removed JavaModuleSettingsEntity for includedLib1.app
-    Removed JavaModuleSettingsEntity for includedLib1.lib
-    Removed JavaModuleSettingsEntity for p.app
-    Removed JavaModuleSettingsEntity for p.lib
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.app.androidTest)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.app.main)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.app.unitTest)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.lib.androidTest)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.lib.main)))
-    Removed(oldEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.lib.unitTest)))
 Workspace model changed #4, phase: ADDITIONAL_MODEL_PHASE
     Roots changed
     Replaced: JavaProjectSettingsEntity for the IDE project
@@ -90,18 +47,6 @@ Workspace model changed #6, phase: N/A
     With:     ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.main)
     Replaced: ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.test)
     With:     ModuleEntity for ModuleId(name=includedLib1.TestCompositeLibNested_1.test)
-    Replaced: ModuleEntity for ModuleId(name=p.app.androidTest)
-    With:     ModuleEntity for ModuleId(name=p.app.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=p.app.main)
-    With:     ModuleEntity for ModuleId(name=p.app.main)
-    Replaced: ModuleEntity for ModuleId(name=p.app.unitTest)
-    With:     ModuleEntity for ModuleId(name=p.app.unitTest)
-    Replaced: ModuleEntity for ModuleId(name=p.lib.androidTest)
-    With:     ModuleEntity for ModuleId(name=p.lib.androidTest)
-    Replaced: ModuleEntity for ModuleId(name=p.lib.main)
-    With:     ModuleEntity for ModuleId(name=p.lib.main)
-    Replaced: ModuleEntity for ModuleId(name=p.lib.unitTest)
-    With:     ModuleEntity for ModuleId(name=p.lib.unitTest)
     Replaced: LibraryEntity: Gradle: android.arch.core:common:1.1.1
     With:     LibraryEntity: Gradle: android.arch.core:common:1.1.1
     Replaced: LibraryEntity: Gradle: android.arch.lifecycle:common:1.1.1
@@ -140,18 +85,6 @@ Workspace model changed #6, phase: N/A
     Removed ModuleMavenCoordinateEntity for TestCompositeLib3.TestCompositeLibNested_3.main
     Removed ModuleMavenCoordinateEntity for TestCompositeLib4.main
     Removed ModuleMavenCoordinateEntity for includedLib1.TestCompositeLibNested_1.main
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.app
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.app
-    Replaced: JavaModuleSettingsEntity for TestCompositeLib3.lib
-    With:     JavaModuleSettingsEntity for TestCompositeLib3.lib
-    Replaced: JavaModuleSettingsEntity for includedLib1.app
-    With:     JavaModuleSettingsEntity for includedLib1.app
-    Replaced: JavaModuleSettingsEntity for includedLib1.lib
-    With:     JavaModuleSettingsEntity for includedLib1.lib
-    Replaced: JavaModuleSettingsEntity for p.app
-    With:     JavaModuleSettingsEntity for p.app
-    Replaced: JavaModuleSettingsEntity for p.lib
-    With:     JavaModuleSettingsEntity for p.lib
     Added LibraryMavenCoordinateEntity for Gradle: android.arch.core:common:1.1.1
     Added LibraryMavenCoordinateEntity for Gradle: android.arch.lifecycle:common:1.1.1
     Added LibraryMavenCoordinateEntity for Gradle: com.android.support.constraint:constraint-layout-solver:1.0.2
@@ -166,9 +99,3 @@ Workspace model changed #6, phase: N/A
     Removed LibraryMavenCoordinateEntity for Gradle: com.android.support:support-annotations:28.0.0
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib:<AGP_BUILT_IN_KOTLIN_VERSION>
     Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.app.androidTest)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.app.main)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.app.unitTest)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.lib.androidTest)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.lib.main)))
-    Added(newEntity=KotlinSettingsId(name=Kotlin, parentId=ModuleId(name=p.lib.unitTest)))

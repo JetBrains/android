@@ -13,11 +13,6 @@ Workspace model changed #2, phase: BASE_SCRIPT_MODEL_PHASE
     Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinProjectScriptTemplate))
     Removed(oldEntity=GradleScriptDefinitionEntityId(id=org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate))
 Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
-    Roots changed
-    Replaced: ModuleEntity for ModuleId(name=MultiFlavor.app)
-    With:     ModuleEntity for ModuleId(name=MultiFlavor.app)
-    Added JavaModuleSettingsEntity for MultiFlavor.app
-    Removed JavaModuleSettingsEntity for MultiFlavor.app
     Replaced: GradleModuleModelEntity for MultiFlavor.app
     With:     GradleModuleModelEntity for MultiFlavor.app
 Workspace model changed #4, phase: ADDITIONAL_MODEL_PHASE
@@ -54,8 +49,6 @@ Workspace model changed #6, phase: N/A
     With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-library:1.3
     Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
     With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MultiFlavor.app))
-    Replaced: JavaModuleSettingsEntity for MultiFlavor.app
-    With:     JavaModuleSettingsEntity for MultiFlavor.app
     Replaced: GradleModuleModelEntity for MultiFlavor.app
     With:     GradleModuleModelEntity for MultiFlavor.app
     Added LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.1.0
