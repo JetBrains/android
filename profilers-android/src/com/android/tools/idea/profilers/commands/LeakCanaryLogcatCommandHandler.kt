@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.leakcanarylib.LeakCanaryParser
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.EndSession
+import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData.LeakCanaryMode
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisData
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisEnded
@@ -59,6 +60,7 @@ class LeakCanaryLogcatCommandHandler(
   private var sessionId = 0L
   private val bytesRetainedText = "bytes retained by leaking objects"
   private val logger: Logger = Logger.getInstance(LeakCanaryLogcatCommandHandler::class.java)
+  private var currentMode: LeakCanaryMode? = null
   private var startTimeNs: Long = 0
   private val TWO_SECONDS = TimeUnit.SECONDS.toSeconds(2)
   private var prevLogTimeStampOfPartialTrace = 0L
@@ -74,7 +76,6 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   override fun shouldHandle(command: Commands.Command): Boolean {
-    // TODO: android-merge; updated as in upstream
     return command.type == Commands.Command.CommandType.START_LEAKCANARY_TASK ||
            command.type == Commands.Command.CommandType.STOP_LEAKCANARY_TASK
   }
@@ -91,25 +92,68 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   /**
-   * Starts listening and detecting LeakCanary logs from Logcat and sends a started status info event.
+   * Starts listening and detecting LeakCanary logs from Logcat,
+   * sends start object count tracking command to the agent
+   * And sends a started status info event.
    */
   private fun startTrace(command: Commands.Command) {
+    currentMode = command.getStartLeakcanaryTask().mode
+    logger.info("LeakCanary task started in $currentMode mode.")
     startTimeNs = getCurrentTimestampInNs()
     pid = command.pid
     sessionId = command.sessionId
-    resetTrackingState()
-    readLeakLog()
-    sendLeakCanaryAnalysisInfoEvent(timestampNs = startTimeNs, isStarted = true)
+
+    var isTaskStarted = true
+    if (currentMode == LeakCanaryMode.ON_HOST) {
+      val objectCountCommand = Commands.Command.newBuilder()
+        .setStreamId(command.streamId)
+        .setPid(pid)
+        .setType(Commands.Command.CommandType.START_LEAKCANARY_OBJECT_COUNT_TRACKING)
+        .build()
+      try {
+        transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(objectCountCommand).build())
+      } catch (e: Exception) {
+        isTaskStarted = false
+        logger.warn("Failed to execute start object count tracking command", e)
+      }
+    } else { // ON_DEVICE mode
+      resetTrackingState()
+      readLeakLog()
+    }
+
+    if (isTaskStarted) {
+      sendLeakCanaryAnalysisInfoEvent(timestampNs = startTimeNs, isStarted = true)
+    }
   }
 
   /**
-   * Stops listening and detecting LeakCanary logs from Logcat and sends a Logcat info event and a session ended event effectively
-   * terminating the task.
+   * Stops listening and detecting LeakCanary logs from Logcat,
+   * sends a Logcat info event,
+   * sends stop object count tracking command to the agent,
+   * And a session ended event effectively terminating the task.
    */
   private fun stopTrace(command: Commands.Command) {
     val endTime = getCurrentTimestampInNs()
-    resetTrackingState()
+
+    // Only stop object count tracking if we were in ON_HOST mode
+    if (currentMode == LeakCanaryMode.ON_HOST) {
+      val stopObjectCountCommand = Commands.Command.newBuilder()
+        .setStreamId(command.streamId)
+        .setPid(pid)
+        .setType(Commands.Command.CommandType.STOP_LEAKCANARY_OBJECT_COUNT_TRACKING)
+        .build()
+      try {
+        transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(stopObjectCountCommand).build())
+      } catch (e: Exception) {
+        logger.warn("Failed to execute stop object count tracking command", e)
+      }
+    }
+    else {
+      resetTrackingState()
+    }
+
     sendLeakCanaryAnalysisInfoEvent(timestampNs = endTime, isStarted = false, stopStatus = SUCCESS)
+
     val endSessionCommand = Commands.Command.newBuilder()
       .setStreamId(command.streamId)
       .setPid(pid)
@@ -197,7 +241,6 @@ class LeakCanaryLogcatCommandHandler(
   }
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
-    // TODO: android-merge; updated as in upstream
     when (command.type) {
       Commands.Command.CommandType.START_LEAKCANARY_TASK -> startTrace(command)
       Commands.Command.CommandType.STOP_LEAKCANARY_TASK -> stopTrace(command)
@@ -226,11 +269,6 @@ class LeakCanaryLogcatCommandHandler(
           if (!handled) {
             handled = detectAndHandleCompleteLeakTraces(logcatMessage)
           }
-
-          // TODO: android-merge; removed as in upstream
-          //if (!handled) {
-          //  handled = detectAndHandleHostAnalysisTrigger(logcatMessage)
-          //}
 
           // Partial traces should only run if the logcat message was not handled by an explicit LeakCanary event (complete trace, trigger, etc.)
           if (!handled) {
@@ -383,21 +421,4 @@ Heap dump duration: Unknown
       }
     }
   }
-
-  // TODO: android-merge; removed as in upstream
-  //// Returns true if the host analysis trigger event was sent, false otherwise.
-  //private fun detectAndHandleHostAnalysisTrigger(logcatMessage: LogcatMessage): Boolean {
-  //  val HOST_ANALYSIS_TRIGGER_STRING = "The heap dump will be collected and analyzed by the Android Studio"
-  //  if (LEAKCANARY_TAG == logcatMessage.header.tag && HOST_ANALYSIS_TRIGGER_STRING in logcatMessage.message) {
-  //    logger.info("Host analysis trigger detected.")
-  //    eventQueue.offer(Common.Event.newBuilder()
-  //                       .setGroupId(pid.toLong())
-  //                       .setPid(pid)
-  //                       .setKind(Common.Event.Kind.LEAKCANARY_HOST_ANALYSIS_TRIGGER)
-  //                       .setTimestamp(getCurrentTimestampInNs())
-  //                       .build())
-  //    return true
-  //  }
-  //  return false
-  //}
 }
