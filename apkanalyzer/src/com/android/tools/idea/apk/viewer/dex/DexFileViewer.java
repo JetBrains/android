@@ -80,6 +80,8 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.EmptyIcon;
+import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import java.awt.BorderLayout;
 import java.awt.event.KeyAdapter;
@@ -187,29 +189,34 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
       myDeobfuscateNames = true;
       myDexTreeRenderer.setMappings(myProguardMappings);
     }
+    JBEmptyBorder padding = Borders.empty(0, 8);
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Class")
                    .setPreferredWidth(500)
                    .setHeaderAlignment(SwingConstants.LEFT)
+                   .setHeaderBorder(padding)
                    .setComparator(Comparator.comparing(DexElementNode::getName).reversed())
                    .setRenderer(myDexTreeRenderer))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Defined Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
+                   .setHeaderBorder(padding)
                    .setComparator(Comparator.comparing(DexElementNode::getMethodDefinitionsCount))
                    .setRenderer(new MethodCountRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Referenced Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
+                   .setHeaderBorder(padding)
                    .setComparator(Comparator.comparing(DexElementNode::getMethodReferencesCount))
                    .setRenderer(new MethodCountRenderer(false)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Size")
                    .setPreferredWidth(50)
                    .setHeaderAlignment(SwingConstants.LEFT)
+                   .setHeaderBorder(padding)
                    .setComparator(Comparator.comparing(DexElementNode::getSize))
                    .setRenderer(new SizeRenderer()));
 
@@ -837,4 +844,3 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
   }
 }
-
