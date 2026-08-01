@@ -36,11 +36,7 @@ class ProtoSrcJarQuerySyncNavigationPolicy : QuerySyncNavigationPolicyBase {
     }
 
     return CachedValuesManager.getCachedValue(clsFile) {
-      Result.create(
-        ProtoFileJavaSourceFinder(clsFile).findSourceFile(),
-        clsFile,
-        QuerySyncManager.getInstance(project).projectModificationTracker,
-      )
+      Result.create(ProtoFileJavaSourceFinder(clsFile).findSourceFile(), QuerySyncManager.getInstance(project).projectModificationTracker)
     }
   }
 }

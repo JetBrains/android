@@ -58,7 +58,7 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
             logger.error("Failed to find navigation file for: ${ktClsFile.name}", e)
             null
           }
-        Result.create(result, ktClsFile, QuerySyncManager.getInstance(project).projectModificationTracker)
+        Result.create(result, QuerySyncManager.getInstance(project).projectModificationTracker)
       }
     }
 

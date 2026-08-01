@@ -40,7 +40,6 @@ class QuerySyncNavigationPolicy : QuerySyncNavigationPolicyBase {
         ClassFileJavaSourceFinder(clsFile).findSourceFile()
           ?: ClassFileGenSrcJarJavaSourceFinder(clsFile).findSourceFile()
           ?: ClassFileSrcJarJavaSourceFinder(clsFile).findSourceFile(),
-        clsFile,
         QuerySyncManager.getInstance(project).projectModificationTracker,
       )
     }
