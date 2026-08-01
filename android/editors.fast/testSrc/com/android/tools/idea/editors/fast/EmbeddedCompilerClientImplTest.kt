@@ -32,7 +32,6 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.io.delete
 import java.io.File
@@ -407,7 +406,7 @@ internal class EmbeddedCompilerClientImplTest {
   }
 
   @Test
-  fun `write action aborts current compilation`() = runBlocking {
+  fun `write action can run during compilation`() = runBlocking {
     val file =
       projectRule.fixture.addFileToProject(
         "app/src/main/java/src/com/test/Source.kt",
@@ -425,6 +424,7 @@ internal class EmbeddedCompilerClientImplTest {
     val compilationHasStarted = CompletableDeferred<Unit>()
     val countDownLatch = CountDownLatch(1)
     val beforeCompileCallCount = AtomicInteger(0)
+    var writeActionRan = false
     run {
       val compiler =
         EmbeddedCompilerClientImpl(
@@ -434,16 +434,13 @@ internal class EmbeddedCompilerClientImplTest {
         ) {
           beforeCompileCallCount.incrementAndGet()
           compilationHasStarted.complete(Unit)
-          while (!countDownLatch.await(1, TimeUnit.SECONDS)) {
-            ProgressManager.checkCanceled()
-          }
+          countDownLatch.await(5, TimeUnit.SECONDS)
         }
       launch(Dispatchers.Default) {
         compilationHasStarted.await()
 
-        // Trigger a write action that should abort the compilation
-        runWriteActionAndWait {}
-        // Now we can let the compilation proceed in the next attempt
+        // Trigger a write action while compilation lock is held before backend code generation starts outside readAction
+        runWriteActionAndWait { writeActionRan = true }
         countDownLatch.countDown()
       }
 
@@ -460,7 +457,8 @@ internal class EmbeddedCompilerClientImplTest {
           EmptyProgressIndicator(),
         )
       assertEquals(CompilationResult.Success, result)
-      assertTrue("Write Action should trigger a compilation re-start", beforeCompileCallCount.get() > 1)
+      assertTrue("Write action should have completed successfully during compilation", writeActionRan)
+      assertEquals("Compilation should complete in a single attempt", 1, beforeCompileCallCount.get())
     }
   }
 }

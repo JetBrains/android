@@ -25,6 +25,7 @@ import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -108,34 +109,35 @@ private constructor(
     withContext(Dispatchers.Default) {
       log.debug("compileModuleKtFiles($inputs, $outputDirectory)")
 
+      val pathToCompileOutput = mutableMapOf<String, OutputFileForKtCompiledFile>()
+      val filesAlreadyCompiled = mutableSetOf<VirtualFile>()
+
       readAction {
-        // Verify that the files are valid and the module has not been disposed.
         if (moduleForAllInputs.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(moduleForAllInputs)
         inputs.forEach {
           if (!it.isValid) throw LiveEditUpdateException.fileNotValid(it)
           it.module?.let { module -> if (module.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(module) }
         }
-
-        val pathToCompileOutput = mutableMapOf<String, OutputFileForKtCompiledFile>()
-        val filesAlreadyCompiled = mutableSetOf<VirtualFile>()
-        runWithCompileLock {
-          beforeCompilationStarts()
-          log.debug("backCodeGen")
-          inputs.forEach { inputFile ->
-            if (inputFile.virtualFile in filesAlreadyCompiled) return@forEach
-
-            @OptIn(KaExperimentalApi::class)
-            val result =
-              backendCodeGenForK2(inputFile, moduleForAllInputs) { configureCommonKotlinCompilationOptions(moduleForAllInputs, inputFile) }
-            log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
-            @OptIn(KaExperimentalApi::class) addIfNotDuplicated(pathToCompileOutput, result.output.map { OutputFileForKtCompiledFile(it) })
-
-            filesAlreadyCompiled.addAll(result.output.getSourceVirtualFiles())
-          }
-        }
-
-        pathToCompileOutput.forEach { (_, output) -> output.writeTo(outputDirectory) }
       }
+
+      runWithCompileLock {
+        beforeCompilationStarts()
+        log.debug("backCodeGen")
+        inputs.forEach { inputFile ->
+          if (inputFile.virtualFile in filesAlreadyCompiled) return@forEach
+
+          @OptIn(KaExperimentalApi::class)
+          val result =
+            backendCodeGenForK2(inputFile, moduleForAllInputs) { configureCommonKotlinCompilationOptions(moduleForAllInputs, inputFile) }
+          log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
+          @OptIn(KaExperimentalApi::class) addIfNotDuplicated(pathToCompileOutput, result.output.map { OutputFileForKtCompiledFile(it) })
+
+          val sourceVirtualFiles = runReadActionBlocking { result.output.getSourceVirtualFiles() }
+          filesAlreadyCompiled.addAll(sourceVirtualFiles)
+        }
+      }
+
+      pathToCompileOutput.forEach { (_, output) -> output.writeTo(outputDirectory) }
     }
 
   @OptIn(KaExperimentalApi::class)
