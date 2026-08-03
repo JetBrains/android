@@ -21,6 +21,8 @@ import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.intellij.ide.trustedProjects.TrustedProjects
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -31,6 +33,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.delete
 import com.intellij.util.lang.UrlClassLoader
@@ -81,6 +84,10 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
   override val classLoaderLoader: DelegatingClassLoader.Loader =
     object : DelegatingClassLoader.Loader {
       override fun loadClass(fqcn: String): ByteArray? {
+        val project = moduleReference.get()?.project ?: return null
+        if (!TrustedProjects.isProjectTrusted(project)) {
+          return null
+        }
         val loader = synchronized(this@ModuleClassLoaderOverlays) { overlayClassLoader } ?: return null
 
         return loader.loadClass(fqcn)
@@ -115,6 +122,11 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
 
   @Synchronized
   private fun pushOverlayPath(path: Path, isPersistent: Boolean) {
+    val project = moduleReference.get()?.project ?: return
+    if (!TrustedProjects.isProjectTrusted(project)) {
+      logger.warn("Skipping pushOverlayPath for ModuleClassLoaderOverlays because project is not trusted")
+      return
+    }
     val currentTypeCount = overlays.count { it.isPersistent == isPersistent }
     if (currentTypeCount == maxNumOverlays) {
       val toRemove = overlays.lastOrNull { it.isPersistent == isPersistent }
@@ -155,14 +167,37 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
   override val modificationStamp: Long
     get() = _modificationTracker.modificationCount
 
-  override fun getState(): State = State(paths = synchronized(this) { overlays.filter { it.isPersistent }.map { it.path.toString() } })
+  override fun getState(): State {
+    val project = moduleReference.get()?.project ?: return State()
+    if (!TrustedProjects.isProjectTrusted(project)) {
+      return State()
+    }
+    return State(paths = synchronized(this) { overlays.filter { it.isPersistent }.map { it.path.toString() } })
+  }
 
   override fun loadState(state: State) {
     logger.debug("loadState (${state.paths.size} paths)")
     try {
+      val project = moduleReference.get()?.project ?: return
+      if (!TrustedProjects.isProjectTrusted(project)) {
+        logger.warn("Skipping loadState for ModuleClassLoaderOverlays because project is not trusted")
+        return
+      }
       synchronized(this) {
         overlays.clear()
-        overlays.addAll(state.paths.map { Overlay(Paths.get(it), isPersistent = true) })
+        val tempPath = PathManager.getTempPath()
+        val ioTempDir = FileUtil.getTempDirectory()
+        val validPaths =
+          state.paths
+            .map { Paths.get(it) }
+            .filter {
+              val isAncestor = FileUtil.isAncestor(tempPath, it.toString(), false) || FileUtil.isAncestor(ioTempDir, it.toString(), false)
+              if (!isAncestor) {
+                logger.warn("Skipping overlay path not in temp directory: $it")
+              }
+              isAncestor
+            }
+        overlays.addAll(validPaths.map { Overlay(it, isPersistent = true) })
 
         reloadClassLoader()
       }
