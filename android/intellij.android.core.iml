@@ -239,7 +239,7 @@
     <orderEntry type="module" module-name="intellij.platform.customization.min" />
     <orderEntry type="module" module-name="intellij.idea.customization.base" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.platform.interface" scope="PROVIDED" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.platform.interface" />
     <orderEntry type="module" module-name="intellij.android.backup.api" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
     <orderEntry type="module" module-name="intellij.kotlin.gradle.gradle" />

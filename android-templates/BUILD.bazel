@@ -11,11 +11,6 @@ create_kotlinc_options(
     ],
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
-    lib = "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
-)
-
 jvm_library(
     name = "templates",
     srcs = glob(
@@ -76,9 +71,9 @@ jvm_library(
         "//plugins/kotlin/base/project-structure",
         "//plugins/kotlin/base/util",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
         "//platform/util-class-loader:util-classLoader",
         "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
     ],
 )
 
@@ -134,7 +129,6 @@ jvm_library(
         "//plugins/kotlin/base/project-structure:project-structure_test_lib",
         "//plugins/kotlin/base/util:util_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
         "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface_test_lib",
         "//platform/util-class-loader:util-classLoader_test_lib",
         "//android/gradle-declarative-lang-ide",
@@ -178,6 +172,7 @@ jvm_library(
         # do not sort,
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
     ],
 )
 

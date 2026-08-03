@@ -29,11 +29,6 @@ jvm_provided_library(
     lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
-    lib = "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
-)
-
 jvm_library(
     name = "core",
     srcs = glob(
@@ -255,6 +250,7 @@ jvm_library(
         "//idea/customization/min",
         "//idea/customization/base",
         "//android/preview-fast-compile",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
         "//android/backup:backup-api",
         "//android/gradle-dsl-flags",
         "//plugins/kotlin/gradle/gradle",
@@ -268,7 +264,6 @@ jvm_library(
         "//libraries/jspecify",
         "//plugins/gradle/java/groovy",
         ":plugins_maven_artifactResolver-m31_provided",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
     ],
 )
 
@@ -495,7 +490,6 @@ jvm_library(
         "//idea/customization/min:min_test_lib",
         "//idea/customization/base:base_test_lib",
         "//android/preview-fast-compile:preview-fast-compile_test_lib",
-        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
         "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface_test_lib",
         "//android/backup:backup-api_test_lib",
         "//android/gradle-dsl-flags:gradle-dsl-flags_test_lib",

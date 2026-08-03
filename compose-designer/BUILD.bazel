@@ -10,11 +10,6 @@ create_kotlinc_options(
     x_sam_conversions = "class",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
-    lib = "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
-)
-
 jvm_library(
     name = "compose-designer",
     srcs = glob(
@@ -121,7 +116,7 @@ jvm_library(
         "//libraries/grpc",
         "//android/visual-lint",
         "//platform/refactoring",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
     ],
 )
 
@@ -223,7 +218,6 @@ jvm_library(
         "//libraries/grpc:grpc_test_lib",
         "//android/visual-lint:visual-lint_test_lib",
         "//platform/refactoring:refactoring_test_lib",
-        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
         "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface_test_lib",
     ],
 )

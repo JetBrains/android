@@ -8,11 +8,6 @@ create_kotlinc_options(
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
-    lib = "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
-)
-
 jvm_library(
     name = "preview-designer",
     srcs = glob(
@@ -89,12 +84,12 @@ jvm_library(
         "//android/preview-fast-compile",
         "//android/completion",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
         "//platform/util-ex",
         "//java/java-analysis-impl:analysis-impl",
         "//plugins/kotlin/base/code-insight",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/rd/core",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
     ],
 )
 
@@ -165,7 +160,6 @@ jvm_library(
         "//android/preview-fast-compile:preview-fast-compile_test_lib",
         "//android/completion:completion_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
         "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface_test_lib",
         "//platform/util-ex:util-ex_test_lib",
         "//java/java-analysis-impl:analysis-impl_test_lib",
