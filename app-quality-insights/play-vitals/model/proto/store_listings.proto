@@ -8,172 +8,23 @@ option java_multiple_files = true;
 option java_outer_classname = "StoreListingsProto";
 option java_package = "com.google.play.developer.reporting";
 
-// Singleton resource representing the set of Store Listing metrics.
-//
-// **Supported aggregation periods:**
-//
-//  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
-//    metrics are aggregated in calendar date intervals in the Google Standard
-//    Time Zone (America/Los_Angeles).
-//
-// **Supported metrics:**
-//
-//  * `storeListingInstallVisitors` (`google.type.Decimal`): Unique visitors who
-//  saw the store listing install button.
-//  * `storeListingInstallClicks` (`google.type.Decimal`): Unique users who
-//  clicked the store listing install button.
-//  * `storeListingInstallCtr` (`google.type.Decimal`): Conversion rate of store
-//  listing install button clicks over visitors.
-//  * `storeListingOpenVisitors` (`google.type.Decimal`): Unique visitors who
-//  saw the store listing open button.
-//  * `storeListingOpenClicks` (`google.type.Decimal`): Unique users who clicked
-//  the store listing open button.
-//  * `storeListingOpenCtr` (`google.type.Decimal`): Conversion rate of store
-//  listing open button clicks over visitors.
-//  * `storeListingPreregistrationVisitors` (`google.type.Decimal`): Unique
-//  visitors who saw the store listing preregistration button.
-//  * `storeListingPreregistrationClicks` (`google.type.Decimal`): Unique users
-//  who clicked the store listing preregistration button.
-//  * `storeListingPreregistrationCtr` (`google.type.Decimal`): Conversion rate
-//  of store listing preregistration button clicks over visitors.
-//
-// **Supported dimensions:**
-//
-//  * `trafficSource`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     How the user got to your store listing (e.g., 'Google Play Search',
-//     'Google Play Explore', 'Ads and referrals').
-//  * `searchTerm`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     The term the user searched for before navigating to your store listing.
-//  * `utmSource`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     The value of the utm_source URL parameter in deep links to your store
-//     listing. Only available for third-party referrals.
-// *  `utmCampaign`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     The value of the utm_campaign URL parameter in deep links to your store
-//     listing. Only available for third-party referrals.
-//  * `storeListing`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     The store listing that the user visited. Either your main store
-//     listing, or a custom store listing.
-//  * `languageCode`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     The user's device language, represented as a BCP-47 language tag (e.g.
-//     en-US for English as used in the United States).
-//  * `regionCode`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     The country or region of the user's device, represented as a 2-letter
-//     Unicode CLDR region code (e.g. US for the United States).
-//  * `installState`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     Whether the user is installing your app for the first time, or has
-//     previously uninstalled it. Only available for install metrics
-//     (storeListingInstallVisitors, storeListingInstallClicks,
-//     storeListingInstallCtr).
-//  * `audienceId`
-//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     The custom audience which the user belongs to. Available for install
-//     metrics and open metrics. Not available for preregistration metrics.
-//
-// (== resource_for v1beta1.grow.contentperformance.storelisting ==)
 message StoreListingMetricSet {
-  // The resource name.
   string name = 1;
-
-  // Summary about data freshness in this resource.
   FreshnessInfo freshness_info = 2;
 }
-
-// Request message for [GetStoreListingMetricSet].
 message GetStoreListingMetricSetRequest {
-  // The resource name.
-  // Format: apps/{app}/storeListingMetricSet
-  // Required.
   string name = 1;
 }
-
-// Request message for [QueryStoreListingMetricSet].
 message QueryStoreListingMetricSetRequest {
-  // The resource name.
-  // Required.
   string name = 1;
-
-  // Specification of the timeline aggregation parameters.
-  //
-  // **Supported aggregation periods:**
-  //
-  //  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
-  //    metrics are aggregated in calendar date intervals in the Google Standard
-  //    Time Zone (America/Los_Angeles).
-  //
-  // Required.
   TimelineSpec timeline_spec = 2;
-
-  // Dimensions to slice the metrics by.
-  //
-  // **Supported dimensions:**
-  //
-  //  * `trafficSource`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     How the user got to your store listing (e.g., 'Google Play Search',
-  //     'Google Play Explore', 'Ads and referrals').
-  //  * `searchTerm`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     The term the user searched for before navigating to your store listing.
-  //  * `utmSource`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     The value of the utm_source URL parameter in deep links to your store
-  //     listing. Only available for third-party referrals.
-  //  * `utmCampaign`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     The value of the utm_campaign URL parameter in deep links to your store
-  //     listing. Only available for third-party referrals.
-  //  * `storeListing`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     The store listing that the user visited. Either your main store
-  //     listing, or a custom store listing.
-  //  * `languageCode`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     The user's device language, represented as a BCP-47 language tag (e.g.
-  //     en-US for English as used in the United States).
-  //  * `regionCode`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     The country or region of the user's device, represented as a 2-letter
-  //     Unicode CLDR region code (e.g. US for the United States).
-  //  * `installState`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     Whether the user is installing your app for the first time, or has
-  //     previously uninstalled it. Only available for install metrics
-  //     (storeListingInstallVisitors, storeListingInstallClicks,
-  //     storeListingInstallCtr).
-  //  * `audienceId`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     The custom audience whose the user belongs to.
   repeated string dimensions = 3;
-
-  // Metrics to aggregate.
   repeated string metrics = 4;
-
-  // Filters to apply to data.
   string filter = 7;
-
-  // The maximum number of rows to return. The service may return fewer than
-  // this value.
-  // If unspecified, at most 1000 rows will be returned.
-  // The maximum value is 1000; values above 1000 will be coerced to 1000.
   int32 page_size = 5;
-
-  // A page token, received from a previous call.
   string page_token = 6;
 }
-
-// Response message for [QueryStoreListingMetricSet].
 message QueryStoreListingMetricSetResponse {
-  // The returned rows of metrics.
   repeated MetricsRow rows = 1;
-
-  // A token, which can be sent as `page_token` to retrieve the next page.
   string next_page_token = 2;
 }
