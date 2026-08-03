@@ -46,6 +46,7 @@ dev_dist_plugin(
         "intellij.android.common",
         "intellij.android.completion",
         "intellij.android.compose-common",
+        "intellij.android.concurrency",
         "intellij.android.core",
         "intellij.android.core.editing.documentation",
         "intellij.android.core.editing.metrics",
@@ -237,6 +238,7 @@ dev_dist_complex_plugin(
         "//android/adt-ui-model:adt-ui-model.jar": "intellij.android.adt.ui.model",
         "//android/adt-ui:adt-ui.jar": "intellij.android.adt.ui",
         "//android/android-common:common.jar": "intellij.android.common",
+        "//android/android-concurrency:concurrency.jar": "intellij.android.concurrency",
         "//android/jps-model:jps-model.jar": "intellij.android.jps.model",
         "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api.jar": "intellij.android.gradle-tooling.api",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl.jar": "intellij.android.gradle-tooling.impl",
@@ -396,6 +398,7 @@ dev_dist_complex_plugin(
         ],
         "lib/android-common.jar": [
             "intellij.android.common",
+            "intellij.android.concurrency",
             "intellij.android.jps.model",
         ],
         "lib/android-gradle.jar": [
@@ -582,6 +585,7 @@ dev_dist_complex_plugin(
         "//android/adt-ui-model:adt-ui-model.jar": "intellij.android.adt.ui.model",
         "//android/adt-ui:adt-ui.jar": "intellij.android.adt.ui",
         "//android/android-common:common.jar": "intellij.android.common",
+        "//android/android-concurrency:concurrency.jar": "intellij.android.concurrency",
         "//android/jps-model:jps-model.jar": "intellij.android.jps.model",
         "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api.jar": "intellij.android.gradle-tooling.api",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl.jar": "intellij.android.gradle-tooling.impl",
@@ -739,6 +743,7 @@ dev_dist_complex_plugin(
         ],
         "lib/android-common.jar": [
             "intellij.android.common",
+            "intellij.android.concurrency",
             "intellij.android.jps.model",
         ],
         "lib/android-gradle.jar": [
@@ -923,6 +928,7 @@ dev_dist_complex_plugin(
         "//android/adt-ui-model:adt-ui-model.jar": "intellij.android.adt.ui.model",
         "//android/adt-ui:adt-ui.jar": "intellij.android.adt.ui",
         "//android/android-common:common.jar": "intellij.android.common",
+        "//android/android-concurrency:concurrency.jar": "intellij.android.concurrency",
         "//android/jps-model:jps-model.jar": "intellij.android.jps.model",
         "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api.jar": "intellij.android.gradle-tooling.api",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl.jar": "intellij.android.gradle-tooling.impl",
@@ -1082,6 +1088,7 @@ dev_dist_complex_plugin(
         ],
         "lib/android-common.jar": [
             "intellij.android.common",
+            "intellij.android.concurrency",
             "intellij.android.jps.model",
         ],
         "lib/android-gradle.jar": [
@@ -1268,6 +1275,7 @@ dev_dist_complex_plugin(
         "//android/adt-ui-model:adt-ui-model.jar": "intellij.android.adt.ui.model",
         "//android/adt-ui:adt-ui.jar": "intellij.android.adt.ui",
         "//android/android-common:common.jar": "intellij.android.common",
+        "//android/android-concurrency:concurrency.jar": "intellij.android.concurrency",
         "//android/jps-model:jps-model.jar": "intellij.android.jps.model",
         "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api.jar": "intellij.android.gradle-tooling.api",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl.jar": "intellij.android.gradle-tooling.impl",
@@ -1427,6 +1435,7 @@ dev_dist_complex_plugin(
         ],
         "lib/android-common.jar": [
             "intellij.android.common",
+            "intellij.android.concurrency",
             "intellij.android.jps.model",
         ],
         "lib/android-gradle.jar": [
@@ -1613,6 +1622,7 @@ dev_dist_complex_plugin(
         "//android/adt-ui-model:adt-ui-model.jar": "intellij.android.adt.ui.model",
         "//android/adt-ui:adt-ui.jar": "intellij.android.adt.ui",
         "//android/android-common:common.jar": "intellij.android.common",
+        "//android/android-concurrency:concurrency.jar": "intellij.android.concurrency",
         "//android/jps-model:jps-model.jar": "intellij.android.jps.model",
         "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api.jar": "intellij.android.gradle-tooling.api",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl.jar": "intellij.android.gradle-tooling.impl",
@@ -1772,6 +1782,7 @@ dev_dist_complex_plugin(
         ],
         "lib/android-common.jar": [
             "intellij.android.common",
+            "intellij.android.concurrency",
             "intellij.android.jps.model",
         ],
         "lib/android-gradle.jar": [
@@ -1958,6 +1969,7 @@ dev_dist_complex_plugin(
         "//android/adt-ui-model:adt-ui-model.jar": "intellij.android.adt.ui.model",
         "//android/adt-ui:adt-ui.jar": "intellij.android.adt.ui",
         "//android/android-common:common.jar": "intellij.android.common",
+        "//android/android-concurrency:concurrency.jar": "intellij.android.concurrency",
         "//android/jps-model:jps-model.jar": "intellij.android.jps.model",
         "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api.jar": "intellij.android.gradle-tooling.api",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl.jar": "intellij.android.gradle-tooling.impl",
@@ -2115,6 +2127,7 @@ dev_dist_complex_plugin(
         ],
         "lib/android-common.jar": [
             "intellij.android.common",
+            "intellij.android.concurrency",
             "intellij.android.jps.model",
         ],
         "lib/android-gradle.jar": [

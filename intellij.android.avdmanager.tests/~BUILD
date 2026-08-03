@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/android-concurrency:intellij.android.concurrency.tests",
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_srcs = ["src"],

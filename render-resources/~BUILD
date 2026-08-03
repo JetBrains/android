@@ -9,6 +9,7 @@ iml_module(
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
+    exports = ["//tools/adt/idea/android-concurrency:intellij.android.concurrency"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
@@ -22,6 +23,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//tools/base/environment-services:studio.intellij.android.environment-services",
+        "//tools/adt/idea/android-concurrency:intellij.android.concurrency",
     ],
 )
 

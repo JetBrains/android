@@ -133,6 +133,11 @@
                         "filter": "module-v1"
                     },
                     {
+                        "input": "intellij.android.concurrency",
+                        "kind": "module",
+                        "filter": "module-v1"
+                    },
+                    {
                         "input": "intellij.android.jps.model",
                         "kind": "module",
                         "filter": "module-v1"

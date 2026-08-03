@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
     ],
     visibility = ["//visibility:public"],
+    exports = ["//tools/adt/idea/android-concurrency:intellij.android.concurrency"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
@@ -37,6 +38,7 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags",
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/adt/idea/android-concurrency:intellij.android.concurrency",
         "//tools/adt/idea/.idea/libraries:android-core-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
         "@intellij//:intellij.java",
