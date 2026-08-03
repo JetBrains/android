@@ -19,12 +19,10 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.net.ProxyCredentialStoreKt.asProxyCredentialProvider;
 
-import com.intellij.credentialStore.Credentials;
 import com.intellij.openapi.util.text.Strings;
 import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration;
-import com.intellij.util.net.ProxyUtils;
+import com.intellij.util.net.ProxyCredentialStore;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
@@ -72,14 +70,13 @@ public class IdeGradleProxySettingsBridge {
     myPassword = properties.getProperty(getProxyPropertyName(PROXY_PASSWORD_PROPERTY_SUFFIX));
   }
 
-  public IdeGradleProxySettingsBridge(@NotNull IdeProxyInfo info, @NotNull StaticProxyConfiguration configuration) {
-    // required: info.getProxySettings().getProxyConfiguration == configuration
+  public IdeGradleProxySettingsBridge(@NotNull StaticProxyConfiguration configuration, @NotNull ProxyCredentialStore credentialStore) {
     myProxyType = HTTP_PROXY_TYPE;
     myHost = configuration.getHost();
     myPort = configuration.getPort();
-    Credentials credentials = ProxyUtils.getStaticProxyCredentials(info.getSettings(), asProxyCredentialProvider(info.getCredentialStore()));
+    var credentials = credentialStore.getCredentials(configuration.getHost(), configuration.getPort());
     if (credentials != null) {
-      myUser = credentials.getUserName();;
+      myUser = credentials.getUserName();
       myPassword = credentials.getPasswordAsString();
     }
     myExceptions = replaceCommasWithPipesAndClean(configuration.getExceptions());
@@ -183,10 +180,9 @@ public class IdeGradleProxySettingsBridge {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeGradleProxySettingsBridge)) {
+    if (!(o instanceof IdeGradleProxySettingsBridge settings)) {
       return false;
     }
-    IdeGradleProxySettingsBridge settings = (IdeGradleProxySettingsBridge)o;
     return myPort == settings.myPort &&
            Objects.equals(myProxyType, settings.myProxyType) &&
            Objects.equals(myHost, settings.myHost) &&
@@ -212,4 +208,3 @@ public class IdeGradleProxySettingsBridge {
            '}';
   }
 }
-

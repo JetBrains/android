@@ -89,7 +89,7 @@ public class HttpProxySettingsCleanUp {
         // this is statically checked before the call to getDialog
         if (ideProxyInfo.getSettings().getProxyConfiguration() instanceof StaticProxyConfiguration staticProxyConfiguration) {
           // Show proxy settings dialog only if the IDE configuration is different to Gradle's
-          IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(ideProxyInfo, staticProxyConfiguration);
+          IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(staticProxyConfiguration, ideProxyInfo.getCredentialStore());
           if (!ideProxySettings.equals(gradleProxySettings)) {
             dialog = new ProxySettingsDialog(project, ideProxySettings, /* ide uses a proxy*/ true);
           }

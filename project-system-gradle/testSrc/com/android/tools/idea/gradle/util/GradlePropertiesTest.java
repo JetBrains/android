@@ -22,7 +22,7 @@ import com.google.common.collect.ContiguousSet;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.net.ProxyConfiguration;
-import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration;
+import com.intellij.util.net.ProxyCredentialStore;
 import com.intellij.util.net.ProxySettings;
 import java.io.File;
 import java.util.ArrayList;
@@ -56,11 +56,8 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     String host = "myproxy.test.com";
     int port = 443;
 
-    IdeProxyInfo info = IdeProxyInfo.getInstance();
-    ProxySettings ideSettings = info.getSettings();
-    StaticProxyConfiguration configuration = ProxyConfiguration.proxy(HTTP, host, port, "");
-    ideSettings.setProxyConfiguration(configuration);
-    IdeGradleProxySettingsBridge proxySettings = new IdeGradleProxySettingsBridge(info, configuration);
+    var configuration = ProxyConfiguration.proxy(HTTP, host, port, "");
+    var proxySettings = new IdeGradleProxySettingsBridge(configuration, ProxyCredentialStore.getInstance());
 
     assertEquals(host, proxySettings.getHost());
     assertEquals(port, proxySettings.getPort());
@@ -75,11 +72,10 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     String user = "johndoe";
     String password = "123456";
 
-    IdeProxyInfo info = IdeProxyInfo.getInstance();
-    StaticProxyConfiguration configuration = ProxyConfiguration.proxy(HTTP, host, port, "");
-    info.getSettings().setProxyConfiguration(configuration);
-    info.getCredentialStore().setCredentials(host, port, new Credentials(user, password), false);
-    IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(info, configuration);
+    var credentialStore = ProxyCredentialStore.getInstance();
+    var configuration = ProxyConfiguration.proxy(HTTP, host, port, "");
+    credentialStore.setCredentials(host, port, new Credentials(user, password), false);
+    var ideProxySettings = new IdeGradleProxySettingsBridge(configuration, credentialStore);
 
     // Verify that the proxy settings are stored properly in the actual properties file.
     ideProxySettings.applyProxySettings(myProperties.getProperties());
@@ -94,9 +90,9 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     assertEquals(port, gradleProxySetting.getPort());
 
     // Verify that username is removed but password not if authentication is disabled in IDE settings.
-    info.getCredentialStore().setCredentials(host, port, null, false);
+    credentialStore.setCredentials(host, port, null, false);
 
-    ideProxySettings = new IdeGradleProxySettingsBridge(info, configuration);
+    ideProxySettings = new IdeGradleProxySettingsBridge(configuration, credentialStore);
     ideProxySettings.applyProxySettings(myProperties.getProperties());
 
     assertNull(myProperties.getProperty("systemProp.http.proxyUser"));
@@ -113,11 +109,10 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     Collections.shuffle(permutation);
     permutation.forEach(index -> properties.setProperty(String.format("key%02d", index), String.format("value%02d", index)));
     // Add some common properties
-    IdeProxyInfo info = IdeProxyInfo.getInstance();
-    StaticProxyConfiguration configuration = ProxyConfiguration.proxy(HTTP, "myproxy.test.com", 443, "");
-    info.getSettings().setProxyConfiguration(configuration);
-    info.getCredentialStore().setCredentials("myproxy.test.com", 443, new Credentials("johndoe", "123456"), false);
-    IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(info, configuration);
+    var credentialStore = ProxyCredentialStore.getInstance();
+    var configuration = ProxyConfiguration.proxy(HTTP, "myproxy.test.com", 443, "");
+    credentialStore.setCredentials("myproxy.test.com", 443, new Credentials("johndoe", "123456"), false);
+    var ideProxySettings = new IdeGradleProxySettingsBridge(configuration, credentialStore);
     ideProxySettings.applyProxySettings(properties);
     properties.setProperty("org.gradle.parallel", "true");
     properties.setProperty("org.gradle.jvmargs", "-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8");
