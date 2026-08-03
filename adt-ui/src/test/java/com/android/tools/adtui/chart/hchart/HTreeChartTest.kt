@@ -58,7 +58,8 @@ class HTreeChartTest {
         .setOrientation(orientation)
         .build()
     val contentHeight =
-      (myChart.defaultFontMetrics.height + HTreeChart.PADDING) * /* Default padding */ treeHeight /* Height of tree node. */
+      (HTreeChart.getDefaultNodeHeight(myChart.defaultFontMetrics.height) + HTreeChart.PADDING) * /* Default padding */
+        treeHeight /* Height of tree node. */
     myTotalHeight = contentHeight + HTreeChart.HEIGHT_PADDING
 
     myChart.size = Dimension(100, myViewHeight)
