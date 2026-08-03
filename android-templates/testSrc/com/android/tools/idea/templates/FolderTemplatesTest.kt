@@ -27,6 +27,8 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.util.text.StringUtil
 import java.io.File
 import java.io.IOException
@@ -84,6 +86,7 @@ class FolderTemplatesTest {
 
     // Applying changes is necessary to write the Gradle model to disk
     WriteCommandAction.writeCommandAction(projectRule.project).run<IOException> { moduleRecipeExecutor.applyChanges() }
+    FileDocumentManager.getInstance().saveAllDocuments()
 
     // Check the folder exists and that relevant content is in build.gradle file
     assertTrue(moduleRoot.resolve(expectedFolderLocation).toFile().isDirectory)
@@ -99,6 +102,7 @@ class FolderTemplatesTest {
   private fun writeBuildGradleKtsFile(moduleRoot: Path) {
     FileUtils.mkdirs(moduleRoot.toFile())
     FileUtils.writeToFile(moduleRoot.resolve("build.gradle.kts").toFile(), "android {}")
+    LocalFileSystem.getInstance().refreshIoFiles(listOf(moduleRoot.resolve("build.gradle.kts").toFile()))
   }
 
   @Test
@@ -235,6 +239,7 @@ class FolderTemplatesTest {
     template.render(context, moduleRecipeExecutor)
 
     WriteCommandAction.writeCommandAction(projectRule.project).run<IOException> { moduleRecipeExecutor.applyChanges() }
+    FileDocumentManager.getInstance().saveAllDocuments()
 
     assertTrue(moduleRoot.resolve("src/main/aidl").toFile().isDirectory)
   }
