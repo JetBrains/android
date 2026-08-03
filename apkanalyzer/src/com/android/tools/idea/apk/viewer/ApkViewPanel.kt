@@ -13,787 +13,730 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.apk.viewer;
+package com.android.tools.idea.apk.viewer
 
-import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.findPageAlignWarningsPaths;
-import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APK_ANALYZED;
-import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED;
+import com.android.SdkConstants
+import com.android.tools.adtui.common.ColumnTreeBuilder
+import com.android.tools.adtui.common.ColumnTreeBuilder.ColumnBuilder
+import com.android.tools.adtui.util.getHumanizedSize
+import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.apk.analyzer.AndroidApplicationInfo
+import com.android.tools.apk.analyzer.ArchiveEntry
+import com.android.tools.apk.analyzer.ArchiveErrorEntry
+import com.android.tools.apk.analyzer.ArchiveNode
+import com.android.tools.apk.analyzer.ArchiveTreeStructure
+import com.android.tools.apk.analyzer.Archives
+import com.android.tools.apk.analyzer.internal.ApkArchive
+import com.android.tools.apk.analyzer.internal.ArchiveTreeNode
+import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive
+import com.android.tools.idea.apk.viewer.ApkParser.Align16kbCompliance
+import com.android.tools.idea.apk.viewer.PercentRenderer.PercentProvider
+import com.android.tools.idea.apk.viewer.pagealign.AlignmentCellRenderer
+import com.android.tools.idea.apk.viewer.pagealign.findPageAlignWarningsPaths
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformAsync
+import com.android.tools.idea.stats.AnonymizerUtil
+import com.google.common.base.Function
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ApkAnalyzerStats
+import com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APK_ANALYZED
+import com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED
+import com.intellij.icons.AllIcons
+import com.intellij.ide.ui.search.SearchUtil.appendFragments
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileTypes.FileTypeRegistry
+import com.intellij.openapi.fileTypes.UnknownFileType
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.IconManager
+import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.PlatformIcons
+import com.intellij.ui.SideBorder
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.TreeSpeedSearch
+import com.intellij.ui.treeStructure.Tree
+import com.intellij.uiDesigner.core.GridConstraints
+import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
+import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_EAST
+import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
+import com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL
+import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW
+import com.intellij.uiDesigner.core.GridLayoutManager
+import com.intellij.uiDesigner.core.Spacer
+import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.AsyncProcessIcon
+import com.intellij.util.ui.JBUI
+import icons.StudioIcons
+import java.awt.FlowLayout
+import java.awt.Insets
+import java.nio.file.ClosedFileSystemException
+import java.nio.file.Files
+import javax.swing.Icon
+import javax.swing.JButton
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JTree
+import javax.swing.SwingConstants
+import javax.swing.event.TreeSelectionEvent
+import javax.swing.event.TreeSelectionListener
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeNode
+import javax.swing.tree.TreePath
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.ide.PooledThreadExecutor
 
-import com.android.SdkConstants;
-import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.adtui.util.HumanReadableUtil;
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.apk.analyzer.AndroidApplicationInfo;
-import com.android.tools.apk.analyzer.ArchiveEntry;
-import com.android.tools.apk.analyzer.ArchiveErrorEntry;
-import com.android.tools.apk.analyzer.ArchiveNode;
-import com.android.tools.apk.analyzer.ArchiveTreeStructure;
-import com.android.tools.apk.analyzer.Archives;
-import com.android.tools.apk.analyzer.internal.ApkArchive;
-import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
-import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive;
-import com.android.tools.idea.apk.viewer.pagealign.AlignmentCellRenderer;
-import com.android.tools.idea.stats.AnonymizerUtil;
-import com.google.common.primitives.Longs;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.ui.search.SearchUtil;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.fileTypes.UnknownFileType;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.IconManager;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.LoadingNode;
-import com.intellij.ui.PlatformIcons;
-import com.intellij.ui.SideBorder;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.TreeSpeedSearch;
-import com.intellij.ui.treeStructure.Tree;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
-import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.AnimatedIcon;
-import com.intellij.util.ui.AsyncProcessIcon;
-import com.intellij.util.ui.JBUI;
-import icons.StudioIcons;
-import java.awt.FlowLayout;
-import java.awt.Insets;
-import java.nio.file.ClosedFileSystemException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTree;
-import javax.swing.SwingConstants;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.ide.PooledThreadExecutor;
+private const val SIZE_VARIABLE = SIZEPOLICY_CAN_SHRINK or SIZEPOLICY_CAN_GROW
+private const val SIZE_FIXED = SIZEPOLICY_FIXED
+private val SPACER_SPEC = GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false)
+private val TREE_SPEC = GridConstraints(2, 0, 1, 2, ANCHOR_CENTER, FILL_BOTH, SIZE_VARIABLE, SIZE_VARIABLE, null, null, null, 0, false)
+private val PANEL1_SPEC = GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_BOTH, SIZE_FIXED, SIZE_FIXED, null, null, null, 0, false)
+private val PANEL2_SPEC = GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_BOTH, SIZE_FIXED, SIZE_FIXED, null, null, null, 0, false)
+private val COMPARE_SPEC = GridConstraints(1, 1, 1, 1, ANCHOR_EAST, FILL_NONE, SIZE_FIXED, SIZE_FIXED, null, null, null, 0, false)
 
+internal class ApkViewPanel(
+  private val apkParser: ApkParser,
+  apkName: String,
+  applicationInfoProvider: AndroidApplicationInfoProvider,
+  private val isPageAlignFeatureEnabled: Boolean,
+) : TreeSelectionListener {
+  private val nameComponent = SimpleColoredComponent()
+  private val sizeComponent = SimpleColoredComponent()
+  private val nameAsyncIcon = AsyncProcessIcon("aapt xmltree manifest")
+  private val sizeAsyncIcon = AsyncProcessIcon("estimating apk size")
+  private val compareWithButton = JButton("Compare with previous APK...")
+  private val tree = Tree(ApkTreeModel(null))
+  private val columnTreePane = buildTree()
+  private var archiveDisposed = false
 
-public class ApkViewPanel implements TreeSelectionListener {
-  private static final Logger LOG = Logger.getInstance(ApkViewPanel.class);
-  private JPanel myContainer;
-  @SuppressWarnings("unused") // added to the container in the form
-  private JComponent myColumnTreePane;
-  private SimpleColoredComponent myNameComponent;
-  private SimpleColoredComponent mySizeComponent;
-  private AnimatedIcon myNameAsyncIcon;
-  private AnimatedIcon mySizeAsyncIcon;
-  private JButton myCompareWithButton;
-  private Tree myTree;
+  private var listener: Listener? = null
 
-  private ApkTreeModel myTreeModel;
-  private Listener myListener;
-  @NotNull private final ApkParser myApkParser;
-  final private boolean myIsPageAlignFeatureEnabled;
-  private boolean myArchiveDisposed = false;
+  val container: JComponent = JPanel()
+  val rootComponent: JComponent = container
+  val preferredFocusedComponent: JComponent = tree
+  val treeModel
+    get() = tree.model as ApkTreeModel
 
-  private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
-  private static final int TEXT_RENDERER_VERT_PADDING = 4;
+  interface Listener {
+    fun selectionChanged(entries: Array<ArchiveTreeNode>?)
 
-  private void setupUI() {
-    createUIComponents();
-    myContainer = new JPanel();
-    myContainer.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
-    final Spacer spacer1 = new Spacer();
-    myContainer.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                 GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-    myContainer.add(myColumnTreePane, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                          null, null, 0, false));
-    final JPanel panel1 = new JPanel();
-    panel1.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
-    myContainer.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
-                                                false));
-    myNameComponent = new SimpleColoredComponent();
-    panel1.add(myNameComponent);
-    panel1.add(myNameAsyncIcon);
-    final JPanel panel2 = new JPanel();
-    panel2.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
-    myContainer.add(panel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
-                                                false));
-    mySizeComponent = new SimpleColoredComponent();
-    panel2.add(mySizeComponent);
-    panel2.add(mySizeAsyncIcon);
-    myCompareWithButton = new JButton();
-    myCompareWithButton.setText("Compare with previous APK...");
-    myContainer.add(myCompareWithButton, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE,
-                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
-                                                             null, 0, false));
+    fun selectApkAndCompare()
   }
 
-  public JComponent getRootComponent() { return myContainer; }
-
-  public interface Listener {
-    void selectionChanged(ArchiveTreeNode @Nullable [] entry);
-
-    void selectApkAndCompare();
+  private fun setupUI() {
+    createUIComponents()
+    container.setLayout(GridLayoutManager(3, 2, Insets(0, 0, 0, 0), -1, -1))
+    val spacer1 = Spacer()
+    container.add(spacer1, SPACER_SPEC)
+    container.add(columnTreePane, TREE_SPEC)
+    val panel1 = JPanel()
+    panel1.setLayout(FlowLayout(FlowLayout.LEFT, 5, 0))
+    container.add(panel1, PANEL1_SPEC)
+    panel1.add(nameComponent)
+    panel1.add(nameAsyncIcon)
+    val panel2 = JPanel()
+    panel2.setLayout(FlowLayout(FlowLayout.LEFT, 5, 0))
+    container.add(panel2, PANEL2_SPEC)
+    panel2.add(sizeComponent)
+    panel2.add(sizeAsyncIcon)
+    container.add(compareWithButton, COMPARE_SPEC)
   }
 
-  public ApkViewPanel(
-    @NotNull ApkParser apkParser,
-    @NotNull String apkName,
-    @NotNull AndroidApplicationInfoProvider applicationInfoProvider,
-    boolean isPageAlignFeatureEnabled) {
-    myApkParser = apkParser;
-    myIsPageAlignFeatureEnabled = isPageAlignFeatureEnabled;
+  init {
     // construct the main tree along with the uncompressed sizes
-    setupUI();
-    Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<>() {
-      @Override
-      public void onSuccess(ArchiveNode result) {
-        if (myArchiveDisposed) {
-          return;
-        }
-        setRootNode(result);
-      }
-    }, EdtExecutorService.getInstance());
+    setupUI()
+    Futures.addCallback<ArchiveNode>(
+      apkParser.constructTreeStructure(),
+      object : FutureCallBackAdapter<ArchiveNode>() {
 
+        override fun onSuccess(result: ArchiveNode) {
+          if (archiveDisposed) {
+            return
+          }
+          setRootNode(result)
+        }
+      },
+      EdtExecutorService.getInstance(),
+    )
 
     // kick off computation of the compressed archive, and once it's available, refresh the tree
-    ListenableFuture<ArchiveNode> treeStructureFuture = Futures.transform(apkParser.updateTreeWithDownloadSizes(), result -> {
-      try {
-        if (myArchiveDisposed) {
-          return null;
+    val treeStructureFuture =
+      apkParser.updateTreeWithDownloadSizes().transform(EdtExecutorService.getInstance()) { node ->
+        try {
+          if (archiveDisposed) {
+            return@transform null
+          }
+          ArchiveTreeStructure.sort(node) { o1: ArchiveNode, o2: ArchiveNode ->
+            o2.data.downloadFileSize.compareTo(o1.data.downloadFileSize)
+          }
+          refreshTree()
+        } catch (e: Exception) {
+          // Ignore exceptions if the archive was disposed (b/351919218)
+          if (!archiveDisposed) {
+            throw e // propagate failure
+          }
         }
-        ArchiveTreeStructure
-          .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
-
-        refreshTree();
+        node
       }
-      catch (Exception e) {
-        // Ignore exceptions if the archive was disposed (b/351919218)
-        if (!myArchiveDisposed) {
-          throw e; // propagate failure
-        }
-      }
-      return result;
-    }, EdtExecutorService.getInstance());
+    container.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM))
 
-    myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-
-    myCompareWithButton.addActionListener(e -> {
-      if (myListener != null) {
-        myListener.selectApkAndCompare();
-      }
-    });
+    compareWithButton.addActionListener { listener?.selectApkAndCompare() }
 
     // identify and set the application name and version
-    myNameAsyncIcon.setVisible(true);
-    myNameComponent.append("Parsing Manifest");
+    nameAsyncIcon.isVisible = true
+    nameComponent.append("Parsing Manifest")
 
-    //find a suitable archive that has an AndroidManifest.xml file in the root ("/")
-    //for APKs, this will always be the APK itself
-    //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
-    ListenableFuture<AndroidApplicationInfo> applicationInfo =
-      Futures.transformAsync(
-        apkParser.constructTreeStructure(),
-        input -> {
-          assert input != null;
-          ArchiveEntry entry = Archives.getFirstManifestArchiveEntry(input);
-          if (entry == null) {
-            setToZipMode(apkName);
-            return Futures.immediateFailedFuture(new Exception("Regular .zip, not valid .apk file."));
+    // find a suitable archive that has an AndroidManifest.xml file in the root ("/")
+    // for APKs, this will always be the APK itself
+    // for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
+    val applicationInfo =
+      apkParser.constructTreeStructure().transformAsync(PooledThreadExecutor.INSTANCE) { node ->
+        val entry = Archives.getFirstManifestArchiveEntry(node)
+        return@transformAsync if (entry == null) {
+          setToZipMode(apkName)
+          Futures.immediateFailedFuture(Exception("Regular .zip, not valid .apk file."))
+        } else {
+          try {
+            applicationInfoProvider.getApplicationInfo(apkParser, entry)
+          } catch (e: Exception) {
+            setToZipMode(apkName)
+            LOG.warn(e)
+            Futures.immediateFailedFuture(e)
           }
-          else {
-            try {
-              return applicationInfoProvider.getApplicationInfo(apkParser, entry);
-            }
-            catch (Exception e) {
-              setToZipMode(apkName);
-              LOG.warn(e);
-              return Futures.immediateFailedFuture(e);
-            }
-          }
-        },
-        PooledThreadExecutor.INSTANCE);
-
-    ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
-    ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
-    ListenableFuture<ApkParser.Align16kbCompliance> align16kbCompliance = apkParser.getAlign16kbCompliance();
-    ListenableFuture<AndroidApplicationInfo> appInfoUpdated = Futures.transform(applicationInfo, result -> {
-      try {
-        if (myArchiveDisposed) {
-          return null;
         }
-        setAppInfo(result);
-      }
-      finally {
-        // We used to set flags here, now we will wait for all.
-      }
-      return result;
-    }, EdtExecutorService.getInstance());
-
-
-    Futures.addCallback(Futures.successfulAsList(treeStructureFuture, appInfoUpdated), new FutureCallBackAdapter<>() {
-      @Override
-      public void onSuccess(List<Object> result) {
-        myTreeModel.setUpdateTreeWithDownloadSizesComplete();
-        myTreeModel.setUpdateTreeWithApplicationInfo();
-        expandTreeNodesWhenInformationComplete();
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        myTreeModel.setUpdateTreeWithDownloadSizesComplete();
-        myTreeModel.setUpdateTreeWithApplicationInfo();
-        expandTreeNodesWhenInformationComplete();
+    val uncompressedApkSize = apkParser.getUncompressedApkSize()
+    val compressedFullApkSize = apkParser.getCompressedFullApkSize()
+    val align16kbCompliance = apkParser.getAlign16kbCompliance()
+
+    val appInfoUpdated =
+      applicationInfo.transform(EdtExecutorService.getInstance()) { info ->
+        if (archiveDisposed) {
+          return@transform null
+        }
+        setAppInfo(info)
+        info
       }
-    }, EdtExecutorService.getInstance());
+
+    Futures.addCallback(
+      Futures.successfulAsList(treeStructureFuture, appInfoUpdated),
+      object : FutureCallBackAdapter<MutableList<Any?>?>() {
+        override fun onSuccess(result: MutableList<Any?>?) {
+          treeModel.setUpdateTreeWithDownloadSizesComplete()
+          treeModel.setUpdateTreeWithApplicationInfo()
+          expandTreeNodesWhenInformationComplete()
+        }
+
+        override fun onFailure(t: Throwable) {
+          treeModel.setUpdateTreeWithDownloadSizesComplete()
+          treeModel.setUpdateTreeWithApplicationInfo()
+          expandTreeNodesWhenInformationComplete()
+        }
+      },
+      EdtExecutorService.getInstance(),
+    )
 
     // obtain and set the download size
-    mySizeAsyncIcon.setVisible(true);
-    mySizeComponent.append("Estimating download size..");
-    Futures.addCallback(Futures.successfulAsList(uncompressedApkSize, compressedFullApkSize),
-                        new FutureCallBackAdapter<>() {
-                          @Override
-                          public void onSuccess(List<Long> result) {
-                            if (myArchiveDisposed) {
-                              return;
-                            }
-                            if (result != null) {
-                              Long uncompressed = result.get(0);
-                              Long compressed = result.get(1);
-                              // successfulAsList() returns null items for failed futures.
-                              setApkSizes(uncompressed == null ? 0 : uncompressed, compressed == null ? 0 : compressed);
-                            }
-                          }
-                        }, EdtExecutorService.getInstance());
+    sizeAsyncIcon.isVisible = true
+    sizeComponent.append("Estimating download size..")
+    Futures.addCallback(
+      Futures.successfulAsList<Long>(uncompressedApkSize, compressedFullApkSize),
+      object : FutureCallBackAdapter<MutableList<Long?>?>() {
+        override fun onSuccess(result: MutableList<Long?>?) {
+          if (archiveDisposed) {
+            return
+          }
+          if (result != null) {
+            val uncompressed = result[0]
+            val compressed = result[1]
+            // successfulAsList() returns null items for failed futures.
+            setApkSizes(uncompressed ?: 0, compressed ?: 0)
+          }
+        }
+      },
+      EdtExecutorService.getInstance(),
+    )
 
-    Futures.FutureCombiner<Object> combiner = Futures.whenAllComplete(uncompressedApkSize, compressedFullApkSize, applicationInfo);
-    combiner.call(() -> {
-
-
-      // Record stats.
-      String applicationId = applicationInfo.get().packageId;
-      ApkAnalyzerStats.Builder stats = ApkAnalyzerStats.newBuilder()
-            .setCompressedSize(compressedFullApkSize.get())
-            .setUncompressedSize(uncompressedApkSize.get());
-      if (align16kbCompliance.get() != ApkParser.Align16kbCompliance.NO_ELF_FILES) {
-        stats.setAlign16Type(align16kbCompliance.get() == ApkParser.Align16kbCompliance.COMPLIANT
-                             ? ALIGN_NATIVE_COMPLIANT_APK_ANALYZED
-                             : ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED);
-      }
-        UsageTracker.log(AndroidStudioEvent.newBuilder()
-                           .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                           .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
-                           .setRawProjectId(applicationId)
-                         .setApkAnalyzerStats(stats));
-        return null;
-      }, MoreExecutors.directExecutor())
-      .addListener(() -> {
-      }, MoreExecutors.directExecutor());
-    myContainer.setName("ApkViewPanel");
+    val combiner = Futures.whenAllComplete<Any?>(uncompressedApkSize, compressedFullApkSize, applicationInfo)
+    combiner
+      .call<Any?>(
+        {
+          // Record stats.
+          val applicationId = applicationInfo.get()!!.packageId
+          val stats =
+            ApkAnalyzerStats.newBuilder().setCompressedSize(compressedFullApkSize.get()!!).setUncompressedSize(uncompressedApkSize.get()!!)
+          if (align16kbCompliance.get() != Align16kbCompliance.NO_ELF_FILES) {
+            stats.align16Type =
+              when (align16kbCompliance.get() == Align16kbCompliance.COMPLIANT) {
+                true -> ALIGN_NATIVE_COMPLIANT_APK_ANALYZED
+                false -> ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED
+              }
+          }
+          log(
+            AndroidStudioEvent.newBuilder()
+              .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+              .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+              .setRawProjectId(applicationId)
+              .setApkAnalyzerStats(stats)
+          )
+          null
+        },
+        MoreExecutors.directExecutor(),
+      )
+      .addListener({}, MoreExecutors.directExecutor())
+    container.setName("ApkViewPanel")
   }
 
-  private void expandTreeNodesWhenInformationComplete() {
+  private fun expandTreeNodesWhenInformationComplete() {
     // Exit if required information isn't available yet.
-    if (!myTreeModel.isUpdateTreeWithDownloadSizesComplete() ||
-        !myTreeModel.isUpdateTreeWithApplicationInfoComplete()) return;
+    if (!treeModel.isUpdateTreeWithDownloadSizesComplete || !treeModel.isUpdateTreeWithApplicationInfoComplete) return
     // Exit if we've already expanded nodes.
-    if (myTreeModel.isUpdateTreeWithWarningExpansionsComplete()) return;
+    if (treeModel.isUpdateTreeWithWarningExpansionsComplete) return
     try {
-      if (!myIsPageAlignFeatureEnabled) return;
-      Object root = myTreeModel.getRoot();
-      if (root instanceof ArchiveNode) {
-        myTree.expandPaths(findPageAlignWarningsPaths((ArchiveNode)root, myTreeModel.getExtractNativeLibs()));
+      if (!isPageAlignFeatureEnabled) return
+      val root = treeModel.getRoot()
+      if (root is ArchiveNode) {
+        tree.expandPaths(findPageAlignWarningsPaths(root, treeModel.extractNativeLibs))
       }
     } finally {
-      myTreeModel.setUpdateTreeWithWarningExpansions();
+      treeModel.setUpdateTreeWithWarningExpansions()
     }
   }
 
-  private void setToZipMode(@NotNull String fileName) {
+  private fun setToZipMode(fileName: String) {
     // Reset UI elements for .zip files (instead of .apk).
-    myCompareWithButton.setEnabled(false);
-    myCompareWithButton.setVisible(false);
-    myNameAsyncIcon.setVisible(false);
-    myNameComponent.clear();
-    myNameComponent.append(fileName);
+    compareWithButton.setEnabled(false)
+    compareWithButton.isVisible = false
+    nameAsyncIcon.isVisible = false
+    nameComponent.clear()
+    nameComponent.append(fileName)
   }
 
-  private void createUIComponents() {
-    myNameAsyncIcon = new AsyncProcessIcon("aapt xmltree manifest");
-    mySizeAsyncIcon = new AsyncProcessIcon("estimating apk size");
+  private fun createUIComponents() {
+    tree.setName("nodeTree")
+    tree.setShowsRootHandles(true)
+    tree.setRootVisible(true) // show root node only when showing LoadingNode
+    tree.setPaintBusy(true)
 
-    myTreeModel = new ApkTreeModel(new LoadingNode());
-    myTree = new Tree(myTreeModel);
-    myTree.setName("nodeTree");
-    myTree.setShowsRootHandles(true);
-    myTree.setRootVisible(true); // show root node only when showing LoadingNode
-    myTree.setPaintBusy(true);
-
-    TreeSpeedSearch treeSpeedSearch = TreeSpeedSearch.installOn(myTree, true, path -> {
-      Object lastPathComponent = path.getLastPathComponent();
-      if (!(lastPathComponent instanceof ArchiveTreeNode)) {
-        return null;
-      }
-      return ((ArchiveTreeNode)lastPathComponent).getData().getPath().toString();
-    });
-
-    // Provides the percentage of the node size to the total size of the APK
-    PercentRenderer.PercentProvider percentProvider = (jTree, value, row) -> {
-      if (!(value instanceof ArchiveTreeNode entry)) {
-        return 0;
-      }
-
-      ArchiveTreeNode rootEntry = (ArchiveTreeNode)jTree.getModel().getRoot();
-
-      if (entry.getData().getDownloadFileSize() < 0) {
-        return 0;
-      }
-      else {
-        return (double)entry.getData().getDownloadFileSize() / rootEntry.getData().getDownloadFileSize();
-      }
-    };
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("File")
-                   .setPreferredWidth(JBUI.scale(270))
-                   .setHeaderAlignment(SwingConstants.LEADING)
-                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new NameRenderer(myApkParser, treeSpeedSearch)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Size")
-                   .setPreferredWidth(JBUI.scale(80))
-                   .setHeaderAlignment(SwingConstants.TRAILING)
-                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new SizeRenderer(false)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Download Size")
-                   .setPreferredWidth(JBUI.scale(80))
-                   .setHeaderAlignment(SwingConstants.TRAILING)
-                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new SizeRenderer(true)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                    .setName("% of Download Size")
-                    .setPreferredWidth(JBUI.scale(150))
-                    .setHeaderAlignment(SwingConstants.LEADING)
-                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                    .setRenderer(new PercentRenderer(percentProvider)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                    .setName("Compressed")
-                    .setPreferredWidth(JBUI.scale(110))
-                    .setHeaderAlignment(SwingConstants.LEADING)
-                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                    .setRenderer(new CompressionRenderer()));
-
-      if (myIsPageAlignFeatureEnabled) {
-        builder
-          .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                     .setName("Alignment")
-                     .setPreferredWidth(JBUI.scale(320))
-                     .setHeaderAlignment(SwingConstants.LEADING)
-                     .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                     .setRenderer(new AlignmentCellRenderer()));
-      } else {
-        builder
-          .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                       .setName("Alignment")
-                       .setPreferredWidth(JBUI.scale(200))
-                       .setHeaderAlignment(SwingConstants.LEADING)
-                       .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                       .setRenderer(new ZipAlignmentRenderer()));
-      }
-
-    myColumnTreePane = builder.build();
-    myTree.addTreeSelectionListener(this);
+    tree.addTreeSelectionListener(this)
   }
 
-  public void setListener(@NotNull Listener listener) {
-    myListener = listener;
+  fun setListener(listener: Listener) {
+    this.listener = listener
   }
 
-  public void clearArchive() {
-    myArchiveDisposed = true;
-    myApkParser.cancelAll();
+  fun clearArchive() {
+    archiveDisposed = true
+    apkParser.cancelAll()
     // The only other place that sets the root node is another queued runnable also on the EDT thread.
     // Therefore, there will be no interleaving of operations.
-    ApplicationManager.getApplication().invokeLater(() -> setRootNode(null));
-    LOG.info("Cleared Archive on ApkViewPanel: " + this);
+    ApplicationManager.getApplication().invokeLater { setRootNode(null) }
+    LOG.info("Cleared Archive on ApkViewPanel: $this")
   }
 
-  private void setRootNode(@Nullable ArchiveNode root) {
+  private fun setRootNode(root: ArchiveNode?) {
     try {
-      myTreeModel = new ApkTreeModel(root);
+      val treeModel = ApkTreeModel(root)
       if (root != null) {
-        myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
+        tree.setPaintBusy(root.data.downloadFileSize < 0)
       }
-      myTree.setModel(myTreeModel);
-    }
-    catch (Exception e) {
+      tree.setModel(treeModel)
+    } catch (e: Exception) {
       // Ignore exceptions if the archive was disposed (b/351919218)
-      if (!myArchiveDisposed) {
-        throw e;
+      if (!archiveDisposed) {
+        throw e
       }
     }
   }
 
-  private void refreshTree() {
-    myTree.setPaintBusy(false);
-    myTree.removeTreeSelectionListener(this);
-    TreePath[] selected = myTree.getSelectionPaths();
-    myTreeModel.reload();
-    myTree.setSelectionPaths(selected);
-    myTree.addTreeSelectionListener(this);
+  private fun refreshTree() {
+    tree.setPaintBusy(false)
+    tree.removeTreeSelectionListener(this)
+    val selected = tree.getSelectionPaths()
+    treeModel.reload()
+    tree.selectionPaths = selected
+    tree.addTreeSelectionListener(this)
   }
 
-  private void setApkSizes(long uncompressed, long compressedFullApk) {
-    mySizeComponent.clear();
+  private fun setApkSizes(uncompressed: Long, compressedFullApk: Long) {
+    sizeComponent.clear()
 
-    if (mySizeAsyncIcon != null) {
-      mySizeAsyncIcon.setVisible(false);
-      Disposer.dispose(mySizeAsyncIcon);
-      mySizeAsyncIcon = null;
-    }
+    sizeAsyncIcon.isVisible = false
+    Disposer.dispose(sizeAsyncIcon)
 
-    mySizeComponent.setIcon(AllIcons.General.BalloonInformation);
-    if (myApkParser.getArchive() instanceof ApkArchive) {
-      mySizeComponent.append("APK size: ");
-      mySizeComponent.append(HumanReadableUtil.getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-      mySizeComponent.append(", Download Size: ");
-      mySizeComponent.setToolTipText(
-        """
-          1. The <b>APK size</b> reflects the actual size of the file, and is the minimum amount of space it will consume on the disk after \
-          installation.
-          2. The <b>download size</b> is the estimated size of the file for new installations (Google Play serves a highly compressed \
-          version of the file).
+    sizeComponent.setIcon(AllIcons.General.BalloonInformation)
+    when (apkParser.archive) {
+      is ApkArchive -> {
+        sizeComponent.append("APK size: ")
+        sizeComponent.append(getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
+        sizeComponent.append(", Download Size: ")
+        sizeComponent.setToolTipText(
+          """
+          1. The <b>APK size</b> reflects the actual size of the file, and is the minimum amount of space it will consume on the disk after installation.
+          2. The <b>download size</b> is the estimated size of the file for new installations (Google Play serves a highly compressed version of the file).
           For application updates, Google Play serves patches that are typically much smaller.
-          The installation size may be higher than the APK size depending on various other factors.""");
-    }
-    else if (myApkParser.getArchive() instanceof InstantAppBundleArchive) {
-      mySizeComponent.append("Zip file size: ");
-      mySizeComponent.setToolTipText("The <b>zip file size</b> reflects the actual size of the zip file on disk.\n");
-    }
-    else {
-      mySizeComponent.append("Raw File Size: ");
-    }
-    mySizeComponent.append(HumanReadableUtil.getHumanizedSize(compressedFullApk), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-  }
-
-  private void setAppInfo(@NotNull AndroidApplicationInfo appInfo) {
-    myNameComponent.clear();
-
-    if (myNameAsyncIcon != null) {
-      myNameAsyncIcon.setVisible(false);
-      Disposer.dispose(myNameAsyncIcon);
-      myNameAsyncIcon = null;
-    }
-
-    myNameComponent.append(appInfo.packageId, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-    myNameComponent.append(" (Version Name: ", SimpleTextAttributes.GRAY_ATTRIBUTES);
-    myNameComponent.append(appInfo.versionName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    myNameComponent.append(", Version Code: ", SimpleTextAttributes.GRAY_ATTRIBUTES);
-    myNameComponent.append(String.valueOf(appInfo.versionCode), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    myNameComponent.append(")", SimpleTextAttributes.GRAY_ATTRIBUTES);
-    myTreeModel.setExtractNativeLibs(appInfo.extractNativeLibs);
-  }
-
-  @NotNull
-  public ApkTreeModel getTreeModel() { return myTreeModel; }
-
-  @NotNull
-  public JComponent getContainer() {
-    return myContainer;
-  }
-
-  @NotNull
-  public JComponent getPreferredFocusedComponent() {
-    return myTree;
-  }
-
-  @Override
-  public void valueChanged(TreeSelectionEvent e) {
-    if (myListener != null) {
-      TreePath[] paths = ((Tree)e.getSource()).getSelectionPaths();
-      ArchiveTreeNode[] components;
-      if (paths == null) {
-        components = null;
+          The installation size may be higher than the APK size depending on various other factors.
+          """
+            .trimIndent()
+        )
       }
-      else {
-        components = new ArchiveTreeNode[paths.length];
-        for (int i = 0; i < paths.length; i++) {
-          if (!(paths[i].getLastPathComponent() instanceof ArchiveTreeNode)) {
-            myListener.selectionChanged(null);
-            return;
+
+      is InstantAppBundleArchive -> {
+        sizeComponent.append("Zip file size: ")
+        sizeComponent.setToolTipText("The <b>zip file size</b> reflects the actual size of the zip file on disk.\n")
+      }
+
+      else -> {
+        sizeComponent.append("Raw File Size: ")
+      }
+    }
+    sizeComponent.append(getHumanizedSize(compressedFullApk), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
+  }
+
+  private fun setAppInfo(appInfo: AndroidApplicationInfo) {
+    nameComponent.clear()
+
+    nameAsyncIcon.isVisible = false
+    Disposer.dispose(nameAsyncIcon)
+
+    nameComponent.append(appInfo.packageId, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
+    nameComponent.append(" (Version Name: ", SimpleTextAttributes.GRAY_ATTRIBUTES)
+    nameComponent.append(appInfo.versionName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    nameComponent.append(", Version Code: ", SimpleTextAttributes.GRAY_ATTRIBUTES)
+    nameComponent.append(appInfo.versionCode.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    nameComponent.append(")", SimpleTextAttributes.GRAY_ATTRIBUTES)
+    treeModel.extractNativeLibs = appInfo.extractNativeLibs
+  }
+
+  override fun valueChanged(e: TreeSelectionEvent) {
+    if (listener != null) {
+      val paths = (e.getSource() as Tree).getSelectionPaths()
+      val components =
+        paths
+          ?.map {
+            val node = it.lastPathComponent as? ArchiveTreeNode
+            if (node == null) {
+              listener?.selectionChanged(null)
+              return
+            }
+            node
           }
-          components[i] = (ArchiveTreeNode)paths[i].getLastPathComponent();
-        }
-      }
-      myListener.selectionChanged(components);
+          ?.toTypedArray()
+
+      listener!!.selectionChanged(components)
     }
   }
 
-  public static class ApkTreeModel extends DefaultTreeModel {
-    private Boolean myExtractNativeLibs = null;
+  class ApkTreeModel(root: TreeNode?) : DefaultTreeModel(root) {
+    var extractNativeLibs: Boolean? = null
+
     // Update flags track the completion of the futures that provide the data needed to
     // render the tree. These flags will be set to true when the corresponding future
     // completes regardless of whether the future completed with success or failure.
-    private boolean myUpdateTreeWithDownloadSizesComplete = false;
-    private boolean myUpdateTreeWithApplicationInfoComplete = false;
+    var isUpdateTreeWithDownloadSizesComplete: Boolean = false
+      private set
+
+    var isUpdateTreeWithApplicationInfoComplete: Boolean = false
+      private set
 
     // This flag tracks if the tree expansion for warnings has been performed.
-    private boolean myUpdateTreeWithWarningExpansionsComplete = false;
+    var isUpdateTreeWithWarningExpansionsComplete: Boolean = false
+      private set
 
-    public ApkTreeModel(TreeNode root) {
-      super(root);
+    fun setUpdateTreeWithDownloadSizesComplete() {
+      this.isUpdateTreeWithDownloadSizesComplete = true
     }
 
-    public void setExtractNativeLibs(Boolean extractNativeLibs) {
-      myExtractNativeLibs = extractNativeLibs;
+    fun setUpdateTreeWithApplicationInfo() {
+      this.isUpdateTreeWithApplicationInfoComplete = true
     }
 
-    public Boolean getExtractNativeLibs() {
-      return myExtractNativeLibs;
+    fun setUpdateTreeWithWarningExpansions() {
+      this.isUpdateTreeWithWarningExpansionsComplete = true
     }
 
-    public void setUpdateTreeWithDownloadSizesComplete() {
-      myUpdateTreeWithDownloadSizesComplete = true;
-    }
-
-    public boolean isUpdateTreeWithDownloadSizesComplete() {
-      return myUpdateTreeWithDownloadSizesComplete;
-    }
-
-    public void setUpdateTreeWithApplicationInfo() {
-      myUpdateTreeWithApplicationInfoComplete = true;
-    }
-
-    public boolean isUpdateTreeWithApplicationInfoComplete() {
-      return myUpdateTreeWithApplicationInfoComplete;
-    }
-
-    public void setUpdateTreeWithWarningExpansions() {
-      myUpdateTreeWithWarningExpansionsComplete = true;
-    }
-
-    public boolean isUpdateTreeWithWarningExpansionsComplete() {
-      return myUpdateTreeWithWarningExpansionsComplete;
-    }
-
-    /**
-     * Return true if the tree has been populated and any warning nodes expanded.
-     */
-    @TestOnly
-    public boolean isUpdateComplete() {
-      return myUpdateTreeWithDownloadSizesComplete
-        && myUpdateTreeWithApplicationInfoComplete
-        && myUpdateTreeWithWarningExpansionsComplete;
-    }
+    @get:TestOnly
+    val isUpdateComplete: Boolean
+      /** Return true if the tree has been populated and any warning nodes expanded. */
+      get() =
+        this.isUpdateTreeWithDownloadSizesComplete &&
+          this.isUpdateTreeWithApplicationInfoComplete &&
+          this.isUpdateTreeWithWarningExpansionsComplete
   }
 
-  public static class FutureCallBackAdapter<V> implements FutureCallback<V> {
-    @Override
-    public void onSuccess(V result) {
-    }
+  open class FutureCallBackAdapter<V> : FutureCallback<V> {
+    override fun onSuccess(result: V) {}
 
-    @Override
-    public void onFailure(@NotNull Throwable t) {
-    }
+    override fun onFailure(t: Throwable) {}
   }
 
-  public static class NameRenderer extends ColoredTreeCellRenderer {
-    private final ApkParser myApkParser;
-    private final TreeSpeedSearch mySpeedSearch;
-
-    public NameRenderer(@NotNull ApkParser apkParser, @NotNull TreeSpeedSearch speedSearch) {
-      myApkParser = apkParser;
-      mySpeedSearch = speedSearch;
-    }
-
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
+  class NameRenderer(private val myApkParser: ApkParser, private val mySpeedSearch: TreeSpeedSearch) : ColoredTreeCellRenderer() {
+    override fun customizeCellRenderer(
+      tree: JTree,
+      value: Any,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean,
+    ) {
       try {
-        if (!(value instanceof ArchiveNode)) {
-          append(value.toString());
-          return;
+        if (value !is ArchiveNode) {
+          append(value.toString())
+          return
         }
 
-        ArchiveEntry entry = ((ArchiveNode)value).getData();
-        setIcon(getIconFor(entry));
-        String name = entry.getNodeDisplayString();
-        SimpleTextAttributes attr = entry instanceof ArchiveErrorEntry ? SimpleTextAttributes.ERROR_ATTRIBUTES
-                                                                       : SimpleTextAttributes.REGULAR_ATTRIBUTES;
-        SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), name, attr.getStyle(), attr.getFgColor(),
-                                   attr.getBgColor(), this);
-      }
-      catch (Exception e) {
+        val entry = value.getData()
+        setIcon(getIconFor(entry))
+        val name = entry.getNodeDisplayString()
+        val attr = if (entry is ArchiveErrorEntry) SimpleTextAttributes.ERROR_ATTRIBUTES else SimpleTextAttributes.REGULAR_ATTRIBUTES
+        appendFragments(mySpeedSearch.enteredPrefix, name, attr.style, attr.fgColor, attr.bgColor, this)
+      } catch (e: Exception) {
         // Ignore exceptions if the file doesn't exist (b/351919218)
-        if (Files.exists(myApkParser.getArchive().getPath())) {
-          throw e;
+        if (Files.exists(myApkParser.archive.path)) {
+          throw e
         }
       }
     }
 
-    @NotNull
-    private static Icon getIconFor(@NotNull ArchiveEntry entry) {
-      if (entry instanceof ArchiveErrorEntry) {
-        return StudioIcons.Common.WARNING;
-      }
-      Path path = entry.getPath();
-      Path base = path.getFileName();
-      String fileName = base == null ? "" : base.toString();
-      boolean isDirectory = false;
-      try {
-        isDirectory = Files.isDirectory(path);
-      } catch (ClosedFileSystemException e) {
-        // When the APK tab is closed, the APK file gets closed in another thread but the
-        // UI still tries to render it (b/402589243).
-      }
-
-      if (!isDirectory) {
-        if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
-          return StudioIcons.Shell.Filetree.MANIFEST_FILE;
+    companion object {
+      private fun getIconFor(entry: ArchiveEntry): Icon {
+        if (entry is ArchiveErrorEntry) {
+          return StudioIcons.Common.WARNING
         }
-        else if (fileName.equals("baseline.prof") || fileName.equals("baseline.profm")) {
-          // TODO: Use dedicated icon for this.
-          return AllIcons.FileTypes.Hprof;
+        val path = entry.path
+        val base = path.fileName
+        var fileName = base?.toString() ?: ""
+        var isDirectory = false
+        try {
+          isDirectory = Files.isDirectory(path)
+        } catch (_: ClosedFileSystemException) {
+          // When the APK tab is closed, the APK file gets closed in another thread but the
+          // UI still tries to render it (b/402589243).
         }
 
-        FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
-        // Don't override icons for known file types. Just fall back if they are otherwise unknown.
-        if (fileType == UnknownFileType.INSTANCE) {
-          if (fileName.endsWith(SdkConstants.DOT_DEX)) {
-            return AllIcons.FileTypes.JavaClass;
-          } else if (entry.getElfAlignmentProblems() != null) {
-            return AllIcons.FileTypes.BinaryData;
+        if (!isDirectory) {
+          if (fileName == SdkConstants.FN_ANDROID_MANIFEST_XML) {
+            return StudioIcons.Shell.Filetree.MANIFEST_FILE
+          } else if (fileName == "baseline.prof" || fileName == "baseline.profm") {
+            // TODO: Use dedicated icon for this.
+            return AllIcons.FileTypes.Hprof
           }
-          else if (fileName.endsWith(".pb")) {
-            return AllIcons.FileTypes.BinaryData;
+
+          val fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName)
+          // Don't override icons for known file types. Just fall back if they are otherwise unknown.
+          if (fileType === UnknownFileType.INSTANCE) {
+            if (fileName.endsWith(SdkConstants.DOT_DEX)) {
+              return AllIcons.FileTypes.JavaClass
+            } else if (entry.elfAlignmentProblems != null) {
+              return AllIcons.FileTypes.BinaryData
+            } else if (fileName.endsWith(".pb")) {
+              return AllIcons.FileTypes.BinaryData
+            }
           }
+          // Use the file type icon if available.
+          val ftIcon = fileType.icon
+          return ftIcon ?: AllIcons.FileTypes.Any_type
+        } else {
+          fileName = StringUtil.trimEnd(fileName, "/")
+          if (fileName == SdkConstants.FD_RES) {
+            return AllIcons.Modules.ResourcesRoot
+          } else if (path.toString() == "/lib") {
+            return AllIcons.Nodes.NativeLibrariesFolder
+          }
+          @Suppress("UnstableApiUsage")
+          return IconManager.getInstance().getPlatformIcon(PlatformIcons.Package)
         }
-        // Use the file type icon if available.
-        Icon ftIcon = fileType.getIcon();
-        return ftIcon == null ? AllIcons.FileTypes.Any_type : ftIcon;
-      }
-      else {
-        fileName = StringUtil.trimEnd(fileName, "/");
-        if (fileName.equals(SdkConstants.FD_RES)) {
-          return AllIcons.Modules.ResourcesRoot;
-        } else if (path.toString().equals("/lib")) {
-          return AllIcons.Nodes.NativeLibrariesFolder;
-        }
-        //noinspection UnstableApiUsage
-        return IconManager.getInstance().getPlatformIcon(PlatformIcons.Package);
       }
     }
   }
 
-  private static class SizeRenderer extends ColoredTreeCellRenderer {
-    private final boolean myUseDownloadSize;
-
-    public SizeRenderer(boolean useDownloadSize) {
-      myUseDownloadSize = useDownloadSize;
-      setTextAlign(SwingConstants.RIGHT);
+  private class SizeRenderer(private val myUseDownloadSize: Boolean) : ColoredTreeCellRenderer() {
+    init {
+      setTextAlign(SwingConstants.RIGHT)
     }
 
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-      if (!(value instanceof ArchiveTreeNode)) {
-        return;
+    override fun customizeCellRenderer(
+      tree: JTree,
+      value: Any?,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean,
+    ) {
+      if (value !is ArchiveTreeNode) {
+        return
       }
 
-      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
-      long size = myUseDownloadSize ? data.getDownloadFileSize() : data.getRawFileSize();
+      val data = value.data
+      val size = if (myUseDownloadSize) data.downloadFileSize else data.rawFileSize
       if (size > 0) {
-        append(HumanReadableUtil.getHumanizedSize(size));
+        append(getHumanizedSize(size))
       }
     }
   }
 
-  /**
-   * Render information about whether the .so file is aligned at a boundary (4 KB, 16 KB, etc) within the APK.
-   */
-  private static class ZipAlignmentRenderer extends ColoredTreeCellRenderer {
-    ZipAlignmentRenderer() {
-      setTextAlign(SwingConstants.LEFT);
+  /** Render information about whether the .so file is aligned at a boundary (4 KB, 16 KB, etc) within the APK. */
+  private class ZipAlignmentRenderer : ColoredTreeCellRenderer() {
+    init {
+      setTextAlign(SwingConstants.LEFT)
     }
 
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-      if (!(value instanceof ArchiveTreeNode)) {
-        return;
+    override fun customizeCellRenderer(
+      tree: JTree,
+      value: Any?,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean,
+    ) {
+      if (value !is ArchiveTreeNode) {
+        return
       }
 
-      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
-      append(data.getFileAlignment().text);
+      val data = value.data
+      append(data.fileAlignment.text)
     }
   }
 
-  private static class CompressionRenderer extends ColoredTreeCellRenderer {
-    public CompressionRenderer() {
-      setTextAlign(SwingConstants.LEFT);
+  private class CompressionRenderer : ColoredTreeCellRenderer() {
+    init {
+      setTextAlign(SwingConstants.LEFT)
     }
 
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-      if (!(value instanceof ArchiveTreeNode)) {
-        return;
+    override fun customizeCellRenderer(
+      tree: JTree,
+      value: Any?,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean,
+    ) {
+      if (value !is ArchiveTreeNode) {
+        return
       }
 
-      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
+      val data = value.data
       try {
-        if (!Files.isDirectory(data.getPath())) {
+        if (!Files.isDirectory(data.path)) {
           // For page alignment, use "Yes" and "No" to give more horizontal space for the alignment message.
-          if (data.isFileCompressed()) {
-            append("Yes");
-          }
-          else {
-            append("No");
-          }
+          append(if (data.isFileCompressed) "Yes" else "No")
         }
-      } catch (ClosedFileSystemException e) {
+      } catch (_: ClosedFileSystemException) {
         // When the APK tab is closed, the APK file gets closed in another thread but the
         // UI still tries to render it (b/402589243).
       }
     }
+  }
+
+  private fun buildTree(): JComponent {
+    val treeSpeedSearch =
+      TreeSpeedSearch.installOn(
+        tree,
+        true,
+        Function { path: TreePath ->
+          val lastPathComponent = path.lastPathComponent
+          if (lastPathComponent !is ArchiveTreeNode) {
+            return@Function null
+          }
+          lastPathComponent.data.path.toString()
+        },
+      )
+
+    // Provides the percentage of the node size to the total size of the APK
+    val percentProvider = PercentProvider { tree: JTree, value: Any, _: Int ->
+      if (value !is ArchiveTreeNode) {
+        return@PercentProvider 0.0
+      }
+      val rootEntry = tree.model.root as ArchiveTreeNode
+      return@PercentProvider when (value.data.downloadFileSize < 0) {
+        true -> 0.0
+        false -> value.data.downloadFileSize.toDouble() / rootEntry.data.downloadFileSize
+      }
+    }
+
+    val builder =
+      ColumnTreeBuilder(tree)
+        .addColumn(
+          ColumnBuilder()
+            .setName("File")
+            .setPreferredWidth(JBUI.scale(270))
+            .setHeaderAlignment(SwingConstants.LEADING)
+            .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setRenderer(NameRenderer(apkParser, treeSpeedSearch))
+        )
+        .addColumn(
+          ColumnBuilder()
+            .setName("Size")
+            .setPreferredWidth(JBUI.scale(80))
+            .setHeaderAlignment(SwingConstants.TRAILING)
+            .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setRenderer(SizeRenderer(false))
+        )
+        .addColumn(
+          ColumnBuilder()
+            .setName("Download Size")
+            .setPreferredWidth(JBUI.scale(80))
+            .setHeaderAlignment(SwingConstants.TRAILING)
+            .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setRenderer(SizeRenderer(true))
+        )
+        .addColumn(
+          ColumnBuilder()
+            .setName("% of Download Size")
+            .setPreferredWidth(JBUI.scale(150))
+            .setHeaderAlignment(SwingConstants.LEADING)
+            .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setRenderer(PercentRenderer(percentProvider))
+        )
+        .addColumn(
+          ColumnBuilder()
+            .setName("Compressed")
+            .setPreferredWidth(JBUI.scale(110))
+            .setHeaderAlignment(SwingConstants.LEADING)
+            .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setRenderer(CompressionRenderer())
+        )
+
+    if (isPageAlignFeatureEnabled) {
+      builder.addColumn(
+        ColumnBuilder()
+          .setName("Alignment")
+          .setPreferredWidth(JBUI.scale(320))
+          .setHeaderAlignment(SwingConstants.LEADING)
+          .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+          .setRenderer(AlignmentCellRenderer())
+      )
+    } else {
+      builder.addColumn(
+        ColumnBuilder()
+          .setName("Alignment")
+          .setPreferredWidth(JBUI.scale(200))
+          .setHeaderAlignment(SwingConstants.LEADING)
+          .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+          .setRenderer(ZipAlignmentRenderer())
+      )
+    }
+
+    return builder.build()
+  }
+
+  companion object {
+    private val LOG = Logger.getInstance(ApkViewPanel::class.java)
+    private const val TEXT_RENDERER_HORIZ_PADDING = 6
+    private const val TEXT_RENDERER_VERT_PADDING = 4
   }
 }
