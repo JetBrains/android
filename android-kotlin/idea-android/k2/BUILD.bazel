@@ -8,11 +8,6 @@ create_kotlinc_options(
     x_context_parameters = True,
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
-    lib = "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
-)
-
 jvm_library(
     name = "k2",
     srcs = glob(
@@ -35,6 +30,7 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//android/android-common:common",
         "//android/android:core",
@@ -48,7 +44,6 @@ jvm_library(
         "//platform/util",
         "//plugins/kotlin/code-insight/api",
         "//plugins/kotlin/references",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
     ],
 )
 
@@ -68,7 +63,6 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android-common:common_test_lib",

@@ -34,11 +34,6 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
-    lib = "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
-)
-
 jvm_library(
     name = "core",
     srcs = glob(
@@ -264,6 +259,7 @@ jvm_library(
         "//android/gradle-dsl-flags",
         "//plugins/kotlin/gradle/gradle",
         "//android/completion",
+        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
         "//libraries/jgoodies/forms",
         "//spellchecker/xml",
         "@lib//:android-core-kotlin-metadata-jvm",
@@ -273,7 +269,6 @@ jvm_library(
         "//plugins/gradle/java/groovy",
         ":plugins_maven_artifactResolver-m31_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
     ],
 )
 
@@ -506,7 +501,6 @@ jvm_library(
         "//android/gradle-dsl-flags:gradle-dsl-flags_test_lib",
         "//plugins/kotlin/gradle/gradle:gradle_test_lib",
         "//android/completion:completion_test_lib",
-        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
         "//libraries/jgoodies/forms:forms_test_lib",
         "//spellchecker/xml:xml_test_lib",

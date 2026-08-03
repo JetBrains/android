@@ -21,11 +21,6 @@ jvm_provided_library(
     lib = "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
-    lib = "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
-)
-
 jvm_library(
     name = "projectSystem-gradle",
     srcs = glob(
@@ -186,6 +181,7 @@ jvm_library(
         "//xml/dom-impl",
         "//android/ml-api",
         "//android/android-lang:lang",
+        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
         "//plugins/kotlin/base/project-structure",
         "//android/gradle-dsl-flags",
         "//android/gmaven",
@@ -203,7 +199,6 @@ jvm_library(
         "//plugins/kotlin/references",
         ":libraries_kotlin_libraries-kotlin-gradle-plugin-idea_provided",
         ":libraries_kotlin_libraries-kotlin-tooling-core_provided",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
     ],
 )
 
@@ -361,7 +356,6 @@ jvm_library(
         "//xml/dom-impl:dom-impl_test_lib",
         "//android/ml-api:ml-api_test_lib",
         "//android/android-lang:lang_test_lib",
-        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
         "//plugins/kotlin/base/project-structure:project-structure_test_lib",
         "//android/gradle-dsl-flags:gradle-dsl-flags_test_lib",
