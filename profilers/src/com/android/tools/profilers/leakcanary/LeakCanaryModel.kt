@@ -16,6 +16,7 @@
 package com.android.tools.profilers.leakcanary
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.transport.poller.TransportEventListener
@@ -57,13 +58,22 @@ import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.regex.PatternSyntaxException
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.NotNull
 
 /**
@@ -74,6 +84,13 @@ private const val ON_HOST_SHARK_VERSION = "2.14"
 
 private const val METADATA_KEY_LEAKCANARY_MODE = "leakcanary_mode"
 private const val METADATA_KEY_SHARK_VERSION = "shark_version"
+
+/** Represents the top-level scope filter options for LeakCanary analysis. */
+enum class LeakFilterScope {
+  ALL,
+  APP,
+  LIBRARY,
+}
 
 class LeakCanaryModel(
   @NotNull private val profilers: StudioProfilers,
@@ -138,6 +155,46 @@ class LeakCanaryModel(
 
   private val _isBannerVisible = MutableStateFlow(false)
   val isBannerVisible = _isBannerVisible.asStateFlow()
+
+  private val _filterScope = MutableStateFlow(LeakFilterScope.ALL)
+  val filterScope = _filterScope.asStateFlow()
+
+  private val _searchQuery = MutableStateFlow("")
+  val searchQuery = _searchQuery.asStateFlow()
+
+  private val _matchCase = MutableStateFlow(false)
+  val matchCase = _matchCase.asStateFlow()
+
+  private val _useRegex = MutableStateFlow(false)
+  val useRegex = _useRegex.asStateFlow()
+
+  /** Re-evaluates and stores the final filtered leak list, debouncing search input to avoid stutter. */
+  @OptIn(FlowPreview::class)
+  private val debouncedQueryFlow =
+    combine(_searchQuery, _useRegex) { query, isRegex -> Pair(query, isRegex) }
+      .debounce(SEARCH_DEBOUNCE_DELAY_MS)
+      .onStart { emit(Pair(_searchQuery.value, _useRegex.value)) }
+
+  /** A filtered list of leaks to display, updated automatically when the user changes any search or filter settings. */
+  val filteredLeaks: StateFlow<List<Leak>> =
+    combine(_leaks, _filterScope, debouncedQueryFlow, _matchCase) { leaks, scope, (query, isRegex), matchCase ->
+        filterLeaks(leaks, scope, query, matchCase, isRegex)
+      }
+      .stateIn(this.scope, SharingStarted.Eagerly, emptyList())
+
+  init {
+    scope.launch {
+      filteredLeaks.collect { currentFiltered ->
+        val currentSelected = _selectedLeak.value
+        if (currentSelected !in currentFiltered) {
+          if (currentSelected != null) {
+            logger.info("Selected leak is no longer visible in filtered leaks; auto-selecting first available leak.")
+          }
+          onLeakSelection(currentFiltered.firstOrNull())
+        }
+      }
+    }
+  }
 
   /** Sets the current LeakCanary mode (e.g., ON_DEVICE or ON_HOST) and updates the banner visibility accordingly. */
   fun setLeakCanaryMode(mode: StartLeakCanaryTaskData.LeakCanaryMode) {
@@ -231,6 +288,7 @@ class LeakCanaryModel(
     checkPresenceAndFetchThreshold()
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
+    resetFilters()
     registerLeakCanaryListeners()
     toggleLeakCanaryTracking(profilers.session, enable = true)
     saveModeAndHostSharkVersion()
@@ -366,6 +424,67 @@ class LeakCanaryModel(
     _leaks.value = listOf()
     insightModel.clearInsights()
     onLeakSelection(null)
+  }
+
+  /** Sets whether to show all leaks, only app leaks, or only library leaks. */
+  fun setFilterScope(scope: LeakFilterScope) {
+    logger.info("Setting LeakCanary filter scope: $scope")
+    _filterScope.value = scope
+  }
+
+  /** Sets the search query text used to filter leaks by class or variable name. */
+  fun setSearchQuery(query: String) {
+    logger.info("Setting LeakCanary search query: '$query'")
+    _searchQuery.value = query
+  }
+
+  /** Toggles whether the search query matching should be case-sensitive. */
+  fun setMatchCase(matchCase: Boolean) {
+    logger.info("Setting LeakCanary filter matchCase: $matchCase")
+    _matchCase.value = matchCase
+  }
+
+  /** Toggles whether the search query should be evaluated as a regular expression. */
+  fun setUseRegex(useRegex: Boolean) {
+    logger.info("Setting LeakCanary filter useRegex: $useRegex")
+    _useRegex.value = useRegex
+  }
+
+  /** Resets all LeakCanary filter settings to their defaults ([LeakFilterScope.ALL], empty query, Match Case disabled, Regex disabled). */
+  fun resetFilters() {
+    logger.info("Resetting LeakCanary filter settings.")
+    _filterScope.value = LeakFilterScope.ALL
+    _searchQuery.value = ""
+    _matchCase.value = false
+    _useRegex.value = false
+  }
+
+  /**
+   * Filters the detected [leaks] based on [scope], [query], [matchCase], and [isRegex]. Uses [Filter] to evaluate text or regular
+   * expression matching against the leak class name.
+   */
+  private fun filterLeaks(leaks: List<Leak>, scope: LeakFilterScope, query: String, matchCase: Boolean, isRegex: Boolean): List<Leak> {
+    val scopeFiltered =
+      when (scope) {
+        LeakFilterScope.ALL -> leaks
+        LeakFilterScope.APP -> leaks.filter { it.type == LeakType.APPLICATION_LEAKS }
+        LeakFilterScope.LIBRARY -> leaks.filter { it.type == LeakType.LIBRARY_LEAKS }
+      }
+
+    if (query.isEmpty()) {
+      return scopeFiltered
+    }
+
+    val filter =
+      try {
+        Filter(query, matchCase, isRegex)
+      } catch (e: PatternSyntaxException) {
+        return emptyList()
+      }
+    return scopeFiltered.filter { leak ->
+      val className = getLeakClassName(leak)
+      filter.matches(className)
+    }
   }
 
   fun onLeakSelection(newLeak: Leak?) {
@@ -606,7 +725,9 @@ class LeakCanaryModel(
 
     // The first leak is selected, so its leakTrace is displayed by default in UI.
     if (_selectedLeak.value == null && _leaks.value.isNotEmpty()) {
-      onLeakSelection(_leaks.value.first())
+      val validFirstLeak =
+        filterLeaks(_leaks.value, _filterScope.value, _searchQuery.value, _matchCase.value, _useRegex.value).firstOrNull()
+      onLeakSelection(validFirstLeak)
     }
 
     if (_isStopping.value) {
@@ -730,6 +851,7 @@ class LeakCanaryModel(
   override fun getStageType(): AndroidProfilerEvent.Stage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE
 
   fun loadFromPastSession(startTimestamp: Long, endTimeStamp: Long, session: Common.Session) {
+    resetFilters()
     // Get all LeakCanary events from start time to end time.
     val analysisEvents = getAllLeakCanaryEvents(session, startTimestamp, endTimeStamp)
     logger.info("Loaded past LeakCanary session with ${analysisEvents.size} analysis events.")
@@ -741,7 +863,9 @@ class LeakCanaryModel(
 
     // The first leak is selected, so its leakTrace is displayed by default in UI.
     if (_leaks.value.isNotEmpty()) {
-      onLeakSelection(_leaks.value.first())
+      val validFirstLeak =
+        filterLeaks(_leaks.value, _filterScope.value, _searchQuery.value, _matchCase.value, _useRegex.value).firstOrNull()
+      onLeakSelection(validFirstLeak)
     }
 
     // Track the successful completion of loading a past Leak Canary session.
@@ -872,6 +996,9 @@ class LeakCanaryModel(
   }
 
   companion object {
+    /** Aligned with ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS */
+    const val SEARCH_DEBOUNCE_DELAY_MS = 250L
+
     /**
      * Fetches all LeakCanary logcat dump events within a given session. It returns leaks that are within a given range, which is provided
      * by the logcat end status events fetched by `getLeakCanaryLogcatInfo`.

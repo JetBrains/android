@@ -36,7 +36,9 @@ object TaskBasedUxColors {
   val TABLE_SEPARATOR_COLOR
     get() = retrieveColorOrUnspecified("TableHeader.separatorColor")
 
-  // Color of secondary text in a dropdown option (only if it is enabled, otherwise the disabled text color is used).
+  val LABEL_DISABLED_FOREGROUND
+    get() = retrieveColorOrUnspecified("Label.disabledForeground")
+
   val DROPDOWN_SEC_TEXT_COLOR
     get() = retrieveColorOrUnspecified("Component.infoForeground")
 

@@ -58,6 +58,7 @@ import androidx.compose.ui.window.PopupPositionProvider
 import com.android.tools.profilers.leakcanary.AiInsight
 import com.android.tools.profilers.leakcanary.InsightFeedback
 import com.android.tools.profilers.leakcanary.LoadingState
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import icons.StudioIconsCompose
@@ -162,7 +163,10 @@ fun LeakInsightPanel(
 
 @Composable
 private fun InsightHeader(onClose: () -> Unit, modifier: Modifier = Modifier) {
-  Row(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+  Row(
+    modifier = modifier.padding(horizontal = 8.dp).height(TaskBasedUxDimensions.LEAKCANARY_PANE_HEADER_HEIGHT_DP),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
     Text(text = "Insights", modifier = Modifier.weight(1f))
     IconButton(onClick = onClose) { Icon(key = AllIconsKeys.General.HideToolWindow, contentDescription = "Minimize Insights") }
   }

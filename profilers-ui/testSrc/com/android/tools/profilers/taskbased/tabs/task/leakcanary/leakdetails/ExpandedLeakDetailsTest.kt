@@ -31,6 +31,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
+import kotlinx.coroutines.Dispatchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,7 +51,7 @@ class ExpandedLeakDetailsTest : WithFakeTimer {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
-    mockLeakCanaryModel = LeakCanaryModel(profilers)
+    mockLeakCanaryModel = LeakCanaryModel(profilers, null, Dispatchers.Unconfined)
   }
 
   @Test

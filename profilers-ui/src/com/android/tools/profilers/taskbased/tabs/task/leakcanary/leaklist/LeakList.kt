@@ -20,13 +20,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
+import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 
+/** Renders the main view of the LeakCanary leak list, including the filter bar, dividing line, and the filtered leak table. */
 @Composable
 fun LeakListView(leakCanaryModel: LeakCanaryModel) {
   Column {
     val leaks by leakCanaryModel.leaks.collectAsState()
+    val filteredLeaks by leakCanaryModel.filteredLeaks.collectAsState()
     val isRecording by leakCanaryModel.isRecording.collectAsState()
     val selectedLeak by leakCanaryModel.selectedLeak.collectAsState()
-    LeakListContent(leaks, selectedLeak, isRecording, leakCanaryModel::onLeakSelection)
+    val hasActiveFilter = leaks.size != filteredLeaks.size
+
+    LeakCanaryFilterBar(leakCanaryModel)
+    ToolWindowHorizontalDivider()
+    LeakListContent(
+      leaks = filteredLeaks,
+      selectedLeak = selectedLeak,
+      isRecording = isRecording,
+      hasActiveFilter = hasActiveFilter,
+      onLeakSelection = leakCanaryModel::onLeakSelection,
+    )
   }
 }

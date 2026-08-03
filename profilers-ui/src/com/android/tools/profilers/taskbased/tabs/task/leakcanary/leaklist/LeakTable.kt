@@ -26,18 +26,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.tools.leakcanarylib.data.Leak
+import com.android.tools.leakcanarylib.data.LeakType
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_LEAK_TYPE_COL_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_OCCURRENCE_COL_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
@@ -51,9 +53,18 @@ import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
 
+/**
+ * Renders a single row in the LeakCanary leak list table. Displays the leak name, type ([LeakType.APPLICATION_LEAKS] or
+ * [LeakType.LIBRARY_LEAKS]), occurrence count, and total leaked memory.
+ */
 @Composable
 private fun LeakListRow(leak: Leak, isSelected: Boolean) {
   val name = LeakCanaryModel.getLeakClassName(leak)
+  val leakTypeStr =
+    when (leak.type) {
+      LeakType.APPLICATION_LEAKS -> TaskBasedUxStrings.LEAKCANARY_LEAK_TYPE_APP
+      LeakType.LIBRARY_LEAKS -> TaskBasedUxStrings.LEAKCANARY_LEAK_TYPE_LIBRARY
+    }
   val totalLeakedKb = "${leak.retainedByteSize / 1024} KB"
   val occurrences = leak.leakTraceCount.toString()
 
@@ -66,11 +77,16 @@ private fun LeakListRow(leak: Leak, isSelected: Boolean) {
         .testTag("leakListRow")
   ) {
     LeftAlignedColumnText(name, rowScope = this)
+    Spacer(modifier = Modifier.width(1.dp))
+    RightAlignedColumnText(text = leakTypeStr, colWidth = LEAKCANARY_LEAK_TYPE_COL_WIDTH_DP)
+    Spacer(modifier = Modifier.width(1.dp))
     RightAlignedColumnText(text = occurrences, colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
+    Spacer(modifier = Modifier.width(1.dp))
     RightAlignedColumnText(text = totalLeakedKb, colWidth = LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP)
   }
 }
 
+/** Renders the header row for the LeakCanary leak list table with 4 columns: Leak, Leak type, Occurrences, and Total leaked. */
 @Composable
 private fun LeakListHeader() {
   Row(
@@ -78,9 +94,12 @@ private fun LeakListHeader() {
       Modifier.fillMaxWidth()
         .height(TaskBasedUxDimensions.TABLE_HEADER_ROW_HEIGHT_DP)
         .background(TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR)
-        .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP)
+        .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
     LeftAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT, rowScope = this)
+    Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
+    RightAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_LEAK_TYPE_HEADER_TEXT, colWidth = LEAKCANARY_LEAK_TYPE_COL_WIDTH_DP)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
     RightAlignedColumnText(text = TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT, colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
     Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
@@ -88,8 +107,15 @@ private fun LeakListHeader() {
   }
 }
 
+/** Renders the content of the LeakCanary leak list, including the table header and either an empty message or the selectable leak table. */
 @Composable
-fun LeakListContent(leaks: List<Leak>, selectedLeak: Leak?, isRecording: Boolean, onLeakSelection: (Leak) -> Unit) {
+fun LeakListContent(
+  leaks: List<Leak>,
+  selectedLeak: Leak?,
+  isRecording: Boolean,
+  hasActiveFilter: Boolean = false,
+  onLeakSelection: (Leak) -> Unit,
+) {
   Column {
     LeakListHeader()
     Divider(
@@ -99,7 +125,7 @@ fun LeakListContent(leaks: List<Leak>, selectedLeak: Leak?, isRecording: Boolean
       orientation = Orientation.Horizontal,
     )
     if (leaks.isEmpty()) {
-      NoLeaksMessageText(isRecording)
+      NoLeaksMessageText(isRecording, hasActiveFilter)
     } else {
       LeakTable(leaks, selectedLeak, onLeakSelection)
     }
@@ -126,24 +152,25 @@ fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) ->
   }
 }
 
+/**
+ * Displays an informational message when the leak table is empty, distinguishing between an active recording with no leaks, a finished
+ * recording with no leaks, and an active filter with no matching leaks.
+ */
 @Composable
-fun NoLeaksMessageText(isRecording: Boolean) {
-  Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp), contentAlignment = Alignment.Center) {
+fun NoLeaksMessageText(isRecording: Boolean, hasActiveFilter: Boolean = false) {
+  Box(modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp).padding(bottom = 28.dp), contentAlignment = Alignment.Center) {
     Column(
       modifier = Modifier.fillMaxSize(),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Center,
     ) {
-      if (isRecording) {
+      if (hasActiveFilter) {
+        EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_NO_LEAK_MATCHING_FILTER_MESSAGE, maxLines = 3, textAlign = TextAlign.Center)
+      } else if (isRecording) {
         EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE, maxLines = 3, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(10.dp))
       } else {
-        EllipsisText(
-          text = TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE,
-          fontStyle = FontStyle.Italic,
-          maxLines = 3,
-          textAlign = TextAlign.Center,
-        )
+        EllipsisText(text = TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE, maxLines = 3, textAlign = TextAlign.Center)
       }
     }
   }

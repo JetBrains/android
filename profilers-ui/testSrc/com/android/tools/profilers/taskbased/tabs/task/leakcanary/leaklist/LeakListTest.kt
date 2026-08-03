@@ -37,6 +37,7 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT
 import java.io.File
+import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -57,11 +58,11 @@ class LeakListTest : WithFakeTimer {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
-    leakCanaryModel = LeakCanaryModel(profilers)
+    leakCanaryModel = LeakCanaryModel(profilers, null, Dispatchers.Unconfined)
   }
 
   @Test
-  fun `test leak list view when recoding and no leak is available`() {
+  fun `test leak list view when recording and no leak is available`() {
     leakCanaryModel.setIsRecording(true)
     composeTestRule.setContent { LeakListView(leakCanaryModel = leakCanaryModel) }
 
@@ -74,7 +75,7 @@ class LeakListTest : WithFakeTimer {
   }
 
   @Test
-  fun `test leak list view when not recoding and no leak is available`() {
+  fun `test leak list view when not recording and no leak is available`() {
     leakCanaryModel.setIsRecording(false)
     composeTestRule.setContent { LeakListView(leakCanaryModel = leakCanaryModel) }
 

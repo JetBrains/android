@@ -18,11 +18,9 @@ package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,20 +43,12 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 /** A composable for the content of the leak action toolbar. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LeakActionToolbar(
-  selectedLeak: Leak?,
-  onExpandAll: () -> Unit,
-  onCollapseAll: () -> Unit,
-  onCopy: () -> Unit,
-) {
+fun LeakActionToolbar(selectedLeak: Leak?, onExpandAll: () -> Unit, onCollapseAll: () -> Unit, onCopy: () -> Unit) {
   Row(
     modifier =
-      Modifier.padding(
-          horizontal = TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP,
-          vertical = TaskBasedUxDimensions.LEAKCANARY_ACTION_BAR_VERTICAL_PADDING_DP,
-        )
+      Modifier.padding(horizontal = TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)
         .fillMaxWidth()
-        .height(TaskBasedUxDimensions.LEAKCANARY_ACTION_BAR_HEIGHT_DP),
+        .height(TaskBasedUxDimensions.LEAKCANARY_PANE_HEADER_HEIGHT_DP),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     val leakName = selectedLeak?.let { LeakCanaryModel.getLeakClassName(it) } ?: ""
@@ -99,9 +89,12 @@ fun LeakActionToolbar(
       Tooltip(tooltip = { Text(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD) }) {
         IconButton(
           onClick = {
-            copyLeakToClipboard(selectedLeak.toString())
-            onCopy()
-          }
+            selectedLeak?.let {
+              copyLeakToClipboard(it.toString())
+              onCopy()
+            }
+          },
+          enabled = selectedLeak != null,
         ) {
           Icon(
             key = AllIconsKeys.Actions.Copy,

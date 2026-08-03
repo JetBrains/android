@@ -43,6 +43,7 @@ import com.android.tools.profilers.leakcanary.LeakCanaryModel
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails.copyLeakToClipboard
 import com.google.common.truth.Truth
+import kotlinx.coroutines.Dispatchers
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -65,7 +66,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
-    leakCanaryModel = LeakCanaryModel(profilers)
+    leakCanaryModel = LeakCanaryModel(profilers, null, Dispatchers.Unconfined)
   }
 
   @After

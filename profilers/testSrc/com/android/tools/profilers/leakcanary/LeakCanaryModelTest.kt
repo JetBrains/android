@@ -49,6 +49,8 @@ import java.util.concurrent.Executors
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -56,6 +58,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -128,7 +131,7 @@ class LeakCanaryModelTest : WithFakeTimer {
     transportService.setCommandHandler(Commands.Command.CommandType.FORCE_DUMP_LEAKCANARY_ON_DEVICE, handler)
 
     mockHeapDumper = mock(LeakCanaryHeapDumper::class.java)
-    stage = LeakCanaryModel(profilers, mockHeapDumper, kotlinx.coroutines.Dispatchers.Unconfined)
+    stage = LeakCanaryModel(profilers, mockHeapDumper, Dispatchers.Unconfined)
   }
 
   @Test
@@ -610,12 +613,12 @@ class LeakCanaryModelTest : WithFakeTimer {
 
     customInsightFlow = flow {
       emit("Memory leak identified in class.")
-      kotlinx.coroutines.yield()
+      yield()
       emit(" Solution is simple.")
     }
 
     val states = mutableListOf<LoadingState<AiInsight?>>()
-    val job = launch(kotlinx.coroutines.Dispatchers.Unconfined) { stage.insightModel.currentInsight.collect { states.add(it) } }
+    val job = launch(Dispatchers.Unconfined) { stage.insightModel.currentInsight.collect { states.add(it) } }
 
     stage.insightModel.setInsightVisible(true)
     stage.insightModel.setInsightAutoGenerateEnabled(true)
@@ -682,7 +685,7 @@ class LeakCanaryModelTest : WithFakeTimer {
 
     // Test fetch cancellation telemetry
     customInsightFlow = flow {
-      kotlinx.coroutines.delay(1000)
+      delay(1000)
       emit("Should not run")
     }
     stage.insightModel.fetchInsight(leak)
@@ -692,7 +695,7 @@ class LeakCanaryModelTest : WithFakeTimer {
 
     // Test fetch cancellation when closing the panel mid-fetch
     customInsightFlow = flow {
-      kotlinx.coroutines.delay(1000)
+      delay(1000)
       emit("Should not run")
     }
     stage.insightModel.setInsightVisible(true)
@@ -752,7 +755,7 @@ class LeakCanaryModelTest : WithFakeTimer {
   fun `test fetchInsight transitions state to Failure on empty response`() {
     val leak = createMockLeak()
 
-    customInsightFlow = kotlinx.coroutines.flow.emptyFlow()
+    customInsightFlow = emptyFlow()
 
     stage.insightModel.setInsightVisible(true)
     stage.insightModel.setInsightAutoGenerateEnabled(true)
@@ -933,6 +936,180 @@ class LeakCanaryModelTest : WithFakeTimer {
     `when`(leak.toString()).thenReturn(trace)
     `when`(leak.signature).thenReturn(signature)
     return leak
+  }
+
+  @Test
+  fun `Scope Dropdown Filtering Tests`() = runBlocking {
+    val appLeak1 =
+      mock(Leak::class.java).apply {
+        `when`(this.type).thenReturn(LeakType.APPLICATION_LEAKS)
+        `when`(this.signature).thenReturn("app_leak_sig")
+      }
+    val appLeak2 =
+      mock(Leak::class.java).apply {
+        `when`(this.type).thenReturn(LeakType.APPLICATION_LEAKS)
+        `when`(this.signature).thenReturn("app_leak_sig")
+      }
+    val libLeak =
+      mock(Leak::class.java).apply {
+        `when`(this.type).thenReturn(LeakType.LIBRARY_LEAKS)
+        `when`(this.signature).thenReturn("lib_leak_sig")
+      }
+    stage.addLeaks(listOf(appLeak1, appLeak2, libLeak))
+
+    stage.setFilterScope(LeakFilterScope.ALL)
+    assertEquals(listOf(appLeak1, appLeak2, libLeak), stage.filteredLeaks.value)
+
+    stage.setFilterScope(LeakFilterScope.APP)
+    assertEquals(listOf(appLeak1, appLeak2), stage.filteredLeaks.value)
+
+    stage.setFilterScope(LeakFilterScope.LIBRARY)
+    assertEquals(listOf(libLeak), stage.filteredLeaks.value)
+  }
+
+  @Test
+  fun `Standard Filter Pattern and Substring Matching Tests`() = runBlocking {
+    val ref1 =
+      mock(ReferencingField::class.java).apply {
+        `when`(this.className).thenReturn("com.example.shop.MainActivity")
+        `when`(this.referenceName).thenReturn("mActivity")
+      }
+    val mockNode1 =
+      mock(Node::class.java).apply {
+        `when`(this.leakingStatus).thenReturn(LeakingStatus.UNKNOWN)
+        `when`(this.referencingField).thenReturn(ref1)
+      }
+    val mockTrace1 = mock(LeakTrace::class.java).apply { `when`(this.nodes).thenReturn(listOf(mockNode1)) }
+    val appLeak1 =
+      mock(Leak::class.java).apply {
+        `when`(this.type).thenReturn(LeakType.APPLICATION_LEAKS)
+        `when`(this.signature).thenReturn("app_leak_sig")
+        `when`(this.displayedLeakTrace).thenReturn(listOf(mockTrace1))
+      }
+
+    val ref2 =
+      mock(ReferencingField::class.java).apply {
+        `when`(this.className).thenReturn("com.example.shop.CartViewModel")
+        `when`(this.referenceName).thenReturn("mState")
+      }
+    val mockNode2 =
+      mock(Node::class.java).apply {
+        `when`(this.leakingStatus).thenReturn(LeakingStatus.UNKNOWN)
+        `when`(this.referencingField).thenReturn(ref2)
+      }
+    val mockTrace2 = mock(LeakTrace::class.java).apply { `when`(this.nodes).thenReturn(listOf(mockNode2)) }
+    val appLeak2 =
+      mock(Leak::class.java).apply {
+        `when`(this.type).thenReturn(LeakType.APPLICATION_LEAKS)
+        `when`(this.signature).thenReturn("app_leak_sig")
+        `when`(this.displayedLeakTrace).thenReturn(listOf(mockTrace2))
+      }
+    stage.addLeaks(listOf(appLeak1, appLeak2))
+    stage.setMatchCase(false)
+    stage.setSearchQuery("mainactivity")
+    delay(300)
+    assertEquals(listOf(appLeak1), stage.filteredLeaks.value)
+
+    stage.setMatchCase(true)
+    stage.setSearchQuery("mainactivity")
+    delay(300)
+    assertEquals(emptyList<Leak>(), stage.filteredLeaks.value)
+
+    stage.setMatchCase(false)
+    stage.setSearchQuery("mactivity")
+    delay(300)
+    assertEquals(listOf(appLeak1), stage.filteredLeaks.value)
+
+    stage.setMatchCase(false)
+    stage.setSearchQuery("doesnotexist")
+    delay(300)
+    assertEquals(emptyList<Leak>(), stage.filteredLeaks.value)
+  }
+
+  @Test
+  fun `Selection Transition and Preservation Tests`() = runBlocking {
+    val ref1 = mock(ReferencingField::class.java).apply { `when`(this.className).thenReturn("com.example.shop.MainActivity") }
+    val mockNode1 =
+      mock(Node::class.java).apply {
+        `when`(this.leakingStatus).thenReturn(LeakingStatus.UNKNOWN)
+        `when`(this.referencingField).thenReturn(ref1)
+      }
+    val mockTrace1 = mock(LeakTrace::class.java).apply { `when`(this.nodes).thenReturn(listOf(mockNode1)) }
+    val appLeak =
+      mock(Leak::class.java).apply {
+        `when`(this.type).thenReturn(LeakType.APPLICATION_LEAKS)
+        `when`(this.signature).thenReturn("app_leak_sig")
+        `when`(this.displayedLeakTrace).thenReturn(listOf(mockTrace1))
+      }
+
+    val ref2 = mock(ReferencingField::class.java).apply { `when`(this.className).thenReturn("com.example.shop.LibraryClass") }
+    val mockNode2 =
+      mock(Node::class.java).apply {
+        `when`(this.leakingStatus).thenReturn(LeakingStatus.UNKNOWN)
+        `when`(this.referencingField).thenReturn(ref2)
+      }
+    val mockTrace2 = mock(LeakTrace::class.java).apply { `when`(this.nodes).thenReturn(listOf(mockNode2)) }
+    val libLeak =
+      mock(Leak::class.java).apply {
+        `when`(this.type).thenReturn(LeakType.LIBRARY_LEAKS)
+        `when`(this.signature).thenReturn("lib_leak_sig")
+        `when`(this.displayedLeakTrace).thenReturn(listOf(mockTrace2))
+      }
+    stage.addLeaks(listOf(appLeak, libLeak))
+
+    stage.onLeakSelection(appLeak)
+    assertEquals(appLeak, stage.selectedLeak.value)
+
+    stage.setFilterScope(LeakFilterScope.LIBRARY)
+    assertEquals(libLeak, stage.selectedLeak.value)
+
+    stage.setFilterScope(LeakFilterScope.ALL)
+    assertEquals(libLeak, stage.selectedLeak.value)
+  }
+
+  @Test
+  fun `Session Reset Tests`() {
+    stage.setFilterScope(LeakFilterScope.APP)
+    stage.setSearchQuery("test")
+    stage.setMatchCase(true)
+    stage.setUseRegex(true)
+
+    stage.resetFilters()
+
+    assertEquals(LeakFilterScope.ALL, stage.filterScope.value)
+    assertEquals("", stage.searchQuery.value)
+    assertEquals(false, stage.matchCase.value)
+    assertEquals(false, stage.useRegex.value)
+  }
+
+  @Test
+  fun `Regex Debounce and Syntax Safety Tests`() = runBlocking {
+    val ref1 = mock(ReferencingField::class.java).apply { `when`(this.className).thenReturn("com.example.shop.MainActivity") }
+    val mockNode1 =
+      mock(Node::class.java).apply {
+        `when`(this.leakingStatus).thenReturn(LeakingStatus.UNKNOWN)
+        `when`(this.referencingField).thenReturn(ref1)
+      }
+    val mockTrace1 = mock(LeakTrace::class.java).apply { `when`(this.nodes).thenReturn(listOf(mockNode1)) }
+    val appLeak1 =
+      mock(Leak::class.java).apply {
+        `when`(this.type).thenReturn(LeakType.APPLICATION_LEAKS)
+        `when`(this.signature).thenReturn("app_leak_sig")
+        `when`(this.displayedLeakTrace).thenReturn(listOf(mockTrace1))
+      }
+    stage.addLeaks(listOf(appLeak1))
+
+    stage.setUseRegex(true)
+    stage.setSearchQuery("[") // Invalid regex
+    delay(300)
+
+    // After debounce, the invalid regex should result in empty list
+    assertEquals(0, stage.filteredLeaks.value.size)
+
+    // Clear query
+    stage.setSearchQuery("")
+    delay(300)
+    assertEquals(1, stage.filteredLeaks.value.size)
   }
 }
 

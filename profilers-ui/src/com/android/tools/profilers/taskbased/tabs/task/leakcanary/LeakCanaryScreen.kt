@@ -126,6 +126,7 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
     ToolWindowHorizontalDivider()
 
     val leaks by leakCanaryModel.leaks.collectAsState()
+    val filteredLeaks by leakCanaryModel.filteredLeaks.collectAsState()
     val hasLeaks = leaks.isNotEmpty()
     val isStudioBotEnabled = leakCanaryModel.isLeakCanaryStudioBotEnabled && hasLeaks
     val insightModel = leakCanaryModel.insightModel
@@ -146,7 +147,7 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
           @Composable {
             HorizontalSplitLayout(
               state = innerSplitState,
-              firstPaneMinWidth = 150.dp,
+              firstPaneMinWidth = 400.dp,
               secondPaneMinWidth = 450.dp,
               first = { LeakListView(leakCanaryModel) },
               second = {
@@ -155,6 +156,7 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
                   gotoDeclaration = leakCanaryModel::goToDeclaration,
                   isRecording = isRecording,
                   isLeakCanaryPresent = isLeakCanaryPresent,
+                  hasActiveFilter = hasLeaks && filteredLeaks.size != leaks.size,
                   isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
                   openStates = openStates,
                   onOpenStatesChange = { newStates -> openStates = newStates },

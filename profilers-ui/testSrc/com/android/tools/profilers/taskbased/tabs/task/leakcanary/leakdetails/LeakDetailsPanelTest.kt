@@ -47,9 +47,9 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -75,7 +75,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
   fun setup() {
     ideProfilerServices = spy(FakeIdeProfilerServices())
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
-    leakCanaryModel = LeakCanaryModel(profilers)
+    leakCanaryModel = LeakCanaryModel(profilers, null, Dispatchers.Unconfined)
     mockActionManager = mock(ActionManager::class.java)
   }
 
@@ -261,7 +261,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
       )
     }
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE).assertDoesNotExist()
   }
 
   private fun getSampleLeak(): List<Leak> {
@@ -393,7 +393,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_MISSING_MESSAGE).assertIsDisplayed()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
   }
-
 
   private fun getLeakWithNavigatableAndNonNavigatableNode(): List<Leak> {
     val applicationLeakText =
