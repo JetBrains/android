@@ -15,18 +15,28 @@
  */
 package com.google.idea.blaze.base.run.producers
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.settings.Blaze
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.ConfigurationFromContext
 import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationType
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Base class for Blaze run configuration producers. */
 abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(configurationType: ConfigurationType) :
   RunConfigurationProducer<BlazeCommandRunConfiguration>(configurationType) {
+
+  private val logger = Logger.getInstance(BlazeRunConfigurationProducer::class.java)
 
   override fun isPreferredConfiguration(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean {
     return Blaze.isBlazeProject(self.configuration.project)
@@ -81,4 +91,34 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
   private fun isBlazeContext(context: ConfigurationContext): Boolean {
     return Blaze.isBlazeProject(context.project)
   }
+
+  final override fun onFirstRun(configuration: ConfigurationFromContext, context: ConfigurationContext, startRunnable: Runnable) {
+    val project = context.project
+    project.coroutineScope.launch(Dispatchers.EDT) {
+      try {
+        val initialContext = findContext(context) ?: throw CancellationException("Context no longer valid")
+        val refinedContext = refineContext(initialContext, configuration, context)
+        val resolvedContext = withContext(Dispatchers.Default) { resolveContext(refinedContext, configuration, context) }
+        resolvedContext.setupRunConfiguration(configuration.configuration as BlazeCommandRunConfiguration)
+        startRunnable.run()
+      } catch (e: CancellationException) {
+        logger.info("Run configuration preparation cancelled: ${e.message}")
+      } catch (e: Throwable) {
+        logger.error("Failed to prepare run configuration", e)
+        Messages.showErrorDialog(project, "Failed to prepare run configuration: ${e.localizedMessage}", "Run Configuration Error")
+      }
+    }
+  }
+
+  protected open suspend fun refineContext(
+    initialContext: C,
+    configuration: ConfigurationFromContext,
+    context: ConfigurationContext,
+  ): RunConfigurationContext = initialContext
+
+  protected open suspend fun resolveContext(
+    refinedContext: RunConfigurationContext,
+    configuration: ConfigurationFromContext,
+    context: ConfigurationContext,
+  ): RunConfigurationContext = refinedContext.resolve(context.project)
 }
