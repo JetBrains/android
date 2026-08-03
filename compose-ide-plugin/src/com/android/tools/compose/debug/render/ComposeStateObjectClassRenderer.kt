@@ -161,7 +161,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
     return object : ValueDescriptorImpl(evaluationContext.project, debuggerDisplayValue) {
       override fun getDescriptorEvaluation(context: DebuggerContext): PsiExpression? = null
 
-      override fun calcValue(evaluationContext: EvaluationContextImpl?): Value = debuggerDisplayValue
+      override fun calcValue(evaluationContext: EvaluationContextImpl?): Value? = debuggerDisplayValue
 
       override fun calcValueName(): String = "value"
 
@@ -239,7 +239,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
       return fqcn
     }
 
-    fun evaluate(project: Project, context: EvaluationContext): Value {
+    fun evaluate(project: Project, context: EvaluationContext): Value? {
       return getEvaluator(project).evaluate(context)
     }
   }
