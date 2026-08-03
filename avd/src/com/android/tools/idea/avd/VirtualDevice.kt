@@ -94,6 +94,9 @@ internal class VirtualDevice(
   val isSkinAllowed
     get() = formFactor !in setOf(FormFactors.XR_HEADSET, FormFactors.XR_GLASSES, FormFactors.AI_GLASSES)
 
+  val isCameraConfigurationAllowed
+    get() = formFactor != FormFactors.AI_GLASSES
+
   fun hasPlayStore(image: ISystemImage) = hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
 
   /** Initializes the device based on its device profile. */

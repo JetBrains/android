@@ -267,7 +267,7 @@ internal object TestDevices {
         defaultVmHeapSize = StorageCapacity(48, StorageCapacity.Unit.MB),
         hasPlaystore = true,
         isFoldable = false,
-        cameraLocations = emptyList(),
+        cameraLocations = listOf(CameraLocation.BACK),
         formFactor = FormFactors.AI_GLASSES,
       )
       .apply {

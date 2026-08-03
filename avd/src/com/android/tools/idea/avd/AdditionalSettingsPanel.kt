@@ -87,7 +87,7 @@ private fun SkinSelector(device: VirtualDevice, skins: Iterable<Skin>) {
 
 @Composable
 private fun CameraGroup(device: VirtualDevice) {
-  if (device.cameraLocations.isEmpty()) {
+  if (device.cameraLocations.isEmpty() || !device.isCameraConfigurationAllowed) {
     return
   }
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {

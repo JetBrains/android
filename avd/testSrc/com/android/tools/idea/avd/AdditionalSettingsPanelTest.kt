@@ -173,7 +173,7 @@ class AdditionalSettingsPanelTest {
   }
 
   @Test
-  fun aiGlassesSkinDisabled() {
+  fun aiGlassesSkinAndCameraDisabled() {
     val device = TestDevices.aiGlasses()
     val fileSystem = createInMemoryFileSystem()
 
@@ -184,6 +184,7 @@ class AdditionalSettingsPanelTest {
     }
 
     rule.onNodeWithTag("DeviceSkinDropdown").assertDoesNotExist()
+    rule.onNodeWithText("Camera").assertDoesNotExist()
   }
 
   @Test
