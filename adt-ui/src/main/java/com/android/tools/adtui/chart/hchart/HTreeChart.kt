@@ -40,6 +40,7 @@ import java.util.LinkedList
 import java.util.Queue
 import javax.swing.AbstractAction
 import javax.swing.KeyStroke
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -106,7 +107,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   private val nodeYPaddingPx = builder.nodeYPaddingPx
 
   private val nodeHeight: Int
-    get() = if (customNodeHeightPx > 0) customNodeHeightPx else mDefaultFontMetrics.height
+    get() = if (customNodeHeightPx > 0) customNodeHeightPx else getDefaultNodeHeight(mDefaultFontMetrics.height)
 
   init {
     isFocusable = true
@@ -450,6 +451,9 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     private const val ACTION_MOVEMENT_FACTOR = 5
 
     @VisibleForTesting const val PADDING = 1
+
+    @VisibleForTesting fun getDefaultNodeHeight(fontMetricsHeight: Int): Int = ceil(fontMetricsHeight * 1.15).toInt()
+
     private const val INITIAL_Y_POSITION = 0
 
     @VisibleForTesting const val HEIGHT_PADDING = 15
