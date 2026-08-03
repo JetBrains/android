@@ -20,6 +20,7 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
@@ -36,6 +37,9 @@ interface RunConfigurationContext {
 
   /** Returns true if the run configuration matches this [RunConfigurationContext]. */
   fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean
+
+  /** Resolves the context (e.g. fetches target info in background). */
+  suspend fun resolve(project: Project): RunConfigurationContext = this
 
   companion object {
     @JvmStatic

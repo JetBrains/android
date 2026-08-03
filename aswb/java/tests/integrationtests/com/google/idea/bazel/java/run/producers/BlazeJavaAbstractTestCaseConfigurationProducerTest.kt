@@ -1,5 +1,5 @@
 /*
- * Copyright 2026 The Bazel Authors. All rights reserved.
+ * Copyright 2017 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,9 @@ import com.google.idea.blaze.base.model.primitives.WorkspacePath
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
-import com.intellij.openapi.util.EmptyRunnable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiMethod
-import java.util.function.BiConsumer
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -185,7 +184,11 @@ class BlazeJavaAbstractTestCaseConfigurationProducerTest : BlazeRunConfiguration
     val builder = MockBlazeProjectDataBuilder.builder(workspaceRoot)
     registerProjectService(BlazeProjectDataManager::class.java, MockBlazeProjectDataManager(builder.build()))
 
-    BlazeJavaAbstractTestCaseConfigurationProducer.chooseSubclass(fromContext, context, EmptyRunnable.INSTANCE)
+    var ran = false
+    val producer = BlazeJavaAbstractTestCaseConfigurationProducer()
+    producer.onFirstRun(fromContext, context) { ran = true }
+    ApplicationManager.getApplication().invokeAndWait {}
+    assertThat(ran).isTrue()
 
     assertThat(blazeConfig.targetPatterns).containsExactly("//java/com/google/test:TestClass")
     assertThat(getTestFilterContents(blazeConfig)).isEqualTo(BlazeFlags.TEST_FILTER + "=com.google.test.TestClass#")
@@ -234,7 +237,11 @@ class BlazeJavaAbstractTestCaseConfigurationProducerTest : BlazeRunConfiguration
     assertThat(blazeConfig.targetPatterns).isEmpty()
     assertThat(blazeConfig.name).isEqualTo("Choose subclass for AbstractTestCase.testMethod")
 
-    BlazeJavaAbstractTestCaseConfigurationProducer.chooseSubclass(fromContext, context, EmptyRunnable.INSTANCE)
+    var ran = false
+    val producer = BlazeJavaAbstractTestCaseConfigurationProducer()
+    producer.onFirstRun(fromContext, context) { ran = true }
+    ApplicationManager.getApplication().invokeAndWait {}
+    assertThat(ran).isTrue()
 
     assertThat(blazeConfig.targetPatterns).containsExactly("//java/com/google/test:TestClass")
     assertThat(getTestFilterContents(blazeConfig)).isEqualTo(BlazeFlags.TEST_FILTER + "=com.google.test.TestClass#testMethod$")
@@ -278,10 +285,14 @@ class BlazeJavaAbstractTestCaseConfigurationProducerTest : BlazeRunConfiguration
     val builder = MockBlazeProjectDataBuilder.builder(workspaceRoot)
     registerProjectService(BlazeProjectDataManager::class.java, MockBlazeProjectDataManager(builder.build()))
 
-    SubclassTestChooser.testSelectionHook = BiConsumer { _, callback -> callback.accept(null) }
+    SubclassTestChooser.testSelectionHook = { null }
 
-    BlazeJavaAbstractTestCaseConfigurationProducer.chooseSubclass(fromContext, context, EmptyRunnable.INSTANCE)
+    var ran = false
+    val producer = BlazeJavaAbstractTestCaseConfigurationProducer()
+    producer.onFirstRun(fromContext, context) { ran = true }
+    ApplicationManager.getApplication().invokeAndWait {}
 
+    assertThat(ran).isFalse()
     assertThat(blazeConfig.targetPatterns).isEmpty()
 
     SubclassTestChooser.testSelectionHook = null
