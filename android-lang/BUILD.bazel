@@ -2,11 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.lang` start
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
-)
-
 jvm_library(
     name = "lang",
     srcs = glob(
@@ -29,6 +24,7 @@ jvm_library(
         # do not sort,
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:studio-platform-provided",
         "//libraries/guava",
@@ -66,7 +62,6 @@ jvm_library(
         "//platform/ide-core",
         "//plugins/kotlin/base/util",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     ],
 )
 
@@ -82,7 +77,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":lang",
-        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:studio-platform-provided",

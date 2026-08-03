@@ -8,11 +8,6 @@ create_kotlinc_options(
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
-)
-
 jvm_library(
     name = "wear-designer",
     srcs = glob(
@@ -36,6 +31,7 @@ jvm_library(
         "//libraries/guava",
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinx/coroutines/core",
         "//libraries/protobuf",
@@ -75,7 +71,6 @@ jvm_library(
         "//android/rendering",
         "//android/project-system",
         "//android/wear-preview-elements",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     ],
 )
 
@@ -95,7 +90,6 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
-        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",

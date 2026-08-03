@@ -9,11 +9,6 @@ create_kotlinc_options(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
-)
-
-jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-analysis-api-impl-base_provided",
     lib = "//libraries/kotlinc/analysis-api-impl-base:libraries-kotlinc-analysis-api-impl-base",
 )
@@ -41,6 +36,7 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/protobuf",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "@lib//:kotlinc-kotlin-compiler-cli-provided",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
@@ -74,7 +70,6 @@ jvm_library(
         "//plugins/kotlin/base/psi",
         "//plugins/kotlin/base/util",
         "//plugins/kotlin/base/scripting/scripting.shared",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-impl-base_provided",
     ],
 )
@@ -95,7 +90,6 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//libraries/protobuf:protobuf_test_lib",
-        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/analysis-api-impl-base:libraries-kotlinc-analysis-api-impl-base",
         "//libraries/kotlinc/analysis-api-impl-base:libraries-kotlinc-analysis-api-impl-base_test_lib",
@@ -157,6 +151,7 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//android/adt-testutils",
         "//android/artwork",
         "//android/android-common:common",

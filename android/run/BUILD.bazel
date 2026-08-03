@@ -16,7 +16,11 @@ jvm_library(
     ),
     module_name = "intellij.android.core.run",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+    ],
 )
 
 jvm_library(

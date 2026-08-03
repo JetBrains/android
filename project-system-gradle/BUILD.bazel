@@ -22,11 +22,6 @@ jvm_provided_library(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
-)
-
-jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
     lib = "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2",
 )
@@ -67,6 +62,7 @@ jvm_library(
         "//libraries/kotlinx/coroutines/core",
         "//libraries/kotlin/reflect",
         "//libraries/protobuf",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kotlinc-kotlin-jps-common-provided",
         "@lib//:kotlinc-kotlin-scripting-compiler-impl-provided",
@@ -207,7 +203,6 @@ jvm_library(
         "//plugins/kotlin/references",
         ":libraries_kotlin_libraries-kotlin-gradle-plugin-idea_provided",
         ":libraries_kotlin_libraries-kotlin-tooling-core_provided",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
     ],
 )
@@ -243,7 +238,6 @@ jvm_library(
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//libraries/kotlin/reflect:reflect_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
-        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-jps-common-provided",
@@ -415,6 +409,7 @@ jvm_library(
         # do not sort,
         "@lib//:kotlin-stdlib",
         "//platform/editor-ui-ex:editor-ex",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//android/gradle-dsl-groovy",
         "//android/gradle-dsl-kotlin",

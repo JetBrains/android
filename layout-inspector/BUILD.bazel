@@ -8,11 +8,6 @@ create_kotlinc_options(
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-    lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
-)
-
 jvm_library(
     name = "layout-inspector",
     srcs = glob(
@@ -32,6 +27,7 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//libraries/gson",
@@ -104,7 +100,6 @@ jvm_library(
         "//xml/xml-psi-impl:psi-impl",
         "//platform/progress/shared:ide-progress",
         "//fleet/util/core",
-        ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     ],
 )
 
