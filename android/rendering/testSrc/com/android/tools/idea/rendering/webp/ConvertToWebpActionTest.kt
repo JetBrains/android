@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.webp
 
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.webp.WebpNativeLibDownloader
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
@@ -34,6 +35,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
+    WebpNativeLibDownloader.ensureWebpRegistered()
     project.messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
       override fun notify(notification: Notification) {
         notifications.add(notification)

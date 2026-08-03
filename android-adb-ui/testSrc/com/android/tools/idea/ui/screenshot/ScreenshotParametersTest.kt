@@ -25,7 +25,7 @@ import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.device.DeviceArtDescriptor
-import com.android.tools.adtui.webp.WebpMetadata
+import com.android.tools.adtui.webp.WebpNativeLibDownloader
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -53,7 +53,7 @@ class ScreenshotParametersTest {
 
   @Before
   fun setUp() {
-    WebpMetadata.ensureWebpRegistered()
+    WebpNativeLibDownloader.ensureWebpRegistered()
   }
 
   @Test

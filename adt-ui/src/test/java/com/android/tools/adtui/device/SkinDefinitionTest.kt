@@ -20,6 +20,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
+import com.android.tools.adtui.webp.WebpNativeLibDownloader
 import com.android.utils.HashCodes
 import com.google.common.truth.Truth.assertThat
 import java.awt.Dimension
@@ -45,7 +46,7 @@ class SkinDefinitionTest {
 
   @Before
   fun setUp() {
-    WebpMetadata.ensureWebpRegistered()
+    WebpNativeLibDownloader.ensureWebpRegistered()
   }
 
   @Test

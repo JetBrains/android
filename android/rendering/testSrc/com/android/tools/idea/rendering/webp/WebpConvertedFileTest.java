@@ -18,10 +18,17 @@ package com.android.tools.idea.rendering.webp;
 import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.adtui.webp.WebpNativeLibDownloader;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
 public class WebpConvertedFileTest extends AndroidTestCase {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    WebpNativeLibDownloader.ensureWebpRegistered();
+  }
+
   public void testLossless() throws Exception {
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipTransparentImages = false;

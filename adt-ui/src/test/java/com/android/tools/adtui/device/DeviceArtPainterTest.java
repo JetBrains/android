@@ -28,7 +28,7 @@ import com.android.sdklib.devices.DeviceParser;
 import com.android.testutils.ImageDiffUtil;
 import com.android.testutils.TestUtils;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.adtui.webp.WebpMetadata;
+import com.android.tools.adtui.webp.WebpNativeLibDownloader;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import java.awt.Color;
@@ -66,7 +66,7 @@ public class DeviceArtPainterTest {
 
   @Before
   public void setUp() {
-    WebpMetadata.ensureWebpRegistered();
+    WebpNativeLibDownloader.ensureWebpRegistered();
   }
 
   @Test

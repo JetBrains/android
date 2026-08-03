@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.testutils.ImageDiffUtil
+import com.android.tools.adtui.webp.WebpNativeLibDownloader
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
@@ -77,6 +78,7 @@ class ResourceExplorerListViewModelImplTest {
 
   @Before
   fun setUp() {
+    WebpNativeLibDownloader.ensureWebpRegistered()
     projectRule.fixture.testDataPath = getTestDataDirectory()
     largeImageCache = ImageCache.createImageCache(disposable)
     smallImageCache = ImageCache.createImageCache(disposable)

@@ -197,6 +197,8 @@ jvm_library(
         "//platform/lang-api:lang_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
+        "//plugins/webp/tests",
+        "//plugins/webp/tests:tests_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.adt.ui` end

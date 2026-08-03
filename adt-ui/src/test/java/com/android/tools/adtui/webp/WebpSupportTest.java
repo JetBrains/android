@@ -35,7 +35,7 @@ public class WebpSupportTest extends TestCase {
 
   @Override
   public void setUp() throws Exception {
-    WebpMetadata.ensureWebpRegistered();
+    WebpNativeLibDownloader.ensureWebpRegistered();
   }
 
   public void testRegistration() throws Exception {

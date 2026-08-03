@@ -127,6 +127,8 @@ jvm_library(
         "//libraries/http-client:http-client_test_lib",
         "//xml/dom-openapi:dom",
         "//xml/dom-openapi:dom_test_lib",
+        "//plugins/webp/tests",
+        "//plugins/webp/tests:tests_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.rendering` end

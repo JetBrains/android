@@ -21,7 +21,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
-import com.android.tools.adtui.webp.WebpMetadata
+import com.android.tools.adtui.webp.WebpNativeLibDownloader
 import com.android.tools.idea.ui.screenshot.DeviceFramingOption
 import com.android.tools.idea.ui.screenshot.DeviceScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
@@ -39,7 +39,7 @@ class DeviceScreenshotPostprocessorTest {
 
   @Before
   fun setUp() {
-    WebpMetadata.ensureWebpRegistered()
+    WebpNativeLibDownloader.ensureWebpRegistered()
   }
 
   private val postprocessor = DeviceScreenshotDecorator()

@@ -16,7 +16,7 @@
 package com.android.tools.adtui.device;
 
 import com.android.resources.ScreenOrientation;
-import com.android.tools.adtui.webp.WebpMetadata;
+import com.android.tools.adtui.webp.WebpNativeLibDownloader;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class DeviceArtDescriptorTest extends TestCase {
 
   @Override
   public void setUp() {
-    WebpMetadata.ensureWebpRegistered();
+    WebpNativeLibDownloader.ensureWebpRegistered();
   }
 
   public void testBasics() throws IOException {
