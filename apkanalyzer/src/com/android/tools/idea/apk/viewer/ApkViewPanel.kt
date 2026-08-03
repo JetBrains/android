@@ -33,6 +33,7 @@ import com.android.tools.idea.apk.viewer.ApkParser.Align16kbCompliance
 import com.android.tools.idea.apk.viewer.PercentRenderer.PercentProvider
 import com.android.tools.idea.apk.viewer.pagealign.AlignmentCellRenderer
 import com.android.tools.idea.apk.viewer.pagealign.findPageAlignWarningsPaths
+import com.android.tools.idea.apk.viewer.pagealign.getAlignmentFinding
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -86,6 +87,7 @@ import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
+import javax.swing.SortOrder
 import javax.swing.SwingConstants
 import javax.swing.event.TreeSelectionEvent
 import javax.swing.event.TreeSelectionListener
@@ -668,6 +670,7 @@ internal class ApkViewPanel(
       }
     }
 
+    val downloadSizeComparator = NodeComparator { this.data.downloadFileSize }
     val builder =
       ColumnTreeBuilder(tree)
         .addColumn(
@@ -676,6 +679,7 @@ internal class ApkViewPanel(
             .setPreferredWidth(JBUI.scale(270))
             .setHeaderAlignment(SwingConstants.LEADING)
             .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setComparator(NodeComparator { this.data.nodeDisplayString })
             .setRenderer(NameRenderer(apkParser, treeSpeedSearch))
         )
         .addColumn(
@@ -684,6 +688,7 @@ internal class ApkViewPanel(
             .setPreferredWidth(JBUI.scale(80))
             .setHeaderAlignment(SwingConstants.TRAILING)
             .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setComparator(NodeComparator { this.data.rawFileSize })
             .setRenderer(SizeRenderer(false))
         )
         .addColumn(
@@ -692,6 +697,7 @@ internal class ApkViewPanel(
             .setPreferredWidth(JBUI.scale(80))
             .setHeaderAlignment(SwingConstants.TRAILING)
             .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setComparator(downloadSizeComparator)
             .setRenderer(SizeRenderer(true))
         )
         .addColumn(
@@ -700,6 +706,7 @@ internal class ApkViewPanel(
             .setPreferredWidth(JBUI.scale(150))
             .setHeaderAlignment(SwingConstants.LEADING)
             .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setComparator(downloadSizeComparator)
             .setRenderer(PercentRenderer(percentProvider))
         )
         .addColumn(
@@ -708,6 +715,7 @@ internal class ApkViewPanel(
             .setPreferredWidth(JBUI.scale(110))
             .setHeaderAlignment(SwingConstants.LEADING)
             .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+            .setComparator(NodeComparator { this.data.isFileCompressed })
             .setRenderer(CompressionRenderer())
         )
 
@@ -718,6 +726,7 @@ internal class ApkViewPanel(
           .setPreferredWidth(JBUI.scale(320))
           .setHeaderAlignment(SwingConstants.LEADING)
           .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+          .setComparator(NodeComparator { this.data.getAlignmentFinding(treeModel.extractNativeLibs).text })
           .setRenderer(AlignmentCellRenderer())
       )
     } else {
@@ -727,8 +736,21 @@ internal class ApkViewPanel(
           .setPreferredWidth(JBUI.scale(200))
           .setHeaderAlignment(SwingConstants.LEADING)
           .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+          .setComparator(NodeComparator { this.data.fileAlignment.text })
           .setRenderer(ZipAlignmentRenderer())
       )
+    }
+
+    builder.setTreeSorter { comparator: Comparator<Any>, _: SortOrder ->
+      val root = treeModel.root as? ArchiveNode
+      if (root != null) {
+        val selected = tree.selectionPaths
+        @Suppress("UNCHECKED_CAST") ArchiveTreeStructure.sort(root, comparator as Comparator<ArchiveNode>)
+        treeModel.reload()
+        if (selected != null) {
+          tree.selectionPaths = selected
+        }
+      }
     }
 
     return builder.build()
@@ -738,5 +760,9 @@ internal class ApkViewPanel(
     private val LOG = Logger.getInstance(ApkViewPanel::class.java)
     private const val TEXT_RENDERER_HORIZ_PADDING = 6
     private const val TEXT_RENDERER_VERT_PADDING = 4
+  }
+
+  private class NodeComparator<T : Comparable<T>>(private val getValue: ArchiveNode.() -> T) : Comparator<ArchiveNode> {
+    override fun compare(o1: ArchiveNode, o2: ArchiveNode) = o1.getValue().compareTo(o2.getValue())
   }
 }

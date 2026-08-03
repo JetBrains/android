@@ -30,6 +30,7 @@ import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer
 import com.android.tools.idea.apk.viewer.testing.FakeAndroidApplicationInfoProvider
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
 import com.google.devrel.gmscore.tools.apk.arsc.ChunkWithChunks
@@ -73,6 +74,7 @@ import java.util.zip.ZipInputStream
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.text.JTextComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
@@ -120,6 +122,7 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
       disposableRule,
       ApplicationServiceRule(FileEditorProviderManager::class.java, FakeFileEditorProviderManager()),
       temporaryDirectoryRule,
+      WaitForIndexRule(projectRule),
       EdtRule(),
     )
 
@@ -300,6 +303,32 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
     val editor = apkEditor.getEditor<ArscViewer>(apkEditor.getNode("/resources.arsc"))
 
     assertThat(editor.file.getAllChunks().count()).isEqualTo(124)
+  }
+
+  @Test
+  fun treeSorting() {
+    val apkEditor = apkEditor("/test.apk")
+    apkEditor.waitForUpdateComplete()
+
+    val model = apkEditor.getNodesModel() as ApkTreeModel
+    val rootNode = model.root as ArchiveTreeNode
+
+    val table = TreeWalker(apkEditor.getTopPane()).descendants().filterIsInstance<JTable>().first()
+
+    // 1. Sort by File Name Ascending
+    table.rowSorter.toggleSortOrder(0)
+    val sortedAscending = rootNode.children().asSequence().map { (it as ArchiveTreeNode).data.getNodeDisplayString() }.toList()
+    assertThat(sortedAscending).containsExactly("AndroidManifest.xml", "instant-run.zip", "res").inOrder()
+
+    // 2. Sort by File Name Descending
+    table.rowSorter.toggleSortOrder(0)
+    val sortedDescending = rootNode.children().asSequence().map { (it as ArchiveTreeNode).data.getNodeDisplayString() }.toList()
+    assertThat(sortedDescending).containsExactly("res", "instant-run.zip", "AndroidManifest.xml").inOrder()
+
+    // 3. Sort by Size (raw file size) Ascending
+    table.rowSorter.toggleSortOrder(1)
+    val sortedBySize = rootNode.children().asSequence().map { (it as ArchiveTreeNode).data.rawFileSize }.toList()
+    assertThat(sortedBySize).isOrdered()
   }
 
   @Test
