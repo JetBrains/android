@@ -740,6 +740,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
     StudioFlags.NPW_ENABLE_BASIC_WATCH_FACE_TEMPLATE.override(true)
     checkCreateTemplate("Basic Watch Face", withKotlin(), { moduleData, _ -> moduleData.isWatchFace = true })
   }
+
+  @Test
+  fun testNewAiGlassesActivity() {
+    checkCreateTemplate("Basic Display Glasses Activity", withKotlin(), formFactor = FormFactor.AiGlasses)
+  }
 }
 
 typealias TemplateStateCustomizer = Map<String, Any>

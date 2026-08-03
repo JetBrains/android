@@ -1,0 +1,12 @@
+// This file should not be edited manually! See go/template-diff-tests
+pluginManagement {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
+}
+dependencyResolutionManagement {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
+}
+include ':Template test module'
