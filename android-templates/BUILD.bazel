@@ -12,11 +12,6 @@ create_kotlinc_options(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
-jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
 )
@@ -49,6 +44,7 @@ jvm_library(
         "//libraries/guava",
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//platform/ide-core-impl",
         "//android/android-common:common",
@@ -86,7 +82,6 @@ jvm_library(
         "//plugins/kotlin/base/util",
         "//platform/util-class-loader:util-classLoader",
         "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
     ],
@@ -107,7 +102,6 @@ jvm_library(
         ":templates",
         "@lib//:studio-platform-provided",
         "//libraries/guava:guava_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//platform/ide-core-impl:ide-core-impl_test_lib",
@@ -186,6 +180,7 @@ jvm_library(
     ),
     module_name = "intellij.android.templates.tests",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common"],
 )
 
 jvm_library(

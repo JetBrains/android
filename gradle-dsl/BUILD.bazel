@@ -110,7 +110,11 @@ jvm_library(
     ),
     module_name = "intellij.android.gradle.dsl.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//plugins/toml/core"],
+    runtime_deps = [
+        # do not sort,
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//plugins/toml/core",
+    ],
 )
 
 jvm_library(

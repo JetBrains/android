@@ -8,11 +8,6 @@ create_kotlinc_options(
     x_sam_conversions = "class",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "newProjectWizard",
     srcs = glob(
@@ -38,6 +33,7 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kxml2",
         "//libraries/protobuf",
         "//libraries/rd/core",
@@ -97,7 +93,6 @@ jvm_library(
         "//android/adt-ui-compose",
         "//platform/forms_rt:java-guiForms-rt",
         "//android/gradle-dsl-android",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -118,7 +113,6 @@ jvm_library(
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/rd/core:core_test_lib",

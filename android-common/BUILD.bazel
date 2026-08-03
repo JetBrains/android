@@ -24,11 +24,6 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "common",
     srcs = glob(
@@ -57,6 +52,7 @@ jvm_library(
         "//libraries/jna",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "//android/artwork",
@@ -91,7 +87,6 @@ jvm_library(
         "//libraries/protobuf",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -123,7 +118,6 @@ jvm_library(
         "@lib//:truth",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",

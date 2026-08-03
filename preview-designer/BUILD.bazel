@@ -9,11 +9,6 @@ create_kotlinc_options(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
-jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
     lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
 )
@@ -51,6 +46,7 @@ jvm_library(
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",
         "//libraries/protobuf",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "//android/adt-ui",
         "//android/artwork",
@@ -102,7 +98,6 @@ jvm_library(
         "//plugins/kotlin/base/code-insight",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/rd/core",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
     ],
@@ -127,7 +122,6 @@ jvm_library(
         "//libraries/commons/lang3:lang3_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "//android/adt-ui:adt-ui_test_lib",

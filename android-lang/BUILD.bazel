@@ -7,11 +7,6 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "lang",
     srcs = glob(
@@ -34,6 +29,7 @@ jvm_library(
         # do not sort,
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:studio-platform-provided",
         "//libraries/guava",
         "//android/artwork",
@@ -71,7 +67,6 @@ jvm_library(
         "//plugins/kotlin/base/util",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -89,7 +84,6 @@ jvm_library(
         ":lang",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
@@ -153,6 +147,7 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//android/android:core",
         "//android/project-system",
     ],

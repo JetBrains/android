@@ -30,11 +30,6 @@ jvm_provided_library(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
-jvm_provided_library(
     name = "plugins_maven_artifactResolver-m31_provided",
     lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
 )
@@ -99,6 +94,7 @@ jvm_library(
         "@lib//:kxml2",
         "//libraries/protobuf",
         "//plugins/kotlin/references",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "@lib//:kotlinc-kotlin-gradle-statistics-provided",
@@ -280,7 +276,6 @@ jvm_library(
         "//libraries/jspecify",
         "//plugins/gradle/java/groovy",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
         ":plugins_maven_artifactResolver-m31_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-platform-interface_provided",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api-k2_provided",
@@ -333,7 +328,6 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//plugins/kotlin/references:references_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",

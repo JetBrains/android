@@ -16,11 +16,6 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "android-kotlin-idea",
     srcs = glob(
@@ -43,6 +38,7 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//android/android-common:common",
         "//android/android:core",
         "//android/jps-model",
@@ -61,7 +57,6 @@ jvm_library(
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/code-insight/api",
         ":libraries_kotlinc_libraries-kotlinc-analysis-api_provided",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -83,7 +78,6 @@ jvm_library(
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/android-common:common_test_lib",
         "//android/android:core_test_lib",
@@ -129,7 +123,11 @@ jvm_library(
     ),
     module_name = "intellij.android.kotlin.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+    ],
 )
 
 jvm_library(

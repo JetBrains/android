@@ -9,11 +9,6 @@ create_kotlinc_options(
     x_sam_conversions = "class",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "screenshot-test",
     srcs = glob(
@@ -55,6 +50,7 @@ jvm_library(
         "//java/java-psi-api:psi",
         "//uast/uast-common:uast",
         "//plugins/kotlin/base/util",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//platform/diff-api:diff",
         "//images",
         "//platform/diff-impl",
@@ -67,7 +63,6 @@ jvm_library(
         "//libraries/protobuf",
         "//android/testartifacts",
         "//platform/util:util-ui",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -106,7 +101,6 @@ jvm_library(
         "//java/java-psi-api:psi_test_lib",
         "//uast/uast-common:uast_test_lib",
         "//plugins/kotlin/base/util:util_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//platform/diff-api:diff_test_lib",
         "//images:images_test_lib",

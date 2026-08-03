@@ -10,11 +10,6 @@ resourcegroup(
     strip_prefix = "testResources",
 )
 
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "debuggers",
     srcs = glob(
@@ -83,8 +78,8 @@ jvm_library(
         "//plugins/kotlin/jvm-debugger/coroutines",
         "//java/openapi:java",
         "//android/project-system",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//platform/xdebugger-impl/rpc",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -148,7 +143,6 @@ jvm_library(
         "//plugins/kotlin/jvm-debugger/coroutines:coroutines_test_lib",
         "//java/openapi:java_test_lib",
         "//android/project-system:project-system_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//platform/xdebugger-impl/rpc:rpc_test_lib",
     ],

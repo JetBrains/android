@@ -2,11 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.streaming` start
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "streaming",
     srcs = glob(
@@ -32,6 +27,7 @@ jvm_library(
         "//libraries/fastutil",
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinx/coroutines/core",
         "//libraries/kotlinx/coroutines/guava",
         "//libraries/protobuf",
@@ -68,7 +64,6 @@ jvm_library(
         "//platform/progress/shared:ide-progress",
         "//platform/execution",
         "//libraries/rd/core",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -90,7 +85,6 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/hdr-histogram:hdr-histogram_test_lib",
         "//libraries/fastutil:fastutil_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//libraries/kotlinx/coroutines/guava:guava_test_lib",

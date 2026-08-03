@@ -1,11 +1,6 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl.declarative` start
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "gradle-dsl-declarative",
     srcs = glob(
@@ -40,7 +35,7 @@ jvm_library(
         "//android/gradle-declarative-lang",
         "//libraries/guava",
         "//libraries/commons/lang3",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
     ],
 )
 
@@ -73,7 +68,6 @@ jvm_library(
         "//android/gradle-declarative-lang-ide:gradle-declarative-lang-ide_test_lib",
         "//libraries/guava:guava_test_lib",
         "//libraries/commons/lang3:lang3_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
     ],
 )

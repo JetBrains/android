@@ -2,11 +2,6 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` start
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-)
-
 jvm_library(
     name = "projectSystem-gradle-upgrade",
     srcs = glob(
@@ -32,6 +27,7 @@ jvm_library(
         "@lib//:jetbrains-annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/protobuf",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//android/adt-ui",
         "//android/adt-ui-model",
         "//android/analytics",
@@ -78,7 +74,6 @@ jvm_library(
         "//platform/forms_rt:java-guiForms-rt",
         "//platform/util/concurrency",
         "//platform/util:util-ui",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-common_provided",
     ],
 )
 
@@ -99,7 +94,6 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/fastutil:fastutil_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/adt-ui-model:adt-ui-model_test_lib",
