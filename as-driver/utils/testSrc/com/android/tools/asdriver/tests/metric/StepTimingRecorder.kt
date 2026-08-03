@@ -131,8 +131,8 @@ object StepTimingRecorder {
 
     val benchmark =
       Benchmark.Builder(testName)
-        .setProject("Android Studio Performance")
-        .setDescription("Dynamic performance metrics collected for $testName")
+        .setProject("Android Studio E2E Performance")
+        .setDescription("E2E performance metrics collected for $testName")
         .build()
 
     val analyzer =
