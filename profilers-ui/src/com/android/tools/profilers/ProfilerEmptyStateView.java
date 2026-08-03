@@ -58,7 +58,7 @@ public class ProfilerEmptyStateView extends JPanel {
   public ProfilerEmptyStateView(@NotNull String title, @Nullable String message) {
     initLayout(title);
 
-    Font font = H1_FONT.deriveFont(12.0f);
+    Font font = ProfilerFonts.STANDARD_FONT;
     FontMetrics metrics = UIUtilities.getFontMetrics(this, font);
     List<RenderInstruction> instructions = new ArrayList<>();
 
