@@ -16,6 +16,7 @@
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.insight
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +58,7 @@ import androidx.compose.ui.window.PopupPositionProvider
 import com.android.tools.profilers.leakcanary.AiInsight
 import com.android.tools.profilers.leakcanary.InsightFeedback
 import com.android.tools.profilers.leakcanary.LoadingState
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import icons.StudioIconsCompose
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -67,7 +69,9 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
+import org.jetbrains.jewel.ui.icon.IntelliJIconKey
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @OptIn(ExperimentalJewelApi::class)
@@ -247,6 +251,33 @@ private fun InsightContent(
   }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun InsightActionButton(
+  tooltipText: String,
+  iconKey: IntelliJIconKey,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  isSelected: Boolean = false,
+) {
+  Tooltip(tooltip = { Text(tooltipText) }) {
+    IconButton(
+      onClick = onClick,
+      modifier =
+        modifier.then(
+          if (isSelected) {
+            Modifier.background(color = JewelTheme.globalColors.text.info.copy(alpha = 0.15f), shape = RoundedCornerShape(4.dp))
+              .border(width = 1.dp, color = JewelTheme.globalColors.text.info.copy(alpha = 0.3f), shape = RoundedCornerShape(4.dp))
+          } else {
+            Modifier
+          }
+        ),
+    ) {
+      Icon(key = iconKey, contentDescription = tooltipText)
+    }
+  }
+}
+
 @Composable
 private fun InsightFeedbackToolbar(
   feedback: InsightFeedback?,
@@ -256,44 +287,28 @@ private fun InsightFeedbackToolbar(
   modifier: Modifier = Modifier,
 ) {
   Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-    IconButton(
-      onClick = {
-        if (feedback == InsightFeedback.THUMBS_UP) {
-          onFeedback(null)
-        } else {
-          onFeedback(InsightFeedback.THUMBS_UP)
-        }
-      },
-      modifier =
-        if (feedback == InsightFeedback.THUMBS_UP) {
-          Modifier.background(color = JewelTheme.globalColors.text.info.copy(alpha = 0.15f), shape = RoundedCornerShape(4.dp))
-            .border(width = 1.dp, color = JewelTheme.globalColors.text.info.copy(alpha = 0.3f), shape = RoundedCornerShape(4.dp))
-        } else {
-          Modifier
-        },
-    ) {
-      Icon(key = StudioIconsCompose.Common.Like, contentDescription = "Upvote Insight")
-    }
-    IconButton(
-      onClick = {
-        if (feedback == InsightFeedback.THUMBS_DOWN) {
-          onFeedback(null)
-        } else {
-          onFeedback(InsightFeedback.THUMBS_DOWN)
-        }
-      },
-      modifier =
-        if (feedback == InsightFeedback.THUMBS_DOWN) {
-          Modifier.background(color = JewelTheme.globalColors.text.info.copy(alpha = 0.15f), shape = RoundedCornerShape(4.dp))
-            .border(width = 1.dp, color = JewelTheme.globalColors.text.info.copy(alpha = 0.3f), shape = RoundedCornerShape(4.dp))
-        } else {
-          Modifier
-        },
-    ) {
-      Icon(key = StudioIconsCompose.Common.Dislike, contentDescription = "Downvote Insight")
-    }
-    IconButton(onClick = onCopyClick) { Icon(key = AllIconsKeys.Actions.Copy, contentDescription = "Copy Insight") }
-    IconButton(onClick = onRefresh) { Icon(key = AllIconsKeys.Actions.Refresh, contentDescription = "Regenerate Insight") }
+    InsightActionButton(
+      tooltipText = TaskBasedUxStrings.LEAKCANARY_UPVOTE_INSIGHT,
+      iconKey = StudioIconsCompose.Common.Like,
+      onClick = { onFeedback(if (feedback == InsightFeedback.THUMBS_UP) null else InsightFeedback.THUMBS_UP) },
+      isSelected = feedback == InsightFeedback.THUMBS_UP,
+    )
+    InsightActionButton(
+      tooltipText = TaskBasedUxStrings.LEAKCANARY_DOWNVOTE_INSIGHT,
+      iconKey = StudioIconsCompose.Common.Dislike,
+      onClick = { onFeedback(if (feedback == InsightFeedback.THUMBS_DOWN) null else InsightFeedback.THUMBS_DOWN) },
+      isSelected = feedback == InsightFeedback.THUMBS_DOWN,
+    )
+    InsightActionButton(
+      tooltipText = TaskBasedUxStrings.LEAKCANARY_COPY_INSIGHT,
+      iconKey = AllIconsKeys.Actions.Copy,
+      onClick = onCopyClick,
+    )
+    InsightActionButton(
+      tooltipText = TaskBasedUxStrings.LEAKCANARY_REGENERATE_INSIGHT,
+      iconKey = AllIconsKeys.Actions.Refresh,
+      onClick = onRefresh,
+    )
   }
 }
 
