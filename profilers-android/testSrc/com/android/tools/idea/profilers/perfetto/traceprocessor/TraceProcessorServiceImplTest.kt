@@ -64,6 +64,7 @@ class TraceProcessorServiceImplTest {
     val traceFile = tempFolder.newFile("perfetto.trace")
     traceFile.writeBytes(Random.Default.nextBytes(256))
 
+    fakeIdeProfilerServices.enableDeobfuscationForNativeAllocations(false)
     val traceLoaded = ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
 
     assertThat(traceLoaded).isTrue()
@@ -79,6 +80,56 @@ class TraceProcessorServiceImplTest {
 
     assertThat(fakeFeatureTracker.traceProcessorQueryMetrics)
       .containsExactly(Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getOkMetricStatsFor(10, 10, 256)))
+  }
+
+  @Test
+  fun `loadTrace - native allocation skips tpd symbolization when deobfuscation is enabled`() {
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    Disposer.register(disposableRule.disposable, client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker) { client }
+    Disposer.register(disposableRule.disposable, ideService)
+
+    fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder().setOk(true).build()
+
+    val traceFile = tempFolder.newFile("sample.heapprofd")
+    traceFile.writeBytes(Random.Default.nextBytes(256))
+
+    fakeIdeProfilerServices.enableDeobfuscationForNativeAllocations(true)
+    val traceLoaded = ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
+
+    assertThat(traceLoaded).isTrue()
+    val expectedRequest = TraceProcessor.LoadTraceRequest.newBuilder().setTraceId(10).setTracePath(traceFile.absolutePath).build()
+    assertThat(fakeGrpcService.lastLoadTraceRequest).isEqualTo(expectedRequest)
+
+    assertThat(fakeFeatureTracker.traceProcessorQueryMetrics)
+      .containsExactly(Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getOkMetricStatsFor(10, 10, 256)))
+  }
+
+  @Test
+  fun `loadTrace - non-heapprofd trace receives symbol paths when native allocation deobfuscation is enabled`() {
+    val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
+    Disposer.register(disposableRule.disposable, client)
+    val ideService = TraceProcessorServiceImpl(fakeTicker) { client }
+    Disposer.register(disposableRule.disposable, ideService)
+
+    fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder().setOk(true).build()
+
+    val traceFile = tempFolder.newFile("perfetto.trace")
+    traceFile.writeBytes(Random.Default.nextBytes(256))
+
+    fakeIdeProfilerServices.enableDeobfuscationForNativeAllocations(true)
+    val traceLoaded = ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
+
+    assertThat(traceLoaded).isTrue()
+    val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}10.symbols")
+    val expectedRequest =
+      TraceProcessor.LoadTraceRequest.newBuilder()
+        .setTraceId(10)
+        .setTracePath(traceFile.absolutePath)
+        .addSymbolPath("/fake/sym/dir/")
+        .setSymbolizedOutputPath(symbolsFile.absolutePath)
+        .build()
+    assertThat(fakeGrpcService.lastLoadTraceRequest).isEqualTo(expectedRequest)
   }
 
   @Test

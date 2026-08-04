@@ -45,6 +45,10 @@ object ProfilerCaptureFileUtils {
     val outputDir = File(FileUtil.getTempDirectory())
     val traceFile = File(outputDir, targetFileName)
 
+    if (traceFile.exists() && traceFile.length() > 0L) {
+      return traceFile
+    }
+
     // Try to rename the capture file to the target file.
     if (captureFile.renameTo(traceFile)) {
       return traceFile

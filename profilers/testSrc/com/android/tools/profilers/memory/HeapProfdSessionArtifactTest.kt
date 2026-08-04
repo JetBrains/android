@@ -87,13 +87,36 @@ class HeapProfdSessionArtifactTest {
     val heapProfdFile = TransportServiceUtils.createTempFile("heap-profd", "dump", contents)
     transportService.addFile(artifact.startTime.toString(), heapProfdFile.absolutePath)
     val symbolData = ByteString.copyFromUtf8("SymbolData")
-    File(FileUtil.getTempDirectory(), "${artifact.startTime}.symbols").apply {
-      deleteOnExit()
-      writeBytes(symbolData.toByteArray())
+    val symbolFile = File(FileUtil.getTempDirectory(), "${artifact.startTime}.symbols")
+    try {
+      symbolFile.writeBytes(symbolData.toByteArray())
+      artifact.export(stream)
+      val output = contents.concat(symbolData)
+      assertThat(stream.toByteArray()).isEqualTo(output.toByteArray())
+    } finally {
+      symbolFile.delete()
     }
-    artifact.export(stream)
-    val output = contents.concat(symbolData)
-    assertThat(stream.toByteArray()).isEqualTo(output.toByteArray())
+  }
+
+  @Test
+  fun testExportWithNativeAllocationDeobfuscationEnabled() {
+    (profilers.ideServices as FakeIdeProfilerServices).enableDeobfuscationForNativeAllocations(true)
+    val artifact = generateSessionArtifacts()[0] as HeapProfdSessionArtifact
+    val stream = ByteArrayOutputStream()
+    val bundledContents = ByteString.copyFromUtf8("BundledData")
+    val bundledFile = TransportServiceUtils.createTempFile("heap-profd", "bundle", bundledContents)
+    transportService.addFile(artifact.startTime.toString(), bundledFile.absolutePath)
+
+    val symbolData = ByteString.copyFromUtf8("SymbolData")
+    val symbolFile = File(FileUtil.getTempDirectory(), "${artifact.startTime}.symbols")
+    try {
+      symbolFile.writeBytes(symbolData.toByteArray())
+      artifact.export(stream)
+      // Symbols are not appended because bundled file already contains symbol files inside the archive.
+      assertThat(stream.toByteArray()).isEqualTo(bundledContents.toByteArray())
+    } finally {
+      symbolFile.delete()
+    }
   }
 
   @Test

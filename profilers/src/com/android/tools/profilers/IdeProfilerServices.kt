@@ -245,4 +245,11 @@ interface IdeProfilerServices {
    * @return A flow of strings representing the AI's response (markdown).
    */
   fun fetchLeakInsight(rawTrace: String): Flow<String> = emptyFlow()
+
+  /**
+   * Symbolizes and deobfuscates a trace file using traceconv.
+   *
+   * @return The bundled File on success, or null on failure.
+   */
+  fun symbolizeAndDeobfuscateTrace(traceFile: File, symbolDirs: List<String>): File? = null
 }

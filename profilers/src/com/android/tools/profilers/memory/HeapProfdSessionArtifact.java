@@ -18,9 +18,11 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profilers.ProfilerCaptureFileUtils;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -31,9 +33,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 public class HeapProfdSessionArtifact extends MemorySessionArtifact<Trace.TraceInfo> {
+  private static Logger getLogger() {
+    return Logger.getInstance(HeapProfdSessionArtifact.class);
+  }
+
   public HeapProfdSessionArtifact(@NotNull StudioProfilers profilers,
                                   @NotNull Common.Session session,
                                   @NotNull Common.SessionMetaData sessionMetaData,
@@ -55,12 +62,14 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Trace.TraceI
   public void export(@NotNull OutputStream outputStream) {
     assert getCanExport();
     MemoryProfiler.saveHeapProfdSampleToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream);
-    File symbols = new File(String.format(Locale.US, "%s%s%d.symbols", FileUtil.getTempDirectory(), File.separator, getStartTime()));
-    if (symbols.exists()) {
-      try {
-        FileUtil.copy(new FileInputStream(symbols), outputStream);
-      } catch (IOException ignored) {
-        //  Failed to append symbols to end of export file.
+    if (!getProfilers().getIdeServices().getFeatureConfig().isDeobfuscationForNativeAllocationsEnabled()) {
+      File symbols = new File(String.format(Locale.US, "%s%s%d.symbols", FileUtil.getTempDirectory(), File.separator, getStartTime()));
+      if (symbols.exists()) {
+        try {
+          FileUtil.copy(new FileInputStream(symbols), outputStream);
+        } catch (IOException ignored) {
+          //  Failed to append symbols to end of export file.
+        }
       }
     }
   }

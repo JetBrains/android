@@ -37,6 +37,7 @@ public interface FeatureConfig {
   boolean isNativeAllocationsTraceInEditorEnabled();
   boolean isJavaKotlinAllocationsLegacyTraceInEditorEnabled();
   boolean isProfilerHomeTabV2Enabled();
+  boolean isDeobfuscationForNativeAllocationsEnabled();
 
   PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();
   // Add new features alphabetically instead of at the end of the list

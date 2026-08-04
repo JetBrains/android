@@ -168,6 +168,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   private boolean myProfilerHomeTabV2Enabled = true;
+  private boolean myDeobfuscationForNativeAllocationsEnabled = false;
+
+  public void enableDeobfuscationForNativeAllocations(boolean enabled) {
+    myDeobfuscationForNativeAllocationsEnabled = enabled;
+  }
 
   private String myLastLeakRawTrace;
   private Leak myLastLeak;
@@ -296,6 +301,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
+      }
+
+      @Override
+      public boolean isDeobfuscationForNativeAllocationsEnabled() {
+        return myDeobfuscationForNativeAllocationsEnabled;
       }
 
       @Override
@@ -628,5 +638,18 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public kotlinx.coroutines.flow.Flow<String> fetchLeakInsight(@NotNull String rawTrace) {
     return kotlinx.coroutines.flow.FlowKt.emptyFlow();
+  }
+
+  private boolean myTraceSymbolizedAndDeobfuscated = false;
+
+  @Nullable
+  @Override
+  public File symbolizeAndDeobfuscateTrace(@NotNull File traceFile, @NotNull List<String> symbolDirs) {
+    myTraceSymbolizedAndDeobfuscated = true;
+    return traceFile;
+  }
+
+  public boolean isTraceSymbolizedAndDeobfuscated() {
+    return myTraceSymbolizedAndDeobfuscated;
   }
 }

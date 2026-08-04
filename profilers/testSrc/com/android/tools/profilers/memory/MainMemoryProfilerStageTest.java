@@ -44,6 +44,7 @@ import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeFeatureTracker;
+import com.android.tools.profilers.ProfilerCaptureFileUtils;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.idea.transport.TransportServiceUtils;
@@ -939,6 +940,54 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class); // Stays on the main stage
     assertThat(myIdeProfilerServices.getOpenedFile()).isNotNull();
     assertThat(myIdeProfilerServices.getClosedTaskTab()).isEqualTo(com.android.tools.profilers.tasks.ProfilerTaskType.NATIVE_ALLOCATIONS);
+  }
+
+  @Test
+  public void nativeAllocationInEditorWithDeobfuscationEnabled() throws Exception {
+    myIdeProfilerServices.setNativeAllocationsTraceInEditorEnabled(true);
+    myIdeProfilerServices.enableTaskBasedUx(true);
+    myIdeProfilerServices.enableDeobfuscationForNativeAllocations(true);
+    long startTimeNs = TimeUnit.MICROSECONDS.toNanos(15);
+    long endTimeNs = TimeUnit.MICROSECONDS.toNanos(20);
+    Trace.TraceInfo info = Trace.TraceInfo.newBuilder()
+      .setFromTimestamp(startTimeNs)
+      .setToTimestamp(endTimeNs)
+      .build();
+
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryTraceData(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                                                                  15,
+                                                                                  Trace.TraceData.newBuilder().setTraceStarted(
+                                                                                    Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(info)
+                                                                                  ).build())
+                                          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+                                          .build());
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryTraceData(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                                                                  20,
+                                                                                  Trace.TraceData.newBuilder().setTraceEnded(
+                                                                                    Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(info)
+                                                                                  ).build())
+                                          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+                                          .build());
+
+    DataSeries<CaptureDurationData<? extends CaptureObject>> series =
+      CaptureDataSeries.ofNativeAllocationSamples(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                                  myIdeProfilerServices.getFeatureTracker(), myStage);
+    List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+
+    File dummyFile = TransportServiceUtils.createTempFile("dummy", "trace", ByteString.EMPTY);
+    myTransportService.addFile(Long.toString(info.getFromTimestamp()), dummyFile.getAbsolutePath());
+
+    File captureFile = ProfilerCaptureFileUtils.getCaptureFile("capture_" + startTimeNs + ".heapprofd");
+    try {
+      myStage.selectCaptureDuration(dataList.getFirst().value, null);
+      assertThat(myIdeProfilerServices.isTraceSymbolizedAndDeobfuscated()).isTrue();
+    } finally {
+      if (captureFile.exists()) {
+        captureFile.delete();
+      }
+    }
   }
 
   @Test

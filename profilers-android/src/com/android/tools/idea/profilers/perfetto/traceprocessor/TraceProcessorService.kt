@@ -173,17 +173,19 @@ constructor(
   override fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean {
     // load trace had no business logic in Java side, so we use a single stopwatch to track both query and method timings.
     val stopwatch = Stopwatch.createStarted(ticker)
-    val symbolPaths = ideProfilerServices.nativeSymbolsDirectories
     LOGGER.info("TPD Service: Loading trace $traceId: ${traceFile.absolutePath}")
-    val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}$traceId.symbols")
-    symbolsFile.deleteOnExit()
-    val requestProto =
-      LoadTraceRequest.newBuilder()
-        .setTraceId(traceId)
-        .setTracePath(traceFile.absolutePath)
-        .addAllSymbolPath(symbolPaths)
-        .setSymbolizedOutputPath(symbolsFile.absolutePath)
-        .build()
+    val requestBuilder = LoadTraceRequest.newBuilder().setTraceId(traceId).setTracePath(traceFile.absolutePath)
+
+    val isNativeAllocation = traceFile.name.endsWith(".heapprofd", ignoreCase = true)
+    if (!isNativeAllocation || !ideProfilerServices.featureConfig.isDeobfuscationForNativeAllocationsEnabled) {
+      val symbolPaths = ideProfilerServices.nativeSymbolsDirectories
+      val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}$traceId.symbols")
+      symbolsFile.deleteOnExit()
+      requestBuilder.addAllSymbolPath(symbolPaths)
+      requestBuilder.setSymbolizedOutputPath(symbolsFile.absolutePath)
+    }
+
+    val requestProto = requestBuilder.build()
 
     val queryResult = getClient(traceId).loadTrace(requestProto, ideProfilerServices.featureTracker)
     stopwatch.stop()

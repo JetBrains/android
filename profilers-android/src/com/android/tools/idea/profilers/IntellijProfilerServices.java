@@ -26,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.leakcanary.LeakCanaryAiHandler;
+import com.android.tools.idea.profilers.perfetto.traceconv.TraceconvBundler;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
@@ -829,6 +830,12 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public Flow<String> fetchLeakInsight(@NotNull String rawTrace) {
     return LeakCanaryAiHandler.fetchLeakInsight(myProject, rawTrace);
   }
+
+  @Nullable
+  @Override
+  public File symbolizeAndDeobfuscateTrace(@NotNull File traceFile, @NotNull List<String> symbolDirs) {
+    return TraceconvBundler.bundle(traceFile, symbolDirs);
+  }
   /**
    * Implementation of {@link FeatureConfig} with values used in production.
    */
@@ -912,6 +919,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isProfilerHomeTabV2Enabled() {
       return StudioFlags.PROFILER_HOME_TAB_V2.get();
+    }
+
+    @Override
+    public boolean isDeobfuscationForNativeAllocationsEnabled() {
+      return StudioFlags.PROFILER_DEOBFUSCATION_FOR_NATIVE_ALLOCATIONS.get();
     }
   }
 }
