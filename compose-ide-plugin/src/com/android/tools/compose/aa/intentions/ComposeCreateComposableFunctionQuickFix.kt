@@ -31,7 +31,8 @@ import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSo
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.analysis.api.types.builtinTypes
-import org.jetbrains.kotlin.analysis.api.types.isUnitType
+import org.jetbrains.kotlin.analysis.api.types.classId
+import org.jetbrains.kotlin.analysis.api.types.KaStandardTypeClassIds
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.QuickFixActionBase
@@ -108,7 +109,7 @@ class ComposeCreateComposableFunctionQuickFix(
       val container = fullCallExpression.getExtractionContainers().firstOrNull() ?: return null
 
       val returnType = guessReturnType(fullCallExpression)
-      if (!returnType.isUnitType) return null
+      if (returnType.classId != KaStandardTypeClassIds.UNIT) return null
 
       val newFunction = buildNewComposableFunction(unresolvedCall, unresolvedName, container)
       return ComposeCreateComposableFunctionQuickFix(unresolvedCall, newFunction, parentFunction)
