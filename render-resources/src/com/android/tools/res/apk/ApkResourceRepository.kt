@@ -136,7 +136,7 @@ internal fun TypeChunk.Entry.createResValue(
         if (this.parentEntry() != 0) {
           resLookUp(this.parentEntry())?.getQualifiedName()
         } else {
-          null
+          ""
         }
       val styleValue = StyleResourceValueImpl(resRef, parentStyle, null)
       this.values().forEach { (i, v) ->

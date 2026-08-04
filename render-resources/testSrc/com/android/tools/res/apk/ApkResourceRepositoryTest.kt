@@ -25,6 +25,7 @@ import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
 import com.android.tools.res.ids.apk.ApkResourceIdManager
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -83,8 +84,11 @@ class ApkResourceRepositoryTest {
     val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
     val styleRes = apkRes.getResources(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "DialogWindowTheme"))[0]
+    val styleValue = styleRes.resourceValue as StyleResourceValue
+    assertEquals("", styleValue.parentStyleName)
+    assertNull(styleValue.parentStyle)
 
-    val styleItems = (styleRes.resourceValue as StyleResourceValue).definedItems.toList()
+    val styleItems = styleValue.definedItems.toList()
     assertEquals(1, styleItems.size)
     assertEquals("android:windowClipToOutline", styleItems[0].attrName)
     assertEquals("false", styleItems[0].value)
