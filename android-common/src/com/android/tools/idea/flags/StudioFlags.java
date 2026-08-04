@@ -2694,8 +2694,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> STUDIOBOT_BAICODE_ENABLED =
     new BooleanFlag(STUDIOBOT, "baicode",
-                    "Enable Baicode integration",
-                    "Enable Baicode backend integration to be used for agent and onboarding selection");
+                    "Support Gemini Enterprise integration",
+                    "Enable Gemini enterprise integration to be used for agent and onboarding selection");
 
 
   public static final Flag<Boolean> STUDIOBOT_USER_QUOTA_UI_ENABLED =
