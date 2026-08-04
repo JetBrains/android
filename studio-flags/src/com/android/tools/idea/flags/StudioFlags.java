@@ -2684,6 +2684,11 @@ public final class StudioFlags {
                     "Enable agent V2 telemetry",
                     "When enabled, telemetry for agent V2 events will be reported.");
 
+  public static final Flag<Boolean> STUDIOBOT_THINKING_LEVEL_PICKER_ENABLED =
+    new BooleanFlag(STUDIOBOT, "thinking.level.picker.enabled",
+                    "Enable Thinking Level Picker",
+                    "When enabled, users can select thinking level along with model.");
+
   public static final Flag<Boolean> STUDIOBOT_PERSONALIZED_GREETING_DISABLED =
     new BooleanFlag(STUDIOBOT, "personalized.greeting.disabled",
                     "Disable personalized greeting",
