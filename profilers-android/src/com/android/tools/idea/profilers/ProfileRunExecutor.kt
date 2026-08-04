@@ -26,9 +26,11 @@ import icons.StudioIcons
 import javax.swing.Icon
 
 class ProfileRunExecutor : DefaultRunExecutor() {
-  override fun getIcon(): Icon = StudioIcons.Shell.Toolbar.PROFILER
+  // JetBrains patch: returns the IDE-specific profiler tool-window icon.
+  override fun getIcon(): Icon = getAndroidProfilerToolWindowIcon()
 
-  override fun getDisabledIcon(): Icon = StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+  // JetBrains patch: returns the IDE-specific profiler tool-window icon.
+  override fun getDisabledIcon(): Icon = getAndroidProfilerToolWindowIcon()
 
   override fun getDescription(): String = AndroidProfilerBundle.message("android.profiler.action.profile.description")
 

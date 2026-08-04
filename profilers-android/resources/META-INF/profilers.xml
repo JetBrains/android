@@ -16,17 +16,19 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <!--JetBrains patch: use the Android-badged profiler icon to distinguish it from other profilers -->
     <android.toolWindow id="Android Profiler"
                       anchor="bottom"
-                      icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
+                      icon="AllIcons.Toolwindows.ToolWindowProfilerAndroid"
                       canCloseContents="true"
                       librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
                       doNotActivateOnStart="true"/>
   </extensions>
   <actions>
+    <!--JetBrains patch: use the Android-badged profiler icon to distinguish it from other profilers -->
     <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.actions.ChooseProfileConfigurationPopupAction"
-            text="Profile..." description="Choose and profile configuration" icon="StudioIcons.Shell.Toolbar.PROFILER">
+            text="Profile..." description="Choose and profile configuration" icon="AllIcons.Toolwindows.ToolWindowProfilerAndroid">
       <add-to-group group-id="RunMenu" anchor="after" relative-to-action="ChooseDebugConfiguration" />
     </action>
     <action id="Android.ProfileWithLowOverhead" class="com.android.tools.idea.profilers.actions.ProfileProfileableAction">
