@@ -23,13 +23,9 @@ import kotlinx.coroutines.withContext
 
 /**
  * @property assetId Arbitrary identifier used for fast equals/hashCode in recomposition.
- * @property dotsDark The background dots image for dark theme, or null if failed to load.
- * @property dotsLight The background dots image for light theme, or null if failed to load.
  */
 data class WhatsNewAssets(
   val assetId: String = "empty",
-  val dotsDark: ByteArray? = null,
-  val dotsLight: ByteArray? = null,
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -82,19 +78,11 @@ class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
   }
 
   override suspend fun loadAssets(): WhatsNewAssets {
-    return withContext(Dispatchers.IO) {
-      val dotsDark = loadImageResource("/v2/dots_at_bottom_dark.png")
-      val dotsLight = loadImageResource("/v2/dots_at_bottom_light.png")
-      WhatsNewAssets("loaded", dotsDark, dotsLight)
-    }
+    return WhatsNewAssets("loaded")
   }
 
   @WorkerThread
   private fun loadMarkdownDocument(revision: Revision, content: String): WhatsNewMarkdownDocument {
     return WhatsNewMarkdownParser.parseMarkdown(revision, content)
-  }
-
-  private fun loadImageResource(path: String): ByteArray? {
-    return javaClass.getResourceAsStream(path)?.use { it.readBytes() }
   }
 }

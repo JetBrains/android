@@ -130,7 +130,7 @@ import org.jetbrains.jewel.ui.theme.scrollbarStyle
  * * **Image Handling:** Images within the Markdown are loaded asynchronously through a
  *   [com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.ImagePainterLoader] to ensure the UI remains responsive.
  *
- * @param markdownDocuments The parsed "What's New" markdown documents to display.
+ * @param markdownDocuments The parsed "What's New" Markdown documents to display.
  * @param whatsNewAssets The background resource assets to display.
  * @param imageLoader The loader used for Markdown images.
  * @param onUrlClick Callback invoked when a link in the Markdown is clicked.
@@ -196,7 +196,7 @@ private fun WhatsNewAllDocuments(
 
     // A box with the Markdown document and a vertical scrollbar
     Box(modifier = Modifier.weight(1f).fillMaxHeight().padding(end = 8.dp)) {
-      val blockRenderer = createWhatsNewMarkdownBlockRenderer(onUrlClick, imageLoader, whatsNewAssets.dotsDark, whatsNewAssets.dotsLight)
+      val blockRenderer = createWhatsNewMarkdownBlockRenderer(onUrlClick, imageLoader)
       LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp), state = lazyListState) {
         itemsIndexed(markdownDocuments, key = { _, document -> document }) { index, document ->
           if (index > 0) {
@@ -204,7 +204,7 @@ private fun WhatsNewAllDocuments(
               orientation = Orientation.Horizontal,
               modifier = Modifier.padding(PaddingValues(top = 16.dp, bottom = 8.dp)).fillMaxWidth(),
               color = blockRenderer.rootStyling.thematicBreak.lineColor,
-              thickness = 6.dp,
+              thickness = 1.dp,
             )
           }
           WhatsNewMarkdown(
@@ -287,8 +287,6 @@ internal fun WhatsNewMarkdown(
 private fun createWhatsNewMarkdownBlockRenderer(
   onUrlClick: (String) -> Unit,
   imageLoader: ImagePainterLoader,
-  dotsDark: ByteArray?,
-  dotsLight: ByteArray?,
 ): WhatsNewMarkdownBlockRenderer {
   val markdownFactory = JewelTheme.markdownFactory
   val markdownStyling = StudioBotMarkdownStylingCopy.create(onUrlClick = onUrlClick)
@@ -298,13 +296,11 @@ private fun createWhatsNewMarkdownBlockRenderer(
     remember(markdownStyling, whatsNewImageExtension) { getDefaultRenderExtensions(markdownStyling) + whatsNewImageExtension }
   val inlineRenderer = remember(markdownFactory, renderExtensions) { markdownFactory.createInlineMarkdownRenderer(renderExtensions) }
   val customRenderer =
-    remember(markdownStyling, renderExtensions, inlineRenderer, dotsDark, dotsLight) {
+    remember(markdownStyling, renderExtensions, inlineRenderer) {
       WhatsNewMarkdownBlockRenderer(
         rootStyling = markdownStyling,
         rendererExtensions = renderExtensions,
         inlineRenderer = inlineRenderer,
-        dotsDark = dotsDark,
-        dotsLight = dotsLight,
       )
     }
   return customRenderer
