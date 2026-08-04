@@ -41,13 +41,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toComposeImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -65,7 +60,6 @@ import org.jetbrains.jewel.markdown.extensions.MarkdownRendererExtension
 import org.jetbrains.jewel.markdown.rendering.DefaultMarkdownBlockRenderer
 import org.jetbrains.jewel.markdown.rendering.InlineMarkdownRenderer
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling
-import org.jetbrains.skia.Image
 
 /**
  * A custom [DefaultMarkdownBlockRenderer] for the What's New panel.
@@ -81,8 +75,6 @@ internal class WhatsNewMarkdownBlockRenderer(
   rootStyling: MarkdownStyling,
   rendererExtensions: List<MarkdownRendererExtension>,
   inlineRenderer: InlineMarkdownRenderer,
-  private val dotsDark: ByteArray?,
-  private val dotsLight: ByteArray?,
 ) : DefaultMarkdownBlockRenderer(rootStyling, rendererExtensions, inlineRenderer) {
 
   @Composable
@@ -119,16 +111,11 @@ internal class WhatsNewMarkdownBlockRenderer(
             .thenIf(isHovered) { zIndex(1f) }
 
         val cardColor = JewelTheme.globalColors.borders.normal
-        val dotsPainter = dotsPainter()
-        val hasImage = remember(blocks) { cardHasImage(blocks) }
         popupModifier
           .clip(RoundedCornerShape(20.dp))
           .background(cardColor)
           .border(1.dp, cardBorderColor(), RoundedCornerShape(20.dp))
           .padding(16.dp)
-          .thenIf(!hasImage && dotsPainter != null) {
-            paint(dotsPainter!!, alignment = Alignment.BottomCenter, contentScale = ContentScale.FillWidth)
-          }
       } else {
         modifier
       }
@@ -136,18 +123,6 @@ internal class WhatsNewMarkdownBlockRenderer(
     CompositionLocalProvider(ImagePainterLoaderMarkdownRendererExtension.LocalCardHovered provides isHovered) {
       super.RenderBlocks(blocks, enabled, onUrlClick, columnModifier)
     }
-  }
-
-  private fun cardHasImage(blocks: List<MarkdownBlock>): Boolean {
-    return blocks.any { block -> block is WithInlineMarkdown && block.inlineContent.any { it is InlineMarkdown.Image } }
-  }
-
-  @Composable
-  private fun dotsPainter(): Painter? {
-    val isDark = JewelTheme.isDark
-    val bytes = if (isDark) dotsDark else dotsLight
-    if (bytes == null) return null
-    return remember(bytes) { Image.makeFromEncoded(bytes).use { skiaImage -> BitmapPainter(skiaImage.toComposeImageBitmap()) } }
   }
 
   @Composable
