@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer
 
 import com.android.SdkConstants
+import com.android.tools.adtui.common.ColumnTree
 import com.android.tools.adtui.common.ColumnTreeBuilder
 import com.android.tools.adtui.common.ColumnTreeBuilder.ColumnBuilder
 import com.android.tools.adtui.util.getHumanizedSize
@@ -87,6 +88,7 @@ import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
+import javax.swing.RowSorter.SortKey
 import javax.swing.SortOrder
 import javax.swing.SwingConstants
 import javax.swing.event.TreeSelectionEvent
@@ -117,7 +119,7 @@ internal class ApkViewPanel(
   private val sizeAsyncIcon = AsyncProcessIcon("estimating apk size")
   private val compareWithButton = JButton("Compare with previous APK...")
   private val tree = Tree(ApkTreeModel(null))
-  private val columnTreePane = buildTree()
+  private val columnTree = buildTree()
   private var archiveDisposed = false
 
   private var listener: Listener? = null
@@ -139,7 +141,7 @@ internal class ApkViewPanel(
     container.setLayout(GridLayoutManager(3, 2, Insets(0, 0, 0, 0), -1, -1))
     val spacer1 = Spacer()
     container.add(spacer1, SPACER_SPEC)
-    container.add(columnTreePane, TREE_SPEC)
+    container.add(columnTree, TREE_SPEC)
     val panel1 = JPanel()
     panel1.setLayout(FlowLayout(FlowLayout.LEFT, 5, 0))
     container.add(panel1, PANEL1_SPEC)
@@ -165,6 +167,7 @@ internal class ApkViewPanel(
             return
           }
           setRootNode(result)
+          sort()
         }
       },
       EdtExecutorService.getInstance(),
@@ -177,10 +180,9 @@ internal class ApkViewPanel(
           if (archiveDisposed) {
             return@transform null
           }
-          ArchiveTreeStructure.sort(node) { o1: ArchiveNode, o2: ArchiveNode ->
-            o2.data.downloadFileSize.compareTo(o1.data.downloadFileSize)
-          }
           refreshTree()
+          // Download size column has changed so force a sort
+          sort(force = true)
         } catch (e: Exception) {
           // Ignore exceptions if the archive was disposed (b/351919218)
           if (!archiveDisposed) {
@@ -644,7 +646,7 @@ internal class ApkViewPanel(
     }
   }
 
-  private fun buildTree(): JComponent {
+  private fun buildTree(): ColumnTree {
     val treeSpeedSearch =
       TreeSpeedSearch.installOn(
         tree,
@@ -670,7 +672,7 @@ internal class ApkViewPanel(
       }
     }
 
-    val downloadSizeComparator = NodeComparator { this.data.downloadFileSize }
+    val downloadSizeComparator = compareBy<ArchiveNode> { it.data.downloadFileSize }
     val builder =
       ColumnTreeBuilder(tree)
         .addColumn(
@@ -679,7 +681,7 @@ internal class ApkViewPanel(
             .setPreferredWidth(JBUI.scale(270))
             .setHeaderAlignment(SwingConstants.LEADING)
             .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-            .setComparator(NodeComparator { this.data.nodeDisplayString })
+            .setComparator(compareBy<ArchiveNode> { it.data.nodeDisplayString })
             .setRenderer(NameRenderer(apkParser, treeSpeedSearch))
         )
         .addColumn(
@@ -688,7 +690,7 @@ internal class ApkViewPanel(
             .setPreferredWidth(JBUI.scale(80))
             .setHeaderAlignment(SwingConstants.TRAILING)
             .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-            .setComparator(NodeComparator { this.data.rawFileSize })
+            .setComparator(compareBy<ArchiveNode> { it.data.rawFileSize })
             .setRenderer(SizeRenderer(false))
         )
         .addColumn(
@@ -715,7 +717,7 @@ internal class ApkViewPanel(
             .setPreferredWidth(JBUI.scale(110))
             .setHeaderAlignment(SwingConstants.LEADING)
             .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-            .setComparator(NodeComparator { this.data.isFileCompressed })
+            .setComparator(compareBy<ArchiveNode> { it.data.isFileCompressed })
             .setRenderer(CompressionRenderer())
         )
 
@@ -726,7 +728,7 @@ internal class ApkViewPanel(
           .setPreferredWidth(JBUI.scale(320))
           .setHeaderAlignment(SwingConstants.LEADING)
           .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-          .setComparator(NodeComparator { this.data.getAlignmentFinding(treeModel.extractNativeLibs).text })
+          .setComparator(compareBy<ArchiveNode> { it.data.getAlignmentFinding(treeModel.extractNativeLibs).text })
           .setRenderer(AlignmentCellRenderer())
       )
     } else {
@@ -736,12 +738,13 @@ internal class ApkViewPanel(
           .setPreferredWidth(JBUI.scale(200))
           .setHeaderAlignment(SwingConstants.LEADING)
           .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-          .setComparator(NodeComparator { this.data.fileAlignment.text })
+          .setComparator(compareBy<ArchiveNode> { it.data.fileAlignment.text })
           .setRenderer(ZipAlignmentRenderer())
       )
     }
 
     builder.setTreeSorter { comparator: Comparator<Any>, _: SortOrder ->
+      saveSettings()
       val root = treeModel.root as? ArchiveNode
       if (root != null) {
         val selected = tree.selectionPaths
@@ -756,13 +759,31 @@ internal class ApkViewPanel(
     return builder.build()
   }
 
+  private fun saveSettings() {
+    val sortKey = columnTree.getSortKeys()?.firstOrNull() ?: return
+    val sortColumn = columnTree.getColumns().find { it.modelIndex == sortKey.column }?.identifier?.toString() ?: return
+    val settings = ApkAnalyzerSettings.getInstance()
+    settings.sortColumn = sortColumn
+    settings.sortOrder = sortKey.sortOrder
+  }
+
+  /**
+   * Sorts the tree by applying a [SortKey]
+   *
+   * @param force If true, will clear the SortKey before applying it. This forces a sort if the sort key is unchanged but the data does.
+   */
+  private fun sort(force: Boolean = false) {
+    val settings = ApkAnalyzerSettings.getInstance()
+    val col = columnTree.getColumns().find { it.identifier == settings.sortColumn }?.modelIndex ?: return
+    if (force) {
+      columnTree.setSortKeys(null)
+    }
+    columnTree.setSortKeys(listOf(SortKey(col, settings.sortOrder)))
+  }
+
   companion object {
     private val LOG = Logger.getInstance(ApkViewPanel::class.java)
     private const val TEXT_RENDERER_HORIZ_PADDING = 6
     private const val TEXT_RENDERER_VERT_PADDING = 4
-  }
-
-  private class NodeComparator<T : Comparable<T>>(private val getValue: ArchiveNode.() -> T) : Comparator<ArchiveNode> {
-    override fun compare(o1: ArchiveNode, o2: ArchiveNode) = o1.getValue().compareTo(o2.getValue())
   }
 }

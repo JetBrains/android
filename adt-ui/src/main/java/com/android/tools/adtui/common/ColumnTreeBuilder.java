@@ -249,7 +249,7 @@ public class ColumnTreeBuilder {
     return this;
   }
 
-  public JComponent build() {
+  public ColumnTree build() {
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel(), myHeaderRowCellRenderer);
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
@@ -373,7 +373,7 @@ public class ColumnTreeBuilder {
     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     scrollPane.setBorder(JBUI.Borders.empty());
 
-    JPanel outerPanel = new JPanel(new BorderLayout());
+    ColumnTree outerPanel = new ColumnTree(myTable);
     outerPanel.add(scrollPane, BorderLayout.CENTER);
     outerPanel.add(myHScrollBarPanel, BorderLayout.SOUTH);
 

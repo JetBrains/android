@@ -17,4 +17,7 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.apk.viewer.apkAnalyzerToken" interface="com.android.tools.idea.apk.viewer.ApkAnalyzerToken" />
   </extensionPoints>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.apk.viewer.ApkAnalyzerSettings" />
+  </extensions>
 </idea-plugin>

@@ -465,12 +465,12 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
           """
           Does not support 16 KB devices
             lib
-              x86_64
-                libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
-                liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
               arm64-v8a
-                libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
                 liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
+                libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
+              x86_64
+                liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
+                libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
           """
             .trimIndent()
         )
@@ -514,12 +514,12 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
           Does not support 16 KB devices
             base
               lib
-                x86_64
-                  libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
-                  liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
                 arm64-v8a
-                  libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
                   liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
+                  libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
+                x86_64
+                  liba16kbbash.so | 4 KB LOAD section alignment, but 16 KB is required
+                  libtensorflowlite_jni.so | 4 KB LOAD section alignment, but 16 KB is required
           """
             .trimIndent()
         )
