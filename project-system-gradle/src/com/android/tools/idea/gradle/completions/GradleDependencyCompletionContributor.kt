@@ -24,6 +24,8 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.codeInsight.completion.LookupActionKeys.SUPPRESS_QUICK_DEFINITION
+import com.intellij.codeInsight.completion.LookupActionKeys.SUPPRESS_QUICK_DOCUMENTATION
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.editor.Editor
@@ -251,6 +253,11 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
   }
 
   private class CoordinateLookUpElement(val coordinate: MavenClassRegistry.Coordinate) : LookupElement(), Comparable<LookupElement> {
+    init {
+      this.putUserData(SUPPRESS_QUICK_DEFINITION, true)
+      this.putUserData(SUPPRESS_QUICK_DOCUMENTATION, true)
+    }
+
     override fun getLookupString(): String {
       return "${coordinate.groupId}:${coordinate.artifactId}:${coordinate.version}"
     }
