@@ -708,6 +708,9 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       }
 
       if (isTaskBasedUxEnabled && isUnifiedEditorEnabled) {
+        if (!getCaptureSelection().selectCaptureEntry(durationData.getCaptureEntry())) {
+          return;
+        }
         profilers.getIdeServices().getPoolExecutor().execute(() -> {
           CaptureObject capture = durationData.getCaptureEntry().getCaptureObject();
           String extension = "alloc";
