@@ -60,6 +60,14 @@ public class RenderSecurityManager extends SecurityManager {
   public static boolean sEnabled = !VALUE_FALSE.equals(System.getProperty(ENABLED_PROPERTY));
 
   /**
+   * JetBrains patch: whether this runtime allows installing a {@link SecurityManager} at runtime.
+   * Since JDK 24 (JEP 486) {@link System#setSecurityManager} throws {@link UnsupportedOperationException}
+   * unless the JVM was started with {@code -Djava.security.manager=allow}. When installation is not
+   * supported the render sandbox is silently skipped instead of failing the render.
+   */
+  private static volatile boolean sIsSecurityManagerSupported = true;
+
+  /**
    * Secret which must be provided by callers wishing to deactivate the security manager
    */
   private static Object sCredential;
@@ -192,7 +200,23 @@ public class RenderSecurityManager extends SecurityManager {
       assert !(current instanceof RenderSecurityManager);
       myPreviousSecurityManager = current;
       mDisabled = false;
-      System.setSecurityManager(this);
+      // JetBrains patch: JDK 24+ (JEP 486) no longer allows installing a SecurityManager at runtime.
+      // Skip the sandbox instead of failing the whole render if it is unsupported.
+      if (sIsSecurityManagerSupported) {
+        try {
+          System.setSecurityManager(this);
+        }
+        catch (UnsupportedOperationException e) {
+          sIsSecurityManagerSupported = false;
+          mDisabled = true;
+          if (mLogger != null) {
+            mLogger.warning("Render sandbox disabled: this JRE does not support installing a SecurityManager: ", e);
+          }
+        }
+      }
+      else {
+        mDisabled = true;
+      }
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       sCredential = credential;
     }
