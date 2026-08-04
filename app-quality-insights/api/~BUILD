@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "//tools/vendor/google/login:google-login.tests",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

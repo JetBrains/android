@@ -47,6 +47,7 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/vendor/google/login:google-login",
+        "//tools/vendor/google/login:google-login.tests",
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui",
         "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",

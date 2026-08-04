@@ -21,6 +21,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
+        "//tools/vendor/google/login:google-login.tests",
         "//prebuilts/tools/common/m2:libktor-client-mock",
     ],
     test_srcs = ["testSrc"],

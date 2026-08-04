@@ -25,6 +25,7 @@
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="module" module-name="google-login" scope="TEST" />
+    <orderEntry type="module" module-name="google-login.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.view" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />

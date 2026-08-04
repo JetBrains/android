@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "@intellij//:test-framework",
+        "//tools/vendor/google/login:google-login.tests",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

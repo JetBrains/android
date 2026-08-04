@@ -62,5 +62,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
+    <orderEntry type="module" module-name="google-login.tests" scope="TEST" />
   </component>
 </module>
