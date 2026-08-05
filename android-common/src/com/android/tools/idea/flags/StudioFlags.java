@@ -2281,6 +2281,11 @@ public final class StudioFlags {
                     "Enable Studio Bot Skills V2.",
                     "When enabled, the studio-bot agents will be able to use version 2 of skills.");
 
+  public static final Flag<Boolean> STUDIOBOT_IS_SKILLS_MANAGEMENT_UX_ENABLED =
+    new BooleanFlag(STUDIOBOT, "skills.management.ux.enabled",
+                    "Enable Studio Bot Skills Management UX.",
+                    "When enabled, users can use the skills management UX.");
+
   public static final Flag<Boolean> STUDIOBOT_IS_QUICK_EDIT_ENABLED =
     new BooleanFlag(STUDIOBOT, "quick.edit.enabled",
                     "Enable the quick edit support.",
