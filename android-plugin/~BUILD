@@ -89,6 +89,7 @@ iml_module(
         "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/vendor/google/marketing",
+        "//tools/vendor/google/android-keys",
         "//tools/adt/idea/logcat/gradle:intellij.android.logcat.gradle",
         "//tools/vendor/google/firebase-provisioning",
         "//tools/adt/idea/tracer:intellij.android.tracer",
