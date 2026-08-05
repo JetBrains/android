@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.internal.project.ProjectProperties
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.actions.SubmitBugReportAction
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
@@ -38,6 +37,7 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.ide.FeedbackDescriptionProvider
+import com.intellij.ide.trustedProjects.TrustedProjects.isProjectTrusted
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -81,11 +81,19 @@ class GradleAndNdkFeedbackDescriptionProvider : FeedbackDescriptionProvider {
     }
 
     suspend fun getJdkDetails(): String {
-      return if (project == null) getDefaultJdkDetails() else getProjectJdkDetails(project)
+      // resolveGradleJvmPath() may read <project>/.gradle/config.properties or
+      // <project>/gradle.properties and pass the raw value to JdkVersionDetectorImpl,
+      // which performs host filesystem access and ProcessBuilder.start() on it.
+      // In Safe Mode (declined Trust) those files are attacker-controlled: do not
+      // resolve a project-derived JDK path for an untrusted project.
+      return if (project == null || !isProjectTrusted(project)) getDefaultJdkDetails() else getProjectJdkDetails(project)
     }
 
-    fun getNdkDetails(): String = getNdkDetails(project, sdkHandler, progress)
-    fun getCMakeDetails(): String = getCMakeDetails(project, sdkHandler, progress)
+    // local.properties ndk.dir / cmake.dir are likewise attacker-controlled in
+    // an untrusted project and reach File.exists()/GeneralCommandLine.
+    val projectIfTrusted = project?.takeIf { isProjectTrusted(project) }
+    fun getNdkDetails(): String = getNdkDetails(projectIfTrusted, sdkHandler, progress)
+    fun getCMakeDetails(): String = getCMakeDetails(projectIfTrusted, sdkHandler, progress)
 
     suspend fun StringBuilder.item(prefix: String, getter: suspend () -> String?) {
       runCatching { getter.invoke()?.let { appendLine("$prefix: $it") } }
@@ -123,7 +131,7 @@ private fun getNdkDetails(project: Project?, sdkHandler: AndroidSdkHandler, prog
     // NDK specified in local.properties (if any)
     if (project != null) {
       try {
-        val ndkDir = LocalProperties(getBaseDirPath(project)).getProperty(ProjectProperties.PROPERTY_NDK)
+        val ndkDir = LocalProperties(project).getProperty(ProjectProperties.PROPERTY_NDK)
         append("from local.properties: ${ndkDir?.let { getNdkVersion(it) } ?: "(not specified)"}, ")
       } catch (e: IOException) {
         LOG.info("Unable to read local.properties file of Project '${project.name}'", e)
@@ -184,16 +192,10 @@ private fun getCMakeDetails(project: Project?, sdkHandler: AndroidSdkHandler, pr
     if (project != null) {
       // CMake specified in local.properties (if any)
       try {
-        val cmakeDir = LocalProperties(getBaseDirPath(project)).getProperty(ProjectProperties.PROPERTY_CMAKE)
-        append(
-          "from local.properties: ${
-            if (cmakeDir == null) "(not specified)" else runAndGetCMakeVersion(
-              getCMakeExecutablePath(
-                cmakeDir
-              )
-            )
-          }, "
-        )
+        val cmakeDir = LocalProperties(project).getProperty(ProjectProperties.PROPERTY_CMAKE)
+        // Do not execute a binary pointed at by a project-authored path.  Report the path only;
+        // the bug-report reader can ask for `cmake -version` output if they need it.
+        append("from local.properties: ${cmakeDir ?: "(not specified)"}, ")
       } catch (e: IOException) {
         LOG.info("Unable to read local.properties file of Project '${project.name}'", e)
       }

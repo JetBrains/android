@@ -19,6 +19,7 @@ import static com.android.SdkConstants.CMAKE_DIR_PROPERTY;
 import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -31,6 +32,8 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import com.android.tools.idea.io.FilePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.intellij.ide.trustedProjects.TrustedProjects;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import java.io.File;
 import java.io.IOException;
@@ -64,9 +67,25 @@ public final class LocalProperties {
    * @throws IllegalArgumentException if there is already a directory called "local.properties" at the given path.
    */
   public LocalProperties(@NotNull File projectFolderPath) throws IOException {
+    this(projectFolderPath, true);
+  }
+
+  /**
+   * Creates a new {@link LocalProperties}. If a local.properties file does not exist, a new one will be created when the method
+   * {@link #save()} is invoked. If the project is not trusted, an empty properties collection will be created.
+   *
+   * @param project the Android project
+   * @throws IOException              if an I/O error occurs while reading the file.
+   * @throws IllegalArgumentException if there is already a directory called "local.properties" at the given path.
+   */
+  public LocalProperties(@NotNull Project project) throws IOException {
+    this(getBaseDirPath(project), TrustedProjects.isProjectTrusted(project));
+  }
+
+  private LocalProperties(@NotNull File projectFolderPath, boolean loadExisting) throws IOException {
     myProjectFolderPath = projectFolderPath;
     myPropertiesFilePath = new File(projectFolderPath, FN_LOCAL_PROPERTIES);
-    myProperties = getProperties(myPropertiesFilePath);
+    myProperties = loadExisting ? getProperties(myPropertiesFilePath) : new Properties();
   }
 
   /**
