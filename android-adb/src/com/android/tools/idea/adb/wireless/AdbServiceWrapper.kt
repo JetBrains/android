@@ -20,6 +20,7 @@ import com.android.adblib.ServerStatus
 import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.IDevice
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 
@@ -65,7 +66,9 @@ data class AdbOnlineDevice(val id: String, val properties: Map<String, String>) 
       // TODO: Use DeviceNameRenderer class when it has moved out of android.core module
       val manufacturer = properties[IDevice.PROP_DEVICE_MANUFACTURER] ?: ""
       val model = properties[IDevice.PROP_DEVICE_MODEL] ?: id
-      return if (model.startsWith(manufacturer, true)) model else "$manufacturer $model"
+      val rawResult = if (model.startsWith(manufacturer, true)) model else "$manufacturer $model"
+      // sanitize the output to prevent flipping UI controls into HTML mode.
+      return escapeXmlEntities(rawResult)
     }
 }
 

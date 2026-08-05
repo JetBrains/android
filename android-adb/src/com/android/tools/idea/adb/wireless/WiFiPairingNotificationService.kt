@@ -21,6 +21,7 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -43,7 +44,7 @@ fun WiFiPairingNotificationService.showPairingSuccessBalloon(device: AdbOnlineDe
 
 fun WiFiPairingNotificationService.showDeviceHiddenBalloon(deviceName: String?) {
   showBalloon(
-    "${deviceName ?: "Device"} is now hidden",
+    escapeXmlEntities("${deviceName ?: "Device"} is now hidden"),
     "You can view and pair all devices by using the Wi-Fi pairing dialog.",
     NotificationType.INFORMATION,
     StudioIcons.Common.SUCCESS,
