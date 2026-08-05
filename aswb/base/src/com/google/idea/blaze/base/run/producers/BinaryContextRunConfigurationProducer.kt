@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.run.producers
 
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType
-import com.google.idea.blaze.base.run.producers.BinaryContextProvider.BinaryRunContext
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Key
@@ -29,13 +28,15 @@ import com.intellij.psi.util.PsiModificationTracker
 
 /** Produces run configurations via [BinaryContextProvider]. */
 class BinaryContextRunConfigurationProducer :
-  BlazeRunConfigurationProducer<BinaryRunContext>(BlazeCommandRunConfigurationType.getInstance()) {
+  BlazeRunConfigurationProducer<RunConfigurationContext>(BlazeCommandRunConfigurationType.getInstance()) {
 
   companion object {
     private val cacheKey =
-      Key.create<ParameterizedCachedValue<BinaryRunContext, ConfigurationContext>>(BinaryContextRunConfigurationProducer::class.java.name)
+      Key.create<ParameterizedCachedValue<RunConfigurationContext, ConfigurationContext>>(
+        BinaryContextRunConfigurationProducer::class.java.name
+      )
     private val PROVIDER =
-      ParameterizedCachedValueProvider<BinaryRunContext, ConfigurationContext> { context ->
+      ParameterizedCachedValueProvider<RunConfigurationContext, ConfigurationContext> { context ->
         val runContext = BinaryContextProvider.EP_NAME.extensions.firstNotNullOfOrNull { it.getRunContext(context) }
         CachedValueProvider.Result.create(
           runContext,
@@ -45,7 +46,7 @@ class BinaryContextRunConfigurationProducer :
       }
   }
 
-  override fun findContext(context: ConfigurationContext): BinaryRunContext? {
+  override fun findContext(context: ConfigurationContext): RunConfigurationContext? {
     if (SmRunnerUtils.getSelectedSmRunnerTreeElements(context).isNotEmpty()) {
       // not a binary run context
       return null

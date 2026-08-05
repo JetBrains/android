@@ -17,6 +17,7 @@ package com.google.idea.bazel.kotlin.run.producers;
 
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.run.producers.BinaryContextProvider;
+import com.google.idea.blaze.base.run.producers.RunConfigurationContext;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -31,7 +32,7 @@ class KotlinBinaryContextProvider implements BinaryContextProvider {
 
   @Nullable
   @Override
-  public BinaryRunContext getRunContext(ConfigurationContext context) {
+  public RunConfigurationContext getRunContext(ConfigurationContext context) {
     Location<?> location = context.getLocation();
     if (location == null) {
       return null;
@@ -40,7 +41,7 @@ class KotlinBinaryContextProvider implements BinaryContextProvider {
     if (target == null) {
       return null;
     }
-    return BinaryRunContext.create(location.getPsiElement(), target);
+    return BinaryContextProvider.createRunContext(location.getPsiElement(), target);
   }
 
   @Nullable

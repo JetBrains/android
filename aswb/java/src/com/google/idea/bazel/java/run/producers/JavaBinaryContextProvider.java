@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.run.producers.BinaryContextProvider;
+import com.google.idea.blaze.base.run.producers.RunConfigurationContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.intellij.execution.JavaExecutionUtil;
@@ -47,7 +48,7 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
 
   @Nullable
   @Override
-  public BinaryRunContext getRunContext(ConfigurationContext context) {
+  public RunConfigurationContext getRunContext(ConfigurationContext context) {
     PsiClass mainClass = getMainClass(context);
     if (mainClass == null) {
       return null;
@@ -60,7 +61,7 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
     // Try setting source element to a main method so ApplicationConfigurationProducer
     // can't override our configuration by producing a more specific one.
     PsiMethod mainMethod = PsiMethodUtil.findMainMethod(mainClass);
-    return BinaryRunContext.create(
+    return BinaryContextProvider.createRunContext(
         /* sourceElement= */ mainMethod != null ? mainMethod : mainClass, targetInfo);
   }
 

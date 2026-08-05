@@ -16,74 +16,28 @@
 package com.google.idea.blaze.base.run.producers
 
 import com.google.idea.blaze.base.command.BlazeCommandName
-import com.google.idea.blaze.base.dependencies.TargetInfo
 import com.google.idea.blaze.base.lang.buildfile.psi.FuncallExpression
-import com.google.idea.blaze.base.model.BlazeProjectData
 import com.google.idea.blaze.base.model.primitives.Kind
 import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.model.primitives.RuleType
-import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType
-import com.google.idea.blaze.base.run.BlazeRunConfigurationFactory
-import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 
-/** Creates run configurations from a BUILD file targets. */
+/** Creates run configurations from BUILD file targets. */
 class BlazeBuildFileRunConfigurationProducer :
-  BlazeRunConfigurationProducer<BlazeBuildFileRunConfigurationProducer.BuildTarget>(BlazeCommandRunConfigurationType.getInstance()) {
+  BlazeRunConfigurationProducer<UnifiedRunContext>(BlazeCommandRunConfigurationType.getInstance()) {
 
-  class BuildTarget(@JvmField val rule: FuncallExpression, @JvmField val ruleType: RuleType, @JvmField val label: Label) :
-    RunConfigurationContext {
-    override val sourceElement: PsiElement
-      get() = rule
-
-    override fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
-      val project = config.project
-      val blazeProjectData = BlazeProjectDataManager.getInstance(project).blazeProjectData ?: return false
-      setupConfiguration(project, blazeProjectData, config, this)
-      return true
-    }
-
-    override fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
-      if (config.targetPatterns != listOf(label.toString())) {
-        return false
-      }
-      val blazeProjectData = BlazeProjectDataManager.getInstance(config.project).blazeProjectData ?: return false
-      val generatedConfiguration = BlazeCommandRunConfiguration(config.project, config.factory, config.name)
-      setupConfiguration(config.project, blazeProjectData, generatedConfiguration, this)
-
-      // ignore filtered test configs, produced by other configuration producers.
-      val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
-      if (handlerState?.testFilterFlag != null) {
-        return false
-      }
-
-      return config.suggestedName() == generatedConfiguration.suggestedName() &&
-        config.handler?.commandName == generatedConfiguration.handler?.commandName
-    }
-
-    fun guessTargetInfo(): TargetInfo? {
-      val ruleName = rule.functionName ?: return null
-      val kind = Kind.fromRuleName(ruleName)
-      return kind?.let { TargetInfo(label, it.kindString) }
-    }
+  override fun findContext(context: ConfigurationContext): UnifiedRunContext? {
+    val rule = PsiTreeUtil.getNonStrictParentOfType(context.psiLocation, FuncallExpression::class.java) ?: return null
+    return getContextFromRule(rule)
   }
 
-  override fun findContext(context: ConfigurationContext): BlazeBuildFileRunConfigurationProducer.BuildTarget? {
-    return getBuildTarget(context)
-  }
+  data class TargetData(@JvmField val ruleType: RuleType, @JvmField val label: Label)
 
   companion object {
-    private fun getBuildTarget(context: ConfigurationContext): BuildTarget? {
-      return getBuildTarget(PsiTreeUtil.getNonStrictParentOfType(context.psiLocation, FuncallExpression::class.java))
-    }
-
     @JvmStatic
-    fun getBuildTarget(rule: FuncallExpression?): BuildTarget? {
+    fun getTargetData(rule: FuncallExpression?): TargetData? {
       if (rule == null) {
         return null
       }
@@ -92,49 +46,23 @@ class BlazeBuildFileRunConfigurationProducer :
       if (ruleName == null || label == null) {
         return null
       }
-      // TODO: Finding targets should not be done with the macro name
-      // but it should be done based on line number from the blaze project data query.
       if (ruleName == "iml_module") {
-        // iml_modules generate one executable target:
         ruleName = "java_test"
         label = Label.create(label.toString() + "_tests")
       }
-      return BuildTarget(rule, Kind.guessRuleType(ruleName), label)
+      return TargetData(Kind.guessRuleType(ruleName), label)
     }
 
-    private fun setupConfiguration(
-      project: Project,
-      blazeProjectData: BlazeProjectData,
-      configuration: BlazeCommandRunConfiguration,
-      target: BuildTarget,
-    ) {
-      // First see if a BlazeRunConfigurationFactory can give us a specialized setup.
-      for (configurationFactory in BlazeRunConfigurationFactory.EP_NAME.extensions) {
-        if (
-          configurationFactory.handlesTarget(project, blazeProjectData, target.label) &&
-            configurationFactory.handlesConfiguration(configuration)
-        ) {
-          configurationFactory.setupConfiguration(configuration, target.label)
-          return
-        }
-      }
-
-      // If no factory exists, directly set up the configuration.
-      setupBuildFileConfiguration(configuration, target)
-    }
-
-    private fun setupBuildFileConfiguration(config: BlazeCommandRunConfiguration, target: BuildTarget) {
-      val info = target.guessTargetInfo()
-      if (info != null) {
-        config.setTargetInfo(info)
-      } else {
-        config.setTargetPattern(target.label.toString())
-      }
-      val state = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
-      if (state != null) {
-        state.commandState.command = commandForRuleType(target.ruleType)
-      }
-      config.setGeneratedName()
+    @JvmStatic
+    fun getContextFromRule(rule: FuncallExpression?): UnifiedRunContext? {
+      val data = getTargetData(rule) ?: return null
+      val command = commandForRuleType(data.ruleType)
+      return UnifiedRunContext(
+        sourceElement = rule!!,
+        target = TargetSpecification.ExplicitPatterns(listOf(data.label.toString())),
+        filter = null,
+        command = CommandComponent(command, emptyList()),
+      )
     }
 
     @JvmStatic

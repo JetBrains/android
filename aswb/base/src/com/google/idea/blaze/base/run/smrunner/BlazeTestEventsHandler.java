@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.run.smrunner;
 import com.google.common.base.Strings;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.primitives.Kind;
+import com.google.idea.blaze.base.run.producers.RunTarget;
 import com.google.idea.blaze.base.run.smrunner.BlazeXmlSchema.TestSuite;
 import com.google.idea.blaze.base.run.targetfinder.TargetFinder;
 import com.google.idea.blaze.common.Label;
@@ -123,6 +124,16 @@ public interface BlazeTestEventsHandler {
    */
   @Nullable
   String getTestFilter(Project project, List<Location<?>> testLocations);
+
+  /**
+   * Domain targets for the given test locations.
+   *
+   * @return {@code null} if no domain targets can be constructed for these tests
+   */
+  @Nullable
+  default List<RunTarget> getRunTargets(Project project, List<Location<?>> testLocations) {
+    return null;
+  }
 
   /** Returns {@code null} if this test events handler doesn't support test filtering. */
   @Nullable

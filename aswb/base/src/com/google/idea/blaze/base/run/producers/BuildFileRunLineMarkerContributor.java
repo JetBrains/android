@@ -25,7 +25,7 @@ import com.google.idea.blaze.base.lang.buildfile.psi.BuildFile.BlazeFileType;
 import com.google.idea.blaze.base.lang.buildfile.psi.FuncallExpression;
 import com.google.idea.blaze.base.lang.buildfile.psi.ReferenceExpression;
 import com.google.idea.blaze.base.model.primitives.RuleType;
-import com.google.idea.blaze.base.run.producers.BlazeBuildFileRunConfigurationProducer.BuildTarget;
+import com.google.idea.blaze.base.run.producers.BlazeBuildFileRunConfigurationProducer.TargetData;
 import com.google.idea.blaze.base.run.targetfinder.TargetFinder;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.execution.lineMarker.ExecutorAction;
@@ -36,18 +36,19 @@ import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.impl.source.tree.LeafElement;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 
-/** Generates run/debug gutter icons for BUILD files. */
+/** Generates run line markers in BUILD files. */
 public class BuildFileRunLineMarkerContributor extends RunLineMarkerContributor {
 
-  private static final BoolExperiment enabled = new BoolExperiment("build.run.line.markers", true);
+  private static final BoolExperiment enabled =
+      new BoolExperiment("build.file.run.line.markers", true);
 
   private static final ImmutableSet<RuleType> HANDLED_RULE_TYPES =
-      ImmutableSet.of(RuleType.TEST, RuleType.BINARY);
+      ImmutableSet.of(RuleType.BINARY, RuleType.TEST);
 
   @Override
   public boolean producesAllPossibleConfigurations(PsiFile file) {
@@ -69,7 +70,7 @@ public class BuildFileRunLineMarkerContributor extends RunLineMarkerContributor 
     if (rule == null) {
       return false;
     }
-    BuildTarget data = BlazeBuildFileRunConfigurationProducer.getBuildTarget(rule);
+    TargetData data = BlazeBuildFileRunConfigurationProducer.getTargetData(rule);
     if (data == null || data.ruleType == RuleType.LIBRARY) {
       return false;
     }
@@ -101,7 +102,7 @@ public class BuildFileRunLineMarkerContributor extends RunLineMarkerContributor 
         || ((BuildFile) parentFile).getBlazeFileType() != BlazeFileType.BuildPackage) {
       return null;
     }
-    if (!(element instanceof LeafElement)
+    if (!(element instanceof LeafPsiElement)
         || element instanceof PsiWhiteSpace
         || element instanceof PsiComment) {
       return null;

@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.run.producers
 
 import com.google.idea.blaze.base.command.BlazeCommandName
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
-import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -48,24 +47,12 @@ interface RunConfigurationContext {
   companion object {
     @JvmStatic
     fun fromKnownTarget(targetPattern: String, command: BlazeCommandName, sourceElement: PsiElement): RunConfigurationContext {
-      return object : RunConfigurationContext {
-        override val sourceElement: PsiElement = sourceElement
-
-        override fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
-          config.setTargetPattern(targetPattern)
-          val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java) ?: return false
-          handlerState.commandState.command = command
-          config.setGeneratedName()
-          return true
-        }
-
-        override fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
-          val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java) ?: return false
-          return handlerState.commandState.command == command &&
-            config.targetPatterns == listOf(targetPattern) &&
-            handlerState.testFilterFlag == null
-        }
-      }
+      return UnifiedRunContext(
+        sourceElement = sourceElement,
+        target = TargetSpecification.ExplicitPatterns(listOf(targetPattern)),
+        filter = null,
+        command = CommandComponent(command, emptyList()),
+      )
     }
   }
 }
