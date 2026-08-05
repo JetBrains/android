@@ -40,6 +40,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
@@ -50,8 +51,10 @@ import com.intellij.util.concurrency.EdtExecutorService
 import java.io.File
 import kotlin.io.path.createTempFile
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -267,6 +270,14 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     // Verify
     assertThat(repository.openDatabases).isEmpty()
     verify(databaseInspectorController).showError("Error opening database from '${databaseFileData.mainFile.path}'", error.cause)
+  }
+
+  fun testGetIdeServices() {
+    val ideServices = mock<AppInspectionIdeServices>()
+    runDispatching { databaseInspectorProjectService.startAppInspectionSession(mock(), ideServices, processDescriptor) }
+    assertThat(databaseInspectorProjectService.getIdeServices()).isSameAs(ideServices)
+    runDispatching { withContext(Dispatchers.EDT) { databaseInspectorProjectService.stopAppInspectionSession(mock()) } }
+    assertThat(databaseInspectorProjectService.getIdeServices()).isNull()
   }
 
   private fun registerMockAdbService() {
