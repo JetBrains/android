@@ -51,6 +51,7 @@ device.manager.xr.glasses.device.support.enabled=PREVIEW
 device.mirroring.unicode.typing=COMPLETE:2026
 device.mirroring.xr.simulated.passthrough=PREVIEW
 editor.enable.change.review.agent=PREVIEW
+editor.enable.change.review.walkthrough=PREVIEW
 editor.restrict.to.completion.weigher=COMPLETE:2025
 embedded.emulator.360.image.environment=PREVIEW
 embedded.emulator.3d.scene.environment=INTERNAL

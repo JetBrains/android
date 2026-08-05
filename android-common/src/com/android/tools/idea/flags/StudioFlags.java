@@ -1427,6 +1427,12 @@ public final class StudioFlags {
     "If enabled, the change review agent is available."
   );
 
+  public static final Flag<Boolean> EDITOR_ENABLE_CHANGE_REVIEW_WALKTHROUGH = new BooleanFlag(
+    EDITOR, "enable.change.review.walkthrough",
+    "Enable the Change Review guided walkthrough.",
+    "If enabled, the change review guided walkthrough is available."
+  );
+
   //endregion
 
   //region Testing
