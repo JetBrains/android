@@ -525,6 +525,7 @@ android-studio/lib/module-intellij.libraries.markdown.jar
 android-studio/lib/module-intellij.libraries.miglayout.swing.jar
 android-studio/lib/module-intellij.libraries.mvstore.jar
 android-studio/lib/module-intellij.libraries.oro.matcher.jar
+android-studio/lib/module-intellij.libraries.oshi.core.jar
 android-studio/lib/module-intellij.libraries.proxy.vole.jar
 android-studio/lib/module-intellij.libraries.pty4j.jar
 android-studio/lib/module-intellij.libraries.rd.text.jar
@@ -3225,7 +3226,6 @@ android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 android-studio/plugins/markdown/lib/modules/intellij.markdown.frontend.jar
 android-studio/plugins/performanceTesting/lib/assertj-swing.jar
-android-studio/plugins/performanceTesting/lib/github.oshi.core.jar
 android-studio/plugins/performanceTesting/lib/modules/intellij.performanceTesting.frontend.jar
 android-studio/plugins/performanceTesting/lib/performanceTesting.jar
 android-studio/plugins/platform-images/lib/modules/intellij.platform.images.xdebugger.jar

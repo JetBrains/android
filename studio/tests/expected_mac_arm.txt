@@ -526,6 +526,7 @@ Android Studio Preview.app/Contents/lib/module-intellij.libraries.markdown.jar
 Android Studio Preview.app/Contents/lib/module-intellij.libraries.miglayout.swing.jar
 Android Studio Preview.app/Contents/lib/module-intellij.libraries.mvstore.jar
 Android Studio Preview.app/Contents/lib/module-intellij.libraries.oro.matcher.jar
+Android Studio Preview.app/Contents/lib/module-intellij.libraries.oshi.core.jar
 Android Studio Preview.app/Contents/lib/module-intellij.libraries.proxy.vole.jar
 Android Studio Preview.app/Contents/lib/module-intellij.libraries.pty4j.jar
 Android Studio Preview.app/Contents/lib/module-intellij.libraries.rd.text.jar
@@ -3235,7 +3236,6 @@ Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.backend.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.frontend.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/assertj-swing.jar
-Android Studio Preview.app/Contents/plugins/performanceTesting/lib/github.oshi.core.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/modules/intellij.performanceTesting.frontend.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/performanceTesting.jar
 Android Studio Preview.app/Contents/plugins/platform-images/lib/modules/intellij.platform.images.xdebugger.jar
