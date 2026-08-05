@@ -28,6 +28,7 @@ import java.lang.ref.WeakReference
 import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.util.Arrays
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
@@ -55,6 +56,7 @@ private const val INTERNAL_PACKAGE = "_layoutlib_._internal_."
 private const val ANDROID_UI_DISPATCHER_FQN = "androidx.compose.ui.platform.AndroidUiDispatcher"
 private const val ANDROID_UI_DISPATCHER_COMPANION_FQN = "$ANDROID_UI_DISPATCHER_FQN\$Companion"
 private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.CombinedContext"
+private const val ANDROID_COMPOSE_VIEW_FQN = "androidx.compose.ui.platform.AndroidComposeView"
 
 /**
  * Initiates a custom [RenderSession] disposal, involving clearing several static collections including some Compose-related objects as well
@@ -71,6 +73,7 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
   clearGapWorkerCache(classLoader)
   clearFontRequestWorker(classLoader)
   clearTypefaceCompatCache(classLoader)
+  clearAndroidComposeView(classLoader)
 
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
     clearCompositions(classLoader)
@@ -347,5 +350,49 @@ private fun clearTypefaceCompatCache(classLoader: ModuleClassLoader) {
     clearCacheMethod.invoke(null)
   } catch (ex: ReflectiveOperationException) {
     LOG.debug("Unable to dispose TypefaceCompat.sTypefaceCache", ex)
+  }
+}
+
+/** Clear static variables or caches held by `AndroidComposeView`. */
+private fun clearAndroidComposeView(classLoader: ModuleClassLoader) {
+  if (!classLoader.hasLoadedClass(ANDROID_COMPOSE_VIEW_FQN)) return
+
+  try {
+    val androidComposeViewClass = classLoader.loadClass(ANDROID_COMPOSE_VIEW_FQN)
+
+    // Safety check to ensure we only modify classes loaded by the ModuleClassLoader itself
+    if (androidComposeViewClass.classLoader !== classLoader) {
+      LOG.debug("AndroidComposeView loaded by parent classloader, skipping clean-up")
+      return
+    }
+
+    clearStaticFields(androidComposeViewClass)
+
+    val companionFqn = "$ANDROID_COMPOSE_VIEW_FQN\$Companion"
+    if (classLoader.hasLoadedClass(companionFqn)) {
+      val companionClass = classLoader.loadClass(companionFqn)
+      clearStaticFields(companionClass)
+    }
+  } catch (ex: ReflectiveOperationException) {
+    LOG.debug("Unable to dispose AndroidComposeView static fields", ex)
+  }
+}
+
+private fun clearStaticFields(clazz: Class<*>) {
+  for (field in clazz.declaredFields) {
+    if (Modifier.isStatic(field.modifiers)) {
+      runCatching {
+        field.isAccessible = true
+        val value = field[null]
+        if (value is MutableCollection<*>) {
+          value.clear()
+        } else if (value is MutableMap<*, *>) {
+          value.clear()
+        }
+        if (!Modifier.isFinal(field.modifiers)) {
+          field.set(null, null)
+        }
+      }
+    }
   }
 }
