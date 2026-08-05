@@ -2473,23 +2473,11 @@ public final class StudioFlags {
                     "Enable shimmering placeholder in chat timeline.",
                     "When enabled, the compose chat timeline will show a shimmering placeholder while awaiting initial response content.");
 
-  public static Flag<Boolean> LOCAL_MODELS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "local.models.enabled",
-                    "Add local models for Chat.",
-                    "When enabled, a setting and various UI is made visible to configure local models, and when provided and " +
-                    "enabled it add local model option to Chat model picker.");
-
   public static Flag<Boolean> LOCAL_GEMMA_ENABLED =
     new BooleanFlag(STUDIOBOT, "local.gemma.enabled",
                     "Enable local Gemma model.",
                     "When enabled, a setting and various UI is made visible to configure the local Gemma model, and when provided and " +
                     "enabled it adds Gemma model option to Chat model picker.");
-
-  public static final Flag<Boolean> REMOTE_MODELS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "remote.models.enabled",
-                    "Add remote models for Chat.",
-                    "When enabled, a setting and various UI is made visible to configure remote models, and when provided and " +
-                    "enabled it add remote model option to Chat model picker.");
 
   public static final Flag<Boolean> STUDIOBOT_AUTO_REFRESH_MODELS =
     new BooleanFlag(STUDIOBOT, "auto.refresh.models",
