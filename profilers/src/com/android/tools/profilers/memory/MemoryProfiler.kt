@@ -50,6 +50,7 @@ import java.io.IOException
 import java.io.OutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
@@ -334,63 +335,81 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         .let { client.transportClient.getEventGroups(it).groupsList.map(mapper) }
 
     @JvmStatic
+    @JvmOverloads
     fun trackAllocations(
       profilers: StudioProfilers,
       session: Common.Session,
       enable: Boolean,
       endSession: Boolean,
       responseHandler: Consumer<TrackStatus?>?,
-    ): TransportEventListener? {
-      val timeNs =
-        profilers.client.transportClient.getCurrentTime(TimeRequest.newBuilder().setStreamId(session.streamId).build()).timestampNs
-      val trackCommand =
-        Commands.Command.newBuilder().apply {
-          streamId = session.streamId
-          pid = session.pid
-          if (enable) {
-            type = Commands.Command.CommandType.START_ALLOC_TRACKING
-            setStartAllocTracking(Memory.StartAllocTracking.newBuilder().setRequestTime(timeNs))
-          } else {
-            type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
-            // To indicate to the STOP_ALLOC_TRACKING command handler to end the current session, we set the session id.
-            // TODO(b/336569520): Remove "Profiler: End session .*" logs once the issue is fixed.
-            logger.info(
-              "Profiler: End session " +
-                sessionId.toString() +
-                " track allocations log, if allocation stop tracking requested; " +
-                "isSessionAlive = " +
-                profilers.sessionsManager.isSessionAlive.toString()
-            )
-            if (endSession) {
-              sessionId = session.sessionId
-              logger.info(
-                "Profiler: End session " +
-                  sessionId +
-                  " track allocations log, if end session is true; isSessionAlive = " +
-                  profilers.sessionsManager.isSessionAlive.toString()
-              )
+      listenerTracker: Consumer<TransportEventListener>? = null,
+    ) {
+      val poolExecutor = profilers.ideServices.poolExecutor
+      CompletableFuture.supplyAsync(
+          {
+            val timeNs =
+              profilers.client.transportClient.getCurrentTime(TimeRequest.newBuilder().setStreamId(session.streamId).build()).timestampNs
+            val trackCommand =
+              Commands.Command.newBuilder()
+                .apply {
+                  streamId = session.streamId
+                  pid = session.pid
+                  if (enable) {
+                    type = Commands.Command.CommandType.START_ALLOC_TRACKING
+                    setStartAllocTracking(Memory.StartAllocTracking.newBuilder().setRequestTime(timeNs))
+                  } else {
+                    type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
+                    // To indicate to the STOP_ALLOC_TRACKING command handler to end the current session, we set the session id.
+                    // TODO(b/336569520): Remove "Profiler: End session .*" logs once the issue is fixed.
+                    logger.info(
+                      "Profiler: End session " +
+                        sessionId.toString() +
+                        " track allocations log, if allocation stop tracking requested; " +
+                        "isSessionAlive = " +
+                        profilers.sessionsManager.isSessionAlive.toString()
+                    )
+                    if (endSession) {
+                      sessionId = session.sessionId
+                      logger.info(
+                        "Profiler: End session " +
+                          sessionId +
+                          " track allocations log, if end session is true; isSessionAlive = " +
+                          profilers.sessionsManager.isSessionAlive.toString()
+                      )
+                    }
+                    if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled && endSession) {
+                      shouldEndSession = true
+                    }
+                    setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs))
+                  }
+                }
+                .build()
+            profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(trackCommand).build())
+          },
+          poolExecutor,
+        )
+        .thenAcceptAsync(
+          { response ->
+            if (responseHandler != null) {
+              val statusListener =
+                TransportEventListener(
+                  Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS,
+                  profilers.ideServices.mainExecutor,
+                  { event -> event.commandId == response.commandId },
+                  { session.streamId },
+                  { session.pid },
+                  callback = { event -> true.also { responseHandler.accept(event.memoryAllocTrackingStatus.status) } },
+                )
+              profilers.transportPoller.registerListener(statusListener)
+              listenerTracker?.accept(statusListener)
             }
-            if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled && endSession) {
-              shouldEndSession = true
-            }
-            setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs))
-          }
+          },
+          poolExecutor,
+        )
+        .exceptionally { e ->
+          logger.info(e)
+          null
         }
-      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(trackCommand).build())
-      if (responseHandler != null) {
-        val statusListener =
-          TransportEventListener(
-            Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS,
-            profilers.ideServices.mainExecutor,
-            { event -> event.commandId == response.commandId },
-            { session.streamId },
-            { session.pid },
-            callback = { event -> true.also { responseHandler.accept(event.memoryAllocTrackingStatus.status) } },
-          )
-        profilers.transportPoller.registerListener(statusListener)
-        return statusListener
-      }
-      return null
     }
   }
 }

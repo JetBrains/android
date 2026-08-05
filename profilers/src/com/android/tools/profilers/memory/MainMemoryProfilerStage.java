@@ -601,7 +601,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
    * @return the actual status, which may be different from the input
    */
   public void trackAllocations(boolean enable) {
-    TransportEventListener listener = MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, true, status -> {
+    MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, true, status -> {
       switch (status.getStatus()) {
         case SUCCESS:
           setTrackingAllocations(enable);
@@ -634,11 +634,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         getTimeline().setStreaming(true);
         getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
       }
-    });
-
-    if (listener != null) {
-      myListenerTracker.trackListener(listener, !enable);
-    }
+    }, listener -> myListenerTracker.trackListener(listener, !enable));
   }
 
   public long getAllocationTrackingElapsedTimeNs() {
