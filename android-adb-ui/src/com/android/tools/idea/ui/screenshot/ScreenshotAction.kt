@@ -101,7 +101,7 @@ class ScreenshotAction : DumbAwareAction(
           if (e is CancellationException) {
             throw e
           }
-          val cause = getMessage(e) ?: e::javaClass.name
+          val cause = getMessage(e) ?: e.javaClass.name
           val message = message("screenshot.error.generic", cause)
           thisLogger().error(message, e)
           ApplicationManager.getApplication().invokeLater {

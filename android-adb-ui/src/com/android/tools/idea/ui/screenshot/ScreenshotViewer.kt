@@ -410,7 +410,7 @@ class ScreenshotViewer(
           throw e
         }
         catch (e: Throwable) {
-          val cause = getMessage(e) ?: e::javaClass.name
+          val cause = getMessage(e) ?: e.javaClass.name
           val message = message("screenshot.error.generic", cause)
           thisLogger().error(message, e)
           ApplicationManager.getApplication().invokeLater {
