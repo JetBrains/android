@@ -61,7 +61,7 @@ class LiveEditApp(
 
     val duration = (System.nanoTime() - start) / 1_000_000
     logger.log("Found minAPI = $minApis in ${duration}ms")
-    return minApis.minOf { it }
+    return minApis.maxOf { it }
   }
 
   private fun MutableSet<MinApiLevel>.extractMinApiFromDexMarkers(apk: Path) {
