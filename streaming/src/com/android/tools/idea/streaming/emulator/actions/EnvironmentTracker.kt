@@ -112,6 +112,7 @@ internal fun Environment.getEnvironmentFile(): Path? {
       mode.startsWith("imagefile:") -> mode.removePrefix("imagefile:")
       mode.startsWith("image360:") -> mode.removePrefix("image360:")
       mode.startsWith("mesh3d:") -> mode.removePrefix("mesh3d:")
+      mode.startsWith("videofile:") -> mode.removePrefix("videofile:")
       else -> return null
     }
   return try {

@@ -92,6 +92,7 @@ internal class EmulatorRecentEnvironmentsActionGroup : DefaultActionGroup(), Dum
         .map { Path.of(it) }
         .filter { Files.isRegularFile(it) }
         .filter { StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get() || !it.fileName.toString().endsWith(".obj", ignoreCase = true) }
+        .filter { StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.get() || !isVideoFile(it) }
         .any { currentEnvironmentPath == null || it.toAbsolutePath().normalize() != currentEnvironmentPath }
     presentation.isVisible = hasRecentFiles && EmulatorEnvironmentAction.isApplicable(event)
     presentation.isEnabled = presentation.isVisible && isEmulatorConnected(event)
@@ -104,6 +105,7 @@ internal class EmulatorRecentEnvironmentsActionGroup : DefaultActionGroup(), Dum
         .map { Path.of(it) }
         .filter { Files.isRegularFile(it) }
         .filter { StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get() || !it.fileName.toString().endsWith(".obj", ignoreCase = true) }
+        .filter { StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.get() || !isVideoFile(it) }
         .filter { currentEnvironmentPath == null || it.toAbsolutePath().normalize() != currentEnvironmentPath }
     return recentFiles.map { EmulatorEnvironmentAction.RecentCustom(it) }.toTypedArray()
   }

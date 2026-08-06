@@ -89,6 +89,7 @@ internal sealed class EmulatorEnvironmentAction :
     val mode =
       when {
         file.fileName.toString().endsWith(".obj", ignoreCase = true) -> "mesh3d:$pathStr"
+        StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.get() && isVideoFile(file) -> "videofile:$pathStr"
         StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.get() && withContext(Dispatchers.IO) { is360Image(file) } -> "image360:$pathStr"
         else -> "imagefile:$pathStr"
       }
@@ -113,15 +114,25 @@ internal sealed class EmulatorEnvironmentAction :
       val virtualFile =
         withContext(Dispatchers.EDT) {
           val is3dEnabled = StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get()
-          val extensions = if (is3dEnabled) arrayOf("png", "jpg", "jpeg", "obj") else arrayOf("png", "jpg", "jpeg")
-          val filterTitle = if (is3dEnabled) "Custom environment files" else "Image files"
-          val title = if (is3dEnabled) "Select an Environment File" else "Select an Image File"
+          val isVideoEnabled = StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.get()
+          val extensions = mutableListOf("png", "jpg", "jpeg")
+          if (is3dEnabled) extensions.add("obj")
+          if (isVideoEnabled) {
+            extensions.add("mp4")
+            extensions.add("webm")
+          }
+          val filterTitle = if (is3dEnabled || isVideoEnabled) "Custom environment files" else "Image files"
+          val title = if (is3dEnabled || isVideoEnabled) "Select an Environment File" else "Select an Image File"
           val description =
-            if (is3dEnabled) "Select an image or 3D scene (.obj) file to be used for environment"
-            else "Select an image file to be used for environment"
+            when {
+              is3dEnabled && isVideoEnabled -> "Select an image, video (.mp4, .webm), or 3D scene (.obj) file to be used for environment"
+              isVideoEnabled -> "Select an image or video (.mp4, .webm) file to be used for environment"
+              is3dEnabled -> "Select an image or 3D scene (.obj) file to be used for environment"
+              else -> "Select an image file to be used for environment"
+            }
           val descriptor =
             FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
-              .withExtensionFilter(filterTitle, *extensions)
+              .withExtensionFilter(filterTitle, *extensions.toTypedArray())
               .withTitle(title)
               .withDescription(description)
           chooseFile(descriptor, project, null)
@@ -172,7 +183,7 @@ internal sealed class EmulatorEnvironmentAction :
     override fun doesMatchEnvironment(environment: Environment): Boolean {
       val mode = environment.environmentMap["scene.mode"] ?: return false
       val pathStr = toSystemIndependentName(filePath.toString())
-      return mode == "imagefile:$pathStr" || mode == "image360:$pathStr" || mode == "mesh3d:$pathStr"
+      return mode == "imagefile:$pathStr" || mode == "image360:$pathStr" || mode == "mesh3d:$pathStr" || mode == "videofile:$pathStr"
     }
   }
 
@@ -236,6 +247,11 @@ internal sealed class EmulatorEnvironmentAction :
       properties.setValue(RECENT_FILES_KEY, current.joinToString("\n"))
     }
   }
+}
+
+internal fun isVideoFile(file: Path): Boolean {
+  val name = file.fileName.toString()
+  return name.endsWith(".mp4", ignoreCase = true) || name.endsWith(".webm", ignoreCase = true)
 }
 
 private fun isWavefrontObjFile(path: Path): Boolean {

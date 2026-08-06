@@ -96,6 +96,7 @@ class EmulatorEnvironmentActionTest {
   fun setUp() {
     StudioFlags.EMBEDDED_EMULATOR_CAMERA_ENVIRONMENT.overrideForTest(true, testRootDisposable)
     StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.overrideForTest(true, testRootDisposable)
   }
 
   @Test
@@ -258,6 +259,73 @@ class EmulatorEnvironmentActionTest {
     val call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
     assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"mesh3d:$filePath\" }")
+  }
+
+  @Test
+  fun testCustomVideoEnvironment() {
+    val videoFile = mock<VirtualFile>()
+    whenever(videoFile.path).thenReturn("/tmp/test_video.mp4")
+    testRootDisposable.registerFakeFileChooserFactory(videoFile)
+
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"videofile:${videoFile.path}\" }")
+  }
+
+  @Test
+  fun testCustomVideoEnvironment_featureFlagOff() {
+    StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.overrideForTest(false, testRootDisposable)
+    val videoFile = mock<VirtualFile>()
+    whenever(videoFile.path).thenReturn("/tmp/test_video.mp4")
+    testRootDisposable.registerFakeFileChooserFactory(videoFile)
+
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${videoFile.path}\" }")
+  }
+
+  @Test
+  fun testRecentCustomVideoEnvironment() {
+    val filePath = "/tmp/recent_video.mp4"
+    val action = EmulatorEnvironmentAction.RecentCustom(Path.of(filePath))
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request)).isEqualTo("environment { key: \"scene.mode\" value: \"videofile:$filePath\" }")
+  }
+
+  @Test
+  fun testRecentEnvironmentsExcludesVideoWhenFlagOff() {
+    val file1 = tempDirRule.newPath("file1.png")
+    val file2 = tempDirRule.newPath("file2.mp4")
+    Files.createFile(file1)
+    Files.createFile(file2)
+
+    val properties = PropertiesComponent.getInstance()
+    properties.setValue("EmulatorEnvironmentAction.recentFiles", "")
+    EmulatorEnvironmentAction.addRecentFile(file1.toString())
+    EmulatorEnvironmentAction.addRecentFile(file2.toString())
+
+    val group = EmulatorRecentEnvironmentsActionGroup()
+    val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
+
+    // With flag ON, both should be shown
+    StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    var children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(2)
+
+    // With flag OFF, file2 (.mp4) should be filtered out
+    StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.overrideForTest(false, testRootDisposable)
+    children = group.getChildren(event)
+    assertThat(children.size).isEqualTo(1)
+    assertThat(children[0].templatePresentation.text).isEqualTo(file1.fileName.toString())
   }
 
   @Test

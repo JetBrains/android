@@ -56,6 +56,7 @@ embedded.emulator.360.image.environment=INTERNAL
 embedded.emulator.3d.scene.environment=INTERNAL
 embedded.emulator.camera.environment=PREVIEW
 embedded.emulator.hide.tool.window.name=COMPLETE:2024
+embedded.emulator.video.environment=INTERNAL
 embedded.emulator.wrap.toolbar=COMPLETE:2024
 embedded.emulator.xr.hand.and.eye.input=PREVIEW
 experimentalui.enabled=COMPLETE:2024
