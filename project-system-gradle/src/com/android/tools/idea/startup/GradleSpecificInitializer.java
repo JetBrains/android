@@ -61,7 +61,6 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
 
     useIdeGooglePlaySdkIndexInGradleDetector();
     initializePhasedSync();
-    configureKotlinScripting();
   }
 
   @VisibleForTesting
@@ -143,27 +142,6 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
       IdeGooglePlaySdkIndex playIndex = IdeGooglePlaySdkIndex.INSTANCE;
       playIndex.initializeAndSetFlags();
       return playIndex;
-    });
-  }
-
-  private static void configureKotlinScripting() {
-    // Tests do not rely on this but it causes test flakiness as it can be executed after test finish during project disposal.
-    if (ApplicationManager.getApplication().isUnitTestMode()) return;
-
-    ApplicationManager.getApplication().invokeLater(() -> {
-      // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
-      Project project = ProjectManager.getInstance().getDefaultProject();
-      var scriptDefinitionProvider = ScriptDefinitionProvider.Companion.getInstance(project);
-      if (scriptDefinitionProvider != null) {
-        SequencesKt.asIterable(scriptDefinitionProvider.getCurrentDefinitions()).forEach(
-          scriptDefinitions -> {
-            var settings = KotlinScriptingSettings.Companion.getInstance(project);
-            if (settings.isScriptDefinitionEnabled(scriptDefinitions) && settings.autoReloadConfigurations(scriptDefinitions)) {
-              settings.setAutoReloadConfigurations(scriptDefinitions, false);
-            }
-          }
-        );
-      }
     });
   }
 }
