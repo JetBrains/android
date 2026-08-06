@@ -23,6 +23,8 @@
                                     implementation="com.android.tools.idea.projectsystem.gradle.AndroidStudioSettingsInitializer"/>
     <applicationInitializedListener id="DisableKotlinGradleTomlVersionCatalogReferencesSearcher"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableKotlinGradleTomlVersionCatalogReferencesSearcher" />
+    <applicationInitializedListener id="DisablePlatformIncompatibleGradleJvmIssueChecker"
+                                    implementation="com.android.tools.idea.gradle.project.sync.errors.DisablePlatformIncompatibleGradleJvmIssueChecker" />
 
     <projectConfigurable groupId="build" id="build.tools"
                          instance="com.android.tools.idea.projectsystem.gradle.AndroidStudioBuildToolsConfigurable"

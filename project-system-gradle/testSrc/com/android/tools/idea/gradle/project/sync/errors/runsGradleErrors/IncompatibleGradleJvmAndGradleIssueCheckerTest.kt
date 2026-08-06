@@ -74,7 +74,7 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
       preparedProject = preparedProject,
       overrideGradleJdkPath = File(JdkConstants.JDK_21_PATH),
       verifyBuildIssues = { project, buildIssues ->
-        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version", "Incompatible Gradle JVM").inOrder()
+        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version")
         buildIssues.verifyIssueSafely(0) { buildIssue ->
           expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
           expect
@@ -119,7 +119,7 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
       preparedProject = preparedProject,
       overrideGradleJdkPath = File(JdkConstants.JDK_21_PATH),
       verifyBuildIssues = { _, buildIssues ->
-        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version", "Incompatible Gradle JVM").inOrder()
+        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version")
         buildIssues.verifyIssueSafely(0) { buildIssue ->
           expect.that(buildIssue.title).contains("Incompatible Gradle JVM version")
           expect
@@ -159,7 +159,7 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
       preparedProject = preparedProject,
       overrideGradleJdkPath = null,
       verifyBuildIssues = { project, buildIssues ->
-        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version", "Incompatible Gradle JVM").inOrder()
+        expect.that(buildIssues.map { it?.title }).containsExactly("Incompatible Gradle JVM version")
         buildIssues.verifyIssueSafely(0) { buildIssue ->
           val expectedMinimumJavaVersion = GradleJvmSupportMatrix.suggestOldestSupportedJavaVersion(gradleVersion)
           val expectedMaximumJavaVersion = GradleJvmSupportMatrix.suggestLatestSupportedJavaVersion(gradleVersion)
