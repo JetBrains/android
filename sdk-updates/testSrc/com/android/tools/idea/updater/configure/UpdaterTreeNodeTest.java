@@ -459,7 +459,6 @@ public class UpdaterTreeNodeTest {
   @NotNull
   private DetailsTreeNode createMultiVersionChild(boolean hasLocal, boolean hasRemote, @NotNull String version) {
     assert hasLocal || hasRemote;
-    // TODO studio-merge
     FakePackage.FakeLocalPackage local = null;
     if (hasLocal) {
       local = new FakePackage.FakeLocalPackage("foo;" + version);
