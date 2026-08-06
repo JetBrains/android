@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import com.android.repository.api.RepoPackage
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.SystemImageTags.ALL_TABLET_TAGS
@@ -29,8 +30,20 @@ internal object SystemImageComparator :
     .thenBy { it.androidVersion.featureLevel }
     .thenByDescending { if (it.androidVersion.isBaseExtension) 0 else it.androidVersion.extensionLevel ?: 0 }
     .thenByDescending { it.getServices() }
+    .thenBy { it.xrPriority() }
     .thenByDescending { it.getOtherTagCount() }
     .thenByDescending { it.`package`.displayName })
+
+private fun ISystemImage.xrPriority(): Int {
+  // Special case for the API 34 XR images
+  val flavor = `package`.path.split(RepoPackage.PATH_SEPARATOR).getOrNull(2)
+  return when (flavor) {
+    "google-xr" -> 1
+    "android-xr-v3-playstore" -> 3
+    "android-xr-preview-playstore" -> 4
+    else -> 5
+  }
+}
 
 private fun ISystemImage.isForTablet() = SystemImageTags.isTabletImage(tags)
 

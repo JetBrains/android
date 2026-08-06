@@ -140,18 +140,42 @@ class SystemImageComparatorTest {
     assertEquals(listOf(image1, image2), sortedImages)
   }
 
+  @Test
+  fun compareXrPriority() {
+    val image1 = mockSystemImage(AndroidVersion(34).withBaseExtensionLevel(), path = "system-images;android-34;google-xr;x86_64")
+    val image2 =
+      mockSystemImage(AndroidVersion(34).withBaseExtensionLevel(), path = "system-images;android-34;android-xr-v3-playstore;x86_64")
+    val image3 =
+      mockSystemImage(AndroidVersion(34).withBaseExtensionLevel(), path = "system-images;android-34;android-xr-preview-playstore;x86_64")
+    val image4 = mockSystemImage(AndroidVersion(34).withBaseExtensionLevel(), path = "system-images;android-34;google_apis;x86_64")
+
+    val images = listOf(image4, image3, image2, image1)
+
+    // Act
+    val sortedImages = images.sortedWith(SystemImageComparator)
+
+    // Assert
+    assertEquals(listOf(image1, image2, image3, image4), sortedImages)
+  }
+
   private companion object {
-    private fun mockSystemImage(version: AndroidVersion, hasPlayStore: Boolean = false, displayName: String? = null): ISystemImage {
+    private fun mockSystemImage(
+      version: AndroidVersion,
+      hasPlayStore: Boolean = false,
+      displayName: String? = null,
+      path: String = "system-images;android-34;google_apis;x86_64",
+    ): ISystemImage {
       val image = mock<ISystemImage>()
       whenever(image.androidVersion).thenReturn(version)
       whenever(image.hasPlayStore()).thenReturn(hasPlayStore)
 
+      val repoPackage = mock<RepoPackage>()
       if (displayName != null) {
-        val repoPackage = mock<RepoPackage>()
         whenever(repoPackage.displayName).thenReturn(displayName)
-
-        whenever(image.`package`).thenReturn(repoPackage)
       }
+      whenever(repoPackage.path).thenReturn(path)
+
+      whenever(image.`package`).thenReturn(repoPackage)
 
       return image
     }
