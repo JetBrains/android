@@ -36,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -201,15 +202,16 @@ public class SimpleperfTraceParser implements TraceParser {
   }
 
   public static boolean verifyFileHasSimpleperfHeader(@NotNull File trace) {
-    try {
-      ByteBuffer buffer = byteBufferFromFile(trace, ByteOrder.LITTLE_ENDIAN);
-      verifyMagicNumber(buffer);
-    } catch (IllegalStateException | IOException e) {
-      getLog().info("There was an error trying to read the trace file header.", e);
-      // If magic number verification fails, then return false
-       return false;
+    try (FileInputStream fis = new FileInputStream(trace)) {
+      byte[] magic = fis.readNBytes(MAGIC.length());
+      if (magic.length != MAGIC.length()) {
+        return false;
+      }
+      return new String(magic, StandardCharsets.UTF_8).equals(MAGIC);
+    } catch (IOException e) {
+      getLog().warn("There was an error trying to read the trace file header.", e);
+      return false;
     }
-    return true;
   }
 
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
@@ -323,13 +325,23 @@ public class SimpleperfTraceParser implements TraceParser {
   }
 
   /**
-   * Verifies the first 10 characters of the given {@link ByteBuffer} are {@code SIMPLEPERF}.
+   * Returns {@code true} if the next 10 bytes in the {@link ByteBuffer} are {@code SIMPLEPERF}, advancing the buffer position.
+   */
+  private static boolean consumeAndVerifyMagicNumber(ByteBuffer buffer) {
+    if (buffer.remaining() < MAGIC.length()) {
+      return false;
+    }
+    byte[] magic = new byte[MAGIC.length()];
+    buffer.get(magic);
+    return new String(magic, StandardCharsets.UTF_8).equals(MAGIC);
+  }
+
+  /**
+   * Verifies the first 10 bytes of the given {@link ByteBuffer} are {@code SIMPLEPERF}, advancing the buffer position.
    * Throws an {@link IllegalStateException} otherwise.
    */
   private static void verifyMagicNumber(ByteBuffer buffer) {
-    byte[] magic = new byte[MAGIC.length()];
-    buffer.get(magic);
-    if (!(new String(magic)).equals(MAGIC)) {
+    if (!consumeAndVerifyMagicNumber(buffer)) {
       throw new IllegalStateException("Simpleperf trace could not be parsed due to magic number mismatch.");
     }
   }
