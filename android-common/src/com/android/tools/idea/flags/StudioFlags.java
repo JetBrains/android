@@ -2885,9 +2885,11 @@ public final class StudioFlags {
 
   // region JOURNEYS_WITH_GEMINI
   private static final FlagGroup JOURNEYS_WITH_GEMINI = new FlagGroup(FLAGS, "journeys.with.gemini", "Journeys with Gemini");
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EXECUTION = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.execution", "Enable Journeys with Gemini execution",
-    "Enable Journeys with Gemini related functionality to allow users to create, edit and execute Journeys."
+  // Retaining original ID "enable.journeys.with.gemini.execution" for backwards compatibility
+  // with users who previously enabled Journeys in Studio Labs.
+  public static final Flag<Boolean> JOURNEYS_TEST_SUITE_EXECUTION = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.execution", "Enable Journeys AGP Test Suite Execution",
+    "Enable Journeys AGP Test Suite integration to create, edit, and execute Journeys via journeys-junit-engine."
   );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EDITOR_DISABLE_XML_SPACE_PRESERVE = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "journeys.with.gemini.editor.disable.xml.space.preserve", "Disable insertion of 'xml:space:\"preserve\" attribute",
@@ -2915,9 +2917,9 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "enable.new.wizard", "Enable Journeys New Wizard",
     "Enable the new wizard for creating Journeys with Gemini."
   );
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RUN_WITH_AGENT = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.agent.support", "Enable the Journeys agent",
-    "Enable running Journey tests using an AI agent"
+  public static final Flag<Boolean> JOURNEYS_AGENT_EXECUTION = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.agent.support", "Enable Journeys Agent Execution",
+    "Enable running Journeys using an AI agent."
   );
   // endregion JOURNEYS_WITH_GEMINI
 

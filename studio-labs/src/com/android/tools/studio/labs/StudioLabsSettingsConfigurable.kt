@@ -138,7 +138,7 @@ class StudioLabsSettingsConfigurable : SearchableConfigurable, Promo, Configurab
 
       add(
         StudioLabsFeaturePanelUi(
-          flag = StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION,
+          flag = StudioFlags.JOURNEYS_TEST_SUITE_EXECUTION,
           heading = "Journeys",
           description =
             """

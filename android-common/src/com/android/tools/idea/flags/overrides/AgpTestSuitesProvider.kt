@@ -29,7 +29,7 @@ class AgpTestSuitesProvider : FlagValueProvider {
     return null
   }
 
-  private fun journeysWithGeminiEnabled(): Boolean = StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION.get()
+  private fun journeysWithGeminiEnabled(): Boolean = StudioFlags.JOURNEYS_TEST_SUITE_EXECUTION.get()
 
   override fun toString(): String {
     return "AgpTestSuitesProvider(journeysWithGeminiEnabled=" + journeysWithGeminiEnabled() + ")"
