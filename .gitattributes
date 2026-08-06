@@ -1,3 +1,8 @@
 * text=auto eol=lf
 *.cmd text eol=crlf
 *.bat text eol=crlf
+
+# Exclude those files from Buildifier formatting (bazel-ignored, not real bazel packages)
+apkanalyzer/gradle/integration-tests/projects/** rules-lint-ignored
+android/native/diagnostics/heap/** rules-lint-ignored
+aswb/** rules-lint-ignored
