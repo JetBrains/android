@@ -28,7 +28,6 @@ class LastInIdeaTestSuite {
    * NOTE: By default, this test only runs in Bazel. To enable running it in the IDE, adjust the test run configuration.
    */
   @Test
-  @Ignore("b/538605103") // TODO: fix leaks with IntelliJ 2026.2.
   fun checkForLeaks() {
     Assume.assumeTrue(System.getProperty("idea.leak.check.enabled", "true").toBoolean())
     try {
