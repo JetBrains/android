@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.stubs.StubIndexEx;
 import com.intellij.testFramework.TestApplicationManager;
+import com.intellij.testFramework.TestLoggerFactory;
 import java.util.Collections;
 import org.junit.rules.ExternalResource;
 
@@ -41,6 +42,8 @@ public class LeakCheckerRule extends ExternalResource {
     }
     ensureFileUpdatesProcessedByModificationTracker();
     clearMockitoThreadLocals();
+    // clear the test logger since it causes project leaks being reported via stack traces from test exceptions (b/538605103)
+    TestLoggerFactory.onTestStarted(LeakCheckerRule.class);
     TestApplicationManager.disposeApplicationAndCheckForLeaks(Collections.singletonList(
       backLink -> backLink.toString().contains("org.mockito")
     ));
