@@ -39,8 +39,6 @@ import com.google.idea.blaze.base.run.targetfinder.FuturesUtil;
 import com.google.idea.blaze.base.run.targetfinder.TargetFinder;
 import com.google.idea.blaze.base.run.ui.TargetExpressionListUi;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
-import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.ui.UiUtil;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.execution.ExecutionException;
@@ -83,10 +81,10 @@ public class BlazeCommandRunConfiguration
         RunConfigurationWithSuppressedDefaultDebugAction {
 
   private static final BoolExperiment handlerSelectionLaxMode =
-    new BoolExperiment("aswb.run.config.handler.lax.editing", false);
+      new BoolExperiment("aswb.run.config.handler.lax.editing", false);
 
   private static final BoolExperiment handlerSelectionAutoFixMode =
-    new BoolExperiment("aswb.run.config.handler.auto.fix", true);
+      new BoolExperiment("aswb.run.config.handler.auto.fix", true);
 
   private static final Logger logger = Logger.getInstance(BlazeCommandRunConfiguration.class);
 
@@ -128,8 +126,6 @@ public class BlazeCommandRunConfiguration
   /** The blaze-specific parts of the last serialized state of the configuration. */
   private Element blazeElementState = new Element(BLAZE_SETTINGS_TAG);
 
-
-
   private volatile ImmutableList<String> targetPatterns = ImmutableList.of();
   // null if the target is null or not a single Label
   @Nullable private volatile String targetKindString;
@@ -155,7 +151,9 @@ public class BlazeCommandRunConfiguration
     }
   }
 
-  /** @return The configuration's {@link BlazeCommandRunConfigurationHandler}. */
+  /**
+   * @return The configuration's {@link BlazeCommandRunConfigurationHandler}.
+   */
   public BlazeCommandRunConfigurationHandler getHandler() {
     return handler;
   }
@@ -225,9 +223,11 @@ public class BlazeCommandRunConfiguration
   }
 
   private TargetState getTargetState() {
-    return (getTargetKind() == null && (handlerProvider == null || handlerProvider.canHandleKind(TargetState.PENDING, null)))
-           ? TargetState.PENDING
-           : TargetState.KNOWN;
+    return (getTargetKind() == null
+            && (handlerProvider == null
+                || handlerProvider.canHandleKind(TargetState.PENDING, null)))
+        ? TargetState.PENDING
+        : TargetState.KNOWN;
   }
 
   private void updateHandlerIfDifferentProvider(
@@ -297,34 +297,39 @@ public class BlazeCommandRunConfiguration
       return;
     }
     Label label = (Label) targets.get(0);
-    ListenableFuture<TargetInfo> future = TargetFinder.findTargetInfoFuture(getProject(), com.google.idea.blaze.common.Label.of(label.toString()));
+    ListenableFuture<TargetInfo> future =
+        TargetFinder.findTargetInfoFuture(
+            getProject(), com.google.idea.blaze.common.Label.of(label.toString()));
     if (future.isDone()) {
       updateTargetKindFromTargetInfoFuture(future, label, null);
-    }
-    else {
+    } else {
       updateTargetKindFromSingleTarget(null);
       future.addListener(
-        () -> {
-          updateTargetKindFromTargetInfoFuture(future, label, asyncCallback);
-        },
+          () -> {
+            updateTargetKindFromTargetInfoFuture(future, label, asyncCallback);
+          },
           MoreExecutors.directExecutor());
     }
   }
 
-  private void updateTargetKindFromTargetInfoFuture(ListenableFuture<TargetInfo> future, Label label, Runnable asyncCallback) {
+  private void updateTargetKindFromTargetInfoFuture(
+      ListenableFuture<TargetInfo> future, Label label, Runnable asyncCallback) {
     TargetInfo targetInfo = FuturesUtil.getIgnoringErrors(future);
     if (targetInfo == null) {
       Throwable throwable = getFutureFailure(future);
       if (throwable != null) {
         logger.warn(
-          String.format("Failed to retrieve target info for run config %s target %s. Error: %s", this, label, throwable),
-          throwable);
+            String.format(
+                "Failed to retrieve target info for run config %s target %s. Error: %s",
+                this, label, throwable),
+            throwable);
       }
-    }
-    else {
+    } else {
       if (!Objects.equals(getTargetKind(), targetInfo.getKind())) {
         logger.info(
-          String.format("Run configuration %s target %s kind updated to %s", this, targetInfo.label(), targetInfo.getKind()));
+            String.format(
+                "Run configuration %s target %s kind updated to %s",
+                this, targetInfo.label(), targetInfo.getKind()));
       }
     }
     if (updateTargetKindFromSingleTarget(targetInfo)) {
@@ -413,9 +418,13 @@ public class BlazeCommandRunConfiguration
             String.format(
                 "You must specify a %s target expression.", Blaze.buildSystemName(getProject())));
       }
-      if (!pattern.startsWith("//") && !pattern.startsWith("@") && !pattern.startsWith("-//") && !pattern.startsWith("-@")) {
+      if (!pattern.startsWith("//")
+          && !pattern.startsWith("@")
+          && !pattern.startsWith("-//")
+          && !pattern.startsWith("-@")) {
         throw new RuntimeConfigurationError(
-            "You must specify the full target expression, starting with '//' or '@' or '-' for a negative one");
+            "You must specify the full target expression, starting with '//' or '@' or '-' for a"
+                + " negative one");
       }
 
       String error = TargetExpression.validate(pattern);
@@ -567,7 +576,7 @@ public class BlazeCommandRunConfiguration
   static class BlazeCommandRunConfigurationSettingsEditor
       extends SettingsEditor<BlazeCommandRunConfiguration> {
 
-    private String handlersLoadedForKind ;
+    private String handlersLoadedForKind;
     private BlazeCommandRunConfigurationHandlerProvider editorHandlerProvider;
     private BlazeCommandRunConfigurationHandler editorHandler;
     private RunConfigurationStateEditor handlerStateEditor;
@@ -599,23 +608,30 @@ public class BlazeCommandRunConfiguration
       outputFileUi = new ConsoleOutputFileSettingsUi<>();
       handlerLabel = new JLabel("Android Studio handler");
       handlerCombo =
-        new ComboBox<>(new DefaultComboBoxModel<>(BlazeCommandRunConfigurationHandlerProvider.findHandlerProviders().stream().map(
-          ProviderItem::new).toArray(ProviderItem[]::new)));
+          new ComboBox<>(
+              new DefaultComboBoxModel<>(
+                  BlazeCommandRunConfigurationHandlerProvider.findHandlerProviders().stream()
+                      .map(ProviderItem::new)
+                      .toArray(ProviderItem[]::new)));
       handlerCombo.setEditable(false);
 
-      editorWithoutSyncCheckBox = UiUtil.createBox(targetExpressionLabel, targetsUi, handlerLabel, handlerCombo);
+      editorWithoutSyncCheckBox =
+          UiUtil.createBox(targetExpressionLabel, targetsUi, handlerLabel, handlerCombo);
       editor =
           UiUtil.createBox(
               editorWithoutSyncCheckBox, outputFileUi.getComponent(), keepInSyncCheckBox);
       updateEditor(config);
       updateHandlerEditor(config, config.handlerProvider);
       keepInSyncCheckBox.addItemListener(e -> updateEnabledStatus());
-      handlerCombo.addActionListener(e -> {
-        if (handlerCombo.getSelectedItem() instanceof ProviderItem providerItem) {
-          updateHandlerProviderToConfig(config,
-                                        BlazeCommandRunConfigurationHandlerProvider.getHandlerProvider(providerItem.provider().getId()));
-        }
-      });
+      handlerCombo.addActionListener(
+          e -> {
+            if (handlerCombo.getSelectedItem() instanceof ProviderItem providerItem) {
+              updateHandlerProviderToConfig(
+                  config,
+                  BlazeCommandRunConfigurationHandlerProvider.getHandlerProvider(
+                      providerItem.provider().getId()));
+            }
+          });
     }
 
     private void updateEditor(BlazeCommandRunConfiguration config) {
@@ -623,7 +639,7 @@ public class BlazeCommandRunConfiguration
           String.format(
               "Target expression (%s handled by %s):",
               config.getTargetKindName(), config.handler.getHandlerName()));
-      keepInSyncCheckBox.setVisible(true/*config.keepInSync != null*/);
+      keepInSyncCheckBox.setVisible(true /*config.keepInSync != null*/);
       if (config.keepInSync != null) {
         keepInSyncCheckBox.setSelected(config.keepInSync);
       }
@@ -643,7 +659,9 @@ public class BlazeCommandRunConfiguration
       handlerCombo.setEnabled(enabled);
     }
 
-    private void updateHandlerEditor(BlazeCommandRunConfiguration config, BlazeCommandRunConfigurationHandlerProvider newProvider) {
+    private void updateHandlerEditor(
+        BlazeCommandRunConfiguration config,
+        BlazeCommandRunConfigurationHandlerProvider newProvider) {
       editorHandlerProvider = newProvider;
       editorHandler = editorHandlerProvider.createHandler(config);
       try {
@@ -705,16 +723,18 @@ public class BlazeCommandRunConfiguration
       config.targetPatterns = targetsUi.getTargetExpressions();
       config.updateTargetKindAsync(
           () -> {
-            ApplicationManager.getApplication().invokeLater(() -> {
-              if (!Objects.equals(handlersLoadedForKind, config.targetKindString)) {
-                handlersLoadedForKind = config.targetKindString;
-                updateHandlerListAndAutoSelect(config, true);
-              }
-              if (editorHandlerProvider != config.handlerProvider) {
-                updateHandlerEditor(config, config.handlerProvider);
-              }
-              fireEditorStateChanged();
-            });
+            ApplicationManager.getApplication()
+                .invokeLater(
+                    () -> {
+                      if (!Objects.equals(handlersLoadedForKind, config.targetKindString)) {
+                        handlersLoadedForKind = config.targetKindString;
+                        updateHandlerListAndAutoSelect(config, true);
+                      }
+                      if (editorHandlerProvider != config.handlerProvider) {
+                        updateHandlerEditor(config, config.handlerProvider);
+                      }
+                      fireEditorStateChanged();
+                    });
           });
       updateHandlerListAndAutoSelect(config, false);
       if (editorHandlerProvider != config.handlerProvider) {
@@ -729,13 +749,14 @@ public class BlazeCommandRunConfiguration
       }
     }
 
-    private void updateHandlerListAndAutoSelect(BlazeCommandRunConfiguration config, boolean autoSelect) {
+    private void updateHandlerListAndAutoSelect(
+        BlazeCommandRunConfiguration config, boolean autoSelect) {
       final var handlers =
-        ((handlerSelectionLaxMode.getValue() || config.getTargetKind() == null)
-         ? BlazeCommandRunConfigurationHandlerProvider.findHandlerProviders()
-         : BlazeCommandRunConfigurationHandlerProvider.findHandlerProviders(config.getTargetState(), config.getTargetKind()))
-          .stream().map(ProviderItem::new)
-          .collect(toImmutableList());
+          ((handlerSelectionLaxMode.getValue() || config.getTargetKind() == null)
+                  ? BlazeCommandRunConfigurationHandlerProvider.findHandlerProviders()
+                  : BlazeCommandRunConfigurationHandlerProvider.findHandlerProviders(
+                      config.getTargetState(), config.getTargetKind()))
+              .stream().map(ProviderItem::new).collect(toImmutableList());
       final var currentHandlers = ImmutableList.<ProviderItem>builder();
       for (var i = 0; i < handlerCombo.getModel().getSize(); i++) {
         currentHandlers.add(handlerCombo.getModel().getElementAt(i));
@@ -744,13 +765,19 @@ public class BlazeCommandRunConfiguration
       if (!Objects.equals(currentHandlers.build(), handlers)) {
         handlerCombo.setModel(new DefaultComboBoxModel<>(handlers.toArray(ProviderItem[]::new)));
         if (autoSelect && handlerSelectionAutoFixMode.getValue()) {
-          final var newBestSelection = Iterables.getFirst(
-            BlazeCommandRunConfigurationHandlerProvider.findHandlerProviders(config.getTargetState(), config.getTargetKind()), null);
+          final var newBestSelection =
+              Iterables.getFirst(
+                  BlazeCommandRunConfigurationHandlerProvider.findHandlerProviders(
+                      config.getTargetState(), config.getTargetKind()),
+                  null);
           if (newBestSelection != null && selected != newBestSelection) {
-            // Note, we only auto-update the configuration in the UI. At the runtime the configuration updates its handler only if it is in
+            // Note, we only auto-update the configuration in the UI. At the runtime the
+            // configuration updates its handler only if it is in
             // the pending state, i.e. the handler is unknown or intentionally set to pending.
             selected = newBestSelection;
-            logger.info(String.format("Auto-updating %s run configuration handler to %s", config, newBestSelection));
+            logger.info(
+                String.format(
+                    "Auto-updating %s run configuration handler to %s", config, newBestSelection));
           }
         }
       }
@@ -762,25 +789,23 @@ public class BlazeCommandRunConfiguration
       }
     }
 
-    private void updateHandlerProviderToConfig(BlazeCommandRunConfiguration config, BlazeCommandRunConfigurationHandlerProvider provider) {
+    private void updateHandlerProviderToConfig(
+        BlazeCommandRunConfiguration config, BlazeCommandRunConfigurationHandlerProvider provider) {
       try {
         try {
           handlerStateEditor.applyEditorTo(editorHandler.getState());
           editorHandler.getState().writeExternal(elementState);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
           logger.error("Attempt to preserve state crashed", t);
         }
         updateHandlerEditor(config, provider);
         try {
           editorHandler.getState().readExternal(elementState);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
           logger.error("Attempt to preserve state crashed", t);
         }
         handlerStateEditor.resetEditorFrom(editorHandler.getState());
-      }
-      catch (Throwable t){
+      } catch (Throwable t) {
         logger.error("Cannot configure handler provider", t);
       }
     }

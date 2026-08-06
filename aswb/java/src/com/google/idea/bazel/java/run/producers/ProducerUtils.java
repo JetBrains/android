@@ -142,13 +142,13 @@ public class ProducerUtils {
         psiClass,
         () ->
             CachedValueProvider.Result.create(
-                hasTestOrSuiteMethods(psiClass),
-                PsiModificationTracker.MODIFICATION_COUNT));
+                hasTestOrSuiteMethods(psiClass), PsiModificationTracker.MODIFICATION_COUNT));
   }
 
   private static boolean isJUnit4Class(PsiClass psiClass) {
     String qualifiedName = JUnitUtil.RUN_WITH;
-    if (AnnotationUtil.isAnnotated(psiClass, qualifiedName, AnnotationUtil.CHECK_TYPE | AnnotationUtil.CHECK_HIERARCHY)) {
+    if (AnnotationUtil.isAnnotated(
+        psiClass, qualifiedName, AnnotationUtil.CHECK_TYPE | AnnotationUtil.CHECK_HIERARCHY)) {
       return true;
     }
     // handle the case where RunWith and/or the current class isn't indexed
