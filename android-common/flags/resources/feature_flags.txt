@@ -103,7 +103,6 @@ gradle.ide.restore.invalid.gradle.jdk.configuration=COMPLETE:2025
 gradle.ide.variant.early.resolution.enabled=INTERNAL
 journeys.with.gemini.enable.agent.support=PREVIEW
 journeys.with.gemini.enable.journeys.with.gemini.execution=PREVIEW
-journeys.with.gemini.enable.new.wizard=COMPLETE:2025
 layout.inspector.dynamic.layout.inspector.chrome.devtools.menu=COMPLETE:2026
 layout.inspector.dynamic.layout.inspector.enable.state.reads=COMPLETE:2026
 layout.inspector.dynamic.layout.inspector.standalone.v2=COMPLETE:2026
