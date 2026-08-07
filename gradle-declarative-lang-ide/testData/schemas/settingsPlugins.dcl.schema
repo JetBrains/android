@@ -7,8 +7,7 @@
             "simpleName": "PluginsTopLevelReceiver"
         },
         "javaTypeName": "org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver",
-        "javaTypeArgumentTypeNames": [
-        ],
+        "javaTypeArgumentTypeNames": [],
         "supertypes": [
             {
                 "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -16,8 +15,7 @@
                 "simpleName": "Any"
             }
         ],
-        "properties": [
-        ],
+        "properties": [],
         "memberFunctions": [
             {
                 "type": "dataMemberFunction",
@@ -30,8 +28,7 @@
                     }
                 },
                 "simpleName": "plugins",
-                "parameters": [
-                ],
+                "parameters": [],
                 "isDirectAccessOnly": true,
                 "semantics": {
                     "type": "accessAndConfigure",
@@ -51,12 +48,20 @@
                     },
                     "configureBlockRequirement": {
                         "type": "required"
+                    },
+                    "configuredType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.internal.declarativedsl.plugins",
+                            "simpleName": "PluginsCollectingPluginsBlock"
+                        }
                     }
                 }
             }
         ],
-        "constructors": [
-        ]
+        "constructors": [],
+        "metadata": []
     },
     "dataClassTypesByFqName": [
         {
@@ -72,8 +77,7 @@
                 "simpleName": "PluginsTopLevelReceiver"
             },
             "javaTypeName": "org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -81,8 +85,7 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -95,8 +98,7 @@
                         }
                     },
                     "simpleName": "plugins",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": true,
                     "semantics": {
                         "type": "accessAndConfigure",
@@ -116,12 +118,20 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.internal.declarativedsl.plugins",
+                                "simpleName": "PluginsCollectingPluginsBlock"
+                            }
                         }
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -136,8 +146,7 @@
                 "simpleName": "Serializable"
             },
             "javaTypeName": "java.io.Serializable",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -145,12 +154,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -165,8 +172,7 @@
                 "simpleName": "PluginsCollectingPluginsBlock"
             },
             "javaTypeName": "org.gradle.internal.declarativedsl.plugins.PluginsCollectingPluginsBlock",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -179,8 +185,7 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -269,8 +274,8 @@
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -285,8 +290,7 @@
                 "simpleName": "MutablePluginDependencySpec"
             },
             "javaTypeName": "org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -413,8 +417,8 @@
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -429,8 +433,7 @@
                 "simpleName": "Boolean"
             },
             "javaTypeName": "boolean",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -448,12 +451,10 @@
                     "simpleName": "Serializable"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -468,8 +469,7 @@
                 "simpleName": "String"
             },
             "javaTypeName": "java.lang.String",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -492,12 +492,10 @@
                     "simpleName": "Serializable"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -512,8 +510,7 @@
                 "simpleName": "CharSequence"
             },
             "javaTypeName": "java.lang.CharSequence",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -521,12 +518,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -541,8 +536,7 @@
                 "simpleName": "PluginDependencySpec"
             },
             "javaTypeName": "org.gradle.plugin.use.PluginDependencySpec",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -550,8 +544,7 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataBuilderFunction",
@@ -608,8 +601,8 @@
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -624,8 +617,7 @@
                 "simpleName": "PluginDependenciesSpec"
             },
             "javaTypeName": "org.gradle.plugin.use.PluginDependenciesSpec",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -633,12 +625,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -653,8 +643,7 @@
                 "simpleName": "Unit"
             },
             "javaTypeName": "kotlin.Unit",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -662,12 +651,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         }
     ],
     "genericSignaturesByFqName": [
@@ -1474,8 +1461,7 @@
             }
         }
     ],
-    "externalObjectsByFqName": [
-    ],
+    "externalObjectsByFqName": [],
     "defaultImports": [
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",

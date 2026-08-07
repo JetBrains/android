@@ -7,8 +7,7 @@
             "simpleName": "SettingsInternal"
         },
         "javaTypeName": "org.gradle.api.internal.SettingsInternal",
-        "javaTypeArgumentTypeNames": [
-        ],
+        "javaTypeArgumentTypeNames": [],
         "supertypes": [
             {
                 "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -152,8 +151,7 @@
                     }
                 },
                 "simpleName": "dependencyResolutionManagement",
-                "parameters": [
-                ],
+                "parameters": [],
                 "isDirectAccessOnly": false,
                 "semantics": {
                     "type": "accessAndConfigure",
@@ -173,6 +171,14 @@
                     },
                     "configureBlockRequirement": {
                         "type": "required"
+                    },
+                    "configuredType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.api.initialization.resolve",
+                            "simpleName": "DependencyResolutionManagement"
+                        }
                     }
                 }
             },
@@ -187,8 +193,7 @@
                     }
                 },
                 "simpleName": "pluginManagement",
-                "parameters": [
-                ],
+                "parameters": [],
                 "isDirectAccessOnly": false,
                 "semantics": {
                     "type": "accessAndConfigure",
@@ -208,6 +213,14 @@
                     },
                     "configureBlockRequirement": {
                         "type": "required"
+                    },
+                    "configuredType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "org.gradle.plugin.management",
+                            "simpleName": "PluginManagementSpec"
+                        }
                     }
                 }
             },
@@ -253,8 +266,8 @@
                 }
             }
         ],
-        "constructors": [
-        ]
+        "constructors": [],
+        "metadata": []
     },
     "dataClassTypesByFqName": [
         {
@@ -270,8 +283,7 @@
                 "simpleName": "SettingsInternal"
             },
             "javaTypeName": "org.gradle.api.internal.SettingsInternal",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -415,8 +427,7 @@
                         }
                     },
                     "simpleName": "dependencyResolutionManagement",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
@@ -436,6 +447,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.initialization.resolve",
+                                "simpleName": "DependencyResolutionManagement"
+                            }
                         }
                     }
                 },
@@ -450,8 +469,7 @@
                         }
                     },
                     "simpleName": "pluginManagement",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
@@ -471,6 +489,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.plugin.management",
+                                "simpleName": "PluginManagementSpec"
+                            }
                         }
                     }
                 },
@@ -516,8 +542,8 @@
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -532,8 +558,7 @@
                 "simpleName": "ProjectDescriptor"
             },
             "javaTypeName": "org.gradle.api.initialization.ProjectDescriptor",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -557,10 +582,9 @@
                     "hasDefaultValue": true
                 }
             ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -575,8 +599,7 @@
                 "simpleName": "String"
             },
             "javaTypeName": "java.lang.String",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -599,12 +622,10 @@
                     "simpleName": "Serializable"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -619,8 +640,7 @@
                 "simpleName": "CharSequence"
             },
             "javaTypeName": "java.lang.CharSequence",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -628,12 +648,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -648,8 +666,7 @@
                 "simpleName": "Serializable"
             },
             "javaTypeName": "java.io.Serializable",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -657,12 +674,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -677,8 +692,7 @@
                 "simpleName": "DependencyResolutionManagement"
             },
             "javaTypeName": "org.gradle.api.initialization.resolve.DependencyResolutionManagement",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -716,8 +730,7 @@
                         }
                     },
                     "simpleName": "repositories",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
@@ -737,6 +750,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.artifacts.dsl",
+                                "simpleName": "RepositoryHandler"
+                            }
                         }
                     }
                 },
@@ -751,13 +772,12 @@
                         }
                     },
                     "simpleName": "versionCatalogs",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
                         "accessor": {
-                            "type": "custom",
+                            "type": "container",
                             "objectType": {
                                 "type": "dataTypeRefName",
                                 "fqName": {
@@ -766,19 +786,31 @@
                                     "simpleName": "MutableVersionCatalogContainer"
                                 }
                             },
-                            "customAccessorIdentifier": "container:org.gradle.api.initialization.resolve.DependencyResolutionManagement:versionCatalogs"
+                            "accessorIdentifier": {
+                                "type": "containerAccessorIdentifier",
+                                "name": "versionCatalogs",
+                                "elementTypeClassName": "org.gradle.api.initialization.resolve.MutableVersionCatalogContainer"
+                            }
                         },
                         "returnType": {
                             "type": "unit"
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.initialization.resolve",
+                                "simpleName": "MutableVersionCatalogContainer"
+                            }
                         }
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -797,7 +829,8 @@
                 "PREFER_PROJECT",
                 "PREFER_SETTINGS",
                 "FAIL_ON_PROJECT_REPOS"
-            ]
+            ],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -812,8 +845,7 @@
                 "simpleName": "RepositoryHandler"
             },
             "javaTypeName": "org.gradle.api.artifacts.dsl.RepositoryHandler",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -861,8 +893,7 @@
                     "simpleName": "Configurable"
                 }
             ],
-            "properties": [
-            ],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -875,8 +906,7 @@
                         }
                     },
                     "simpleName": "google",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "addAndConfigure",
@@ -904,8 +934,7 @@
                         }
                     },
                     "simpleName": "maven",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "addAndConfigure",
@@ -933,8 +962,7 @@
                         }
                     },
                     "simpleName": "gradlePluginPortal",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "addAndConfigure",
@@ -962,8 +990,7 @@
                         }
                     },
                     "simpleName": "mavenCentral",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "addAndConfigure",
@@ -981,8 +1008,8 @@
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -997,8 +1024,7 @@
                 "simpleName": "MavenArtifactRepository"
             },
             "javaTypeName": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1056,13 +1082,12 @@
                         }
                     },
                     "simpleName": "authentication",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
                         "accessor": {
-                            "type": "custom",
+                            "type": "container",
                             "objectType": {
                                 "type": "dataTypeRefName",
                                 "fqName": {
@@ -1071,19 +1096,31 @@
                                     "simpleName": "AuthenticationContainer"
                                 }
                             },
-                            "customAccessorIdentifier": "container:org.gradle.api.artifacts.repositories.MavenArtifactRepository:authentication"
+                            "accessorIdentifier": {
+                                "type": "containerAccessorIdentifier",
+                                "name": "authentication",
+                                "elementTypeClassName": "org.gradle.api.artifacts.repositories.AuthenticationContainer"
+                            }
                         },
                         "returnType": {
                             "type": "unit"
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.artifacts.repositories",
+                                "simpleName": "AuthenticationContainer"
+                            }
                         }
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1098,8 +1135,7 @@
                 "simpleName": "URI"
             },
             "javaTypeName": "java.net.URI",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1117,12 +1153,10 @@
                     "simpleName": "Serializable"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1137,8 +1171,7 @@
                 "simpleName": "ArtifactRepository"
             },
             "javaTypeName": "org.gradle.api.artifacts.repositories.ArtifactRepository",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1146,12 +1179,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1166,8 +1197,7 @@
                 "simpleName": "UrlArtifactRepository"
             },
             "javaTypeName": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1175,12 +1205,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1195,8 +1223,7 @@
                 "simpleName": "AuthenticationSupported"
             },
             "javaTypeName": "org.gradle.api.artifacts.repositories.AuthenticationSupported",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1204,8 +1231,7 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -1218,13 +1244,12 @@
                         }
                     },
                     "simpleName": "authentication",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
                         "accessor": {
-                            "type": "custom",
+                            "type": "container",
                             "objectType": {
                                 "type": "dataTypeRefName",
                                 "fqName": {
@@ -1233,19 +1258,31 @@
                                     "simpleName": "AuthenticationContainer"
                                 }
                             },
-                            "customAccessorIdentifier": "container:org.gradle.api.artifacts.repositories.AuthenticationSupported:authentication"
+                            "accessorIdentifier": {
+                                "type": "containerAccessorIdentifier",
+                                "name": "authentication",
+                                "elementTypeClassName": "org.gradle.api.artifacts.repositories.AuthenticationContainer"
+                            }
                         },
                         "returnType": {
                             "type": "unit"
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.artifacts.repositories",
+                                "simpleName": "AuthenticationContainer"
+                            }
                         }
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1260,8 +1297,7 @@
                 "simpleName": "Authentication"
             },
             "javaTypeName": "org.gradle.authentication.Authentication",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1274,12 +1310,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1294,8 +1328,7 @@
                 "simpleName": "Named"
             },
             "javaTypeName": "org.gradle.api.Named",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1303,12 +1336,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1323,8 +1354,7 @@
                 "simpleName": "AuthenticationContainer"
             },
             "javaTypeName": "org.gradle.api.artifacts.repositories.AuthenticationContainer",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1382,8 +1412,7 @@
                     "simpleName": "Configurable"
                 }
             ],
-            "properties": [
-            ],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -1432,6 +1461,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.authentication",
+                                "simpleName": "Authentication"
+                            }
                         }
                     },
                     "metadata": [
@@ -1459,13 +1496,12 @@
                         }
                     },
                     "simpleName": "configure",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
                         "accessor": {
-                            "type": "custom",
+                            "type": "container",
                             "objectType": {
                                 "type": "dataTypeRefName",
                                 "fqName": {
@@ -1474,19 +1510,31 @@
                                     "simpleName": "NamedDomainObjectContainer$of$org_gradle_authentication_Authentication"
                                 }
                             },
-                            "customAccessorIdentifier": "container:org.gradle.api.artifacts.repositories.AuthenticationContainer:configure"
+                            "accessorIdentifier": {
+                                "type": "containerAccessorIdentifier",
+                                "name": "configure",
+                                "elementTypeClassName": "org.gradle.api.NamedDomainObjectContainer$of$org_gradle_authentication_Authentication"
+                            }
                         },
                         "returnType": {
                             "type": "unit"
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api",
+                                "simpleName": "NamedDomainObjectContainer$of$org_gradle_authentication_Authentication"
+                            }
                         }
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1501,8 +1549,7 @@
                 "simpleName": "MetadataSupplierAware"
             },
             "javaTypeName": "org.gradle.api.artifacts.repositories.MetadataSupplierAware",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1510,12 +1557,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1530,8 +1575,7 @@
                 "simpleName": "ArtifactRepositoryContainer"
             },
             "javaTypeName": "org.gradle.api.artifacts.ArtifactRepositoryContainer",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1574,12 +1618,10 @@
                     "simpleName": "Configurable"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1594,8 +1636,7 @@
                 "simpleName": "HasConfigurableValue"
             },
             "javaTypeName": "org.gradle.api.provider.HasConfigurableValue",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1603,12 +1644,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1623,8 +1662,7 @@
                 "simpleName": "SupportsConvention"
             },
             "javaTypeName": "org.gradle.api.provider.SupportsConvention",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1632,12 +1670,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1652,8 +1688,7 @@
                 "simpleName": "Unit"
             },
             "javaTypeName": "kotlin.Unit",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1661,12 +1696,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1681,8 +1714,7 @@
                 "simpleName": "VersionCatalogBuilder"
             },
             "javaTypeName": "org.gradle.api.initialization.dsl.VersionCatalogBuilder",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1695,12 +1727,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1715,8 +1745,7 @@
                 "simpleName": "MutableVersionCatalogContainer"
             },
             "javaTypeName": "org.gradle.api.initialization.resolve.MutableVersionCatalogContainer",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1769,8 +1798,7 @@
                     "simpleName": "Configurable"
                 }
             ],
-            "properties": [
-            ],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -1819,6 +1847,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.initialization.dsl",
+                                "simpleName": "VersionCatalogBuilder"
+                            }
                         }
                     },
                     "metadata": [
@@ -1846,13 +1882,12 @@
                         }
                     },
                     "simpleName": "configure",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
                         "accessor": {
-                            "type": "custom",
+                            "type": "container",
                             "objectType": {
                                 "type": "dataTypeRefName",
                                 "fqName": {
@@ -1861,19 +1896,31 @@
                                     "simpleName": "NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder"
                                 }
                             },
-                            "customAccessorIdentifier": "container:org.gradle.api.initialization.resolve.MutableVersionCatalogContainer:configure"
+                            "accessorIdentifier": {
+                                "type": "containerAccessorIdentifier",
+                                "name": "configure",
+                                "elementTypeClassName": "org.gradle.api.NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder"
+                            }
                         },
                         "returnType": {
                             "type": "unit"
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api",
+                                "simpleName": "NamedDomainObjectContainer$of$org_gradle_api_initialization_dsl_VersionCatalogBuilder"
+                            }
                         }
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1888,8 +1935,7 @@
                 "simpleName": "PluginManagementSpec"
             },
             "javaTypeName": "org.gradle.plugin.management.PluginManagementSpec",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1897,8 +1943,7 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -1952,8 +1997,7 @@
                         }
                     },
                     "simpleName": "repositories",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
@@ -1973,12 +2017,20 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.artifacts.dsl",
+                                "simpleName": "RepositoryHandler"
+                            }
                         }
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -1993,8 +2045,7 @@
                 "simpleName": "Settings"
             },
             "javaTypeName": "org.gradle.api.initialization.Settings",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2042,8 +2093,7 @@
                         }
                     },
                     "simpleName": "dependencyResolutionManagement",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
@@ -2063,6 +2113,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.initialization.resolve",
+                                "simpleName": "DependencyResolutionManagement"
+                            }
                         }
                     }
                 },
@@ -2077,8 +2135,7 @@
                         }
                     },
                     "simpleName": "pluginManagement",
-                    "parameters": [
-                    ],
+                    "parameters": [],
                     "isDirectAccessOnly": false,
                     "semantics": {
                         "type": "accessAndConfigure",
@@ -2098,6 +2155,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.plugin.management",
+                                "simpleName": "PluginManagementSpec"
+                            }
                         }
                     }
                 },
@@ -2143,8 +2208,8 @@
                     }
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2159,8 +2224,7 @@
                 "simpleName": "PluginAware"
             },
             "javaTypeName": "org.gradle.api.plugins.PluginAware",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2168,12 +2232,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2188,8 +2250,7 @@
                 "simpleName": "ExtensionAware"
             },
             "javaTypeName": "org.gradle.api.plugins.ExtensionAware",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2197,12 +2258,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2217,8 +2276,7 @@
                 "simpleName": "PluginAwareInternal"
             },
             "javaTypeName": "org.gradle.api.internal.plugins.PluginAwareInternal",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2231,12 +2289,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2251,8 +2307,7 @@
                 "simpleName": "FinalizableValue"
             },
             "javaTypeName": "org.gradle.internal.FinalizableValue",
-            "javaTypeArgumentTypeNames": [
-            ],
+            "javaTypeArgumentTypeNames": [],
             "supertypes": [
                 {
                     "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2260,12 +2315,10 @@
                     "simpleName": "Any"
                 }
             ],
-            "properties": [
-            ],
-            "memberFunctions": [
-            ],
-            "constructors": [
-            ]
+            "properties": [],
+            "memberFunctions": [],
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2283,10 +2336,8 @@
             "javaTypeArgumentTypeNames": [
                 "org.gradle.authentication.Authentication"
             ],
-            "supertypes": [
-            ],
-            "properties": [
-            ],
+            "supertypes": [],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -2335,6 +2386,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.authentication",
+                                "simpleName": "Authentication"
+                            }
                         }
                     },
                     "metadata": [
@@ -2352,8 +2411,8 @@
                     ]
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         },
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
@@ -2371,10 +2430,8 @@
             "javaTypeArgumentTypeNames": [
                 "org.gradle.api.initialization.dsl.VersionCatalogBuilder"
             ],
-            "supertypes": [
-            ],
-            "properties": [
-            ],
+            "supertypes": [],
+            "properties": [],
             "memberFunctions": [
                 {
                     "type": "dataMemberFunction",
@@ -2423,6 +2480,14 @@
                         },
                         "configureBlockRequirement": {
                             "type": "required"
+                        },
+                        "configuredType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "org.gradle.api.initialization.dsl",
+                                "simpleName": "VersionCatalogBuilder"
+                            }
                         }
                     },
                     "metadata": [
@@ -2440,8 +2505,8 @@
                     ]
                 }
             ],
-            "constructors": [
-            ]
+            "constructors": [],
+            "metadata": []
         }
     ],
     "genericSignaturesByFqName": [
@@ -3248,8 +3313,7 @@
             }
         }
     ],
-    "externalObjectsByFqName": [
-    ],
+    "externalObjectsByFqName": [],
     "defaultImports": [
         {
             "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
