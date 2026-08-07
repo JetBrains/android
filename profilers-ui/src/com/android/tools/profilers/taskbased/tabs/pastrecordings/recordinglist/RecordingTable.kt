@@ -41,10 +41,9 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
 import com.android.tools.profilers.taskbased.common.table.LeftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.RightAlignedColumnText
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
-import org.jetbrains.jewel.foundation.lazy.SelectionMode
+import org.jetbrains.jewel.foundation.lazy.SingleSelectionLazyColumn
 import org.jetbrains.jewel.foundation.lazy.items
-import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
+import org.jetbrains.jewel.foundation.lazy.rememberSingleSelectionLazyListState
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
@@ -86,12 +85,11 @@ fun RecordingListHeader() {
 
 @Composable
 fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionItem?, onRecordingSelection: (SessionItem?) -> Unit) {
-  val listState = rememberSelectableLazyListState()
+  val listState = rememberSingleSelectionLazyListState()
 
   Box {
-    SelectableLazyColumn(
+    SingleSelectionLazyColumn(
       state = listState,
-      selectionMode = SelectionMode.Single,
       onSelectedIndexesChange = {
         // The - 1 is to account for the sticky header.
         if (it.isNotEmpty() && it.first() > 0) {

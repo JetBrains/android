@@ -27,7 +27,7 @@ import org.jetbrains.jewel.foundation.theme.JewelTheme
 
 /**
  * Gets a color from the current Swing theme, looking it up by name. It then remembers it, keying it on the current
- * [theme name][JewelTheme.name] and [isDark][JewelTheme.isDark] values.
+ * [theme instance][JewelTheme.instanceUuid].
  *
  * If there is no corresponding key in the theme, it looks up a fallback key (which is generally a `ColorPalette.*` entry), and if that is
  * also missing, it falls back to the hardcoded defaults.
@@ -36,7 +36,7 @@ import org.jetbrains.jewel.foundation.theme.JewelTheme
 fun rememberColor(key: String, darkFallbackKey: String?, darkDefault: Color, lightFallbackKey: String?, lightDefault: Color): Color {
   val isDark = JewelTheme.isDark
 
-  return remember(JewelTheme.name, isDark) {
+  return remember(JewelTheme.instanceUuid, isDark, key, darkFallbackKey, darkDefault, lightFallbackKey, lightDefault) {
     if (isDark) {
       retrieveColor(key, darkFallbackKey, darkDefault)
     } else {

@@ -44,10 +44,9 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.table.LeftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.RightAlignedColumnText
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
-import org.jetbrains.jewel.foundation.lazy.SelectionMode
+import org.jetbrains.jewel.foundation.lazy.SingleSelectionLazyColumn
 import org.jetbrains.jewel.foundation.lazy.items
-import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
+import org.jetbrains.jewel.foundation.lazy.rememberSingleSelectionLazyListState
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
@@ -109,12 +108,11 @@ fun LeakListContent(leaks: List<Leak>, selectedLeak: Leak?, isRecording: Boolean
 
 @Composable
 fun LeakTable(leaks: List<Leak>, selectedLeak: Leak?, onLeakSelection: (Leak) -> Unit) {
-  val listState = rememberSelectableLazyListState()
+  val listState = rememberSingleSelectionLazyListState()
 
   Box(modifier = Modifier.fillMaxSize()) {
-    SelectableLazyColumn(
+    SingleSelectionLazyColumn(
       state = listState,
-      selectionMode = SelectionMode.Single,
       onSelectedIndexesChange = {
         if (it.isNotEmpty()) {
           val newSelectedLeak = leaks[it.first()]

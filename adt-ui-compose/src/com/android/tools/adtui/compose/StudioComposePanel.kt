@@ -25,5 +25,5 @@ import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 @OptIn(ExperimentalJewelApi::class)
 fun StudioComposePanel(content: @Composable () -> Unit): JComponent {
   enableNewSwingCompositing()
-  return JewelComposeNoThemePanel { StudioTheme(content) }
+  return JewelComposeNoThemePanel(focusOnClickInside = true) { StudioTheme(content) }
 }

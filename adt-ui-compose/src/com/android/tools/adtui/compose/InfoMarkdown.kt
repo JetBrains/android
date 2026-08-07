@@ -50,6 +50,7 @@ import org.jetbrains.jewel.ui.typography
  * @param markdownFactory The [MarkdownFactory] to use for styling the Markdown.
  * @param processor The [MarkdownProcessor] to use for processing the Markdown.
  */
+@Suppress("UnstableApiUsage")
 @OptIn(ExperimentalJewelApi::class)
 @Composable
 fun InfoMarkdown(
@@ -66,7 +67,7 @@ fun InfoMarkdown(
   processor: MarkdownProcessor = JewelTheme.markdownProcessor,
 ) {
   val markdownStyling =
-    remember(JewelTheme.name, JewelTheme.isDark, textStyle, markdownFactory, editorTextStyle, textColor) {
+    remember(JewelTheme.instanceUuid, textStyle, markdownFactory, editorTextStyle, textColor) {
       markdownFactory.createStyling(
         baseTextStyle = if (textColor.isSpecified) textStyle.copy(color = textColor) else textStyle,
         editorTextStyle = if (textColor.isSpecified) editorTextStyle.copy(color = textColor) else editorTextStyle,

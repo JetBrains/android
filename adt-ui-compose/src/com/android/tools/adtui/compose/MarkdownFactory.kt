@@ -131,7 +131,7 @@ interface MarkdownFactory {
    */
   fun createBlockRenderer(
     styling: MarkdownStyling,
-    extensions: List<MarkdownRendererExtension> = getDefaultRenderExtensions(styling),
+    extensions: List<MarkdownRendererExtension> = getDefaultMarkdownRenderExtensions(styling),
     inlineRenderer: InlineMarkdownRenderer = createInlineMarkdownRenderer(extensions),
   ): MarkdownBlockRenderer
 
@@ -145,11 +145,12 @@ interface MarkdownFactory {
     DefaultInlineMarkdownRenderer(extensions)
 }
 
-/** Default Markdown processors to use for Markdown documents. */
-fun getDefaultMarkdownProcessors(): List<MarkdownProcessorExtension> = listOf(GitHubTableProcessorExtension, GitHubAlertProcessorExtension)
+/** Default Markdown processor extensions to use for Markdown documents. */
+fun getDefaultMarkdownProcessorExtensions(): List<MarkdownProcessorExtension> =
+  listOf(GitHubTableProcessorExtension, GitHubAlertProcessorExtension)
 
 /** Default Markdown render extensions to use for Markdown documents, for the given style */
-fun getDefaultRenderExtensions(styling: MarkdownStyling): List<MarkdownRendererExtension> =
+fun getDefaultMarkdownRenderExtensions(styling: MarkdownStyling): List<MarkdownRendererExtension> =
   listOf(GitHubTableRendererExtension(GfmTableStyling.create(), styling), GitHubAlertRendererExtension(AlertStyling.create(), styling))
 
 /**

@@ -122,7 +122,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.jewel.foundation.LocalComponent
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
+import org.jetbrains.jewel.foundation.lazy.SingleSelectionLazyListState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
@@ -377,7 +377,7 @@ internal constructor(
   /** Unified device creation helper for both Handheld Phone and AI Glasses form factors. */
   fun WizardPageScope.launchCreateCompatibleDevice(
     component: JComponent,
-    state: SelectableLazyListState,
+    state: SingleSelectionLazyListState,
     deviceType: DeviceType = DeviceType.HANDHELD,
   ) {
     coroutineScope.launch {
@@ -457,7 +457,7 @@ internal constructor(
       val devices: ImmutableList<DeviceRow> by deviceRowFlow.collectAsState()
       val sortedDevices = remember(devices) { devices.sortedWith(compareBy(Collator.getInstance()) { it.name }).toImmutableList() }
 
-      val state = getOrCreateState { SelectableLazyListState(LazyListState()) }
+      val state = getOrCreateState { SingleSelectionLazyListState(LazyListState()) }
       Column(Modifier.padding(20.dp)) {
         if (sortedDevices.isEmpty()) {
           LargeText(text = "No compatible AVDs found.")
@@ -543,7 +543,7 @@ internal constructor(
     val sortedDevices = remember(devices) { devices.sortedWith(compareBy(Collator.getInstance()) { it.name }).toImmutableList() }
 
     val component = LocalComponent.current
-    val state = getOrCreateState { SelectableLazyListState(LazyListState()) }
+    val state = getOrCreateState { SingleSelectionLazyListState(LazyListState()) }
 
     var unpairingInProgress by remember { mutableStateOf(false) }
 

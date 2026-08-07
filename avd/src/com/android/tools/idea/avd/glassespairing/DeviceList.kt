@@ -46,9 +46,8 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIconsCompose
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.jewel.bridge.toComposeColor
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
-import org.jetbrains.jewel.foundation.lazy.SelectionMode
+import org.jetbrains.jewel.foundation.lazy.SingleSelectionLazyColumn
+import org.jetbrains.jewel.foundation.lazy.SingleSelectionLazyListState
 import org.jetbrains.jewel.foundation.lazy.items
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
@@ -85,14 +84,13 @@ private fun DeviceType?.toIcon() =
 internal fun DeviceList(
   devices: ImmutableList<DeviceRow>,
   onSelectedDeviceChange: (DeviceRow) -> Unit,
-  state: SelectableLazyListState,
+  state: SingleSelectionLazyListState,
   modifier: Modifier = Modifier,
 ) {
   Box(modifier) {
-    SelectableLazyColumn(
-      selectionMode = SelectionMode.Single,
+    SingleSelectionLazyColumn(
       state = state,
-      onSelectedIndexesChange = { indices -> indices.singleOrNull()?.let { onSelectedDeviceChange(devices[it]) } },
+      onSelectedIndexesChange = { indexes -> indexes.singleOrNull()?.let { onSelectedDeviceChange(devices[it]) } },
     ) {
       items(items = devices, key = { it.handle.id }, selectable = { it.isEnabled }) {
         DeviceRow(row = it, isSelected = isSelected, isFocused = isActive)

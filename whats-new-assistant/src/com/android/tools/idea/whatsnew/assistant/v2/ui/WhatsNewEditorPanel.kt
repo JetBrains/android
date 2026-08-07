@@ -52,7 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.android.tools.adtui.compose.getDefaultRenderExtensions
+import com.android.tools.adtui.compose.getDefaultMarkdownRenderExtensions
 import com.android.tools.adtui.compose.markdownFactory
 import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewAssets
 import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewMarkdownDocument
@@ -293,15 +293,11 @@ private fun createWhatsNewMarkdownBlockRenderer(
   val whatsNewImageExtension =
     remember(imageLoader) { ImagePainterLoaderMarkdownRendererExtension(imageLoader = imageLoader, popupEffect = true) }
   val renderExtensions =
-    remember(markdownStyling, whatsNewImageExtension) { getDefaultRenderExtensions(markdownStyling) + whatsNewImageExtension }
+    remember(markdownStyling, whatsNewImageExtension) { getDefaultMarkdownRenderExtensions(markdownStyling) + whatsNewImageExtension }
   val inlineRenderer = remember(markdownFactory, renderExtensions) { markdownFactory.createInlineMarkdownRenderer(renderExtensions) }
   val customRenderer =
     remember(markdownStyling, renderExtensions, inlineRenderer) {
-      WhatsNewMarkdownBlockRenderer(
-        rootStyling = markdownStyling,
-        rendererExtensions = renderExtensions,
-        inlineRenderer = inlineRenderer,
-      )
+      WhatsNewMarkdownBlockRenderer(rootStyling = markdownStyling, rendererExtensions = renderExtensions, inlineRenderer = inlineRenderer)
     }
   return customRenderer
 }
