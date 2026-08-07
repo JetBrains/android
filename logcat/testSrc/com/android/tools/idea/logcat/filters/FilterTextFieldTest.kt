@@ -159,7 +159,7 @@ class FilterTextFieldTest {
   fun pressEnter_addsToHistory_favorite() {
     val filterTextField = filterTextField(initialText = "bar")
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
-    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
@@ -186,7 +186,7 @@ class FilterTextFieldTest {
   fun loosesFocus_addsToHistory_favorite() {
     val filterTextField = filterTextField(initialText = "foo")
     val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
-    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
@@ -217,7 +217,7 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun addToHistory_favorite_logsUsage() {
     val filterTextField = filterTextField(initialText = "foo")
-    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
@@ -346,7 +346,7 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun clickClear() {
     val filterTextField = filterTextField(initialText = "foo")
-    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val clearButton = fakeUi.getComponent<JLabel> { it.icon == AllIcons.Actions.Close }
 
     fakeUi.clickOn(clearButton)
@@ -445,7 +445,7 @@ class FilterTextFieldTest {
   fun updateText_updatesFavorite() {
     val filterTextField = filterTextField(initialText = "bar")
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
-    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
     fakeUi.clickOn(favoriteButton)
 

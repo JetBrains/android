@@ -261,7 +261,7 @@ class DeviceAdapterTest {
 
   @Test
   fun ready_keysConfigurationIntoApp() {
-    FakeUi(view, createFakeWindow = true)
+    FakeUi(view, createFakeWindow = true, parentDisposable = projectRule.disposable)
     view.isVisible = true
     FakeKeyboardFocusManager(projectRule.disposable).focusOwner = view
 

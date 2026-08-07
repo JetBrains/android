@@ -144,7 +144,7 @@ class CommonTextFieldTest {
     field.text = "Editing the val..."
 
     // Bring up the lookup:
-    val ui = FakeUi(field, createFakeWindow = true)
+    val ui = FakeUi(field, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     ui.keyboard.press(KeyEvent.VK_CONTROL)
     ui.keyboard.pressAndRelease(KeyEvent.VK_SPACE)
     ui.keyboard.release(KeyEvent.VK_CONTROL)

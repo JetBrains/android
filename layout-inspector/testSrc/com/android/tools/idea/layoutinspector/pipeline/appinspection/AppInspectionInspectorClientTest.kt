@@ -231,7 +231,7 @@ class AppInspectionInspectorClientTest {
       }
     )
     panel.setToolContext(inspectorRule.inspector)
-    FakeUi(panel.component, createFakeWindow = true)
+    FakeUi(panel.component, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
     inspectorRule.inspector.treeSettings.showRecompositions = true
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
 

@@ -34,6 +34,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.EditorNotificationPanel
 import icons.StudioIcons
@@ -58,6 +59,7 @@ import org.junit.Test
 class DeviceManagerPanelTest {
 
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val disposableRule = DisposableRule()
   @get:Rule val nestedViewFlagRule = FlagRule(StudioFlags.AI_GLASSES_NESTED_DEVICE_VIEW_ENABLED, true)
 
   @Test
@@ -193,7 +195,7 @@ class DeviceManagerPanelTest {
 
     panel.setBounds(0, 0, 800, 400)
 
-    val fakeUi = FakeUi(panel, createFakeWindow = true)
+    val fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     fakeUi.layout()
 
     assertThat(deviceTable.selection.selectedKeys()).isEmpty()
@@ -212,7 +214,7 @@ class DeviceManagerPanelTest {
     notificationBanners.send(listOf(banner))
     panel.setBounds(0, 0, 800, 400)
 
-    val fakeUi = FakeUi(panel, createFakeWindow = true)
+    val fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     fakeUi.layout()
     assertThat((((panel.components[0]) as JPanel).components[0] as JPanel).components[0]).isEqualTo(banner)
 
@@ -292,7 +294,7 @@ class DeviceManagerPanelTest {
     deviceHandles.send(listOf(phoneHandle, glassesHandle, otherPhone))
 
     panel.setBounds(0, 0, 800, 400)
-    val fakeUi = FakeUi(panel, createFakeWindow = true)
+    val fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     fakeUi.layout()
 
     // When nested, Glasses A follows its parent Phone (Pixel 6):
@@ -314,7 +316,7 @@ class DeviceManagerPanelTest {
       deviceHandles.send(listOf(phoneHandle, glassesHandle, otherPhone))
 
       panel.setBounds(0, 0, 800, 400)
-      val fakeUi = FakeUi(panel, createFakeWindow = true)
+      val fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
       fakeUi.layout()
 
       // When flat (flag disabled), alphabetical sorting by Name applies flatly:
@@ -340,7 +342,7 @@ class DeviceManagerPanelTest {
     deviceTable.addGrouping(DeviceTableColumns.HandleType)
 
     panel.setBounds(0, 0, 800, 400)
-    val fakeUi = FakeUi(panel, createFakeWindow = true)
+    val fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     fakeUi.layout()
 
     // Both are Virtual devices, so they belong to the same Category and should nest:

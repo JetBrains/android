@@ -147,7 +147,7 @@ class ZoomableContainerTest {
     // Necessary to properly find the zoomable controller via the data sink
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.testRootDisposable)
 
-    val fakeUi = FakeUi(container, createFakeWindow = true)
+    val fakeUi = FakeUi(container, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
     container.setSize(600, 600)
     fakeUi.layout()
 

@@ -88,7 +88,7 @@ class CollapsibleLabelPanelTest {
     val label = panel.label
     panel.size = Dimension(500, 200)
     panel.doLayout()
-    val ui = FakeUi(label, createFakeWindow = true)
+    val ui = FakeUi(label, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = UIUtil.findComponentOfType(panel, IconWithFocusBorder::class.java)
     panel.model.makeExpandable(true)

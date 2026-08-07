@@ -60,7 +60,7 @@ class TranslationsEditorTextFieldTest {
   fun setUp() {
     whenever(table.model).thenReturn(model)
     invokeAndWaitIfNeeded {
-      fakeUi = FakeUi(translationsEditorTextField, createFakeWindow = true)
+      fakeUi = FakeUi(translationsEditorTextField, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
       fakeUi.root.validate()
     }
     focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)

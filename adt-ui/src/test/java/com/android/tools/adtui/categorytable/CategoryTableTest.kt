@@ -188,7 +188,7 @@ class CategoryTableTest {
   fun tableLayout() {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
-    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
 
     scrollPane.setBounds(0, 0, 800, 400)
     fakeUi.layout()
@@ -222,7 +222,7 @@ class CategoryTableTest {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
     scrollPane.setBounds(0, 0, 400, 400)
-    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
 
     table.addOrUpdateRow(CategoryTableDemo.Device("Copy 3 of Google Pixel 7 Pro API 34 arm64 Google Play", "34", "Phone", "Offline"))
     fakeUi.layout()
@@ -260,7 +260,7 @@ class CategoryTableTest {
     TestApplicationManager.getInstance()
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
-    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
 
     fakeUi.clickRelativeTo(scrollPane, 2, 2)
     assertThat(table.columnSorters).containsExactly(ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING))
@@ -293,7 +293,7 @@ class CategoryTableTest {
       )
     val table = CategoryTable(CategoryTableDemo.columns, colors = colors)
     val scrollPane = createScrollPane(table)
-    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
 
     CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
@@ -515,7 +515,7 @@ class CategoryTableTest {
     assertThat(table.values.map { it.name }).containsExactly("Pixel 5", "Pixel 6", "Glasses A", "Glasses B").inOrder()
 
     val scrollPane = createScrollPane(table)
-    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     fakeUi.layout()
 
     val rowPixel5 = table.rowComponents[0] as ValueRowComponent<*>
@@ -553,7 +553,7 @@ class CategoryTableTest {
     table.addOrUpdateRow(glassesA)
 
     val scrollPane = createScrollPane(table)
-    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     fakeUi.layout()
 
     val rowPixel6 = table.rowComponents[0] as ValueRowComponent<*>
@@ -580,7 +580,7 @@ class CategoryTableTest {
     table.addGrouping(Type)
 
     val scrollPane = createScrollPane(table)
-    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     fakeUi.layout()
 
     // Because Phone and Glasses belong to different groups ("Phone" vs "Glasses"),

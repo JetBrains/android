@@ -113,7 +113,7 @@ class RecompositionUiPanelIntegrationTest {
     requestStateReads()
     waitForCondition(10.seconds) { panel.findAllDescendants<ActionButton>({ true }).toList().size == 3 }
 
-    val ui = FakeUi(panel, createFakeWindow = true)
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
     val prev = panel.buttonWithIcon(AllIcons.Actions.Play_back)
     val next = panel.buttonWithIcon(AllIcons.Actions.Play_forward)
     val minimize = panel.buttonWithIcon(AllIcons.General.HideToolWindow)

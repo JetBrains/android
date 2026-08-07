@@ -132,7 +132,7 @@ class FlagPropertyEditorTest {
     val flagEditor = getEditorFromTable(table, 2)
     val panel = FlagPropertyPanel(flagEditor.editorModel, flagEditor.tableParent!!, 400)
     panel.setSize(400, 800)
-    val ui = FakeUi(panel, createFakeWindow = true)
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     clickFlag(ui, panel, "six")
 
     val checked = findCheckedCheckBoxes(panel)
@@ -147,7 +147,7 @@ class FlagPropertyEditorTest {
     val flagEditor = getEditorFromTable(table, 2)
     val panel = FlagPropertyPanel(flagEditor.editorModel, flagEditor.tableParent!!, 400)
     panel.setSize(400, 800)
-    val ui = FakeUi(panel, createFakeWindow = true)
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     clickFlag(ui, panel, "one")
     clickFlag(ui, panel, "two")
     clickFlag(ui, panel, "eight")

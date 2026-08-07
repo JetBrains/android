@@ -260,7 +260,7 @@ class ConnectionsViewTest {
     val view = inspectorView.connectionsView
     view.component.size = Dimension(500, 500)
     val table = getConnectionsTable(view)
-    val fakeUi = FakeUi(table, createFakeWindow = true)
+    val fakeUi = FakeUi(table, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val rect = table.getCellRect(0, 0, true)
 
     fakeUi.clickRelativeTo(table, rect.x + rect.width / 2, rect.y + rect.height / 2, RIGHT)
@@ -275,7 +275,7 @@ class ConnectionsViewTest {
     val view = inspectorView.connectionsView
     view.component.size = Dimension(500, 500)
     val table = getConnectionsTable(view)
-    val fakeUi = FakeUi(table, createFakeWindow = true)
+    val fakeUi = FakeUi(table, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val rect = table.getCellRect(4, 0, true)
 
     fakeUi.clickRelativeTo(table, rect.x + rect.width / 2, rect.y + rect.height / 2, RIGHT)

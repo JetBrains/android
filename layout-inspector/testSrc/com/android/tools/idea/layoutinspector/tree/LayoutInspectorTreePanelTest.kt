@@ -1005,7 +1005,7 @@ class LayoutInspectorTreePanelTest {
     waitForCondition(TIMEOUT, TIMEOUT_UNIT) { columnDataChanged == 2 }
 
     component.size = Dimension(800, 1000)
-    val ui = FakeUi(component, createFakeWindow = true)
+    val ui = FakeUi(component, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
     val treeColumnWidth = table.columnModel.getColumn(0).width
     updateSettingsLatch = ReportingCountDownLatch(1)
 

@@ -119,7 +119,7 @@ class ShowMoreElementsItemTest {
     theTable = table
     table.ui = HeadlessTableUI()
     table.size = Dimension(400, 800)
-    val ui = FakeUi(table, createFakeWindow = true)
+    val ui = FakeUi(table, createFakeWindow = true, parentDisposable = disposableRule.disposable)
 
     // Expand the group
     ptable.toggle(group)

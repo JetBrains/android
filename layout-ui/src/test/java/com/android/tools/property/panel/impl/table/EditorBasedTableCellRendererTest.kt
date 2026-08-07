@@ -45,6 +45,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.ui.AbstractExpandableItemsHandler
@@ -69,7 +70,9 @@ private const val LONG_STRING_VALUE = "A very long long long string value"
 private const val ROW_HEIGHT = 22
 
 class EditorBasedTableCellRendererTest {
-  @get:Rule val rules = RuleChain(ApplicationRule(), IconLoaderRule())
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val rules = RuleChain(ApplicationRule(), IconLoaderRule(), disposableRule)
 
   @Test
   fun testExpansionHotZoneOfRenderers() {
@@ -78,7 +81,7 @@ class EditorBasedTableCellRendererTest {
     val renderer = createRenderer(items, performLayout = true)
     val table = createTable(items, renderer)
     table.component.setSize(200, 5000)
-    val ui = FakeUi(table.component, createFakeWindow = true)
+    val ui = FakeUi(table.component, createFakeWindow = true, parentDisposable = disposableRule.disposable)
 
     // A Text Editor should expand when hovering over the text:
     assertThat(isExpansionHotZone(ui, items, ControlType.TEXT_EDITOR, 50)).isTrue()

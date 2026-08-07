@@ -76,7 +76,7 @@ public final class FrozenColumnTableTest {
     frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
     JScrollPane pane = (JScrollPane)frozenColumnTable.getScrollPane();
     pane.setBounds(0, 0, 800, 20);
-    new FakeUi(pane, true);
+    new FakeUi(pane, true, myRule.getDisposable());
     pane.doLayout();
     assertThat(pane.getVerticalScrollBar().isVisible()).isTrue();
   }
@@ -330,7 +330,7 @@ public final class FrozenColumnTableTest {
     frozenColumnTable.getScrollableTable().createDefaultColumnsFromModel();
     JScrollPane pane = (JScrollPane)frozenColumnTable.getScrollPane();
     pane.setBounds(0, 0, 800, 100);
-    new FakeUi(pane, true);
+    new FakeUi(pane, true, myRule.getDisposable());
     pane.doLayout();
 
     assertEquals(0, frozenColumnTable.getSelectedModelRows().length);

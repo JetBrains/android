@@ -70,7 +70,7 @@ class SceneViewErrorsPanelTest {
         layout = BorderLayout()
         size = Dimension(1000, 800)
       }
-    fakeUi = FakeUi(panelParent, true)
+    fakeUi = FakeUi(panelParent, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     fakeUi.root.validate()
   }
 

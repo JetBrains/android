@@ -627,7 +627,7 @@ class WearHealthServicesPanelTest {
   fun `the apply button should be set as default`() =
     runBlocking<Unit> {
       val panel = createWhsPanel()
-      val fakeUi = FakeUi(panel.component, createFakeWindow = true)
+      val fakeUi = FakeUi(panel.component, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
       val applyButton = fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
 
       assertThat(applyButton.isDefaultButton).isTrue()

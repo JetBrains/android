@@ -61,7 +61,7 @@ class SelectedComponentBuilderTest {
     val builder = SelectedComponentBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     val component = util.inspector.lines[0].component!!
-    FakeUi(component, createFakeWindow = true)
+    FakeUi(component, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
     val idComponent = component.components[1] as JLabel
     assertThat(idComponent.text).isEqualTo("@+id/textview")
 

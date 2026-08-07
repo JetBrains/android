@@ -927,7 +927,9 @@ class LogcatMainPanelTest {
         headerPanel.filter = ""
       }
     }
-    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+    val fakeUi = runInEdtAndGet {
+      FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true, parentDisposable = disposableRule.disposable)
+    }
 
     logcatMainPanel.messageProcessor.appendMessages(
       listOf(LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"))
@@ -946,7 +948,9 @@ class LogcatMainPanelTest {
   @Test
   fun clickToSetFilter_addToNotEmpty() = runBlocking {
     val logcatMainPanel = runInEdtAndGet { logcatMainPanel().apply { size = Dimension(100, 100) } }
-    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+    val fakeUi = runInEdtAndGet {
+      FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true, parentDisposable = disposableRule.disposable)
+    }
     logcatMainPanel.processMessages(
       listOf(
         LogcatMessage(LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "foo"),
@@ -970,7 +974,9 @@ class LogcatMainPanelTest {
   @Test
   fun clickToSetFilter_remove() = runBlocking {
     val logcatMainPanel = runInEdtAndGet { logcatMainPanel().apply { size = Dimension(100, 100) } }
-    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+    val fakeUi = runInEdtAndGet {
+      FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true, parentDisposable = disposableRule.disposable)
+    }
     logcatMainPanel.processMessages(
       listOf(
         LogcatMessage(LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "foo"),
@@ -992,7 +998,9 @@ class LogcatMainPanelTest {
   @Test
   fun clickToSetFilter_removeMultiple() = runBlocking {
     val logcatMainPanel = runInEdtAndGet { logcatMainPanel().apply { size = Dimension(100, 100) } }
-    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+    val fakeUi = runInEdtAndGet {
+      FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true, parentDisposable = disposableRule.disposable)
+    }
     logcatMainPanel.processMessages(
       listOf(
         LogcatMessage(LogcatHeader(INFO, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "foo"),
@@ -1019,7 +1027,9 @@ class LogcatMainPanelTest {
         headerPanel.filter = "package:mine | level:error"
       }
     }
-    val fakeUi = runInEdtAndGet { FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true) }
+    val fakeUi = runInEdtAndGet {
+      FakeUi(logcatMainPanel.editor.contentComponent, createFakeWindow = true, parentDisposable = disposableRule.disposable)
+    }
 
     logcatMainPanel.messageProcessor.appendMessages(
       listOf(LogcatMessage(LogcatHeader(LogLevel.ERROR, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"))

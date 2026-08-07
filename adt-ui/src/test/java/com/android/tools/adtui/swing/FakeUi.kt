@@ -86,6 +86,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, createFakeWindow: Bo
         // Replace TestWindowManager with a more lenient version.
         application.registerServiceInstance(WindowManager::class.java, FakeUiWindowManager())
       }
+      checkNotNull(parentDisposable) { "FakeUi parent disposable is required when createFakeWindow=true" }
       createFakeWindow<Window>(rootPane, parentDisposable)
     }
     glassPane = (getTopLevelComponent(root) as? JRootPane)?.glassPane as? IdeGlassPaneImpl

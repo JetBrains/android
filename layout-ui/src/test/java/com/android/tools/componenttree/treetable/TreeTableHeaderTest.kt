@@ -71,7 +71,7 @@ class TreeTableHeaderTest {
   fun testMouseMove() {
     val scrollPane = createTreeTable()
     scrollPane.setSize(800, 1000)
-    val ui = FakeUi(scrollPane, createFakeWindow = true)
+    val ui = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val header = scrollPane.columnHeader.view as TreeTableHeader
     val bounds1 = header.getHeaderRect(0)
     val bounds2 = header.getHeaderRect(1)
@@ -102,7 +102,7 @@ class TreeTableHeaderTest {
   fun testMouseClicks() {
     val scrollPane = createTreeTable()
     scrollPane.setSize(800, 1000)
-    val ui = FakeUi(scrollPane, createFakeWindow = true)
+    val ui = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val header = scrollPane.columnHeader.view as TreeTableHeader
     val bounds1 = header.getHeaderRect(0)
     val bounds2 = header.getHeaderRect(1)
@@ -135,7 +135,7 @@ class TreeTableHeaderTest {
     panel.add(icon2, BorderLayout.SOUTH)
     panel.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB")))
     panel.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("TAB")))
-    val ui = FakeUi(panel, createFakeWindow = true)
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val manager = FakeKeyboardFocusManager(disposableRule.disposable)
     manager.focusOwner = icon1
     ui.keyboard.pressTab()

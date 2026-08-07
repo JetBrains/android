@@ -430,7 +430,7 @@ class TreeTableImplTest {
     val table = result.focusComponent as TreeTableImpl
 
     // This will cause addNotify() to be called on the table:
-    FakeUi(result.component, createFakeWindow = true)
+    FakeUi(result.component, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     assertThat(table.tableHeader.isShowing).isFalse()
 
     // show the header

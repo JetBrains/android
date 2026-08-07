@@ -563,7 +563,7 @@ class PTableImplTest {
   fun testNavigateForwardsIntoTable() {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
-    FakeUi(panel, createFakeWindow = true)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     focusManager.focusOwner = panel
     panel.components[0].transferFocus()
     assertThat(table1!!.editingRow).isEqualTo(0)
@@ -576,7 +576,7 @@ class PTableImplTest {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     model1!!.readOnly = true
     val panel = createPanel()
-    FakeUi(panel, createFakeWindow = true)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     focusManager.focusOwner = panel
     panel.components[0].transferFocus()
     assertThat(table1!!.isEditing).isFalse()
@@ -590,7 +590,7 @@ class PTableImplTest {
   fun testNavigateForwardsThroughTable() {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
-    FakeUi(panel, createFakeWindow = true)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     panel.components[0].requestFocusInWindow()
     for (row in 0..5) {
       var column = 1
@@ -620,7 +620,7 @@ class PTableImplTest {
   fun testNavigateBackwardsThroughTable() {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
-    FakeUi(panel, createFakeWindow = true)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     panel.components[2].requestFocusInWindow()
     for (row in 5 downTo 0) {
       var column = 1
@@ -650,7 +650,7 @@ class PTableImplTest {
   fun testNavigateBackwardsIntoTable() {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
-    FakeUi(panel, createFakeWindow = true)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     panel.components[2].transferFocusBackward()
     assertThat(table1!!.editingRow).isEqualTo(5)
     assertThat(table1!!.editingColumn).isEqualTo(0)
@@ -662,7 +662,7 @@ class PTableImplTest {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     model1!!.readOnly = true
     val panel = createPanel()
-    FakeUi(panel, createFakeWindow = true)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     panel.components[2].transferFocusBackward()
     assertThat(table1!!.isEditing).isFalse()
     assertThat(table1!!.selectedRow).isEqualTo(5)
@@ -675,7 +675,7 @@ class PTableImplTest {
   fun testNavigateForwardFromSelectedRow() {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
-    FakeUi(panel, createFakeWindow = true)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     focusManager.focusOwner = table1!!
     table1!!.changeSelection(3, 0, false, false)
     table1!!.transferFocus()
@@ -688,7 +688,7 @@ class PTableImplTest {
   fun testAvoidAcceptingFocusDuringDestruction() {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
-    FakeUi(panel, createFakeWindow = true)
+    FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     focusManager.focusOwner = table1!!
     panel.remove(table1)
     assertThat(focusManager.focusOwner!!.name).isEqualTo(LAST_FIELD_EDITOR)
@@ -972,7 +972,7 @@ class PTableImplTest {
     table1!!.rowHeight = 20
     table2!!.rowHeight = 20
     table3!!.rowHeight = 20
-    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = table1
     table1!!.changeSelection(1, 0, false, false)
@@ -989,7 +989,7 @@ class PTableImplTest {
   @Test
   fun testNavigateUpDownAcrossTables() {
     scrollPane!!.size = Dimension(300, 400)
-    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = table1
     table1!!.changeSelection(4, 0, false, false)
@@ -1012,7 +1012,7 @@ class PTableImplTest {
   @Test
   fun testNavigateUpDownAcrossTablesWithClosedSection() {
     scrollPane!!.size = Dimension(300, 400)
-    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = table1
 
@@ -1031,7 +1031,7 @@ class PTableImplTest {
   @Test
   fun testNavigatePageUpDownAcrossTables() {
     scrollPane!!.size = Dimension(300, 60)
-    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = table1
     table1!!.changeSelection(1, 0, false, false)
@@ -1060,7 +1060,7 @@ class PTableImplTest {
   @Test
   fun testNavigatePageUpDownAcrossTablesWithClosedSection() {
     scrollPane!!.size = Dimension(300, 60)
-    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = table1
 

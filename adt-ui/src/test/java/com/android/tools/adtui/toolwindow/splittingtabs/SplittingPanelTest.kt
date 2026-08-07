@@ -29,6 +29,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
@@ -53,13 +54,15 @@ class SplittingPanelTest {
 
   @get:Rule val edtRule = EdtRule()
 
+  @get:Rule val disposableRule = DisposableRule()
+
   private val contentManager by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project).contentManager }
 
   // The mock content manager doesn't assign a parent to the content component so we need to provide
   // one
   private val contentRootPanel = JPanel().also { it.size = Dimension(100, 100) }
 
-  private val fakeUi = FakeUi(contentRootPanel, createFakeWindow = true)
+  private val fakeUi by lazy { FakeUi(contentRootPanel, createFakeWindow = true, parentDisposable = disposableRule.disposable) }
 
   @After
   fun tearDown() {
