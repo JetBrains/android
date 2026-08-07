@@ -31,13 +31,15 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
 
   fun openUnifiedTrace(session: Common.Session, sessionItems: Map<Long, SessionItem>): Boolean {
     val currentTaskType = profilers.sessionsManager.currentTaskType
-    if (!ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, currentTaskType)) {
-      return false
-    }
 
     // Try opening from a saved Artifact (Completed session)
     val sessionItem = sessionItems[session.sessionId] ?: return false
     val artifacts = sessionItem.getChildArtifacts()
+    val isLegacyAllocations = sessionItem.isLegacyAllocations
+
+    if (!ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, currentTaskType, isLegacyAllocations)) {
+      return false
+    }
 
     val isCpuTrace =
       currentTaskType == ProfilerTaskType.SYSTEM_TRACE ||

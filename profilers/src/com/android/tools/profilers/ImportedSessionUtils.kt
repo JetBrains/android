@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profilers.cpu.ProfilerInEditorUtils
 import com.android.tools.profilers.memory.MemoryProfiler
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
@@ -66,7 +67,8 @@ object ImportedSessionUtils {
     withFileImportedOnce(sessionsManager, file) { startTimestampsEpochMs, startTime, endTime ->
       val config = sessionsManager.studioProfilers.ideServices.featureConfig
       val taskType = ProfilerCaptureFileUtils.getFileTaskType(file)
-      val openInEditor = taskType != null && ProfilerInEditorUtils.isEditorEnabled(config, taskType)
+      val isLegacyAllocations = taskType == ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS
+      val openInEditor = taskType != null && ProfilerInEditorUtils.isEditorEnabled(config, taskType, isLegacyAllocations)
 
       val fileToImport =
         if (openInEditor) {
@@ -175,6 +177,7 @@ object ImportedSessionUtils {
       } else {
         sessionsManager.setSessionById(sessionStartTimeNs)
       }
+
       return
     }
 
@@ -244,7 +247,8 @@ object ImportedSessionUtils {
    *
    * @return A map of metadata key-value pairs, or an empty map if metadata can't be read.
    */
-  internal fun getDbMetadata(file: File): Map<String, String> {
+  @JvmStatic
+  fun getDbMetadata(file: File): Map<String, String> {
     val metadata = mutableMapOf<String, String>()
     try {
       getDbConnectionFromFile(file).use { connection ->

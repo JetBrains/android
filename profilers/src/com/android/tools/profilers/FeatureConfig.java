@@ -36,6 +36,9 @@ public interface FeatureConfig {
   boolean isHeapDumpTraceInEditorEnabled();
   boolean isNativeAllocationsTraceInEditorEnabled();
   boolean isJavaKotlinAllocationsLegacyTraceInEditorEnabled();
+  boolean isLiveTelemetryInEditorEnabled();
+  boolean isJavaKotlinAllocationsInEditorEnabled();
+  boolean isLeakCanaryInEditorEnabled();
   boolean isProfilerHomeTabV2Enabled();
   boolean isDeobfuscationForNativeAllocationsEnabled();
 

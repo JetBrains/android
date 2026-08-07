@@ -64,13 +64,14 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
 
     // Fail fast if extension is not supported
     val isProfilerCaptureFile =
-      (file.fileType is CpuCaptureFileType ||
+      (file is ProfilerVirtualFile ||
+        file.fileType is CpuCaptureFileType ||
         PerfettoCaptureFileType.EXTENSIONS.contains(file.extension) ||
         ProfilerFormat.isMemoryFormat(ProfilerFormat.find(file.extension, getLazyTraceType(file))))
 
     if (!isProfilerCaptureFile) return false
 
-    if (!file.isValid || !file.isInLocalFileSystem) {
+    if (!file.isValid || (!file.isInLocalFileSystem && file !is ProfilerVirtualFile)) {
       return false
     }
 
@@ -127,6 +128,8 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
      */
     @JvmStatic
     fun canViewInUnifiedEditor(file: VirtualFile): Boolean {
+      if (file is ProfilerVirtualFile) return true
+
       if (isSupportedByPerfettoEditor(file)) {
         return true
       }

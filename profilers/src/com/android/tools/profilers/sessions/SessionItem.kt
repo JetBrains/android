@@ -153,6 +153,14 @@ class SessionItem(override val profilers: StudioProfilers, initialSession: Commo
     changed(Aspect.MODEL)
   }
 
+  /** Indicates whether this session contains a legacy allocation recording rather than a live/streaming allocation tracking session. */
+  val isLegacyAllocations: Boolean
+    get() {
+      val currentTaskType =
+        if (getTaskType() != ProfilerTaskType.UNSPECIFIED) getTaskType() else TaskTypeMappingUtils.convertTaskType(sessionMetaData.taskType)
+      return currentTaskType == ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS && !sessionMetaData.jvmtiEnabled
+    }
+
   fun containsExactlyOneArtifact() = childArtifacts.size == 1
 
   /**

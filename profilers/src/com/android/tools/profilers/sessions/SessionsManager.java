@@ -18,7 +18,6 @@ package com.android.tools.profilers.sessions;
 import static com.android.tools.profilers.StudioProfilers.buildSessionName;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.profilers.cpu.ProfilerInEditorUtils;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
@@ -39,6 +38,7 @@ import com.android.tools.profilers.LiveViewSessionArtifact;
 import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.cpu.ProfilerInEditorUtils;
 import com.android.tools.profilers.leakcanary.LeakCanarySessionArtifact;
 import com.android.tools.profilers.memory.AllocationSessionArtifact;
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
@@ -482,13 +482,24 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
 
     if (mySelectedSession.equals(session)) {
+      ProfilerTaskType taskType = sessionItem != null ? sessionItem.getTaskType() : ProfilerTaskType.UNSPECIFIED;
+      if (taskType == ProfilerTaskType.UNSPECIFIED && sessionItem != null) {
+        taskType = TaskTypeMappingUtils.convertTaskType(sessionItem.getSessionMetaData().getTaskType());
+      }
+      boolean isLegacyAllocations = sessionItem != null && sessionItem.isLegacyAllocations();
       boolean openInEditor = sessionItem != null && ProfilerInEditorUtils.isEditorEnabled(
-        myProfilers.getIdeServices().getFeatureConfig(), sessionItem.getTaskType());
+        myProfilers.getIdeServices().getFeatureConfig(), taskType, isLegacyAllocations);
+      boolean isLiveTask = sessionItem != null && ProfilerInEditorUtils.isLiveTaskInEditorEnabled(
+        myProfilers.getIdeServices().getFeatureConfig(), taskType, isLegacyAllocations);
 
       // When a profiler task is editor enabled, although a session is selected, its editor tab may be hidden because
       // the user has shifted to another tab or closed it, so we need to reselect it to bring it to focus even if it's already selected.
       if (openInEditor) {
-        myProfilers.bringSelectedEditorToFront();
+        if (isLiveTask) {
+          myProfilers.openTaskTab();
+        } else {
+          myProfilers.bringSelectedEditorToFront();
+        }
       }
       return;
     }

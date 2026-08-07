@@ -180,6 +180,7 @@ abstract class BaseStreamingMemoryProfilerStage(
   }
 
   override fun onExit() {
+    super.onExit()
     eventMonitor.exit()
     updatables.forEach(studioProfilers.updater::unregister)
     loader.stop()

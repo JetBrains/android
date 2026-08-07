@@ -5,6 +5,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
+import com.android.tools.profilers.LiveViewSessionArtifact
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
@@ -14,6 +15,7 @@ import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
 import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.args.singleartifact.LiveTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils
@@ -50,6 +52,7 @@ class AndroidProfilerToolWindowFactoryTest {
   @After
   fun cleanup() {
     StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
+    StudioFlags.PROFILER_LIVE_TELEMETRY_IN_EDITOR.clearOverride()
   }
 
   @Test
@@ -324,5 +327,45 @@ class AndroidProfilerToolWindowFactoryTest {
 
     Disposer.dispose(toolWindow.disposable)
     assertThat(AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP.containsKey(project)).isFalse()
+  }
+
+  @Test
+  fun `notifyEditorTabClosed with inactive sessionId is safely ignored`() {
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    val toolWindowFactory = AndroidProfilerToolWindowFactory()
+    toolWindowFactory.init(toolWindow)
+    toolWindowFactory.createToolWindowContent(project, toolWindow)
+
+    val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]!!
+    val sessionsManager = profilerToolWindow.profilers.sessionsManager
+
+    // Calling notifyEditorTabClosed with an inactive sessionId does not reset or alter selection
+    profilerToolWindow.notifyEditorTabClosed(99999L)
+    assertThat(sessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+  }
+
+  @Test
+  fun `createTaskTab for live task does not add tool window content when live task in editor is enabled`() {
+    StudioFlags.PROFILER_LIVE_TELEMETRY_IN_EDITOR.override(true)
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    val toolWindowFactory = AndroidProfilerToolWindowFactory()
+    toolWindowFactory.init(toolWindow)
+    toolWindowFactory.createToolWindowContent(project, toolWindow)
+
+    val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]!!
+
+    val liveArtifact =
+      LiveViewSessionArtifact(
+        profilerToolWindow.profilers,
+        Common.Session.getDefaultInstance(),
+        Common.SessionMetaData.getDefaultInstance(),
+      )
+
+    // Create a live task tab
+    profilerToolWindow.createTaskTab(ProfilerTaskType.LIVE_VIEW, LiveTaskArgs(false, liveArtifact))
+
+    // Should NOT create a tool window content tab since it's hosted in the editor
+    val taskTabTitle = StringUtils.getTaskTabTitle(ProfilerTaskType.LIVE_VIEW, StudioFlags.PROFILER_HOME_TAB_V2.get())
+    assertThat(toolWindow.contentManager.contents.none { it.displayName == taskTabTitle || it.tabName == taskTabTitle }).isTrue()
   }
 }

@@ -20,6 +20,8 @@ import static com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfig
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.gradle.Dependency;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
@@ -32,12 +34,19 @@ import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConvert
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.DependencyType;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult;
 import com.android.tools.idea.projectsystem.RegisteredDependencyId;
 import com.android.tools.idea.projectsystem.RegisteredDependencyQueryId;
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.idea.util.DependencyConfirmationDialog;
 import com.android.tools.leakcanarylib.data.Leak;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
@@ -56,31 +65,29 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.RunManager;
-import kotlinx.coroutines.flow.Flow;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.util.Computable;
-import com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -98,25 +105,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import com.android.ide.common.gradle.Dependency;
-import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
-import com.android.tools.idea.projectsystem.DependencyType;
-import com.android.tools.idea.util.DependencyConfirmationDialog;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.command.WriteCommandAction;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.SwingUtilities;
+import kotlinx.coroutines.flow.Flow;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -884,6 +884,21 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isTaskBasedUxEnabled() {
       return StudioFlags.PROFILER_TASK_BASED_UX.get();
+    }
+
+    @Override
+    public boolean isLiveTelemetryInEditorEnabled() {
+      return StudioFlags.PROFILER_LIVE_TELEMETRY_IN_EDITOR.get();
+    }
+
+    @Override
+    public boolean isJavaKotlinAllocationsInEditorEnabled() {
+      return StudioFlags.PROFILER_JAVA_KOTLIN_ALLOCATIONS_IN_EDITOR.get();
+    }
+
+    @Override
+    public boolean isLeakCanaryInEditorEnabled() {
+      return StudioFlags.PROFILER_LEAKCANARY_IN_EDITOR.get();
     }
 
     @Override

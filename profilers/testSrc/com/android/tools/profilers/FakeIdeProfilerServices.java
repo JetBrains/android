@@ -37,7 +37,6 @@ import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.collect.ImmutableList;
@@ -143,6 +142,12 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   private boolean myJavaKotlinAllocationsLegacyTraceInEditorEnabled = true;
 
+  private boolean myLiveTelemetryInEditorEnabled = false;
+
+  private boolean myJavaKotlinAllocationsInEditorEnabled = false;
+
+  private boolean myLeakCanaryInEditorEnabled = false;
+
   public void setSystemTraceInEditorEnabled(boolean enabled) {
     mySystemTraceInEditorEnabled = enabled;
   }
@@ -165,6 +170,18 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setJavaKotlinAllocationsLegacyTraceInEditorEnabled(boolean enabled) {
     myJavaKotlinAllocationsLegacyTraceInEditorEnabled = enabled;
+  }
+
+  public void setLiveTelemetryInEditorEnabled(boolean enabled) {
+    myLiveTelemetryInEditorEnabled = enabled;
+  }
+
+  public void setJavaKotlinAllocationsInEditorEnabled(boolean enabled) {
+    myJavaKotlinAllocationsInEditorEnabled = enabled;
+  }
+
+  public void setLeakCanaryInEditorEnabled(boolean enabled) {
+    myLeakCanaryInEditorEnabled = enabled;
   }
 
   private boolean myProfilerHomeTabV2Enabled = true;
@@ -371,6 +388,21 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isJavaKotlinAllocationsLegacyTraceInEditorEnabled() {
         return myJavaKotlinAllocationsLegacyTraceInEditorEnabled;
+      }
+
+      @Override
+      public boolean isLiveTelemetryInEditorEnabled() {
+        return myLiveTelemetryInEditorEnabled;
+      }
+
+      @Override
+      public boolean isJavaKotlinAllocationsInEditorEnabled() {
+        return myJavaKotlinAllocationsInEditorEnabled;
+      }
+
+      @Override
+      public boolean isLeakCanaryInEditorEnabled() {
+        return myLeakCanaryInEditorEnabled;
       }
     };
   }

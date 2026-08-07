@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.profilers.capture.unified.ProfilerVirtualFile
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
@@ -35,6 +36,7 @@ import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.ProfilerInEditorUtils
 import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.taskbased.common.constants.strings.StringUtils
 import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
@@ -42,12 +44,15 @@ import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.Pro
 import com.android.tools.profilers.tasks.ProfilerTaskTabs
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
+import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.intellij.execution.RunManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -72,6 +77,13 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   val profilers: StudioProfilers
   private var currentTaskHandler: ProfilerTaskHandler? = null
   private val taskHandlers = HashMap<ProfilerTaskType, ProfilerTaskHandler>()
+  private var liveTaskVirtualFile: ProfilerVirtualFile? = null
+  /**
+   * Tracks whether an explicit task tab / editor tab closure initiated session termination. When true, [registerSessionEndListener] resets
+   * the session selection upon receiving the [SessionAspect.ONGOING_SESSION_NEWLY_ENDED] event. When false (e.g. user clicked "Stop" in
+   * UI), the session selection is preserved so the completed task remains displayed in the tab.
+   */
+  private var isTaskTabClosing = false
 
   private lateinit var homeTab: StudioProfilersHomeTab
   private lateinit var homePanel: JPanel
@@ -265,28 +277,54 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
    * Creates and opens a Profiler task tab for a specified task type. If a task tab has been opened beforehand, the existing tab is reused.
    */
   fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs) {
-    val taskTab = findTaskTab()
-    val taskTabTitle = StringUtils.getTaskTabTitle(taskType, profilers.ideServices.featureConfig.isProfilerHomeTabV2Enabled)
+    val isLegacyAllocations = taskArgs is LegacyJavaKotlinAllocationsTaskArgs
+    val isLiveTaskInEditor =
+      ProfilerInEditorUtils.isLiveTaskInEditorEnabled(profilers.ideServices.featureConfig, taskType, isLegacyAllocations)
 
-    val taskIcon = TaskIconUtils.getTaskIcon(taskType)
-    if (taskTab != null) {
-      taskTab.displayName = taskTabTitle
-      window.getContentManager().setSelectedContent(taskTab)
-      window.getContentManager().selectedContent!!.icon = taskIcon
-    } else {
-      createNewTab(profilersPanel, taskTabTitle, true, taskIcon)
+    isTaskTabClosing = false
+    if (!isLiveTaskInEditor) {
+      val taskTab = findTaskTab()
+      val taskTabTitle = StringUtils.getTaskTabTitle(taskType, profilers.ideServices.featureConfig.isProfilerHomeTabV2Enabled)
+
+      val taskIcon = TaskIconUtils.getTaskIcon(taskType)
+      if (taskTab != null) {
+        taskTab.displayName = taskTabTitle
+        taskTab.icon = taskIcon
+        window.getContentManager().setSelectedContent(taskTab)
+      } else {
+        createNewTab(profilersPanel, taskTabTitle, true, taskIcon)
+      }
     }
+
     currentTaskHandler?.exit()
     currentTaskHandler = taskHandlers[taskType]
     currentTaskHandler?.let { taskHandler ->
+      val currentSessionId = profilers.sessionsManager.selectedSession.sessionId
+      val existingFile = liveTaskVirtualFile
+      if (existingFile != null && (existingFile.sessionId != currentSessionId || !isLiveTaskInEditor)) {
+        ApplicationManager.getApplication().invokeLater { FileEditorManager.getInstance(project).closeFile(existingFile) }
+        liveTaskVirtualFile = null
+      }
+
       val enterSuccessful = taskHandler.enter(taskArgs)
+      if (isLiveTaskInEditor && enterSuccessful) {
+        if (existingFile == null || existingFile.sessionId != currentSessionId) {
+          val taskTabTitle = StringUtils.getTaskTabTitle(taskType, profilers.ideServices.featureConfig.isProfilerHomeTabV2Enabled)
+          liveTaskVirtualFile = ProfilerVirtualFile(currentSessionId, taskType, taskTabTitle)
+        }
+        liveTaskVirtualFile?.let { virtualFile ->
+          ApplicationManager.getApplication().invokeLater { FileEditorManager.getInstance(project).openFile(virtualFile, true) }
+        }
+      }
     }
 
-    val createdTaskTab = window.getContentManager().selectedContent!!
+    if (!isLiveTaskInEditor) {
+      val createdTaskTab = window.getContentManager().selectedContent!!
+      val sessionIdAtCreation = profilers.sessionsManager.selectedSession.sessionId
+      createdTaskTab.setDisposer { onTaskTabClose(sessionIdAtCreation) }
+    }
 
-    createdTaskTab.setDisposer { onTaskTabClose() }
-
-    registerSessionEndListener()
+    registerSessionEndListener(isLiveTaskInEditor)
   }
 
   /** Closes the Profiler task tab for a specified task type. */
@@ -297,8 +335,20 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     taskTab?.let { content -> contentManager.removeContent(content, true) }
   }
 
-  private fun onTaskTabClose() {
+  /**
+   * Notifies the tool window that an editor tab was closed. [sessionId] is provided so we can safely ignore the closure event if it doesn't
+   * belong to the actively running session (e.g. when replacing an old tab with a new one).
+   */
+  fun notifyEditorTabClosed(sessionId: Long) {
+    onTaskTabClose(sessionId)
+  }
+
+  private fun onTaskTabClose(sessionId: Long) {
     val sessionsManager = profilers.sessionsManager
+
+    if (sessionsManager.selectedSession.sessionId != sessionId) {
+      return
+    }
 
     if (profilers.isStopped) {
       sessionsManager.removeDependencies(this)
@@ -311,18 +361,20 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     // Once the session end event is received, reset the selected session
     // to reflect that the closed task is no longer selected
     if (sessionsManager.isSessionAlive) {
+      isTaskTabClosing = true
       currentTaskHandler?.takeIf { it.canStop() }?.stopTask()
     } else {
+      isTaskTabClosing = false
       // Perform session cleanup and deregister listener.
       sessionsManager.removeDependencies(this)
       sessionsManager.resetSessionSelection()
     }
 
-    currentTaskHandler!!.exit()
+    currentTaskHandler?.exit()
     currentTaskHandler = null
   }
 
-  private fun registerSessionEndListener() {
+  private fun registerSessionEndListener(isLiveTaskInEditor: Boolean) {
     val sessionsManager = profilers.sessionsManager
 
     sessionsManager.removeDependencies(this)
@@ -336,7 +388,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
         // If the task tab is closed, reset the selected session.
         // Also see [onTaskTabClose].
-        if (findTaskTab() == null) {
+        if (isTaskTabClosing || (findTaskTab() == null && !isLiveTaskInEditor)) {
+          isTaskTabClosing = false
           sessionsManager.removeDependencies(this)
           sessionsManager.resetSessionSelection()
         }
@@ -349,6 +402,13 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val taskTab = findTaskTab()
     if (taskTab != null) {
       window.getContentManager().setSelectedContent(taskTab)
+    } else {
+      liveTaskVirtualFile?.let { virtualFile ->
+        val fileEditorManager = FileEditorManager.getInstance(project)
+        if (fileEditorManager.isFileOpen(virtualFile)) {
+          ApplicationManager.getApplication().invokeLater { fileEditorManager.openFile(virtualFile, true) }
+        }
+      }
     }
   }
 

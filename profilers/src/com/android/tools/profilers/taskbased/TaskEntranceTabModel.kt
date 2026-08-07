@@ -49,13 +49,20 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
         else -> null
       }
 
-    val opensInEditor =
+    val isLegacyAllocations =
+      if (this is PastRecordingsTabModel) {
+        selectedRecording?.isLegacyAllocations == true
+      } else {
+        false
+      }
+
+    val openInEditor =
       selectedTaskTypeForEditor != null &&
-        ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, selectedTaskTypeForEditor)
+        ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, selectedTaskTypeForEditor, isLegacyAllocations)
 
     // Bypass current task checks if the past trace task opens in its own editor window
     // so it doesn't conflict with the existing task in the Profiler window.
-    if (this is PastRecordingsTabModel && opensInEditor) {
+    if (this is PastRecordingsTabModel && openInEditor) {
       doEnterTaskButton()
       return
     }

@@ -38,6 +38,8 @@ import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.NativeAllocationsTaskHandler
 import com.google.common.annotations.VisibleForTesting
@@ -1162,6 +1164,75 @@ class SessionsManagerTest {
     val unsetRequest = myTransportService.lastUnsetTaskDbRequest
     assertThat(unsetRequest).isNotNull()
     assertThat(unsetRequest!!.sessionId).isEqualTo(session.sessionId)
+  }
+
+  @Test
+  fun testSessionItemDetectsLegacyAllocationsArtifact() {
+    val session = Common.Session.newBuilder().setSessionId(100L).build()
+
+    // Default metadata (not Java/Kotlin allocations)
+    val defaultMetaData = Common.SessionMetaData.newBuilder().setSessionId(100L).setType(Common.SessionMetaData.SessionType.FULL).build()
+    val sessionItem1 = SessionItem(myProfilers, session, defaultMetaData)
+    assertThat(sessionItem1.isLegacyAllocations).isFalse()
+
+    // Java/Kotlin allocations with JVMTI disabled -> Legacy
+    val legacyMetaData =
+      Common.SessionMetaData.newBuilder()
+        .setSessionId(100L)
+        .setType(Common.SessionMetaData.SessionType.FULL)
+        .setTaskType(Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+        .setJvmtiEnabled(false)
+        .build()
+    val sessionItem2 = SessionItem(myProfilers, session, legacyMetaData)
+    assertThat(sessionItem2.isLegacyAllocations).isTrue()
+
+    // Java/Kotlin allocations with JVMTI enabled -> Live (Not Legacy)
+    val liveMetaData =
+      Common.SessionMetaData.newBuilder()
+        .setSessionId(100L)
+        .setType(Common.SessionMetaData.SessionType.FULL)
+        .setTaskType(Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+        .setJvmtiEnabled(true)
+        .build()
+    val sessionItem3 = SessionItem(myProfilers, session, liveMetaData)
+    assertThat(sessionItem3.isLegacyAllocations).isFalse()
+  }
+
+  @Test
+  fun testSetSessionAlreadySelectedLiveTaskOpensTaskTab() {
+    ideProfilerServices.setJavaKotlinAllocationsInEditorEnabled(true)
+    var openTaskTabCalled = false
+    val taskHandlers = HashMap<ProfilerTaskType, ProfilerTaskHandler>()
+    val customProfilers =
+      StudioProfilers(
+        ProfilerClient(myGrpcChannel.channel),
+        ideProfilerServices,
+        taskHandlers,
+        { _, _ -> },
+        { openTaskTabCalled = true },
+        { ArrayList() },
+        { null },
+        { null },
+      )
+    val customManager = customProfilers.sessionsManager
+    taskHandlers.putAll(ProfilerTaskHandlerFactory.createTaskHandlers(customManager))
+
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).setFeatureLevel(26).build()
+    val process =
+      Common.Process.newBuilder()
+        .setPid(10)
+        .setState(Common.Process.State.ALIVE)
+        .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+        .build()
+    customManager.beginSession(1, device, process, Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, false)
+    customManager.update()
+
+    val activeSession = customManager.selectedSession
+    openTaskTabCalled = false
+
+    // Reselect the already-selected live task session
+    customManager.setSession(activeSession)
+    assertThat(openTaskTabCalled).isTrue()
   }
 
   private fun beginSessionHelper(device: Common.Device, process: Common.Process) {

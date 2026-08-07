@@ -405,6 +405,18 @@ public final class StudioFlags {
     PROFILER, "java.kotlin.allocations.legacy.trace.in.editor", "Open Java/Kotlin Allocations (Legacy) in Editor",
     "Opens Java/Kotlin Allocations (Legacy) files in a new editor tab");
 
+  public static final Flag<Boolean> PROFILER_JAVA_KOTLIN_ALLOCATIONS_IN_EDITOR = new BooleanFlag(
+    PROFILER, "java.kotlin.allocations.in.editor", "Open Java/Kotlin Allocations in Editor",
+    "Opens Java/Kotlin Allocations tasks in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_LIVE_TELEMETRY_IN_EDITOR = new BooleanFlag(
+    PROFILER, "live.telemetry.in.editor", "Open Live Telemetry in Editor",
+    "Opens Live Telemetry tasks in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_LEAKCANARY_IN_EDITOR = new BooleanFlag(
+    PROFILER, "leakcanary.in.editor", "Open LeakCanary in Editor",
+    "Opens LeakCanary tasks in a new editor tab");
+
   public static final Flag<Boolean> PROFILER_PERFETTO_QUERY_GENERATION = new BooleanFlag(
     PROFILER, "perfetto.query.generation", "Generate Perfetto SQL queries",
     "Uses AI to generate Perfetto SQL queries");
