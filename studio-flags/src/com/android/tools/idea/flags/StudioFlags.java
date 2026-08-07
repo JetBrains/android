@@ -2033,6 +2033,14 @@ public final class StudioFlags {
       "Activate migration of device streaming quota metrics from FTL to DDP"
     );
 
+  public static final Flag<Boolean> DIRECT_ACCESS_MIGRATE_TO_DDP =
+    new BooleanFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.migrate.to.ddp",
+      "Migrate Device Streaming from FTL to DDP",
+      "Activate migration of device streaming from FTL to DDP"
+    );
+
   // endregion Firebase Test Lab
 
   // region App Insights
