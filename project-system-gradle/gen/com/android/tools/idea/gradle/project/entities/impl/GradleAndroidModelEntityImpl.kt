@@ -46,12 +46,10 @@ import com.intellij.platform.workspace.storage.metadata.model.EntityMetadata
 @OptIn(WorkspaceEntityInternalApi::class)
 internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroidModelEntityData) : GradleAndroidModelEntity, WorkspaceEntityBase(
   dataSource) {
-
   private companion object {
     internal val MODULE_CONNECTION_ID: ConnectionId = ConnectionId.create(ModuleEntity::class.java, GradleAndroidModelEntity::class.java,
                                                                           ConnectionId.ConnectionType.ONE_TO_ONE, false)
     private val connections = listOf<ConnectionId>(MODULE_CONNECTION_ID)
-
   }
 
   override val module: ModuleEntity
@@ -67,7 +65,6 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
       readField("resolvedVariant")
       return dataSource.resolvedVariant
     }
-
   override val entitySource: EntitySource
     get() {
       readField("entitySource")
@@ -77,7 +74,6 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
   override fun connectionIdList(): List<ConnectionId> {
     return connections
   }
-
 
   internal class Builder(result: GradleAndroidModelEntityData?) : ModifiableWorkspaceEntityBase<GradleAndroidModelEntity, GradleAndroidModelEntityData>(
     result), GradleAndroidModelEntityBuilder {
@@ -101,7 +97,7 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
       this.currentEntityData = null
       // Process linked entities that are connected without a builder
       processLinkedEntities(builder)
-      checkInitialization() // TODO uncomment and check failed tests
+      checkInitialization()
     }
 
     private fun checkInitialization() {
@@ -137,14 +133,12 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
       updateChildToParentReferences(parents)
     }
 
-
     override var entitySource: EntitySource
       get() = getEntityData().entitySource
       set(value) {
         checkModificationAllowed()
         getEntityData(true).entitySource = value
         changedProperty.add("entitySource")
-
       }
     override var module: ModuleEntityBuilder
       get() {
@@ -163,10 +157,8 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
         checkModificationAllowed()
         val _diff = diff
         if (_diff != null && value is ModifiableWorkspaceEntityBase<*, *> && value.diff == null) {
-          if (value is ModifiableWorkspaceEntityBase<*, *>) {
-            value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
-          }
-          // else you're attaching a new entity to an existing entity that is not modifiable
+          value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
+          @Suppress("UNCHECKED_CAST")
           _diff.addEntity(value as ModifiableWorkspaceEntityBase<WorkspaceEntity, *>)
         }
         if (_diff != null && (value !is ModifiableWorkspaceEntityBase<*, *> || value.diff != null)) {
@@ -176,19 +168,16 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
           if (value is ModifiableWorkspaceEntityBase<*, *>) {
             value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
           }
-          // else you're attaching a new entity to an existing entity that is not modifiable
           this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] = value
         }
         changedProperty.add("module")
       }
-
     override var gradleAndroidModel: GradleAndroidModelImpl
       get() = getEntityData().gradleAndroidModel
       set(value) {
         checkModificationAllowed()
         getEntityData(true).gradleAndroidModel = value
         changedProperty.add("gradleAndroidModel")
-
       }
     override var resolvedVariant: IdeVariantImpl?
       get() = getEntityData().resolvedVariant
@@ -196,21 +185,17 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
         checkModificationAllowed()
         getEntityData(true).resolvedVariant = value
         changedProperty.add("resolvedVariant")
-
       }
 
     override fun getEntityClass(): Class<GradleAndroidModelEntity> = GradleAndroidModelEntity::class.java
   }
-
 }
 
 @OptIn(WorkspaceEntityInternalApi::class)
 internal class GradleAndroidModelEntityData : WorkspaceEntityData<GradleAndroidModelEntity>() {
   lateinit var gradleAndroidModel: GradleAndroidModelImpl
   var resolvedVariant: IdeVariantImpl? = null
-
   internal fun isGradleAndroidModelInitialized(): Boolean = ::gradleAndroidModel.isInitialized
-
   override fun wrapAsModifiable(diff: MutableEntityStorage): WorkspaceEntityBuilder<GradleAndroidModelEntity> {
     val modifiable = GradleAndroidModelEntityImpl.Builder(null)
     modifiable.diff = diff

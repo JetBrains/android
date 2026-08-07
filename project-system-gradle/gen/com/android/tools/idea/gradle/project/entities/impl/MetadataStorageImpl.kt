@@ -42,9 +42,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     val primitiveTypeMapNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = true, type = "Map")
     val primitiveTypeBooleanNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = true, type = "Boolean")
     val primitiveTypeCharNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = true, type = "Char")
-
     var typeMetadata: StorageTypeMetadata
-
     typeMetadata = FinalClassMetadata.ClassMetadata(
       fqName = "com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectEntitySource", properties = listOf(
       OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "phase",
@@ -183,9 +181,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                           withDefault = false)), supertypes = listOf("com.intellij.platform.workspace.storage.EntitySource",
                                                                      "org.jetbrains.plugins.gradle.service.syncAction.GradleEntitySource",
                                                                      "org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeEntitySource"))
-
     addMetadata(typeMetadata)
-
     typeMetadata = FinalClassMetadata.ClassMetadata(
       fqName = "com.android.tools.idea.gradle.project.sync.idea.AndroidGradleSourceSetEntitySource", properties = listOf(
       OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "phase",
@@ -324,8 +320,141 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                       isOpen = false, name = "phase",
                                                                                                       valueType = ValueTypeMetadata.SimpleType.CustomType(
                                                                                                         isNullable = false,
-                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                          fqName = "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase")),
+                                                                                                        typeMetadata = ExtendableClassMetadata.AbstractClassMetadata(
+                                                                                                          fqName = "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase",
+                                                                                                          subclasses = listOf(
+                                                                                                            FinalClassMetadata.ClassMetadata(
+                                                                                                              fqName = "org.jetbrains.plugins.gradle.service.syncAction.GradleDynamicSyncPhase",
+                                                                                                              properties = listOf(
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "modelFetchPhase",
+                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
+                                                                                                                    isNullable = false,
+                                                                                                                    typeMetadata = ExtendableClassMetadata.AbstractClassMetadata(
+                                                                                                                      fqName = "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase",
+                                                                                                                      subclasses = listOf(
+                                                                                                                        FinalClassMetadata.ClassMetadata(
+                                                                                                                          fqName = "com.intellij.gradle.toolingExtension.modelAction.GradleBuildFinishedModelFetchPhase",
+                                                                                                                          properties = listOf(
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "name",
+                                                                                                                              valueType = primitiveTypeStringNotNullable,
+                                                                                                                              withDefault = false),
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "order",
+                                                                                                                              valueType = primitiveTypeIntNotNullable,
+                                                                                                                              withDefault = false)),
+                                                                                                                          supertypes = listOf(
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase",
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase\$BuildFinished",
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase.BuildFinished",
+                                                                                                                            "java.io.Serializable",
+                                                                                                                            "kotlin.Comparable")),
+                                                                                                                        FinalClassMetadata.ClassMetadata(
+                                                                                                                          fqName = "com.intellij.gradle.toolingExtension.modelAction.GradleProjectLoadedModelFetchPhase",
+                                                                                                                          properties = listOf(
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "name",
+                                                                                                                              valueType = primitiveTypeStringNotNullable,
+                                                                                                                              withDefault = false),
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "order",
+                                                                                                                              valueType = primitiveTypeIntNotNullable,
+                                                                                                                              withDefault = false)),
+                                                                                                                          supertypes = listOf(
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase",
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase\$ProjectLoaded",
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase.ProjectLoaded",
+                                                                                                                            "java.io.Serializable",
+                                                                                                                            "kotlin.Comparable")),
+                                                                                                                        FinalClassMetadata.ObjectMetadata(
+                                                                                                                          fqName = "com.intellij.gradle.toolingExtension.modelAction.GradleBaseScriptModelFetchPhase",
+                                                                                                                          properties = listOf(
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "name",
+                                                                                                                              valueType = primitiveTypeStringNotNullable,
+                                                                                                                              withDefault = false)),
+                                                                                                                          supertypes = listOf(
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase",
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase\$BaseScript",
+                                                                                                                            "com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase.BaseScript",
+                                                                                                                            "java.io.Serializable",
+                                                                                                                            "kotlin.Comparable"))),
+                                                                                                                      supertypes = listOf(
+                                                                                                                        "java.io.Serializable",
+                                                                                                                        "java.lang.Comparable",
+                                                                                                                        "kotlin.Comparable"))),
+                                                                                                                  withDefault = false),
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "name",
+                                                                                                                  valueType = primitiveTypeStringNotNullable,
+                                                                                                                  withDefault = false)),
+                                                                                                              supertypes = listOf(
+                                                                                                                "kotlin.Comparable",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase\$Dynamic",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase.Dynamic")),
+                                                                                                            FinalClassMetadata.ClassMetadata(
+                                                                                                              fqName = "org.jetbrains.plugins.gradle.service.syncAction.GradleDataServicesSyncPhase",
+                                                                                                              properties = listOf(
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "name",
+                                                                                                                  valueType = primitiveTypeStringNotNullable,
+                                                                                                                  withDefault = false)),
+                                                                                                              supertypes = listOf(
+                                                                                                                "kotlin.Comparable",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase\$DataServices",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase.DataServices")),
+                                                                                                            FinalClassMetadata.ClassMetadata(
+                                                                                                              fqName = "org.jetbrains.plugins.gradle.service.syncAction.GradleStaticSyncPhase",
+                                                                                                              properties = listOf(
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "name",
+                                                                                                                  valueType = primitiveTypeStringNotNullable,
+                                                                                                                  withDefault = false),
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
+                                                                                                                  name = "order",
+                                                                                                                  valueType = primitiveTypeIntNotNullable,
+                                                                                                                  withDefault = false)),
+                                                                                                              supertypes = listOf(
+                                                                                                                "kotlin.Comparable",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase\$Static",
+                                                                                                                "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase.Static"))),
+                                                                                                          supertypes = listOf(
+                                                                                                            "java.lang.Comparable",
+                                                                                                            "kotlin.Comparable"))),
                                                                                                       withDefault = false),
                                                                                   OwnPropertyMetadata(isComputable = false, isKey = false,
                                                                                                       isOpen = false, name = "projectPath",
@@ -355,9 +484,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                           withDefault = false)), supertypes = listOf("com.intellij.platform.workspace.storage.EntitySource",
                                                                      "org.jetbrains.plugins.gradle.service.syncAction.GradleEntitySource",
                                                                      "org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeEntitySource"))
-
     addMetadata(typeMetadata)
-
     typeMetadata = EntityMetadata(fqName = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity",
                                   entityDataFqName = "com.android.tools.idea.gradle.project.entities.impl.GradleAndroidModelEntityData",
                                   supertypes = listOf("com.intellij.platform.workspace.storage.WorkspaceEntity"), properties = listOf(
@@ -5244,431 +5371,8 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                           name = "multiFlavorSourceProvider",
                                                                                                                           valueType = ValueTypeMetadata.SimpleType.CustomType(
                                                                                                                             isNullable = true,
-                                                                                                                            typeMetadata = FinalClassMetadata.ClassMetadata(
-                                                                                                                              fqName = "com.android.tools.idea.gradle.model.IdeSourceProvider",
-                                                                                                                              properties = listOf(
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "aidlDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "aidlDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "assetsDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "assetsDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "baselineProfileDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "baselineProfileDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "customSourceDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.ClassMetadata(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl",
-                                                                                                                                          properties = listOf(
-                                                                                                                                            OwnPropertyMetadata(
-                                                                                                                                              isComputable = false,
-                                                                                                                                              isKey = false,
-                                                                                                                                              isOpen = false,
-                                                                                                                                              name = "directory",
-                                                                                                                                              valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                                isNullable = false,
-                                                                                                                                                typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                                  fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                              withDefault = false),
-                                                                                                                                            OwnPropertyMetadata(
-                                                                                                                                              isComputable = false,
-                                                                                                                                              isKey = false,
-                                                                                                                                              isOpen = false,
-                                                                                                                                              name = "myFolder",
-                                                                                                                                              valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                                isNullable = true,
-                                                                                                                                                typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                                  fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                              withDefault = false),
-                                                                                                                                            OwnPropertyMetadata(
-                                                                                                                                              isComputable = false,
-                                                                                                                                              isKey = false,
-                                                                                                                                              isOpen = false,
-                                                                                                                                              name = "path",
-                                                                                                                                              valueType = primitiveTypeStringNotNullable,
-                                                                                                                                              withDefault = false),
-                                                                                                                                            OwnPropertyMetadata(
-                                                                                                                                              isComputable = false,
-                                                                                                                                              isKey = false,
-                                                                                                                                              isOpen = false,
-                                                                                                                                              name = "sourceTypeName",
-                                                                                                                                              valueType = primitiveTypeStringNotNullable,
-                                                                                                                                              withDefault = false)),
-                                                                                                                                          supertypes = listOf(
-                                                                                                                                            "com.android.tools.idea.gradle.model.IdeCustomSourceDirectory",
-                                                                                                                                            "java.io.Serializable")))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "customSourceDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "folderField",
-                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                    isNullable = true,
-                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "javaDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "javaDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "jniLibsDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "jniLibsDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "keepRulesDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "keepRulesDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "kotlinDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "kotlinDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "manifestFile",
-                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                    isNullable = true,
-                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "manifestFileField",
-                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                    isNullable = true,
-                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "mlModelsDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "mlModelsDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "name",
-                                                                                                                                  valueType = primitiveTypeStringNotNullable,
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "nameField",
-                                                                                                                                  valueType = primitiveTypeStringNotNullable,
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "renderscriptDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "renderscriptDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "resDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "resDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "resourcesDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "resourcesDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "shadersDirectories",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "shadersDirectoriesField",
-                                                                                                                                  valueType = ValueTypeMetadata.ParameterizedType(
-                                                                                                                                    generics = listOf(
-                                                                                                                                      ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                        isNullable = false,
-                                                                                                                                        typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                          fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
-                                                                                                                                    primitive = primitiveTypeListNotNullable),
-                                                                                                                                  withDefault = false)),
-                                                                                                                              supertypes = listOf(
-                                                                                                                                "java.io.Serializable"))),
+                                                                                                                            typeMetadata = FinalClassMetadata.KnownClass(
+                                                                                                                              fqName = "com.android.tools.idea.gradle.model.IdeSourceProvider")),
                                                                                                                           withDefault = false),
                                                                                                                         OwnPropertyMetadata(
                                                                                                                           isComputable = false,
@@ -8023,9 +7727,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                         entityFqName = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity",
                                                                         isChild = true, isNullable = true), withDefault = false)),
                                   isAbstract = false)
-
     addMetadata(typeMetadata)
-
     typeMetadata = EntityMetadata(fqName = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity",
                                   entityDataFqName = "com.android.tools.idea.gradle.project.entities.impl.GradleModuleModelEntityData",
                                   supertypes = listOf("com.intellij.platform.workspace.storage.WorkspaceEntity"), properties = listOf(
@@ -8124,15 +7826,13 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                         entityFqName = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity",
                                                                         isChild = true, isNullable = true), withDefault = false)),
                                   isAbstract = false)
-
     addMetadata(typeMetadata)
   }
 
   override fun initializeMetadataHash() {
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = 615499762)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", metadataHash = -992112746)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = 1421314580)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl", metadataHash = -1388364588)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeSourceProvider", metadataHash = -92469955)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeSourceProvider", metadataHash = -1488779769)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.FileImpl", metadataHash = -1013892919)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl", metadataHash = 236716780)
     addMetadataHash(typeFqn = "com.android.ide.common.repository.AgpVersion", metadataHash = 779049036)
@@ -8147,8 +7847,8 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl", metadataHash = 1101947873)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl", metadataHash = -1818980688)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreSerializable", metadataHash = -2066541760)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl", metadataHash = 1079931649)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl", metadataHash = -1613356178)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl", metadataHash = 1501050659)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl", metadataHash = 733043852)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl", metadataHash = -778716903)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBytecodeTransformationImpl", metadataHash = 1457664590)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeBytecodeTransformation\$Type", metadataHash = 1692703930)
@@ -8205,7 +7905,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.sdklib.devices.Abi", metadataHash = 1474563559)
     addMetadataHash(typeFqn = "com.android.tools.idea.model.TestExecutionOption", metadataHash = -650853306)
     addMetadataHash(typeFqn = "com.android.tools.idea.model.TestOptions", metadataHash = -411709092)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantImpl", metadataHash = -1097041484)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantImpl", metadataHash = -59835182)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl", metadataHash = -1003153941)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeDependencies", metadataHash = -1816906722)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeLibrary", metadataHash = 1847052760)
@@ -8243,9 +7943,10 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl", metadataHash = -618495050)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable", metadataHash = 1979204270)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl", metadataHash = 586445021)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", metadataHash = -992112746)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleModuleModel", metadataHash = 1018626463)
-    addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.EntitySource", metadataHash = -45250513)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectEntitySource", metadataHash = 763156455)
+    addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.EntitySource", metadataHash = 1595255547)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectEntitySource", metadataHash = 1206513947)
     addMetadataHash(typeFqn = "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase", metadataHash = 1187401489)
     addMetadataHash(typeFqn = "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase\$DataServices", metadataHash = -1256475695)
     addMetadataHash(typeFqn = "org.jetbrains.plugins.gradle.service.syncAction.GradleDataServicesSyncPhase", metadataHash = -1556399787)
@@ -8267,6 +7968,6 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase\$Static", metadataHash = -1839677424)
     addMetadataHash(typeFqn = "org.jetbrains.plugins.gradle.service.syncAction.GradleStaticSyncPhase", metadataHash = -181947250)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.sync.idea.AndroidGradleSourceSetEntitySource",
-                    metadataHash = -1129841266)
+                    metadataHash = -1132837438)
   }
 }

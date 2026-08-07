@@ -45,12 +45,10 @@ import com.intellij.platform.workspace.storage.metadata.model.EntityMetadata
 @OptIn(WorkspaceEntityInternalApi::class)
 internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleModelEntityData) : GradleModuleModelEntity, WorkspaceEntityBase(
   dataSource) {
-
   private companion object {
     internal val MODULE_CONNECTION_ID: ConnectionId = ConnectionId.create(ModuleEntity::class.java, GradleModuleModelEntity::class.java,
                                                                           ConnectionId.ConnectionType.ONE_TO_ONE, false)
     private val connections = listOf<ConnectionId>(MODULE_CONNECTION_ID)
-
   }
 
   override val module: ModuleEntity
@@ -61,7 +59,6 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
       readField("gradleModuleModel")
       return dataSource.gradleModuleModel
     }
-
   override val entitySource: EntitySource
     get() {
       readField("entitySource")
@@ -71,7 +68,6 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
   override fun connectionIdList(): List<ConnectionId> {
     return connections
   }
-
 
   internal class Builder(result: GradleModuleModelEntityData?) : ModifiableWorkspaceEntityBase<GradleModuleModelEntity, GradleModuleModelEntityData>(
     result), GradleModuleModelEntityBuilder {
@@ -95,7 +91,7 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
       this.currentEntityData = null
       // Process linked entities that are connected without a builder
       processLinkedEntities(builder)
-      checkInitialization() // TODO uncomment and check failed tests
+      checkInitialization()
     }
 
     private fun checkInitialization() {
@@ -130,14 +126,12 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
       updateChildToParentReferences(parents)
     }
 
-
     override var entitySource: EntitySource
       get() = getEntityData().entitySource
       set(value) {
         checkModificationAllowed()
         getEntityData(true).entitySource = value
         changedProperty.add("entitySource")
-
       }
     override var module: ModuleEntityBuilder
       get() {
@@ -156,10 +150,8 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
         checkModificationAllowed()
         val _diff = diff
         if (_diff != null && value is ModifiableWorkspaceEntityBase<*, *> && value.diff == null) {
-          if (value is ModifiableWorkspaceEntityBase<*, *>) {
-            value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
-          }
-          // else you're attaching a new entity to an existing entity that is not modifiable
+          value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
+          @Suppress("UNCHECKED_CAST")
           _diff.addEntity(value as ModifiableWorkspaceEntityBase<WorkspaceEntity, *>)
         }
         if (_diff != null && (value !is ModifiableWorkspaceEntityBase<*, *> || value.diff != null)) {
@@ -169,32 +161,26 @@ internal class GradleModuleModelEntityImpl(private val dataSource: GradleModuleM
           if (value is ModifiableWorkspaceEntityBase<*, *>) {
             value.entityLinks[EntityLink(true, MODULE_CONNECTION_ID)] = this
           }
-          // else you're attaching a new entity to an existing entity that is not modifiable
           this.entityLinks[EntityLink(false, MODULE_CONNECTION_ID)] = value
         }
         changedProperty.add("module")
       }
-
     override var gradleModuleModel: GradleModuleModel
       get() = getEntityData().gradleModuleModel
       set(value) {
         checkModificationAllowed()
         getEntityData(true).gradleModuleModel = value
         changedProperty.add("gradleModuleModel")
-
       }
 
     override fun getEntityClass(): Class<GradleModuleModelEntity> = GradleModuleModelEntity::class.java
   }
-
 }
 
 @OptIn(WorkspaceEntityInternalApi::class)
 internal class GradleModuleModelEntityData : WorkspaceEntityData<GradleModuleModelEntity>() {
   lateinit var gradleModuleModel: GradleModuleModel
-
   internal fun isGradleModuleModelInitialized(): Boolean = ::gradleModuleModel.isInitialized
-
   override fun wrapAsModifiable(diff: MutableEntityStorage): WorkspaceEntityBuilder<GradleModuleModelEntity> {
     val modifiable = GradleModuleModelEntityImpl.Builder(null)
     modifiable.diff = diff
