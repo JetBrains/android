@@ -361,20 +361,19 @@ class ComposePositioningCompletionContributor : CompletionContributor() {
 
 /** Suggests completion for the Alignment and Arrangement interfaces. */
 class ComposePositioningCompletionWeigher : CompletionWeigher() {
-  override fun weigh(lookupElement: LookupElement, location: CompletionLocation): Int? {
+  override fun weigh(lookupElement: LookupElement, location: CompletionLocation): Int? = runReadActionBlocking {
     val parameters = location.baseCompletionParameters
     val elementToComplete = parameters.position
 
-    val isComposeEnabled = runReadActionBlocking { isComposeEnabled(elementToComplete) }
-    if (!isComposeEnabled || parameters.originalFile !is KtFile) {
+    if (!isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
       // Return null when this isn't a completion we care about to avoid any further comparisons or
       // object allocations.
-      return null
+      return@runReadActionBlocking null
     }
 
     // Since this is a completion involving one of the types handled here, we want to rank
     // everything. If it's not an element being
     // adjusted, then the weight of '0' will effectively let the item pass through unmodified.
-    return PositioningInterface.forCompletionElement(elementToComplete)?.getWeight(lookupElement) ?: 0
+    PositioningInterface.forCompletionElement(elementToComplete)?.getWeight(lookupElement) ?: 0
   }
 }
