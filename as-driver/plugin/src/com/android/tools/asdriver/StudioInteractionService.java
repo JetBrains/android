@@ -238,6 +238,31 @@ public class StudioInteractionService {
 
     int numComponentsFound = componentsFound.size();
     if (numComponentsFound > 1) {
+      // If multiple components matched, first prefer components that are actively showing on screen.
+      Set<Component> showingComponents = componentsFound.stream()
+          .filter(Component::isShowing)
+          .collect(Collectors.toSet());
+      if (!showingComponents.isEmpty()) {
+        componentsFound = showingComponents;
+        numComponentsFound = componentsFound.size();
+      }
+    }
+
+    if (numComponentsFound > 1) {
+      // b/542306930: If multiple components matched and none are directly showing (e.g. components
+      // placed on an inactive CardLayout card beneath another component), prefer components whose
+      // ancestor container hierarchy is visible (e.g. filtering out components inside inactive/hidden
+      // tabs in JTabbedPane, such as the WSL tab in UniversalFileChooser on Windows).
+      Set<Component> componentsWithVisibleAncestors = componentsFound.stream()
+          .filter(StudioInteractionService::areAncestorsVisible)
+          .collect(Collectors.toSet());
+      if (!componentsWithVisibleAncestors.isEmpty()) {
+        componentsFound = componentsWithVisibleAncestors;
+        numComponentsFound = componentsFound.size();
+      }
+    }
+
+    if (numComponentsFound > 1) {
       StringBuilder sb = new StringBuilder();
       int index = 1;
       for (Component component : componentsFound) {
@@ -250,6 +275,17 @@ public class StudioInteractionService {
     }
 
     return componentsFound.stream().findFirst();
+  }
+
+  private static boolean areAncestorsVisible(Component c) {
+    Component parent = c.getParent();
+    while (parent != null) {
+      if (!parent.isVisible()) {
+        return false;
+      }
+      parent = parent.getParent();
+    }
+    return true;
   }
 
   /**
