@@ -215,6 +215,13 @@ public class BlazeCommandRunConfiguration
     updateTargetKindAsync(null);
   }
 
+  /** Sets multiple target patterns and asynchronously kicks off a target kind update. */
+  public void setTargetPatterns(@Nullable List<String> targetPatterns) {
+    this.targetPatterns =
+        targetPatterns != null ? ImmutableList.copyOf(targetPatterns) : ImmutableList.of();
+    updateTargetKindAsync(null);
+  }
+
   private void updateHandler() {
     BlazeCommandRunConfigurationHandlerProvider handlerProvider =
         BlazeCommandRunConfigurationHandlerProvider.findHandlerProvider(

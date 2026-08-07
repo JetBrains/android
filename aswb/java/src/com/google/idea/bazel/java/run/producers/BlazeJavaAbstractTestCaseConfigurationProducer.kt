@@ -25,6 +25,7 @@ import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.ConfigurationFromContext
 import com.intellij.execution.junit.JUnitUtil
+import com.intellij.openapi.application.readAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
@@ -78,7 +79,7 @@ class BlazeJavaAbstractTestCaseConfigurationProducer :
       SubclassTestChooser.chooseSubclass(context, initialContext.abstractClass) ?: throw CancellationException("No subclass chosen")
 
     val concreteContext =
-      JavaTestContextProvider.fromClassAndMethod(psiClass, initialContext.method)
+      readAction { JavaTestContextProvider.fromClassAndMethod(psiClass, initialContext.method) }
         ?: throw CancellationException("Could not create context for subclass")
 
     return concreteContext

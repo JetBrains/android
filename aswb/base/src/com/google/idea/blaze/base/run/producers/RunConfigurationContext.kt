@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.run.producers
 import com.google.idea.blaze.base.command.BlazeCommandName
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
+import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
@@ -38,7 +39,10 @@ interface RunConfigurationContext {
   /** Returns true if the run configuration matches this [RunConfigurationContext]. */
   fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean
 
-  /** Resolves the context (e.g. fetches target info in background). */
+  /** Stage 2 (EDT): Interactive user prompts (e.g. choosing subclass for abstract test classes). */
+  suspend fun refine(context: ConfigurationContext): RunConfigurationContext = this
+
+  /** Stage 2 (Background): Resolves the context (e.g. fetches target info in background). */
   suspend fun resolve(project: Project): RunConfigurationContext = this
 
   companion object {

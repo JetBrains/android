@@ -23,6 +23,7 @@ import com.intellij.execution.actions.ConfigurationFromContext
 import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
@@ -94,18 +95,22 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
 
   final override fun onFirstRun(configuration: ConfigurationFromContext, context: ConfigurationContext, startRunnable: Runnable) {
     val project = context.project
-    project.coroutineScope.launch(Dispatchers.EDT) {
+    project.coroutineScope.launch(Dispatchers.Default) {
       try {
-        val initialContext = findContext(context) ?: throw CancellationException("Context no longer valid")
+        val initialContext = readAction { findContext(context) } ?: throw CancellationException("Context no longer valid")
         val refinedContext = refineContext(initialContext, configuration, context)
-        val resolvedContext = withContext(Dispatchers.Default) { resolveContext(refinedContext, configuration, context) }
-        resolvedContext.setupRunConfiguration(configuration.configuration as BlazeCommandRunConfiguration)
-        startRunnable.run()
+        val resolvedContext = resolveContext(refinedContext, configuration, context)
+        withContext(Dispatchers.EDT) {
+          resolvedContext.setupRunConfiguration(configuration.configuration as BlazeCommandRunConfiguration)
+          startRunnable.run()
+        }
       } catch (e: CancellationException) {
         logger.info("Run configuration preparation cancelled: ${e.message}")
       } catch (e: Throwable) {
         logger.error("Failed to prepare run configuration", e)
-        Messages.showErrorDialog(project, "Failed to prepare run configuration: ${e.localizedMessage}", "Run Configuration Error")
+        withContext(Dispatchers.EDT) {
+          Messages.showErrorDialog(project, "Failed to prepare run configuration: ${e.localizedMessage}", "Run Configuration Error")
+        }
       }
     }
   }
@@ -114,7 +119,7 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
     initialContext: C,
     configuration: ConfigurationFromContext,
     context: ConfigurationContext,
-  ): RunConfigurationContext = initialContext
+  ): RunConfigurationContext = initialContext.refine(context)
 
   protected open suspend fun resolveContext(
     refinedContext: RunConfigurationContext,

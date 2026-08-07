@@ -18,15 +18,20 @@ package com.google.idea.bazel.java.run.producers
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.ide.util.PsiClassListCellRenderer
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.searches.ClassInheritorsSearch
+import com.intellij.util.getBestPopupPosition
 import javax.swing.ListSelectionModel
 import kotlin.coroutines.resume
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 
 /**
  * Pop up a dialog to choose a child test class. Called when creating a run configuration from an abstract (or non-abstract super-class)
@@ -37,9 +42,12 @@ object SubclassTestChooser {
   @VisibleForTesting var testSelectionHook: (suspend (List<PsiClass>) -> PsiClass?)? = null
 
   suspend fun chooseSubclass(context: ConfigurationContext, testClass: PsiClass): PsiClass? {
-    val classes = findTestSubclasses(testClass)
-    if (!testClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
-      classes.add(testClass)
+    val classes = readAction {
+      findTestSubclasses(testClass).also {
+        if (!testClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
+          it.add(testClass)
+        }
+      }
     }
     if (classes.isEmpty()) {
       return null
@@ -52,40 +60,42 @@ object SubclassTestChooser {
       return hook(classes)
     }
 
-    return suspendCancellableCoroutine { continuation ->
-      val renderer = PsiClassListCellRenderer()
-      classes.sortWith(renderer.comparator)
+    return withContext(Dispatchers.EDT) {
+      suspendCancellableCoroutine { continuation ->
+        val renderer = PsiClassListCellRenderer()
+        classes.sortWith(renderer.comparator)
 
-      val popup =
-        JBPopupFactory.getInstance()
-          .createPopupChooserBuilder(classes)
-          .setTitle("Choose test class to run")
-          .setMovable(false)
-          .setResizable(false)
-          .setRequestFocus(true)
-          .setCancelOnWindowDeactivation(false)
-          .setRenderer(renderer)
-          .setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-          .setItemChosenCallback { target ->
-            if (continuation.isActive) {
-              continuation.resume(target)
+        val popup =
+          JBPopupFactory.getInstance()
+            .createPopupChooserBuilder(classes)
+            .setTitle("Choose test class to run")
+            .setMovable(true)
+            .setResizable(false)
+            .setRequestFocus(true)
+            .setCancelOnWindowDeactivation(false)
+            .setRenderer(renderer)
+            .setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+            .setItemChosenCallback { target ->
+              if (continuation.isActive) {
+                continuation.resume(target)
+              }
+            }
+            .createPopup()
+
+        popup.addListener(
+          object : JBPopupListener {
+            override fun onClosed(event: LightweightWindowEvent) {
+              if (!event.isOk && continuation.isActive) {
+                continuation.resume(null)
+              }
             }
           }
-          .createPopup()
+        )
 
-      popup.addListener(
-        object : JBPopupListener {
-          override fun onClosed(event: LightweightWindowEvent) {
-            if (!event.isOk && continuation.isActive) {
-              continuation.resume(null)
-            }
-          }
-        }
-      )
+        continuation.invokeOnCancellation { popup.cancel() }
 
-      continuation.invokeOnCancellation { popup.cancel() }
-
-      popup.showInBestPositionFor(context.dataContext)
+        popup.show(getBestPopupPosition(context.dataContext))
+      }
     }
   }
 
