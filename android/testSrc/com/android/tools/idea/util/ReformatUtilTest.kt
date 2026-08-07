@@ -17,6 +17,7 @@ package com.android.tools.idea.util
 
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.newvfs.ManagingFS
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import java.io.File
 
@@ -34,6 +35,7 @@ class ReformatUtilTest : BasePlatformTestCase() {
       LocalFileSystem.getInstance().refreshAndFindFileByIoFile(tempDir)
 
       ReformatUtil.reformatRearrangeAndSave(project, listOf(javaFile, xmlFile))
+      ManagingFS.getInstance().flushPendingUpdates()
 
       assertTrue(javaFile.readText().contains("    public void method()"))
       val xmlContent = xmlFile.readText()

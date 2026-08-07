@@ -21,6 +21,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.newvfs.ManagingFS
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.codeStyle.CodeStyleManager
@@ -44,6 +45,7 @@ object ReformatUtil {
           FileDocumentManager.getInstance().run { getDocument(virtualFile)?.let { document -> saveDocument(document) } }
         }
       }
+    ManagingFS.getInstance().flushPendingUpdates()
   }
 
   /**
