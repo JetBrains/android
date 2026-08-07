@@ -26,7 +26,6 @@ private const val ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW_DEPS = "tools/adt/i
 class ComposePreviewTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      System.setProperty("idea.leak.check.enabled", "false")
       if (File(ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW_DEPS).exists()) {
         linkIntoOfflineMavenRepo(ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW_DEPS)
         linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/8.13.0.manifest")

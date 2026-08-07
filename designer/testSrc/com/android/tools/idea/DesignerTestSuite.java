@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 public class DesignerTestSuite extends IdeaTestSuiteBase {
 
   static {
-    System.setProperty("idea.leak.check.enabled", "false");
     linkIntoOfflineMavenRepo("tools/adt/idea/designer/test_deps.manifest");
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");

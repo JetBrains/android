@@ -23,7 +23,6 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 public class LayoutInspectorTestSuite extends IdeaTestSuiteBase {
   static {
-    System.setProperty("idea.leak.check.enabled", "false");
     IconLoaderRule.enableIconLoading();
   }
 }

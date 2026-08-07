@@ -22,7 +22,6 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 public class NavEditorTestSuite extends IdeaTestSuiteBase {
   static {
-    System.setProperty("idea.leak.check.enabled", "false");
     linkIntoOfflineMavenRepo("tools/adt/idea/nav/editor/test_deps.manifest");
   }
 }
