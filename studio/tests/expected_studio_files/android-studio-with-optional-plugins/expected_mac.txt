@@ -3579,6 +3579,7 @@ Android Studio Preview.app/Contents/plugins/libraries-misc-plugin/lib/modules/in
 Android Studio Preview.app/Contents/plugins/lume-aiplugin/lib/aiplugin-lightbuild.jar
 Android Studio Preview.app/Contents/plugins/lume/lib/kaml-jvm-0.61.0.jar
 Android Studio Preview.app/Contents/plugins/lume/lib/libjson-schema-validator-shaded.jar
+Android Studio Preview.app/Contents/plugins/lume/lib/liblightbuild-ksp-plugin.jar
 Android Studio Preview.app/Contents/plugins/lume/lib/liblume-android-plugin.jar
 Android Studio Preview.app/Contents/plugins/lume/lib/liblume-ide-api-impl.jar
 Android Studio Preview.app/Contents/plugins/lume/lib/liblume-kotlin-plugin.jar
