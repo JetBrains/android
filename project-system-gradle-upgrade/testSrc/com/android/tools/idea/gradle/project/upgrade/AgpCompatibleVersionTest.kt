@@ -57,7 +57,8 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
         "9.1" to GradleVersion.version("9.3.1"),
         "9.2" to GradleVersion.version("9.4.1"),
         "9.3" to GradleVersion.version("9.5.0"),
-        "9.4" to GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION),
+        "9.4" to GradleVersion.version("9.6.0"),
+        "9.5" to GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION),
       )
     fun String.toBetaVersionString() =
       when (this) {
