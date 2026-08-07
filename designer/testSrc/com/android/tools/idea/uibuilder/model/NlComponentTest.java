@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.model;
 import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAME_LAYOUT;
@@ -584,6 +586,17 @@ public final class NlComponentTest extends LayoutTestCase {
     TagSnapshot snapshot = listView.getSnapshot();
     snapshot.setAttribute(ATTR_ID, ANDROID_URI, ANDROID_NS_NAME, NlComponent.ID_DYNAMIC);
     assertThat(listView.getAttribute(ANDROID_URI, ATTR_ID)).isNull();
+  }
+
+  public void testToolsAttributeDoesNotUseStyleResolution() {
+    myModel = createModel();
+    NlComponent textView = myModel.getTreeReader().find("textView1");
+    TagSnapshot snapshot = textView.getSnapshot();
+    if (snapshot != null) {
+      snapshot.setAttribute(ATTR_STYLE, null, null, "@style/MyStyle");
+    }
+    assertThat(textView.getAttribute(TOOLS_URI, ATTR_TEXT)).isNull();
+    assertThat(textView.resolveAttribute(TOOLS_URI, ATTR_TEXT)).isNull();
   }
 
   /**

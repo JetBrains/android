@@ -32,6 +32,7 @@ import com.android.SdkConstants.TAG_GROUP
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_MENU
 import com.android.SdkConstants.TAG_SELECTOR
+import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.SdkConstants.VIEW_INCLUDE
 import com.android.SdkConstants.VIEW_MERGE
@@ -470,6 +471,10 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
   }
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
+    // Design-time (tools) attributes cannot be defined in style resources, so skip style-based attribute resolution.
+    if (TOOLS_URI == namespace) {
+      return null
+    }
     val styleAttributeValue = component.getAttribute(null, "style") ?: return null
 
     val resources = component.model.configuration.resourceResolver ?: return null

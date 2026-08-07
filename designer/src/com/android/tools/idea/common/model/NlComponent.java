@@ -20,10 +20,13 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.XMLNS;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
+import android.view.accessibility.AccessibilityNodeInfo;
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
@@ -108,7 +111,7 @@ public class NlComponent implements NlAttributesHolder {
   @Nullable AttributesTransaction myCurrentTransaction;
 
   /**
-   * ID from {@link android.view.accessibility.AccessibilityNodeInfo} associated with this NlComponent,
+   * ID from {@link AccessibilityNodeInfo} associated with this NlComponent,
    * equals to -1 if there are no such AccessibilityNodeInfo.
    */
   long myAccessibilityId = -1;
@@ -482,11 +485,12 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   /**
-   * Returns the latest attribute value (either live -- not committed -- or from xml)
+   * Returns the latest attribute value (either live from an active transaction, or from XML).
+   * Includes style resolution for non-{@link SdkConstants#TOOLS_URI} attributes.
    *
-   * @param namespace
-   * @param attribute
-   * @return
+   * @param namespace the XML namespace URI of the attribute, or null if un-namespaced
+   * @param attribute the attribute name
+   * @return the live attribute value
    */
   @Nullable
   public String getLiveAttribute(@Nullable String namespace, @NotNull String attribute) {
@@ -496,6 +500,13 @@ public class NlComponent implements NlAttributesHolder {
     return getAttribute(namespace, attribute);
   }
 
+  /**
+   * Returns the latest attribute value without performing style resolution.
+   *
+   * @param namespace the XML namespace URI of the attribute, or null if un-namespaced
+   * @param attribute the attribute name
+   * @return the attribute value without style resolution
+   */
   public String getLiveAttributeWithoutStyleResolution(@Nullable String namespace, @NotNull String attribute) {
     if (myCurrentTransaction != null) {
       return myCurrentTransaction.getAttribute(namespace, attribute);
@@ -503,6 +514,17 @@ public class NlComponent implements NlAttributesHolder {
     return getAttributeImpl(namespace, attribute, /* styleResolution */ false);
   }
 
+  /**
+   * Returns the value of the specified attribute on this component, performing style resolution if the attribute
+   * is not explicitly defined on the component tag itself.
+   * <p>
+   * Note: Style resolution is skipped when {@code namespace} is {@link SdkConstants#TOOLS_URI} because design-time
+   * (tools) attributes are declared explicitly on layout elements and cannot be defined within style or theme resources.
+   *
+   * @param namespace the XML namespace URI of the attribute, or null if un-namespaced
+   * @param attribute the attribute name
+   * @return the attribute value, or null if not found
+   */
   @Override
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
@@ -525,9 +547,9 @@ public class NlComponent implements NlAttributesHolder {
         return value;
       }
 
-      if (styleResolution) {
+      if (styleResolution && !TOOLS_URI.equals(namespace)) {
         // Check if the component has an associated style that contains this attribute
-        String style = snapshot.getAttribute(ATTR_STYLE, "");
+        String style = snapshot.getAttribute(ATTR_STYLE, null);
         if (style == null) {
           return null;
         }
@@ -558,6 +580,17 @@ public class NlComponent implements NlAttributesHolder {
     return myBackend.getAttribute(attribute, namespace);
   }
 
+  /**
+   * Resolves the value of the specified attribute on this component, falling back to the registered
+   * {@link XmlModelComponentMixin} if not found on the component or via style resolution.
+   * <p>
+   * Note: As with {@link #getAttribute(String, String)}, style resolution is not performed for attributes in the
+   * {@link SdkConstants#TOOLS_URI} namespace because design-time tools overrides are not defined in styles.
+   *
+   * @param namespace the XML namespace URI of the attribute, or null if un-namespaced
+   * @param attribute the attribute name
+   * @return the resolved attribute value, or null if not found
+   */
   @Nullable
   public String resolveAttribute(@Nullable String namespace, @NotNull String attribute) {
     String value = getAttribute(namespace, attribute);
