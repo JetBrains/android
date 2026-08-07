@@ -28,7 +28,7 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
-        "@lib//:jetbrains-annotations",
+        "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/protobuf",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
@@ -84,6 +84,7 @@ jvm_library(
         ":dagger",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/analysis-api-impl-base:libraries-kotlinc-analysis-api-impl-base_test_lib",

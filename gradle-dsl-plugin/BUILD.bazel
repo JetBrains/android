@@ -17,7 +17,7 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
-        "@lib//:jetbrains-annotations",
+        "//libraries/jetbrains/annotations",
         "//libraries/guava",
         "//platform/util",
         "//platform/projectModel-api:projectModel",

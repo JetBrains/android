@@ -15,7 +15,7 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:jetbrains-annotations",
+        "//libraries/jetbrains/annotations",
         "//libraries/guava",
         "@lib//:kotlin-stdlib",
         "@lib//:layoutlib",
@@ -37,6 +37,7 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":visual-lint",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
         "//libraries/guava:guava_test_lib",
         "@lib//:studio-platform-provided",
         "//android/rendering:rendering_test_lib",

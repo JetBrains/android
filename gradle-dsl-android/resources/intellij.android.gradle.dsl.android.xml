@@ -4,6 +4,7 @@
     <!-- JetBrains patch: com.android.tools.gradle.dsl is not relevant for IJ -->
     <plugin id="org.jetbrains.idea.gradle.dsl"/>
     <module name="intellij.libraries.guava"/>
+    <module name="intellij.libraries.jetbrains.annotations"/>
     <module name="intellij.platform.core"/>
   </dependencies>
   <!-- endregion -->

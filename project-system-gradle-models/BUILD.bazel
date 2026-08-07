@@ -26,7 +26,7 @@ jvm_library(
         # do not sort,
         "@lib//:studio-platform-provided",
         "//libraries/guava",
-        "@lib//:jetbrains-annotations",
+        "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
     ],
 )
@@ -47,6 +47,7 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.models` end
