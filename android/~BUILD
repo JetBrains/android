@@ -492,6 +492,7 @@ filegroup(
         "//tools/vendor/google/optional-plugins/project-system-lightbuild:lightbuild-ide-api-impl",
         "//tools/vendor/google/optional-plugins/project-system-lightbuild:lightbuild-json-schema-validator-shaded",
         "//tools/vendor/google/optional-plugins/project-system-lightbuild:lightbuild-kotlin-plugin",
+        "//tools/vendor/google/optional-plugins/project-system-lightbuild:lightbuild-ksp-plugin",
         "//tools/vendor/google/studio-automation/plugin:automation-driver-proto",
         "//tools/vendor/google/url-assistant:urlassistant_proto",
         "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
