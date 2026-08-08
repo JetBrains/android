@@ -14,7 +14,7 @@ jvm_library(
         # do not sort,
         "//android/design-plugin/descriptor",
         "//android/android-plugin/descriptor",
-        "@lib//:opentest4j",
+        "//libraries/opentest4j",
     ],
 )
 
@@ -38,6 +38,7 @@ jvm_library(
         "//platform/ide-core:ide-core_test_lib",
         "//android/design-plugin/descriptor:descriptor_test_lib",
         "//android/android-plugin/descriptor:descriptor_test_lib",
+        "//libraries/opentest4j:opentest4j_test_lib",
     ],
     deps = [
         # do not sort,
