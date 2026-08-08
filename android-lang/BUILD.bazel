@@ -63,6 +63,7 @@ jvm_library(
         "//platform/ide-core",
         "//plugins/kotlin/base/util",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+        "//plugins/IntelliLang:langInjection",
     ],
 )
 
@@ -119,6 +120,7 @@ jvm_library(
         "//platform/ide-core:ide-core_test_lib",
         "//plugins/kotlin/base/util:util_test_lib",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+        "//plugins/IntelliLang:langInjection_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.lang` end

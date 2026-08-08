@@ -23,6 +23,7 @@ jvm_library(
         # do not sort,
         "@lib//:kotlin-stdlib",
         "//platform/util",
+        "//platform/ide-core-impl",
     ],
 )
 
@@ -42,6 +43,7 @@ jvm_library(
         ":gradle-declarative-lang-flags",
         "//platform/util:util_test_lib",
         "//platform/ide-core:ide-core_test_lib",
+        "//platform/ide-core-impl:ide-core-impl_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.flags` end
