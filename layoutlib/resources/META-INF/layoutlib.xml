@@ -15,6 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.android.tools.idea.layoutlib">
+    <!--suppress PluginXmlReferencesModuleReachability (the EP lives in org.jetbrains.android, a declared plugin dependency; a JPS edge to intellij.android.core would pull the android plugin onto the community test classpath) -->
     <layoutLibraryProvider implementation="com.android.layoutlib.LayoutlibProvider"/>
   </extensions>
 </idea-plugin>

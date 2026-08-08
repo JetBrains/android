@@ -13,6 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+<!--suppress PluginXmlReferencesModuleReachability (an Android Studio descriptor that no JPS module owns; it must not add android edges to intellij.idea.community.main) -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <depends>org.intellij.groovy</depends>
   <depends>org.jetbrains.kotlin</depends>

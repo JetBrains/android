@@ -15,6 +15,7 @@
   -->
 <idea-plugin package="com.android.tools.idea.gradle.dsl.kotlin" >
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
+    <!--suppress PluginXmlReferencesModuleReachability (the EP lives in org.jetbrains.idea.gradle.dsl, a declared plugin dependency; the EP-name reference needs no JPS edge) -->
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.kotlin.KotlinDslTransformerFactory"/>
   </extensions>
 </idea-plugin>

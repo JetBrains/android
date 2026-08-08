@@ -13,6 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+<!--suppress PluginXmlReferencesModuleReachability (an Android Studio descriptor that no JPS module owns; it must not add android edges to intellij.idea.community.main) -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
