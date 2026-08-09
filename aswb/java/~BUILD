@@ -143,7 +143,10 @@ java_binary(
 intellij_integration_test_suite(
     name = "integration_tests",
     srcs = glob(
-        ["tests/integrationtests/**/*.java"],
+        [
+            "tests/integrationtests/**/*.java",
+            "tests/integrationtests/**/*.kt",
+        ],
     ),
     tags = [
         "noci:studio-win",

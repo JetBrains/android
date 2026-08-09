@@ -130,7 +130,7 @@ class BlazeJavaAbstractTestCaseConfigurationProducerTest : BlazeRunConfiguration
     val configurations = context.configurationsFromContext
     assertThat(configurations).hasSize(1)
 
-    val fromContext = configurations[0]
+    val fromContext = configurations!![0]
     assertThat(fromContext.isProducedBy(BlazeJavaAbstractTestCaseConfigurationProducer::class.java)).isTrue()
     assertThat(fromContext.sourceElement).isEqualTo(javaClass)
 
@@ -171,7 +171,7 @@ class BlazeJavaAbstractTestCaseConfigurationProducerTest : BlazeRunConfiguration
     val configurations = context.configurationsFromContext
     assertThat(configurations).hasSize(1)
 
-    val fromContext = configurations[0]
+    val fromContext = configurations!![0]
     assertThat(fromContext.isProducedBy(BlazeJavaAbstractTestCaseConfigurationProducer::class.java)).isTrue()
     assertThat(fromContext.sourceElement).isEqualTo(javaClass)
 
@@ -227,7 +227,7 @@ class BlazeJavaAbstractTestCaseConfigurationProducerTest : BlazeRunConfiguration
     val configurations = context.configurationsFromContext
     assertThat(configurations).hasSize(1)
 
-    val fromContext = configurations[0]
+    val fromContext = configurations!![0]
     assertThat(fromContext.isProducedBy(BlazeJavaAbstractTestCaseConfigurationProducer::class.java)).isTrue()
     assertThat(fromContext.sourceElement).isEqualTo(method)
 
@@ -279,7 +279,7 @@ class BlazeJavaAbstractTestCaseConfigurationProducerTest : BlazeRunConfiguration
     val javaClass = (abstractClassFile as PsiClassOwner).classes[0]
     val context = createContextFromPsi(abstractClassFile)
     val configurations = context.configurationsFromContext
-    val fromContext = configurations[0]
+    val fromContext = configurations!![0]
     val blazeConfig = fromContext.configuration as BlazeCommandRunConfiguration
 
     val builder = MockBlazeProjectDataBuilder.builder(workspaceRoot)
