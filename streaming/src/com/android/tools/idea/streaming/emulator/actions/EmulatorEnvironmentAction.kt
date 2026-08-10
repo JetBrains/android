@@ -19,6 +19,7 @@ import com.android.emulator.control.Environment
 import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avd.EnvironmentImageScanner.is360Image
+import com.android.tools.idea.avd.EnvironmentImageScanner.is360ImageCandidate
 import com.android.tools.idea.avd.EnvironmentsUpdater
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -84,16 +85,35 @@ internal sealed class EmulatorEnvironmentAction :
     EnvironmentTracker.forEmulator(emulator)?.environment = environment
   }
 
-  protected suspend fun createEnvironmentMessage(file: Path): Environment {
+  protected suspend fun createEnvironmentMessage(file: Path, project: Project? = null): Environment {
     val pathStr = toSystemIndependentName(file.toString())
     val mode =
       when {
         file.fileName.toString().endsWith(".obj", ignoreCase = true) -> "mesh3d:$pathStr"
         StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.get() && isVideoFile(file) -> "videofile:$pathStr"
-        StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.get() && withContext(Dispatchers.IO) { is360Image(file) } -> "image360:$pathStr"
+        StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.get() && is360ImageWithConfirmation(file, project) -> "image360:$pathStr"
         else -> "imagefile:$pathStr"
       }
     return Environment.newBuilder().putEnvironment("scene.mode", mode).build()
+  }
+
+  private suspend fun is360ImageWithConfirmation(file: Path, project: Project?): Boolean {
+    val isXmp360 = withContext(Dispatchers.IO) { is360Image(file) }
+    if (isXmp360) return true
+
+    val isCandidate = withContext(Dispatchers.IO) { is360ImageCandidate(file) }
+    if (!isCandidate) return false
+
+    return withContext(Dispatchers.EDT) {
+      val response =
+        Messages.showYesNoDialog(
+          project,
+          "The selected image appears to be a 360-degree image. Would you like to use it as a 360-degree environment?",
+          "360-Degree Image",
+          Messages.getQuestionIcon(),
+        )
+      response == Messages.YES
+    }
   }
 
   class Darkness : EmulatorEnvironmentAction() {
@@ -150,7 +170,7 @@ internal sealed class EmulatorEnvironmentAction :
       }
 
       filePath = toSystemIndependentName(virtualFile.path)
-      return createEnvironmentMessage(path)
+      return createEnvironmentMessage(path, project)
     }
 
     override fun onEnvironmentSet(emulator: EmulatorController, environment: Environment) {
@@ -173,7 +193,7 @@ internal sealed class EmulatorEnvironmentAction :
       templatePresentation.description = filePath.toString()
     }
 
-    override suspend fun prepareEnvironment(project: Project?): Environment = createEnvironmentMessage(filePath)
+    override suspend fun prepareEnvironment(project: Project?): Environment = createEnvironmentMessage(filePath, project)
 
     override fun onEnvironmentSet(emulator: EmulatorController, environment: Environment) {
       super.onEnvironmentSet(emulator, environment)

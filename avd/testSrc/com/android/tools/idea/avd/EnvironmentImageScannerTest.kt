@@ -16,9 +16,13 @@
 package com.android.tools.idea.avd
 
 import com.google.common.truth.Truth.assertThat
+import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import java.util.zip.Deflater
+import javax.imageio.ImageIO
+import kotlin.math.PI
+import kotlin.math.sin
 import kotlin.text.Charsets.US_ASCII
 import kotlin.text.Charsets.UTF_8
 import org.junit.Test
@@ -331,5 +335,51 @@ class EnvironmentImageScannerTest {
     bos.write(data)
     // CRC (dummy)
     bos.write(byteArrayOf(0, 0, 0, 0))
+  }
+
+  @Test
+  fun testIs360ImageCandidate_2To1SeamlessBoundary() {
+    val w = 200
+    val h = 100
+    val img = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+    for (y in 0 until h) {
+      for (x in 0 until w) {
+        val v = (128 + 127 * sin(2 * PI * x / w)).toInt().coerceIn(0, 255)
+        val color = (v shl 16) or (v shl 8) or v
+        img.setRGB(x, y, color)
+      }
+    }
+
+    val tempFile = Files.createTempFile("seamless", ".png")
+    ImageIO.write(img, "png", tempFile.toFile())
+
+    assertThat(EnvironmentImageScanner.is360ImageCandidate(tempFile)).isTrue()
+  }
+
+  @Test
+  fun testIs360ImageCandidate_2To1DiscontinuousBoundary() {
+    val w = 200
+    val h = 100
+    val img = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+    for (y in 0 until h) {
+      for (x in 0 until w) {
+        val color = if (x < w / 2) 0x000000 else 0xFFFFFF
+        img.setRGB(x, y, color)
+      }
+    }
+
+    val tempFile = Files.createTempFile("discontinuous", ".png")
+    ImageIO.write(img, "png", tempFile.toFile())
+
+    assertThat(EnvironmentImageScanner.is360ImageCandidate(tempFile)).isFalse()
+  }
+
+  @Test
+  fun testIs360ImageCandidate_16To9Image() {
+    val img = BufferedImage(160, 90, BufferedImage.TYPE_INT_RGB)
+    val tempFile = Files.createTempFile("not2to1", ".png")
+    ImageIO.write(img, "png", tempFile.toFile())
+
+    assertThat(EnvironmentImageScanner.is360ImageCandidate(tempFile)).isFalse()
   }
 }

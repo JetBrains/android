@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
 import com.intellij.openapi.vfs.VirtualFile
@@ -53,11 +54,15 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeoutException
 import java.util.zip.Deflater
+import javax.imageio.ImageIO
+import kotlin.math.PI
+import kotlin.math.sin
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
@@ -402,6 +407,66 @@ class EmulatorEnvironmentActionTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
     assertThat(shortDebugString(call.request))
       .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${jpeg.systemIndependentString}\" }")
+  }
+
+  @Test
+  fun testRecentCustom360ImageCandidate_userConfirms() {
+    StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    val w = 200
+    val h = 100
+    val img = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+    for (y in 0 until h) {
+      for (x in 0 until w) {
+        val v = (128 + 127 * sin(2 * PI * x / w)).toInt().coerceIn(0, 255)
+        val color = (v shl 16) or (v shl 8) or v
+        img.setRGB(x, y, color)
+      }
+    }
+    val tempFile = tempDirRule.newPath("equirectangular_candidate.png")
+    ImageIO.write(img, "png", tempFile.toFile())
+
+    val oldDialog = TestDialogManager.setTestDialog(TestDialog.YES)
+    try {
+      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+      val call = emulator.getNextGrpcCall(2.seconds)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+      assertThat(shortDebugString(call.request))
+        .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
+    } finally {
+      TestDialogManager.setTestDialog(oldDialog)
+    }
+  }
+
+  @Test
+  fun testRecentCustom360ImageCandidate_userDeclines() {
+    StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    val w = 200
+    val h = 100
+    val img = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+    for (y in 0 until h) {
+      for (x in 0 until w) {
+        val v = (128 + 127 * sin(2 * PI * x / w)).toInt().coerceIn(0, 255)
+        val color = (v shl 16) or (v shl 8) or v
+        img.setRGB(x, y, color)
+      }
+    }
+    val tempFile = tempDirRule.newPath("equirectangular_candidate.png")
+    ImageIO.write(img, "png", tempFile.toFile())
+
+    val oldDialog = TestDialogManager.setTestDialog(TestDialog.NO)
+    try {
+      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+      val call = emulator.getNextGrpcCall(2.seconds)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+      assertThat(shortDebugString(call.request))
+        .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${tempFile.systemIndependentString}\" }")
+    } finally {
+      TestDialogManager.setTestDialog(oldDialog)
+    }
   }
 
   @Test

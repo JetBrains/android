@@ -16,12 +16,14 @@
 package com.android.tools.idea.avd
 
 import com.intellij.openapi.diagnostic.thisLogger
+import java.awt.image.BufferedImage
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.zip.Inflater
+import javax.imageio.ImageIO
 import kotlin.text.Charsets.US_ASCII
 import kotlin.text.Charsets.UTF_8
 import org.kxml2.io.KXmlParser
@@ -344,5 +346,100 @@ object EnvironmentImageScanner {
       }
     }
     return false
+  }
+
+  /**
+   * Checks if an image file without XMP metadata is a 360-degree candidate by checking for a 2:1 or greater aspect ratio and performing a
+   * cyclic boundary test (left-right edge continuity using SSIM).
+   */
+  fun is360ImageCandidate(path: Path): Boolean {
+    return try {
+      Files.newInputStream(path).use { inputStream ->
+        val image = ImageIO.read(inputStream) ?: return false
+        is360ImageCandidate(image)
+      }
+    } catch (e: Exception) {
+      thisLogger().warn("Failed to check if image is 360 candidate: $path", e)
+      false
+    }
+  }
+
+  private fun is360ImageCandidate(image: BufferedImage): Boolean =
+    hasAtLeastTwoToOneAspectRatio(image.width, image.height) && hasCyclicBoundaryContinuity(image)
+
+  private fun hasAtLeastTwoToOneAspectRatio(width: Int, height: Int): Boolean = width > 0 && height > 0 && width >= height * 2
+
+  private fun hasCyclicBoundaryContinuity(image: BufferedImage, threshold: Double = 0.8): Boolean {
+    if (image.width < 2) return false
+
+    val leftStrip = image.getSubimage(0, 0, 1, image.height)
+    val rightStrip = image.getSubimage(image.width - 1, 0, 1, image.height)
+
+    val ssim = computeSsim(leftStrip, rightStrip)
+    return ssim >= threshold
+  }
+
+  /**
+   * Computes the Structural Similarity Index Measure (SSIM) between two images of equal dimensions, weighted across the Red, Green, and
+   * Blue color channels using perceptual Rec. 601 weights.
+   *
+   * The returned value ranges from -1.0 to 1.0, where 1.0 indicates identical visual structure and color.
+   *
+   * @param img1 the first image strip
+   * @param img2 the second image strip
+   * @return the SSIM score between [img1] and [img2], or 0.0 if dimensions differ or are invalid
+   */
+  private fun computeSsim(img1: BufferedImage, img2: BufferedImage): Double {
+    val w = img1.width
+    val h = img1.height
+    if (w != img2.width || h != img2.height || w <= 0 || h <= 0) return 0.0
+
+    val ssimR = computeChannelSsim(img1, img2, shift = 16)
+    val ssimG = computeChannelSsim(img1, img2, shift = 8)
+    val ssimB = computeChannelSsim(img1, img2, shift = 0)
+
+    // Combine channel SSIMs using Rec. 601 luma weights based on human visual sensitivity (Red: 29.9%, Green: 58.7%, Blue: 11.4%).
+    return 0.299 * ssimR + 0.587 * ssimG + 0.114 * ssimB
+  }
+
+  private fun computeChannelSsim(img1: BufferedImage, img2: BufferedImage, shift: Int): Double {
+    val w = img1.width
+    val h = img1.height
+    val n = (w * h).toDouble()
+
+    var sumX = 0.0
+    var sumY = 0.0
+    var sumX2 = 0.0
+    var sumY2 = 0.0
+    var sumXY = 0.0
+
+    for (y in 0 until h) {
+      for (x in 0 until w) {
+        val val1 = ((img1.getRGB(x, y) shr shift) and 0xFF).toDouble()
+        val val2 = ((img2.getRGB(x, y) shr shift) and 0xFF).toDouble()
+        sumX += val1
+        sumY += val2
+        sumX2 += val1 * val1
+        sumY2 += val2 * val2
+        sumXY += val1 * val2
+      }
+    }
+
+    val meanX = sumX / n
+    val meanY = sumY / n
+    val varX = (sumX2 / n) - (meanX * meanX)
+    val varY = (sumY2 / n) - (meanY * meanY)
+    val covXY = (sumXY / n) - (meanX * meanY)
+
+    val k1 = 0.01
+    val k2 = 0.03
+    val l = 255.0
+    val c1 = (k1 * l) * (k1 * l)
+    val c2 = (k2 * l) * (k2 * l)
+
+    val numerator = (2.0 * meanX * meanY + c1) * (2.0 * covXY + c2)
+    val denominator = (meanX * meanX + meanY * meanY + c1) * (varX + varY + c2)
+
+    return numerator / denominator
   }
 }
