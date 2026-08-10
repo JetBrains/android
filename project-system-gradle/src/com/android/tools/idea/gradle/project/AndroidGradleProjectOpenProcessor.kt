@@ -125,7 +125,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
     file.toPathString().resolve(Project.DIRECTORY_STORE_FOLDER).toVirtualFile(true) != null
 }
 
-/** todo Android should somehow do not duplicate platfrom functionality (it should be as part of openProject) */
+/** todo Android should somehow do not duplicate platform functionality (it should be as part of openProject) */
 @Suppress("DuplicatedCode")
 private fun confirmOpenNewProject(): Int {
   if (ApplicationManager.getApplication().isUnitTestMode) {
