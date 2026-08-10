@@ -369,10 +369,11 @@ class EmulatorEnvironmentActionTest {
     val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
     val children = group.getChildren(null)
 
-    // Expect original children + Separator + Recent Environments submenu
+    // Expect original children + Separators + Recent Environments submenu
     assertThat(children.size).isEqualTo(9)
-    val recentGroup = children[4] as DefaultActionGroup
-    assertThat(children[5]).isInstanceOf(Separator::class.java)
+    assertThat(children[3]).isInstanceOf(Separator::class.java)
+    val recentGroup = children[5] as DefaultActionGroup
+    assertThat(children[7]).isInstanceOf(Separator::class.java)
     assertThat(recentGroup.templatePresentation.text).isEqualTo("Recent Custom Environments")
     val recentChildren = recentGroup.getChildren(null)
     assertThat(recentChildren.size).isEqualTo(2)
@@ -499,7 +500,7 @@ class EmulatorEnvironmentActionTest {
 
     val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
     val children = group.getChildren(null)
-    val recentGroup = children[4] as DefaultActionGroup
+    val recentGroup = children[5] as DefaultActionGroup
 
     val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
     assertThat(updateAndGetActionPresentation(recentGroup, event).isVisible).isFalse()
@@ -518,10 +519,11 @@ class EmulatorEnvironmentActionTest {
     val group = ActionManager.getInstance().getAction("android.emulator.environments") as EmulatorEnvironmentActionGroup
     val children = group.getChildren(null)
 
-    // Expect original children + Separator + Recent Environments submenu containing 1 file (file1)
+    // Expect original children + Separators + Recent Environments submenu containing 1 file (file1)
     assertThat(children.size).isEqualTo(9)
-    val recentGroup = children[4] as DefaultActionGroup
-    assertThat(children[5]).isInstanceOf(Separator::class.java)
+    assertThat(children[3]).isInstanceOf(Separator::class.java)
+    val recentGroup = children[5] as DefaultActionGroup
+    assertThat(children[7]).isInstanceOf(Separator::class.java)
     assertThat(recentGroup.templatePresentation.text).isEqualTo("Recent Custom Environments")
     val recentChildren = recentGroup.getChildren(null)
     assertThat(recentChildren.size).isEqualTo(1)
@@ -548,9 +550,10 @@ class EmulatorEnvironmentActionTest {
     val event = createTestEvent(project = projectRule.project, extra = dataSnapshotProvider)
     val children = group.getChildren(event)
 
-    // Expect original children (5) + Separator + Cameras submenu
+    // Expect original children (5) + Separators + Cameras submenu
     assertThat(children.size).isEqualTo(9)
-    assertThat(children[5]).isInstanceOf(Separator::class.java)
+    assertThat(children[3]).isInstanceOf(Separator::class.java)
+    assertThat(children[7]).isInstanceOf(Separator::class.java)
     val camerasGroup = children[6] as DefaultActionGroup
     assertThat(camerasGroup.templatePresentation.text).isEqualTo("Camera")
     val cameraChildren = camerasGroup.getChildren(event)
