@@ -1212,6 +1212,13 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                       isComputable = false,
                                                                                                                       isKey = false,
                                                                                                                       isOpen = false,
+                                                                                                                      name = "builtInKotlinDefaultEnabled",
+                                                                                                                      valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                      withDefault = false),
+                                                                                                                    OwnPropertyMetadata(
+                                                                                                                      isComputable = false,
+                                                                                                                      isKey = false,
+                                                                                                                      isOpen = false,
                                                                                                                       name = "dataBindingEnabled",
                                                                                                                       valueType = primitiveTypeBooleanNotNullable,
                                                                                                                       withDefault = false),
@@ -1928,71 +1935,6 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                                                 "SCREENSHOT_TEST",
                                                                                                                                                 "TEST_FIXTURES",
                                                                                                                                                 "UNIT_TEST"))),
-                                                                                                                                          withDefault = false),
-                                                                                                                                        OwnPropertyMetadata(
-                                                                                                                                          isComputable = false,
-                                                                                                                                          isKey = false,
-                                                                                                                                          isOpen = false,
-                                                                                                                                          name = "privacySandboxSdkInfo",
-                                                                                                                                          valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                            isNullable = true,
-                                                                                                                                            typeMetadata = FinalClassMetadata.ClassMetadata(
-                                                                                                                                              fqName = "com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl",
-                                                                                                                                              properties = listOf(
-                                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                                  isComputable = false,
-                                                                                                                                                  isKey = false,
-                                                                                                                                                  isOpen = false,
-                                                                                                                                                  name = "additionalApkSplitFile",
-                                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                                    isNullable = false,
-                                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                                  withDefault = false),
-                                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                                  isComputable = false,
-                                                                                                                                                  isKey = false,
-                                                                                                                                                  isOpen = false,
-                                                                                                                                                  name = "additionalApkSplitTask",
-                                                                                                                                                  valueType = primitiveTypeStringNotNullable,
-                                                                                                                                                  withDefault = false),
-                                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                                  isComputable = false,
-                                                                                                                                                  isKey = false,
-                                                                                                                                                  isOpen = false,
-                                                                                                                                                  name = "outputListingFile",
-                                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                                    isNullable = false,
-                                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                                  withDefault = false),
-                                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                                  isComputable = false,
-                                                                                                                                                  isKey = false,
-                                                                                                                                                  isOpen = false,
-                                                                                                                                                  name = "outputListingLegacyFile",
-                                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                                    isNullable = false,
-                                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                                  withDefault = false),
-                                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                                  isComputable = false,
-                                                                                                                                                  isKey = false,
-                                                                                                                                                  isOpen = false,
-                                                                                                                                                  name = "task",
-                                                                                                                                                  valueType = primitiveTypeStringNotNullable,
-                                                                                                                                                  withDefault = false),
-                                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                                  isComputable = false,
-                                                                                                                                                  isKey = false,
-                                                                                                                                                  isOpen = false,
-                                                                                                                                                  name = "taskLegacy",
-                                                                                                                                                  valueType = primitiveTypeStringNotNullable,
-                                                                                                                                                  withDefault = false)),
-                                                                                                                                              supertypes = listOf(
-                                                                                                                                                "com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo",
-                                                                                                                                                "java.io.Serializable"))),
                                                                                                                                           withDefault = false),
                                                                                                                                         OwnPropertyMetadata(
                                                                                                                                           isComputable = false,
@@ -5399,71 +5341,6 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                           isComputable = false,
                                                                                                                           isKey = false,
                                                                                                                           isOpen = false,
-                                                                                                                          name = "privacySandboxSdkInfo",
-                                                                                                                          valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                            isNullable = true,
-                                                                                                                            typeMetadata = FinalClassMetadata.ClassMetadata(
-                                                                                                                              fqName = "com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl",
-                                                                                                                              properties = listOf(
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "additionalApkSplitFile",
-                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                    isNullable = false,
-                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "additionalApkSplitTask",
-                                                                                                                                  valueType = primitiveTypeStringNotNullable,
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "outputListingFile",
-                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                    isNullable = false,
-                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "outputListingLegacyFile",
-                                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                                    isNullable = false,
-                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl")),
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "task",
-                                                                                                                                  valueType = primitiveTypeStringNotNullable,
-                                                                                                                                  withDefault = false),
-                                                                                                                                OwnPropertyMetadata(
-                                                                                                                                  isComputable = false,
-                                                                                                                                  isKey = false,
-                                                                                                                                  isOpen = false,
-                                                                                                                                  name = "taskLegacy",
-                                                                                                                                  valueType = primitiveTypeStringNotNullable,
-                                                                                                                                  withDefault = false)),
-                                                                                                                              supertypes = listOf(
-                                                                                                                                "com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo",
-                                                                                                                                "java.io.Serializable"))),
-                                                                                                                          withDefault = false),
-                                                                                                                        OwnPropertyMetadata(
-                                                                                                                          isComputable = false,
-                                                                                                                          isKey = false,
-                                                                                                                          isOpen = false,
                                                                                                                           name = "runtimeClasspathCore",
                                                                                                                           valueType = ValueTypeMetadata.SimpleType.CustomType(
                                                                                                                             isNullable = false,
@@ -7272,16 +7149,6 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                   isComputable = false,
                                                                                                                   isKey = false,
                                                                                                                   isOpen = false,
-                                                                                                                  name = "privacySandboxSdkInfo",
-                                                                                                                  valueType = ValueTypeMetadata.SimpleType.CustomType(
-                                                                                                                    isNullable = true,
-                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
-                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl")),
-                                                                                                                  withDefault = false),
-                                                                                                                OwnPropertyMetadata(
-                                                                                                                  isComputable = false,
-                                                                                                                  isKey = false,
-                                                                                                                  isOpen = false,
                                                                                                                   name = "runtimeClasspath",
                                                                                                                   valueType = ValueTypeMetadata.SimpleType.CustomType(
                                                                                                                     isNullable = false,
@@ -7830,8 +7697,8 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
   }
 
   override fun initializeMetadataHash() {
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = 1421314580)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl", metadataHash = -1388364588)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = 1219051810)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl", metadataHash = 949951508)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeSourceProvider", metadataHash = -1488779769)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.FileImpl", metadataHash = -1013892919)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl", metadataHash = 236716780)
@@ -7841,14 +7708,14 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.CommonTestType\$DeviceTest", metadataHash = -760449735)
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.TestComponentType\$HostTest", metadataHash = -1391885428)
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.CommonTestType\$HostTest", metadataHash = -2078241399)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl", metadataHash = 1951028483)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl", metadataHash = 500848345)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl", metadataHash = 1606052470)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeAaptOptions\$Namespacing", metadataHash = -976234809)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl", metadataHash = 1101947873)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl", metadataHash = 730983063)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl", metadataHash = -1818980688)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreSerializable", metadataHash = -2066541760)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl", metadataHash = 1501050659)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl", metadataHash = 733043852)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreSerializable", metadataHash = -837325070)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl", metadataHash = 297468639)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl", metadataHash = -1686189610)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl", metadataHash = -778716903)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBytecodeTransformationImpl", metadataHash = 1457664590)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeBytecodeTransformation\$Type", metadataHash = 1692703930)
@@ -7861,7 +7728,6 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreRef", metadataHash = 117499923)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.ThrowingIdeDependencies", metadataHash = -1493306531)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeArtifactName", metadataHash = -2028415565)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl", metadataHash = -1976745226)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl", metadataHash = 1530773689)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeTestOptions\$Execution", metadataHash = 2074843232)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl", metadataHash = 1989792250)
@@ -7905,8 +7771,8 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.sdklib.devices.Abi", metadataHash = 1474563559)
     addMetadataHash(typeFqn = "com.android.tools.idea.model.TestExecutionOption", metadataHash = -650853306)
     addMetadataHash(typeFqn = "com.android.tools.idea.model.TestOptions", metadataHash = -411709092)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantImpl", metadataHash = -59835182)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl", metadataHash = -1003153941)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantImpl", metadataHash = -1088090232)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl", metadataHash = 11344619)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeDependencies", metadataHash = -1816906722)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeLibrary", metadataHash = 1847052760)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeArtifactLibrary", metadataHash = -1327217984)
