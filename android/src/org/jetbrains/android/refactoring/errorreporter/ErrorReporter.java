@@ -18,5 +18,9 @@ package org.jetbrains.android.refactoring.errorreporter;
 import org.jetbrains.annotations.NotNull;
 
 public interface ErrorReporter {
+  /**
+   * @param message a plain-text message to be shown to the user
+   * @param title a title for this report
+   */
   void report(@NotNull String message, @NotNull String title);
 }

@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.refactoring.errorreporter;
 
+import static com.intellij.openapi.util.text.StringUtil.escapeXmlEntities;
+
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
@@ -33,6 +35,6 @@ public class HintBasedErrorReporter implements ErrorReporter {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       throw new IncorrectOperationException(message);
     }
-    HintManager.getInstance().showErrorHint(myEditor, message);
+    HintManager.getInstance().showErrorHint(myEditor, escapeXmlEntities(message));
   }
 }

@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.refactoring.errorreporter;
 
+import static com.intellij.openapi.util.text.StringUtil.escapeXmlEntities;
+
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +30,6 @@ public class ProjectBasedErrorReporter implements ErrorReporter {
 
   @Override
   public void report(@NotNull String message, @NotNull String title) {
-    AndroidUtils.reportError(myProject, message, title);
+    AndroidUtils.reportError(myProject, escapeXmlEntities(message), title);
   }
 }
