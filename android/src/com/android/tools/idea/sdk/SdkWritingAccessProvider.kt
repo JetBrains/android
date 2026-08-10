@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.sdk
 
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.WritingAccessProvider
 import com.intellij.util.SlowOperations
-import java.util.concurrent.Callable
 
 /** Marks Android SDK sources as read-only to prevent accidental edits. */
 class SdkWritingAccessProvider(private val project: Project) : WritingAccessProvider() {
@@ -36,14 +35,11 @@ class SdkWritingAccessProvider(private val project: Project) : WritingAccessProv
 
   private fun isInAndroidSdk(file: VirtualFile): Boolean {
     return SlowOperations.knownIssue("b/322462245").use {
-      ReadAction
-        .nonBlocking(
-          Callable {
-            // Optimization: avoid querying isInAndroidSdk() in the common case where the file is within project sources.
-            !ProjectFileIndex.getInstance(project).isInContent(file) && AndroidSdks.getInstance().isInAndroidSdk(project, file)
-          })
-        .expireWhen { project.isDisposed }
-        .executeSynchronously()
+      // JetBrains patch: this runs on the EDT with no read lock, where a non-blocking read action asserts.
+      runReadActionBlocking {
+        // Optimization: avoid querying isInAndroidSdk() in the common case where the file is within project sources.
+        !ProjectFileIndex.getInstance(project).isInContent(file) && AndroidSdks.getInstance().isInAndroidSdk(project, file)
+      }
     }
   }
 }
