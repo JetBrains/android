@@ -1157,7 +1157,6 @@ MODULE                        : project.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -2262,7 +2261,6 @@ MODULE                        : project.lib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -3368,7 +3366,6 @@ MODULE                        : includedLib1.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -4368,7 +4365,6 @@ MODULE                        : includedLib1.lib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -5499,7 +5495,6 @@ MODULE                        : TestCompositeLib3.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -6479,7 +6474,6 @@ MODULE                        : TestCompositeLib3.lib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation

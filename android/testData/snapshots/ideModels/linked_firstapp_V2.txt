@@ -828,7 +828,6 @@ MODULE                        : My_First_App.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -1901,7 +1900,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation

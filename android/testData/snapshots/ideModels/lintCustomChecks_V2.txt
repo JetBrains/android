@@ -666,7 +666,6 @@ MODULE                        : project.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -1099,7 +1098,6 @@ MODULE                        : project.library
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -1502,7 +1500,6 @@ MODULE                        : project.library-remote
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation

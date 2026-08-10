@@ -1257,7 +1257,6 @@ MODULE                        : navgraph.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -2774,7 +2773,6 @@ MODULE                        : navgraph.lib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation

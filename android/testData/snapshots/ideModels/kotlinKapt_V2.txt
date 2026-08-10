@@ -1202,7 +1202,6 @@ MODULE                        : MainActivity.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -2015,7 +2014,6 @@ MODULE                        : MainActivity.lib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation

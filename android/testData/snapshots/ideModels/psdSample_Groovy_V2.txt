@@ -1503,12 +1503,10 @@ MODULE                        : project.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
         SigningConfig
             Name                          : myConfig
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : androiddebugkey
     VariantBuildInformation
         VariantBuildInformation
@@ -2932,7 +2930,6 @@ MODULE                        : project.dyn_feature
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -4018,7 +4015,6 @@ MODULE                        : project.lib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -5023,7 +5019,6 @@ MODULE                        : project.nested1
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -5322,7 +5317,6 @@ MODULE                        : project.nested1.deep
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -5730,7 +5724,6 @@ MODULE                        : project.nested2
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -6072,7 +6065,6 @@ MODULE                        : project.nested2.deep
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -6381,7 +6373,6 @@ MODULE                        : project.nested2.trans.deep2
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation

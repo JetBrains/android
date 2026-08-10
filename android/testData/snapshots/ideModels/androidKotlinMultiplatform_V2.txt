@@ -1606,7 +1606,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -2013,7 +2012,6 @@ MODULE                        : Kotlin_Multiplatform.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -2365,7 +2363,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
+            StorePassword                 :
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -3723,7 +3721,7 @@ MODULE                        : build-logic.lib-foo
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
+            StorePassword                 :
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation

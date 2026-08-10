@@ -768,12 +768,10 @@ MODULE                        : project
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
         SigningConfig
             Name                          : myConfig
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : androiddebugkey
     VariantBuildInformation
         VariantBuildInformation

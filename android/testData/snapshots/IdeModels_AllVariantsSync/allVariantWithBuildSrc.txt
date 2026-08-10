@@ -196,7 +196,6 @@ SigningConfigs
     SigningConfig
         Name                          : debug
         StoreFile                     : debug.keystore
-        StorePassword                 : android
         KeyAlias                      : AndroidDebugKey
 VariantBuildInformation
     VariantBuildInformation

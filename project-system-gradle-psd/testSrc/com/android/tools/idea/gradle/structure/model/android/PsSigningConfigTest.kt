@@ -81,7 +81,6 @@ class PsSigningConfigTest {
       assertThat(storeFile.resolved.asTestValue(), equalTo(File(File(project.ideProject.basePath, "app"), "debug.keystore")))
       assertThat(storeFile.parsedValue.asTestValue(), equalTo(File("debug.keystore")))
 
-      assertThat(storePassword.resolved.asTestValue(), equalTo("android"))
       assertThat(storePassword.parsedValue.asTestValue(), equalTo("android"))
     }
   }
@@ -122,7 +121,6 @@ class PsSigningConfigTest {
           assertThat(keyAlias.parsedValue.asTestValue(), equalTo(keyAlias.resolved.asTestValue()))
           // TODO(b/70501607): assertThat(keyPassword.parsedValue.asTestValue(), equalTo(keyPassword.resolved.asTestValue()))
           // TODO(b/73716779): assertThat(storeFile.parsedValue.asTestValue(), equalTo(storeFile.resolved.asTestValue()))
-          assertThat(storePassword.parsedValue.asTestValue(), equalTo(storePassword.resolved.asTestValue()))
         }
       }
 

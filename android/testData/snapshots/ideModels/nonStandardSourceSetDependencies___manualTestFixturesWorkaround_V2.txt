@@ -1552,7 +1552,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -2642,7 +2641,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -3755,7 +3753,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -4707,7 +4704,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
@@ -5021,7 +5017,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         SigningConfig
             Name                          : debug
             StoreFile                     : debug.keystore
-            StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
