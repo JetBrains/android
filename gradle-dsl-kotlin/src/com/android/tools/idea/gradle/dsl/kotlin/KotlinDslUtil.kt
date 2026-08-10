@@ -29,10 +29,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementEnum
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
@@ -298,6 +300,8 @@ internal fun convertToExternalTextValue(
       }
       currentElement is GradleDslNamedDomainContainer -> externalName.append(elementExternalName)
       currentElement is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\")")
+      currentElement is GradleDslElementEnum -> externalName.append(elementExternalName)
+      currentElement is GradleDslGlobalValue -> externalName.append(elementExternalName)
       else -> {
         // if we have a model property with a transform (so not directly a GradleDslLiteral)
         if (currentElement.modelEffect?.property != null) {
