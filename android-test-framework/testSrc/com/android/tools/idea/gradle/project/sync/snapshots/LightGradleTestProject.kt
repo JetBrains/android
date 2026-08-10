@@ -86,7 +86,7 @@ interface LightGradleTestProject : TestProjectDefinition {
             .openProject(
               Path.of(integrationTestEnvironment.getBaseTestPath(), name).parent.resolve(name),
               options.copy(
-                beforeInit = { it.putUserData(GradleSyncExecutor.ALWAYS_SKIP_SYNC, true) }
+                beforeInitTasks = options.beforeInitTasks + { it.putUserData(GradleSyncExecutor.ALWAYS_SKIP_SYNC, true) }
               ),
             ) ?: error("Failed to open a test project")
         return try {

@@ -229,20 +229,9 @@ import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
-import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import com.intellij.workspaceModel.ide.ProjectSynchronizerUtil
-import java.io.File
-import java.io.IOException
-import java.nio.file.Paths
-import java.util.IdentityHashMap
-import java.util.Locale
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidTestBase
@@ -250,7 +239,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -267,6 +255,16 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import org.jetbrains.plugins.gradle.util.gradlePath
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
+import java.io.File
+import java.io.IOException
+import java.nio.file.Paths
+import java.util.IdentityHashMap
+import java.util.Locale
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
@@ -2973,14 +2971,16 @@ private fun <T> openPreparedProject(
               OpenProjectTask.build()
                 .withProjectToClose(null)
                 .withForceOpenInNewFrame(true)
-                .copy(
-                  beforeOpen = {
-                    blockingContext {
-                      afterCreate(it)
-                      true
+                .let { originalOptions ->
+                  originalOptions.copy(
+                    beforeOpenTasks = originalOptions.beforeOpenTasks + {
+                      blockingContext {
+                        afterCreate(it)
+                        true
+                      }
                     }
-                  }
-                ),
+                  )
+                },
             )!!
           }
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a
