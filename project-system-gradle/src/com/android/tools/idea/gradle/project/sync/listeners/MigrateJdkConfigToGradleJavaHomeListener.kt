@@ -55,22 +55,24 @@ class MigrateJdkConfigToGradleJavaHomeListener(private val coroutineScope: Corou
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
     if (!MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.get()) return
 
-    val projectMigrations = ProjectMigrationsPersistentState.getInstance(project)
-    if (projectMigrations.migratedGradleRootsToGradleLocalJavaHome.contains(rootProjectPath)) return
+    coroutineScope.launch {
+      val projectMigrations = ProjectMigrationsPersistentState.getInstance(project)
+      if (projectMigrations.migratedGradleRootsToGradleLocalJavaHome.contains(rootProjectPath)) return@launch
 
-    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, rootProjectPath)) return
+      if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, rootProjectPath)) return@launch
 
-    val gradleSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
-    when (gradleSettings?.gradleJvm) {
-      USE_GRADLE_LOCAL_JAVA_HOME,
-      USE_GRADLE_JAVA_HOME,
-      USE_JAVA_HOME,
-      USE_INTERNAL_JAVA,
-      JDK_LOCATION_ENV_VARIABLE_NAME -> return
-      else -> {
-        if (IdeSdks.getInstance().isUsingEnvVariableJdk) return
+      val gradleSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
+      when (gradleSettings?.gradleJvm) {
+        USE_GRADLE_LOCAL_JAVA_HOME,
+        USE_GRADLE_JAVA_HOME,
+        USE_JAVA_HOME,
+        USE_INTERNAL_JAVA,
+        JDK_LOCATION_ENV_VARIABLE_NAME -> return@launch
 
-        coroutineScope.launch { migrateToGradleLocalJavaHome(project, rootProjectPath, projectMigrations, gradleSettings) }
+        else -> {
+          if (IdeSdks.getInstance().isUsingEnvVariableJdk) return@launch
+          migrateToGradleLocalJavaHome(project, rootProjectPath, projectMigrations, gradleSettings)
+        }
       }
     }
   }
