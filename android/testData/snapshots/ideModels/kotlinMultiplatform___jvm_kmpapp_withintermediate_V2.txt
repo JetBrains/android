@@ -647,8 +647,6 @@ MODULE                        : kotlinMultiPlatform
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/app/build/classes/kotlin/jvm/main [-]
-                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/app/build/classes/java/jvmMain [-]
                                 - files                       : <ROOT>/app/build/classes/kotlin/jvm/main [-]
                                 - files                       : <ROOT>/app/build/processedResources/jvm/main [-]
@@ -676,8 +674,6 @@ MODULE                        : kotlinMultiPlatform
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/app/build/classes/kotlin/jvm/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/app/build/classes/java/jvmTest [-]
                                 - files                       : <ROOT>/app/build/classes/kotlin/jvm/test [-]
@@ -745,8 +741,6 @@ MODULE                        : kotlinMultiPlatform
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
-                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/module2/build/classes/java/jvmMain [-]
                                 - files                       : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
                                 - files                       : <ROOT>/module2/build/processedResources/jvm/main [-]
@@ -771,8 +765,6 @@ MODULE                        : kotlinMultiPlatform
                                 - files                       : <ROOT>/module2/build/classes/java/jvmMain [-]
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
                             - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/module2/build/classes/kotlin/jvm/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/module2/build/classes/java/jvmTest [-]
                                 - files                       : <ROOT>/module2/build/classes/kotlin/jvm/test [-]

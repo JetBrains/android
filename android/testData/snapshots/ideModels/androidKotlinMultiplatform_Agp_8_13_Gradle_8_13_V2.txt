@@ -414,8 +414,6 @@ MODULE                        : Kotlin_Multiplatform
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
-                            - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/kmpJvmOnly/build/classes/java/jvmMain [-]
                                 - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main [-]
                                 - files                       : <ROOT>/kmpJvmOnly/build/processedResources/jvm/main [-]
@@ -443,8 +441,6 @@ MODULE                        : Kotlin_Multiplatform
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-                            - dependencies                : DefaultFileCollectionDependency
-                                - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/kmpJvmOnly/build/classes/java/jvmTest [-]
                                 - files                       : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test [-]
