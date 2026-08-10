@@ -31,6 +31,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.ToolWindows
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.impl.OpenProjectTask
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
@@ -90,7 +91,9 @@ internal constructor(private val mySdkSync: SdkSync, private val myTopLevelModul
             isNewProject = false
             useDefaultProjectAsTemplate = false
             beforeInitTasks += {
-              setUpLocalProperties(projectFolderPath)
+              if (TrustedProjects.isProjectTrusted(projectFolderPath.toPath())) {
+                setUpLocalProperties(projectFolderPath)
+              }
             }
             beforeOpenTasks += {
               // The scope of this is rather large to mimic old behaviour, it could likely be improved
