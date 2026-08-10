@@ -334,7 +334,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
      * Whenever changing the logic in this class such that the Query.Summary proto contents will be different for the same input, this
      * version should be incremented.
      */
-    @VisibleForTesting const val PROTO_VERSION: Int = 13
+    @VisibleForTesting const val PROTO_VERSION: Int = 14
 
     // Compile-time dependency attributes, as they appear in streamed_proto output
     private val DEPENDENCY_ATTRIBUTES: Set<String> =
@@ -363,9 +363,10 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
 
     // Runtime dependency attributes
     private val RUNTIME_DEP_ATTRIBUTES: Set<String> =
-      setOf<String>( // From android_binary rules used in android_instrumentation_tests
-        "instruments", // From android_instrumentation_test rules
-        "test_app",
+      setOf<String>(
+        "runtime_deps",
+        "instruments", // From android_binary rules used in android_instrumentation_tests
+        "test_app", // From android_instrumentation_test rules
       )
 
     // Source attributes.

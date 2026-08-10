@@ -270,4 +270,32 @@ public class QuerySummaryTest {
     assertThat(rule.library()).isEqualTo(Label.of("//foo:lib"));
     assertThat(rule.deps()).containsExactly(Label.of("//foo:lib"));
   }
+
+  @Test
+  public void testCreate_runtimeDepsAttributePopulated() throws Exception {
+    Build.Target target =
+        Build.Target.newBuilder()
+            .setType(Build.Target.Discriminator.RULE)
+            .setRule(
+                Build.Rule.newBuilder()
+                    .setName("//foo:test")
+                    .setRuleClass("java_test")
+                    .addAttribute(
+                        Build.Attribute.newBuilder()
+                            .setName("runtime_deps")
+                            .setType(Build.Attribute.Discriminator.LABEL_LIST)
+                            .addStringListValue("//foo:lib")))
+            .build();
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    target.writeDelimitedTo(out);
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+    QuerySummary qs = QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, in);
+
+    Label testLabel = Label.of("//foo:test");
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs).keySet()).contains(testLabel);
+    QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(testLabel);
+    assertThat(rule.runtimeDeps()).containsExactly(Label.of("//foo:lib"));
+  }
 }
