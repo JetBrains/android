@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 
 /**
@@ -51,7 +53,7 @@ public class FileServer implements AutoCloseable {
   
   public FileServer() {
     fileMap = new HashMap<>();
-    requestHistory = new HashMap<>();
+    requestHistory = new ConcurrentHashMap<>();
   }
 
   public void start() throws IOException {
@@ -122,7 +124,7 @@ public class FileServer implements AutoCloseable {
     }
 
     private void addHistory(String path, URI requestUri) {
-      fileServer.requestHistory.computeIfAbsent(path, k -> new ArrayList<>()).add(requestUri);
+      fileServer.requestHistory.computeIfAbsent(path, k -> new CopyOnWriteArrayList<>()).add(requestUri);
     }
 
     /**
