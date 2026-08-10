@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.adblib.ConnectedDevice
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.common.DeployerException
@@ -24,6 +25,7 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
@@ -52,31 +54,44 @@ class AndroidWatchFaceConfigurationExecutor(
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean) = getStopWatchFaceCallback(console, isDebug)
 
   @WorkerThread
-  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {
+  override fun launch(
+    device: IDevice,
+    connectedDevice: ConnectedDevice?,
+    app: App,
+    console: ConsoleView,
+    isDebug: Boolean,
+    indicator: ProgressIndicator,
+  ) {
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val version = device.getWearDebugSurfaceVersion(indicator)
     if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
       throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
-    setWatchFace(app, mode, indicator, device)
+    setWatchFace(app, mode, indicator, device, connectedDevice)
     showWatchFace(device, console, indicator)
   }
 
-  private fun setWatchFace(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator, device: IDevice) {
+  private fun setWatchFace(
+    app: App,
+    mode: AppComponent.Mode,
+    indicator: ProgressIndicator,
+    device: IDevice,
+    connectedDevice: ConnectedDevice?,
+  ) {
     indicator.checkCanceled()
     indicator.text = "Launching the watch face"
 
     val outputReceiver = RecordOutputReceiver { indicator.isCanceled == true }
+    val deviceHolder = DeviceHolder(device, connectedDevice, AdbLibService.getSession(environment.project))
     try {
       getActivator(app)
+        // TODO studio-merge
         .activate(
           watchFaceLaunchOptions.componentType,
           watchFaceLaunchOptions.componentName!!,
           mode,
-          // TODO studio-merge
           outputReceiver.asDeployerReceiver(),
-          // TODO studio-merge
-          DeviceHolder(device, java.util.Optional.empty()),
+          deviceHolder,
         )
     } catch (ex: DeployerException) {
       throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)

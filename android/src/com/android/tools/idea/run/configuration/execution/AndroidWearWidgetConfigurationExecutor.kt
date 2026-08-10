@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.adblib.ConnectedDevice
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
@@ -31,6 +32,7 @@ import com.android.tools.deployer.model.component.WearWidget.ShellCommand.SHOW_W
 import com.android.tools.deployer.model.component.WearWidget.ShellCommand.UNSET_WEAR_WIDGET
 import com.android.tools.deployer.model.component.WearWidget.isProtolayoutVersionAtLeast
 import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
@@ -73,7 +75,14 @@ class AndroidWearWidgetConfigurationExecutor(
   }
 
   @WorkerThread
-  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {
+  override fun launch(
+    device: IDevice,
+    connectedDevice: ConnectedDevice?,
+    app: App,
+    console: ConsoleView,
+    isDebug: Boolean,
+    indicator: ProgressIndicator,
+  ) {
     ProgressManager.checkCanceled()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
 
@@ -96,7 +105,7 @@ class AndroidWearWidgetConfigurationExecutor(
       console.printlnError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
     }
 
-    val widgetIndex = setWearWidget(app, mode, indicator, console, device)
+    val widgetIndex = setWearWidget(app, mode, indicator, console, device, connectedDevice)
     val showWidgetCommand = SHOW_WEAR_WIDGET_COMMAND + widgetIndex
     val showWidgetReceiver = CommandResultReceiverV1()
     // TODO studio-merge
@@ -104,21 +113,28 @@ class AndroidWearWidgetConfigurationExecutor(
     verifyResponse(showWidgetReceiver, console)
   }
 
-  private fun setWearWidget(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView, device: IDevice): Int {
+  private fun setWearWidget(
+    app: App,
+    mode: AppComponent.Mode,
+    indicator: ProgressIndicator?,
+    console: ConsoleView,
+    device: IDevice,
+    connectedDevice: ConnectedDevice?,
+  ): Int {
     val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
     val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
     val indexReceiver = AddWidgetCommandResultReceiver { indicator?.isCanceled == true }
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
+    val deviceHolder = DeviceHolder(device, connectedDevice, AdbLibService.getSession(environment.project))
     try {
       getActivator(app)
+        // TODO studio-merge
         .activate(
           wearWidgetLaunchOptions.componentType,
           wearWidgetLaunchOptions.componentName!!,
           mode,
-          // TODO studio-merge
           receiver.asDeployerReceiver(),
-          // TODO studio-merge
-          DeviceHolder(device, java.util.Optional.empty()),
+          deviceHolder,
         )
     } catch (ex: DeployerException) {
       throw ExecutionException("Error while setting the widget, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)

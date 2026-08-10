@@ -83,12 +83,12 @@ public class SpecificActivityLaunchTest {
   public void testLaunch() throws Exception {
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
     state.ACTIVITY_CLASS = "com.example.app.MyActivity";
-    IDevice device = Mockito.mock(IDevice.class);
+    IDevice device = mock(IDevice.class);
     Mockito.when(device.getSerialNumber()).thenReturn("1234");
     App app =
       createApp(device, "com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
 
-    state.launch(device, app, new NoApksProvider(), false, "", new EmptyTestConsoleView(), new RunStats(myProjectRule.getProject()));
+    state.launch(device, null, app, new NoApksProvider(), false, "", new EmptyTestConsoleView(), new RunStats(myProjectRule.getProject()));
     Mockito.verify(device).executeShellCommand(
       eq("am start -n com.example.app/com.example.app.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
       any(IShellOutputReceiver.class),

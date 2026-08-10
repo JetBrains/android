@@ -147,6 +147,7 @@ public class AndroidRunConfigurationTest {
       createApp(device, "com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
     myRunConfiguration.launch(app,
                               device,
+                              null,
                               getAndroidFacet(myProjectRule.getModule()),
                               "--start-profiler file",
                               false,
@@ -170,6 +171,7 @@ public class AndroidRunConfigurationTest {
       createApp(device, "com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
     myRunConfiguration.launch(app,
                               device,
+                              null,
                               getAndroidFacet(myProjectRule.getModule()),
                               "",
                               false,
@@ -183,6 +185,7 @@ public class AndroidRunConfigurationTest {
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU));
     myRunConfiguration.launch(app,
                               device,
+                              null,
                               getAndroidFacet(myProjectRule.getModule()),
                               "",
                               false,
@@ -251,6 +254,7 @@ public class AndroidRunConfigurationTest {
 
     myRunConfiguration.launch(app,
                               device,
+                              null,
                               getAndroidFacet(myProjectRule.getModule()),
                               extraFlags,
                               false,

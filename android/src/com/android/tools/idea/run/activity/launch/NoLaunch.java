@@ -17,6 +17,7 @@ package com.android.tools.idea.run.activity.launch;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.model.App;
+import com.android.adblib.ConnectedDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkProvider;
 import com.intellij.execution.ExecutionException;
@@ -77,6 +78,7 @@ public class NoLaunch extends LaunchOption<NoLaunch.State> {
 
     @Override
     protected boolean doLaunch(@NotNull IDevice device,
+                            @Nullable ConnectedDevice connectedDevice,
                             @NotNull App app,
                             @NotNull ApkProvider apkProvider,
                             boolean isDebug,

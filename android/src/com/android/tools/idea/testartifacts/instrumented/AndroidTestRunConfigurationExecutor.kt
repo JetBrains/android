@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.adblib.toConnectedDevice
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
@@ -156,7 +157,11 @@ constructor(
           }
           LaunchUtils.initiateDismissKeyguard(device)
           val terminator = ProcessHandlerApplicationTerminator(indicator, devices, packageName)
-          getDeployTask(device, terminator).run(device, indicator)
+          val connectedDevice = device.toConnectedDevice(project)
+          if (connectedDevice == null) {
+            LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+          }
+          getDeployTask(device, terminator).run(device, connectedDevice, indicator)
           // Notify listeners of the deployment.
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
         }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.execution.common
 
+import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerApplicationTerminator
@@ -27,6 +28,7 @@ interface ApplicationDeployer {
   @Throws(DeployerException::class)
   fun fullDeploy(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: ApkInfo,
     deployOptions: DeployOptions,
     hasMakeBeforeRun: Boolean,
@@ -37,6 +39,7 @@ interface ApplicationDeployer {
   @Throws(DeployerException::class)
   fun applyChangesDeploy(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: ApkInfo,
     deployOptions: DeployOptions,
     hasMakeBeforeRun: Boolean,
@@ -46,6 +49,7 @@ interface ApplicationDeployer {
   @Throws(DeployerException::class)
   fun applyCodeChangesDeploy(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: ApkInfo,
     deployOptions: DeployOptions,
     hasMakeBeforeRun: Boolean,

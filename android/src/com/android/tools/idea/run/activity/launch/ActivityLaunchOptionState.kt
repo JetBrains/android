@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.run.activity.launch
 
+import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Activator
 import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ComponentLaunchOptions
 import com.android.tools.idea.execution.common.stats.RunStats
@@ -50,6 +52,7 @@ abstract class LaunchOptionState {
   @Throws(ExecutionException::class)
   fun launch(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: App,
     apkProvider: ApkProvider,
     isDebug: Boolean,
@@ -57,12 +60,13 @@ abstract class LaunchOptionState {
     console: ConsoleView,
     stats: RunStats,
   ): Boolean {
-    return stats.track(id) { doLaunch(device, app, apkProvider, isDebug, extraFlags, console) }
+    return stats.track(id) { doLaunch(device, connectedDevice, app, apkProvider, isDebug, extraFlags, console) }
   }
 
   @Throws(ExecutionException::class)
   protected abstract fun doLaunch(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: App,
     apkProvider: ApkProvider,
     isDebug: Boolean,
@@ -81,6 +85,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
 
   override fun doLaunch(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: App,
     apkProvider: ApkProvider,
     isDebug: Boolean,
@@ -92,8 +97,9 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)
     val receiver = AndroidBackgroundTaskReceiver(console)
     val activator = Activator(app, ConsoleLogger(logger, console))
+    val deviceHolder = DeviceHolder(device, connectedDevice, AdbLibApplicationService.instance.session)
     // TODO studio-merge
-    activator.activate(componentType, activityQualifiedName, extraFlags, mode, receiver.asDeployerReceiver(), DeviceHolder(device, java.util.Optional.empty()))
+    activator.activate(componentType, activityQualifiedName, extraFlags, mode, receiver.asDeployerReceiver(), deviceHolder)
     val matcher = activityDoesNotExistPattern.matcher(receiver.output.joinToString())
     if (matcher.find()) {
       throw AndroidExecutionException(ACTIVITY_DOES_NOT_EXIST, matcher.group())

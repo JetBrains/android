@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.adblib.ConnectedDevice;
 import com.android.tools.deployer.DeployerApplicationTerminator;
 import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.idea.execution.common.AndroidExecutionException;
@@ -53,7 +54,7 @@ public class DeployTasksHelper {
             deployOptions.getAlwaysInstallWithPm(),
             deployOptions.getAllowAssumeVerified(),
             true /* TODO: Assume blaze always build for now.  */)
-            .run(launchContext.getDevice(), launchContext.getProgressIndicator());
+            .run(launchContext.getDevice(), launchContext.getConnectedDevice(), launchContext.getProgressIndicator());
       } catch (DeployerException de) {
         throw new AndroidExecutionException(de.getId(), de.getMessage() + "\n" + de.getDetails());
       }

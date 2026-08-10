@@ -163,6 +163,8 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/designer:intellij.android.designer",
         "//tools/adt/idea/execution/common:intellij.android.execution.common",
+        "//tools/adt/idea/android-adb:intellij.android.adb",
+        "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui",
         "//tools/adt/idea/ml-api:intellij.android.ml-api",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer",

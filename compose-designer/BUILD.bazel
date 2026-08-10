@@ -650,6 +650,8 @@ jvm_library(
         "//android/backup:backup-api_test_lib",
         "//android/execution/common",
         "//android/execution/common:common_test_lib",
+        "//android/android-adb:adb",
+        "//android/android-adb:adb_test_lib",
         "//libraries/kotlinx/coroutines/test",
         "//libraries/kotlinx/coroutines/test:test_test_lib",
         "//platform/refactoring",

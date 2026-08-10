@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.adblib.ConnectedDevice;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.ClassRedefiner;
@@ -30,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ApplyCodeChangesTask extends AbstractDeployTask {
 
@@ -83,6 +85,7 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
 
   @Override
   protected Deployer.Result perform(IDevice device,
+                                    @Nullable ConnectedDevice connectedDevice,
                                     Deployer deployer,
                                     @NotNull ApkInfo apkInfo,
                                     @NotNull Canceller canceller) throws DeployerException {

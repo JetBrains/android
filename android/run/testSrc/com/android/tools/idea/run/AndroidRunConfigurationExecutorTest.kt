@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.adblib.ConnectedDevice
 import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
@@ -572,6 +573,7 @@ class AndroidRunConfigurationExecutorTest {
           object : ApplicationDeployer {
             override fun fullDeploy(
               device: IDevice,
+              connectedDevice: ConnectedDevice?,
               app: ApkInfo,
               deployOptions: DeployOptions,
               hasMakeBeforeRun: Boolean,
@@ -583,6 +585,7 @@ class AndroidRunConfigurationExecutorTest {
 
             override fun applyChangesDeploy(
               device: IDevice,
+              connectedDevice: ConnectedDevice?,
               app: ApkInfo,
               deployOptions: DeployOptions,
               hasMakeBeforeRun: Boolean,
@@ -593,6 +596,7 @@ class AndroidRunConfigurationExecutorTest {
 
             override fun applyCodeChangesDeploy(
               device: IDevice,
+              connectedDevice: ConnectedDevice?,
               app: ApkInfo,
               deployOptions: DeployOptions,
               hasMakeBeforeRun: Boolean,
@@ -785,6 +789,7 @@ class AndroidRunConfigurationExecutorTest {
     object : ApplicationDeployer {
       override fun fullDeploy(
         deviceToInstall: IDevice,
+        connectedDevice: ConnectedDevice?,
         app: ApkInfo,
         deployOptions: DeployOptions,
         hasMakeBeforeRun: Boolean,
@@ -802,6 +807,7 @@ class AndroidRunConfigurationExecutorTest {
 
       override fun applyChangesDeploy(
         deviceToInstall: IDevice,
+        connectedDevice: ConnectedDevice?,
         app: ApkInfo,
         deployOptions: DeployOptions,
         hasMakeBeforeRun: Boolean,
@@ -818,6 +824,7 @@ class AndroidRunConfigurationExecutorTest {
 
       override fun applyCodeChangesDeploy(
         deviceToInstall: IDevice,
+        connectedDevice: ConnectedDevice?,
         app: ApkInfo,
         deployOptions: DeployOptions,
         hasMakeBeforeRun: Boolean,

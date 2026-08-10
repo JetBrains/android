@@ -17,6 +17,7 @@ package com.android.tools.idea.run.activity.launch;
 
 import static com.android.tools.idea.run.configuration.execution.ExecutionUtils.printShellCommand;
 
+import com.android.adblib.ConnectedDevice;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.tools.deployer.model.App;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
@@ -68,6 +70,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
 
     @Override
     protected boolean doLaunch(@NotNull IDevice device,
+                            @Nullable ConnectedDevice connectedDevice,
                             @NotNull App app,
                             @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
                             @NotNull ConsoleView console) throws ExecutionException {

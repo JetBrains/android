@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerApplicationTerminator
@@ -69,6 +70,7 @@ class TestApplicationInstaller : ApplicationDeployer {
 
   override fun fullDeploy(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: ApkInfo,
     deployOptions: DeployOptions,
     hasMakeBeforeRun: Boolean,
@@ -81,6 +83,7 @@ class TestApplicationInstaller : ApplicationDeployer {
 
   override fun applyChangesDeploy(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: ApkInfo,
     deployOptions: DeployOptions,
     hasMakeBeforeRun: Boolean,
@@ -91,6 +94,7 @@ class TestApplicationInstaller : ApplicationDeployer {
 
   override fun applyCodeChangesDeploy(
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
     app: ApkInfo,
     deployOptions: DeployOptions,
     hasMakeBeforeRun: Boolean,

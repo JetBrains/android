@@ -15,9 +15,12 @@
  */
 package com.google.idea.blaze.android.run.runner
 
+import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.common.ApkVerifierTracker
 import com.android.tools.deployer.common.DeviceHolder
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.toConnectedDevice
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
@@ -122,7 +125,12 @@ class BlazeAndroidConfigurationExecutor(
 
       if (launchOptions.isDeploy) {
         val userIdFlags = UserIdHelper.getFlagsFromUserId(userId)
-        val skipVerification = ApkVerifierTracker.getSkipVerificationInstallationFlag(DeviceHolder(device, null), packageName)
+        val connectedDevice = device.toConnectedDevice(project)
+        if (connectedDevice == null) {
+          LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+        }
+        val deviceHolder = DeviceHolder(device, connectedDevice, AdbLibService.getSession(project))
+        val skipVerification = ApkVerifierTracker.getSkipVerificationInstallationFlag(deviceHolder, packageName)
         val pmInstallOption = if (skipVerification != null) "$userIdFlags $skipVerification" else userIdFlags
         val deployOptions =
           DeployOptions(
@@ -180,8 +188,11 @@ class BlazeAndroidConfigurationExecutor(
             }
 
             LaunchUtils.initiateDismissKeyguard(device)
-            LOG.info("Launching on device ${device.name}")
-            val launchContext = BlazeLaunchContext(env, device, console, processHandler, indicator, applicationContext)
+            val connectedDevice = device.toConnectedDevice(project)
+            if (connectedDevice == null) {
+              LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+            }
+            val launchContext = BlazeLaunchContext(env, device, connectedDevice, console, processHandler, indicator, applicationContext)
             getTasks(device, isDebug).forEach { it.run(launchContext) }
             LiveEditHelper()
               .invokeLiveEdit(
@@ -271,6 +282,7 @@ interface BlazeLaunchTask {
 class BlazeLaunchContext(
   val env: ExecutionEnvironment,
   val device: IDevice,
+  val connectedDevice: ConnectedDevice? = null,
   val consoleView: ConsoleView,
   val processHandler: ProcessHandler,
   val progressIndicator: ProgressIndicator,

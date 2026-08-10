@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiReceiver
 import com.android.tools.deployer.common.DeployerException
@@ -22,6 +23,7 @@ import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace
 import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
+import com.android.tools.idea.adblib.toConnectedDevice
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationDeployer
@@ -92,7 +94,7 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
     val console = createConsole()
     val processHandler = AndroidProcessHandler(applicationId, getStopWatchFaceCallback(console, isDebug = false))
 
-    val onDevice = { device: IDevice ->
+    val onDevice: (IDevice, ConnectedDevice?) -> Unit = { device, connectedDevice ->
       LOG.info("Launching on device ${device.name}")
 
       val result =
@@ -102,6 +104,7 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
           val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
           applicationDeployer.fullDeploy(
             device,
+            connectedDevice,
             app,
             deployOptions,
             containsMakeBeforeRun,
@@ -121,7 +124,17 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
         .showLogcat(environment.project, device, WATCH_FACE_RUNTIME_APPLICATION_ID)
     }
 
-    devices.map { async { onDevice(it) } }.joinAll()
+    devices
+      .map { device ->
+        async {
+          val connectedDevice = device.toConnectedDevice(environment.project)
+          if (connectedDevice == null) {
+            LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+          }
+          onDevice(device, connectedDevice)
+        }
+      }
+      .joinAll()
 
     AndroidSessionInfo.create(processHandler, devices, applicationId)
     createRunContentDescriptor(processHandler, console, environment)

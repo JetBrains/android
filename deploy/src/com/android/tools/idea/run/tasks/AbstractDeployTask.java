@@ -18,6 +18,7 @@ package com.android.tools.idea.run.tasks;
 
 
 import com.android.adblib.AdbSession;
+import com.android.adblib.ConnectedDevice;
 import com.android.ddmlib.AdbHelper;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.BaselineProfileDetails;
@@ -29,12 +30,11 @@ import com.android.tools.deployer.DeployerApplicationTerminator;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.common.AdbClient;
 import com.android.tools.deployer.common.Canceller;
+import com.android.tools.deployer.common.DeviceHolder;
 import com.android.tools.deployer.common.ChangeType;
 import com.android.tools.deployer.common.DeployMetric;
 import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.deployer.common.DeployerOption;
-// TODO studio-merge
-import com.android.tools.deployer.common.DeviceHolder;
 import com.android.tools.deployer.common.DeploymentCacheDatabase;
 import com.android.tools.deployer.common.Installer;
 import com.android.tools.deployer.common.UIService;
@@ -75,6 +75,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDeployTask {
 
@@ -112,7 +113,9 @@ public abstract class AbstractDeployTask {
     mySubTaskDetails = new ArrayList<>();
   }
 
-    public List<Deployer.Result> run(@NotNull IDevice device, ProgressIndicator indicator)
+  public List<Deployer.Result> run(@NotNull IDevice device,
+                                   @Nullable ConnectedDevice connectedDevice,
+                                   ProgressIndicator indicator)
             throws DeployerException {
     Canceller canceller = new Canceller() {
       @Override
@@ -132,8 +135,8 @@ public abstract class AbstractDeployTask {
     long wallClockStartMs = System.currentTimeMillis();
 
     AdbSession adbSession = AdbLibService.getSession(myProject);
-    // TODO studio-merge
-    AdbClient adb = new AdbClient(new DeviceHolder(device, null, adbSession), logger, adbSession);
+    DeviceHolder deviceHolder = new DeviceHolder(device, connectedDevice, adbSession);
+    AdbClient adb = new AdbClient(deviceHolder, logger, adbSession);
 
     AdbHelper.setAbbExecAllowed(StudioFlags.DDMLIB_ABB_EXEC_INSTALL_ENABLE.get());
 
@@ -165,7 +168,7 @@ public abstract class AbstractDeployTask {
     List<String> idsSkippedInstall = new ArrayList<>();
     List<Deployer.Result> results = new ArrayList<>();
     for (ApkInfo apkInfo : myPackages) {
-      Deployer.Result result = perform(device, deployer, apkInfo, canceller);
+      Deployer.Result result = perform(device, connectedDevice, deployer, apkInfo, canceller);
 
       if (result.skippedInstall) {
         idsSkippedInstall.add(apkInfo.getApplicationId());
@@ -200,7 +203,7 @@ public abstract class AbstractDeployTask {
 
   protected abstract String getDescription();
 
-  abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo, @NotNull Canceller canceller)
+  abstract protected Deployer.Result perform(IDevice device, @Nullable ConnectedDevice connectedDevice, Deployer deployer, @NotNull ApkInfo apkInfo, @NotNull Canceller canceller)
     throws DeployerException;
 
   @NotNull

@@ -70,6 +70,7 @@ class ComposePreviewRunConfigurationTest {
     runConfiguration.launch(
       createApp(device, "com.example.myapp", emptyList(), listOf("androidx.compose.ui.tooling.PreviewActivity")),
       device,
+      null,
       AndroidFacet.getInstance(fixture.module)!!,
       "",
       false,

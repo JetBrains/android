@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.adblib.ConnectedDevice
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.common.DeployerException
@@ -25,6 +26,7 @@ import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
@@ -63,7 +65,14 @@ class AndroidComplicationConfigurationExecutor(
   private val complicationLaunchOptions = appRunSettings.componentLaunchOptions as ComplicationLaunchOptions
 
   @WorkerThread
-  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {
+  override fun launch(
+    device: IDevice,
+    connectedDevice: ConnectedDevice?,
+    app: App,
+    console: ConsoleView,
+    isDebug: Boolean,
+    indicator: ProgressIndicator,
+  ) {
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
 
     val version = device.getWearDebugSurfaceVersion(indicator)
@@ -83,19 +92,21 @@ class AndroidComplicationConfigurationExecutor(
 
     ProgressManager.checkCanceled()
 
-    installWatchApp(device, console, indicator)
+    installWatchApp(device, connectedDevice, console, indicator)
 
     if (isDebug) {
       // There is a bug in complication that right after the app with complication was installed, which is for configurations every time, if
       // you try immediately launch it for debug it fails with error, work around is launch and immediately stop before launching for debug.
       complicationLaunchOptions.chosenSlots.first().let { slot ->
-        setComplicationOnWatchFace(app, slot, AppComponent.Mode.RUN, indicator, device)
+        setComplicationOnWatchFace(app, slot, AppComponent.Mode.RUN, indicator, device, connectedDevice)
       }
       getStopCallback(console, applicationContext.applicationId, false).invoke(device)
     }
 
     indicator.text = "Setting up complication..."
-    complicationLaunchOptions.chosenSlots.forEach { slot -> setComplicationOnWatchFace(app, slot, mode, indicator, device) }
+    complicationLaunchOptions.chosenSlots.forEach { slot ->
+      setComplicationOnWatchFace(app, slot, mode, indicator, device, connectedDevice)
+    }
     showWatchFace(device, console, indicator)
   }
 
@@ -105,6 +116,7 @@ class AndroidComplicationConfigurationExecutor(
     mode: AppComponent.Mode,
     indicator: ProgressIndicator?,
     device: IDevice,
+    connectedDevice: ConnectedDevice?,
   ) {
     if (slot.type == null) {
       throw ExecutionException("Slot type is not specified for slot(id: ${slot.id}).")
@@ -112,6 +124,7 @@ class AndroidComplicationConfigurationExecutor(
     val receiver = RecordOutputReceiver { indicator?.isCanceled == true }
 
     val watchFaceInfo = "${complicationLaunchOptions.watchFaceInfo.appId} ${complicationLaunchOptions.watchFaceInfo.watchFaceFQName}"
+    val deviceHolder = DeviceHolder(device, connectedDevice, AdbLibService.getSession(environment.project))
     try {
       getActivator(app)
         .activate(
@@ -121,8 +134,7 @@ class AndroidComplicationConfigurationExecutor(
           mode,
           // TODO studio-merge
           receiver.asDeployerReceiver(),
-          // TODO studio-merge
-          DeviceHolder(device, java.util.Optional.empty()),
+          deviceHolder,
         )
     } catch (ex: DeployerException) {
       throw ExecutionException("Error while launching complication, message: ${receiver.getOutput().ifEmpty { ex.details }}", ex)
@@ -138,7 +150,7 @@ class AndroidComplicationConfigurationExecutor(
     }
   }
 
-  private fun installWatchApp(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): App {
+  private fun installWatchApp(device: IDevice, connectedDevice: ConnectedDevice?, console: ConsoleView, indicator: ProgressIndicator): App {
     val watchFaceInfo = complicationLaunchOptions.watchFaceInfo
 
     val apkInfo = ApkInfo(File(watchFaceInfo.apk), watchFaceInfo.appId)
@@ -146,7 +158,9 @@ class AndroidComplicationConfigurationExecutor(
     indicator.text = "Installing test WatchFace"
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-    return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, containsMakeBeforeRun, indicator, null).app
+    return applicationDeployer
+      .fullDeploy(device, connectedDevice, apkInfo, appRunSettings.deployOptions, containsMakeBeforeRun, indicator, null)
+      .app
   }
 
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {

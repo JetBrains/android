@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.adblib.ConnectedDevice
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Activator
 import com.android.tools.deployer.common.DeployerException
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.adblib.toConnectedDevice
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.AppRunSettings
@@ -77,15 +79,24 @@ abstract class AndroidConfigurationExecutorBase(
     val processHandler = AndroidProcessHandler(applicationId, getStopCallback(console, applicationId, false))
     val terminator = ProcessHandlerApplicationTerminator(indicator, devices, applicationId)
 
-    val onDevice = { device: IDevice ->
+    val onDevice: (IDevice, ConnectedDevice?) -> Unit = { device, connectedDevice ->
       LOG.info("Launching on device ${device.name}")
 
       try {
         val app = apkProvider.getApks(device).single() // ApkProvider provides multiple ApkInfo only for instrumented tests.
         val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-        val result = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator, terminator)
-        launch(device, result.app, console, false, indicator)
+        val result =
+          applicationDeployer.fullDeploy(
+            device,
+            connectedDevice,
+            app,
+            appRunSettings.deployOptions,
+            containsMakeBeforeRun,
+            indicator,
+            terminator,
+          )
+        launch(device, connectedDevice, result.app, console, false, indicator)
       } catch (e: DeployerException) {
         throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
       } catch (e: ExecutionException) {
@@ -95,7 +106,17 @@ abstract class AndroidConfigurationExecutorBase(
       processHandler.addTargetDevice(device)
     }
 
-    devices.map { async { onDevice(it) } }.joinAll()
+    devices
+      .map { device ->
+        async {
+          val connectedDevice = device.toConnectedDevice(environment.project)
+          if (connectedDevice == null) {
+            LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+          }
+          onDevice(device, connectedDevice)
+        }
+      }
+      .joinAll()
 
     AndroidSessionInfo.create(processHandler, devices, applicationId)
     createRunContentDescriptor(processHandler, console, environment)
@@ -118,15 +139,27 @@ abstract class AndroidConfigurationExecutorBase(
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
     val terminator = ProcessHandlerApplicationTerminator(indicator, devices, applicationId)
+    val connectedDevice = device.toConnectedDevice(environment.project)
+    if (connectedDevice == null) {
+      LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+    }
     try {
       indicator.text = "Installing app..."
       val deployResult =
-        applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator, terminator)
+        applicationDeployer.fullDeploy(
+          device,
+          connectedDevice,
+          app,
+          appRunSettings.deployOptions,
+          containsMakeBeforeRun,
+          indicator,
+          terminator,
+        )
       @Suppress("UnstableApiUsage")
       val runContentDescriptorDeferred =
         async(Dispatchers.Default) { startDebugSession(device, applicationContext, console, indicator).runContentDescriptor }
       indicator.text = "Launching..."
-      launch(device, deployResult.app, console, true, indicator)
+      launch(device, connectedDevice, deployResult.app, console, true, indicator)
       runContentDescriptorDeferred.await()
     } catch (e: DeployerException) {
       throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
@@ -152,7 +185,14 @@ abstract class AndroidConfigurationExecutorBase(
 
   @VisibleForTesting
   @Throws(ExecutionException::class)
-  abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator)
+  abstract fun launch(
+    device: IDevice,
+    connectedDevice: ConnectedDevice?,
+    app: App,
+    console: ConsoleView,
+    isDebug: Boolean,
+    indicator: ProgressIndicator,
+  )
 
   @Suppress("UnstableApiUsage")
   protected abstract suspend fun startDebugSession(

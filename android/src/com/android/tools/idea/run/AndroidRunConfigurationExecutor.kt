@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.run
 
+import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.common.DeployerException
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.adblib.toConnectedDevice
 import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
@@ -135,12 +137,24 @@ class AndroidRunConfigurationExecutor(
           if (configuration.DEPLOY) {
             val apks = apkInfosSafe(device)
             val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+            val connectedDevice = device.toConnectedDevice(project)
+            if (connectedDevice == null) {
+              LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+            }
             val deployResults =
               deployAndHandleError(
                 env,
                 {
                   apks.map {
-                    applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator, terminator)
+                    applicationDeployer.fullDeploy(
+                      device,
+                      connectedDevice,
+                      it,
+                      configuration.deployOptions,
+                      containsMakeBeforeRun,
+                      indicator,
+                      terminator,
+                    )
                   }
                 },
               )
@@ -156,7 +170,7 @@ class AndroidRunConfigurationExecutor(
               }
             }
 
-            if (launch(mainApp.app, device, console, isDebug = false)) {
+            if (launch(mainApp.app, device, connectedDevice, console, isDebug = false)) {
               notifyLiveEditService(device, apks, applicationContext)
             }
           }
@@ -246,12 +260,24 @@ class AndroidRunConfigurationExecutor(
       val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
       val apks = apkInfosSafe(device)
       val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+      val connectedDevice = device.toConnectedDevice(project)
+      if (connectedDevice == null) {
+        LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+      }
       val deployResults =
         deployAndHandleError(
           env,
           {
             apks.map {
-              applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator, terminator)
+              applicationDeployer.fullDeploy(
+                device,
+                connectedDevice,
+                it,
+                configuration.deployOptions,
+                containsMakeBeforeRun,
+                indicator,
+                terminator,
+              )
             }
           },
         )
@@ -268,7 +294,7 @@ class AndroidRunConfigurationExecutor(
         }
       }
 
-      launch(mainApp.app, device, console, isDebug = true)
+      launch(mainApp.app, device, connectedDevice, console, isDebug = true)
     }
 
     indicator.text = "Connecting debugger"
@@ -347,12 +373,23 @@ class AndroidRunConfigurationExecutor(
           // Deploy
           val apks = apkInfosSafe(device)
           val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+          val connectedDevice = device.toConnectedDevice(project)
+          if (connectedDevice == null) {
+            LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+          }
           val deployResults =
             deployAndHandleError(
               env,
               {
                 apks.map {
-                  applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator)
+                  applicationDeployer.applyChangesDeploy(
+                    device,
+                    connectedDevice,
+                    it,
+                    configuration.deployOptions,
+                    containsMakeBeforeRun,
+                    indicator,
+                  )
                 }
               },
               isApplyChangesFallbackToRun(),
@@ -364,7 +401,7 @@ class AndroidRunConfigurationExecutor(
                 ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
             RunConfigurationNotifier.notifyInfo(project, configuration.name, "Swap failed, needs restart")
             waitPreviousProcessTermination(listOf(device), applicationId, indicator)
-            launch(mainApp.app, device, console, isDebug = false)
+            launch(mainApp.app, device, connectedDevice, console, isDebug = false)
             needsNewRunContentDescriptor = true
           }
         }
@@ -427,12 +464,23 @@ class AndroidRunConfigurationExecutor(
           LOG.info("Launching on device ${device.name}")
           val apks = apkInfosSafe(device)
           val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+          val connectedDevice = device.toConnectedDevice(project)
+          if (connectedDevice == null) {
+            LOG.warn("ConnectedDevice lookup for serial ${device.serialNumber} failed to find a device")
+          }
           val deployResults =
             deployAndHandleError(
               env,
               {
                 apks.map {
-                  applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator)
+                  applicationDeployer.applyCodeChangesDeploy(
+                    device,
+                    connectedDevice,
+                    it,
+                    configuration.deployOptions,
+                    containsMakeBeforeRun,
+                    indicator,
+                  )
                 }
               },
               isApplyCodeChangesFallbackToRun(),
@@ -445,7 +493,7 @@ class AndroidRunConfigurationExecutor(
 
             RunConfigurationNotifier.notifyInfo(project, configuration.name, "Swap failed, needs restart")
             waitPreviousProcessTermination(listOf(device), applicationId, indicator)
-            launch(mainApp.app, device, console, isDebug = env.executor.isDebug)
+            launch(mainApp.app, device, connectedDevice, console, isDebug = env.executor.isDebug)
             needsNewRunContentDescriptor = true
           }
         }
@@ -518,7 +566,7 @@ class AndroidRunConfigurationExecutor(
   }
 
   @Throws(ExecutionException::class)
-  fun launch(app: App, device: IDevice, consoleView: ConsoleView, isDebug: Boolean): Boolean {
+  fun launch(app: App, device: IDevice, connectedDevice: ConnectedDevice?, consoleView: ConsoleView, isDebug: Boolean): Boolean {
     val amStartOptions = StringBuilder()
     var didAnything = false
 
@@ -529,7 +577,17 @@ class AndroidRunConfigurationExecutor(
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
     try {
       didAnything =
-        configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView, RunStats.from(env))
+        configuration.launch(
+          app,
+          device,
+          connectedDevice,
+          facet,
+          amStartOptions.toString(),
+          isDebug,
+          apkProvider,
+          consoleView,
+          RunStats.from(env),
+        )
     } catch (e: DeployerException) {
       throw AndroidExecutionException(e.id, e.message)
     }
