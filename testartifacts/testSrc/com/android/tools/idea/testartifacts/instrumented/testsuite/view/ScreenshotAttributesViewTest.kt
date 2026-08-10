@@ -65,7 +65,7 @@ class ScreenshotAttributesViewTest {
         purple = emptyList(),
         teal = emptyList(),
         rawMap = emptyMap(),
-        isIslands = false,
+        isIslands = false
       )
 
     composeTestRule.setContent {
