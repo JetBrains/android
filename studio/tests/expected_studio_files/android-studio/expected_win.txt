@@ -2589,6 +2589,8 @@ android-studio/plugins/firebase/lib/firebase_provisioning_kt_proto.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 android-studio/plugins/firebase/lib/grpc-google-common-protos-2.51.0.jar
 android-studio/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
+android-studio/plugins/gemini/lib/acp-jvm-0.24.0.jar
+android-studio/plugins/gemini/lib/acp-model-jvm-0.24.0.jar
 android-studio/plugins/gemini/lib/aicode_grpc.jar
 android-studio/plugins/gemini/lib/aida_grpc.jar
 android-studio/plugins/gemini/lib/aida_proto.jar

@@ -911,6 +911,7 @@ studio_plugin(
     name = "com.google.tools.ij.aiplugin",
     directory = "gemini",
     libs = [
+        "//prebuilts/tools/common/m2:acp-jvm",
         "//prebuilts/tools/common/m2:anthropic-java-sdk",
         "//prebuilts/tools/common/m2:anthropic-openai-common-deps",
         "//prebuilts/tools/common/m2:libgoogle_auth_transitive_deps",
@@ -968,6 +969,8 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/editor/change-review:aiplugin.editor.change-review",
             "//tools/vendor/google/ml/aiplugin/lang/kotlin:aiplugin.lang.kotlin",
             "//tools/vendor/google/ml/aiplugin/mcp/client:aiplugin.mcp.client.sdkcompat",
+            "//tools/vendor/google/ml/aiplugin/acp/client:aiplugin.acp.client",
+            "//tools/vendor/google/ml/aiplugin/agents/npx:aiplugin.agents.npx",
             "//tools/vendor/google/ml/aiplugin/rag/indexer:aiplugin.rag.indexer",
             "//tools/vendor/google/ml/aiplugin/rag/kb:aiplugin.rag.kb",
             "//tools/vendor/google/ml/aiplugin/rag/lucene:aiplugin.rag.lucene",

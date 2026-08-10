@@ -7,6 +7,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/client-tests/aiplugin.acp.client-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/client-tests/aiplugin.acp.client-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/plugin/aiplugin.acp.plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/plugin/aiplugin.acp.plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/npx/aiplugin.agents.npx.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/npx/aiplugin.agents.npx.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core-tests/aiplugin.agents.agents-core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core-tests/aiplugin.agents.agents-core-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/aiplugin.android.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/aiplugin.android.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/aiplugin.android-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/aiplugin.android-plugin.iml" />
