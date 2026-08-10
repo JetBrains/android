@@ -1215,7 +1215,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   }
 
   private fun getStartableVirtualDevices(): List<AvdInfo> {
-    val avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false)
+    val avds = AvdManagerConnection.getDefaultAvdManagerConnection().getCachedAvds()
     val runningAvdFolders = RunningAvdTracker.getInstance().runningAvds.filter { !it.value.isShuttingDown }.keys
     return avds.filter {
       it.dataFolderPath !in runningAvdFolders &&

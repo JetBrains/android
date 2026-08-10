@@ -125,6 +125,9 @@ constructor(
     return avdManager.allAvds
   }
 
+  /** Returns a list of AVDs currently present on the system that have already been discovered. */
+  open fun getCachedAvds(): List<AvdInfo> = avdManager?.allAvds ?: listOf()
+
   /** Delete the given AVD if it exists. */
   @Slow fun deleteAvd(info: AvdInfo): Boolean = avdManager?.deleteAvd(info) ?: false
 

@@ -41,6 +41,7 @@ import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.adblib.AdbLibApplicationService
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -753,6 +754,7 @@ class StreamingToolWindowManagerTest {
     tablet.start(standalone = true)
     runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
 
+    AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true) // Force loading of AVDs.
     val popup = triggerAddDevicePopup()
     assertThat(popup.actions.toString())
       .isEqualTo(
