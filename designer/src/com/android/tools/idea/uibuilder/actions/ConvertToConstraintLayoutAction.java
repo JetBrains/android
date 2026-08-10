@@ -49,6 +49,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -58,6 +59,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.rendering.parsers.AttributeSnapshot;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -82,7 +84,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -270,13 +271,14 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
   }
 
-  private static class ConstraintLayoutConverter  {
+  @VisibleForTesting
+  static class ConstraintLayoutConverter {
     private static final boolean DIRECT_INFERENCE = true;
     private final ScreenView myScreenView;
     private final boolean myFlatten;
     private final boolean myIncludeIds;
     private final boolean myIncludeCustomViews;
-    private ViewEditorImpl myEditor;
+    private final ViewEditor myEditor;
     private List<NlComponent> myToBeFlattened;
     private NlComponent myRoot;
     private NlComponent myLayout;
@@ -286,13 +288,23 @@ public class ConvertToConstraintLayoutAction extends AnAction {
                                      boolean flatten,
                                      boolean includeIds,
                                      boolean includeCustomViews) {
+      this(screenView, target, flatten, includeIds, includeCustomViews, new ViewEditorImpl(screenView));
+    }
+
+    @VisibleForTesting
+    public ConstraintLayoutConverter(@NotNull ScreenView screenView,
+                                     @NotNull NlComponent target,
+                                     boolean flatten,
+                                     boolean includeIds,
+                                     boolean includeCustomViews,
+                                     @NotNull ViewEditor editor) {
       myScreenView = screenView;
       myFlatten = flatten;
       myIncludeIds = includeIds;
       myIncludeCustomViews = includeCustomViews;
       myLayout = target;
       myRoot = myScreenView.getSceneManager().getModel().getTreeReader().getComponents().get(0);
-      myEditor = new ViewEditorImpl(myScreenView);
+      myEditor = editor;
     }
 
     private Project getProject(){
@@ -378,17 +390,26 @@ public class ConvertToConstraintLayoutAction extends AnAction {
               model.removeListener(this);
 
               myEditor.measureChildren(layout, null)
-                .whenCompleteAsync(
-                  (sizes, ex) -> NlWriteCommandActionUtil.run(
-                    Collections.singletonList(layout), "Infer Constraints", ACTION_UNDO_ID, () -> {
-                  for (NlComponent component : sizes.keySet()) {
-                    Dimension d = sizes.get(component);
-                    component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
-                    component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
-                  }
+                .whenComplete(
+                  (sizes, ex) -> {
+                    if (ex != null || sizes == null) {
+                      return;
+                    }
+                    final Project project = getProject();
+                    ApplicationManager.getApplication().invokeLater(() ->
+                      NlWriteCommandActionUtil.run(
+                        Collections.singletonList(layout), "Infer Constraints", ACTION_UNDO_ID, () -> {
+                          for (NlComponent component : sizes.keySet()) {
+                            Dimension d = sizes.get(component);
+                            component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
+                            component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
+                          }
 
-                  inferConstraints(layout);
-                }), EdtExecutorService.getInstance());
+                          inferConstraints(layout);
+                        }),
+                      project.getDisposed()
+                    );
+                  });
             }
           }
         });

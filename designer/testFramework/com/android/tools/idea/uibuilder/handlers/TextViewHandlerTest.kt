@@ -63,7 +63,7 @@ private class HolderViewActionPresentation : ViewActionPresentation {
   }
 }
 
-class FakeViewEditor : ViewEditor() {
+open class FakeViewEditor : ViewEditor() {
   override fun getCompileSdkVersion(): AndroidVersion? = null
 
   override fun getMinSdkVersion(): AndroidVersion = AndroidVersion.DEFAULT
@@ -87,7 +87,7 @@ class FakeViewEditor : ViewEditor() {
   override fun measureChildren(
     parent: NlComponent,
     filter: RenderTask.AttributeFilter?,
-  ): CompletableFuture<MutableMap<NlComponent, Dimension>>? = null
+  ): CompletableFuture<MutableMap<NlComponent, Dimension>> = CompletableFuture.completedFuture(mutableMapOf())
 
   override fun getScene(): Scene {
     TODO("Not yet implemented")

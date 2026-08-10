@@ -147,7 +147,7 @@ public abstract class ViewEditor {
    * @param filter an optional filter we'll apply to the attributes of each of the children
    * @return a map from child to bounds information, if possible
    */
-  @Nullable
+  @NotNull
   public abstract CompletableFuture<Map<NlComponent, Dimension>> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
 
   @Nullable
