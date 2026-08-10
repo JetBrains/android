@@ -44,6 +44,12 @@ service VitalsService {
       returns (BitmapMemoryUsageMetricSet) {}
   rpc QueryBitmapMemoryUsageMetricSet(QueryBitmapMemoryUsageMetricSetRequest)
       returns (QueryBitmapMemoryUsageMetricSetResponse) {}
+  rpc GetAnonRssAndSwapMemoryUsageMetricSet(
+      GetAnonRssAndSwapMemoryUsageMetricSetRequest)
+      returns (AnonRssAndSwapMemoryUsageMetricSet) {}
+  rpc QueryAnonRssAndSwapMemoryUsageMetricSet(
+      QueryAnonRssAndSwapMemoryUsageMetricSetRequest)
+      returns (QueryAnonRssAndSwapMemoryUsageMetricSetResponse) {}
 }
 message GetCrashRateMetricSetRequest {
   string name = 1;
@@ -211,5 +217,35 @@ message QueryBitmapMemoryUsageMetricSetRequest {
 }
 message QueryBitmapMemoryUsageMetricSetResponse {
   repeated MetricsRow rows = 1;
+  string next_page_token = 2;
+}
+message GetAnonRssAndSwapMemoryUsageMetricSetRequest {
+  string name = 1;
+}
+message AnonRssAndSwapMemoryUsageMetricSet {
+  string name = 1;
+
+  FreshnessInfo freshness_info = 2;
+}
+message QueryAnonRssAndSwapMemoryUsageMetricSetRequest {
+  string name = 1;
+
+  TimelineSpec timeline_spec = 2;
+
+  repeated string dimensions = 3;
+
+  repeated string metrics = 4;
+
+  string filter = 7;
+
+  int32 page_size = 5;
+
+  string page_token = 6;
+
+  UserCohort user_cohort = 8;
+}
+message QueryAnonRssAndSwapMemoryUsageMetricSetResponse {
+  repeated MetricsRow rows = 1;
+
   string next_page_token = 2;
 }
