@@ -754,7 +754,6 @@ class StreamingToolWindowManagerTest {
     tablet.start(standalone = true)
     runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
 
-    AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true) // Force loading of AVDs.
     val popup = triggerAddDevicePopup()
     assertThat(popup.actions.toString())
       .isEqualTo(
@@ -1116,6 +1115,7 @@ class StreamingToolWindowManagerTest {
   }
 
   private fun triggerAddDevicePopup(): FakeJBPopup<Any> {
+    AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true) // Force loading of AVDs.
     waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
     val newTabAction = toolWindow.tabActions[0]
     val testEvent = createTestEvent(toolWindow.component, project)
