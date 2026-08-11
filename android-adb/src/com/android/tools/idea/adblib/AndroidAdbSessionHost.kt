@@ -17,6 +17,7 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbSessionHost
 import com.android.adblib.tools.AdbLibToolsProperties
+import com.android.tools.deployer.common.DeployerProperties
 import com.android.tools.idea.concurrency.androidCoroutineExceptionHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.application.subscribe
@@ -65,6 +66,10 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
     delegatePropertyValue(
       property = AdbLibToolsProperties.PROCESS_PROPERTIES_COLLECTOR_USE_APP_INFO_IF_AVAILABLE,
       valueProvider = { StudioFlags.ADBLIB_USE_APP_INFO_IF_AVAILABLE.get() },
+    )
+    delegatePropertyValue(
+      property = DeployerProperties.USE_CONNECTED_DEVICE,
+      valueProvider = { StudioFlags.DEPLOYER_USE_CONNECTED_DEVICE.get() },
     )
   }
 

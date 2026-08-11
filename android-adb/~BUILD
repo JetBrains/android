@@ -16,6 +16,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/base/adblib:studio.android.sdktools.adblib",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",

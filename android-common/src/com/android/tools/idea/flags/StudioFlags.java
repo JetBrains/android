@@ -653,6 +653,12 @@ public final class StudioFlags {
     "Check the `app_info` feature for connected devices, and use it to track processes if available. " +
     "Note: Changing the value of this flag requires restarting Android Studio.");
 
+  public static final Flag<Boolean> DEPLOYER_USE_CONNECTED_DEVICE = new BooleanFlag(
+    RUNDEBUG,
+    "deployer.use.connected.device",
+    "Use ConnectedDevice in Deployer",
+    "Use adblib's `ConnectedDevice` in favor of ddmlib `IDevice` in deploy/deployer");
+
   public static final Flag<Boolean> JDWP_TRACER = new BooleanFlag(
     RUNDEBUG,
     "adb.jdwp.tracer.enabled",
