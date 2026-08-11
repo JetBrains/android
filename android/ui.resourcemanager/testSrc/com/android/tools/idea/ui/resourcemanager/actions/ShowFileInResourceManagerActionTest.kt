@@ -32,6 +32,7 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
@@ -154,7 +155,8 @@ class ShowFileInResourceManagerActionTest {
   private fun checkActionWithFile(resourceManagerAction: ShowFileInResourceManagerAction, virtualFile: VirtualFile?): AnActionEvent {
     val dataContext = createDataContext(virtualFile)
     val testActionEvent = TestActionEvent.createTestEvent(resourceManagerAction, dataContext)
-    runInEdtAndWait { resourceManagerAction.update(testActionEvent) }
+    // JetBrains: update() runs on BGT (ActionUpdateThread.BGT) and the platform asserts the @RequiresBackgroundThread check inside it
+    ApplicationManager.getApplication().executeOnPooledThread { runReadAction { resourceManagerAction.update(testActionEvent) } }.get()
     return testActionEvent
   }
 
