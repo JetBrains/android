@@ -16,13 +16,15 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.createValueResource
+import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.res.createValueResourceAsync
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
+import com.intellij.openapi.application.EDT
 import com.intellij.psi.PsiDocumentManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
@@ -51,23 +53,17 @@ class NewResourceValueAction(
     val resValue = dialog.value
     val resName = dialog.resourceName
 
-    // Attempt to create resource in file
-    if (!createValueResource(project, resDir, resName, type, fileName, dirNames, resValue)) {
-      return
+    project.createCoroutineScope().launch {
+      // Attempt to create resource in file
+      if (!createValueResourceAsync(project, resDir, resName, type, fileName, dirNames, resValue)) {
+        return@launch
+      }
+
+      withContext(Dispatchers.EDT) {
+        PsiDocumentManager.getInstance(project).commitAllDocuments()
+        // Show/open/select created resource.
+        createdResourceCallback(resName, type)
+      }
     }
-
-    // Update modified files into the system
-    ProgressManager.getInstance()
-      .run(
-        object : Task.Modal(facet.module.project, "Refreshing Modified Files", false) {
-          override fun run(indicator: ProgressIndicator) {
-            // Avoid hogging the EDT without feedback, this will show a modal dialog if it takes long enough
-            PsiDocumentManager.getInstance(module.project).commitAllDocumentsUnderProgress()
-          }
-        }
-      )
-
-    // Show/open/select created resource.
-    createdResourceCallback(resName, type)
   }
 }

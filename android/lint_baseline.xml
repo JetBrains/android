@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.4.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.4.0-dev">
+<issues format="6" by="lint 9.5.0-alpha01" type="baseline" client="" dependencies="true" name="" variant="all" version="9.5.0-alpha01">
 
     <issue
         id="JbUiStored"
@@ -494,17 +494,6 @@
             file="src/com/android/tools/idea/model/MergedManifestManager.kt"
             line="277"
             column="12"/>
-    </issue>
-
-    <issue
-        id="WrongThread"
-        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
-        errorLine1="    if (!createValueResource(project, resDir, resName, type, fileName, dirNames, resValue)) {"
-        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/actions/NewResourceValueAction.kt"
-            line="55"
-            column="10"/>
     </issue>
 
     <issue
