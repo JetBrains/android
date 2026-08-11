@@ -14,6 +14,8 @@ import zipfile
 
 
 def main():
+    sys.exit("ERROR: the monobuild is not yet compatible with IntelliJ 2026.2+ (b/543442711), please reach out if you need it fixed")
+
     if sys.version_info < (3,9):
         sys.exit("ERROR: Python version should be at least 3.9")
 
