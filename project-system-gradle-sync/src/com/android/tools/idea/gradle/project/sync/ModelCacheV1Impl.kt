@@ -184,6 +184,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       storeFile = config.storeFile,
       storePassword = config.storePassword,
       keyAlias = config.keyAlias,
+      isSigningReady = config.isSigningReady,
     )
   }
 

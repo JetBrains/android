@@ -1703,11 +1703,13 @@ MODULE                        : project.app
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
         SigningConfig
             Name                          : myConfig
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : androiddebugkey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : basicBarDebug
@@ -3201,6 +3203,7 @@ MODULE                        : project.dyn_feature
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : basicBarDebug
@@ -4124,6 +4127,7 @@ MODULE                        : project.lib
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -5148,6 +5152,7 @@ MODULE                        : project.nested1
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -5466,6 +5471,7 @@ MODULE                        : project.nested1.deep
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -5895,6 +5901,7 @@ MODULE                        : project.nested2
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : basicDebug
@@ -6259,6 +6266,7 @@ MODULE                        : project.nested2.deep
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -6588,6 +6596,7 @@ MODULE                        : project.nested2.trans.deep2
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug

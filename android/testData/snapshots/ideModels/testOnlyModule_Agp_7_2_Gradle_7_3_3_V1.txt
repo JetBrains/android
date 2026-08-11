@@ -1024,6 +1024,7 @@ MODULE                        : project.app
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -1284,6 +1285,7 @@ MODULE                        : project.benchmark
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : benchmark
@@ -1550,6 +1552,7 @@ MODULE                        : project.test
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -1816,6 +1819,7 @@ MODULE                        : project.test2
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug

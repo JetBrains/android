@@ -1027,6 +1027,7 @@ MODULE                        : project.app
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug

@@ -1318,6 +1318,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : typeoneModeoneDebug
@@ -1732,6 +1733,7 @@ MODULE                        : Kotlin_Multiplatform.app
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -2076,6 +2078,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : androidMain

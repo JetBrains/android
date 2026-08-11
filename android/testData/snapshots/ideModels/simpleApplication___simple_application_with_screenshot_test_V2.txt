@@ -963,6 +963,7 @@ MODULE                        : project.app
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug

@@ -829,6 +829,7 @@ MODULE                        : My_First_App.app
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -1901,6 +1902,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug

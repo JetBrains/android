@@ -1043,6 +1043,7 @@ MODULE                        : kotlinMultiPlatform.app
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -2540,6 +2541,7 @@ MODULE                        : kotlinMultiPlatform.module2
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug

@@ -24,11 +24,13 @@ data class IdeSigningConfigImpl(
   override val storeFile: FileImpl?,
   override val storePassword: String?,
   override val keyAlias: String?,
+  override val isSigningReady: Boolean,
 ) : IdeSigningConfig, Serializable {
   constructor(
     name: String,
     storeFile: File?,
     storePassword: String?,
     keyAlias: String?,
-  ) : this(name, storeFile?.toImpl(), storePassword, keyAlias)
+    isSigningReady: Boolean,
+  ) : this(name, storeFile?.toImpl(), storePassword, keyAlias, isSigningReady)
 }

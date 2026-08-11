@@ -731,6 +731,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) =
           prop("StoreFile") { ideSigningConfig.storeFile?.name }
           prop("StorePassword") { ideSigningConfig.storePassword }
           prop("KeyAlias") { ideSigningConfig.keyAlias }
+          prop("IsSigningReady") { ideSigningConfig.isSigningReady.toString() }
         }
       }
 

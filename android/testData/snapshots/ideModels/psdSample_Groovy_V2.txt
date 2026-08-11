@@ -1504,10 +1504,12 @@ MODULE                        : project.app
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
         SigningConfig
             Name                          : myConfig
             StoreFile                     : debug.keystore
             KeyAlias                      : androiddebugkey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : basicBarDebug
@@ -2931,6 +2933,7 @@ MODULE                        : project.dyn_feature
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : basicBarDebug
@@ -4016,6 +4019,7 @@ MODULE                        : project.lib
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -5020,6 +5024,7 @@ MODULE                        : project.nested1
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -5318,6 +5323,7 @@ MODULE                        : project.nested1.deep
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -5725,6 +5731,7 @@ MODULE                        : project.nested2
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : basicDebug
@@ -6066,6 +6073,7 @@ MODULE                        : project.nested2.deep
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
@@ -6374,6 +6382,7 @@ MODULE                        : project.nested2.trans.deep2
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug

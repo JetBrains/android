@@ -324,6 +324,7 @@ fun modelCacheV2Impl(
       storeFile = config.storeFile?.deduplicateFile(),
       storePassword = config.storePassword?.deduplicate(),
       keyAlias = config.keyAlias?.deduplicate(),
+      isSigningReady = config.isSigningReady,
     )
   }
 

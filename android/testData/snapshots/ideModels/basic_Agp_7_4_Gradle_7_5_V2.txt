@@ -792,11 +792,13 @@ MODULE                        : project
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
         SigningConfig
             Name                          : myConfig
             StoreFile                     : debug.keystore
             StorePassword                 : android
             KeyAlias                      : androiddebugkey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug

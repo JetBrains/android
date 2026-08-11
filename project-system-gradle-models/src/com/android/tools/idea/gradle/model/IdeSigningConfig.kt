@@ -35,4 +35,11 @@ interface IdeSigningConfig {
 
   /** The key alias name. */
   val keyAlias: String?
+
+  /**
+   * Whether the config is fully configured for signing.
+   *
+   * i.e. all the required information are present.
+   */
+  val isSigningReady: Boolean
 }

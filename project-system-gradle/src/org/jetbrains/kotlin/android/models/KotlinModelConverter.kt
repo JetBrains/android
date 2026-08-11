@@ -223,6 +223,7 @@ class KotlinModelConverter {
       storeFile = storeFile?.convertAndDeduplicate(),
       storePassword = storePassword?.deduplicate(),
       keyAlias = keyAlias?.deduplicate(),
+      isSigningReady = isSigningReady,
     )
 
   private fun computeForCoordinatesIfAbsent(

@@ -769,10 +769,12 @@ MODULE                        : project
             Name                          : debug
             StoreFile                     : debug.keystore
             KeyAlias                      : AndroidDebugKey
+            IsSigningReady                : true
         SigningConfig
             Name                          : myConfig
             StoreFile                     : debug.keystore
             KeyAlias                      : androiddebugkey
+            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
