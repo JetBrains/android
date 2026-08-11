@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.2.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.2.0-dev">
+<issues format="6" by="lint 9.4.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.4.0-dev">
 
     <issue
         id="JbUiStored"
@@ -233,6 +233,50 @@
     </issue>
 
     <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
+        errorLine1="    if (createAvd) {"
+        errorLine2="    ^">
+        <location
+            file="src/com/android/tools/idea/welcome/wizard/FirstRunWizardModel.kt"
+            line="130"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
+        errorLine1="    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/strings/GoToDeclarationAction.java"
+            line="66"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
+        errorLine1="      if (open) {"
+        errorLine2="      ^">
+        <location
+            file="src/org/jetbrains/android/intentions/OverrideResourceAction.java"
+            line="413"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
+        errorLine1="      case DEFAULT_VALUE_COLUMN:"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/strings/table/StringResourceTableModel.java"
+            line="142"
+            column="7"/>
+    </issue>
+
+    <issue
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`."
         errorLine1="    if (file == mainManifestFile) {"
@@ -300,6 +344,94 @@
 
     <issue
         id="WrongThread"
+        message="Call must be from `@UiThread`, but context is allowing `@AnyThread`"
+        errorLine1="    form.print(s, contentType)"
+        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/welcome/wizard/AbstractProgressStep.kt"
+            line="72"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="    return wizard.showAndGet()"
+        errorLine2="                  ~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/sdk/wizard/AehdWizardService.kt"
+            line="38"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `BaseRefactoringProcessor.performRefactoring(…)` is allowing `@UiThread`"
+        errorLine1="          getOrCreateTargetDirectory(repo, resource)?.let { targetDir ->"
+        errorLine2="          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/refactoring/modularize/AndroidModularizeProcessor.kt"
+            line="200"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `BaseRefactoringProcessor.performRefactoring(…)` is allowing `@UiThread`"
+        errorLine1="          (getOrCreateTargetValueFile(repo, resource) as XmlFile?)?.let { resourceFile ->"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/refactoring/modularize/AndroidModularizeProcessor.kt"
+            line="205"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `BaseRefactoringProcessor.performRefactoring(…)` is allowing `@UiThread`"
+        errorLine1="        (getOrCreateTargetManifestFile(facet) as XmlFile?)?.let {"
+        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/refactoring/modularize/AndroidModularizeProcessor.kt"
+            line="216"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@AnyThread`"
+        errorLine1="      resourceReferencePsiElement = ResourceReferencePsiElement.create(targetElement);"
+        errorLine2="                                                                ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/org/jetbrains/android/AndroidUsagesTargetProvider.java"
+            line="44"
+            column="65"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@AnyThread`"
+        errorLine1="      resourceReferencePsiElement = IdeResourcesUtil.getResourceElementFromSurroundingValuesTag(contextElement);"
+        errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/org/jetbrains/android/AndroidUsagesTargetProvider.java"
+            line="51"
+            column="54"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@AnyThread`"
+        errorLine1="    ResourceReferencePsiElement referencePsiElement = ResourceReferencePsiElement.create(psiElement);"
+        errorLine2="                                                                                  ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/org/jetbrains/android/AndroidUsagesTargetProvider.java"
+            line="67"
+            column="83"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
         message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
         errorLine1="      SourceFilePosition location = ManifestUtils.getActionLocation(myFacet.getModule(), record);"
         errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -340,6 +472,94 @@
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
             line="754"
             column="61"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="        Module module = ModuleUtilCore.findModuleForFile(vResDir, myProject);"
+        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
+            line="986"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="        Module module = ModuleUtilCore.findModuleForFile(vFile, myProject);"
+        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
+            line="1010"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@AnyThread`"
+        errorLine1="    return runCancellableReadAction(mergedManifestInfo::isUpToDate)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/model/MergedManifestManager.kt"
+            line="277"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="    if (!createValueResource(project, resDir, resName, type, fileName, dirNames, resValue)) {"
+        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/actions/NewResourceValueAction.kt"
+            line="55"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="    StringResourceEditorProvider.openEditor(project, file);"
+        errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/actions/OpenStringResourceEditorAction.java"
+            line="58"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="    val referencePsiElement = getWritableResourceReferenceElement(dataContext) ?: return"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/org/jetbrains/android/refactoring/renaming/RenameResourceReference.kt"
+            line="290"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="      } else if (isNonEmptyNonSdk(path)) {"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/welcome/wizard/SdkComponentsStepController.kt"
+            line="105"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="    this.defaultValue = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))"
+        errorLine2="                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/strings/StringResource.kt"
+            line="121"
+            column="69"/>
     </issue>
 
 </issues>

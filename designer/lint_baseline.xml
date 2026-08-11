@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.5.0-alpha06" type="baseline" client="" dependencies="true" name="" variant="all" version="8.5.0-alpha06">
+<issues format="6" by="lint 9.4.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.4.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -19,7 +19,7 @@
         errorLine2="                                                         ~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/target/AnchorTarget.java"
-            line="49"
+            line="48"
             column="58"/>
     </issue>
 
@@ -30,7 +30,7 @@
         errorLine2="                                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/target/AnchorTarget.java"
-            line="50"
+            line="49"
             column="60"/>
     </issue>
 
@@ -63,7 +63,7 @@
         errorLine2="                                                    ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/interaction/CanvasResizeInteraction.java"
-            line="124"
+            line="96"
             column="53"/>
     </issue>
 
@@ -74,7 +74,7 @@
         errorLine2="                                ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnection.java"
-            line="77"
+            line="73"
             column="33"/>
     </issue>
 
@@ -85,7 +85,7 @@
         errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="41"
+            line="42"
             column="29"/>
     </issue>
 
@@ -96,7 +96,7 @@
         errorLine2="                                   ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="42"
+            line="43"
             column="36"/>
     </issue>
 
@@ -107,7 +107,7 @@
         errorLine2="                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="43"
+            line="44"
             column="44"/>
     </issue>
 
@@ -118,7 +118,7 @@
         errorLine2="                                       ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="66"
+            line="56"
             column="40"/>
     </issue>
 
@@ -129,7 +129,7 @@
         errorLine2="                                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="67"
+            line="57"
             column="51"/>
     </issue>
 
@@ -140,7 +140,7 @@
         errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="68"
+            line="58"
             column="46"/>
     </issue>
 
@@ -151,7 +151,7 @@
         errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="69"
+            line="59"
             column="46"/>
     </issue>
 
@@ -173,7 +173,7 @@
         errorLine2="                         ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/assistant/ImageViewAssistant.kt"
-            line="51"
+            line="50"
             column="26"/>
     </issue>
 
@@ -360,7 +360,7 @@
         errorLine2="                                                 ~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="97"
+            line="98"
             column="50"/>
     </issue>
 
@@ -371,7 +371,7 @@
         errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="282"
+            line="298"
             column="46"/>
     </issue>
 
@@ -382,7 +382,7 @@
         errorLine2="                                      ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="283"
+            line="299"
             column="39"/>
     </issue>
 
@@ -393,7 +393,7 @@
         errorLine2="                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="284"
+            line="300"
             column="44"/>
     </issue>
 
@@ -404,7 +404,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/common/analytics/CommonUsageTracker.kt"
-            line="84"
+            line="72"
             column="5"/>
     </issue>
 
@@ -415,7 +415,7 @@
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
-            line="85"
+            line="73"
             column="52"/>
     </issue>
 
@@ -426,8 +426,19 @@
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
-            line="85"
+            line="73"
             column="52"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@{Slow,WorkerThread}`, incompatible with earlier code that must run from `@UiThread`"
+        errorLine1="            updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/actions/ConfigurationAction.java"
+            line="107"
+            column="13"/>
     </issue>
 
     <issue
@@ -437,8 +448,19 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/common/util/ControllableTicker.kt"
-            line="44"
+            line="41"
             column="5"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="      updateActions(event.getDataContext());"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/actions/LocaleMenuAction.java"
+            line="234"
+            column="7"/>
     </issue>
 
 </issues>
