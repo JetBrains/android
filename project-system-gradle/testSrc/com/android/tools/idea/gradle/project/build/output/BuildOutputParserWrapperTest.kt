@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
@@ -28,6 +27,7 @@ import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.registerExtension
 import org.junit.Before
 import org.junit.Rule
@@ -39,7 +39,7 @@ import org.mockito.kotlin.whenever
 class BuildOutputParserWrapperTest {
   @get:Rule val temporaryFolder = TemporaryFolder()
 
-  @get:Rule val tempDirRule = TemporaryDirectoryRule()
+  @get:Rule val tempDirRule = TemporaryDirectory()
 
   @get:Rule val projectRule = AndroidGradleProjectRule()
   private val mockGradleErrorQuickFixProvider = mock<GradleErrorQuickFixProvider>()

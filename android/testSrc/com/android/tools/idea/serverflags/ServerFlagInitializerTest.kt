@@ -26,12 +26,12 @@ import com.android.tools.idea.serverflags.protos.MultiValueServerFlag
 import com.android.tools.idea.serverflags.protos.OSType
 import com.android.tools.idea.serverflags.protos.ServerFlagList
 import com.android.tools.idea.serverflags.protos.ServerFlagTest
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Any
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.TemporaryDirectory
 import java.nio.file.Path
 import junit.framework.TestCase
 import org.junit.Rule
@@ -182,7 +182,7 @@ class ServerFlagInitializerTest : TestCase() {
 
 class MultiValueServerFlagInitializerTest {
 
-  @get:Rule val dirRule = TemporaryDirectoryRule()
+  @get:Rule val dirRule = TemporaryDirectory()
 
   private val multiValueFlag: List<MultiValueServerFlag> =
     listOf(

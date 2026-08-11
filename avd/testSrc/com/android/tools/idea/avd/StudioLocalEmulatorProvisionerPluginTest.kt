@@ -47,13 +47,13 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.replaceService
 import icons.StudioIcons
 import java.nio.file.Files
@@ -80,7 +80,7 @@ import org.mockito.kotlin.whenever
 
 class StudioLocalEmulatorProvisionerPluginTest {
   @get:Rule val projectRule = ProjectRule()
-  @get:Rule val temporaryDirectoryRule = TemporaryDirectoryRule()
+  @get:Rule val temporaryDirectoryRule = TemporaryDirectory()
   @get:Rule val pairingWizardFlagRule = FlagRule(StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED, true)
 
   private val session = FakeAdbSession()

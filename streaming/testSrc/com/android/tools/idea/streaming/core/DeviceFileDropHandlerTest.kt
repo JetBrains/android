@@ -25,7 +25,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.dnd.DnDEvent
@@ -38,6 +37,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.replaceService
 import java.awt.datatransfer.DataFlavor
 import java.io.File
@@ -64,7 +64,7 @@ class DeviceFileDropHandlerTest {
   private val fakeAdbServerAdbLibRule = FakeAdbServerAdbLibRule()
 
   @get:Rule val ruleChain = RuleChain(projectRule, fakeAdbServerAdbLibRule, emulatorRule, EdtRule())
-  @get:Rule val tempDirRule = TemporaryDirectoryRule()
+  @get:Rule val tempDirRule = TemporaryDirectory()
 
   private var nullableEmulator: FakeEmulator? = null
 

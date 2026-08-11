@@ -34,7 +34,6 @@ import com.android.tools.idea.run.configuration.AndroidWearWidgetConfigurationTy
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.requestSyncAndWait
-import com.android.tools.idea.testing.writeChild
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.ConfigurationType
@@ -43,6 +42,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
+import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.runInEdtAndWait
 import java.io.File
 import org.jetbrains.android.dom.manifest.Manifest
@@ -224,41 +224,50 @@ class AndroidRunConfigurationsTest {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE)
     preparedProject.open { project ->
-      project.projectFile?.writeChild(
-        "src/com/example/tile/TileServiceNotInManifest.kt",
-        """
-        package com.example.tile
+      project.projectFile?.let {
+        createFile(
+          it,
+          "src/com/example/tile/TileServiceNotInManifest.kt",
+          """
+          package com.example.tile
 
-        import androidx.wear.tiles.TileService
+          import androidx.wear.tiles.TileService
 
-        class TileServiceNotInManifest : TileService()
-        """
-          .trimIndent(),
-      )
+          class TileServiceNotInManifest : TileService()
+          """
+            .trimIndent(),
+        )
+      }
 
-      project.projectFile?.writeChild(
-        "src/com/example/myface/WatchFaceNotInManifest.kt",
-        """
-        package com.example.myface
+      project.projectFile?.let {
+        createFile(
+          it,
+          "src/com/example/myface/WatchFaceNotInManifest.kt",
+          """
+          package com.example.myface
 
-        import androidx.wear.watchface.WatchFaceService
+          import androidx.wear.watchface.WatchFaceService
 
-        class WatchFaceNotInManifest : WatchFaceService()
-        """
-          .trimIndent(),
-      )
+          class WatchFaceNotInManifest : WatchFaceService()
+          """
+            .trimIndent(),
+        )
+      }
 
-      project.projectFile?.writeChild(
-        "src/com/example/complication/ComplicationNotInManifest.kt",
-        """
-        package com.example.complication
+      project.projectFile?.let {
+        createFile(
+          it,
+          "src/com/example/complication/ComplicationNotInManifest.kt",
+          """
+          package com.example.complication
 
-        import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+          import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
 
-        class ComplicationNotInManifest : ComplicationDataSourceService()
-        """
-          .trimIndent(),
-      )
+          class ComplicationNotInManifest : ComplicationDataSourceService()
+          """
+            .trimIndent(),
+        )
+      }
 
       val wearComponentNames =
         RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidWearConfiguration>().mapNotNull {

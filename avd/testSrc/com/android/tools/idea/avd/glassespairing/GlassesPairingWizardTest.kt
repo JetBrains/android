@@ -46,7 +46,6 @@ import com.android.tools.idea.avd.glassespairing.LaunchState.Launching
 import com.android.tools.idea.avd.glassespairing.LaunchState.Ready
 import com.android.tools.idea.deviceprovisioner.GlassesInteractivePairableDeviceHandle
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Message.Builder
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
@@ -55,6 +54,7 @@ import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.TemporaryDirectory
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -80,7 +80,7 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 
 class GlassesPairingWizardTest {
-  @get:Rule val temporaryDirectoryRule = TemporaryDirectoryRule()
+  @get:Rule val temporaryDirectoryRule = TemporaryDirectory()
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
   @get:Rule val pairingWizardFlagRule = FlagRule(StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED, true)

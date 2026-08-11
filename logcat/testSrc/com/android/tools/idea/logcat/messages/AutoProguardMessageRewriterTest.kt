@@ -23,7 +23,6 @@ import com.android.tools.idea.logcat.LogcatR8MappingsToken.R8Mappings
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.StackRetraceEvent.MappingType
@@ -34,6 +33,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.TemporaryDirectory
 import java.nio.file.Path
 import kotlin.io.path.fileSize
 import org.junit.After
@@ -139,7 +139,7 @@ class AutoProguardMessageRewriterTest {
   private val disposable
     get() = disposableRule.disposable
 
-  private val temporaryDirectoryRule = TemporaryDirectoryRule()
+  private val temporaryDirectoryRule = TemporaryDirectory()
   private val usageTrackerRule = UsageTrackerRule()
   private val mappings = mutableListOf<R8Mappings>()
 

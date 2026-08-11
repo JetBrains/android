@@ -33,7 +33,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.file.registerFakeFileChooserFactory
 import com.android.tools.idea.testing.flags.overrideForTest
@@ -53,6 +52,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.replaceService
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
@@ -79,7 +79,7 @@ class EmulatorEnvironmentActionTest {
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule val rule = RuleChain(projectRule, emulatorRule, EdtRule())
-  @get:Rule val tempDirRule = TemporaryDirectoryRule()
+  @get:Rule val tempDirRule = TemporaryDirectory()
 
   val testRootDisposable
     get() = projectRule.disposable

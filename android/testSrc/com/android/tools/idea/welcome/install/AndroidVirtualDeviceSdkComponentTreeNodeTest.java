@@ -40,7 +40,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeAvdManagers;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.testing.TemporaryDirectoryRule;
+import com.intellij.testFramework.TemporaryDirectory;
 import com.android.tools.idea.welcome.wizard.AbstractProgressStep;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -125,7 +125,7 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
 
   private final Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
 
-  public final TemporaryDirectoryRule tempDirectoryRule = new TemporaryDirectoryRule();
+  public final TemporaryDirectory tempDirectoryRule = new TemporaryDirectory();
   public final AndroidLocationsSingletonRule environmentRule = new AndroidLocationsSingletonRule(sdkRoot.getFileSystem());
   public final DisposableRule disposableRule = new DisposableRule();
   public final ApplicationRule applicationRule = new ApplicationRule();

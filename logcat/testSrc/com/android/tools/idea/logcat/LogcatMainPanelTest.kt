@@ -70,7 +70,6 @@ import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.ProjectServiceRule
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
@@ -99,6 +98,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -145,7 +145,7 @@ class LogcatMainPanelTest {
   private val fakeLogcatService = FakeLogcatService()
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
   private val fakeProcessNameMonitor = FakeProcessNameMonitor()
-  private val temporaryDirectoryRule = TemporaryDirectoryRule()
+  private val temporaryDirectoryRule = TemporaryDirectory()
 
   @get:Rule
   val rule =

@@ -29,7 +29,6 @@ import com.android.tools.idea.apk.viewer.dex.DexFileViewer
 import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer
 import com.android.tools.idea.apk.viewer.testing.FakeAndroidApplicationInfoProvider
 import com.android.tools.idea.testing.ApplicationServiceRule
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
@@ -62,6 +61,7 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.ui.LoadingNode
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.Tree
@@ -109,7 +109,7 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
     get() = projectRule.project
 
   private val disposableRule = DisposableRule()
-  val temporaryDirectoryRule = TemporaryDirectoryRule()
+  val temporaryDirectoryRule = TemporaryDirectory()
 
   companion object {
     @Parameterized.Parameters(name = "isPageAlignFeatureEnabled={0}") @JvmStatic fun data() = arrayOf(true, false)

@@ -14,7 +14,6 @@ import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.ProjectServiceRule
-import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.actions.RevealFileAction
@@ -33,6 +32,7 @@ import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import java.io.File
@@ -46,7 +46,7 @@ import org.mockito.kotlin.mock
 class SaveLogcatActionTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-  private val temporaryDirectoryRule = TemporaryDirectoryRule()
+  private val temporaryDirectoryRule = TemporaryDirectory()
   private val notificationRule = NotificationRule(projectRule)
   private val project
     get() = projectRule.project
