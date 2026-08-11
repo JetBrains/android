@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.idea.deviceprovisioner.GlassesInteractivePairableDeviceHandle
 import com.android.tools.idea.deviceprovisioner.deviceHandle
@@ -41,7 +42,11 @@ class PairGlassesAction : DumbAwareAction("Pair Glasses") {
   override fun update(e: AnActionEvent) {
     if (StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED.get()) {
       val handle = e.deviceHandle() as? GlassesInteractivePairableDeviceHandle
-      if (handle?.state?.properties?.deviceType == DeviceType.AI_GLASSES && handle.state.properties.pairedPhoneId == null) {
+      val properties = handle?.state?.properties
+      val isGlasses = properties?.deviceType == DeviceType.AI_GLASSES && properties.pairedPhoneId == null
+      val isCompatiblePhone =
+        properties?.deviceType == DeviceType.HANDHELD && (properties as? LocalEmulatorProperties)?.isAiGlassesCompatible == true
+      if (handle != null && (isGlasses || isCompatiblePhone)) {
         e.presentation.isVisible = true
         e.presentation.isEnabled = handle.isPairGlassesEnabled()
         return
@@ -99,10 +104,11 @@ private fun DeviceHandle.getGlassesPairings(allDevices: List<DeviceHandle>): Lis
       props.pairedPhoneId?.let { phoneId -> listOf(createPairingStatus(phoneId, allDevices)) } ?: emptyList()
     }
     DeviceType.HANDHELD -> {
+      val phoneId = id
       val directPairings = props.pairedGlassesInfos.map { glassesInfo -> createPairingStatus(glassesInfo.id, allDevices) }
       val indirectPairings =
         allDevices
-          .filter { it.state.properties.deviceType == DeviceType.AI_GLASSES && it.state.properties.pairedPhoneId == id }
+          .filter { it.state.properties.deviceType == DeviceType.AI_GLASSES && it.state.properties.pairedPhoneId == phoneId }
           .map { glasses -> createPairingStatus(glasses.id, allDevices) }
       (directPairings + indirectPairings).distinctBy { it.id }
     }

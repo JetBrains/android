@@ -21,26 +21,23 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.EmptyIcon
-import com.android.tools.idea.avd.glassespairing.GlassesPairingLockService
 import com.android.tools.idea.avd.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.deviceprovisioner.GlassesInteractivePairableDeviceHandle
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Component
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -65,7 +62,7 @@ class GlassesPairingDelegateTest {
     StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED.clearOverride()
   }
 
-  private fun createMockGlassesHandle(pairedPhoneId: DeviceId?): GlassesInteractivePairableDeviceHandle {
+  private fun createMockGlassesHandle(pairedPhoneId: DeviceId?, isEnabled: Boolean = true): GlassesInteractivePairableDeviceHandle {
     val handle = mock(GlassesInteractivePairableDeviceHandle::class.java)
     val properties =
       DeviceProperties.buildForTest {
@@ -78,7 +75,23 @@ class GlassesPairingDelegateTest {
     whenever(handle.stateFlow).thenReturn(MutableStateFlow(state))
     whenever(handle.state).thenReturn(state)
     whenever(handle.id).thenReturn(DeviceId("Fake", false, "glasses1"))
-    whenever(handle.isPairGlassesEnabled()).thenReturn(true)
+    whenever(handle.isPairGlassesEnabled()).thenReturn(isEnabled)
+    return handle
+  }
+
+  private fun createMockPhoneHandle(isEnabled: Boolean = true): GlassesInteractivePairableDeviceHandle {
+    val handle = mock(GlassesInteractivePairableDeviceHandle::class.java)
+    val properties =
+      DeviceProperties.buildForTest {
+        model = "phone"
+        deviceType = DeviceType.HANDHELD
+        icon = EmptyIcon.DEFAULT
+      }
+    val state = DeviceState.Disconnected(properties)
+    whenever(handle.stateFlow).thenReturn(MutableStateFlow(state))
+    whenever(handle.state).thenReturn(state)
+    whenever(handle.id).thenReturn(DeviceId("Fake", false, "phone1"))
+    whenever(handle.isPairGlassesEnabled()).thenReturn(isEnabled)
     return handle
   }
 
@@ -86,22 +99,13 @@ class GlassesPairingDelegateTest {
   fun showPairDeviceWizard_glasses_launchesWizard() = runTest {
     val handle = createMockGlassesHandle(pairedPhoneId = null)
 
-    val lockService = service<GlassesPairingLockService>()
-    val emittedValues = mutableListOf<Boolean>()
-    // Collect lock transitions in a background job using UnconfinedTestDispatcher
-    val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) { lockService.isWizardOpen.collect { emittedValues.add(it) } }
-
     delegate.showPairDeviceWizard(parentComponent, handle)
-
-    // Verify that the wizard lock transitioned to true during execution
-    assertThat(emittedValues).contains(true)
-
-    collectJob.cancel()
+    verify(handle).pairGlasses(parentComponent, project)
   }
 
   @Test
   fun showPairDeviceWizard_phone_launchesWizard() = runTest {
-    val handle = mock(DeviceHandle::class.java)
+    val handle = mock(GlassesInteractivePairableDeviceHandle::class.java)
     val properties =
       DeviceProperties.buildForTest {
         model = "phone"
@@ -113,17 +117,67 @@ class GlassesPairingDelegateTest {
     whenever(handle.state).thenReturn(state)
     whenever(handle.id).thenReturn(DeviceId("Fake", false, "phone1"))
 
-    val lockService = service<GlassesPairingLockService>()
-    val emittedValues = mutableListOf<Boolean>()
-    // Collect lock transitions in a background job using UnconfinedTestDispatcher
-    val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) { lockService.isWizardOpen.collect { emittedValues.add(it) } }
-
     delegate.showPairDeviceWizard(parentComponent, handle)
+    verify(handle).pairGlasses(parentComponent, project)
+  }
 
-    // Verify that the wizard lock transitioned to true during execution
-    assertThat(emittedValues).contains(true)
+  @Test
+  fun isPairDeviceWizardSupported_glassesHandle_enabled() {
+    val handle = createMockGlassesHandle(pairedPhoneId = null, isEnabled = true)
+    assertThat(delegate.isPairDeviceWizardSupported(handle)).isTrue()
+  }
 
-    collectJob.cancel()
+  @Test
+  fun isPairDeviceWizardSupported_glassesHandle_disabled() {
+    val handle = createMockGlassesHandle(pairedPhoneId = null, isEnabled = false)
+    assertThat(delegate.isPairDeviceWizardSupported(handle)).isFalse()
+  }
+
+  @Test
+  fun isPairDeviceWizardSupported_phoneHandle_enabled() {
+    val handle = createMockPhoneHandle(isEnabled = true)
+    assertThat(delegate.isPairDeviceWizardSupported(handle)).isTrue()
+  }
+
+  @Test
+  fun isPairDeviceWizardSupported_phoneHandle_disabled() {
+    val handle = createMockPhoneHandle(isEnabled = false)
+    assertThat(delegate.isPairDeviceWizardSupported(handle)).isFalse()
+  }
+
+  @Test
+  fun isPairDeviceWizardSupported_phoneHandle_flagDisabled() {
+    StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED.override(false)
+    val handle = createMockPhoneHandle(isEnabled = true)
+    assertThat(delegate.isPairDeviceWizardSupported(handle)).isFalse()
+  }
+
+  @Test
+  fun isPairDeviceWizardSupported_nonInteractiveHandle() {
+    val handle = mock(DeviceHandle::class.java)
+    val state =
+      DeviceState.Disconnected(
+        DeviceProperties.buildForTest {
+          deviceType = DeviceType.HANDHELD
+          icon = EmptyIcon.DEFAULT
+        }
+      )
+    whenever(handle.state).thenReturn(state)
+    assertThat(delegate.isPairDeviceWizardSupported(handle)).isFalse()
+  }
+
+  @Test
+  fun isPairDeviceWizardSupported_otherDeviceType() {
+    val handle = mock(GlassesInteractivePairableDeviceHandle::class.java)
+    val state =
+      DeviceState.Disconnected(
+        DeviceProperties.buildForTest {
+          deviceType = DeviceType.WEAR
+          icon = EmptyIcon.DEFAULT
+        }
+      )
+    whenever(handle.state).thenReturn(state)
+    assertThat(delegate.isPairDeviceWizardSupported(handle)).isFalse()
   }
 
   @Test

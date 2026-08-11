@@ -533,7 +533,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
       provisioner.devices.value.first { it.state.properties.deviceType == DeviceType.AI_GLASSES } as StudioLocalEmulatorDeviceHandle
 
     // Mock wizard to return the phone
-    glassesHandle.wizardProvider = { _, _, _, _, _ -> GlassesPairingResult(phoneHandle, "00:11:22:33:44:55") }
+    glassesHandle.wizardProvider = { _, _, _, _, _ -> GlassesPairingResult(glassesHandle, phoneHandle, "00:11:22:33:44:55") }
     val expectedMac = "00:11:22:33:44:55"
 
     glassesHandle.pairGlasses(null, projectRule.project)
@@ -544,6 +544,72 @@ class StudioLocalEmulatorProvisionerPluginTest {
       val settings = Files.readAllLines(phoneAvdPath.resolve("user-settings.ini"))
       settings.any { it.contains("paired.glasses.avd.mac.1=$expectedMac") }
     }
+  }
+
+  @Test
+  fun testPhoneInitiatedPairGlassesSavesBidirectionalSettings() = runBlockingWithTimeout {
+    val phoneAvdPath = temporaryDirectoryRule.newPath()
+    Files.createDirectories(phoneAvdPath.resolve("fake_avd_1.avd"))
+    avdManager.createAvd(makeAvdInfo(phoneAvdPath, 1, tag = SystemImageTags.AI_GLASSES_COMPATIBLE_TAG))
+
+    val glassesAvdPath = temporaryDirectoryRule.newPath()
+    Files.createDirectories(glassesAvdPath.resolve("fake_avd_2.avd"))
+    avdManager.createAvd(makeAvdInfo(glassesAvdPath, 2, tag = SystemImageTags.AI_GLASSES_TAG))
+
+    plugin.refreshDevices()
+    yieldUntil { provisioner.devices.value.size == 2 }
+
+    val phoneHandle =
+      provisioner.devices.value.first { it.state.properties.deviceType == DeviceType.HANDHELD } as StudioLocalEmulatorDeviceHandle
+    val glassesHandle =
+      provisioner.devices.value.first { it.state.properties.deviceType == DeviceType.AI_GLASSES } as StudioLocalEmulatorDeviceHandle
+
+    val expectedMac = "00:11:22:33:44:55"
+    phoneHandle.wizardProvider = { _, _, _, glassesParam, phoneParam ->
+      assertThat(glassesParam).isNull()
+      assertThat(phoneParam).isEqualTo(phoneHandle)
+      GlassesPairingResult(glassesHandle, phoneHandle, expectedMac)
+    }
+
+    phoneHandle.pairGlasses(null, projectRule.project)
+
+    yieldUntil {
+      val phoneAvd = (phoneHandle.state.properties as LocalEmulatorProperties).avdPath
+      val phoneSettings = Files.readAllLines(phoneAvd.resolve("user-settings.ini"))
+      val glassesAvd = (glassesHandle.state.properties as LocalEmulatorProperties).avdPath
+      val glassesSettings = Files.readAllLines(glassesAvd.resolve("user-settings.ini"))
+      phoneSettings.any { it.contains("paired.glasses.avd.mac.1=$expectedMac") } &&
+        glassesSettings.any { it.contains("paired.phone.avd.id.1=${phoneHandle.id}") }
+    }
+  }
+
+  @Test
+  fun testPhoneHandleIsPairGlassesEnabled() = runBlockingWithTimeout {
+    val compatiblePhonePath = temporaryDirectoryRule.newPath()
+    Files.createDirectories(compatiblePhonePath.resolve("fake_avd_1.avd"))
+    avdManager.createAvd(makeAvdInfo(compatiblePhonePath, 1, tag = SystemImageTags.AI_GLASSES_COMPATIBLE_TAG))
+
+    val standardPhonePath = temporaryDirectoryRule.newPath()
+    Files.createDirectories(standardPhonePath.resolve("fake_avd_2.avd"))
+    avdManager.createAvd(makeAvdInfo(standardPhonePath, 2))
+
+    plugin.refreshDevices()
+    yieldUntil { provisioner.devices.value.size == 2 }
+
+    val compatibleHandle =
+      provisioner.devices.value.first { (it.state.properties as? LocalEmulatorProperties)?.isAiGlassesCompatible == true }
+        as StudioLocalEmulatorDeviceHandle
+    val standardHandle =
+      provisioner.devices.value.first { (it.state.properties as? LocalEmulatorProperties)?.isAiGlassesCompatible == false }
+        as StudioLocalEmulatorDeviceHandle
+
+    assertThat(compatibleHandle.isPairGlassesEnabled()).isTrue()
+    assertThat(standardHandle.isPairGlassesEnabled()).isFalse()
+
+    val lockService = ApplicationManager.getApplication().getService(GlassesPairingLockService::class.java)
+    lockService.setWizardOpen(true)
+    assertThat(compatibleHandle.isPairGlassesEnabled()).isFalse()
+    lockService.setWizardOpen(false)
   }
 
   @Test

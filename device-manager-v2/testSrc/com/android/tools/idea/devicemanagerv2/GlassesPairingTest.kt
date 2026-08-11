@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.deviceprovisioner.GlassesInteractivePairableDeviceHandle
 import com.android.tools.idea.flags.StudioFlags
@@ -32,6 +33,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
 import java.awt.Component
+import java.nio.file.Path
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -66,20 +68,33 @@ class GlassesPairingTest {
   private suspend fun createTestEvent(
     deviceType: DeviceType = DeviceType.AI_GLASSES,
     pairedPhoneId: DeviceId? = null,
+    isLocalEmulator: Boolean = true,
+    isAiGlassesCompatible: Boolean = false,
     pairGlassesEnabled: Boolean = true,
     unpairGlassesEnabled: Boolean = true,
     action: AnAction,
   ): AnActionEvent = coroutineScope {
-    val fakeHandle =
-      FakeDeviceHandle(
-        scope = this,
-        initialProperties =
-          DeviceProperties.buildForTest {
+    val properties =
+      if (isLocalEmulator) {
+        LocalEmulatorProperties.Builder()
+          .apply {
             this.deviceType = deviceType
             this.pairedPhoneId = pairedPhoneId
+            this.isAiGlassesCompatible = isAiGlassesCompatible
             this.icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
-          },
-      )
+            this.avdName = "fake_phone"
+            this.avdPath = Path.of("/fake/phone")
+            this.displayName = "Fake Phone"
+          }
+          .build()
+      } else {
+        DeviceProperties.buildForTest {
+          this.deviceType = deviceType
+          this.pairedPhoneId = pairedPhoneId
+          this.icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+        }
+      }
+    val fakeHandle = FakeDeviceHandle(scope = this, initialProperties = properties)
     val glassesHandle =
       FakeGlassesInteractivePairableDeviceHandle(
         delegate = fakeHandle,
@@ -196,11 +211,62 @@ class GlassesPairingTest {
   }
 
   @Test
-  fun testActionsUnavailableForNonGlasses() = runBlocking {
+  fun testPairGlassesAction_compatiblePhone_visibleAndEnabled() = runBlocking {
+    val pairAction = PairGlassesAction()
+    val pairEvent =
+      createTestEvent(deviceType = DeviceType.HANDHELD, pairedPhoneId = null, isAiGlassesCompatible = true, action = pairAction)
+    pairAction.update(pairEvent)
+    assertTrue(pairEvent.presentation.isVisible)
+    assertTrue(pairEvent.presentation.isEnabled)
+  }
+
+  @Test
+  fun testPairGlassesAction_compatiblePhone_wizardOpen_visibleAndDisabled() = runBlocking {
+    val pairAction = PairGlassesAction()
+    val pairEvent =
+      createTestEvent(
+        deviceType = DeviceType.HANDHELD,
+        pairedPhoneId = null,
+        isAiGlassesCompatible = true,
+        pairGlassesEnabled = false,
+        action = pairAction,
+      )
+    pairAction.update(pairEvent)
+    assertTrue(pairEvent.presentation.isVisible)
+    assertFalse(pairEvent.presentation.isEnabled)
+  }
+
+  @Test
+  fun testPairGlassesAction_incompatiblePhoneEmulator_hidden() = runBlocking {
+    val pairAction = PairGlassesAction()
+    val pairEvent =
+      createTestEvent(
+        deviceType = DeviceType.HANDHELD,
+        pairedPhoneId = null,
+        isLocalEmulator = true,
+        isAiGlassesCompatible = false,
+        action = pairAction,
+      )
+    pairAction.update(pairEvent)
+    assertFalse(pairEvent.presentation.isVisible)
+    assertFalse(pairEvent.presentation.isEnabled)
+  }
+
+  @Test
+  fun testPairGlassesAction_physicalPhone_hidden() = runBlocking {
+    val pairAction = PairGlassesAction()
+    val pairEvent = createTestEvent(deviceType = DeviceType.HANDHELD, pairedPhoneId = null, isLocalEmulator = false, action = pairAction)
+    pairAction.update(pairEvent)
+    assertFalse(pairEvent.presentation.isVisible)
+    assertFalse(pairEvent.presentation.isEnabled)
+  }
+
+  @Test
+  fun testActionsUnavailableForOtherFormFactors() = runBlocking {
     val pairAction = PairGlassesAction()
     val unpairAction = UnpairGlassesAction()
 
-    val pairEvent = createTestEvent(deviceType = DeviceType.HANDHELD, pairedPhoneId = null, action = pairAction)
+    val pairEvent = createTestEvent(deviceType = DeviceType.WEAR, pairedPhoneId = null, action = pairAction)
     pairAction.update(pairEvent)
     assertFalse(pairEvent.presentation.isVisible)
     assertFalse(pairEvent.presentation.isEnabled)

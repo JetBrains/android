@@ -152,9 +152,9 @@ fun interface AddDeviceDialog {
   ): AvdInfo?
 }
 
-// Data class to carry the result of the wizard, allowing both the phone and MAC
+// Data class to carry the result of the wizard, allowing both devices and the MAC
 // to be propagated back to the provisioner plugin without re-fetching via ADB.
-data class GlassesPairingResult(val phone: DeviceHandle, val glassesMacAddress: String)
+data class GlassesPairingResult(val glasses: DeviceHandle, val phone: DeviceHandle, val glassesMacAddress: String)
 
 internal interface GlassesPairer {
   fun pair(glasses: DeviceHandle, phone: DeviceHandle, project: Project?, onMacRetrieved: (String) -> Unit): Flow<PairingState>
@@ -262,9 +262,10 @@ internal constructor(
       lockService.setWizardOpen(true)
       try {
         if (controller.show()) {
+          val glasses = wizard.glassesHandle ?: return null
           val phone = wizard.phoneHandle ?: return null
           val mac = wizard.glassesMacAddress ?: return null
-          return GlassesPairingResult(phone, mac)
+          return GlassesPairingResult(glasses = glasses, phone = phone, glassesMacAddress = mac)
         }
         return null
       } finally {
@@ -295,11 +296,7 @@ internal constructor(
         if (isGlassesFirst) {
           devices.filter { it != initialGlassesHandle && it.state.properties.deviceType == DeviceType.HANDHELD && isCompatible(it) }
         } else {
-          devices.filter {
-            it.state.properties.deviceType == DeviceType.AI_GLASSES &&
-              it is GlassesInteractivePairableDeviceHandle &&
-              it.isPairGlassesEnabled()
-          }
+          devices.filter { it.state.properties.deviceType == DeviceType.AI_GLASSES && it is GlassesInteractivePairableDeviceHandle }
         }
       }
       .pairWithNestedState { it.stateFlow }

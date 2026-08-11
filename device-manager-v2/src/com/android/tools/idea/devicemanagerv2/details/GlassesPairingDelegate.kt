@@ -17,19 +17,15 @@ package com.android.tools.idea.devicemanagerv2.details
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.avd.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.devicemanagerv2.DeviceManagerBundle
 import com.android.tools.idea.devicemanagerv2.PairingStatus
 import com.android.tools.idea.devicemanagerv2.glassesPairedDevicesFlow
 import com.android.tools.idea.deviceprovisioner.GlassesInteractivePairableDeviceHandle
 import com.android.tools.idea.deviceprovisioner.runCatchingDeviceActionException
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import java.awt.Component
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
 
 class GlassesPairingDelegate(private val project: Project?, private val devicesFlow: Flow<List<DeviceHandle>>) : PairingDelegate {
   override val addMenuItemTitle: String
@@ -44,29 +40,16 @@ class GlassesPairingDelegate(private val project: Project?, private val devicesF
     val properties = handle.state.properties
     return when (properties.deviceType) {
       DeviceType.AI_GLASSES -> handle is GlassesInteractivePairableDeviceHandle && handle.isPairGlassesEnabled()
-      DeviceType.HANDHELD -> StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED.get()
+      DeviceType.HANDHELD ->
+        StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED.get() &&
+          (handle as? GlassesInteractivePairableDeviceHandle)?.isPairGlassesEnabled() == true
       else -> false
     }
   }
 
   override suspend fun showPairDeviceWizard(parent: Component, handle: DeviceHandle) {
-    val properties = handle.state.properties
-    if (properties.deviceType == DeviceType.AI_GLASSES) {
-      val glassesHandle = handle as? GlassesInteractivePairableDeviceHandle ?: return
-      withContext(Dispatchers.EDT) {
-        GlassesPairingWizard.show(
-          parent = parent,
-          project = project,
-          devicesFlow = devicesFlow,
-          glassesHandle = glassesHandle,
-          phoneHandle = null,
-        )
-      }
-    } else if (properties.deviceType == DeviceType.HANDHELD) {
-      withContext(Dispatchers.EDT) {
-        GlassesPairingWizard.show(parent = parent, project = project, devicesFlow = devicesFlow, glassesHandle = null, phoneHandle = handle)
-      }
-    }
+    val interactiveHandle = handle as? GlassesInteractivePairableDeviceHandle ?: return
+    interactiveHandle.pairGlasses(parent, project)
   }
 
   override fun getRemovePresentation(handle: DeviceHandle, pairedDevice: DeviceHandle): RemovePresentation {

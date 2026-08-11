@@ -39,6 +39,7 @@ import com.android.sdklib.deviceprovisioner.Extension
 import com.android.sdklib.deviceprovisioner.GlassesPairableDeviceHandle
 import com.android.sdklib.deviceprovisioner.LocalEmulatorContext
 import com.android.sdklib.deviceprovisioner.LocalEmulatorDeviceHandle
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
 import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshotReader
@@ -245,7 +246,7 @@ class StudioLocalEmulatorDeviceHandle(
   // Returning GlassesPairingResult instead of just the device handle allows
   // propagating the MAC address back to avoid race conditions.
   internal var wizardProvider:
-    suspend (Component?, Project?, Flow<List<DeviceHandle>>, DeviceHandle, DeviceHandle?) -> GlassesPairingResult? =
+    suspend (Component?, Project?, Flow<List<DeviceHandle>>, DeviceHandle?, DeviceHandle?) -> GlassesPairingResult? =
     GlassesPairingWizard::show
 
   internal fun refreshDevicesAsync() {
@@ -509,22 +510,31 @@ class StudioLocalEmulatorDeviceHandle(
       .ask(project)
 
   override fun isPairGlassesEnabled(): Boolean =
-    state.properties.deviceType == DeviceType.AI_GLASSES && !service<GlassesPairingLockService>().isWizardOpen.value
+    !service<GlassesPairingLockService>().isWizardOpen.value &&
+      when (val properties = state.properties) {
+        is LocalEmulatorProperties ->
+          properties.deviceType == DeviceType.AI_GLASSES ||
+            (properties.deviceType == DeviceType.HANDHELD && properties.isAiGlassesCompatible)
+        else -> false
+      }
 
   override suspend fun pairGlasses(parent: Component?, project: Project?): Boolean {
-    val glassesHandle = this@StudioLocalEmulatorDeviceHandle
-    logger.info("User initiated Glasses Pairing Wizard for ${glassesHandle.id}")
-    val result = withContext(edtDispatcher) { wizardProvider(parent, project, deviceHandleFlow, glassesHandle, null) }
+    val isGlasses = state.properties.deviceType == DeviceType.AI_GLASSES
+    val glassesParam = if (isGlasses) this else null
+    val phoneParam = if (isGlasses) null else this
+    logger.info("User initiated Glasses Pairing Wizard for $id")
+    val result = withContext(edtDispatcher) { wizardProvider(parent, project, deviceHandleFlow, glassesParam, phoneParam) }
 
     if (result != null) {
       val pairedPhone = result.phone as? StudioLocalEmulatorDeviceHandle
+      val pairedGlasses = result.glasses as? StudioLocalEmulatorDeviceHandle
       val mac = result.glassesMacAddress
-      if (pairedPhone != null) {
+      if (pairedPhone != null && pairedGlasses != null) {
         try {
           withContext(ioDispatcher) {
-            glassesHandle.updatePairedPhone(pairedPhone)
-            pairedPhone.addPairedGlasses(glassesHandle.id, mac)
-            logger.info("Successfully paired glasses ${glassesHandle.id} with phone ${pairedPhone.id}")
+            pairedGlasses.updatePairedPhone(pairedPhone)
+            pairedPhone.addPairedGlasses(pairedGlasses.id, mac)
+            logger.info("Successfully paired glasses ${pairedGlasses.id} with phone ${pairedPhone.id}")
           }
         } catch (e: IOException) {
           logger.warn("Failed to write pairing config", e)
