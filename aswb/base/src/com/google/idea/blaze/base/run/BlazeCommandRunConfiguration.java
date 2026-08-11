@@ -229,7 +229,7 @@ public class BlazeCommandRunConfiguration
     updateHandlerIfDifferentProvider(handlerProvider);
   }
 
-  private TargetState getTargetState() {
+  public TargetState getTargetState() {
     return (getTargetKind() == null
             && (handlerProvider == null
                 || handlerProvider.canHandleKind(TargetState.PENDING, null)))

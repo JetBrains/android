@@ -20,6 +20,7 @@ import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.GenericEvent;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandler;
+import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandlerProvider.TargetState;
 import com.intellij.debugger.impl.GenericDebuggerRunner;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.JavaParameters;
@@ -47,6 +48,9 @@ public class BlazeJavaDebuggerRunner extends GenericDebuggerRunner {
   public boolean canRun(final String executorId, final RunProfile profile) {
     if (executorId.equals(DefaultDebugExecutor.EXECUTOR_ID)
         && profile instanceof BlazeCommandRunConfiguration configuration) {
+      if (configuration.getTargetState() == TargetState.PENDING) {
+        return true;
+      }
       BlazeCommandRunConfigurationHandler handler = configuration.getHandler();
       if (handler instanceof BlazeJavaRunConfigurationHandler) {
         return canDebug(handler.getCommandName());
