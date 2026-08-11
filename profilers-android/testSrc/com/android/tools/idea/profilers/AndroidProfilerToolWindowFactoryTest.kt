@@ -18,6 +18,7 @@ import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -296,5 +297,32 @@ class AndroidProfilerToolWindowFactoryTest {
     waitForCondition(5L, TimeUnit.SECONDS) {
       toolWindow.contentManager.contentCount == 3 && toolWindow.contentManager.selectedContent == taskTabContent
     }
+  }
+
+  @Test
+  fun `disposing profilerToolWindow removes project from map`() {
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    val toolWindowFactory = AndroidProfilerToolWindowFactory()
+    toolWindowFactory.init(toolWindow)
+    toolWindowFactory.createToolWindowContent(project, toolWindow)
+
+    val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
+    assertThat(profilerToolWindow).isNotNull()
+
+    Disposer.dispose(profilerToolWindow!!)
+    assertThat(AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP.containsKey(project)).isFalse()
+  }
+
+  @Test
+  fun `disposing toolWindow disposable removes project from map`() {
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    val toolWindowFactory = AndroidProfilerToolWindowFactory()
+    toolWindowFactory.init(toolWindow)
+    toolWindowFactory.createToolWindowContent(project, toolWindow)
+
+    assertThat(AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP.containsKey(project)).isTrue()
+
+    Disposer.dispose(toolWindow.disposable)
+    assertThat(AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP.containsKey(project)).isFalse()
   }
 }

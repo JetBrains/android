@@ -444,7 +444,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public void closeTaskTab(@NotNull ProfilerTaskType taskType) {
     // used by unifiedProfiler
     // Close the recording tab and show the preview in a new tab in the code editor space.
-    AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP.get(myProject);
+    AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(myProject);
     if (profilerToolWindow != null) {
       profilerToolWindow.closeTaskTab(taskType);
     }
