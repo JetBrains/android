@@ -20,10 +20,15 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
@@ -56,13 +61,31 @@ public class GoToDeclarationAction extends AbstractAction {
 
   @Override
   public void actionPerformed(@Nullable ActionEvent e) {
-    assert myItemAtMouseClickLocation != null;
-    XmlTag tag = IdeResourcesUtil.getItemTag(myProject, myItemAtMouseClickLocation);
-    if (tag == null) {
-      // TODO strings can also be defined in gradle, find a way to go there too
+    if (myItemAtMouseClickLocation == null) {
       return;
     }
-    OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, tag.getContainingFile().getVirtualFile(), tag.getTextOffset());
-    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+    ResourceItem item = myItemAtMouseClickLocation;
+    ReadAction.nonBlocking(() -> {
+      XmlTag tag = IdeResourcesUtil.getItemTag(myProject, item);
+      if (tag == null) {
+        return null;
+      }
+      PsiFile file = tag.getContainingFile();
+      if (file == null) {
+        return null;
+      }
+      VirtualFile virtualFile = file.getVirtualFile();
+      if (virtualFile == null) {
+        return null;
+      }
+      return new OpenFileDescriptor(myProject, virtualFile, tag.getTextOffset());
+    })
+    .expireWith(myProject)
+    .finishOnUiThread(ModalityState.defaultModalityState(), descriptor -> {
+      if (descriptor != null) {
+        FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+      }
+    })
+    .submit(AppExecutorUtil.getAppExecutorService());
   }
 }

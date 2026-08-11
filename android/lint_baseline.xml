@@ -243,16 +243,6 @@
             column="5"/>
     </issue>
 
-    <issue
-        id="UnsatisfiableThreadConstraint"
-        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
-        errorLine1="    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/editors/strings/GoToDeclarationAction.java"
-            line="66"
-            column="5"/>
-    </issue>
 
     <issue
         id="UnsatisfiableThreadConstraint"
@@ -265,16 +255,6 @@
             column="7"/>
     </issue>
 
-    <issue
-        id="UnsatisfiableThreadConstraint"
-        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
-        errorLine1="      case DEFAULT_VALUE_COLUMN:"
-        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/editors/strings/table/StringResourceTableModel.java"
-            line="142"
-            column="7"/>
-    </issue>
 
     <issue
         id="FileComparisons"
@@ -529,15 +509,5 @@
             column="18"/>
     </issue>
 
-    <issue
-        id="WrongThread"
-        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
-        errorLine1="    this.defaultValue = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))"
-        errorLine2="                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/editors/strings/StringResource.kt"
-            line="121"
-            column="69"/>
-    </issue>
 
 </issues>

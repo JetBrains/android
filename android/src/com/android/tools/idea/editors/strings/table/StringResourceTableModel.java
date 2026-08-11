@@ -24,8 +24,10 @@ import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteIntentReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Collections;
 import java.util.List;
@@ -49,15 +51,19 @@ public class StringResourceTableModel extends AbstractTableModel {
   private List<Locale> myLocales;
 
   public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull Project project) {
-    this(repository, project, StringResourceData.create(project, repository));
-  }
-
-  public StringResourceTableModel() {
-    this(StringResourceRepository.empty(), null, null);
+    this(StringResourceData.create(project, repository), repository, project);
   }
 
   @VisibleForTesting
-  StringResourceTableModel(@Nullable StringResourceRepository repository, @Nullable Project project, @Nullable StringResourceData data) {
+  public static StringResourceTableModel createForTest(@Nullable StringResourceRepository repository, @Nullable Project project, @Nullable StringResourceData data) {
+    return new StringResourceTableModel(data, repository, project);
+  }
+
+  public StringResourceTableModel() {
+    this(null, StringResourceRepository.empty(), null);
+  }
+
+  private StringResourceTableModel(@Nullable StringResourceData data, @Nullable StringResourceRepository repository, @Nullable Project project) {
     myRepository = repository;
     myProject = project;
     myData = data;
@@ -112,20 +118,21 @@ public class StringResourceTableModel extends AbstractTableModel {
 
     switch (column) {
       case KEY_COLUMN:
+        StringResourceKey keyToRename = getKey(row);
         // Changing a key's name runs a rename refactoring which insists on being called inside invokeLater
         ApplicationManager.getApplication().invokeLater(() -> {
-          Futures.addCallback(myData.setKeyName(getKey(row), (String)value), new FutureCallback<>() {
+          Futures.addCallback(myData.setKeyName(keyToRename, (String)value), new FutureCallback<>() {
             @Override
             public void onSuccess(@NotNull Boolean result) {
               myKeys = myData.getKeys();
               myLocales = myData.getLocaleList();
-              fireTableRowsUpdated(row, row);
+              fireTableDataChanged();
             }
 
             @Override
             public void onFailure(Throwable t) {
             }
-          }, SameThreadExecutor.INSTANCE);
+          }, EdtExecutorService.getInstance());
         });
         break;
 
@@ -134,42 +141,57 @@ public class StringResourceTableModel extends AbstractTableModel {
 
       case UNTRANSLATABLE_COLUMN:
         Boolean doNotTranslate = (Boolean)value;
-        if (getStringResourceAt(row).changeTranslatable(!doNotTranslate)) {
-          fireTableCellUpdated(row, column);
-        }
+        WriteIntentReadAction.run(() ->
+          Futures.addCallback(getStringResourceAt(row).changeTranslatable(!doNotTranslate), new FutureCallback<>() {
+            @Override
+            public void onSuccess(@Nullable Boolean changed) {
+              if (changed != null && changed) {
+                fireTableCellUpdated(row, column);
+              }
+            }
+
+            @Override
+            public void onFailure(@NotNull Throwable t) {
+            }
+          }, EdtExecutorService.getInstance())
+        );
         break;
 
       case DEFAULT_VALUE_COLUMN:
-        Futures.addCallback(getStringResourceAt(row).setDefaultValue((String)value), new FutureCallback<>() {
-          @Override
-          public void onSuccess(@Nullable Boolean changed) {
-            if (changed != null && changed) {
-              fireTableCellUpdated(row, column);
+        WriteIntentReadAction.run(() ->
+          Futures.addCallback(getStringResourceAt(row).setDefaultValue((String)value), new FutureCallback<>() {
+            @Override
+            public void onSuccess(@Nullable Boolean changed) {
+              if (changed != null && changed) {
+                fireTableCellUpdated(row, column);
+              }
             }
-          }
 
-          @Override
-          public void onFailure(@NotNull Throwable t) {
-          }
-        }, SameThreadExecutor.INSTANCE);
+            @Override
+            public void onFailure(@NotNull Throwable t) {
+            }
+          }, EdtExecutorService.getInstance())
+        );
         break;
 
       default:
         Locale locale = getLocale(column);
         assert locale != null;
 
-        Futures.addCallback(getStringResourceAt(row).putTranslation(locale, (String)value), new FutureCallback<Boolean>() {
-          @Override
-          public void onSuccess(@Nullable Boolean changed) {
-            if (changed != null && changed) {
-              fireTableCellUpdated(row, column);
+        WriteIntentReadAction.run(() ->
+          Futures.addCallback(getStringResourceAt(row).putTranslation(locale, (String)value), new FutureCallback<Boolean>() {
+            @Override
+            public void onSuccess(@Nullable Boolean changed) {
+              if (changed != null && changed) {
+                fireTableCellUpdated(row, column);
+              }
             }
-          }
 
-          @Override
-          public void onFailure(@NotNull Throwable t) {
-          }
-        }, SameThreadExecutor.INSTANCE);
+            @Override
+            public void onFailure(@NotNull Throwable t) {
+            }
+          }, EdtExecutorService.getInstance())
+        );
         break;
     }
   }

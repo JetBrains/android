@@ -193,15 +193,18 @@ class StringResourceEditorTest {
     assertThat(reloadsFinished).isEqualTo(0)
   }
 
+  @RunsInEdt
   @Test
   fun listenerAddedOnTransition() {
     StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(true)
     editor.selectNotify() // Should add the listener
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(listeners).hasSize(1)
     verify(resourceNotificationManager).addListener(eq(listeners[0]), eq(facet), isNull(), isNull())
 
     editor.selectNotify() // Should do nothing
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(listeners).hasSize(1)
 
@@ -213,10 +216,12 @@ class StringResourceEditorTest {
     assertThat(reloadsFinished).isEqualTo(0)
   }
 
+  @RunsInEdt
   @Test
   fun listenerRemovedOnTransition() {
     StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(true)
     editor.selectNotify() // Should add the listener
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(listeners).hasSize(1)
     val listener = listeners[0]
@@ -226,12 +231,14 @@ class StringResourceEditorTest {
     StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(false)
 
     editor.deselectNotify() // Should remove the listener
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(listeners).hasSize(0)
     verify(resourceNotificationManager).removeListener(eq(listener), eq(facet), isNull(), isNull())
     verify(resourceNotificationManager, times(3)).getCurrentVersion(eq(facet), isNull(), isNull())
 
     editor.deselectNotify() // Should do nothing
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     verifyNoMoreInteractions(resourceNotificationManager)
   }

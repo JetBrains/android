@@ -76,10 +76,10 @@ public final class TranslationsEditorGradleTest {
     Runnable loadResources = () -> Utils.loadResources(panel, Arrays.asList(mainRes, debugRes));
 
     application.invokeAndWait(loadResources);
-    StringResourceWriter.INSTANCE.removeLocale(Locale.create("ab"), AndroidFacet.getInstance(module), this);
+    application.invokeAndWait(() -> StringResourceWriter.INSTANCE.removeLocale(Locale.create("ab"), AndroidFacet.getInstance(module), this));
     application.invokeAndWait(loadResources);
 
     // Assert.
-    waitForCondition(2, TimeUnit.SECONDS, () -> panel.getTable().getRowCount() == 0);
+    waitForCondition(10, TimeUnit.SECONDS, () -> panel.getTable().getRowCount() == 0);
   }
 }

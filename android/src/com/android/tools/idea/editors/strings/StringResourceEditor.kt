@@ -37,6 +37,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
@@ -60,10 +61,7 @@ class StringResourceEditor private constructor(private val file: StringsVirtualF
       }
     }
 
-  private var resourceVersion =
-    file.facet.let {
-      ResourceNotificationManager.getInstance(it.module.project).getCurrentVersion(it, /* file= */ null, /* configuration= */ null)
-    }
+  @Volatile private var resourceVersion: ResourceNotificationManager.ResourceVersion? = null
 
   /** The [StringResourceViewPanel] that holds most of the UI. */
   lateinit var panel: StringResourceViewPanel
@@ -75,6 +73,11 @@ class StringResourceEditor private constructor(private val file: StringsVirtualF
     // Post-startup activities (such as when reopening last open editors) are run from a background thread
     UIUtil.invokeAndWaitIfNeeded(Runnable { panel = StringResourceViewPanel(file.facet, this) })
     scope = injectedScope ?: AndroidCoroutineScope(this)
+    val facet = file.facet
+    scope.launch {
+      resourceVersion =
+        ResourceNotificationManager.getInstance(facet.module.project).getCurrentVersion(facet, /* file= */ null, /* configuration= */ null)
+    }
   }
 
   override fun getFile() = file
@@ -117,7 +120,9 @@ class StringResourceEditor private constructor(private val file: StringsVirtualF
 
   override fun getStructureViewBuilder(): StructureViewBuilder? = null
 
-  override fun dispose() {}
+  override fun dispose() {
+    deselectNotify()
+  }
 
   override fun toString() = "StringResourceEditor ${panel.facet} ${System.identityHashCode(this)}"
 
@@ -125,23 +130,31 @@ class StringResourceEditor private constructor(private val file: StringsVirtualF
     return if (PlatformDataKeys.FILE_EDITOR.`is`(dataId)) this else null
   }
 
+  private var versionCheckJob: Job? = null
+
   private fun addListener() {
     val facet: AndroidFacet = file.facet
-    ResourceNotificationManager.getInstance(facet.module.project)
-      .addListener(resourceChangeListener, facet, /* file= */ null, /* configuration= */ null)
+    val manager = ResourceNotificationManager.getInstance(facet.module.project)
+    manager.addListener(resourceChangeListener, facet, /* file= */ null, /* configuration= */ null)
 
-    // We might need to trigger an update if the resourceVersion has changed but getCurrentVersion is a slow method so we launch the check
-    // asynchronously.
-    scope.launch {
-      val latest = ResourceNotificationManager.getInstance(facet.module.project).getCurrentVersion(facet, null, null)
-      if (resourceVersion != latest) withContext(Dispatchers.EDT) { panel.reloadData() }
-    }
+    versionCheckJob?.cancel()
+    versionCheckJob =
+      scope.launch {
+        val oldVersion = resourceVersion
+        val newVersion = manager.getCurrentVersion(facet, /* file= */ null, /* configuration= */ null)
+        resourceVersion = newVersion
+
+        if (selected.get() && oldVersion != null && oldVersion != newVersion) {
+          withContext(Dispatchers.EDT) { panel.reloadData() }
+        }
+      }
   }
 
   private fun removeListener() {
     val facet: AndroidFacet = file.facet
     val manager = ResourceNotificationManager.getInstance(facet.module.project)
-    resourceVersion = manager.getCurrentVersion(facet, /* file= */ null, /* configuration= */ null)
+    versionCheckJob?.cancel()
+    versionCheckJob = scope.launch { resourceVersion = manager.getCurrentVersion(facet, /* file= */ null, /* configuration= */ null) }
     manager.removeListener(resourceChangeListener, facet, /* file= */ null, /* configuration= */ null)
   }
 

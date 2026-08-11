@@ -138,8 +138,8 @@ private constructor(
    * @param locale The target language of the translation update.
    * @return the [XmlFile] to which subsequent write operations should target, or null if there are either no files or multiple files
    */
-  fun getDefaultLocaleXml(locale: Locale): XmlFile? {
-    return keyToResourceMap.values
+  fun getDefaultLocaleXml(locale: Locale): XmlFile? = runReadAction {
+    keyToResourceMap.values
       .asSequence()
       .mapNotNull { it.getTranslationAsResourceItem(locale) }
       .mapNotNull { getItemTag(project, it)?.containingFile as? XmlFile }

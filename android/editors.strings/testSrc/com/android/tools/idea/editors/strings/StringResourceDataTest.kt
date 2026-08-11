@@ -21,7 +21,6 @@ import com.android.ide.common.resources.Locale
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
-import com.android.testutils.waitForCondition
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.create
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.summarizeLocales
 import com.android.tools.idea.editors.strings.model.StringResourceKey
@@ -36,9 +35,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import java.util.Collections
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -177,7 +179,7 @@ class StringResourceDataTest {
     var tag = getNthXmlTag(stringsFile, 0)
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key1")
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isNull()
-    resource1.changeTranslatable(false)
+    resource1.changeTranslatable(false).getOnEdt()
 
     assertThat(resource1.isTranslatable).isFalse()
     assertThat(resource1.getTagText(null)).isEqualTo("<string name=\"key1\" translatable=\"false\">Key 1 default</string>")
@@ -189,7 +191,7 @@ class StringResourceDataTest {
     tag = getNthXmlTag(stringsFile, 3)
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key5")
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isEqualTo(SdkConstants.VALUE_FALSE)
-    resource5.changeTranslatable(true)
+    resource5.changeTranslatable(true).getOnEdt()
 
     assertThat(resource5.isTranslatable).isTrue()
     assertThat(resource5.getTagText(null)).isEqualTo("<string name=\"key5\">Key 5 default</string>")
@@ -355,8 +357,7 @@ class StringResourceDataTest {
       .isEqualTo(expectedTranslations)
 
     // Change the name of a key:
-    val future = data.setKeyName(key2, "new_key2")
-    waitForCondition(2, TimeUnit.SECONDS) { future.isDone }
+    data.setKeyName(key2, "new_key2").getOnEdt()
 
     assertThat(data.keys.map { it.name })
       .containsExactly(
@@ -382,10 +383,19 @@ class StringResourceDataTest {
       .isEqualTo(expectedTranslations)
   }
 
-  private fun putTranslation(resource: StringResource, locale: Locale, value: String): Boolean {
-    val futureResult = resource.putTranslation(locale, value)
-    waitForCondition(2, TimeUnit.SECONDS) { futureResult.isDone }
-    return futureResult.get()
+  private fun putTranslation(resource: StringResource, locale: Locale, value: String): Boolean =
+    resource.putTranslation(locale, value).getOnEdt()
+
+  private fun <T> Future<T>.getOnEdt(timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS): T {
+    val deadline = System.currentTimeMillis() + unit.toMillis(timeout)
+    while (!isDone) {
+      if (System.currentTimeMillis() > deadline) {
+        throw TimeoutException("Timed out waiting for future on EDT")
+      }
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      Thread.sleep(10)
+    }
+    return get()
   }
 
   private fun newStringResourceKey(name: String): StringResourceKey {

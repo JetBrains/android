@@ -50,7 +50,7 @@ class StringResourceTableModelTest {
   fun setUp() {
     whenever(stringResourceData.keys).thenReturn(keys)
     whenever(stringResourceData.localeList).thenReturn(locales)
-    model = StringResourceTableModel(stringResourceRepository, projectRule.project, stringResourceData)
+    model = StringResourceTableModel.createForTest(stringResourceRepository, projectRule.project, stringResourceData)
   }
 
   @Test

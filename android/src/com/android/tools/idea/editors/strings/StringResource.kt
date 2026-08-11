@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings
 
 import com.android.SdkConstants
-import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.escape.xml.CharacterDataEscaper
@@ -30,9 +29,9 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.SameThreadExecutor
 
 /** Represents a single entry in the translations editor. */
@@ -72,6 +71,11 @@ class StringResource(
     }
   }
 
+  private fun createEntry(item: ResourceItem): ResourceItemEntry {
+    val tagText = runReadAction { getTextOfTag(getItemTag(data.project, item)) }
+    return ResourceItemEntry.create(item, tagText)
+  }
+
   fun getTagText(locale: Locale?): String {
     val resourceItemEntry = if (locale != null) localeToTranslationMap[locale] else defaultValue
     return resourceItemEntry?.tagText ?: ""
@@ -83,7 +87,6 @@ class StringResource(
   val defaultValueAsString: String
     get() = defaultValue?.string ?: ""
 
-  @UiThread
   fun setDefaultValue(defaultValue: String): ListenableFuture<Boolean> {
     if (this.defaultValue == null) {
       if (defaultValue == tentativeDefaultValue) {
@@ -91,19 +94,21 @@ class StringResource(
       }
       tentativeDefaultValue = defaultValue
       val futureItem = createDefaultValue(defaultValue)
-      return Futures.transform(
-        futureItem,
-        { item: ResourceItem? ->
-          tentativeDefaultValue = null
-          if (item == null) {
-            false
-          } else {
-            this.defaultValue = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
-            true
-          }
-        },
-        SameThreadExecutor.INSTANCE,
-      )
+      val result =
+        Futures.transformAsync(
+          futureItem,
+          { item ->
+            if (item == null) {
+              Futures.immediateFuture(false)
+            } else {
+              this.defaultValue = createEntry(item)
+              Futures.immediateFuture(true)
+            }
+          },
+          SameThreadExecutor.INSTANCE,
+        )
+      result.addListener({ tentativeDefaultValue = null }, SameThreadExecutor.INSTANCE)
+      return result
     }
 
     if (this.defaultValue!!.string == defaultValue) return Futures.immediateFuture(false)
@@ -117,15 +122,13 @@ class StringResource(
     }
 
     val item = requireNotNull(data.repository.getDefaultValue(key))
-
-    this.defaultValue = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
+    this.defaultValue = createEntry(item)
     return Futures.immediateFuture(true)
   }
 
   /** Change the value of the translatable attribute and update the default resource item to reflect this change in the model. */
-  fun changeTranslatable(translatable: Boolean): Boolean {
-    val item = defaultValueAsResourceItem ?: return false
-    isTranslatable = translatable
+  fun changeTranslatable(translatable: Boolean): ListenableFuture<Boolean> {
+    val item = defaultValueAsResourceItem ?: return Futures.immediateFuture(false)
 
     if (
       !stringResourceWriter.setAttribute(
@@ -135,11 +138,12 @@ class StringResource(
         item = item,
       )
     ) {
-      return false
+      return Futures.immediateFuture(false)
     }
 
-    this.defaultValue = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
-    return true
+    isTranslatable = translatable
+    this.defaultValue = createEntry(item)
+    return Futures.immediateFuture(true)
   }
 
   private fun createDefaultValue(value: String): ListenableFuture<ResourceItem?> {
@@ -168,56 +172,56 @@ class StringResource(
   fun getTranslationAsString(locale: Locale) = localeToTranslationMap[locale]?.string ?: ""
 
   fun putTranslation(locale: Locale, translation: String): ListenableFuture<Boolean> {
-    SlowOperations.knownIssue("b/401392046").use {
-      if (getTranslationAsResourceItem(locale) == null) {
-        return Futures.transform(
-          createTranslationBefore(locale, translation, getAnchor(locale)),
-          { item: ResourceItem? ->
-            if (item == null) {
-              false
-            } else {
-              localeToTranslationMap[locale] = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
-              true
-            }
-          },
-          SameThreadExecutor.INSTANCE,
-        )
-      }
+    if (getTranslationAsResourceItem(locale) == null) {
+      val futureItem = createTranslationBefore(locale, translation, getAnchor(locale))
+      return Futures.transformAsync(
+        futureItem,
+        { item ->
+          if (item == null) {
+            Futures.immediateFuture(false)
+          } else {
+            localeToTranslationMap[locale] = createEntry(item)
+            Futures.immediateFuture(true)
+          }
+        },
+        SameThreadExecutor.INSTANCE,
+      )
+    }
 
-      if (getTranslationAsString(locale) == translation) return Futures.immediateFuture(false)
+    if (getTranslationAsString(locale) == translation) return Futures.immediateFuture(false)
 
-      var item = checkNotNull(getTranslationAsResourceItem(locale))
+    var item = checkNotNull(getTranslationAsResourceItem(locale))
 
-      val changed = stringResourceWriter.setItemText(data.project, item, translation)
-      if (!changed) return Futures.immediateFuture(false)
+    val changed = stringResourceWriter.setItemText(data.project, item, translation)
+    if (!changed) return Futures.immediateFuture(false)
 
-      if (translation.isEmpty()) {
-        localeToTranslationMap.remove(locale)
-        return Futures.immediateFuture(true)
-      }
-
-      item = checkNotNull(data.repository.getTranslation(key, locale))
-
-      localeToTranslationMap[locale] = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
+    if (translation.isEmpty()) {
+      localeToTranslationMap.remove(locale)
       return Futures.immediateFuture(true)
     }
+
+    item = checkNotNull(data.repository.getTranslation(key, locale))
+    localeToTranslationMap[locale] = createEntry(item)
+    return Futures.immediateFuture(true)
   }
 
-  private fun getAnchor(locale: Locale): StringResourceKey? {
-    val item = defaultValueAsResourceItem as? PsiResourceItem ?: return null
-    val tag = item.tag ?: return null
-    val resources = tag.parentTag ?: return null
+  private fun getAnchor(locale: Locale): StringResourceKey? = runReadAction {
+    val item = defaultValueAsResourceItem as? PsiResourceItem ?: return@runReadAction null
+    val tag = item.tag ?: return@runReadAction null
+    val resources = tag.parentTag ?: return@runReadAction null
     val items = resources.subTags
     val index = items.indexOf(tag)
     for (nextIndex in (index + 1) until items.size) {
-      val next = items[index + 1]
+      val next = items[nextIndex]
+      if (next.name != SdkConstants.TAG_STRING) continue
       val name = next.getAttributeValue(SdkConstants.ATTR_NAME) ?: continue
       val nextKey = StringResourceKey(name, key.directory)
+      if (!data.containsKey(nextKey)) continue
       val nextResource = data.getStringResource(nextKey)
       // Check if this resource exists in the given Locale file.
-      if (nextResource.getTranslationAsResourceItem(locale) != null) return nextKey
+      if (nextResource.getTranslationAsResourceItem(locale) != null) return@runReadAction nextKey
     }
-    return null
+    return@runReadAction null
   }
 
   private fun createTranslationBefore(locale: Locale, value: String, anchor: StringResourceKey?): ListenableFuture<ResourceItem?> {
@@ -226,7 +230,8 @@ class StringResource(
     if (key.directory == null) return Futures.immediateFuture(null)
 
     val project = data.project
-    // If there is only one file that all translations of string resources are in, get that file.
+    // If there is only one file that all translations of string resources are in, get that
+    // file.
     val file = data.getDefaultLocaleXml(locale)
     if (file != null) {
       stringResourceWriter.addTranslationToFile(project, file, key, value, anchor)

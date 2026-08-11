@@ -24,6 +24,8 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.intellij.ide.util.DeleteHandler
+import com.intellij.openapi.application.WriteIntentReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -220,7 +222,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
   }
 
   override fun addDefault(project: Project, key: StringResourceKey, value: String, translatable: Boolean): Boolean =
-    add(project, key, value, DEFAULT_STRING_RESOURCE_FILE_NAME, translatable = translatable)
+    WriteIntentReadAction.compute<Boolean> { add(project, key, value, DEFAULT_STRING_RESOURCE_FILE_NAME, translatable = translatable) }
 
   override fun addTranslation(
     project: Project,
@@ -229,10 +231,11 @@ private object StringResourceWriterImpl : StringResourceWriter {
     locale: Locale,
     resourceFileName: String,
     insertBefore: StringResourceKey?,
-  ): Boolean {
-    require(insertBefore == null || key.directory == insertBefore.directory) { "Can't insert before a key in a different directory." }
-    return add(project, key, value, resourceFileName, locale, translatable = true, insertBefore)
-  }
+  ): Boolean =
+    WriteIntentReadAction.compute<Boolean> {
+      require(insertBefore == null || key.directory == insertBefore.directory) { "Can't insert before a key in a different directory." }
+      add(project, key, value, resourceFileName, locale, translatable = true, insertBefore)
+    }
 
   override fun addTranslationToFile(
     project: Project,
@@ -240,10 +243,11 @@ private object StringResourceWriterImpl : StringResourceWriter {
     key: StringResourceKey,
     value: String,
     insertBefore: StringResourceKey?,
-  ): Boolean {
-    require(insertBefore == null || key.directory == insertBefore.directory) { "Can't insert before a key in a different directory." }
-    return addToFile(project, xmlFile, key, value, translatable = true, insertBefore = insertBefore)
-  }
+  ): Boolean =
+    WriteIntentReadAction.compute<Boolean> {
+      require(insertBefore == null || key.directory == insertBefore.directory) { "Can't insert before a key in a different directory." }
+      addToFile(project, xmlFile, key, value, translatable = true, insertBefore = insertBefore)
+    }
 
   fun addToFile(
     project: Project,
@@ -296,82 +300,87 @@ private object StringResourceWriterImpl : StringResourceWriter {
   }
 
   override fun removeLocale(locale: Locale, facet: AndroidFacet, requestor: Any) {
-    WriteCommandAction.writeCommandAction(facet.module.project).withName("Remove $locale Locale").withGlobalUndo().run<Nothing> {
-      val name: String = FolderConfiguration().apply { localeQualifier = locale.qualifier }.getFolderName(ResourceFolderType.VALUES)
+    WriteIntentReadAction.run {
+      WriteCommandAction.writeCommandAction(facet.module.project).withName("Remove $locale Locale").withGlobalUndo().run<Nothing> {
+        val name: String = FolderConfiguration().apply { localeQualifier = locale.qualifier }.getFolderName(ResourceFolderType.VALUES)
 
-      ResourceFolderManager.getInstance(facet)
-        .folders
-        .mapNotNull { it.findChild(name) }
-        .forEach {
-          try {
-            it.delete(requestor)
-          } catch (e: IOException) {
-            Logger.getInstance(this.javaClass).warn(e)
+        ResourceFolderManager.getInstance(facet)
+          .folders
+          .mapNotNull { it.findChild(name) }
+          .forEach {
+            try {
+              it.delete(requestor)
+            } catch (e: IOException) {
+              Logger.getInstance(this.javaClass).warn(e)
+            }
           }
-        }
+      }
     }
   }
 
   override fun setAttribute(project: Project, attribute: String, value: String?, items: Collection<ResourceItem>): Boolean =
     items.modify(project, "Setting attribute $attribute") { it.setAttribute(attribute, value) }
 
-  override fun delete(project: Project, items: Collection<ResourceItem>): Boolean {
-    if (items.isEmpty()) return false
-    val tags = items.mapNotNull { getItemTag(project, it) }
-    val fileToTagMap = tags.groupBy { it.containingFile }
-    if (fileToTagMap.isEmpty()) return true
+  override fun delete(project: Project, items: Collection<ResourceItem>): Boolean =
+    WriteIntentReadAction.compute<Boolean> {
+      if (items.isEmpty()) return@compute false
+      val fileToTagMap = runReadAction { items.mapNotNull { getItemTag(project, it) }.groupBy { it.containingFile } }
+      if (fileToTagMap.isEmpty()) return@compute true
 
-    WriteCommandAction.writeCommandAction(project, fileToTagMap.keys).withName("Deleting resources").withGlobalUndo().run<
-      IncorrectOperationException
-    > {
-      for ((psiFile, tagList) in fileToTagMap) {
-        val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
-        if (document == null) {
-          // If the file is only in-memory (e.g. in tests) and has no associated Document,
-          // fall back to standard PSI-based deletion and continue.
-          tagList.forEach(XmlTag::delete)
-          continue
-        }
+      WriteCommandAction.writeCommandAction(project, fileToTagMap.keys).withName("Deleting resources").withGlobalUndo().run<
+        IncorrectOperationException
+      > {
+        for ((psiFile, tagList) in fileToTagMap) {
+          val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
+          if (document == null) {
+            // If the file is only in-memory (e.g. in tests) and has no associated Document,
+            // fall back to standard PSI-based deletion and continue.
+            tagList.forEach(XmlTag::delete)
+            continue
+          }
 
-        // Deleting tags one-by-one using XmlTag.delete() triggers expensive formatting and
-        // AST-rebuild operations on each call, leading to O(N^2) complexity and UI thread freezes.
-        // Instead, we perform direct string deletions on the underlying Document and commit
-        // the changes once.
-        //
-        // Sort tags in descending order of startOffset so that deleting earlier elements
-        // does not shift the offsets of the remaining elements.
-        for (tag in tagList.sortedByDescending { it.textRange.startOffset }) {
-          document.deleteString(tag.textRange.startOffset, tag.textRange.endOffset)
+          // Deleting tags one-by-one using XmlTag.delete() triggers expensive formatting and
+          // AST-rebuild operations on each call, leading to O(N^2) complexity and UI thread freezes.
+          // Instead, we perform direct string deletions on the underlying Document and commit
+          // the changes once.
+          //
+          // Sort ranges in descending order of startOffset so that deleting earlier elements
+          // does not shift the offsets of remaining ranges.
+          val ranges = tagList.map { it.textRange }.distinct().sortedByDescending { it.startOffset }
+          for (range in ranges) {
+            document.deleteString(range.startOffset, range.endOffset)
+          }
+          PsiDocumentManager.getInstance(project).commitDocument(document)
         }
-        PsiDocumentManager.getInstance(project).commitDocument(document)
       }
+      true
     }
-    return true
-  }
 
   /**
    * Runs the given [modification] on the [XmlTag] for each [ResourceItem] in `this` [Collection].
    *
    * @return true iff the modification changed anything
    */
-  private fun Collection<ResourceItem>.modify(project: Project, operationName: String, modification: (XmlTag) -> Unit): Boolean {
-    if (isEmpty()) return false
-    // Figure out which files they are in because we will need to make them writable.
-    val fileToTagMap = map { getItemTag(project, it) ?: return false }.groupBy { it.containingFile }
+  private fun Collection<ResourceItem>.modify(project: Project, operationName: String, modification: (XmlTag) -> Unit): Boolean =
+    WriteIntentReadAction.compute<Boolean> {
+      if (isEmpty()) return@compute false
+      // Figure out which files they are in because we will need to make them writable.
+      val fileToTagMap = runReadAction { mapNotNull { getItemTag(project, it) }.groupBy { it.containingFile } }
+      if (fileToTagMap.isEmpty()) return@compute false
 
-    WriteCommandAction.writeCommandAction(project, fileToTagMap.keys).withName(operationName).run<IncorrectOperationException> {
-      CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
-      fileToTagMap.values.forEach { tagList -> tagList.forEach(modification) }
+      WriteCommandAction.writeCommandAction(project, fileToTagMap.keys).withName(operationName).run<IncorrectOperationException> {
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
+        fileToTagMap.values.forEach { tagList -> tagList.forEach(modification) }
+      }
+
+      true
     }
-
-    return true
-  }
 
   override fun safeDelete(project: Project, items: Collection<ResourceItem>, successCallback: Runnable) {
     // TODO(b/232444069): Long term this probably shouldn't be showing dialogs, etc. But right now
     //  it's too difficult to separate out the confirmation dialog for the first dumb delete.
 
-    val xmlTags = items.mapNotNull { item -> getItemTag(project, item) }
+    val xmlTags = runReadAction { items.mapNotNull { item -> getItemTag(project, item) } }
     if (xmlTags.isEmpty()) return
 
     if (!CommonRefactoringUtil.checkReadOnlyStatusRecursively(project, xmlTags, /* notifyOnFail= */ true)) {
@@ -414,31 +423,34 @@ private object StringResourceWriterImpl : StringResourceWriter {
     }
   }
 
-  override fun setItemText(project: Project, item: ResourceItem, value: String): Boolean {
-    if (value.isEmpty()) return delete(project, item)
-    val tag = getItemTag(project, item) ?: return false
+  override fun setItemText(project: Project, item: ResourceItem, value: String): Boolean =
+    WriteIntentReadAction.compute<Boolean> {
+      if (value.isEmpty()) return@compute delete(project, item)
+      val (tag, containingFile, name) =
+        runReadAction {
+          val t = getItemTag(project, item) ?: return@runReadAction null
+          Triple(t, t.containingFile, t.name)
+        } ?: return@compute false
 
-    WriteCommandAction.writeCommandAction(project, tag.containingFile).withName("Setting value of ${tag.name}").run<
-      IncorrectOperationException
-    > {
-      // Makes the command global even if only one xml file is modified.
-      // That way, the Undo is always available from the translation editor.
-      CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
-      // First remove the existing value of the tag (any text and possibly other XML nested
-      // tags - like xliff:g).
-      tag.value.children.forEach(XmlTagChild::delete)
-      val escapedXml =
-        try {
-          CharacterDataEscaper.escape(value)
-        } catch (e: IllegalArgumentException) {
-          Logger.getInstance(this.javaClass).warn(e)
-          value
-        }
-      val text: XmlTag = XmlElementFactory.getInstance(project).createTagFromText("<String>$escapedXml</string")
-      text.value.children.forEach(tag::add)
+      WriteCommandAction.writeCommandAction(project, containingFile).withName("Setting value of $name").run<IncorrectOperationException> {
+        // Makes the command global even if only one xml file is modified.
+        // That way, the Undo is always available from the translation editor.
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
+        // First remove the existing value of the tag (any text and possibly other XML nested
+        // tags - like xliff:g).
+        tag.value.children.forEach(XmlTagChild::delete)
+        val escapedXml =
+          try {
+            CharacterDataEscaper.escape(value)
+          } catch (e: IllegalArgumentException) {
+            Logger.getInstance(this.javaClass).warn(e)
+            value
+          }
+        val text: XmlTag = XmlElementFactory.getInstance(project).createTagFromText("<string>$escapedXml</string>")
+        text.value.children.forEach(tag::add)
+      }
+      true
     }
-    return true
-  }
 
   /** Returns the escaped version of [xml] unless it is invalid XML, in which case just returns [xml] unmodified. */
   private fun escapeIfValid(xml: String) =
