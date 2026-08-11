@@ -25,5 +25,6 @@
   <extensions defaultExtensionNs="com.google.idea.blaze">
     <TargetKindProvider implementation="com.google.idea.bazel.java.JavaBlazeRules"/>
     <TargetKindProvider implementation="com.google.idea.bazel.java.AndroidBlazeRules"/>
+    <UnifiedRunContextRefiner implementation="com.google.idea.bazel.java.run.producers.SubclassUnifiedRunContextRefiner"/>
   </extensions>
 </idea-plugin>

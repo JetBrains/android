@@ -32,6 +32,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 
 /** Base class for Blaze run configuration producers. */
 abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(configurationType: ConfigurationType) :
@@ -56,10 +57,8 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
       return false
     }
     val runContext = findContext(context) ?: return false
-    if (!runContext.setupRunConfiguration(configuration)) {
-      return false
-    }
     sourceElement.set(runContext.sourceElement)
+    runContext.setupConfigurationName(configuration)
     return true
   }
 
@@ -93,17 +92,28 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
     return Blaze.isBlazeProject(context.project)
   }
 
+  /**
+   * Refines, resolves, and applies the context to the given run configuration without launching or showing UI dialogs.
+   *
+   * @return true if the configuration was successfully resolved and configured, false otherwise.
+   */
+  @VisibleForTesting
+  suspend fun prepareAndSetupRunConfiguration(config: BlazeCommandRunConfiguration, context: ConfigurationContext): Boolean {
+    val initialContext = readAction { findContext(context) } ?: return false
+    val refinedContext = refineContext(initialContext, context)
+    val resolvedContext = resolveContext(refinedContext, context)
+    return resolvedContext.setupRunConfiguration(config)
+  }
+
   final override fun onFirstRun(configuration: ConfigurationFromContext, context: ConfigurationContext, startRunnable: Runnable) {
     val project = context.project
+    val config = configuration.configuration as? BlazeCommandRunConfiguration ?: return
     project.coroutineScope.launch(Dispatchers.Default) {
       try {
-        val initialContext = readAction { findContext(context) } ?: throw CancellationException("Context no longer valid")
-        val refinedContext = refineContext(initialContext, configuration, context)
-        val resolvedContext = resolveContext(refinedContext, configuration, context)
-        withContext(Dispatchers.EDT) {
-          resolvedContext.setupRunConfiguration(configuration.configuration as BlazeCommandRunConfiguration)
-          startRunnable.run()
+        if (!prepareAndSetupRunConfiguration(config, context)) {
+          throw CancellationException("Failed to configure run configuration")
         }
+        withContext(Dispatchers.EDT) { startRunnable.run() }
       } catch (e: CancellationException) {
         logger.info("Run configuration preparation cancelled: ${e.message}")
       } catch (e: Throwable) {
@@ -115,15 +125,9 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
     }
   }
 
-  protected open suspend fun refineContext(
-    initialContext: C,
-    configuration: ConfigurationFromContext,
-    context: ConfigurationContext,
-  ): RunConfigurationContext = initialContext.refine(context)
+  protected suspend fun refineContext(initialContext: C, context: ConfigurationContext): RunConfigurationContext =
+    initialContext.refine(context)
 
-  protected open suspend fun resolveContext(
-    refinedContext: RunConfigurationContext,
-    configuration: ConfigurationFromContext,
-    context: ConfigurationContext,
-  ): RunConfigurationContext = refinedContext.resolve(context.project)
+  protected suspend fun resolveContext(refinedContext: RunConfigurationContext, context: ConfigurationContext): RunConfigurationContext =
+    refinedContext.resolve(context.project)
 }

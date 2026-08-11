@@ -23,6 +23,7 @@ import com.intellij.execution.junit2.PsiMemberParameterizedLocation;
 import com.intellij.execution.junit2.info.MethodLocation;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassOwner;
 import com.intellij.psi.PsiElement;
@@ -88,8 +89,27 @@ public class ProducerUtils {
 
   static Set<PsiClass> getInnerTestClasses(PsiClass psiClass) {
     return Arrays.stream(psiClass.getInnerClasses())
-        .filter(ProducerUtils::isTestClass)
+        .filter(ProducerUtils::isInnerTestClass)
         .collect(Collectors.toSet());
+  }
+
+  public static boolean isInnerTestClass(PsiClass psiClass) {
+    if (psiClass.getQualifiedName() == null) {
+      return false;
+    }
+    if (JUnitUtil.isJUnit5(psiClass) && JUnitUtil.isJUnit5TestClass(psiClass, true)) {
+      return true;
+    }
+    if (!PsiClassUtil.isRunnableClass(psiClass, true, true)) {
+      return false;
+    }
+    if (isJUnit4Class(psiClass)) {
+      return true;
+    }
+    if (isTestCaseInheritor(psiClass)) {
+      return true;
+    }
+    return hasTestOrSuiteMethods(psiClass);
   }
 
   @Nullable
@@ -129,7 +149,7 @@ public class ProducerUtils {
     if (JUnitUtil.isJUnit5(psiClass) && JUnitUtil.isJUnit5TestClass(psiClass, true)) {
       return true;
     }
-    if (!PsiClassUtil.isRunnableClass(psiClass, true, true)) {
+    if (!PsiClassUtil.isRunnableClass(psiClass, true, false)) {
       return false;
     }
     if (isJUnit4Class(psiClass)) {
@@ -145,7 +165,10 @@ public class ProducerUtils {
                 hasTestOrSuiteMethods(psiClass), PsiModificationTracker.MODIFICATION_COUNT));
   }
 
-  private static boolean isJUnit4Class(PsiClass psiClass) {
+  static boolean isJUnit4Class(PsiClass psiClass) {
+    if (JUnitUtil.isJUnit4TestClass(psiClass)) {
+      return true;
+    }
     String qualifiedName = JUnitUtil.RUN_WITH;
     if (AnnotationUtil.isAnnotated(
         psiClass, qualifiedName, AnnotationUtil.CHECK_TYPE | AnnotationUtil.CHECK_HIERARCHY)) {
@@ -158,6 +181,12 @@ public class ProducerUtils {
     }
     if (modifierList.hasAnnotation(qualifiedName)) {
       return true;
+    }
+    for (PsiAnnotation annotation : modifierList.getAnnotations()) {
+      String text = annotation.getText();
+      if (text != null && text.contains("RunWith")) {
+        return true;
+      }
     }
     String shortName = StringUtil.getShortName(qualifiedName);
     return modifierList.hasAnnotation(shortName) && hasImport(psiClass, qualifiedName);

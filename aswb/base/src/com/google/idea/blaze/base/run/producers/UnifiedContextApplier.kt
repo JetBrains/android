@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.run.producers
 
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
+import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 
 /** Orchestrates Stage 3 application and matching of UnifiedRunContext to BlazeCommandRunConfiguration. */
@@ -23,37 +24,61 @@ object UnifiedContextApplier {
   fun apply(config: BlazeCommandRunConfiguration, context: UnifiedRunContext): Boolean {
     var applied = false
 
-    // 1. Common Application: Command & Target (Target setting triggers config.updateHandler())
+    // 1. Target setting MUST run first to instantiate config.handler via updateHandler()
+    context.target?.let {
+      if (!TargetApplier.apply(config, it)) {
+        return false
+      }
+      applied = true
+    }
+
+    // 2. Command setting operates AFTER config.handler is instantiated
     context.command?.let {
       CommandApplier.apply(config, it)
       applied = true
     }
-    context.target?.let {
-      TargetApplier.apply(config, it)
+
+    // 3. Handler-Specific Application: TestFilterApplier operates AFTER TargetApplier has instantiated config.handler
+    context.testFilter?.let {
+      TestFilterApplier.apply(config, it)
       applied = true
     }
 
-    // 2. Handler-Specific Application: FilterApplier operates AFTER TargetApplier has instantiated config.handler
-    context.filter?.let {
-      FilterApplier.apply(config, it)
-      applied = true
-    }
-
-    if (context.filter?.appendFilteredSuffix == true) {
+    if (context.testFilter?.appendFilteredSuffix == true) {
       config.name = config.name + " (filtered)"
       config.setNameChangedByUser(true)
-    } else if (applied) {
-      config.setGeneratedName()
+    } else if (context.testFilter != null) {
+      val description = getFilterDescription(context.testFilter.testSelectors)
+      if (description != null) {
+        val nameBuilder = BlazeConfigurationNameBuilder(config)
+        nameBuilder.setTargetString(description)
+        config.name = nameBuilder.build()
+        config.setNameChangedByUser(true)
+      } else if (applied) {
+        config.setGeneratedName()
+      }
     }
     return applied
+  }
+
+  fun getFilterDescription(testSelectors: List<TestSelector>): String? {
+    if (testSelectors.isEmpty()) return null
+    val first = testSelectors.first()
+    val className = first.className.substringAfterLast('.')
+    val methodNames = testSelectors.mapNotNull { it.methodName }.distinct()
+    return if (methodNames.isEmpty()) {
+      className
+    } else {
+      "$className.${methodNames.joinToString(",")}"
+    }
   }
 
   fun matches(config: BlazeCommandRunConfiguration, context: UnifiedRunContext): Boolean {
     context.command?.let { if (!CommandApplier.matches(config, it)) return false }
     context.target?.let { if (!TargetApplier.matches(config, it)) return false }
 
-    if (context.filter != null) {
-      if (!FilterApplier.matches(config, context.filter)) return false
+    if (context.testFilter != null) {
+      if (!TestFilterApplier.matches(config, context.testFilter)) return false
     } else {
       if (hasActiveTestFilter(config)) return false
     }
@@ -69,16 +94,22 @@ object UnifiedContextApplier {
 }
 
 object TargetApplier {
-  fun apply(config: BlazeCommandRunConfiguration, spec: TargetSpecification) {
-    when (spec) {
-      is TargetSpecification.Resolved -> config.setTargetInfo(spec.targetInfo)
-      is TargetSpecification.ExplicitPatterns -> config.setTargetPatterns(spec.targetPatterns)
-      is TargetSpecification.PendingResolution -> {
-        val resolved = UnifiedRunContextResolver.resolveTargetSpec(config.project, spec)
-        if (resolved is TargetSpecification.Resolved) {
-          config.setTargetInfo(resolved.targetInfo)
-        }
+  /**
+   * Applies the target specification to the configuration during Stage 3 setup.
+   *
+   * Expects a resolved or explicit target specification. Returns false if target resolution is pending.
+   */
+  fun apply(config: BlazeCommandRunConfiguration, spec: TargetSpecification): Boolean {
+    return when (spec) {
+      is TargetSpecification.Resolved -> {
+        config.setTargetInfo(spec.targetInfo)
+        true
       }
+      is TargetSpecification.ExplicitPatterns -> {
+        config.setTargetPatterns(spec.targetPatterns)
+        true
+      }
+      is TargetSpecification.PendingResolution -> false
     }
   }
 
@@ -86,10 +117,7 @@ object TargetApplier {
     return when (spec) {
       is TargetSpecification.Resolved -> config.singleTargetPattern == spec.targetInfo.label().toString()
       is TargetSpecification.ExplicitPatterns -> config.targetPatterns == spec.targetPatterns
-      is TargetSpecification.PendingResolution -> {
-        val resolved = UnifiedRunContextResolver.resolveTargetSpec(config.project, spec)
-        if (resolved is TargetSpecification.Resolved) config.singleTargetPattern == resolved.targetInfo.label().toString() else false
-      }
+      is TargetSpecification.PendingResolution -> true
     }
   }
 }
@@ -115,14 +143,14 @@ object CommandApplier {
   }
 }
 
-object FilterApplier {
-  fun apply(config: BlazeCommandRunConfiguration, component: FilterComponent) {
+object TestFilterApplier {
+  fun apply(config: BlazeCommandRunConfiguration, testFilter: TestFilterComponent) {
     val helper = BlazeCommandRunConfigurationHelper.EP_NAME.extensions.firstOrNull { it.handlesConfiguration(config) }
-    helper?.applyFilter(config, component)
+    helper?.applyFilter(config, testFilter)
   }
 
-  fun matches(config: BlazeCommandRunConfiguration, component: FilterComponent): Boolean {
+  fun matches(config: BlazeCommandRunConfiguration, testFilter: TestFilterComponent): Boolean {
     val helper = BlazeCommandRunConfigurationHelper.EP_NAME.extensions.firstOrNull { it.handlesConfiguration(config) }
-    return helper?.matchesFilter(config, component) ?: false
+    return helper?.matchesFilter(config, testFilter) ?: false
   }
 }

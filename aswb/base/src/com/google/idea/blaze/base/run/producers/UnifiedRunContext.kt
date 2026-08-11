@@ -20,22 +20,25 @@ import com.google.idea.blaze.base.dependencies.TargetInfo
 import com.google.idea.blaze.base.dependencies.TestSize
 import com.google.idea.blaze.base.model.primitives.RuleType
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
+import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder
+import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import java.io.File
 
-/** Supported JUnit test runner specification variants. */
-enum class JUnitVersion {
+/** Specifies how the Bazel test runner parses --test_filter flags. */
+enum class TestFilterSyntax {
   JUNIT_3,
   JUNIT_4,
   RULES_KOTLIN,
 }
 
 /** Identifies an individual test entity (class, method, parameter) in pure domain terms, independent of CLI flag syntax. */
-data class RunTarget(val className: String, val methodName: String?, val parameterName: String?, val junitVersion: JUnitVersion)
+data class TestSelector(val className: String, val methodName: String?, val parameterName: String?, val testFilterSyntax: TestFilterSyntax)
 
-/** Encapsulates test selection scope and UI naming hints. Null filter indicates target-wide execution of all tests. */
-data class FilterComponent(val targets: List<RunTarget>, val appendFilteredSuffix: Boolean)
+/** Encapsulates test selection scope and UI naming hints. Null testFilter indicates target-wide execution of all tests. */
+data class TestFilterComponent(val testSelectors: List<TestSelector>, val appendFilteredSuffix: Boolean)
 
 /**
  * Describes Bazel target execution specs based on data available at the current pipeline state: PendingResolution (unresolved source file
@@ -59,9 +62,36 @@ data class CommandComponent(val command: BlazeCommandName, val extraFlags: List<
 data class UnifiedRunContext(
   override val sourceElement: PsiElement,
   val target: TargetSpecification?,
-  val filter: FilterComponent?,
+  val testFilter: TestFilterComponent?,
   val command: CommandComponent?,
 ) : RunConfigurationContext {
+
+  override fun setupConfigurationName(config: BlazeCommandRunConfiguration) {
+    if (testFilter?.appendFilteredSuffix == true) {
+      config.name = config.name + " (filtered)"
+      config.setNameChangedByUser(true)
+    } else if (testFilter != null) {
+      val description = UnifiedContextApplier.getFilterDescription(testFilter.testSelectors)
+      if (description != null) {
+        val nameBuilder = BlazeConfigurationNameBuilder(config)
+        nameBuilder.setTargetString(description)
+        config.name = nameBuilder.build()
+        config.setNameChangedByUser(true)
+      } else {
+        config.setGeneratedName()
+      }
+    } else {
+      config.setGeneratedName()
+    }
+  }
+
+  override suspend fun refine(context: ConfigurationContext): RunConfigurationContext {
+    var current = this
+    for (refiner in UnifiedRunContextRefiner.EP_NAME.extensions) {
+      current = refiner.refine(context, current)
+    }
+    return current
+  }
 
   override fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {
     return UnifiedContextApplier.apply(config, this)
@@ -74,7 +104,7 @@ data class UnifiedRunContext(
   override suspend fun resolve(project: Project): RunConfigurationContext {
     val currentTarget = target
     if (currentTarget !is TargetSpecification.PendingResolution) return this
-    val resolvedTarget = UnifiedRunContextResolver.resolveTargetSpec(project, currentTarget)
-    return copy(sourceElement = sourceElement, target = resolvedTarget, filter = filter, command = command)
+    val resolvedTarget = readAction { UnifiedRunContextResolver.resolveTargetSpec(project, currentTarget) }
+    return copy(sourceElement = sourceElement, target = resolvedTarget, testFilter = testFilter, command = command)
   }
 }

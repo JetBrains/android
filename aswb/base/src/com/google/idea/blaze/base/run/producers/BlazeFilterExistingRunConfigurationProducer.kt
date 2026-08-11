@@ -40,12 +40,12 @@ class BlazeFilterExistingRunConfigurationProducer :
     if (selectedElements.isEmpty()) return null
 
     val testEventsHandler = BlazeTestEventsHandler.getHandlerForTargets(context.project, patterns).orElse(null) ?: return null
-    val runTargets = testEventsHandler.getRunTargets(context.project, selectedElements) ?: return null
+    val testSelectors = testEventsHandler.getTestSelectors(context.project, selectedElements) ?: return null
 
     return UnifiedRunContext(
       sourceElement = psi,
       target = TargetSpecification.ExplicitPatterns(patterns),
-      filter = FilterComponent(runTargets, true),
+      testFilter = TestFilterComponent(testSelectors, true),
       command = CommandComponent(BlazeCommandName.TEST, emptyList()),
     )
   }

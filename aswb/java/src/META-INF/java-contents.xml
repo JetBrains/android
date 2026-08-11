@@ -27,6 +27,7 @@
     <SettingsUiContributor implementation="com.google.idea.bazel.java.settings.BlazeJavaUserSettingsConfigurable$UiContributor"/>
     <FileCache implementation="com.google.idea.bazel.java.libraries.JarCache$FileCacheAdapter"/>
     <BlazeTestEventsHandler implementation="com.google.idea.bazel.java.run.BlazeJavaTestEventsHandler"/>
+    <BlazeCommandRunConfigurationHelper implementation="com.google.idea.bazel.java.run.producers.JvmBlazeCommandRunConfigurationHelper"/>
     <AttributeSpecificStringLiteralReferenceProvider implementation="com.google.idea.bazel.java.lang.build.references.JavaClassQualifiedNameReference"/>
     <TestTargetHeuristic implementation="com.google.idea.bazel.java.run.JUnitTestHeuristic" order="before TestSizeHeuristic"/>
     <TestTargetHeuristic implementation="com.google.idea.bazel.java.run.ClassPackagePathHeuristic" id="ClassPackagePathHeuristic" order="before TargetNameHeuristic"/>
@@ -46,9 +47,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <runConfigurationProducer
-        implementation="com.google.idea.bazel.java.run.producers.BlazeJavaAbstractTestCaseConfigurationProducer"
-        order="first, before testContextProducer"/>
+
     <programRunner implementation="com.google.idea.bazel.java.run.BlazeJavaDebuggerRunner" id="BlazeJavaDebug"/>
     <postStartupActivity implementation="com.google.idea.bazel.java.libraries.DisableLibraryBytecodeNotification"/>
 

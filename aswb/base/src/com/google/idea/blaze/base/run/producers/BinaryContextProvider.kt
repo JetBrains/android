@@ -40,7 +40,7 @@ interface BinaryContextProvider {
       return UnifiedRunContext(
         sourceElement = sourceElement,
         target = TargetSpecification.Resolved(target),
-        filter = null,
+        testFilter = null,
         command = CommandComponent(BlazeCommandName.RUN, emptyList()),
       )
     }

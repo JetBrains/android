@@ -15,17 +15,30 @@
  */
 package com.google.idea.blaze.base.run.producers
 
+import com.google.idea.blaze.base.io.VfsUtils
 import com.google.idea.blaze.base.run.SourceToTargetFinder
 import com.google.idea.blaze.base.run.TestTargetHeuristic
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiManager
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
 import java.util.Optional
 
 /** Asynchronously resolves pending source file specifications to concrete Bazel target information. */
 object UnifiedRunContextResolver {
   fun resolveTargetSpec(project: Project, spec: TargetSpecification.PendingResolution): TargetSpecification {
+    val vf = VfsUtils.resolveVirtualFile(spec.file, true) ?: VfsUtils.resolveVirtualFile(spec.file, false)
+    val psiFile =
+      if (vf != null) {
+        PsiManager.getInstance(project).findFile(vf)
+      } else {
+        FilenameIndex.getFilesByName(project, spec.file.name, GlobalSearchScope.projectScope(project)).firstOrNull {
+          it.virtualFile.path == spec.file.path || it.virtualFile.path.endsWith(spec.file.path)
+        }
+      }
     val targets = SourceToTargetFinder.findTargetsForSourceFile(project, spec.file, Optional.ofNullable(spec.ruleType))
     val targetInfo =
-      TestTargetHeuristic.chooseTestTargetForSourceFile(project, null, spec.file, targets, spec.testSize) ?: targets.firstOrNull()
+      TestTargetHeuristic.chooseTestTargetForSourceFile(project, psiFile, spec.file, targets, spec.testSize) ?: targets.firstOrNull()
     return if (targetInfo != null) TargetSpecification.Resolved(targetInfo) else spec
   }
 }

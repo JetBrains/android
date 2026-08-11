@@ -22,7 +22,9 @@ import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.model.primitives.RuleType
 import com.google.idea.blaze.base.run.BlazeCommandRunConfigurationType
 import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.annotations.TestOnly
 
 /** Creates run configurations from BUILD file targets. */
 class BlazeBuildFileRunConfigurationProducer :
@@ -36,6 +38,12 @@ class BlazeBuildFileRunConfigurationProducer :
   data class TargetData(@JvmField val ruleType: RuleType, @JvmField val label: Label)
 
   companion object {
+    @TestOnly
+    @JvmStatic
+    fun getInstance(): BlazeBuildFileRunConfigurationProducer {
+      return RunConfigurationProducer.getInstance(BlazeBuildFileRunConfigurationProducer::class.java)
+    }
+
     @JvmStatic
     fun getTargetData(rule: FuncallExpression?): TargetData? {
       if (rule == null) {
@@ -60,7 +68,7 @@ class BlazeBuildFileRunConfigurationProducer :
       return UnifiedRunContext(
         sourceElement = rule!!,
         target = TargetSpecification.ExplicitPatterns(listOf(data.label.toString())),
-        filter = null,
+        testFilter = null,
         command = CommandComponent(command, emptyList()),
       )
     }

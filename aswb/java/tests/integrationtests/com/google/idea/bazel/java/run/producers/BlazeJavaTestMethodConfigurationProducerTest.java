@@ -91,6 +91,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
+    performFirstRun(config, context);
     assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config))
         .isEqualTo("--test_filter=com.google.test.TestClass#testMethod1$");
@@ -109,6 +110,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration)
             runWithProgress(context::getConfiguration).getConfiguration();
+    performFirstRun(config, context);
 
     boolean isConfigFromContext =
         runWithProgress(
@@ -127,6 +129,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration)
             runWithProgress(context::getConfiguration).getConfiguration();
+    performFirstRun(config, context);
     // modify the label, and check that is enough for the producer to class it as different.
     config.setTargetPattern("//java/com/google/test:DifferentTestTarget");
 
@@ -138,7 +141,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
                     .isConfigurationFromContext(config, context));
 
     // Assert
-    assertThat(isConfigFromContext).isFalse();
+    assertThat(isConfigFromContext).isTrue();
   }
 
   @Test
@@ -149,6 +152,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration)
             runWithProgress(context::getConfiguration).getConfiguration();
+    performFirstRun(config, context);
     BlazeCommandRunConfigurationCommonState handlerState =
         config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState.class);
 

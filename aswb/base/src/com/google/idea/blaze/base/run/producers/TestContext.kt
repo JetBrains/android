@@ -23,6 +23,8 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 import com.google.idea.blaze.base.run.state.RunConfigurationFlagsState
+import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 
 /** A context related to a blaze test target, used to configure a run configuration. */
@@ -52,6 +54,21 @@ internal constructor(override val sourceElement: PsiElement, val blazeFlags: Lis
     }
     return true
   }
+
+  override fun setupConfigurationName(config: BlazeCommandRunConfiguration) {
+    if (description != null) {
+      val nameBuilder = BlazeConfigurationNameBuilder(config)
+      nameBuilder.setTargetString(description)
+      config.name = nameBuilder.build()
+      config.setNameChangedByUser(true)
+    } else {
+      config.setGeneratedName()
+    }
+  }
+
+  override suspend fun refine(context: ConfigurationContext): RunConfigurationContext = this
+
+  override suspend fun resolve(project: Project): RunConfigurationContext = this
 
   /** Returns true if the run configuration matches this [TestContext]. */
   override fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean {

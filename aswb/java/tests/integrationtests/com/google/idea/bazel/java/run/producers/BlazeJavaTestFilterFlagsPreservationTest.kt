@@ -76,6 +76,7 @@ class BlazeJavaTestFilterFlagsPreservationTest : BlazeRunConfigurationProducerTe
 
     val fromContext = fromContextList!![0]
     val configuration = fromContext.configuration as BlazeCommandRunConfiguration
+    performFirstRun(configuration, classContext)
 
     // 2. Add custom pre-existing flags to the run configuration (e.g. --config=dev, --test_output=streamed)
     val commonState = configuration.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)!!
@@ -88,7 +89,8 @@ class BlazeJavaTestFilterFlagsPreservationTest : BlazeRunConfigurationProducerTe
     }
     assertThat(testContext).isNotNull()
 
-    val setupSuccess = runWithProgress { testContext!!.setupRunConfiguration(configuration) }
+    val resolvedContext = runWithProgress { kotlinx.coroutines.runBlocking { testContext!!.resolve(project) } }
+    val setupSuccess = runWithProgress { resolvedContext.setupRunConfiguration(configuration) }
     assertThat(setupSuccess).isTrue()
 
     // 4. Assert that custom flags are retained while test filter is updated

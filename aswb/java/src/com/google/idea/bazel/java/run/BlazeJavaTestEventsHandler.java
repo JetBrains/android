@@ -20,10 +20,13 @@ import com.google.idea.bazel.java.run.producers.BlazeJUnitTestFilterFlags;
 import com.google.idea.bazel.java.sync.source.JavaLikeLanguage;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.model.primitives.Kind;
+import com.google.idea.blaze.base.run.producers.TestFilterSyntax;
+import com.google.idea.blaze.base.run.producers.TestSelector;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler;
 import com.google.idea.blaze.base.run.smrunner.BlazeXmlSchema.TestSuite;
 import com.google.idea.blaze.common.Label;
 import com.intellij.execution.Location;
+import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.testframework.JavaTestLocator;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
 import com.intellij.openapi.project.Project;
@@ -118,6 +121,38 @@ public class BlazeJavaTestEventsHandler implements BlazeTestEventsHandler {
     String filter =
         BlazeJUnitTestFilterFlags.testFilterForClassesAndMethods(failedClassesAndMethods);
     return filter != null ? String.format("%s='%s'", BlazeFlags.TEST_FILTER, filter) : null;
+  }
+
+  @Nullable
+  @Override
+  public List<TestSelector> getTestSelectors(Project project, List<Location<?>> testLocations) {
+    Map<PsiClass, Collection<Location<?>>> failedClassesAndMethods = new HashMap<>();
+    for (Location<?> location : testLocations) {
+      appendTest(failedClassesAndMethods, location);
+    }
+    List<TestSelector> testSelectors = new java.util.ArrayList<>();
+    for (Map.Entry<PsiClass, Collection<Location<?>>> entry : failedClassesAndMethods.entrySet()) {
+      PsiClass psiClass = entry.getKey();
+      String className = psiClass.getQualifiedName();
+      if (className == null) continue;
+      TestFilterSyntax version =
+          JUnitUtil.isJUnit4TestClass(psiClass)
+              ? TestFilterSyntax.JUNIT_4
+              : TestFilterSyntax.JUNIT_3;
+      Collection<Location<?>> methods = entry.getValue();
+      if (methods.isEmpty()) {
+        testSelectors.add(new TestSelector(className, null, null, version));
+      } else {
+        for (Location<?> loc : methods) {
+          PsiElement psi = loc.getPsiElement();
+          if (psi instanceof PsiMethod) {
+            testSelectors.add(
+                new TestSelector(className, ((PsiMethod) psi).getName(), null, version));
+          }
+        }
+      }
+    }
+    return testSelectors.isEmpty() ? null : testSelectors;
   }
 
   private static void appendTest(Map<PsiClass, Collection<Location<?>>> map, Location<?> location) {

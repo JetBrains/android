@@ -49,6 +49,7 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
     assertThat(fromContext.configuration).isInstanceOf(BlazeCommandRunConfiguration::class.java)
 
     val config = fromContext.configuration as BlazeCommandRunConfiguration
+    performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
     assertThat(config.targetPatterns).containsExactly("//java/com/google/test:unit_tests")
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST)
   }
@@ -67,6 +68,7 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
     assertThat(fromContext.configuration).isInstanceOf(BlazeCommandRunConfiguration::class.java)
 
     val config = fromContext.configuration as BlazeCommandRunConfiguration
+    performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
     assertThat(config.targetPatterns).containsExactly("//java/com/google/test:gen_tests")
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST)
   }
@@ -87,6 +89,7 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
     assertThat(fromContext.configuration).isInstanceOf(BlazeCommandRunConfiguration::class.java)
 
     val config = fromContext.configuration as BlazeCommandRunConfiguration
+    performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
     assertThat(config.targetPatterns).containsExactly("//java/com/google/test:unit_tests")
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST)
   }
@@ -98,6 +101,7 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
     val nameString = PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral::class.java)
     val context = createContextFromPsi(nameString)
     val config = context.configuration!!.configuration as BlazeCommandRunConfiguration
+    performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
 
     assertThat(BlazeBuildFileRunConfigurationProducer().isConfigurationFromContext(config, context)).isTrue()
   }
@@ -109,6 +113,7 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
     val nameString = PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral::class.java)
     val context = createContextFromPsi(nameString)
     val config = context.configuration!!.configuration as BlazeCommandRunConfiguration
+    performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
 
     // modify the label, and check that is enough for the producer to class it as different.
     config.setTargetPattern("//java/com/google/test:integration_tests")
@@ -123,6 +128,7 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
     val nameString = PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral::class.java)
     val context = createContextFromPsi(nameString)
     val config = context.configuration!!.configuration as BlazeCommandRunConfiguration
+    performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
 
     val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
     handlerState!!.blazeFlagsState.rawFlags = ImmutableList.of(BlazeFlags.TEST_FILTER + "=com.google.test.SingleTestClass#")

@@ -60,9 +60,7 @@
         displayNameKey="aswb.settings.name" id="com.google.idea.blaze.AswbSettings" />
 
     <moduleService serviceImplementation="com.google.idea.blaze.android.projectsystem.BazelModuleSystem"/>
-    <runConfigurationProducer
-        implementation="com.google.idea.blaze.android.run.producers.BlazeFilterAndroidTestRunConfigurationProducer"
-        order="first"/>
+
     <projectOpenProcessor implementation="com.google.idea.blaze.android.project.BazelProjectOpenProcessor"/>
   </extensions>
 
@@ -90,11 +88,9 @@
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationHandlerProvider"/>
     <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestRunConfigurationHandlerProvider"/>
     <BlazeTestEventsHandler implementation="com.google.idea.blaze.android.run.test.smrunner.BlazeAndroidTestEventsHandler"/>
+    <BlazeCommandRunConfigurationHelper implementation="com.google.idea.blaze.android.run.producers.AndroidBlazeCommandRunConfigurationHelper"/>
     <ProjectViewDefaultValueProvider implementation="com.google.idea.blaze.android.projectview.AndroidSdkPlatformSection$AndroidSdkPlatformProjectViewDefaultValueProvider"/>
     <AndroidTestLaunchMethodsProvider implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProviderImpl"/>
-    <TestContextProvider
-        implementation="com.google.idea.blaze.android.run.test.AndroidTestContextProvider"
-        order="first, before JavaTestContextProvider"/>
     <BlazeHighlightStatsCollector implementation="com.google.idea.blaze.android.editor.UnresolvedResourceStatsCollector"/>
     <SyncListener implementation="com.google.idea.blaze.android.editor.ProjectUnresolvedResourceStatsCollector$CollectorSyncListener"/>
     <ComposeStatusProvider implementation="com.google.idea.blaze.android.compose.ExperimentComposeStatusProvider"/>

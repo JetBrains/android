@@ -83,8 +83,8 @@ public class AllInBuildFileTestContextProviderTest extends BlazeRunConfiguration
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
-    assertThat(config.getTargetPatterns())
-        .containsExactly("//java/com/google/test:all");
+    performFirstRun(config, context);
+    assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:all");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
   }
 

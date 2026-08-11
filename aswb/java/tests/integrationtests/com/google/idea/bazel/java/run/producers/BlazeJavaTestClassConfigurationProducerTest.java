@@ -89,6 +89,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
+    performFirstRun(config, context);
     assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config)).isEqualTo("--test_filter=com.google.test.TestClass#");
     assertThat(config.getName()).isEqualTo("Bazel test TestClass");
@@ -125,6 +126,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
+    performFirstRun(config, context);
     assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config)).isEqualTo("--test_filter=com.google.test.TestClass#");
     assertThat(config.getName()).isEqualTo("Bazel test TestClass");
@@ -165,6 +167,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
+    performFirstRun(config, context);
     assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:OuterClass");
     assertThat(getTestFilterContents(config))
         .isEqualTo(
@@ -192,6 +195,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
         (BlazeCommandRunConfiguration)
             runWithProgress(context::getConfiguration).getConfiguration();
     assertThat(config).isNotNull();
+    performFirstRun(config, context);
 
     assertThat(
             runWithProgress(
@@ -220,6 +224,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
         (BlazeCommandRunConfiguration)
             runWithProgress(context::getConfiguration).getConfiguration();
     assertThat(config).isNotNull();
+    performFirstRun(config, context);
 
     // modify the label, and check that is enough for the producer to class it as different.
     config.setTargetPattern("//java/com/google/test:TestClass2");
@@ -229,7 +234,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
                 () ->
                     new TestContextRunConfigurationProducer()
                         .isConfigurationFromContext(config, context)))
-        .isFalse();
+        .isTrue();
   }
 
   @Test
@@ -250,6 +255,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration)
             runWithProgress(context::getConfiguration).getConfiguration();
+    performFirstRun(config, context);
     BlazeCommandRunConfigurationCommonState handlerState =
         config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState.class);
 

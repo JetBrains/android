@@ -475,6 +475,7 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.TestContextProvider" interface="com.google.idea.blaze.base.run.producers.TestContextProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BinaryContextProvider" interface="com.google.idea.blaze.base.run.producers.BinaryContextProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BlazeCommandRunConfigurationHelper" interface="com.google.idea.blaze.base.run.producers.BlazeCommandRunConfigurationHelper" dynamic="true"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.UnifiedRunContextRefiner" interface="com.google.idea.blaze.base.run.producers.UnifiedRunContextRefiner" dynamic="true"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.HeuristicTestIdentifier" interface="com.google.idea.blaze.base.run.producers.HeuristicTestIdentifier"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.VcsSyncListener" interface="com.google.idea.blaze.base.vcs.VcsSyncListener"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.CommonMacroContributor" interface="com.google.idea.blaze.base.lang.buildfile.completion.CommonMacroContributor"/>

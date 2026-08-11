@@ -32,17 +32,20 @@ interface RunConfigurationContext {
   /** The [PsiElement] most relevant to this context (e.g. a method, class, file, etc.). */
   val sourceElement: PsiElement
 
-  /** Returns true if the run configuration was successfully configured. */
+  /** Stage 1: Sets provisional configuration display name for IDE menu/gutter action rendering. */
+  fun setupConfigurationName(config: BlazeCommandRunConfiguration)
+
+  /** Stage 2 (EDT): Interactive user prompts (e.g. choosing subclass for abstract test classes). */
+  suspend fun refine(context: ConfigurationContext): RunConfigurationContext
+
+  /** Stage 2.5 (Background): Resolves the context (e.g. fetches target info in background). */
+  suspend fun resolve(project: Project): RunConfigurationContext
+
+  /** Stage 3: Fully configures the run configuration post-refinement and post-resolution. */
   fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean
 
   /** Returns true if the run configuration matches this [RunConfigurationContext]. */
   fun matchesRunConfiguration(config: BlazeCommandRunConfiguration): Boolean
-
-  /** Stage 2 (EDT): Interactive user prompts (e.g. choosing subclass for abstract test classes). */
-  suspend fun refine(context: ConfigurationContext): RunConfigurationContext = this
-
-  /** Stage 2 (Background): Resolves the context (e.g. fetches target info in background). */
-  suspend fun resolve(project: Project): RunConfigurationContext = this
 
   companion object {
     @JvmStatic
@@ -50,7 +53,7 @@ interface RunConfigurationContext {
       return UnifiedRunContext(
         sourceElement = sourceElement,
         target = TargetSpecification.ExplicitPatterns(listOf(targetPattern)),
-        filter = null,
+        testFilter = null,
         command = CommandComponent(command, emptyList()),
       )
     }

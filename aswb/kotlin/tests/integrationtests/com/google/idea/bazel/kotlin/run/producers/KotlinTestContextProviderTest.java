@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase;
+import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -79,6 +80,25 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         new WorkspacePath("com/google/testing/testsize/MediumTest.java"),
         "package com.google.testing.testsize;",
         "public @interface MediumTest {}");
+    RunConfigurationProducerService.getInstance(getProject())
+        .getState()
+        .ignoredProducers
+        .addAll(
+            java.util.Arrays.asList(
+                "com.intellij.execution.junit.AbstractAllInDirectoryConfigurationProducer",
+                "com.intellij.execution.junit.AllInDirectoryConfigurationProducer",
+                "com.intellij.execution.junit.AllInPackageConfigurationProducer",
+                "com.intellij.execution.junit.TestInClassConfigurationProducer",
+                "com.intellij.execution.junit.TestClassConfigurationProducer",
+                "com.intellij.execution.junit.TestMethodConfigurationProducer",
+                "com.intellij.execution.junit.PatternConfigurationProducer",
+                "com.intellij.execution.junit.UniqueIdConfigurationProducer",
+                "com.intellij.execution.junit.testDiscovery.JUnitTestDiscoveryConfigurationProducer",
+                "com.intellij.execution.application.ApplicationConfigurationProducer",
+                "org.jetbrains.kotlin.idea.junit.KotlinJUnitRunConfigurationProducer",
+                "org.jetbrains.kotlin.idea.junit.KotlinPatternConfigurationProducer",
+                "com.android.tools.idea.run.AndroidConfigurationProducer",
+                "com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer"));
   }
 
   @Test
@@ -283,6 +303,13 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
     List<ConfigurationFromContext> configurationsFromContext =
         Optional.ofNullable(runWithProgress(context::getConfigurationsFromContext))
             .orElse(ImmutableList.of());
+
+    // Perform first run on each configuration to resolve target specifications and test filters
+    for (ConfigurationFromContext fromContext : configurationsFromContext) {
+      if (fromContext.getConfiguration() instanceof BlazeCommandRunConfiguration) {
+        performFirstRun((BlazeCommandRunConfiguration) fromContext.getConfiguration(), context);
+      }
+    }
 
     // Extract the actually created run configurations from the response context (which provides
     // additional data) as we're only interested in the run configurations in the tests.

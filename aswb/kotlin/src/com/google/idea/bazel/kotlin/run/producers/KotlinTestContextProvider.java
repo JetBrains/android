@@ -15,16 +15,24 @@
  */
 package com.google.idea.bazel.kotlin.run.producers;
 
-import com.google.idea.blaze.base.dependencies.TargetInfo;
+import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.dependencies.TestSize;
-import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
-import com.google.idea.blaze.base.run.TestTargetHeuristic;
+import com.google.idea.blaze.base.model.primitives.RuleType;
+import com.google.idea.blaze.base.run.producers.CommandComponent;
 import com.google.idea.blaze.base.run.producers.RunConfigurationContext;
-import com.google.idea.blaze.base.run.producers.TestContext;
+import com.google.idea.blaze.base.run.producers.TargetSpecification;
 import com.google.idea.blaze.base.run.producers.TestContextProvider;
+import com.google.idea.blaze.base.run.producers.TestFilterComponent;
+import com.google.idea.blaze.base.run.producers.TestFilterSyntax;
+import com.google.idea.blaze.base.run.producers.TestSelector;
+import com.google.idea.blaze.base.run.producers.UnifiedRunContext;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
+import java.io.File;
+import java.util.Collections;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import org.jetbrains.kotlin.name.FqName;
@@ -39,15 +47,44 @@ class KotlinTestContextProvider implements TestContextProvider {
     return getPsiElement(context).flatMap(KotlinTestContextProvider::getTestContext).orElse(null);
   }
 
-  private static Optional<TestContext> getTestContext(PsiElement element) {
+  private static Optional<UnifiedRunContext> getTestContext(PsiElement element) {
     KtNamedFunction testMethod =
-        PsiUtils.getParentOfType(element, KtNamedFunction.class, /* strict= */ false);
-    KtClass testClass = PsiUtils.getParentOfType(element, KtClass.class, /* strict= */ false);
+        PsiTreeUtil.getParentOfType(element, KtNamedFunction.class, /* strict= */ false);
+    KtClass testClass = PsiTreeUtil.getParentOfType(element, KtClass.class, /* strict= */ false);
     if (testClass == null) {
       return Optional.empty();
     }
-    return findTarget(testClass, testMethod)
-        .map(target -> createTestContext(testClass, testMethod, target));
+
+    FqName fqName = testMethod != null ? testMethod.getFqName() : testClass.getFqName();
+    if (fqName == null) {
+      return Optional.empty();
+    }
+
+    TestSize testSize = getTestSize(testClass, testMethod).orElse(null);
+    VirtualFile vf =
+        testClass.getContainingFile() != null
+            ? testClass.getContainingFile().getVirtualFile()
+            : null;
+    if (vf == null) {
+      return Optional.empty();
+    }
+
+    TargetSpecification targetSpec =
+        new TargetSpecification.PendingResolution(new File(vf.getPath()), testSize, RuleType.TEST);
+
+    String className =
+        testClass.getFqName() != null ? testClass.getFqName().asString() : fqName.asString();
+    String methodName = testMethod != null ? testMethod.getName() : null;
+    TestSelector testSelector =
+        new TestSelector(className, methodName, null, TestFilterSyntax.RULES_KOTLIN);
+    PsiElement contextElement = testMethod != null ? testMethod : testClass;
+
+    return Optional.of(
+        new UnifiedRunContext(
+            contextElement,
+            targetSpec,
+            new TestFilterComponent(Collections.singletonList(testSelector), false),
+            new CommandComponent(BlazeCommandName.TEST, Collections.emptyList())));
   }
 
   @SuppressWarnings({"rawtypes"})
@@ -55,40 +92,10 @@ class KotlinTestContextProvider implements TestContextProvider {
     return Optional.ofNullable(context.getLocation()).map(Location::getPsiElement);
   }
 
-  private static Optional<TargetInfo> findTarget(
-      KtClass testClass, @Nullable KtNamedFunction testMethod) {
-    TestSize testSize = getTestSize(testClass, testMethod).orElse(null);
-    return Optional.ofNullable(TestTargetHeuristic.targetForPsiElement(testClass, testSize));
-  }
-
   private static Optional<TestSize> getTestSize(
       KtClass testClass, @Nullable KtNamedFunction testMethod) {
     return testMethod != null
         ? KotlinTestSizeFinder.getTestSize(testMethod)
         : KotlinTestSizeFinder.getTestSize(testClass);
-  }
-
-  private static TestContext createTestContext(
-      KtClass testClass, @Nullable KtNamedFunction testMethod, TargetInfo target) {
-    String filter = getTestFilter(testClass, testMethod);
-    String description = getDescription(testClass, testMethod);
-    PsiElement contextElement = testMethod != null ? testMethod : testClass;
-
-    return TestContext.create(
-        contextElement, target, description, TestContext.BlazeFlagsModification.testFilter(filter));
-  }
-
-  @Nullable
-  private static String getTestFilter(KtClass testClass, @Nullable KtNamedFunction testMethod) {
-    FqName fqName = testMethod != null ? testMethod.getFqName() : testClass.getFqName();
-    return fqName != null ? fqName.toString() : null;
-  }
-
-  @Nullable
-  private static String getDescription(KtClass testClass, @Nullable KtNamedFunction testMethod) {
-    if (testMethod == null) {
-      return testClass.getName();
-    }
-    return testClass.getName() + "." + testMethod.getName();
   }
 }

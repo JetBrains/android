@@ -30,6 +30,7 @@ import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.testing.FunctionalHeadlessDataManager;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
+import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -52,6 +53,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.BuildersKt;
 import org.junit.After;
 import org.junit.Before;
 
@@ -90,6 +93,28 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
         ApplicationManager.getApplication(),
         DataManager.class,
         new FunctionalHeadlessDataManager());
+
+    RunConfigurationProducerService producerService =
+        RunConfigurationProducerService.getInstance(getProject());
+    producerService
+        .getState()
+        .ignoredProducers
+        .addAll(
+            Arrays.asList(
+                "com.intellij.execution.junit.AbstractAllInDirectoryConfigurationProducer",
+                "com.intellij.execution.junit.AllInDirectoryConfigurationProducer",
+                "com.intellij.execution.junit.AllInPackageConfigurationProducer",
+                "com.intellij.execution.junit.TestInClassConfigurationProducer",
+                "com.intellij.execution.junit.TestClassConfigurationProducer",
+                "com.intellij.execution.junit.TestMethodConfigurationProducer",
+                "com.intellij.execution.junit.PatternConfigurationProducer",
+                "com.intellij.execution.junit.UniqueIdConfigurationProducer",
+                "com.intellij.execution.junit.testDiscovery.JUnitTestDiscoveryConfigurationProducer",
+                "com.intellij.execution.application.ApplicationConfigurationProducer",
+                "org.jetbrains.kotlin.idea.junit.KotlinJUnitRunConfigurationProducer",
+                "org.jetbrains.kotlin.idea.junit.KotlinPatternConfigurationProducer",
+                "com.android.tools.idea.run.AndroidConfigurationProducer",
+                "com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer"));
 
     // IntelliJ will use a dummy icon manager that returns the same exact icon.
     // This will cause uniqueness issues for gutter icons.
@@ -171,5 +196,38 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
    */
   protected <T> T runWithProgress(Computable<T> computable) {
     return ProgressManager.getInstance().runProcess(computable, new EmptyProgressIndicator());
+  }
+
+  /**
+   * Performs the full Stage 2 refinement, Stage 2.5 resolution, and Stage 3 configuration
+   * application for a given {@link BlazeCommandRunConfiguration} and producer.
+   */
+  protected void performFirstRun(
+      BlazeRunConfigurationProducer<?> producer,
+      BlazeCommandRunConfiguration config,
+      ConfigurationContext context) {
+    runWithProgress(
+        () -> {
+          try {
+            BuildersKt.runBlocking(
+                EmptyCoroutineContext.INSTANCE,
+                (scope, continuation) ->
+                    producer.prepareAndSetupRunConfiguration(config, context, continuation));
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+          }
+          return null;
+        });
+  }
+
+  /**
+   * Performs the full Stage 2 refinement, Stage 2.5 resolution, and Stage 3 configuration
+   * application for a given {@link BlazeCommandRunConfiguration} using {@link
+   * TestContextRunConfigurationProducer}.
+   */
+  protected void performFirstRun(
+      BlazeCommandRunConfiguration config, ConfigurationContext context) {
+    performFirstRun(TestContextRunConfigurationProducer.getInstance(), config, context);
   }
 }

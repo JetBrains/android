@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.bazel.java.run.producers.JUnitParameterizedClassHeuristic.ParameterizedTestInfo;
+import com.google.idea.blaze.base.run.producers.TestFilterSyntax;
+import com.google.idea.blaze.base.run.producers.TestSelector;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.junit.JUnitUtil;
@@ -33,6 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -235,6 +238,49 @@ public final class BlazeJUnitTestFilterFlags {
     return jUnitVersion == JUnitVersion.JUNIT_4
         ? String.format("(%s)", String.join("|", methodNames))
         : String.join(",", methodNames);
+  }
+
+  public static String testFilterForSelectors(List<TestSelector> testSelectors) {
+    if (testSelectors.isEmpty()) {
+      return null;
+    }
+    if (testSelectors.stream()
+        .anyMatch(t -> t.getTestFilterSyntax() == TestFilterSyntax.RULES_KOTLIN)) {
+      List<String> testFilters = new ArrayList<>();
+      for (TestSelector testSelector : testSelectors) {
+        if (testSelector.getMethodName() != null) {
+          testFilters.add(testSelector.getClassName() + "." + testSelector.getMethodName());
+        } else {
+          testFilters.add(testSelector.getClassName());
+        }
+      }
+      return String.join(",", testFilters);
+    }
+    boolean isJUnit4 =
+        testSelectors.stream().anyMatch(t -> t.getTestFilterSyntax() == TestFilterSyntax.JUNIT_4);
+    Map<String, List<TestSelector>> selectorsByClass =
+        testSelectors.stream().collect(Collectors.groupingBy(TestSelector::getClassName));
+    List<String> classTestFilters = new ArrayList<>();
+    for (Entry<String, List<TestSelector>> entry : selectorsByClass.entrySet()) {
+      String className = entry.getKey();
+      List<TestSelector> classSelectors = entry.getValue();
+      List<String> methodFilters =
+          classSelectors.stream()
+              .map(TestSelector::getMethodName)
+              .filter(Objects::nonNull)
+              .collect(Collectors.toList());
+
+      TestFilterSyntax version = classSelectors.get(0).getTestFilterSyntax();
+      JUnitVersion jv =
+          version == TestFilterSyntax.JUNIT_4 ? JUnitVersion.JUNIT_4 : JUnitVersion.JUNIT_3;
+
+      String filter = testFilterForClassAndMethods(className, jv, methodFilters, null);
+      if (filter != null) {
+        classTestFilters.add(filter);
+      }
+    }
+    classTestFilters.sort(String::compareTo);
+    return isJUnit4 ? String.join("|", classTestFilters) : String.join(",", classTestFilters);
   }
 
   private BlazeJUnitTestFilterFlags() {}

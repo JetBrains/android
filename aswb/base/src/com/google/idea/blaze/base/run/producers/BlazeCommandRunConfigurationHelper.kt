@@ -18,7 +18,7 @@ package com.google.idea.blaze.base.run.producers
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.intellij.openapi.extensions.ExtensionPointName
 
-/** Extension point decoupling language modules (JVM, Android) to encode FilterComponent into handler states. */
+/** Extension point decoupling language modules (JVM, Android) to encode TestFilterComponent into handler states. */
 interface BlazeCommandRunConfigurationHelper {
   fun handlesConfiguration(config: BlazeCommandRunConfiguration): Boolean
 
@@ -26,9 +26,9 @@ interface BlazeCommandRunConfigurationHelper {
 
   fun matchesCommand(config: BlazeCommandRunConfiguration, command: CommandComponent): Boolean
 
-  fun applyFilter(config: BlazeCommandRunConfiguration, filter: FilterComponent)
+  fun applyFilter(config: BlazeCommandRunConfiguration, testFilter: TestFilterComponent)
 
-  fun matchesFilter(config: BlazeCommandRunConfiguration, filter: FilterComponent): Boolean
+  fun matchesFilter(config: BlazeCommandRunConfiguration, testFilter: TestFilterComponent): Boolean
 
   fun hasActiveFilter(config: BlazeCommandRunConfiguration): Boolean
 
