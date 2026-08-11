@@ -28,6 +28,12 @@ import java.util.function.Supplier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+private fun PromotedTemplate.matches(gridItem: GridItem?, currentFormFactor: FormFactor): Boolean {
+  val isPromotedMatch = gridItem is PluginPromotionGridItem && gridItem.pluginId == this.pluginId
+  val isRegularMatch = gridItem is TemplateGridItem && gridItem.template.name == this.name && currentFormFactor == this.formFactor
+  return isPromotedMatch || isRegularMatch
+}
+
 class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<List<FormFactor>>, private val initialTarget: String? = null) {
   var onGridItemDoubleClick: () -> Unit = {}
 
@@ -49,18 +55,21 @@ class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<Lis
 
   suspend fun getAndroidProjectEntries() {
     isLoading = true
-    val promotedTemplate = PromotionTemplateStateService.getInstance().consumePromotedTemplate()
+    val stateService = PromotionTemplateStateService.getInstance()
+    val promotedTemplate = stateService.consumePromotedTemplate()
     val entries = mutableListOf<ChooseAndroidProjectEntry>()
     var hasMatchedPromotedTemplate = false
     withContext(Dispatchers.IO) {
       entries.addAll(AndroidProjectEntryProvider.getAllProjectEntries())
-      formFactorSupplier.get().forEach { formFactor ->
-        if (formFactor != FormFactor.AiGlasses) {
-          val entry = createFormFactorEntry(formFactor, promotedTemplate)
-          if (formFactor == FormFactor.Mobile && selectedAndroidProjectEntry == null && !hasMatchedPromotedTemplate) {
+      formFactorSupplier.get().forEach {
+        if (it != FormFactor.AiGlasses) {
+          val entry = createFormFactorEntry(it, promotedTemplate)
+          if (it == FormFactor.Mobile && selectedAndroidProjectEntry == null && !hasMatchedPromotedTemplate) {
+            // Default to Phone & Tablet if no promoted template matched yet
             selectedAndroidProjectEntry = entry
           }
-          if (!hasMatchedPromotedTemplate && promotedTemplate?.matches(entry.selectedGridItem, formFactor) == true) {
+          val selectedGridItem = entry.selectedGridItem
+          if (!hasMatchedPromotedTemplate && promotedTemplate?.matches(selectedGridItem, it) == true) {
             selectedAndroidProjectEntry = entry
             hasMatchedPromotedTemplate = true
           }
@@ -89,16 +98,18 @@ class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<Lis
     gridItems: List<GridItem>,
     promotedTemplate: PromotedTemplate?,
     currentFormFactor: FormFactor,
+    emptyItemLabel: String = "Empty Activity",
   ): GridItem? {
     if (promotedTemplate != null) {
       if (promotedTemplate.formFactor == currentFormFactor) {
-        gridItems.filterIsInstance<TemplateGridItem>().firstOrNull { it.template.name == promotedTemplate.name }?.let { return it }
+        val regularMatch = gridItems.filterIsInstance<TemplateGridItem>().firstOrNull { it.template.name == promotedTemplate.name }
+        if (regularMatch != null) return regularMatch
       }
-      gridItems.filterIsInstance<PluginPromotionGridItem>().firstOrNull { it.pluginId == promotedTemplate.pluginId }?.let { return it }
+      val promotionMatch = gridItems.filterIsInstance<PluginPromotionGridItem>().firstOrNull { it.pluginId == promotedTemplate.pluginId }
+      if (promotionMatch != null) return promotionMatch
     }
-    return gridItems.firstOrNull { it.getTitle() == "Empty Activity" }
+    return gridItems.firstOrNull { it.title == emptyItemLabel }
       ?: gridItems.filterIsInstance<TemplateGridItem>().firstOrNull { it.template != Template.NoActivity }
-      ?: gridItems.firstOrNull()
   }
 
   private fun createFormFactorEntry(formFactor: FormFactor, promotedTemplate: PromotedTemplate?): FormFactorProjectEntry {
@@ -106,14 +117,8 @@ class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<Lis
     return FormFactorProjectEntry(
       formFactor.toString(),
       gridItems,
-      getDefaultSelectedGridItem(gridItems, promotedTemplate, formFactor),
+      getDefaultSelectedGridItem(gridItems = gridItems, promotedTemplate = promotedTemplate, currentFormFactor = formFactor),
       onGridItemDoubleClick = { onGridItemDoubleClick() },
     )
   }
-}
-
-private fun PromotedTemplate.matches(gridItem: GridItem?, formFactor: FormFactor): Boolean {
-  val promotionMatches = gridItem is PluginPromotionGridItem && gridItem.pluginId == pluginId
-  val templateMatches = gridItem is TemplateGridItem && gridItem.template.name == name && formFactor == this.formFactor
-  return promotionMatches || templateMatches
 }

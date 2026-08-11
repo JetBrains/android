@@ -19,6 +19,8 @@
     <moduleBuilder builderClass="com.android.tools.idea.npw.ideahost.AndroidModuleBuilder"/>
     <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
     <postStartupActivity implementation="com.android.tools.idea.npw.startup.ReopenAndroidNpwStartupActivity"/>
+    <applicationService serviceImplementation="com.android.tools.idea.npw.templateengine.services.TemplateRegistryService" />
+    <applicationService serviceImplementation="com.android.tools.idea.npw.templateengine.services.ProjectGenerationService" />
   </extensions>
   <extensions defaultExtensionNs="com.android">
     <androidStartupActivity implementation="com.android.tools.idea.npw.template.DynamicTemplateMenuAndroidStartupActivity" />
@@ -28,6 +30,11 @@
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider"/>
+    <androidProjectEntryProvider implementation="com.android.tools.idea.npw.templateengine.ui.TemplateGridProjectEntryProvider" />
+  </extensions>
+  <extensions defaultExtensionNs="com.android.ide">
+    <!-- JetBrains patch: the extension point is com.android.ide.sdkEventListener (android-plugin.xml), so under com.android the listener binds to nothing -->
+    <sdkEventListener implementation="com.android.tools.idea.npw.templateengine.services.TemplateRegistrySdkEventListener" />
   </extensions>
   <actions>
     <action id="NewAndroidImageAsset" class="com.android.tools.idea.npw.actions.NewImageAssetAction">
@@ -45,6 +52,8 @@
       <extensionPoint qualifiedName="com.android.tools.idea.npw.templateRenderer" interface="com.android.tools.idea.npw.model.TemplateRendererStrategy" dynamic="true"/>
     <extensionPoint qualifiedName="com.android.tools.idea.npw.template.wizardPluginPromotionTemplateProvider"
                     interface="com.android.tools.idea.npw.template.WizardPluginPromotionTemplateProvider"/>
+    <extensionPoint qualifiedName="com.android.templateContributor" interface="com.android.tools.idea.npw.templateengine.api.TemplateEngineProjectWizardContributor" dynamic="true"/>
+    <extensionPoint qualifiedName="com.android.templatePostProcessor" interface="com.android.tools.idea.npw.templateengine.api.TemplatePostProcessor" dynamic="true"/>
   </extensionPoints>
   <applicationListeners>
     <listener class="com.android.tools.idea.npw.startup.OpenAndroidProjectWizardStartupLifecycleListener"

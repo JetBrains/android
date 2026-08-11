@@ -75,7 +75,8 @@ class ChooseAndroidProjectStep(model: NewProjectModel, private val initialTarget
   }
 
   override fun onProceeding() {
-    uiModel.selectedAndroidProjectEntry?.onProceeding(newProjectModuleModel!!, model)
+    val entry = uiModel.selectedAndroidProjectEntry ?: return
+    entry.onProceeding(newProjectModuleModel!!, model)
   }
 
   override fun canGoForward(): ObservableBool = canGoForward
@@ -90,8 +91,16 @@ class ChooseAndroidProjectStep(model: NewProjectModel, private val initialTarget
 
   companion object {
     fun FormFactor.getProjectTemplates(): List<GridItem> {
-      val templates = if (includeNoActivity) listOf(Template.NoActivity) + getNewProjectTemplates() else getNewProjectTemplates()
-      return templates.map { TemplateGridItem(it) } + getPluginPromotionTemplates().map { PluginPromotionGridItem(it) }
+      val newProjectTemplates =
+        if (includeNoActivity) {
+          listOf(Template.NoActivity) + this.getNewProjectTemplates()
+        } else {
+          this.getNewProjectTemplates()
+        }
+
+      val pluginPromotionTemplates = this.getPluginPromotionTemplates()
+
+      return newProjectTemplates.map { TemplateGridItem(it) } + pluginPromotionTemplates.map { PluginPromotionGridItem(it) }
     }
 
     /** Indicates which form factor in the Project Chooser this form factor should be grouped under. */

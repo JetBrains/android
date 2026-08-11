@@ -209,6 +209,7 @@ studio_plugin(
         "android.jar": [
             "//tools/adt/idea/analytics:analytics",
             "//tools/base/flags:studio.android.sdktools.flags",
+            "//tools/base/template-engine:studio.android.sdktools.template-engine",
             "//tools/adt/idea/assistant:assistant",
             "//tools/adt/idea/connection-assistant:connection-assistant",
             "//tools/adt/idea/android-adb:intellij.android.adb",

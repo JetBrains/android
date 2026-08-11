@@ -271,6 +271,10 @@ public final class StudioFlags {
     NPW, "emptycalapp.template", "Enable Empty CAL App Template",
     "Enable Empty Car App Library App template in the New Project Wizard.");
 
+  public static final Flag<Boolean> NPW_NEW_TEMPLATE_ENGINE = new BooleanFlag(
+    NPW, "new.template.engine", "Enable New Template Engine",
+    "Enable the new declarative Template Engine in the New Project Wizard.");
+
   static class AndroidApiFlag extends CustomTypeFlag<AndroidApiLevel> {
     public AndroidApiFlag(FlagGroup group, String name, String displayName, String description, AndroidApiLevel defaultValue) {
       super(AndroidApiLevel.class, group, name, displayName, description, defaultValue, ApiFlagConverter, examples);

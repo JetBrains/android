@@ -15,29 +15,39 @@
  */
 package com.android.tools.idea.npw.project
 
+import androidx.compose.runtime.Composable
 import com.android.tools.idea.npw.template.PluginPromotionTemplate
-import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.Thumb
 import com.android.tools.idea.wizard.template.WizardUiContext
+import icons.StudioIllustrationsCompose
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.jewel.ui.component.Icon
 
-/**
- * A single clickable item in the new-project wizard's grid.
- *
- * Wraps either a regular [Template] (creates a project) or a [PluginPromotionTemplate] (offers to install a plugin instead of creating a
- * project).
- */
-sealed interface GridItem {
-  val name: String
+/** A single clickable item in the new-project wizard's grid (supported across both legacy templates and the new template engine). */
+interface GridItem {
+  val title: String
+  val description: String
+    get() = ""
+
+  @Composable fun Icon()
+}
+
+/** Legacy grid items for the classic project wizard template system. */
+sealed interface LegacyGridItem : GridItem {
   val formFactor: FormFactor
 
   fun thumb(): Thumb
+
+  @Composable
+  override fun Icon() {
+    GridItemImage(thumb())
+  }
 }
 
-data class TemplateGridItem(val template: Template) : GridItem {
-  override val name: String
+data class TemplateGridItem(val template: Template) : LegacyGridItem {
+  override val title: String
     get() = template.name
 
   override val formFactor: FormFactor
@@ -47,10 +57,19 @@ data class TemplateGridItem(val template: Template) : GridItem {
     get() = template.uiContexts
 
   override fun thumb(): Thumb = template.thumb()
+
+  @Composable
+  override fun Icon() {
+    if (template == Template.NoActivity) {
+      Icon(key = StudioIllustrationsCompose.Wizards.NoActivity, contentDescription = "")
+    } else {
+      super.Icon()
+    }
+  }
 }
 
-data class PluginPromotionGridItem(val template: PluginPromotionTemplate) : GridItem {
-  override val name: String
+data class PluginPromotionGridItem(val template: PluginPromotionTemplate) : LegacyGridItem {
+  override val title
     get() = message("android.wizard.project.plugin.promotion.template.name", template.name)
 
   override val formFactor: FormFactor
@@ -61,10 +80,3 @@ data class PluginPromotionGridItem(val template: PluginPromotionTemplate) : Grid
 
   override fun thumb(): Thumb = template.thumb()
 }
-
-internal fun GridItem.getTitle(): String =
-  when (this) {
-    is TemplateGridItem -> name.replace("${template.formFactor.toWizardFormFactor().displayName} ", "")
-
-    is PluginPromotionGridItem -> name
-  }
