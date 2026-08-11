@@ -81,7 +81,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer-tests/aiplugin.rag.indexer-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer-tests/aiplugin.rag.indexer-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/kb/aiplugin.rag.kb.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/kb/aiplugin.rag.kb.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/lucene/aiplugin.rag.lucene.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/lucene/aiplugin.rag.lucene.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/ios-lang/ios-lang.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/ios-lang/ios-lang.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ui/ui-core/aiplugin.ui.ui-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ui/ui-core/aiplugin.ui.ui-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ui/ui-core-tests/aiplugin.ui.ui-core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ui/ui-core-tests/aiplugin.ui.ui-core-tests.iml" />

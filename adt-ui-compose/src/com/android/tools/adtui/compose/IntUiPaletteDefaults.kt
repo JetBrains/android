@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.compose
 
+// TODO remove when Jewel 0.41 brings the new "orDefault" JEWEL-1050 APIs in
 /** The default RGB values of IntelliJ Int UI's color palette. Used as typed fallbacks for theme lookups. */
 @Suppress("unused") // Just a reference, we don't need to actually use all these
 object IntUiPaletteDefaults {

@@ -29,6 +29,7 @@ import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.markdown.Markdown
 import org.jetbrains.jewel.markdown.extensions.markdownProcessor
 import org.jetbrains.jewel.markdown.processing.MarkdownProcessor
+import org.jetbrains.jewel.ui.Typography
 import org.jetbrains.jewel.ui.typography
 
 /**
@@ -59,6 +60,7 @@ fun InfoMarkdown(
   selectable: Boolean = false,
   enabled: Boolean = true,
   textStyle: TextStyle = JewelTheme.typography.medium,
+  // TODO replace with the new JewelTheme.typography API from JEWEL-1317 when we get Jewel 0.40+
   editorTextStyle: TextStyle = JewelTheme.editorTextStyle.copyWithSize(textStyle.fontSize),
   textColor: Color = JewelTheme.globalColors.text.info,
   processingDispatcher: CoroutineDispatcher = Dispatchers.Default,

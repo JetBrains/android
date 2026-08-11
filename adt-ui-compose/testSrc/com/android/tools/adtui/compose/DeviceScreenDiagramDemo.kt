@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.ui.component.TextField
@@ -40,9 +41,9 @@ fun main() {
     IntUiTheme(isDark = isDark) {
       val windowBackground =
         if (isDark) {
-          JewelTheme.colorPalette.gray(1)
+          JewelTheme.colorPalette.grayOrNull(1) ?: Color(IntUiPaletteDefaults.Dark.Gray1)
         } else {
-          JewelTheme.colorPalette.gray(14)
+          JewelTheme.colorPalette.grayOrNull(14) ?: Color(IntUiPaletteDefaults.Light.Gray14)
         }
       val widthTextState = rememberTextFieldState("800")
       val heightTextState = rememberTextFieldState("1200")

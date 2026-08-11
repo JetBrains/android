@@ -28,7 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.android.tools.adtui.compose.IntUiPaletteDefaults
 import com.android.tools.adtui.compose.standaloneSingleWindowApplication
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
@@ -77,9 +79,9 @@ fun main() {
     IntUiTheme(themeDefinition, ComponentStyling.provide { arrayOf() }, swingCompat) {
       val windowBackground =
         if (isDark) {
-          JewelTheme.colorPalette.gray(1)
+          JewelTheme.colorPalette.grayOrNull(1) ?: Color(IntUiPaletteDefaults.Dark.Gray1)
         } else {
-          JewelTheme.colorPalette.gray(14)
+          JewelTheme.colorPalette.grayOrNull(14) ?: Color(IntUiPaletteDefaults.Light.Gray14)
         }
 
       Column(Modifier.fillMaxSize().background(windowBackground)) {

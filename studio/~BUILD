@@ -974,7 +974,6 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/rag/indexer:aiplugin.rag.indexer",
             "//tools/vendor/google/ml/aiplugin/rag/kb:aiplugin.rag.kb",
             "//tools/vendor/google/ml/aiplugin/rag/lucene:aiplugin.rag.lucene",
-            "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/ui/ui-core:aiplugin.ui.ui-core",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
