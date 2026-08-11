@@ -847,6 +847,7 @@
 +++Android Studio Nightly.app/Contents/lib/intellij.relaxng.jar
 +++Android Studio Nightly.app/Contents/lib/intellij.remoteDev.util.jar
 +++Android Studio Nightly.app/Contents/lib/intellij.rml.dfa.impl.jar
++++Android Studio Nightly.app/Contents/lib/intellij.rml.dfa.jar
 +++Android Studio Nightly.app/Contents/lib/intellij.settingsSync.core.jar
 +++Android Studio Nightly.app/Contents/lib/intellij.spellchecker.jar
 +++Android Studio Nightly.app/Contents/lib/intellij.spellchecker.xml.jar
@@ -4881,6 +4882,7 @@
 ---Android Studio Preview.app/Contents/lib/intellij.relaxng.jar
 ---Android Studio Preview.app/Contents/lib/intellij.remoteDev.util.jar
 ---Android Studio Preview.app/Contents/lib/intellij.rml.dfa.impl.jar
+---Android Studio Preview.app/Contents/lib/intellij.rml.dfa.jar
 ---Android Studio Preview.app/Contents/lib/intellij.settingsSync.core.jar
 ---Android Studio Preview.app/Contents/lib/intellij.spellchecker.jar
 ---Android Studio Preview.app/Contents/lib/intellij.spellchecker.xml.jar

@@ -345,6 +345,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.relaxng" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.repository.search.common" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.repository.search.completion" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.rml.dfa" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.rml.dfa.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.settingsSync.core" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.sh.backend" level="project" />

@@ -906,6 +906,7 @@ android-studio/lib/intellij.regexp.jar
 android-studio/lib/intellij.relaxng.jar
 android-studio/lib/intellij.remoteDev.util.jar
 android-studio/lib/intellij.rml.dfa.impl.jar
+android-studio/lib/intellij.rml.dfa.jar
 android-studio/lib/intellij.settingsSync.core.jar
 android-studio/lib/intellij.spellchecker.jar
 android-studio/lib/intellij.spellchecker.xml.jar
