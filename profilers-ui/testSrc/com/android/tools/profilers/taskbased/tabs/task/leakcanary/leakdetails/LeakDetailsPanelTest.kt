@@ -368,6 +368,26 @@ class LeakDetailsPanelTest : WithFakeTimer {
     composeTestRule.onNodeWithText("${TaskBasedUxStrings.LEAKCANARY_GC_ROOT} ($gcRootDescription)").assertIsDisplayed()
   }
 
+  @Test
+  fun `test leak details panel does not crash when openStates is smaller than traceNodes`() {
+    val leaks = getSampleLeak()
+    val selectedLeak = leaks[0]
+
+    composeTestRule.setContent {
+      LeakDetailsPanel(
+        selectedLeak = selectedLeak,
+        gotoDeclaration = leakCanaryModel::goToDeclaration,
+        isRecording = true,
+        isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
+        openStates = emptyList(),
+        onOpenStatesChange = {},
+        onCopy = {},
+      )
+    }
+
+    composeTestRule.onNodeWithTag("dalvik.system.PathClassLoader").isDisplayed()
+  }
+
   private fun getLeakWithNavigatableAndNonNavigatableNode(): List<Leak> {
     val applicationLeakText =
       """

@@ -136,10 +136,9 @@ fun LeakDetailsPanel(
               nextNode = if (index + 1 < traceNodes.size) traceNodes[index + 1] else null,
               isOpen = openStates.getOrElse(index) { false },
               onClickNode = {
-                if (index < openStates.size) {
-                  val newStates = openStates.toMutableList().apply { this[index] = !this[index] }
-                  onOpenStatesChange(newStates)
-                }
+                val newStates =
+                  List(traceNodes.size) { i -> if (i == index) !openStates.getOrElse(i) { false } else openStates.getOrElse(i) { false } }
+                onOpenStatesChange(newStates)
               },
               isDeclarationAvailableAsync = isDeclarationAvailableAsync,
             )

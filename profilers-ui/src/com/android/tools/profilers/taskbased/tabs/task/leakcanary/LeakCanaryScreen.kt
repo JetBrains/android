@@ -19,6 +19,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -66,6 +67,7 @@ import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.VerticalSplitLayout
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
@@ -136,64 +138,103 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
 
     // Use a Row to place the main resizable workspace area and the vertical tab sidebar next to each other.
     Row(modifier = Modifier.fillMaxSize()) {
-      Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-        val innerSplitState = rememberSplitLayoutState(0.3f)
-        val outerSplitState = rememberSplitLayoutState(0.7f)
+      BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxHeight()) {
+        val horizontalInnerSplitState = rememberSplitLayoutState(0.3f)
+        val horizontalOuterSplitState = rememberSplitLayoutState(0.7f)
+        val verticalListSplitState = rememberSplitLayoutState(0.3f)
+        val bottomDetailsInsightSplitState = rememberSplitLayoutState(0.7f)
+
         val isRecording by leakCanaryModel.isRecording.collectAsState()
 
-        val mainWorkspace =
+        val leakListContent = @Composable { LeakListView(leakCanaryModel) }
+
+        val leakDetailsContent =
           @Composable {
-            HorizontalSplitLayout(
-              state = innerSplitState,
-              firstPaneMinWidth = 400.dp,
-              secondPaneMinWidth = 450.dp,
-              first = { LeakListView(leakCanaryModel) },
-              second = {
-                LeakDetailsPanel(
-                  selectedLeak = selectedLeak,
-                  gotoDeclaration = leakCanaryModel::goToDeclaration,
-                  isRecording = isRecording,
-                  hasActiveFilter = hasLeaks && filteredLeaks.size != leaks.size,
-                  isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
-                  openStates = openStates,
-                  onOpenStatesChange = { newStates -> openStates = newStates },
-                  onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.COPY_TRACE_CLICKED) },
-                  trackUiAction = leakCanaryModel::trackUiAction,
-                )
+            LeakDetailsPanel(
+              selectedLeak = selectedLeak,
+              gotoDeclaration = leakCanaryModel::goToDeclaration,
+              isRecording = isRecording,
+              hasActiveFilter = hasLeaks && filteredLeaks.size != leaks.size,
+              isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
+              openStates = openStates,
+              onOpenStatesChange = { newStates -> openStates = newStates },
+              onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.COPY_TRACE_CLICKED) },
+              trackUiAction = leakCanaryModel::trackUiAction,
+            )
+          }
+
+        val leakInsightContent =
+          @Composable {
+            LeakInsightPanel(
+              insightState = insightState,
+              isLeakSelected = selectedLeak != null,
+              autoGenerateEnabled = isInsightAutoGenerateEnabled,
+              onAutoGenerateChange = insightModel::setInsightAutoGenerateEnabled,
+              onClose = { insightModel.setInsightVisible(false) },
+              onFeedback = { feedback -> insightModel.submitInsightFeedback(feedback) },
+              onGenerateFix = { _ ->
+                selectedLeak?.let {
+                  leakCanaryModel.trackUiAction(LeakCanaryUiAction.INSIGHT_GENERATE_FIX_CLICKED)
+                  leakCanaryModel.analyzeLeakWithStudioBot(it)
+                }
               },
+              onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.INSIGHT_COPY_CLICKED) },
+              onRefresh = { selectedLeak?.let { insightModel.fetchInsight(it) } },
               modifier = Modifier.fillMaxSize(),
             )
           }
 
-        if (isStudioBotEnabled && isInsightVisible) {
-          HorizontalSplitLayout(
-            state = outerSplitState,
-            firstPaneMinWidth = 600.dp,
-            secondPaneMinWidth = 250.dp,
-            first = mainWorkspace,
-            second = {
-              LeakInsightPanel(
-                insightState = insightState,
-                isLeakSelected = selectedLeak != null,
-                autoGenerateEnabled = isInsightAutoGenerateEnabled,
-                onAutoGenerateChange = insightModel::setInsightAutoGenerateEnabled,
-                onClose = { insightModel.setInsightVisible(false) },
-                onFeedback = { feedback -> insightModel.submitInsightFeedback(feedback) },
-                onGenerateFix = { _ ->
-                  selectedLeak?.let {
-                    leakCanaryModel.trackUiAction(LeakCanaryUiAction.INSIGHT_GENERATE_FIX_CLICKED)
-                    leakCanaryModel.analyzeLeakWithStudioBot(it)
-                  }
-                },
-                onCopy = { leakCanaryModel.trackUiAction(LeakCanaryUiAction.INSIGHT_COPY_CLICKED) },
-                onRefresh = { selectedLeak?.let { insightModel.fetchInsight(it) } },
+        val minHorizontalWidth = if (isStudioBotEnabled && isInsightVisible) 850.dp else 600.dp
+        val isHorizontal = (maxWidth >= minHorizontalWidth) && (maxWidth * 2 >= maxHeight * 3)
+
+        if (isHorizontal) {
+          val mainWorkspace =
+            @Composable {
+              HorizontalSplitLayout(
+                state = horizontalInnerSplitState,
+                firstPaneMinWidth = 150.dp,
+                secondPaneMinWidth = 450.dp,
+                first = leakListContent,
+                second = leakDetailsContent,
                 modifier = Modifier.fillMaxSize(),
               )
-            },
+            }
+
+          if (isStudioBotEnabled && isInsightVisible) {
+            HorizontalSplitLayout(
+              state = horizontalOuterSplitState,
+              firstPaneMinWidth = 600.dp,
+              secondPaneMinWidth = 250.dp,
+              first = mainWorkspace,
+              second = leakInsightContent,
+              modifier = Modifier.fillMaxSize(),
+            )
+          } else {
+            mainWorkspace()
+          }
+        } else {
+          val bottomContent =
+            @Composable {
+              if (isStudioBotEnabled && isInsightVisible) {
+                HorizontalSplitLayout(
+                  state = bottomDetailsInsightSplitState,
+                  firstPaneMinWidth = 350.dp,
+                  secondPaneMinWidth = 250.dp,
+                  first = leakDetailsContent,
+                  second = leakInsightContent,
+                  modifier = Modifier.fillMaxSize(),
+                )
+              } else {
+                leakDetailsContent()
+              }
+            }
+
+          VerticalSplitLayout(
+            state = verticalListSplitState,
+            first = leakListContent,
+            second = bottomContent,
             modifier = Modifier.fillMaxSize(),
           )
-        } else {
-          mainWorkspace()
         }
       }
 
