@@ -27,7 +27,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.replaceService
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -78,7 +77,6 @@ class WhatsNewSidePanelActionTest {
     verify(myBrowseToWhatsNewUrl).run()
   }
 
-  @Ignore("b/539658864")
   @Test
   fun updateProjectIsNotNull() {
     StudioFlags.WHATS_NEW_V2.overrideForTest(false, myRule.testRootDisposable)
