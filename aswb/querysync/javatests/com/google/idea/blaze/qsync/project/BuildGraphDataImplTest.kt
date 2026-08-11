@@ -715,6 +715,39 @@ class BuildGraphDataImplTest {
     assertThat(graph.getReverseDepsForSource(Label.of("//t:T6.java")).map { it.label() }).contains(t5)
   }
 
+  @Test
+  fun getReverseDepsForSource_includesRuntimeDeps() {
+    val builder = builder()
+    builder
+      .addSourceFileLabel(Label.of("//pkg:BUILD"))
+      .addSourceFileLabel(Label.of("//pkg:TestLib.java"))
+      .addSupportedTargetLabel(Label.of("//pkg:test_lib"))
+      .addSupportedTargetLabel(Label.of("//pkg:test_target"))
+
+    val testLibTarget =
+      ProjectTarget.builder()
+        .label(Label.of("//pkg:test_lib"))
+        .kind("java_library")
+        .tags(emptyList())
+        .apply { sourceLabelsBuilder().put(ProjectTarget.SourceType.REGULAR_JVM, Label.of("//pkg:TestLib.java")) }
+        .build()
+
+    val testTarget =
+      ProjectTarget.builder()
+        .label(Label.of("//pkg:test_target"))
+        .kind("java_test")
+        .tags(emptyList())
+        .apply { runtimeDepsBuilder().add(Label.of("//pkg:test_lib")) }
+        .build()
+
+    builder.addTarget(Label.of("//pkg:test_lib"), testLibTarget)
+    builder.addTarget(Label.of("//pkg:test_target"), testTarget)
+
+    val graph = builder.build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules)
+    val rdeps = graph.getReverseDepsForSource(Label.of("//pkg:TestLib.java"))
+    assertThat(rdeps.map { it.label() }).containsExactly(Label.of("//pkg:test_lib"), Label.of("//pkg:test_target"))
+  }
+
   companion object {
     private val TEST_ROOT: Path = Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync")
 

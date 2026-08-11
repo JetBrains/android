@@ -573,17 +573,15 @@ inline fun <N, V> Collection<N>.traverseDag(
   }
 }
 
-private fun ProjectTarget.allDeps(): Sequence<Label> = sequence {
-  val seen = mutableSetOf<Label>()
-  deps().let {
-    seen.addAll(it)
-    yieldAll(it)
-  }
-  testRule().getOrNull()?.let { if (seen.add(it)) yield(it) }
-  testApp().getOrNull()?.let { if (seen.add(it)) yield(it) }
-  instruments().getOrNull()?.let { if (seen.add(it)) yield(it) }
-  library().getOrNull()?.let { if (seen.add(it)) yield(it) }
-}
+/**
+ * Returns all direct forward dependency labels for this project target, including compile dependencies, runtime dependencies, and special
+ * test/library associations, used to construct bidirectional graph edges.
+ */
+private fun ProjectTarget.allDeps(): Sequence<Label> =
+  (deps().asSequence() +
+      runtimeDeps().asSequence() +
+      listOfNotNull(testRule().getOrNull(), testApp().getOrNull(), instruments().getOrNull(), library().getOrNull()))
+    .distinct()
 
 // TODO: b/465698133 - find a way to move such configuration to _deps.bzl files.
 private val ANDROID_TRANSITION_RULES = setOf("android_binary", "ndk_cc_dynamic_library_force_android_rule", "_android_binary")
