@@ -121,9 +121,8 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
    */
   fun showFadeOutNotification(text: String, status: EditorNotificationPanel.Status? = null) {
     hideFadeOutNotification()
-    val notificationPopup = createFadeOutNotificationPopup(status)
+    val notificationPopup = createFadeOutNotificationPopup(text, status)
     fadeOutNotificationPopup = notificationPopup
-    notificationPopup.notificationPanel.text = text
     val fadeOutDelay =
       when (status) {
         EditorNotificationPanel.Status.Error -> FADE_OUT_DELAY_ERROR
@@ -140,8 +139,9 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     hideFadeOutNotificationPopup()
   }
 
-  private fun createFadeOutNotificationPopup(severity: EditorNotificationPanel.Status?): NotificationPopup {
+  private fun createFadeOutNotificationPopup(text: String, severity: EditorNotificationPanel.Status?): NotificationPopup {
     val notificationPanel = severity?.let { EditorNotificationPanel(it) } ?: EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
+    notificationPanel.text = text
     val popup = NotificationPopup(notificationPanel)
     setLayer(popup, POPUP_LAYER)
     addImpl(popup, null, 0)
@@ -159,6 +159,9 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
   private fun startFadeOutAnimation(delay: Duration) {
     animator?.dispose()
     fadeOutNotificationPopup?.alpha = 1.0F
+    if (skipAnimation()) {
+      return
+    }
     animator = FadeOutAnimator(delay).apply { resume() }
   }
 
@@ -177,7 +180,7 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
     fun fromDataContext(event: AnActionEvent): NotificationHolderPanel? = event.getData(KEY)
   }
 
-  private class NotificationPopup(val notificationPanel: EditorNotificationPanel) : BorderLayoutPanel() {
+  private class NotificationPopup(notificationPanel: EditorNotificationPanel) : BorderLayoutPanel() {
     var alpha = 1.0F
 
     init {
@@ -236,15 +239,14 @@ class NotificationHolderPanel(content: Component) : JBLayeredPane(), UiDataProvi
       super.dispose()
       animator = null
     }
+  }
 
-    /** Copied from the [Animator] class where it is unfortunately private. */
-    private fun skipAnimation(): Boolean {
-      if (GraphicsEnvironment.isHeadless()) {
-        return true
-      }
-      val app = ApplicationManager.getApplication()
-      return app != null && app.isUnitTestMode
+  private fun skipAnimation(): Boolean {
+    if (GraphicsEnvironment.isHeadless()) {
+      return true
     }
+    val app = ApplicationManager.getApplication()
+    return app != null && app.isUnitTestMode
   }
 }
 
