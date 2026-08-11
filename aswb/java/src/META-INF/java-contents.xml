@@ -41,9 +41,6 @@
     <TestContextProvider
         implementation="com.google.idea.bazel.java.run.producers.JavaTestContextProvider"
         id="JavaTestContextProvider"/>
-    <TestContextProvider
-        implementation="com.google.idea.bazel.java.run.producers.MultipleJavaClassesTestContextProvider"
-        order="after JavaTestContextProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

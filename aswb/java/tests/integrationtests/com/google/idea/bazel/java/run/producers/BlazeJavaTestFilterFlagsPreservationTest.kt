@@ -89,8 +89,10 @@ class BlazeJavaTestFilterFlagsPreservationTest : BlazeRunConfigurationProducerTe
     }
     assertThat(testContext).isNotNull()
 
-    val resolvedContext = runWithProgress { kotlinx.coroutines.runBlocking { testContext!!.resolve(project) } }
-    val setupSuccess = runWithProgress { resolvedContext.setupRunConfiguration(configuration) }
+    val setupSuccess = runWithProgress {
+      val resolved = kotlinx.coroutines.runBlocking { testContext!!.resolve(project) }
+      resolved.setupRunConfiguration(configuration)
+    }
     assertThat(setupSuccess).isTrue()
 
     // 4. Assert that custom flags are retained while test filter is updated

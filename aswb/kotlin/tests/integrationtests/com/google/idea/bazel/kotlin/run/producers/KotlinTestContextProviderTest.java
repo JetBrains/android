@@ -304,7 +304,6 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         Optional.ofNullable(runWithProgress(context::getConfigurationsFromContext))
             .orElse(ImmutableList.of());
 
-    // Perform first run on each configuration to resolve target specifications and test filters
     for (ConfigurationFromContext fromContext : configurationsFromContext) {
       if (fromContext.getConfiguration() instanceof BlazeCommandRunConfiguration) {
         performFirstRun((BlazeCommandRunConfiguration) fromContext.getConfiguration(), context);

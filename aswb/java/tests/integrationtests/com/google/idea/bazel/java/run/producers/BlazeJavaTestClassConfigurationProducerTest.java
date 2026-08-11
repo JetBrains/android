@@ -26,6 +26,7 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase;
 import com.google.idea.blaze.base.run.producers.TestContextRunConfigurationProducer;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.psi.PsiClass;
@@ -89,10 +90,10 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
+    assertThat(config.getName()).isEqualTo("Bazel test TestClass");
     performFirstRun(config, context);
     assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config)).isEqualTo("--test_filter=com.google.test.TestClass#");
-    assertThat(config.getName()).isEqualTo("Bazel test TestClass");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
   }
 
@@ -126,10 +127,10 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
+    assertThat(config.getName()).isEqualTo("Bazel test TestClass");
     performFirstRun(config, context);
     assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config)).isEqualTo("--test_filter=com.google.test.TestClass#");
-    assertThat(config.getName()).isEqualTo("Bazel test TestClass");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
   }
 
@@ -167,12 +168,12 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
+    assertThat(config.getName()).isEqualTo("Bazel test OuterClass");
     performFirstRun(config, context);
     assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:OuterClass");
     assertThat(getTestFilterContents(config))
         .isEqualTo(
             "--test_filter=\"com.google.test.OuterClass#|com.google.test.OuterClass.InnerClass#\"");
-    assertThat(config.getName()).isEqualTo("Bazel test OuterClass");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
   }
 
@@ -191,9 +192,10 @@ public class BlazeJavaTestClassConfigurationProducerTest
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
     ConfigurationContext context = createContextFromPsi(javaFile);
+    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
-        (BlazeCommandRunConfiguration)
-            runWithProgress(context::getConfiguration).getConfiguration();
+        (BlazeCommandRunConfiguration) settings.getConfiguration();
     assertThat(config).isNotNull();
     performFirstRun(config, context);
 
@@ -220,9 +222,10 @@ public class BlazeJavaTestClassConfigurationProducerTest
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
     ConfigurationContext context = createContextFromPsi(javaFile);
+    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
-        (BlazeCommandRunConfiguration)
-            runWithProgress(context::getConfiguration).getConfiguration();
+        (BlazeCommandRunConfiguration) settings.getConfiguration();
     assertThat(config).isNotNull();
     performFirstRun(config, context);
 
@@ -252,9 +255,11 @@ public class BlazeJavaTestClassConfigurationProducerTest
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
     ConfigurationContext context = createContextFromPsi(javaFile);
+    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
-        (BlazeCommandRunConfiguration)
-            runWithProgress(context::getConfiguration).getConfiguration();
+        (BlazeCommandRunConfiguration) settings.getConfiguration();
+    assertThat(config).isNotNull();
     performFirstRun(config, context);
     BlazeCommandRunConfigurationCommonState handlerState =
         config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState.class);

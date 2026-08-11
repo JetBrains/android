@@ -74,6 +74,7 @@ data class UnifiedRunContext(
       val description = UnifiedContextApplier.getFilterDescription(testFilter.testSelectors)
       if (description != null) {
         val nameBuilder = BlazeConfigurationNameBuilder(config)
+        command?.command?.let { nameBuilder.setCommandName(it.toString()) }
         nameBuilder.setTargetString(description)
         config.name = nameBuilder.build()
         config.setNameChangedByUser(true)

@@ -17,18 +17,14 @@ package com.google.idea.blaze.base.run;
 
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.dependencies.TestSize;
-import com.google.idea.blaze.base.model.primitives.RuleType;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -37,65 +33,6 @@ public interface TestTargetHeuristic {
 
   ExtensionPointName<TestTargetHeuristic> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.TestTargetHeuristic");
-
-  /**
-   * Synchronously finds a test rule associated with a given {@link PsiElement}. This can involve
-   * expensive PSI operations, so shouldn't be called on the EDT. Must be called from within a read
-   * action.
-   *
-   * @deprecated this can run whole-project target queries under a read lock. Use {@link
-   *     #targetFutureForPsiElement instead}.
-   */
-  @Nullable
-  @Deprecated
-  static TargetInfo testTargetForPsiElement(
-      @Nullable PsiElement element, @Nullable TestSize testSize) {
-    if (element == null) {
-      return null;
-    }
-    PsiFile psiFile = element.getContainingFile();
-    if (psiFile == null) {
-      return null;
-    }
-    VirtualFile vf = psiFile.getVirtualFile();
-    File file = vf != null ? new File(vf.getPath()) : null;
-    if (file == null) {
-      return null;
-    }
-    Project project = element.getProject();
-    Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(project, file, Optional.of(RuleType.TEST));
-    return TestTargetHeuristic.chooseTestTargetForSourceFile(
-        project, psiFile, file, targets, testSize);
-  }
-
-  /**
-   * Finds a test rule associated with a given {@link PsiElement}. Must be called from within a read
-   * action.
-   */
-  @Nullable
-  static TargetInfo targetForPsiElement(
-      @Nullable PsiElement element, @Nullable TestSize testSize) {
-    if (element == null) {
-      return null;
-    }
-    PsiFile psiFile = element.getContainingFile();
-    if (psiFile == null) {
-      return null;
-    }
-    VirtualFile vf = psiFile.getVirtualFile();
-    File file = vf != null ? new File(vf.getPath()) : null;
-    if (file == null) {
-      return null;
-    }
-    Project project = element.getProject();
-    Collection<TargetInfo> targets =
-        SourceToTargetFinder.findTargetsForSourceFile(project, file, Optional.of(RuleType.TEST));
-    return targets == null
-        ? null
-        : TestTargetHeuristic.chooseTestTargetForSourceFile(
-            project, psiFile, file, targets, testSize);
-  }
 
   /**
    * Given a source file and all test rules reachable from that file, chooses a test rule based on
@@ -114,8 +51,7 @@ public interface TestTargetHeuristic {
     List<TargetInfo> filteredTargets = new ArrayList<>(targets);
     for (TestTargetHeuristic filter : EP_NAME.getExtensions()) {
       List<TargetInfo> matches =
-          filteredTargets
-              .stream()
+          filteredTargets.stream()
               .filter(
                   target ->
                       filter.matchesSource(project, target, sourcePsiFile, sourceFile, testSize))
@@ -132,7 +68,8 @@ public interface TestTargetHeuristic {
     // finally order by syncTime (if available), returning the most recently synced
     return filteredTargets.stream()
         .max(
-            Comparator.comparing(t -> t.syncTime(), Comparator.nullsFirst(Comparator.naturalOrder())))
+            Comparator.comparing(
+                t -> t.syncTime(), Comparator.nullsFirst(Comparator.naturalOrder())))
         .orElse(null);
   }
 

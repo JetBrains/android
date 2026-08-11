@@ -27,6 +27,7 @@ import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTestCase;
 import com.google.idea.blaze.base.run.producers.TestContextRunConfigurationProducer;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.psi.PsiFile;
@@ -91,11 +92,11 @@ public class BlazeJavaTestMethodConfigurationProducerTest
 
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) fromContext.getConfiguration();
+    assertThat(config.getName()).isEqualTo("Bazel test TestClass.testMethod1");
     performFirstRun(config, context);
     assertThat(config.getTargetPatterns()).containsExactly("//java/com/google/test:TestClass");
     assertThat(getTestFilterContents(config))
         .isEqualTo("--test_filter=com.google.test.TestClass#testMethod1$");
-    assertThat(config.getName()).isEqualTo("Bazel test TestClass.testMethod1");
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST);
 
     BlazeCommandRunConfigurationCommonState state =
@@ -107,9 +108,10 @@ public class BlazeJavaTestMethodConfigurationProducerTest
   public void testConfigFromContextRecognizesItsOwnConfig() throws Throwable {
     PsiMethod method = setupGenericJunitTestClassAndBlazeTarget();
     ConfigurationContext context = createContextFromPsi(method);
+    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
-        (BlazeCommandRunConfiguration)
-            runWithProgress(context::getConfiguration).getConfiguration();
+        (BlazeCommandRunConfiguration) settings.getConfiguration();
     performFirstRun(config, context);
 
     boolean isConfigFromContext =
@@ -126,9 +128,10 @@ public class BlazeJavaTestMethodConfigurationProducerTest
     // Arrange
     PsiMethod method = setupGenericJunitTestClassAndBlazeTarget();
     ConfigurationContext context = createContextFromPsi(method);
+    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
-        (BlazeCommandRunConfiguration)
-            runWithProgress(context::getConfiguration).getConfiguration();
+        (BlazeCommandRunConfiguration) settings.getConfiguration();
     performFirstRun(config, context);
     // modify the label, and check that is enough for the producer to class it as different.
     config.setTargetPattern("//java/com/google/test:DifferentTestTarget");
@@ -149,9 +152,10 @@ public class BlazeJavaTestMethodConfigurationProducerTest
     // Arrange
     PsiMethod method = setupGenericJunitTestClassAndBlazeTarget();
     ConfigurationContext context = createContextFromPsi(method);
+    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
-        (BlazeCommandRunConfiguration)
-            runWithProgress(context::getConfiguration).getConfiguration();
+        (BlazeCommandRunConfiguration) settings.getConfiguration();
     performFirstRun(config, context);
     BlazeCommandRunConfigurationCommonState handlerState =
         config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState.class);

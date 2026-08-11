@@ -51,6 +51,7 @@ object UnifiedContextApplier {
       val description = getFilterDescription(context.testFilter.testSelectors)
       if (description != null) {
         val nameBuilder = BlazeConfigurationNameBuilder(config)
+        context.command?.command?.let { nameBuilder.setCommandName(it.toString()) }
         nameBuilder.setTargetString(description)
         config.name = nameBuilder.build()
         config.setNameChangedByUser(true)
