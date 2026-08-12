@@ -212,7 +212,9 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
           return !resultSet.getBoolean("IsEnded");
         }
         catch (SQLException e) {
-          onError(e);
+          if (!isClosed()) {
+            onError(e);
+          }
         }
         return false;
       });
@@ -232,7 +234,9 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
           return builderGroups.containsKey(resultSet.getLong("GroupId"));
         }
         catch (SQLException e) {
-          onError(e);
+          if (!isClosed()) {
+            onError(e);
+          }
         }
         return false;
       });
@@ -247,14 +251,15 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
 
   @Nullable
   public FileResponse getFile(@NotNull BytesRequest request) {
-    try {
-      ResultSet results = executeQuery(Statements.GET_FILE, request.getStreamId(), request.getId());
+    try (ResultSet results = executeQuery(Statements.GET_FILE, request.getStreamId(), request.getId())) {
       if (results.next()) {
         return FileResponse.newBuilder().setFilePath(results.getString(1)).build();
       }
     }
     catch (SQLException ex) {
-      onError(ex);
+      if (!isClosed()) {
+        onError(ex);
+      }
     }
 
     return null;
@@ -273,8 +278,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                             List<Object> params,
                             HashMap<Long, EventGroup.Builder> builderGroups,
                             Predicate<ResultSet> filter) {
-    try {
-      ResultSet results = executeOneTimeQuery(sql, params.toArray());
+    try (ResultSet results = executeOneTimeQuery(sql, params.toArray())) {
       while (results.next()) {
         Long groupId = results.getLong("GroupId");
         if (filter.test(results)) {
@@ -285,20 +289,23 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       }
     }
     catch (SQLException | InvalidProtocolBufferException ex) {
-      onError(ex);
+      if (!isClosed()) {
+        onError(ex);
+      }
     }
   }
 
   private List<Event> queryUnifiedEvents(Statements stmt, Object... args) {
     List<Event> records = new ArrayList<>();
-    try {
-      ResultSet results = executeQuery(stmt, args);
+    try (ResultSet results = executeQuery(stmt, args)) {
       while (results.next()) {
         records.add(Event.parser().parseFrom(results.getBytes(1)));
       }
     }
     catch (SQLException | InvalidProtocolBufferException ex) {
-      onError(ex);
+      if (!isClosed()) {
+        onError(ex);
+      }
     }
     return records;
   }

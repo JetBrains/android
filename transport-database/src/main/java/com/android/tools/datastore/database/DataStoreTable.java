@@ -16,6 +16,7 @@
 package com.android.tools.datastore.database;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
 import java.util.*;
@@ -70,9 +71,21 @@ public abstract class DataStoreTable<T extends Enum> {
    */
   public boolean isClosed() {
     try {
-      return myConnection.isClosed();
+      return myConnection == null || myConnection.isClosed();
     }
     catch (SQLException ex) {
+      return true;
+    }
+  }
+
+  private static boolean isStatementClosed(@Nullable PreparedStatement stmt) {
+    if (stmt == null) {
+      return true;
+    }
+    try {
+      return stmt.isClosed();
+    }
+    catch (SQLException ignored) {
       return true;
     }
   }
@@ -136,6 +149,44 @@ public abstract class DataStoreTable<T extends Enum> {
     getStatementMap().put(statement, myConnection.prepareStatement(stmt, statementFlags));
   }
 
+  @Nullable
+  private PreparedStatement getStatement(@NotNull T statement) {
+    if (isClosed()) {
+      return null;
+    }
+    Map<T, PreparedStatement> statementMap = getStatementMap();
+    PreparedStatement stmt = statementMap.get(statement);
+    if (isStatementClosed(stmt)) {
+      if (isClosed()) {
+        return null;
+      }
+      statementMap.clear();
+      prepareStatements();
+      stmt = statementMap.get(statement);
+    }
+    return stmt;
+  }
+
+  @Nullable
+  private PreparedStatement getCustomStatement(@NotNull String sql) throws SQLException {
+    if (isClosed()) {
+      return null;
+    }
+    if (myCustomQueryCache.get() == null) {
+      myCustomQueryCache.set(new HashMap<>());
+    }
+    Map<String, PreparedStatement> queryCache = myCustomQueryCache.get();
+    PreparedStatement statement = queryCache.get(sql);
+    if (isStatementClosed(statement)) {
+      if (isClosed()) {
+        return null;
+      }
+      statement = myConnection.prepareStatement(sql);
+      queryCache.put(sql, statement);
+    }
+    return statement;
+  }
+
   /**
    * Executes a bulk operation on the table. This is an optimization when inserting / deleting multiple items from
    * the database.
@@ -149,24 +200,25 @@ public abstract class DataStoreTable<T extends Enum> {
       return;
     }
     try {
-      PreparedStatement stmt = getStatementMap().get(statement);
-      batchParams.forEach((object) -> {
-        try {
-          applyParams(stmt, paramConverter.apply(object));
-          stmt.addBatch();
-        } catch (SQLException ex) {
-          onError(ex);
-        }
-      });
+      PreparedStatement stmt = getStatement(statement);
+      if (stmt == null) {
+        return;
+      }
+      for (K object : batchParams) {
+        applyParams(stmt, paramConverter.apply(object));
+        stmt.addBatch();
+      }
       int[] results = stmt.executeBatch();
-      for(int i = 0; i < results.length; i++) {
+      for (int i = 0; i < results.length; i++) {
         if (results[i] == Statement.EXECUTE_FAILED) {
           throw new SQLException(String.format("Failed to insert batch element %d with result %d", i, results[i]));
         }
       }
     }
     catch (SQLException ex) {
-      onError(ex);
+      if (!isClosed()) {
+        onError(ex);
+      }
     }
   }
 
@@ -174,16 +226,30 @@ public abstract class DataStoreTable<T extends Enum> {
     if (isClosed()) {
       return;
     }
+    PreparedStatement stmt = null;
     try {
-      PreparedStatement stmt = getStatementMap().get(statement);
+      stmt = getStatement(statement);
+      if (stmt == null) {
+        return;
+      }
       applyParams(stmt, params);
       stmt.execute();
-      // Clear parameters on exit so cached statements don't keep potentially large objects in memory.
-      // Example: Inserting a payload into the database.
-      stmt.clearParameters();
     }
     catch (SQLException ex) {
-      onError(ex);
+      if (!isClosed()) {
+        onError(ex);
+      }
+    }
+    finally {
+      if (stmt != null) {
+        try {
+          // Clear parameters on exit so cached statements don't keep potentially large objects in memory.
+          // Example: Inserting a payload into the database.
+          stmt.clearParameters();
+        }
+        catch (SQLException ignored) {
+        }
+      }
     }
   }
 
@@ -191,27 +257,40 @@ public abstract class DataStoreTable<T extends Enum> {
     if (isClosed()) {
       return new EmptyResultSet();
     }
-    PreparedStatement stmt = getStatementMap().get(statement);
-    applyParams(stmt, params);
-    return stmt.executeQuery();
+    try {
+      PreparedStatement stmt = getStatement(statement);
+      if (stmt == null) {
+        return new EmptyResultSet();
+      }
+      applyParams(stmt, params);
+      return stmt.executeQuery();
+    }
+    catch (SQLException ex) {
+      if (isClosed()) {
+        return new EmptyResultSet();
+      }
+      throw ex;
+    }
   }
 
   protected ResultSet executeOneTimeQuery(@NotNull String sql, Object[] params) throws SQLException {
     if (isClosed()) {
       return new EmptyResultSet();
     }
-    if (myCustomQueryCache.get() == null) {
-      myCustomQueryCache.set(new HashMap<>());
+    try {
+      PreparedStatement statement = getCustomStatement(sql);
+      if (statement == null) {
+        return new EmptyResultSet();
+      }
+      applyParams(statement, params);
+      return statement.executeQuery();
     }
-
-    Map<String, PreparedStatement> queryCache = myCustomQueryCache.get();
-    if (!queryCache.containsKey(sql)) {
-      queryCache.put(sql, myConnection.prepareStatement(sql));
+    catch (SQLException ex) {
+      if (isClosed()) {
+        return new EmptyResultSet();
+      }
+      throw ex;
     }
-
-    PreparedStatement statement = queryCache.get(sql);
-    applyParams(statement, params);
-    return statement.executeQuery();
   }
 
   protected void applyParams(@NotNull PreparedStatement statement, Object... params) throws SQLException {

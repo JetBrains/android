@@ -329,6 +329,57 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     assertThat(results.statement).isSameAs(repeatedResults.statement)
   }
 
+  @Test
+  fun queryAfterStatementClosedRecreatesStatement() {
+    val results = table.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
+    results.statement.close()
+    val repeatedResults = table.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
+    assertThat(repeatedResults.statement.isClosed).isFalse()
+    assertThat(results.statement).isNotSameAs(repeatedResults.statement)
+  }
+
+  @Test
+  fun queryAfterConnectionClosedReturnsEmptyResultSet() {
+    val localConnection = java.sql.DriverManager.getConnection("jdbc:sqlite::memory:")
+    val localTable = UnifiedEventsTable()
+    localTable.initialize(localConnection)
+    val results = localTable.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
+    localConnection.close()
+    val repeatedResults = localTable.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
+    assertThat(repeatedResults).isInstanceOf(EmptyResultSet::class.java)
+  }
+
+  @Test
+  fun executeQueryAfterStatementClosedRecreatesStatement() {
+    val results = table.queryUnifiedEvents()
+    table.statementMap[UnifiedEventsTable.Statements.QUERY_EVENTS]!!.close()
+    val repeatedResults = table.queryUnifiedEvents()
+    assertThat(repeatedResults).isEqualTo(results)
+  }
+
+  @Test
+  fun queryWhenConnectionClosedConcurrentlyDoesNotTriggerErrorCallback() {
+    val localConnection = java.sql.DriverManager.getConnection("jdbc:sqlite::memory:")
+    val localTable = UnifiedEventsTable()
+    localTable.initialize(localConnection)
+
+    for (event in events) {
+      localTable.insertUnifiedEvent(1, event)
+    }
+
+    var errorReported: Throwable? = null
+    val callback = DataStoreTable.DataStoreTableErrorCallback { errorReported = it }
+    DataStoreTable.addDataStoreErrorCallback(callback)
+    try {
+      localConnection.close()
+      val groups = localTable.queryUnifiedEventGroups(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).build())
+      assertThat(groups).isEmpty()
+      assertThat(errorReported).isNull()
+    } finally {
+      DataStoreTable.removeDataStoreErrorCallback(callback)
+    }
+  }
+
   private fun validateFilter(request: GetEventGroupsRequest, vararg expectedIndices: Int) {
     val expectedResults = mutableListOf<Common.Event>()
     // Insert elements from our fixed list into the database.
