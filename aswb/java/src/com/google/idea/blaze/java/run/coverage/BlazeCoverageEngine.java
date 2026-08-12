@@ -190,7 +190,7 @@ public class BlazeCoverageEngine extends CoverageEngine {
     if (topLevelDirectories.isEmpty()) {
       return null;
     }
-    CoverageAnnotator annotator = getCoverageAnnotator(project);
+    CoverageAnnotator annotator = suites.getAnnotator(project);
     return new DirectoryCoverageViewExtension(project, annotator, suites, stateBean) {
       private List<AbstractTreeNode<?>> topLevelNodes;
 
