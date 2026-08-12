@@ -108,6 +108,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -741,6 +742,7 @@ class StreamingToolWindowManagerTest {
     assertThat(mirroringManager.mirroringHandles.value[device]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
   }
 
+  @Ignore("b/545682552")
   @Test
   fun testAvdStarting() {
     EmulatorSettings.getInstance()::launchInToolWindow.override(false, testRootDisposable)
