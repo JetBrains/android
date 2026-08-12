@@ -26,6 +26,7 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.google.idea.blaze.qsync.project.SourceSet
+import com.google.idea.blaze.qsync.project.computePackageStamp
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Optional
@@ -119,18 +120,17 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
       sourcesMap.map { (includeRoot, packageMap) ->
         val buildPackages =
           packageMap.mapValues { (buildPackage, packageMap) ->
-            BuildPackage(
-              path = buildPackage,
-              sourceSets =
-                packageMap.map { (javaPackage, packageContent) ->
-                  SourceSet(
-                    rootPath = buildPackage,
-                    javaSourceFiles = packageContent.javaSources.sorted().map { buildPackage.relativize(it) },
-                    nonJavaSourceFiles = packageContent.nonJavaSources.sorted().map { buildPackage.relativize(it) },
-                    javaPackage = javaPackage,
-                  )
-                },
-            )
+            val sourceSets =
+              packageMap.map { (javaPackage, packageContent) ->
+                SourceSet(
+                  rootPath = buildPackage,
+                  javaSourceFiles = packageContent.javaSources.sorted().map { buildPackage.relativize(it) },
+                  nonJavaSourceFiles = packageContent.nonJavaSources.sorted().map { buildPackage.relativize(it) },
+                  javaPackage = javaPackage,
+                )
+              }
+            val stamp = computePackageStamp(buildFileTimestamp = 0L, sourceSets = sourceSets, directSubpackages = emptyList())
+            BuildPackage(path = buildPackage, sourceSets = sourceSets, stamp = stamp)
           }
         ProjectStructureRoot(projectStructureRootPath = includeRoot, buildPackages = buildPackages)
       }

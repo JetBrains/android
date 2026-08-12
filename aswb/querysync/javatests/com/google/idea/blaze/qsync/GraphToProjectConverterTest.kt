@@ -56,6 +56,8 @@ class GraphToProjectConverterTest {
     intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
   }
 
+  private fun BuildPackage(path: Path, sourceSets: List<SourceSet>): BuildPackage = BuildPackage(path, sourceSets, 0L)
+
   private val context: Context<*> =
     object : NoopContext() {
       override fun setHasError(): Unit = throw AssertionError()

@@ -49,8 +49,8 @@ class ProjectStructureDataTest {
               Path.of("java"),
               buildPackages =
                 mapOf(
-                  Path.of("java/com/example") to BuildPackage(Path.of("java/com/example"), emptyList()),
-                  Path.of("java/com/example/sub") to BuildPackage(Path.of("java/com/example/sub"), emptyList()),
+                  Path.of("java/com/example") to BuildPackage(Path.of("java/com/example"), emptyList(), 100L),
+                  Path.of("java/com/example/sub") to BuildPackage(Path.of("java/com/example/sub"), emptyList(), 200L),
                 ),
             )
           ),
@@ -58,7 +58,9 @@ class ProjectStructureDataTest {
       )
 
     assertThat(data.getBuildPackage(Path.of("java/com/example/File.java"))?.path).isEqualTo(Path.of("java/com/example"))
+    assertThat(data.getBuildPackage(Path.of("java/com/example/File.java"))?.stamp).isEqualTo(100L)
     assertThat(data.getBuildPackage(Path.of("java/com/example/sub/File.java"))?.path).isEqualTo(Path.of("java/com/example/sub"))
+    assertThat(data.getBuildPackage(Path.of("java/com/example/sub/File.java"))?.stamp).isEqualTo(200L)
     assertThat(data.getBuildPackage(Path.of("java/com/example/othersub/File.java"))?.path)
       .isEqualTo(Path.of("java/com/example")) // Ancestor match
     assertThat(data.getBuildPackage(Path.of("java/File.java"))).isNull() // No build package ancestor
@@ -72,7 +74,7 @@ class ProjectStructureDataTest {
           listOf(
             ProjectStructureRoot(
               Path.of("java"),
-              buildPackages = mapOf(Path.of("java/com/example") to BuildPackage(Path.of("java/com/example"), emptyList())),
+              buildPackages = mapOf(Path.of("java/com/example") to BuildPackage(Path.of("java/com/example"), emptyList(), 123L)),
             )
           ),
         activeLanguages = emptySet(),
@@ -81,5 +83,105 @@ class ProjectStructureDataTest {
     assertThat(data.pathToLabel(Path.of("java/com/example/File.java"))).isEqualTo(Label.of("//java/com/example:File.java"))
     assertThat(data.pathToLabel(Path.of("java/com/example/sub/File.java"))).isEqualTo(Label.of("//java/com/example:sub/File.java"))
     assertThat(data.pathToLabel(Path.of("java/File.java"))).isNull()
+  }
+
+  @Test
+  fun testComputePackageStamp_determinism() {
+    val sourceSets =
+      listOf(
+        SourceSet(
+          rootPath = Path.of("pkg"),
+          javaSourceFiles = listOf(Path.of("A.java"), Path.of("B.java")),
+          nonJavaSourceFiles = listOf(Path.of("proto.proto")),
+          javaPackage = "com.example",
+        )
+      )
+    val subpackages = listOf(Path.of("pkg/sub1"), Path.of("pkg/sub2"))
+
+    val stamp1 = computePackageStamp(buildFileTimestamp = 123456789L, sourceSets = sourceSets, directSubpackages = subpackages)
+    val stamp2 = computePackageStamp(buildFileTimestamp = 123456789L, sourceSets = sourceSets, directSubpackages = subpackages)
+
+    assertThat(stamp1).isEqualTo(stamp2)
+    assertThat(stamp1).isNotEqualTo(0L)
+  }
+
+  @Test
+  fun testComputePackageStamp_canonicalOrderStability() {
+    val ss1 =
+      SourceSet(
+        rootPath = Path.of("pkg/a"),
+        javaSourceFiles = listOf(Path.of("Z.java"), Path.of("A.java")),
+        nonJavaSourceFiles = listOf(Path.of("z.proto"), Path.of("a.proto")),
+        javaPackage = "com.example.a",
+      )
+    val ss2 =
+      SourceSet(
+        rootPath = Path.of("pkg/b"),
+        javaSourceFiles = listOf(Path.of("Y.java"), Path.of("B.java")),
+        nonJavaSourceFiles = listOf(Path.of("y.proto"), Path.of("b.proto")),
+        javaPackage = "com.example.b",
+      )
+
+    // Order 1: ss1 then ss2, unordered inner lists, unordered subpackages
+    val stamp1 =
+      computePackageStamp(
+        buildFileTimestamp = 1000L,
+        sourceSets = listOf(ss1, ss2),
+        directSubpackages = listOf(Path.of("pkg/z"), Path.of("pkg/a")),
+      )
+
+    // Order 2: ss2 then ss1, reverse inner lists, reverse subpackages
+    val ss1Permuted =
+      SourceSet(
+        rootPath = Path.of("pkg/a"),
+        javaSourceFiles = listOf(Path.of("A.java"), Path.of("Z.java")),
+        nonJavaSourceFiles = listOf(Path.of("a.proto"), Path.of("z.proto")),
+        javaPackage = "com.example.a",
+      )
+    val ss2Permuted =
+      SourceSet(
+        rootPath = Path.of("pkg/b"),
+        javaSourceFiles = listOf(Path.of("B.java"), Path.of("Y.java")),
+        nonJavaSourceFiles = listOf(Path.of("b.proto"), Path.of("y.proto")),
+        javaPackage = "com.example.b",
+      )
+    val stamp2 =
+      computePackageStamp(
+        buildFileTimestamp = 1000L,
+        sourceSets = listOf(ss2Permuted, ss1Permuted),
+        directSubpackages = listOf(Path.of("pkg/a"), Path.of("pkg/z")),
+      )
+
+    assertThat(stamp1).isEqualTo(stamp2)
+  }
+
+  @Test
+  fun testComputePackageStamp_sensitivityToTimestamp() {
+    val sourceSets = listOf(SourceSet(rootPath = Path.of("pkg"), javaPackage = "com.example"))
+    val stamp1 = computePackageStamp(buildFileTimestamp = 1000L, sourceSets = sourceSets, directSubpackages = emptyList())
+    val stamp2 = computePackageStamp(buildFileTimestamp = 2000L, sourceSets = sourceSets, directSubpackages = emptyList())
+
+    assertThat(stamp1).isNotEqualTo(stamp2)
+  }
+
+  @Test
+  fun testComputePackageStamp_sensitivityToSources() {
+    val ss1 = SourceSet(rootPath = Path.of("pkg"), javaSourceFiles = listOf(Path.of("A.java")), javaPackage = "com.example")
+    val ss2 =
+      SourceSet(rootPath = Path.of("pkg"), javaSourceFiles = listOf(Path.of("A.java"), Path.of("B.java")), javaPackage = "com.example")
+
+    val stamp1 = computePackageStamp(buildFileTimestamp = 1000L, sourceSets = listOf(ss1), directSubpackages = emptyList())
+    val stamp2 = computePackageStamp(buildFileTimestamp = 1000L, sourceSets = listOf(ss2), directSubpackages = emptyList())
+
+    assertThat(stamp1).isNotEqualTo(stamp2)
+  }
+
+  @Test
+  fun testComputePackageStamp_sensitivityToSubpackages() {
+    val sourceSets = listOf(SourceSet(rootPath = Path.of("pkg"), javaPackage = "com.example"))
+    val stamp1 = computePackageStamp(buildFileTimestamp = 1000L, sourceSets = sourceSets, directSubpackages = emptyList())
+    val stamp2 = computePackageStamp(buildFileTimestamp = 1000L, sourceSets = sourceSets, directSubpackages = listOf(Path.of("pkg/sub")))
+
+    assertThat(stamp1).isNotEqualTo(stamp2)
   }
 }

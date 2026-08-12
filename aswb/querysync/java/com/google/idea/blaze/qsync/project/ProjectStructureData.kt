@@ -15,7 +15,9 @@
  */
 package com.google.idea.blaze.qsync.project
 
+import com.google.common.hash.Hashing
 import com.google.idea.blaze.common.Label
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 /** Data class to hold the source files within a single build package. */
@@ -42,8 +44,68 @@ data class SourceSet(
   }
 }
 
-/** Data class to hold the source sets within a single build package. */
-data class BuildPackage(val path: Path, val sourceSets: List<SourceSet>)
+/**
+ * Data class to hold the source sets and stamp within a single build package.
+ *
+ * @property path Path to the build package directory, relative to the workspace root.
+ * @property sourceSets Source files partitioned by language and Java package.
+ * @property stamp Deterministic 64-bit hash representing the package state (BUILD timestamp, sources, subpackages).
+ */
+data class BuildPackage(val path: Path, val sourceSets: List<SourceSet>, val stamp: Long)
+
+/**
+ * Computes a canonical, deterministic 64-bit stamp for a build package.
+ *
+ * Enforces strict ordinal sorting of SourceSets, source files, and direct subpackages to ensure stable hashes across platforms, JVMs, and
+ * locales.
+ *
+ * @param buildFileTimestamp Last modified time in milliseconds of the BUILD file (or 0 if missing).
+ * @param sourceSets Discovered source sets for the package.
+ * @param directSubpackages Discovered direct child subpackages under this package.
+ */
+fun computePackageStamp(buildFileTimestamp: Long, sourceSets: List<SourceSet>, directSubpackages: List<Path>): Long {
+  val hasher = Hashing.farmHashFingerprint64().newHasher()
+  hasher.putLong(buildFileTimestamp)
+
+  // Add delimiter and heading int to avoid hash collision
+  // if adjacent fields or lists produce the same concatenated byte sequence
+  hasher.putInt(sourceSets.size)
+  sourceSets.sortedWith(compareBy<SourceSet> { it.javaPackage }.thenBy { it.rootPath.toString() }).forEach { sourceSet ->
+    hasher.putString(sourceSet.javaPackage, StandardCharsets.UTF_8)
+    hasher.putByte(0.toByte())
+    hasher.putString(sourceSet.rootPath.toString(), StandardCharsets.UTF_8)
+    hasher.putByte(0.toByte())
+
+    hasher.putInt(sourceSet.javaSourceFiles.size)
+    sourceSet.javaSourceFiles
+      .map { it.toString() }
+      .sorted()
+      .forEach {
+        hasher.putString(it, StandardCharsets.UTF_8)
+        hasher.putByte(0.toByte())
+      }
+
+    hasher.putInt(sourceSet.nonJavaSourceFiles.size)
+    sourceSet.nonJavaSourceFiles
+      .map { it.toString() }
+      .sorted()
+      .forEach {
+        hasher.putString(it, StandardCharsets.UTF_8)
+        hasher.putByte(0.toByte())
+      }
+  }
+
+  hasher.putInt(directSubpackages.size)
+  directSubpackages
+    .map { it.toString() }
+    .sorted()
+    .forEach {
+      hasher.putString(it, StandardCharsets.UTF_8)
+      hasher.putByte(0.toByte())
+    }
+
+  return hasher.hash().asLong()
+}
 
 /** Data class to hold the build packages associated with a project structure root. */
 data class ProjectStructureRoot(val projectStructureRootPath: Path, val buildPackages: Map<Path, BuildPackage>) {

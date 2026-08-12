@@ -103,7 +103,7 @@ class ProjectStructureReaderTest {
             projectStructureRootPath = Path.of(rootPath),
             buildPackages =
               packageMap
-                .mapValues { (pkgPath, sourceSet) -> BuildPackage(path = Path.of(pkgPath), sourceSets = listOf(sourceSet)) }
+                .mapValues { (pkgPath, sourceSet) -> BuildPackage(path = Path.of(pkgPath), sourceSets = listOf(sourceSet), stamp = 0L) }
                 .mapKeys { Path.of(it.key) },
           )
         },
@@ -122,7 +122,7 @@ class ProjectStructureReaderTest {
             projectStructureRootPath = Path.of(rootPath),
             buildPackages =
               packageMap
-                .mapValues { (pkgPath, sourceSets) -> BuildPackage(path = Path.of(pkgPath), sourceSets = sourceSets) }
+                .mapValues { (pkgPath, sourceSets) -> BuildPackage(path = Path.of(pkgPath), sourceSets = sourceSets, stamp = 0L) }
                 .mapKeys { Path.of(it.key) },
           )
         },

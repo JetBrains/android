@@ -27,6 +27,7 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.SourceSet
+import com.google.idea.blaze.qsync.project.computePackageStamp
 import com.google.idea.blaze.qsync.project.getBuildPackage
 import com.google.idea.blaze.qsync.project.getJavaSourceFiles
 import java.nio.file.Files
@@ -95,20 +96,19 @@ fun ProjectStructureData.Companion.fromGraph(
       val javaPackages = javaSourcesMap[buildPackage]?.keys ?: emptySet()
       val allPackages = if (nonJavaSourcesMap.containsKey(buildPackage)) javaPackages + "" else javaPackages
 
-      BuildPackage(
-        path = buildPackage,
-        sourceSets =
-          allPackages.map { javaPackage ->
-            val javaSources = javaSourcesMap[buildPackage]?.get(javaPackage) ?: emptyList()
-            val nonJavaSources = if (javaPackage.isEmpty()) nonJavaSourcesMap[buildPackage] ?: emptyList() else emptyList()
-            SourceSet(
-              rootPath = buildPackage,
-              javaSourceFiles = javaSources.map { buildPackage.relativize(it) }.distinct().sorted(),
-              nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) }.distinct().sorted(),
-              javaPackage = javaPackage,
-            )
-          },
-      )
+      val sourceSets =
+        allPackages.map { javaPackage ->
+          val javaSources = javaSourcesMap[buildPackage]?.get(javaPackage) ?: emptyList()
+          val nonJavaSources = if (javaPackage.isEmpty()) nonJavaSourcesMap[buildPackage] ?: emptyList() else emptyList()
+          SourceSet(
+            rootPath = buildPackage,
+            javaSourceFiles = javaSources.map { buildPackage.relativize(it) }.distinct().sorted(),
+            nonJavaSourceFiles = nonJavaSources.map { buildPackage.relativize(it) }.distinct().sorted(),
+            javaPackage = javaPackage,
+          )
+        }
+      val stamp = computePackageStamp(buildFileTimestamp = 0L, sourceSets = sourceSets, directSubpackages = emptyList())
+      BuildPackage(path = buildPackage, sourceSets = sourceSets, stamp = stamp)
     }
 
   val sourcesByRoot = associateByProjectRoot(finalBuildPackages, projectIncludes, context)

@@ -202,6 +202,7 @@ class SnapshotSerializationTest {
                           javaPackage = "com.example",
                         )
                       ),
+                    stamp = 0L,
                   )
               ),
           )
