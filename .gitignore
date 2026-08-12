@@ -11,7 +11,7 @@ tools-base
 /out
 .knownPackages
 **/stale_outputs_checked
-**/testData/KotlinDsl/.gradle
+**/.gradle
 .idea/google-java-format.xml
 .idea/inspectionProfiles
 **/AGENTS.local.md
