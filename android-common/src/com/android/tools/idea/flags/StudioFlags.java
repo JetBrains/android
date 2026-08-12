@@ -2916,6 +2916,12 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "enable.agent.support", "Enable Journeys Agent Execution",
     "Enable running Journeys using an AI agent."
   );
+  public static final Flag<String> JOURNEYS_AGENT_SKILLS_OVERRIDE_PATH = new StringFlag(
+    JOURNEYS_WITH_GEMINI, "agent.skills.override.path", "Path to local directory overriding bundled Journey skill files",
+    "Path to a directory containing Journey skill markdown files (e.g., 'journeys.md', 'interact.md'). " +
+    "If a file exists in this directory, it overrides the bundled resource.",
+    ""
+  );
   // endregion JOURNEYS_WITH_GEMINI
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
