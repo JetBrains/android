@@ -32,7 +32,9 @@ import com.intellij.psi.util.parentOfType
  */
 class ProguardR8Annotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (holder.isBatchMode()) return
+    // Batch mode only keeps annotations above INFORMATION level. Since this method only returns INFORMATION level annotations, it can be
+    // skipped in batch mode.
+    if (holder.isBatchMode) return
     if (
       element is LeafPsiElement &&
         (JAVA_KEY_WORDS.contains(element.elementType) || JAVA_PRIMITIVE.contains(element.elementType)) &&
