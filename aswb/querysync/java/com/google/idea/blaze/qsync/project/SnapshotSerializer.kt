@@ -111,7 +111,7 @@ class SnapshotSerializer() {
       val rootProto = SnapshotProto.ProjectStructureRoot.newBuilder().setProjectStructureRootPath(root.projectStructureRootPath.toString())
 
       for ((pkgPath, buildPkg) in root.buildPackages) {
-        val buildPkgProto = SnapshotProto.BuildPackage.newBuilder().setBuildPackagePath(pkgPath.toString())
+        val buildPkgProto = SnapshotProto.BuildPackage.newBuilder().setBuildPackagePath(pkgPath.toString()).setStamp(buildPkg.stamp)
         for (sourceSet in buildPkg.sourceSets) {
           buildPkgProto.addSourceSets(
             SnapshotProto.SourceSet.newBuilder()
@@ -133,7 +133,7 @@ class SnapshotSerializer() {
   }
 
   companion object {
-    const val PROTO_VERSION: Int = 9
+    const val PROTO_VERSION: Int = 10
 
     private fun Operation.toProto(): VcsOperation =
       when (this) {

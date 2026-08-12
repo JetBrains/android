@@ -117,7 +117,7 @@ class SnapshotDeserializer private constructor() {
                         javaPackage = sourceSet.javaPackage,
                       )
                     },
-                  stamp = 0L,
+                  stamp = buildPkgProto.stamp,
                 )
             },
         )

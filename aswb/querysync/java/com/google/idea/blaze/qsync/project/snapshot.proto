@@ -66,6 +66,7 @@ message ProjectStructureRoot {
 message BuildPackage {
   string build_package_path = 1;
   repeated SourceSet source_sets = 2;
+  int64 stamp = 3;
 }
 
 message SourceSet {

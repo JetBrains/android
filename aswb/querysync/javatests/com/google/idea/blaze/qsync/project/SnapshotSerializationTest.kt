@@ -179,6 +179,8 @@ class SnapshotSerializationTest {
     Truth.assertThat(deserializedSnapshot!!.queryData).isEqualTo(originalSyncData)
     Truth.assertThat(deserializedSnapshot.projectDefinition).isEqualTo(projectDefinition)
     Truth.assertThat(deserializedSnapshot.projectStructureData?.roots).isEqualTo(originalProjectStructureData.roots)
+    val deserializedPkg = deserializedSnapshot.projectStructureData?.roots?.first()?.buildPackages?.get(Path.of("project/path"))
+    Truth.assertThat(deserializedPkg?.stamp).isEqualTo(9876543210L)
     Truth.assertThat(deserializedSnapshot.projectStructureData?.activeLanguages).isEqualTo(originalProjectStructureData.activeLanguages)
   }
 
@@ -202,7 +204,7 @@ class SnapshotSerializationTest {
                           javaPackage = "com.example",
                         )
                       ),
-                    stamp = 0L,
+                    stamp = 9876543210L,
                   )
               ),
           )
