@@ -256,13 +256,13 @@ private constructor(
   }
 
   fun stopTracking() {
-    logger.info("PROFILER: Java/Kotlin Allocations capture stop attempted")
     if (!hasEndedTracking) {
+      logger.info("PROFILER: Java/Kotlin Allocations capture stop attempted")
       aspect.removeDependencies(this)
       timeline.dataRange.removeDependencies(this)
       maxTrackingTimeUs = timeline.dataRange.max
+      trackAllocations(enable = false, endSession = true)
     }
-    trackAllocations(false, true)
   }
 
   private fun cleanupFailedCapture() {

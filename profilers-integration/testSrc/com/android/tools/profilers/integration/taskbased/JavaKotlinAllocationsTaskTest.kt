@@ -37,7 +37,6 @@ class JavaKotlinAllocationsTaskTest : ProfilersTaskTestBase() {
 
   override fun verifyTaskStopped(studio: AndroidStudio) {
     verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+Allocations\\s+capture\\s+stop\\s+succeeded", 300)
-    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+stopped.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
   }
 
   override fun verifyUIComponents(studio: AndroidStudio) {

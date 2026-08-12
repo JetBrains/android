@@ -34,6 +34,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import org.junit.Assert
 import org.junit.Assume
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -144,6 +145,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
 
   @Test
   fun `stopping alloc tracking issues the correct command`() {
+    assumeTrue(isLive)
     val handler = transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING) as MemoryAllocTracking
     val prevCommandId = handler.lastCommand.commandId
     stage.stopTracking()
