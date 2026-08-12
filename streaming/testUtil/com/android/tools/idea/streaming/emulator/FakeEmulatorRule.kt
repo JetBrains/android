@@ -73,10 +73,12 @@ class FakeEmulatorRule : TestRule {
         AvdManagerConnection.setConnectionFactory { sdkHandler, _ -> TestAvdManagerConnection(sdkHandler, avdRoot) }
         val androidSdks =
           object : AndroidSdksImpl() {
-            override fun tryToChooseSdkHandler(): AndroidSdkHandler {
+            private val sdkHandler by lazy {
               val sdkRoot = FakeEmulator.getSdkFolder(avdRoot)
-              return AndroidSdkHandler(sdkRoot, sdkRoot)
+              AndroidSdkHandler(sdkRoot, sdkRoot)
             }
+
+            override fun tryToChooseSdkHandler(): AndroidSdkHandler = sdkHandler
           }
         ApplicationManager.getApplication()?.registerOrReplaceServiceInstance(AndroidSdks::class.java, androidSdks, disposable)
       }
