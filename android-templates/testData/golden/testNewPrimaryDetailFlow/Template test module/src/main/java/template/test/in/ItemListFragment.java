@@ -20,7 +20,6 @@ import android.widget.Toast;
 import template.test.in.R;
 import template.test.in.databinding.FragmentItemListBinding;
 import template.test.in.databinding.ItemListContentBinding;
-
 import template.test.in.placeholder.PlaceholderContent;
 
 import java.util.List;

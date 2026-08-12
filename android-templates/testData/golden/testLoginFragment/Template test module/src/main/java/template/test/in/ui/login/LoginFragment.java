@@ -22,7 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import template.test.in.databinding.FragmentLoginBinding;
-
 import template.test.in.R;
 
 public class LoginFragment extends Fragment {
