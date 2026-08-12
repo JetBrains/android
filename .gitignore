@@ -12,6 +12,9 @@ tools-base
 .knownPackages
 **/stale_outputs_checked
 **/.gradle
+android/testData/projects/**/build
+android/testData/snapshots/**/build
+android-templates/testData/golden/**/build
 .idea/google-java-format.xml
 .idea/inspectionProfiles
 **/AGENTS.local.md
