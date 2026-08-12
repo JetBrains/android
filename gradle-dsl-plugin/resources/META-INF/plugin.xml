@@ -30,12 +30,6 @@
     <module name="intellij.java.impl"/>
   </dependencies>
 
-  <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
-  <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <!--suppress PluginXmlValidity -->
-    <supportsKotlinPluginMode supportsK2="true"/>
-  </extensions>
-
   <xi:include href="/META-INF/gradle-dsl.xml"/>
   <!--<xi:include href="/META-INF/gradle-dsl-declarative.xml"/>-->
   <xi:include href="/META-INF/gradle-dsl-flags.xml"/>
