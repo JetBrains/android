@@ -22,7 +22,6 @@ import com.google.idea.blaze.base.model.primitives.RuleType
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import java.io.File
@@ -102,10 +101,10 @@ data class UnifiedRunContext(
     return UnifiedContextApplier.matches(config, this)
   }
 
-  override suspend fun resolve(project: Project): RunConfigurationContext {
+  override suspend fun resolve(project: Project, context: ConfigurationContext?): RunConfigurationContext {
     val currentTarget = target
     if (currentTarget !is TargetSpecification.PendingResolution) return this
-    val resolvedTarget = readAction { UnifiedRunContextResolver.resolveTargetSpec(project, currentTarget) }
+    val resolvedTarget = UnifiedRunContextResolver.resolveTargetSpec(project, currentTarget, context)
     return copy(sourceElement = sourceElement, target = resolvedTarget, testFilter = testFilter, command = command)
   }
 }

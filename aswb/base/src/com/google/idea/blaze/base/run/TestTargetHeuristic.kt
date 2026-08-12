@@ -29,6 +29,32 @@ interface TestTargetHeuristic {
   companion object {
     @JvmField val EP_NAME = ExtensionPointName.create<TestTargetHeuristic>("com.google.idea.blaze.TestTargetHeuristic")
 
+    /** Filters reachable test targets based on available heuristic extensions, returning the narrowed list of candidate targets. */
+    @JvmStatic
+    fun filterTargetsForSourceFile(
+      project: Project,
+      sourcePsiFile: PsiFile?,
+      sourceFile: File,
+      targets: Collection<TargetInfo>,
+      testSize: TestSize?,
+    ): List<TargetInfo> {
+      if (targets.isEmpty()) {
+        return emptyList()
+      }
+      var filteredTargets = targets.toList()
+      for (filter in EP_NAME.extensions) {
+        val matches = filteredTargets.filter { filter.matchesSource(project, it, sourcePsiFile, sourceFile, testSize) }
+        if (matches.size == 1) {
+          return matches
+        }
+        if (matches.isNotEmpty()) {
+          // A higher-priority filter found more than one match -- subsequent filters will only consider these matches.
+          filteredTargets = matches
+        }
+      }
+      return filteredTargets
+    }
+
     /**
      * Given a source file and all test rules reachable from that file, chooses a test rule based on available filters, falling back to
      * choosing the most recently synced one if there is no match.
@@ -41,20 +67,7 @@ interface TestTargetHeuristic {
       targets: Collection<TargetInfo>,
       testSize: TestSize?,
     ): TargetInfo? {
-      if (targets.isEmpty()) {
-        return null
-      }
-      var filteredTargets = targets.toList()
-      for (filter in EP_NAME.extensions) {
-        val matches = filteredTargets.filter { filter.matchesSource(project, it, sourcePsiFile, sourceFile, testSize) }
-        if (matches.size == 1) {
-          return matches[0]
-        }
-        if (matches.isNotEmpty()) {
-          // A higher-priority filter found more than one match -- subsequent filters will only consider these matches.
-          filteredTargets = matches
-        }
-      }
+      val filteredTargets = filterTargetsForSourceFile(project, sourcePsiFile, sourceFile, targets, testSize)
       // finally order by syncTime (if available), returning the most recently synced
       return filteredTargets.maxByOrNull { it.syncTime() ?: Instant.EPOCH } ?: filteredTargets.firstOrNull()
     }

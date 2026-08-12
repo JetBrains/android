@@ -18,17 +18,31 @@ package com.google.idea.blaze.base.run.producers
 import com.google.idea.blaze.base.io.VfsUtils
 import com.google.idea.blaze.base.run.SourceToTargetFinder
 import com.google.idea.blaze.base.run.TestTargetHeuristic
+import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import java.util.Optional
+import kotlinx.coroutines.CancellationException
 
 /** Asynchronously resolves pending source file specifications to concrete Bazel target information. */
 object UnifiedRunContextResolver {
-  fun resolveTargetSpec(project: Project, spec: TargetSpecification.PendingResolution): TargetSpecification {
-    val vf = VfsUtils.resolveVirtualFile(spec.file, true) ?: VfsUtils.resolveVirtualFile(spec.file, false)
-    val psiFile =
+
+  /**
+   * Resolves a pending target specification to a concrete Bazel target.
+   *
+   * If heuristic filtering narrows the candidates to 1 target, it auto-resolves immediately. If multiple candidate targets remain, it
+   * invokes [TestTargetChooser.chooseTarget] on the EDT. If the user cancels the chooser popup, throws [CancellationException].
+   */
+  suspend fun resolveTargetSpec(
+    project: Project,
+    spec: TargetSpecification.PendingResolution,
+    context: ConfigurationContext? = null,
+  ): TargetSpecification {
+    val psiFile = readAction {
+      val vf = VfsUtils.resolveVirtualFile(spec.file, true) ?: VfsUtils.resolveVirtualFile(spec.file, false)
       if (vf != null) {
         PsiManager.getInstance(project).findFile(vf)
       } else {
@@ -36,9 +50,15 @@ object UnifiedRunContextResolver {
           it.virtualFile.path == spec.file.path || it.virtualFile.path.endsWith(spec.file.path)
         }
       }
+    }
     val targets = SourceToTargetFinder.findTargetsForSourceFile(project, spec.file, Optional.ofNullable(spec.ruleType))
-    val targetInfo =
-      TestTargetHeuristic.chooseTestTargetForSourceFile(project, psiFile, spec.file, targets, spec.testSize) ?: targets.firstOrNull()
-    return if (targetInfo != null) TargetSpecification.Resolved(targetInfo) else spec
+    val candidates = TestTargetHeuristic.filterTargetsForSourceFile(project, psiFile, spec.file, targets, spec.testSize)
+    val chosen =
+      when {
+        candidates.size == 1 -> candidates[0]
+        candidates.size > 1 -> TestTargetChooser.chooseTarget(context, candidates) ?: throw CancellationException("No target chosen")
+        else -> null
+      }
+    return if (chosen != null) TargetSpecification.Resolved(chosen) else spec
   }
 }

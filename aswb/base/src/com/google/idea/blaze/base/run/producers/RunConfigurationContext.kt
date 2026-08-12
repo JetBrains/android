@@ -39,7 +39,7 @@ interface RunConfigurationContext {
   suspend fun refine(context: ConfigurationContext): RunConfigurationContext
 
   /** Stage 2.5 (Background): Resolves the context (e.g. fetches target info in background). */
-  suspend fun resolve(project: Project): RunConfigurationContext
+  suspend fun resolve(project: Project, context: ConfigurationContext? = null): RunConfigurationContext
 
   /** Stage 3: Fully configures the run configuration post-refinement and post-resolution. */
   fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean

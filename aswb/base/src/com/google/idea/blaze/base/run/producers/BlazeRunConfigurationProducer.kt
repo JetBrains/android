@@ -129,5 +129,5 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
     initialContext.refine(context)
 
   protected suspend fun resolveContext(refinedContext: RunConfigurationContext, context: ConfigurationContext): RunConfigurationContext =
-    refinedContext.resolve(context.project)
+    refinedContext.resolve(context.project, context)
 }
