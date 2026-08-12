@@ -777,6 +777,94 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("android.widget.SearchView", NlComponentHelperKt.getViewInfo(searchViewComponent).getClassName());
   }
 
+  public void testUpdateHierarchyWithSystemUiDecor() {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model_sys_ui.xml",
+                                                           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                           "    android:layout_width=\"match_parent\"" +
+                                                           "    android:layout_height=\"match_parent\">" +
+                                                           "  <Button" +
+                                                           "      android:layout_width=\"wrap_content\"" +
+                                                           "      android:layout_height=\"wrap_content\" />" +
+                                                           "</LinearLayout>");
+    NlModel model = createAndActivateModel(modelXml);
+
+    TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(new PsiXmlTag(modelXml.getRootTag()), null);
+    TagSnapshot buttonSnapshot = rootSnapshot.children.get(0);
+
+    ViewInfo rootViewInfo = new ViewInfo("android.widget.LinearLayout", rootSnapshot, 0, 0, 500, 500);
+    ViewInfo buttonViewInfo = new ViewInfo("android.widget.Button", buttonSnapshot, 10, 20, 100, 60);
+    buttonViewInfo.setChildren(Collections.emptyList());
+    rootViewInfo.setChildren(ImmutableList.of(buttonViewInfo));
+
+    ViewInfo contentViewInfo = new ViewInfo("android.widget.FrameLayout", null, 0, 120, 500, 620);
+    contentViewInfo.setChildren(ImmutableList.of(rootViewInfo));
+
+    ViewInfo decorViewInfo = new ViewInfo("com.android.internal.policy.DecorView", null, 0, 0, 500, 700);
+    decorViewInfo.setChildren(ImmutableList.of(contentViewInfo));
+
+    NlModelHierarchyUpdater.updateHierarchy(ImmutableList.of(rootViewInfo), ImmutableList.of(decorViewInfo), model);
+
+    NlComponent rootComponent = model.getTreeReader().getComponents().get(0);
+    assertNotNull(rootComponent);
+    NlComponent buttonComponent = rootComponent.getChild(0);
+    assertNotNull(buttonComponent);
+
+    // Root component should be shifted down by 120px due to system decor (status bar / action bar)
+    assertEquals(0, NlComponentHelperKt.getX(rootComponent));
+    assertEquals(120, NlComponentHelperKt.getY(rootComponent));
+    assertEquals(500, NlComponentHelperKt.getW(rootComponent));
+    assertEquals(500, NlComponentHelperKt.getH(rootComponent));
+
+    // Child button component should also inherit the 120px vertical offset
+    assertEquals(10, NlComponentHelperKt.getX(buttonComponent));
+    assertEquals(140, NlComponentHelperKt.getY(buttonComponent));
+    assertEquals(90, NlComponentHelperKt.getW(buttonComponent));
+    assertEquals(40, NlComponentHelperKt.getH(buttonComponent));
+  }
+
+  public void testUpdateHierarchyWithPreferenceScreenAndSystemUiDecor() {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/xml/preferences.xml",
+                                                           "<PreferenceScreen xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                                                           "    <PreferenceCategory android:title=\"Settings\" />\n" +
+                                                           "</PreferenceScreen>");
+    NlModel model = createAndActivateModel(modelXml);
+
+    TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(new PsiXmlTag(modelXml.getRootTag()), null);
+    TagSnapshot categorySnapshot = rootSnapshot.children.get(0);
+
+    ViewInfo rootViewInfo = new ViewInfo("androidx.preference.PreferenceScreen", rootSnapshot, 0, 0, 500, 500);
+    ViewInfo categoryViewInfo = new ViewInfo("androidx.preference.PreferenceCategory", categorySnapshot, 0, 0, 500, 100);
+    categoryViewInfo.setChildren(Collections.emptyList());
+    rootViewInfo.setChildren(ImmutableList.of(categoryViewInfo));
+
+    // System decor tree where root PreferenceScreen itself is a synthetic container, but category child matches
+    ViewInfo categoryViewInfoInSystem = new ViewInfo("androidx.preference.PreferenceCategory", categorySnapshot, 0, 0, 500, 100);
+    categoryViewInfoInSystem.setChildren(Collections.emptyList());
+
+    ViewInfo recyclerViewInfo = new ViewInfo("androidx.recyclerview.widget.RecyclerView", null, 0, 0, 500, 540);
+    recyclerViewInfo.setChildren(ImmutableList.of(categoryViewInfoInSystem));
+
+    ViewInfo contentViewInfo = new ViewInfo("android.widget.FrameLayout", null, 0, 160, 500, 700);
+    contentViewInfo.setChildren(ImmutableList.of(recyclerViewInfo));
+
+    ViewInfo decorViewInfo = new ViewInfo("com.android.internal.policy.DecorView", null, 0, 0, 500, 700);
+    decorViewInfo.setChildren(ImmutableList.of(contentViewInfo));
+
+    NlModelHierarchyUpdater.updateHierarchy(ImmutableList.of(rootViewInfo), ImmutableList.of(decorViewInfo), model);
+
+    NlComponent rootComponent = model.getTreeReader().getComponents().get(0);
+    assertNotNull(rootComponent);
+    NlComponent categoryComponent = rootComponent.getChild(0);
+    assertNotNull(categoryComponent);
+
+    // PreferenceScreen and PreferenceCategory should be offset by 160px from System UI decor
+    assertEquals(0, NlComponentHelperKt.getX(rootComponent));
+    assertEquals(160, NlComponentHelperKt.getY(rootComponent));
+
+    assertEquals(0, NlComponentHelperKt.getX(categoryComponent));
+    assertEquals(160, NlComponentHelperKt.getY(categoryComponent));
+  }
+
   public void testLayoutListenersModifyListenerList() {
     XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
                                                            "<LinearLayout" +

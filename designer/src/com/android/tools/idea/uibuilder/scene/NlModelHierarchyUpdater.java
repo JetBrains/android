@@ -33,7 +33,9 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.ContainerUtil;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -55,7 +57,12 @@ public class NlModelHierarchyUpdater {
    */
   public static void updateHierarchy(@NotNull RenderResult result,
                                      @NotNull NlModel model) {
-    updateHierarchy(getRootViews(result, model.getType()), model);
+    XmlTag root = getRootTag(model);
+    if (root != null) {
+      List<ViewInfo> rootViews = getRootViews(result, model.getType());
+      List<ViewInfo> systemRootViews = result.getSystemRootViews();
+      updateHierarchy(root, rootViews, systemRootViews, model);
+    }
   }
 
   /**
@@ -64,9 +71,21 @@ public class NlModelHierarchyUpdater {
    * @param model to be updated
    */
   public static void updateHierarchy(@NotNull List<ViewInfo> views, @NotNull NlModel model) {
+    updateHierarchy(views, null, model);
+  }
+
+  /**
+   * Update the hierarchy based on the inflated rootViews and optional system decor rootViews.
+   * @param views list of views inflated that matches model file
+   * @param systemRootViews list of system decor root views if present
+   * @param model to be updated
+   */
+  public static void updateHierarchy(@NotNull List<ViewInfo> views,
+                                     @Nullable List<ViewInfo> systemRootViews,
+                                     @NotNull NlModel model) {
     XmlTag root = getRootTag(model);
     if (root != null) {
-      updateHierarchy(root, views, model);
+      updateHierarchy(root, views, systemRootViews, model);
     }
   }
 
@@ -77,9 +96,23 @@ public class NlModelHierarchyUpdater {
    * @param model to be updated
    */
   public static void updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
+    updateHierarchy(rootTag, views, null, model);
+  }
+
+  /**
+   * Update the hierarchy based on the inflated rootViews and optional system decor rootViews.
+   * @param rootTag xml tag of the root view from PsiFile (from model)
+   * @param views list of views inflated that matches model file
+   * @param systemRootViews list of system decor root views if present
+   * @param model to be updated
+   */
+  public static void updateHierarchy(@NotNull XmlTag rootTag,
+                                     @NotNull List<ViewInfo> views,
+                                     @Nullable List<ViewInfo> systemRootViews,
+                                     @NotNull NlModel model) {
     model.syncWithPsi(rootTag, ContainerUtil.map(views, ViewInfoTagSnapshotNode::new));
     model.updateAccessibility(views);
-    updateBounds(views, model);
+    updateBounds(views, systemRootViews, model);
     ImmutableList<NlComponent> components = model.getTreeReader().getComponents();
     if (!components.isEmpty() && handleScroll(components.getFirst())) {
       // If there is scrolling involved, this will update the SceneManager to show the correct location for bounding boxes.
@@ -108,7 +141,9 @@ public class NlModelHierarchyUpdater {
   }
 
   // TODO: we shouldn't be going back in and modifying NlComponents here
-  private static void updateBounds(@NotNull List<ViewInfo> rootViews, @NotNull NlModel model) {
+  private static void updateBounds(@NotNull List<ViewInfo> rootViews,
+                                   @Nullable List<ViewInfo> systemRootViews,
+                                   @NotNull NlModel model) {
     model.getTreeReader().flattenComponents().forEach(NlModelHierarchyUpdater::clearDerivedData);
     Map<TagSnapshot, NlComponent> snapshotToComponent =
       model.getTreeReader().flattenComponents().collect(Collectors.toMap(NlComponent::getSnapshot, Function.identity(), (n1, n2) -> n1));
@@ -119,7 +154,16 @@ public class NlModelHierarchyUpdater {
 
     // Update the bounds. This is based on the ViewInfo instances.
     for (ViewInfo view : rootViews) {
-      updateBounds(view, 0, 0, snapshotToComponent, tagToComponent, sourceIdToComponent);
+      int initialX = 0;
+      int initialY = 0;
+      if (systemRootViews != null && !systemRootViews.isEmpty()) {
+        Point offset = findViewOffsetInSystemRoots(systemRootViews, view);
+        if (offset != null) {
+          initialX = offset.x - view.getLeft();
+          initialY = offset.y - view.getTop();
+        }
+      }
+      updateBounds(view, initialX, initialY, snapshotToComponent, tagToComponent, sourceIdToComponent);
     }
 
     ImmutableList<NlComponent> components = model.getTreeReader().getComponents();
@@ -128,6 +172,123 @@ public class NlModelHierarchyUpdater {
       // info hierarchy inherit position from parent
       fixBounds(components.get(0));
     }
+  }
+
+  private record ViewWithOffset(ViewInfo view, int relX, int relY) {}
+
+  @Nullable
+  private static Point findViewOffsetInSystemRoots(@NotNull List<ViewInfo> systemRootViews, @NotNull ViewInfo targetRoot) {
+    Map<Object, ViewWithOffset> targetMap = new HashMap<>();
+    collectViewsWithOffsets(targetRoot, 0, 0, targetMap);
+
+    for (ViewInfo systemRoot : systemRootViews) {
+      Point offset = findSubtreeOffset(systemRoot, 0, 0, targetMap);
+      if (offset != null) {
+        return offset;
+      }
+    }
+    return null;
+  }
+
+  private static void collectViewsWithOffsets(@NotNull ViewInfo view, int currentRelX, int currentRelY, @NotNull Map<Object, ViewWithOffset> map) {
+    ViewWithOffset node = new ViewWithOffset(view, currentRelX, currentRelY);
+    addKeysForView(view, node, map);
+    for (ViewInfo child : view.getChildren()) {
+      collectViewsWithOffsets(child, currentRelX + child.getLeft(), currentRelY + child.getTop(), map);
+    }
+  }
+
+  private static void addKeysForView(@NotNull ViewInfo view, @NotNull ViewWithOffset node, @NotNull Map<Object, ViewWithOffset> map) {
+    map.putIfAbsent(view, node);
+    Object cookie = view.getCookie();
+    if (cookie != null) {
+      map.putIfAbsent(cookie, node);
+      Object tag = getTag(cookie);
+      if (tag != null) {
+        map.putIfAbsent(tag, node);
+      }
+    }
+    Object viewObj = view.getViewObject();
+    if (viewObj != null) {
+      map.putIfAbsent(viewObj, node);
+    }
+    Object accObj = view.getAccessibilityObject();
+    if (accObj != null) {
+      map.putIfAbsent(accObj, node);
+    }
+  }
+
+  @Nullable
+  private static Point findSubtreeOffset(@NotNull ViewInfo sysView, int sysX, int sysY, @NotNull Map<Object, ViewWithOffset> targetMap) {
+    int currentSysX = sysX + sysView.getLeft();
+    int currentSysY = sysY + sysView.getTop();
+
+    ViewWithOffset matchedNode = lookupView(sysView, targetMap);
+    if (matchedNode != null) {
+      return new Point(currentSysX - matchedNode.relX, currentSysY - matchedNode.relY);
+    }
+
+    for (ViewInfo child : sysView.getChildren()) {
+      Point offset = findSubtreeOffset(child, currentSysX, currentSysY, targetMap);
+      if (offset != null) {
+        return offset;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static ViewWithOffset lookupView(@NotNull ViewInfo sysView, @NotNull Map<Object, ViewWithOffset> map) {
+    ViewWithOffset directMatch = map.get(sysView);
+    if (directMatch != null) {
+      return directMatch;
+    }
+    Object cookie = sysView.getCookie();
+    if (cookie != null) {
+      ViewWithOffset node = map.get(cookie);
+      if (node != null) {
+        return node;
+      }
+      Object tag = getTag(cookie);
+      if (tag != null) {
+        node = map.get(tag);
+        if (node != null) {
+          return node;
+        }
+      }
+    }
+    Object viewObj = sysView.getViewObject();
+    if (viewObj != null) {
+      ViewWithOffset node = map.get(viewObj);
+      if (node != null) {
+        return node;
+      }
+    }
+    Object accObj = sysView.getAccessibilityObject();
+    if (accObj != null) {
+      return map.get(accObj);
+    }
+    return null;
+  }
+
+  @Nullable
+  private static Object getTag(@Nullable Object cookie) {
+    if (cookie instanceof TagSnapshot snapshot) {
+      if (snapshot.tag instanceof PsiXmlTag psiXmlTag) {
+        XmlTag tag = psiXmlTag.getPsiXmlTag();
+        if (tag != null) {
+          return tag;
+        }
+      }
+      return snapshot.tag != null ? snapshot.tag : snapshot;
+    }
+    if (cookie instanceof PsiXmlTag psiXmlTag) {
+      XmlTag tag = psiXmlTag.getPsiXmlTag();
+      if (tag != null) {
+        return tag;
+      }
+    }
+    return cookie;
   }
 
   /**
