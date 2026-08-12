@@ -28,12 +28,20 @@ import kotlinx.coroutines.launch
 private val WORKER_COUNT = IntExperiment("aswb.query.sync.structure.worker.count", 50)
 
 /**
+ * Holds a regular file path and its last modified timestamp in milliseconds extracted during directory traversal.
+ *
+ * @property path Path to the file.
+ * @property lastModifiedTimeMs Last modified timestamp in milliseconds of the file.
+ */
+data class FileEntry(val path: Path, val lastModifiedTimeMs: Long)
+
+/**
  * Holds the results of processing a single directory, separating files and subdirectories.
  *
  * @property files A list of regular files found within the directory.
  * @property subDirectories A list of subdirectories found within the directory.
  */
-data class DirectoryContents(val files: List<Path>, val subDirectories: List<Path>)
+data class DirectoryContents(val files: List<FileEntry>, val subDirectories: List<Path>)
 
 /** Defines the contract for processing a directory during traversal. */
 fun interface DirectoryProcessor {

@@ -18,7 +18,10 @@ package com.google.idea.blaze.qsync
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.traverser.DirectoryContents
+import com.google.idea.blaze.traverser.FileEntry
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.FileTime
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 import kotlinx.coroutines.runBlocking
@@ -75,8 +78,25 @@ class DirectoryProcessorImplTest {
       val processor = directoryProcessor(context) { _, _, c -> c }
       val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1"))
 
-      assertThat(result?.files).containsExactly(workspaceRoot.resolve("dir1/file1.txt"), workspaceRoot.resolve("dir1/file2.txt"))
+      assertThat(result?.files?.map { it.path })
+        .containsExactly(workspaceRoot.resolve("dir1/file1.txt"), workspaceRoot.resolve("dir1/file2.txt"))
+      assertThat(result?.files?.all { it.lastModifiedTimeMs > 0L }).isTrue()
       assertThat(result?.subDirectories).containsExactly(workspaceRoot.resolve("dir1/subdir1"), workspaceRoot.resolve("dir1/subdir2"))
+    }
+  }
+
+  @Test
+  fun testProcessDirectory_capturesLastModifiedTime() {
+    runBlocking {
+      createFile("dir1/file.txt")
+      val targetFile = workspaceRoot.resolve("dir1/file.txt")
+      val expectedTimestamp = 1_700_000_000_000L
+      Files.setLastModifiedTime(targetFile, FileTime.fromMillis(expectedTimestamp))
+
+      val processor = directoryProcessor(context) { _, _, c -> c }
+      val result = processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1"))
+
+      assertThat(result?.files).containsExactly(FileEntry(targetFile, expectedTimestamp))
     }
   }
 

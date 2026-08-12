@@ -34,7 +34,7 @@ fun bazelProjectFilteringProcessor(
 ): (rootDir: Path, currentDir: Path, contents: DirectoryContents) -> DirectoryContents? = { rootDir, currentDir, contents ->
   if (excludeAbsolute.any { currentDir.startsWith(it) }) {
     null
-  } else if (contents.files.any { it.fileName.toString() in WORKSPACE_FILE_NAMES }) {
+  } else if (contents.files.any { it.path.fileName.toString() in WORKSPACE_FILE_NAMES }) {
     context.output(PrintOutput.log("Skipping nested workspace at $currentDir"))
     null
   } else {

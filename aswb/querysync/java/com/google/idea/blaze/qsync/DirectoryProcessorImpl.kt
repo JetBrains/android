@@ -19,6 +19,7 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.traverser.DirectoryContents
 import com.google.idea.blaze.traverser.DirectoryProcessor
+import com.google.idea.blaze.traverser.FileEntry
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -32,7 +33,7 @@ fun directoryProcessor(
   context: Context<*>,
   processContents: (rootDir: Path, currentDir: Path, contents: DirectoryContents) -> DirectoryContents?,
 ): DirectoryProcessor = DirectoryProcessor { rootDir, currentDir ->
-  val files = mutableListOf<Path>()
+  val files = mutableListOf<FileEntry>()
   val subDirs = mutableListOf<Path>()
   try {
     Files.newDirectoryStream(currentDir).use { stream ->
@@ -40,7 +41,7 @@ fun directoryProcessor(
         try {
           val attrs = Files.readAttributes(child, BasicFileAttributes::class.java)
           if (attrs.isRegularFile) {
-            files.add(child)
+            files.add(FileEntry(child, attrs.lastModifiedTime().toMillis()))
           } else if (attrs.isDirectory) {
             subDirs.add(child)
           }

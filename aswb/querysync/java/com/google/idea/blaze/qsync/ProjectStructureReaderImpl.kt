@@ -100,7 +100,9 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
         traverseProjectDirectories(context, workspaceRoot, projectDefinition) { rootDir, currentDir, contents ->
           val includeRoot = workspaceRoot.relativize(rootDir)
           val candidateFiles =
-            choosePackageCandidates(contents.files, fileExtensions) { Files.exists(workspaceRoot.resolve(currentDir).resolve(it)) }
+            choosePackageCandidates(contents.files.map { it.path }, fileExtensions) {
+              Files.exists(workspaceRoot.resolve(currentDir).resolve(it))
+            }
           val javaPackage =
             candidateFiles.firstNotNullOfOrNull { packageReader.readPackage(context, workspaceRoot.resolve(currentDir).resolve(it)) } ?: ""
 

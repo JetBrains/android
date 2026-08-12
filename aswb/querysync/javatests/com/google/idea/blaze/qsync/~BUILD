@@ -139,6 +139,7 @@ aswb_test(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/traverser",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
     ],

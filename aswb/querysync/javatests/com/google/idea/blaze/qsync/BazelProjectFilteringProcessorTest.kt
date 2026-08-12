@@ -76,7 +76,8 @@ class BazelProjectFilteringProcessorTest {
 
     processor.processDirectory(workspaceRoot, workspaceRoot.resolve("dir1"))
 
-    assertThat(outerOutput?.files).containsExactly(workspaceRoot.resolve("dir1/file1.txt"))
+    assertThat(outerOutput?.files?.map { it.path }).containsExactly(workspaceRoot.resolve("dir1/file1.txt"))
+    assertThat(outerOutput?.files?.all { it.lastModifiedTimeMs > 0L }).isTrue()
     assertThat(outerOutput?.subDirectories).containsExactly(workspaceRoot.resolve("dir1/validChild"))
   }
 
@@ -147,7 +148,7 @@ class BazelProjectFilteringProcessorTest {
 
       traverseProjectDirectories(context, workspaceRoot, def) { _, currentDir, contents ->
         visitedDirs.add(currentDir)
-        visitedFiles.addAll(contents.files)
+        visitedFiles.addAll(contents.files.map { it.path })
         contents
       }
 

@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
+import com.google.idea.blaze.traverser.FileEntry
 import java.nio.file.Path
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,15 +31,22 @@ class FileProcessorTest {
   private val fileExtensions = FileExtensions()
   private val processor = FileProcessor(workspaceRoot, fileExtensions)
 
-  private fun process(filePath: String): FileProcessResult {
+  private fun process(filePath: String, lastModifiedTimeMs: Long = 0L): FileProcessResult {
     val file = workspaceRoot.resolve(filePath)
-    return processor.processRegularFile(file, file.parent)
+    return processor.processRegularFile(FileEntry(file, lastModifiedTimeMs), file.parent)
   }
 
   @Test
   fun testBuildFile() {
-    assertThat(process("java/com/example/BUILD")).isEqualTo(FileProcessResult.Package(Path.of("java/com/example")))
-    assertThat(process("java/com/example/BUILD.bazel")).isEqualTo(FileProcessResult.Package(Path.of("java/com/example")))
+    assertThat(process("java/com/example/BUILD", 1000L)).isEqualTo(FileProcessResult.Package(Path.of("java/com/example"), 1000L))
+    assertThat(process("java/com/example/BUILD.bazel", 2000L)).isEqualTo(FileProcessResult.Package(Path.of("java/com/example"), 2000L))
+  }
+
+  @Test
+  fun testBuildFile_preservesTimestamp() {
+    val file = workspaceRoot.resolve("java/com/example/BUILD")
+    val result = processor.processRegularFile(FileEntry(file, 123456789L), file.parent)
+    assertThat(result).isEqualTo(FileProcessResult.Package(Path.of("java/com/example"), 123456789L))
   }
 
   @Test
