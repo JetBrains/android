@@ -55,6 +55,8 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
      * 4. Java package content (JavaPackageContent)
      */
     val sourcesMap: ConcurrentHashMap<Path, ConcurrentHashMap<Path, ConcurrentHashMap<String, JavaPackageContent>>> = ConcurrentHashMap()
+    val packageTimestamps: ConcurrentHashMap<Path, Long> = ConcurrentHashMap()
+    val directSubpackagesMap: ConcurrentHashMap<Path, MutableSet<Path>> = ConcurrentHashMap()
 
     val languages: MutableSet<QuerySyncLanguage> = ConcurrentHashMap.newKeySet()
     val warnedPackages: MutableSet<Path> = ConcurrentHashMap.newKeySet()
@@ -90,7 +92,18 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
           result.language?.let { languages.add(it) }
         }
         is FileProcessResult.Package -> {
-          // Do nothing to match query mode behavior (don't create empty source sets for packages)
+          packageTimestamps.merge(result.packagePath, result.buildFileLastModifiedTimeMs, ::maxOf)
+          if (result.packagePath.startsWith(includeRoot)) {
+            val rootMap = sourcesMap.computeIfAbsent(includeRoot) { ConcurrentHashMap() }
+            rootMap.computeIfAbsent(result.packagePath) { ConcurrentHashMap() }
+          }
+          if (result.packagePath.toString().isNotEmpty()) {
+            val parentPath = result.packagePath.parent ?: Path.of("")
+            val enclosingParentPackage = locator.findBuildPackage(parentPath)
+            if (enclosingParentPackage != null && enclosingParentPackage != result.packagePath) {
+              directSubpackagesMap.computeIfAbsent(enclosingParentPackage) { ConcurrentHashMap.newKeySet() }.add(result.packagePath)
+            }
+          }
         }
         is FileProcessResult.Ignored -> {}
       }
@@ -129,7 +142,9 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
                   javaPackage = javaPackage,
                 )
               }
-            val stamp = computePackageStamp(buildFileTimestamp = 0L, sourceSets = sourceSets, directSubpackages = emptyList())
+            val timestamp = packageTimestamps[buildPackage] ?: 0L
+            val directSubpackages = directSubpackagesMap[buildPackage]?.toList() ?: emptyList()
+            val stamp = computePackageStamp(buildFileTimestamp = timestamp, sourceSets = sourceSets, directSubpackages = directSubpackages)
             BuildPackage(path = buildPackage, sourceSets = sourceSets, stamp = stamp)
           }
         ProjectStructureRoot(projectStructureRootPath = includeRoot, buildPackages = buildPackages)

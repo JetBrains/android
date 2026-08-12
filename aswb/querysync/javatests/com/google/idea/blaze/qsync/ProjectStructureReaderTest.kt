@@ -26,10 +26,12 @@ import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectStructureRoot
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.google.idea.blaze.qsync.project.SourceSet
+import com.google.idea.blaze.qsync.project.getBuildPackage
 import com.google.idea.blaze.qsync.project.testutil.compareFormattedStrings
 import com.google.idea.blaze.qsync.project.testutil.dump
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.FileTime
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 import org.junit.Before
@@ -772,5 +774,60 @@ class ProjectStructureReaderTest {
         languages = setOf(QuerySyncLanguage.JVM),
       )
     assertStructureEquals(structure, expected)
+  }
+
+  @Test
+  fun testEmptyPackage_discoveredAndStamped() {
+    createFile("pkg/empty/BUILD")
+
+    val projectDefinition = createProjectDefinition(setOf("pkg"))
+    val structure = reader.read(context, workspaceRoot, projectDefinition)
+
+    val buildPackage = structure.getBuildPackage(Path.of("pkg/empty"))
+    assertThat(buildPackage).isNotNull()
+    assertThat(buildPackage?.path).isEqualTo(Path.of("pkg/empty"))
+    assertThat(buildPackage?.sourceSets).isEmpty()
+    assertThat(buildPackage?.stamp).isNotEqualTo(0L)
+  }
+
+  @Test
+  fun testSubpackageDiscovery_updatesParentStamp() {
+    createFile("pkg/parent/BUILD")
+    createFile("pkg/parent/File.java")
+
+    val projectDefinition = createProjectDefinition(setOf("pkg"))
+    val structure1 = reader.read(context, workspaceRoot, projectDefinition)
+    val parentStampBefore = structure1.getBuildPackage(Path.of("pkg/parent"))?.stamp
+    assertThat(parentStampBefore).isNotNull()
+
+    createFile("pkg/parent/child/BUILD")
+    createFile("pkg/parent/child/Child.java")
+
+    val structure2 = reader.read(context, workspaceRoot, projectDefinition)
+    val parentStampAfter = structure2.getBuildPackage(Path.of("pkg/parent"))?.stamp
+    assertThat(parentStampAfter).isNotNull()
+
+    assertThat(parentStampAfter).isNotEqualTo(parentStampBefore)
+  }
+
+  @Test
+  fun testBuildFileTimestamp_reflectedInPackageStamp() {
+    createFile("pkg/simple/BUILD")
+    createFile("pkg/simple/A.java")
+
+    val buildFile = workspaceRoot.resolve("pkg/simple/BUILD")
+    Files.setLastModifiedTime(buildFile, FileTime.fromMillis(1_000_000_000L))
+
+    val projectDefinition = createProjectDefinition(setOf("pkg"))
+    val structure1 = reader.read(context, workspaceRoot, projectDefinition)
+    val stamp1 = structure1.getBuildPackage(Path.of("pkg/simple"))?.stamp
+    assertThat(stamp1).isNotNull()
+
+    Files.setLastModifiedTime(buildFile, FileTime.fromMillis(2_000_000_000L))
+    val structure2 = reader.read(context, workspaceRoot, projectDefinition)
+    val stamp2 = structure2.getBuildPackage(Path.of("pkg/simple"))?.stamp
+    assertThat(stamp2).isNotNull()
+
+    assertThat(stamp2).isNotEqualTo(stamp1)
   }
 }
