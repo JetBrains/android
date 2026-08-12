@@ -30,6 +30,7 @@ import org.jetbrains.jewel.intui.markdown.bridge.styling.extensions.github.alert
 import org.jetbrains.jewel.intui.markdown.bridge.styling.extensions.github.tables.create
 import org.jetbrains.jewel.markdown.extensions.MarkdownProcessorExtension
 import org.jetbrains.jewel.markdown.extensions.MarkdownRendererExtension
+import org.jetbrains.jewel.markdown.extensions.autolink.AutolinkProcessorExtension
 import org.jetbrains.jewel.markdown.extensions.github.alerts.AlertStyling
 import org.jetbrains.jewel.markdown.extensions.github.alerts.GitHubAlertProcessorExtension
 import org.jetbrains.jewel.markdown.extensions.github.alerts.GitHubAlertRendererExtension
@@ -147,7 +148,7 @@ interface MarkdownFactory {
 
 /** Default Markdown processor extensions to use for Markdown documents. */
 fun getDefaultMarkdownProcessorExtensions(): List<MarkdownProcessorExtension> =
-  listOf(GitHubTableProcessorExtension, GitHubAlertProcessorExtension)
+  listOf(GitHubTableProcessorExtension, GitHubAlertProcessorExtension, AutolinkProcessorExtension)
 
 /** Default Markdown render extensions to use for Markdown documents, for the given style */
 fun getDefaultMarkdownRenderExtensions(styling: MarkdownStyling): List<MarkdownRendererExtension> =
