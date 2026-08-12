@@ -28,8 +28,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.run.deployment.liveedit.configureLanguageVersionSettings
-import com.android.tools.idea.run.deployment.liveedit.configureModuleName
+import com.android.tools.idea.run.deployment.liveedit.configureCompilerOptions
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.Companion.DEFAULT_RUNTIME_VERSION
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -37,7 +36,6 @@ import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptionsBuilder
-import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -83,11 +81,10 @@ internal class GradleApplicationLiveEditServices(private val module: Module) : A
     return file.module?.let { GradleCompilationDependencies(it) }
   }
 
-    @KaExperimentalApi
+  @KaExperimentalApi
   override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {
     val module = ktFile.module ?: return
-    configureModuleName(module)
-    configureLanguageVersionSettings(ktFile.languageVersionSettings)
+    configureCompilerOptions(module, ktFile)
   }
 
   override fun getDesugarConfigs(): DesugarConfigs {

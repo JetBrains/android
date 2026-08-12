@@ -21,7 +21,7 @@ import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getToken
-import com.android.tools.idea.run.deployment.liveedit.configureCommonKotlinCompilationOptions
+import com.android.tools.idea.run.deployment.liveedit.configureCompilerOptions
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -88,13 +88,13 @@ interface ApplicationLiveEditServices {
   /**
    * A descriptor of the dependencies of an original build system compilation unit.
    *
-   * Note: Implementations are supposed to support equaility via [Any.equals] and [Any.hashCode] in order to allow the caller to group
-   * source files/classes from the same compilation unit together.
+   * Note: Implementations are supposed to support equaility via [equals] and [hashCode] in order to allow the caller to group source
+   * files/classes from the same compilation unit together.
    */
   interface CompilationDependencies {
     /**
      * Returns the list of all jars on the transitive runtime classpath of this compilation unit that are not produced by this or other in
-     * project-scope compilation units, i.e. their class files are not returned by [ApplicationLiveEditServices.getClassContent].
+     * project-scope compilation units, i.e. their class files are not returned by [getClassContent].
      */
     fun getExternalLibraries(): List<Path>
 
@@ -115,7 +115,7 @@ interface ApplicationLiveEditServices {
 
   @TestOnly
   class LegacyForTests(private val project: Project) : ApplicationLiveEditServices {
-    data class CompilationDependenciesImpl(val module: Module) : ApplicationLiveEditServices.CompilationDependencies {
+    data class CompilationDependenciesImpl(val module: Module) : CompilationDependencies {
       override fun getExternalLibraries(): List<Path> {
         return AndroidRootUtil.getExternalLibraries(module).map { VfsUtilCore.virtualToIoFile(it).toPath() }
       }
@@ -131,13 +131,13 @@ interface ApplicationLiveEditServices {
       return module.getModuleSystem().moduleClassFileFinder.findClassFile(className)
     }
 
-    override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
+    override fun getCompilationDependencies(file: PsiFile): CompilationDependencies? {
       return file.module?.let { CompilationDependenciesImpl(it) }
     }
 
     @KaExperimentalApi
     override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {
-      configureCommonKotlinCompilationOptions(ktFile.module!!, ktFile)
+      configureCompilerOptions(ktFile.module!!, ktFile)
     }
 
     override fun getDesugarConfigs() = DesugarConfigs.NotKnown("Desugar config not set up in unit tests yet.")
@@ -150,7 +150,7 @@ interface ApplicationLiveEditServices {
     private val classFiles: Map<String, ByteArray>,
     val versionString: String = DEFAULT_RUNTIME_VERSION,
   ) : ApplicationLiveEditServices {
-    data class CompilationDependenciesImpl(val module: Module) : ApplicationLiveEditServices.CompilationDependencies {
+    data class CompilationDependenciesImpl(val module: Module) : CompilationDependencies {
       override fun getExternalLibraries(): List<Path> {
         return AndroidRootUtil.getExternalLibraries(module).map { VfsUtilCore.virtualToIoFile(it).toPath() }
       }
@@ -164,14 +164,14 @@ interface ApplicationLiveEditServices {
       return classFiles[className]?.let { ClassContent.forTests(it) }
     }
 
-    override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
+    override fun getCompilationDependencies(file: PsiFile): CompilationDependencies? {
       return file.module?.let { CompilationDependenciesImpl(it) }
     }
 
     @KaExperimentalApi
     override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {
       val module = ktFile.module ?: error("Cannot get a module for $ktFile")
-      configureCommonKotlinCompilationOptions(module, ktFile)
+      configureCompilerOptions(module, ktFile)
     }
 
     override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")

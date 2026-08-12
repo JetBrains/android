@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.fast
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
-import com.android.tools.idea.run.deployment.liveedit.configureCommonKotlinCompilationOptions
+import com.android.tools.idea.run.deployment.liveedit.configureCompilerOptions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.k2.OutputFileForKtCompiledFile
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
@@ -127,8 +127,7 @@ private constructor(
           if (inputFile.virtualFile in filesAlreadyCompiled) return@forEach
 
           @OptIn(KaExperimentalApi::class)
-          val result =
-            backendCodeGenForK2(inputFile, moduleForAllInputs) { configureCommonKotlinCompilationOptions(moduleForAllInputs, inputFile) }
+          val result = backendCodeGenForK2(inputFile, moduleForAllInputs) { configureCompilerOptions(moduleForAllInputs, inputFile) }
           log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
           @OptIn(KaExperimentalApi::class) addIfNotDuplicated(pathToCompileOutput, result.output.map { OutputFileForKtCompiledFile(it) })
 

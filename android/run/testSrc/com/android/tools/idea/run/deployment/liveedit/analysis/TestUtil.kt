@@ -36,7 +36,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVaria
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.toClassNode
 import com.android.tools.idea.run.deployment.liveedit.compile
-import com.android.tools.idea.run.deployment.liveedit.configureCommonKotlinCompilationOptions
+import com.android.tools.idea.run.deployment.liveedit.configureCompilerOptions
 import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.android.tools.idea.run.deployment.liveedit.getPsiValidationState
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
@@ -55,7 +55,7 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
-import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 fun diff(old: IrClass, new: IrClass): ClassDiff? {
@@ -115,9 +115,7 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
           val output = mutableListOf<ByteArray>()
           @OptIn(KaExperimentalApi::class)
           inputFiles.forEach { inputFile ->
-            val inputFileModule = inputFile.module!!
-            val result =
-              backendCodeGenForK2(inputFile, inputFileModule) { configureCommonKotlinCompilationOptions(inputFileModule, inputFile) }
+            val result = backendCodeGenForK2(inputFile, inputFile.module!!) { configureCompilerOptions(inputFile.module!!, inputFile) }
             result.output.filter { it.path.endsWith(".class") }.forEach { output.add(it.content) }
           }
           output

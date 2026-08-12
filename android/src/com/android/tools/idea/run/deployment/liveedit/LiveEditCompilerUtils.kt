@@ -22,10 +22,9 @@ import com.intellij.psi.util.descendantsOfType
 import java.util.LinkedList
 import kotlin.metadata.jvm.KotlinClassMetadata
 import kotlin.metadata.jvm.Metadata
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.KaIdeApi
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.psi.KtFile
@@ -72,20 +71,21 @@ internal fun List<KtFile>.checkPsiErrorElement() {
   }
 }
 
-fun CompilerConfiguration.setOptions(languageVersionSettings: LanguageVersionSettings) {
-  put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, languageVersionSettings)
+@OptIn(KaExperimentalApi::class, KaIdeApi::class)
+fun KaCompilationOptionsBuilder.setOptions(languageVersionSettings: LanguageVersionSettings) {
+  languageVersionSettings(languageVersionSettings)
 
   // Needed so we can diff changes to method parameters and parameter annotations.
-  put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
+  jvmGenerateParameterMetadata(true)
 
   when (StudioFlags.CLOSURE_SCHEME.get()!!) {
     StudioFlags.ClosureScheme.CLASS -> {
-      put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-      put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
+      jvmUseInvokeDynamicForSamConversions(false)
+      jvmUseInvokeDynamicForLambdas(false)
     }
     StudioFlags.ClosureScheme.INDY -> {
-      put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.INDY)
-      put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.INDY)
+      jvmUseInvokeDynamicForSamConversions(true)
+      jvmUseInvokeDynamicForLambdas(true)
     }
   }
 }

@@ -32,13 +32,12 @@ import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 import org.jetbrains.android.sdk.getInstance
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArgumentsConfigurator
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.arguments.toLanguageVersionSettings
-import org.jetbrains.kotlin.cli.create
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
 /** Bazel implementation of [ApplicationLiveEditServices] for Live Edit and Compose previews. */
@@ -83,15 +82,16 @@ class BazelApplicationLiveEditServices(
     return outcome.classFileFinder.findClassFile(className)
   }
 
-  override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
+  @OptIn(KaExperimentalApi::class)
+  override fun KaCompilationOptionsBuilder.configureKotlinCompilerOptions(ktFile: KtFile) {
     val qSyncManager = QuerySyncManager.getInstance(project)
-    val snapshot = qSyncManager.currentSnapshot.getOrNull() ?: return CompilerConfiguration.create()
+    val snapshot = qSyncManager.currentSnapshot.getOrNull() ?: return
 
     val workspaceRoot = WorkspaceRoot.fromProject(project)
     val path = workspaceRoot.relativize(ktFile.virtualFile.toNioPath())
-    val sourceFileLabel = snapshot.projectStructureData.pathToLabel(path) ?: return CompilerConfiguration.create()
+    val sourceFileLabel = snapshot.projectStructureData.pathToLabel(path) ?: return
     val labels = snapshot.staleGraph.getSourceFileOwners(sourceFileLabel)
-    if (labels.isEmpty()) return CompilerConfiguration.create()
+    if (labels.isEmpty()) return
 
     // Choose the target that would normally be selected for previews.
     val label =
@@ -99,20 +99,18 @@ class BazelApplicationLiveEditServices(
         .toPreferredLabel(isPreferredTarget = { buildOutcomeProvider.lastBuildOutcome()?.builtJavaTargetPredicate(it) ?: false })
         ?: labels.first()
 
-    val targetBuildInfo = snapshot.artifactIndex.builtDepsMap()[label] ?: return CompilerConfiguration.create()
-    val javaInfo = (targetBuildInfo as? TargetBuildInfo.Java)?.javaInfo ?: return CompilerConfiguration.create()
+    val targetBuildInfo = snapshot.artifactIndex.builtDepsMap()[label] ?: return
+    val javaInfo = (targetBuildInfo as? TargetBuildInfo.Java)?.javaInfo ?: return
     val flags = javaInfo.kotlinCompilerFlags
 
-    return CompilerConfiguration.create().apply {
-      setOptions(
-        parseCommandLineArguments<K2JVMCompilerArguments>(flags)
-          .toLanguageVersionSettings(CommonCompilerArgumentsConfigurator.Reporter.DoNothing)
-      )
-      put(CommonConfigurationKeys.MODULE_NAME, label.toString())
+    val languageSettings =
+      parseCommandLineArguments<K2JVMCompilerArguments>(flags)
+        .toLanguageVersionSettings(CommonCompilerArgumentsConfigurator.Reporter.DoNothing)
+    setOptions(languageSettings)
+    moduleName(label.toString())
 
-      // Add a TODO for improvement on target selection if needed.
-      // TODO: Refine target selection to match the actual dependency of the main build target if ambiguous.
-    }
+    // Add a TODO for improvement on target selection if needed.
+    // TODO: Refine target selection to match the actual dependency of the main build target if ambiguous.
   }
 
   override fun getDesugarConfigs(): DesugarConfigs {

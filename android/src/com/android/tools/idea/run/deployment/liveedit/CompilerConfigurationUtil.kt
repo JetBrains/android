@@ -25,40 +25,29 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.arguments.toLanguageVersionSettings
-import org.jetbrains.kotlin.cli.create
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.psi.KtFile
 
-/*
- * Copyright (C) 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 @KaExperimentalApi
-fun KaCompilationOptionsBuilder.configureCommonKotlinCompilationOptions(module: Module, file: KtFile) {
+fun KaCompilationOptionsBuilder.configureCompilerOptions(module: Module, file: KtFile) {
   if (file.module != module) {
     // *Note*: currently all 3 callers satisfy this condition and [module] parameter is going to be removed once both compose previews and
     // live edit migration to build system specific extension points is completed.
     error("$file must belong to $module")
   }
 
-  configureModuleName(module)
+  val moduleNameFromFacet =
+    KotlinFacet.get(module)?.let { kotlinFacet ->
+      when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+        is K2JVMCompilerArguments -> compilerArguments.moduleName
+        is K2MetadataCompilerArguments -> compilerArguments.moduleName
+        else -> null
+      }
+    }
+  moduleName(moduleNameFromFacet ?: module.name)
 
   // This flag was created mostly for experimental Live Edit for ASwB. We should no longer be relying it
   // once we can fetch flags from QuerySync
@@ -72,20 +61,14 @@ fun KaCompilationOptionsBuilder.configureCommonKotlinCompilationOptions(module: 
   } else {
     configureLanguageVersionSettings(file.languageVersionSettings)
   }
-}
 
-@KaExperimentalApi
-fun KaCompilationOptionsBuilder.configureModuleName(module: Module) {
-  val moduleNameFromFacet =
-    KotlinFacet.get(module)?.let { kotlinFacet ->
-      when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
-        is K2JVMCompilerArguments -> compilerArguments.moduleName
-        is K2MetadataCompilerArguments -> compilerArguments.moduleName
-        else -> null
-      }
-    }
-
-  moduleName(moduleNameFromFacet ?: module.name)
+  // TODO(b/367786795): We met an exception from JVM IR CodeGen in the middle of K2 LiveEdit. It was caused by an
+  //  optimization similar to constant propagation. As explained in https://youtrack.jetbrains.com/issue/KT-70261,
+  //  "It is kind of experimental (because of -X) but only because the whole interpretation and optimization
+  //  thing is experimental.", we simply pass `-Xignore-const-optimization-errors`. When the optimization is
+  //  stable, we can drop this.
+  // TODO: android-merge; KaCompilationOptionsBuilder.ignoreConstOptimizationErrors does not exist in the analysis API we compile against
+  // @OptIn(KaIdeApi::class) ignoreConstOptimizationErrors(true)
 }
 
 @KaExperimentalApi
@@ -106,39 +89,4 @@ fun KaCompilationOptionsBuilder.configureLanguageVersionSettings(languageVersion
       jvmUseInvokeDynamicForLambdas(true)
     }
   }
-}
-
-fun getCompilerConfiguration(module: Module, file: KtFile): CompilerConfiguration {
-  if (file.module != module) {
-    // *Note*: currently all 3 callers satisfy this condition and [module] parameter is going to be removed once both compose previews and
-    // live edit migration to build system specific extension points is completed.
-    error("$file must belong to $module")
-  }
-  val compilerConfiguration =
-    CompilerConfiguration.create().apply {
-      put(CommonConfigurationKeys.MODULE_NAME, module.name)
-      KotlinFacet.get(module)?.let { kotlinFacet ->
-        val moduleName =
-          when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
-            is K2JVMCompilerArguments -> compilerArguments.moduleName
-            is K2MetadataCompilerArguments -> compilerArguments.moduleName
-            else -> null
-          }
-        moduleName?.let { put(CommonConfigurationKeys.MODULE_NAME, it) }
-      }
-
-      // This flag was created mostly for experimental Live Edit for ASwB. We should no longer be relying it
-      // once we can fetch flags from QuerySync
-      //
-      // see ApplicationLiveEditServices.getKotlinCompilerConfiguration which current not implemented on the Blaze side.
-      if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().isNotEmpty()) {
-        val flags = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().split(" ")
-        val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
-        val languageSettings = mainKotlinCompilerOptions.toLanguageVersionSettings(CommonCompilerArgumentsConfigurator.Reporter.DoNothing)
-        setOptions(languageSettings)
-      } else {
-        setOptions(file.languageVersionSettings)
-      }
-    }
-  return compilerConfiguration
 }
