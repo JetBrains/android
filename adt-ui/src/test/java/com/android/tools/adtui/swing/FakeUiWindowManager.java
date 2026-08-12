@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.swing;
 
+import static kotlinx.coroutines.CompletableDeferredKt.CompletableDeferred;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressModel;
@@ -50,6 +52,7 @@ import javax.swing.JFrame;
 import javax.swing.event.HyperlinkListener;
 import kotlin.Pair;
 import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Deferred;
 import kotlinx.coroutines.flow.StateFlow;
 import kotlinx.coroutines.flow.StateFlowKt;
 import org.jetbrains.annotations.NotNull;
@@ -85,6 +88,11 @@ public final class FakeUiWindowManager extends WindowManagerEx {
   @Override
   public IdeFrame getIdeFrame(Project project) {
     return null;
+  }
+
+  @Override
+  public @NotNull Deferred<@Nullable IdeFrame> getIdeFrameDeferred(@NotNull Project project) {
+    return CompletableDeferred(null);
   }
 
   @Override
