@@ -21,6 +21,10 @@ import com.android.tools.deploy.proto.Deploy.FindDexResponse
 import com.android.tools.deployer.AdbInstaller
 import com.android.tools.deployer.MetricsRecorder
 import com.android.tools.deployer.common.AdbClient
+import com.android.tools.deployer.common.DeviceHolder
+import com.android.tools.deployer.common.Installer
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.toConnectedDevice
 import com.android.tools.idea.debug.DexFinder.DEX_FILES_KEY
 import com.android.tools.idea.debug.DexFinder.Result
 import com.android.tools.idea.log.LogWrapper
@@ -37,6 +41,7 @@ import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.getOrCreateUserData
@@ -160,9 +165,9 @@ private suspend fun findDexViaApkProvider(
 }
 
 // Retrieve the dex files from the .apk(s) on the device.
-private fun findDexViaInstaller(debugProcess: DebugProcessImpl, location: Location): Pair<Dex?, FindDexResponse.Status> {
+private suspend fun findDexViaInstaller(debugProcess: DebugProcessImpl, location: Location): Pair<Dex?, FindDexResponse.Status> {
   val device = debugProcess.connectedDevice ?: return null to FindDexResponse.Status.NOT_FOUND
-  val installer = newInstaller(device)
+  val installer = newInstaller(device, debugProcess.project)
   val signature = location.declaringType().signature()
   for (packageName in debugProcess.applicationPackageNames) {
     val response = installer.findDex(packageName, signature)
@@ -225,10 +230,12 @@ private suspend fun findModule(element: KtElement): Module? {
   }
 }
 
-fun newInstaller(device: IDevice): com.android.tools.deployer.common.Installer {
+suspend fun newInstaller(device: IDevice, project: Project): Installer {
   val metrics = MetricsRecorder()
-  // TODO studio-merge
-  val adb = AdbClient(com.android.tools.deployer.common.DeviceHolder(device, java.util.Optional.empty()), DexFinder.LOGGER)
+  val session = AdbLibService.getSession(project)
+  val connectedDevice = device.toConnectedDevice(project)
+  val deviceHolder = DeviceHolder(device, connectedDevice, session)
+  val adb = AdbClient(deviceHolder, DexFinder.LOGGER, session)
   return AdbInstaller(LocalInstallerPathManager.getLocalInstaller(), adb, metrics.deployMetrics, DexFinder.LOGGER, AdbInstaller.Mode.DAEMON)
 }
 

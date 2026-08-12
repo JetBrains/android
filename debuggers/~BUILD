@@ -19,6 +19,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/deploy:intellij.android.deploy",
+        "//tools/adt/idea/android-adb:intellij.android.adb",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/flags:studio.android.sdktools.flags",
         "@intellij//:org.jetbrains.kotlin",
