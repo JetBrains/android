@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
@@ -160,7 +161,7 @@ public class DetailedCpuChart {
     mainPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     mainPanel.add(myUsageView, new TabularLayout.Constraint(MONITOR.getRow(), 0));
-    mainPanel.add(createCpuStatePanel(myTooltipComponent), new TabularLayout.Constraint(DETAILS.getRow(), 0));
+    mainPanel.add(createCpuStatePanel(myTooltipComponent, mainLayout, details), new TabularLayout.Constraint(DETAILS.getRow(), 0));
 
     // Panel that represents all of L2
     details.add(mainPanel, new TabularLayout.Constraint(1, 0));
@@ -168,7 +169,7 @@ public class DetailedCpuChart {
   }
 
   @NotNull
-  JPanel createCpuStatePanel(RangeTooltipComponent myTooltipComponent) {
+  JPanel createCpuStatePanel(RangeTooltipComponent myTooltipComponent, TabularLayout mainLayout, JPanel details) {
     TabularLayout cpuStateLayout = new TabularLayout("*");
     JPanel cpuStatePanel = new JBPanel<>(cpuStateLayout);
 
@@ -176,9 +177,19 @@ public class DetailedCpuChart {
     cpuStateLayout.setRowSizing(THREADS.getRow(), THREADS.getRowRule());
 
     //region CpuThreadsView
-    myTooltipComponent.registerListenersOn(myThreads.getComponent());
+    myTooltipComponent.registerListenersOn(myThreads.getThreadsList());
     cpuStatePanel.add(myThreads.getComponent(), new TabularLayout.Constraint(THREADS.getRow(), 0));
     //endregion
+
+    if (myThreads.getComponent() instanceof HideablePanel hideablePanel) {
+      hideablePanel.addStateChangedListener(e -> {
+        boolean expanded = hideablePanel.isExpanded();
+        cpuStateLayout.setRowSizing(THREADS.getRow(), expanded ? THREADS.getRowRule() : "Fit");
+        mainLayout.setRowSizing(DETAILS.getRow(), expanded ? DETAILS.getRowRule() : "Fit");
+        details.revalidate();
+        details.repaint();
+      });
+    }
 
     return cpuStatePanel;
   }

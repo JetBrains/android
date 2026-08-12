@@ -94,12 +94,23 @@ class LiveStageViewTest {
     val liveStageView = LiveStageView(myProfilersView, myStage)
     val treeWalker = TreeWalker(liveStageView.component)
     val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
-    // Check for tooltip presence in live view component
-    assertThat(tooltipComponent.size).isEqualTo(1)
+    // Check for tooltip presence in live view component (one per live model: CPU and Memory)
+    assertThat(tooltipComponent.size).isEqualTo(2)
 
     val jPanels = treeWalker.descendants().filterIsInstance(JPanel::class.java)
     // Lot of JPanel will be there, since we are adding many sub live views.
     assertThat(jPanels.size).isGreaterThan(1)
+  }
+
+  @Test
+  fun testThreadsCollapseUpdatesLiveViewLayout() {
+    val liveStageView = LiveStageView(myProfilersView, myStage)
+    val hideablePanel =
+      TreeWalker(liveStageView.component).descendants().filterIsInstance<com.android.tools.adtui.ui.HideablePanel>().first()
+    assertThat(hideablePanel.isExpanded).isTrue()
+
+    hideablePanel.isExpanded = false
+    assertThat(hideablePanel.isExpanded).isFalse()
   }
 
   /** Test main panel of LiveStage view has topPanel, which is a tabular layout * */

@@ -20,6 +20,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
+import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.LiveDataView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
@@ -45,10 +46,28 @@ public class LiveCpuUsageView extends LiveDataView<LiveCpuUsageModel> {
     myAllocationModel = allocationModel;
     myDetailedCpuChart = new DetailedCpuChart(profilersView, allocationModel);
 
+    JComponent threadsComponent = myDetailedCpuChart.getThreadsView().getComponent();
+    if (threadsComponent instanceof HideablePanel) {
+      ((HideablePanel)threadsComponent).addStateChangedListener(e -> notifyWeightChanged());
+    }
+
     TabularLayout topPanelLayout = new TabularLayout("*", "*,Fit-");
     myComponent = new JPanel(topPanelLayout);
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myCpuTooltipModel = myAllocationModel.getTooltip();
+  }
+
+  public boolean isThreadsExpanded() {
+    JComponent threadsComponent = myDetailedCpuChart.getThreadsView().getComponent();
+    if (threadsComponent instanceof HideablePanel) {
+      return ((HideablePanel)threadsComponent).isExpanded();
+    }
+    return true;
+  }
+
+  @Override
+  public float getVerticalWeight() {
+    return isThreadsExpanded() ? 1f : 0f;
   }
 
   public JComponent getComponent() {

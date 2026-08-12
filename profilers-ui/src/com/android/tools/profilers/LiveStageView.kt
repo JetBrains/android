@@ -17,6 +17,7 @@ package com.android.tools.profilers
 
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.ViewBinder
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.adtui.stdui.TimelineScrollbar
@@ -42,6 +43,9 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) : 
   private val stopRecordingButton: CommonButton
   private val liveStageToolbarItems: MutableList<JComponent>
 
+  private val tooltipPanels = mutableListOf<JPanel>()
+  private val activeTooltipViews = mutableListOf<TooltipView>()
+
   init {
     binder.bind(LiveMemoryFootprintModel::class.java) { view: StudioProfilersView, model -> LiveMemoryFootprintView(view, model) }
     binder.bind(LiveCpuUsageModel::class.java) { view: StudioProfilersView, model -> LiveCpuUsageView(view, model) }
@@ -61,8 +65,6 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) : 
     liveStageToolbarItems = createLiveStageToolbarItems()
 
     tooltipPanel.layout = FlowLayout(FlowLayout.LEFT, 0, 0)
-    val myTooltipComponent =
-      RangeTooltipComponent(stage.timeline, tooltipPanel, profilersView.component, this::shouldShowTooltipSeekComponent)
 
     val topPanelLayout = TabularLayout("*", "*,Fit-")
     val topPanel = JPanel(topPanelLayout)
@@ -74,7 +76,11 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) : 
       liveStage.eventMonitor.let { eventMonitor ->
         val eventsView = EventMonitorView(profilersView, eventMonitor.get())
         val eventComponent = eventsView.component
-        eventsView.registerTooltip(myTooltipComponent, stage)
+        val eventTooltipPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply { background = ProfilerColors.TOOLTIP_BACKGROUND }
+        tooltipPanels.add(eventTooltipPanel)
+        val eventTooltipComponent =
+          RangeTooltipComponent(stage.timeline, eventTooltipPanel, profilersView.component, this::shouldShowTooltipSeekComponent)
+        eventsView.registerTooltip(eventTooltipComponent, stage)
         topPanelLayout.setRowSizing(1, "Fit-")
         topPanel.add(eventComponent, TabularLayout.Constraint(1, 0))
       }
@@ -84,10 +90,19 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) : 
       liveDataModel.enter()
       val view = binder.build(profilersView, liveDataModel) as LiveDataView<LiveDataModel>
       val viewComponent = view.component
-      view.populateUi(myTooltipComponent)
-      view.registerTooltip(tooltipBinder, myTooltipComponent, liveStage)
+      val liveTooltipPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply { background = ProfilerColors.TOOLTIP_BACKGROUND }
+      tooltipPanels.add(liveTooltipPanel)
+      val tooltipComponent =
+        RangeTooltipComponent(stage.timeline, liveTooltipPanel, profilersView.component, this::shouldShowTooltipSeekComponent)
+      view.populateUi(tooltipComponent)
+      view.registerTooltip(tooltipBinder, tooltipComponent, liveStage)
       liveViews.add(viewComponent, TabularLayout.Constraint(rowIndex, 0))
       liveViewLayout.setRowSizing(rowIndex, rowSizeString(view))
+      view.addWeightChangedListener {
+        liveViewLayout.setRowSizing(rowIndex, rowSizeString(view))
+        liveViews.revalidate()
+        liveViews.repaint()
+      }
     }
 
     topPanelLayout.setRowSizing(2, "*")
@@ -153,7 +168,30 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) : 
 
   private fun rowSizeString(view: LiveDataView<LiveDataModel>): String {
     val weight = (view.verticalWeight * 100f).toInt()
-    return if (weight > 0) "$weight*" else "Fit-"
+    return if (weight > 0) "$weight*" else "Fit"
+  }
+
+  override fun tooltipChanged() {
+    activeTooltipViews.forEach { it.dispose() }
+    activeTooltipViews.clear()
+    for (panel in tooltipPanels) {
+      panel.removeAll()
+      panel.isVisible = false
+    }
+
+    val tooltip = stage.tooltip
+    if (tooltip != null) {
+      for (panel in tooltipPanels) {
+        val view = tooltipBinder.build(this, tooltip)
+        activeTooltipViews.add(view)
+        panel.add(view.createComponent())
+        panel.isVisible = true
+      }
+    }
+    for (panel in tooltipPanels) {
+      panel.invalidate()
+      panel.repaint()
+    }
   }
 
   override fun getToolbar(): JComponent {

@@ -25,6 +25,8 @@ import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class LiveDataView<T extends LiveDataModel> extends AspectObserver {
   @NotNull private final T myLiveDataModel;
   private final JPanel myContainer;
+  private final List<Runnable> myWeightChangedListeners = new ArrayList<>();
 
   public LiveDataView(@NotNull T liveDataModel) {
     myLiveDataModel = liveDataModel;
@@ -62,6 +65,16 @@ public abstract class LiveDataView<T extends LiveDataModel> extends AspectObserv
    */
   public float getVerticalWeight() {
     return 1f;
+  }
+
+  public void addWeightChangedListener(@NotNull Runnable listener) {
+    myWeightChangedListeners.add(listener);
+  }
+
+  protected void notifyWeightChanged() {
+    for (Runnable listener : myWeightChangedListeners) {
+      listener.run();
+    }
   }
 
   @NotNull
