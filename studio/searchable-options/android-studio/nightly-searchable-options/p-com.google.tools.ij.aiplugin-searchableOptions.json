@@ -408,6 +408,10 @@
       "path": "ActionManager"
     },
     {
+      "hit": "Manage Skills",
+      "path": "ActionManager"
+    },
+    {
       "hit": "Merge Conflicts with Agent",
       "path": "ActionManager"
     },
