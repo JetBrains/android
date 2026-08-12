@@ -369,7 +369,7 @@ object EnvironmentImageScanner {
 
   private fun hasAtLeastTwoToOneAspectRatio(width: Int, height: Int): Boolean = width > 0 && height > 0 && width >= height * 2
 
-  private fun hasCyclicBoundaryContinuity(image: BufferedImage, threshold: Double = 0.8): Boolean {
+  private fun hasCyclicBoundaryContinuity(image: BufferedImage, threshold: Double = 0.6): Boolean {
     if (image.width < 2) return false
 
     val leftStrip = image.getSubimage(0, 0, 1, image.height)
