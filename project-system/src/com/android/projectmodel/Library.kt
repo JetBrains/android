@@ -157,6 +157,9 @@ data class ExternalLibraryImpl(
   /** Returns a copy of the receiver with the given [packageName]. Intended to simplify construction from Java. */
   fun withPackageName(packageName: String?) = copy(packageName = packageName)
 
+  /** Returns a copy of the receiver with the given assets folder. Intended to simplify construction from Java. */
+  fun withAssetsFolder(path: PathString?) = copy(assetsFolder = path)
+
   /** Returns true iff this [Library] contains no files */
   fun isEmpty() = this == ExternalLibraryImpl(address = address, packageName = packageName)
 }

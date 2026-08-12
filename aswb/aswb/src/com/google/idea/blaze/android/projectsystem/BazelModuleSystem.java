@@ -430,6 +430,9 @@ public final class BazelModuleSystem
             .withManifestFile(toPathString(proto.getManifestFile()))
             .withResFolder(new SelectiveResourceFolder(toPathString(proto.getResFolder()), null))
             .withSymbolFile(toPathString(proto.getSymbolFile()));
+    if (proto.getAssetsFolder() != null) {
+      lib = lib.withAssetsFolder(toPathString(proto.getAssetsFolder()));
+    }
     if (!proto.getPackageName().isEmpty()) {
       lib = lib.withPackageName(proto.getPackageName());
     }
