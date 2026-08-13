@@ -51,15 +51,16 @@ class Screenshot(filename: String, bitmapType: BitmapType) {
 }
 
 fun ByteArray.compress(): ByteArray {
-  val deflater = Deflater(Deflater.BEST_SPEED)
-  deflater.setInput(this)
-  deflater.finish()
   val buffer = ByteArray(1024 * 100)
   val baos = ByteArrayOutputStream()
-  while (!deflater.finished()) {
-    val count = deflater.deflate(buffer)
-    if (count <= 0) break
-    baos.write(buffer, 0, count)
+  Deflater(Deflater.BEST_SPEED).use { deflater ->
+    deflater.setInput(this)
+    deflater.finish()
+    while (!deflater.finished()) {
+      val count = deflater.deflate(buffer)
+      if (count <= 0) break
+      baos.write(buffer, 0, count)
+    }
   }
   baos.flush()
   return baos.toByteArray()
