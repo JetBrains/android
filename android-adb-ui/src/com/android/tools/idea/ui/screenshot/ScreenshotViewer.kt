@@ -596,14 +596,15 @@ class ScreenshotViewer(
     private fun deflate(data: ByteArray): ByteArray {
       val out = ByteArrayOutputStream(data.size)
 
-      val deflater = Deflater()
-      deflater.setInput(data)
-      deflater.finish()
-
       val buffer = ByteArray(4096)
-      while (!deflater.finished()) {
-        val count = deflater.deflate(buffer)
-        out.write(buffer, 0, count)
+      Deflater().use { deflater ->
+        deflater.setInput(data)
+        deflater.finish()
+
+        while (!deflater.finished()) {
+          val count = deflater.deflate(buffer)
+          out.write(buffer, 0, count)
+        }
       }
       return out.toByteArray()
     }
