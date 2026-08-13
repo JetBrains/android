@@ -85,6 +85,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -176,6 +177,7 @@ class StreamingToolWindowManagerTest {
     deviceMirroringSettings.loadState(DeviceMirroringSettings()) // Reset device mirroring settings to defaults.
     service<DeviceClientRegistry>().clear()
     PairedDevicesLayoutStorage.getInstance().clear()
+    waitUntilIndexesAreReady(project) // Wait for indexing activity to finish to avoid leaking threads.
   }
 
   @Test
