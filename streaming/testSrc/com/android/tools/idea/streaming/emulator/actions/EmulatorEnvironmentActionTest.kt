@@ -199,21 +199,18 @@ class EmulatorEnvironmentActionTest {
     testRootDisposable.registerFakeFileChooserFactory(objFile)
 
     var dialogShownMessage: String? = null
-    val previousDialog =
-      TestDialogManager.setTestDialog { message ->
+    TestDialogManager.setTestDialog(
+      { message ->
         dialogShownMessage = message
         0 // OK
-      }
-    try {
-      val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
-      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+      },
+      testRootDisposable,
+    )
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
-      assertFailsWith<TimeoutException> { emulator.getNextGrpcCall(1.seconds) }
-
-      assertThat(dialogShownMessage).isEqualTo("The selected file is not a valid Wavefront 3D scene file.")
-    } finally {
-      TestDialogManager.setTestDialog(previousDialog)
-    }
+    assertFailsWith<TimeoutException> { emulator.getNextGrpcCall(1.seconds) }
+    assertThat(dialogShownMessage).isEqualTo("The selected file is not a valid Wavefront 3D scene file.")
   }
 
   @Test
@@ -227,21 +224,18 @@ class EmulatorEnvironmentActionTest {
     testRootDisposable.registerFakeFileChooserFactory(objFile)
 
     var dialogShownMessage: String? = null
-    val previousDialog =
-      TestDialogManager.setTestDialog { message ->
+    TestDialogManager.setTestDialog(
+      { message ->
         dialogShownMessage = message
         0 // OK
-      }
-    try {
-      val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
-      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+      },
+      testRootDisposable,
+    )
+    val action = ActionManager.getInstance().getAction("android.emulator.environment.custom")
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
-      assertFailsWith<TimeoutException> { emulator.getNextGrpcCall(1.seconds) }
-
-      assertThat(dialogShownMessage).isEqualTo("The selected file is not a valid Wavefront 3D scene file.")
-    } finally {
-      TestDialogManager.setTestDialog(previousDialog)
-    }
+    assertFailsWith<TimeoutException> { emulator.getNextGrpcCall(1.seconds) }
+    assertThat(dialogShownMessage).isEqualTo("The selected file is not a valid Wavefront 3D scene file.")
   }
 
   @Test
@@ -425,18 +419,14 @@ class EmulatorEnvironmentActionTest {
     val tempFile = tempDirRule.newPath("equirectangular_candidate.png")
     ImageIO.write(img, "png", tempFile.toFile())
 
-    val oldDialog = TestDialogManager.setTestDialog(TestDialog.YES)
-    try {
-      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
-      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+    TestDialogManager.setTestDialog(TestDialog.YES, testRootDisposable)
+    val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
-      val call = emulator.getNextGrpcCall(2.seconds)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
-      assertThat(shortDebugString(call.request))
-        .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
-    } finally {
-      TestDialogManager.setTestDialog(oldDialog)
-    }
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request))
+      .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
   }
 
   @Test
@@ -455,18 +445,14 @@ class EmulatorEnvironmentActionTest {
     val tempFile = tempDirRule.newPath("equirectangular_candidate.png")
     ImageIO.write(img, "png", tempFile.toFile())
 
-    val oldDialog = TestDialogManager.setTestDialog(TestDialog.NO)
-    try {
-      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
-      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+    TestDialogManager.setTestDialog(TestDialog.NO, testRootDisposable)
+    val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
-      val call = emulator.getNextGrpcCall(2.seconds)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
-      assertThat(shortDebugString(call.request))
-        .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${tempFile.systemIndependentString}\" }")
-    } finally {
-      TestDialogManager.setTestDialog(oldDialog)
-    }
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request))
+      .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${tempFile.systemIndependentString}\" }")
   }
 
   @Test
@@ -1038,18 +1024,14 @@ class EmulatorEnvironmentActionTest {
     EmulatorEnvironmentAction.addRecentFile(RecentFile(tempFile.systemIndependentString, timestamp, size, "image360"))
 
     // Set dialog to throw exception if called (dialog should NOT be called!)
-    val oldDialog = TestDialogManager.setTestDialog { message -> error("Dialog should not be shown when reusing mode: $message") }
-    try {
-      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
-      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+    TestDialogManager.setTestDialog({ message -> error("Dialog should not be shown when reusing mode: $message") }, testRootDisposable)
+    val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
-      val call = emulator.getNextGrpcCall(2.seconds)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
-      assertThat(shortDebugString(call.request))
-        .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
-    } finally {
-      TestDialogManager.setTestDialog(oldDialog)
-    }
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request))
+      .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
   }
 
   @Test
@@ -1075,18 +1057,14 @@ class EmulatorEnvironmentActionTest {
     EmulatorEnvironmentAction.addRecentFile(RecentFile(tempFile.systemIndependentString, timestamp, size, "imagefile"))
 
     // Set dialog to throw exception if called (dialog should NOT be called!)
-    val oldDialog = TestDialogManager.setTestDialog { message -> error("Dialog should not be shown when reusing mode: $message") }
-    try {
-      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
-      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+    TestDialogManager.setTestDialog({ message -> error("Dialog should not be shown when reusing mode: $message") }, testRootDisposable)
+    val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
-      val call = emulator.getNextGrpcCall(2.seconds)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
-      assertThat(shortDebugString(call.request))
-        .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${tempFile.systemIndependentString}\" }")
-    } finally {
-      TestDialogManager.setTestDialog(oldDialog)
-    }
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request))
+      .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${tempFile.systemIndependentString}\" }")
   }
 
   @Test
@@ -1111,23 +1089,21 @@ class EmulatorEnvironmentActionTest {
     EmulatorEnvironmentAction.addRecentFile(RecentFile(tempFile.systemIndependentString, 12345L, size, "imagefile"))
 
     var dialogShown = false
-    val oldDialog =
-      TestDialogManager.setTestDialog {
+    TestDialogManager.setTestDialog(
+      {
         dialogShown = true
         0 // YES
-      }
-    try {
-      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
-      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+      },
+      testRootDisposable,
+    )
+    val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+    executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
 
-      val call = emulator.getNextGrpcCall(2.seconds)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
-      assertThat(shortDebugString(call.request))
-        .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
-      assertThat(dialogShown).isTrue()
-    } finally {
-      TestDialogManager.setTestDialog(oldDialog)
-    }
+    val call = emulator.getNextGrpcCall(2.seconds)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+    assertThat(shortDebugString(call.request))
+      .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
+    assertThat(dialogShown).isTrue()
   }
 }
 
