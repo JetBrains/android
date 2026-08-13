@@ -33,15 +33,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.InitialConfigImportState;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.registry.Registry;
 import java.util.List;
-import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
-import org.jetbrains.kotlin.idea.core.script.v1.settings.KotlinScriptingSettings;
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider;
 
 /**
  * Performs Gradle-specific IDE initialization
