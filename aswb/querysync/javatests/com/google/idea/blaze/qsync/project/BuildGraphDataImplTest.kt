@@ -748,6 +748,65 @@ class BuildGraphDataImplTest {
     assertThat(rdeps.map { it.label() }).containsExactly(Label.of("//pkg:test_lib"), Label.of("//pkg:test_target"))
   }
 
+  @Test
+  fun getReverseDepsForSource_traversesImlTestModuleToSplitJavaTests() {
+    val builder = builder()
+    builder
+      .addSourceFileLabel(Label.of("//pkg:BUILD"))
+      .addSourceFileLabel(Label.of("//pkg:MyTest.kt"))
+      .addSupportedTargetLabel(Label.of("//pkg:my_module"))
+      .addSupportedTargetLabel(Label.of("//pkg:my_module_testlib"))
+      .addSupportedTargetLabel(Label.of("//pkg:my_module_tests__part1"))
+      .addSupportedTargetLabel(Label.of("//pkg:my_module_tests__part2"))
+
+    val imlModule =
+      ProjectTarget.builder()
+        .label(Label.of("//pkg:my_module"))
+        .kind("_iml_module_")
+        .tags(emptyList())
+        .apply { sourceLabelsBuilder().put(ProjectTarget.SourceType.REGULAR_JVM, Label.of("//pkg:MyTest.kt")) }
+        .build()
+
+    val imlTestModule =
+      ProjectTarget.builder()
+        .label(Label.of("//pkg:my_module_testlib"))
+        .kind("_iml_test_module_")
+        .tags(emptyList())
+        .apply { depsBuilder().add(Label.of("//pkg:my_module")) }
+        .build()
+
+    val splitTest1 =
+      ProjectTarget.builder()
+        .label(Label.of("//pkg:my_module_tests__part1"))
+        .kind("java_test")
+        .tags(emptyList())
+        .apply { runtimeDepsBuilder().add(Label.of("//pkg:my_module_testlib")) }
+        .build()
+
+    val splitTest2 =
+      ProjectTarget.builder()
+        .label(Label.of("//pkg:my_module_tests__part2"))
+        .kind("java_test")
+        .tags(emptyList())
+        .apply { runtimeDepsBuilder().add(Label.of("//pkg:my_module_testlib")) }
+        .build()
+
+    builder.addTarget(Label.of("//pkg:my_module"), imlModule)
+    builder.addTarget(Label.of("//pkg:my_module_testlib"), imlTestModule)
+    builder.addTarget(Label.of("//pkg:my_module_tests__part1"), splitTest1)
+    builder.addTarget(Label.of("//pkg:my_module_tests__part2"), splitTest2)
+
+    val graph = builder.build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules)
+    val rdeps = graph.getReverseDepsForSource(Label.of("//pkg:MyTest.kt"))
+    assertThat(rdeps.map { it.label() })
+      .containsExactly(
+        Label.of("//pkg:my_module"),
+        Label.of("//pkg:my_module_testlib"),
+        Label.of("//pkg:my_module_tests__part1"),
+        Label.of("//pkg:my_module_tests__part2"),
+      )
+  }
+
   companion object {
     private val TEST_ROOT: Path = Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync")
 

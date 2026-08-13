@@ -334,7 +334,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
      * Whenever changing the logic in this class such that the Query.Summary proto contents will be different for the same input, this
      * version should be incremented.
      */
-    @VisibleForTesting const val PROTO_VERSION: Int = 14
+    @VisibleForTesting const val PROTO_VERSION: Int = 15
 
     // Compile-time dependency attributes, as they appear in streamed_proto output
     private val DEPENDENCY_ATTRIBUTES: Set<String> =
@@ -351,6 +351,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
         "library",
         "cc_library",
         "actual",
+        "iml_module",
       )
 
     // Compile time dependency attributes scoped to specific rule kind, for cases where sync does not

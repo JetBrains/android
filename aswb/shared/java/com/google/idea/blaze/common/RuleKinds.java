@@ -38,7 +38,8 @@ public final class RuleKinds {
           "_java_grpc_library",
           "_kotlin_library",
           "_java_lite_grpc_library",
-          "_iml_module_");
+          "_iml_module_",
+          "_iml_test_module_");
 
   /** Android rule kinds */
   public static final ImmutableSet<String> ANDROID_RULE_KINDS =

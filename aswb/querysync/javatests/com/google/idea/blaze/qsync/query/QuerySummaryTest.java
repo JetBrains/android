@@ -298,4 +298,32 @@ public class QuerySummaryTest {
     QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(testLabel);
     assertThat(rule.runtimeDeps()).containsExactly(Label.of("//foo:lib"));
   }
+
+  @Test
+  public void testCreate_imlModuleAttributePopulated() throws Exception {
+    Build.Target target =
+        Build.Target.newBuilder()
+            .setType(Build.Target.Discriminator.RULE)
+            .setRule(
+                Build.Rule.newBuilder()
+                    .setName("//foo:testlib")
+                    .setRuleClass("_iml_test_module_")
+                    .addAttribute(
+                        Build.Attribute.newBuilder()
+                            .setName("iml_module")
+                            .setType(Build.Attribute.Discriminator.LABEL)
+                            .setStringValue("//foo:main")))
+            .build();
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    target.writeDelimitedTo(out);
+    ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+    QuerySummary qs = QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, in);
+
+    Label testLabel = Label.of("//foo:testlib");
+    assertThat(QuerySummaryKt.getRulesMapForTests(qs).keySet()).contains(testLabel);
+    QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(testLabel);
+    assertThat(rule.deps()).containsExactly(Label.of("//foo:main"));
+  }
 }
