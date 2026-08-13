@@ -149,7 +149,7 @@ class SingleDeviceAndroidProcessMonitorTest {
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_DETACHED)
-    verify(mockDevice, never()).kill(TARGET_APP_NAME)
+    verify(mockDevice, never()).forceStop(TARGET_APP_NAME)
   }
 
   @Test
