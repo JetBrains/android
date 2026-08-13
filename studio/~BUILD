@@ -176,6 +176,7 @@ studio_plugin(
             "//tools/adt/idea/android-common:intellij.android.common",
             "//tools/adt/idea/android-concurrency:intellij.android.concurrency",
             "//tools/adt/idea/jps-model:intellij.android.jps.model",
+            "//tools/adt/idea/studio-flags:studio-flags",
         ],
         "android-kotlin.jar": [
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",

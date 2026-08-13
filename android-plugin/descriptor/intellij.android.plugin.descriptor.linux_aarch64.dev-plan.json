@@ -141,6 +141,11 @@
                         "input": "intellij.android.jps.model",
                         "kind": "module",
                         "filter": "module-v1"
+                    },
+                    {
+                        "input": "intellij.android.studio-flags",
+                        "kind": "module",
+                        "filter": "module-v1"
                     }
                 ],
                 "writer": {

@@ -241,7 +241,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.res.ResourceUpdateTraceSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.ui.designer.overlays.OverlayPersistentStateService"/>
-    <applicationService serviceImplementation="com.android.tools.idea.flags.StudioFlagSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
     <applicationService serviceInterface="com.android.tools.idea.sdk.AndroidSdks" serviceImplementation="com.android.tools.idea.sdk.AndroidSdksImpl"/>
@@ -803,6 +802,7 @@
   </projectListeners>
 
   <xi:include href="/META-INF/android-common.xml"/>
+  <xi:include href="/META-INF/studio-flags.xml"/>
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
   <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml"/>
 </idea-plugin>

@@ -19,7 +19,6 @@ import com.android.flags.Flag
 import com.android.flags.FlagValueProvider
 import com.android.tools.idea.flags.FeatureConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.utils.associateNotNull
 import com.google.common.annotations.VisibleForTesting
 import java.io.InputStream
 
@@ -78,12 +77,13 @@ class FeatureConfigurationProvider private constructor(private val values: Map<S
             reader
               .readLines()
               .filter { !it.startsWith("#") }
-              .associateNotNull {
-                val tokens = parseLine(it) ?: return@associateNotNull null
+              .mapNotNull {
+                val tokens = parseLine(it) ?: return@mapNotNull null
                 val flagConfig =
                   configsByName[tokens.second] ?: throw RuntimeException("Invalid value '${tokens.second}' for flag '${tokens.first}'")
                 tokens.first to flagConfig
               }
+              .toMap()
           }
         }
 

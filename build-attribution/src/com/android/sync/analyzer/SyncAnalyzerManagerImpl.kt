@@ -20,6 +20,7 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.output.DownloadInfoDataModel
 import com.android.build.output.DownloadsInfoPresentableBuildEvent
 import com.android.build.output.LongDownloadsNotifier
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.SyncAnalyzerManager
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
@@ -52,7 +53,7 @@ class SyncAnalyzerManagerImpl(val project: Project) : SyncAnalyzerManager {
 
   override fun onSyncStarted(id: ExternalSystemTaskId?) {
     if (id == null) return
-    if (StudioFlags.isBuildOutputShowsDownloadInfo()) {
+    if (isBuildOutputShowsDownloadInfo) {
       val data = project.service<SyncAnalyzerDataManager>().getOrCreateDataForTask(id)
       project.setUpDownloadsInfoNodeOnBuildOutput(id, data)
     }
@@ -62,6 +63,13 @@ class SyncAnalyzerManagerImpl(val project: Project) : SyncAnalyzerManager {
     if (id == null) return
     project.service<SyncAnalyzerDataManager>().clearDataForTask(id)
   }
+
+  // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
+  // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.
+  private val isBuildOutputShowsDownloadInfo
+    get() =
+      (IdeInfo.getInstance().isAndroidStudio() || StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.isUserOverridden) &&
+        StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()
 
   private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, dataHolder: SyncAnalyzerDataManager.DataHolder) {
     if (dataHolder.downloadsInfoDataModel == null) return // It is not created if flag is disabled.

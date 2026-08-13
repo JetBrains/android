@@ -30,7 +30,6 @@ import com.android.flags.StringFlag;
 import com.android.flags.overrides.InMemoryFlagValueContainer;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.sdklib.AndroidApiLevel;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.AgpReleaseBranchProvider;
 import com.android.tools.idea.flags.overrides.AgpTestSuitesProvider;
@@ -274,7 +273,7 @@ public final class StudioFlags {
 
   static class AndroidApiFlag extends CustomTypeFlag<AndroidApiLevel> {
     public AndroidApiFlag(FlagGroup group, String name, String displayName, String description, AndroidApiLevel defaultValue) {
-      super(AndroidApiLevel.class, group, name, displayName, description, defaultValue, AndroidApiFlagConverter, examples);
+      super(AndroidApiLevel.class, group, name, displayName, description, defaultValue, ApiFlagConverter, examples);
     }
 
     private static final List<AndroidApiLevel> examples = ImmutableList.of(
@@ -283,7 +282,7 @@ public final class StudioFlags {
       new AndroidApiLevel(36, 1)
     );
 
-    static final ValueConverter<AndroidApiLevel> AndroidApiFlagConverter = new ValueConverter<>() {
+    static final ValueConverter<AndroidApiLevel> ApiFlagConverter = new ValueConverter<>() {
       @Override
       public @NotNull String serialize(AndroidApiLevel value) {
         return value.toString();
@@ -2929,14 +2928,6 @@ public final class StudioFlags {
     ""
   );
   // endregion JOURNEYS_WITH_GEMINI
-
-  public static Boolean isBuildOutputShowsDownloadInfo() {
-    // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
-    // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.
-    return IdeInfo.getInstance().isAndroidStudio() || BUILD_OUTPUT_DOWNLOADS_INFORMATION.isUserOverridden()
-           ? BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()
-           : false;
-  }
 
   // region Settings Sync
   private static final FlagGroup SETTINGS_SYNC = new FlagGroup(FLAGS, "settingssync", "Settings Sync");

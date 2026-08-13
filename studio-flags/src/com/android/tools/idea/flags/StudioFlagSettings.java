@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.flags;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.flags.Flag;
 import com.android.flags.FlagValueContainer;
-import com.android.flags.FlagValueProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -28,6 +25,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Serialized settings for {@link StudioFlags}. Meant only for production code, not unit tests.
@@ -64,18 +62,18 @@ public final class StudioFlagSettings implements FlagValueContainer, PersistentS
   }
 
   @Override
-  public void put(@NonNull Flag<?> flag, @NonNull String value) {
+  public void put(@NotNull Flag<?> flag, @NotNull String value) {
     data.put(flag.getId(), value);
   }
 
   @Override
-  public void remove(@NonNull Flag<?> flag) {
+  public void remove(@NotNull Flag<?> flag) {
     data.remove(flag.getId());
   }
 
   @Nullable
   @Override
-  public String get(@NonNull Flag<?> flag) {
+  public String get(@NotNull Flag<?> flag) {
     return data.get(flag.getId());
   }
 
