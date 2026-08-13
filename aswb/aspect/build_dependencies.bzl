@@ -364,21 +364,23 @@ def package_dependencies(unused_parameters):
 
 def declares_android_resources(target, ctx):
     """
-    Returns true if the target has resource files and an android provider.
+    Returns true if the target has resource files or assets, and an android provider.
 
     The IDE needs aars from targets that declare resources. AndroidIdeInfo
     has a defined_android_resources flag, but this returns true for additional
-    cases (aidl files, etc), so we check if the target has resource files.
+    cases (aidl files, etc), so we check if the target has resource files or assets.
 
     Args:
       target: the target.
       ctx: the context.
     Returns:
-      True if the target has resource files and an android provider.
+      True if the target has resource files or assets, and an android provider.
     """
     if IDE_ANDROID.get_android_info(target, ctx.rule) == None:
         return False
-    return hasattr(ctx.rule.attr, "resource_files") and len(ctx.rule.attr.resource_files) > 0
+    has_res = hasattr(ctx.rule.attr, "resource_files") and len(ctx.rule.attr.resource_files) > 0
+    has_assets = hasattr(ctx.rule.attr, "assets") and len(ctx.rule.attr.assets) > 0
+    return has_res or has_assets
 
 def declares_aar_import(ctx):
     """
@@ -909,20 +911,28 @@ def _collect_cc_toolchain_info(target, ctx):
 
 def _get_ide_aar_file(target, ctx):
     """
-    Builds a resource only .aar file for the ide.
+    Builds a resource and asset only .aar file for the ide.
 
-    The IDE requires just resource files and the manifest from the IDE.
+    The IDE requires just resource files, assets, and the manifest from the IDE.
     Moreover, there are cases when the existing rules fail to build a full .aar
     file from a library, on which other targets can still depend.
 
-    The function builds a minimalistic .aar file that contains resources and the
+    The function builds a minimalistic .aar file that contains resources, assets, and the
     manifest only.
     """
     android_info = IDE_ANDROID.get_android_info(target, ctx.rule)
     full_aar = android_info.aar
     if full_aar:
         resource_files = _collect_resource_files(ctx)
-        resource_map = _build_ide_aar_file_map(android_info.manifest, resource_files)
+        asset_files = _collect_asset_files(ctx)
+        assets_dir = getattr(ctx.rule.attr, "assets_dir", "")
+        resource_map = _build_ide_aar_file_map(
+            android_info.manifest,
+            resource_files,
+            asset_files,
+            assets_dir,
+            target.label.package,
+        )
         aar = ctx.actions.declare_file(full_aar.short_path.removesuffix(".aar") + "_ide/" + full_aar.basename)
         _package_ide_aar(ctx, aar, resource_map)
         return aar
@@ -943,17 +953,30 @@ def _collect_resource_files(ctx):
     # enabling support in Android Studio and use them in ASwB, instead of
     # building special .aar files for the IDE.
     resource_files = []
-    for t in ctx.rule.attr.resource_files:
-        for f in t.files.to_list():
-            resource_files.append(f)
+    if hasattr(ctx.rule.attr, "resource_files"):
+        for t in ctx.rule.attr.resource_files:
+            for f in t.files.to_list():
+                resource_files.append(f)
     return resource_files
 
-def _build_ide_aar_file_map(manifest_file, resource_files):
+def _collect_asset_files(ctx):
+    """
+    Collects the list of asset files from the target rule attributes.
+    """
+    asset_files = []
+    if hasattr(ctx.rule.attr, "assets"):
+        for t in ctx.rule.attr.assets:
+            for f in t.files.to_list():
+                asset_files.append(f)
+    return asset_files
+
+def _build_ide_aar_file_map(manifest_file, resource_files, asset_files, assets_dir, package):
     """
     Build the list of files and their paths as they have to appear in .aar.
     """
     file_map = {}
-    file_map["AndroidManifest.xml"] = manifest_file
+    if manifest_file:
+        file_map["AndroidManifest.xml"] = manifest_file
     for f in resource_files:
         res_dir_path = f.short_path \
             .removeprefix(android_common.resource_source_directory(f)) \
@@ -961,6 +984,19 @@ def _build_ide_aar_file_map(manifest_file, resource_files):
         if res_dir_path:
             res_dir_path = "res/" + res_dir_path
             file_map[res_dir_path] = f
+
+    clean_assets_dir = assets_dir.strip("/") if assets_dir else ""
+    asset_prefix = (package + "/" + clean_assets_dir).strip("/") if package else clean_assets_dir
+    for f in asset_files:
+        path = f.short_path
+        idx = path.find(asset_prefix)
+        if idx != -1:
+            rel_path = path[idx + len(asset_prefix):].removeprefix("/")
+        else:
+            rel_path = f.basename
+        if rel_path:
+            file_map["assets/" + rel_path] = f
+
     return file_map
 
 def _package_ide_aar(ctx, aar, file_map):
