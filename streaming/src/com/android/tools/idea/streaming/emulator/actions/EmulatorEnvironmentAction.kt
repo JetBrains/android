@@ -101,6 +101,36 @@ internal sealed class EmulatorEnvironmentAction :
     val isXmp360 = withContext(Dispatchers.IO) { is360Image(file) }
     if (isXmp360) return true
 
+    val pathStr = toSystemIndependentName(file.toString())
+    val recentFile =
+      getRecentFiles().firstOrNull {
+        toSystemIndependentName(it.path) == pathStr ||
+          try {
+            Path.of(it.path).toAbsolutePath().normalize() == file.toAbsolutePath().normalize()
+          } catch (_: Exception) {
+            false
+          }
+      }
+
+    if (recentFile != null && recentFile.mode.isNotEmpty()) {
+      val currentTimestamp =
+        try {
+          withContext(Dispatchers.IO) { Files.getLastModifiedTime(file).toMillis() }
+        } catch (_: Exception) {
+          -1L
+        }
+      val currentSize =
+        try {
+          withContext(Dispatchers.IO) { Files.size(file) }
+        } catch (_: Exception) {
+          -1L
+        }
+
+      if (currentTimestamp != -1L && currentSize != -1L && currentTimestamp == recentFile.timestamp && currentSize == recentFile.size) {
+        return recentFile.mode == "image360"
+      }
+    }
+
     val isCandidate = withContext(Dispatchers.IO) { is360ImageCandidate(file) }
     if (!isCandidate) return false
 
@@ -175,7 +205,7 @@ internal sealed class EmulatorEnvironmentAction :
 
     override fun onEnvironmentSet(emulator: EmulatorController, environment: Environment) {
       super.onEnvironmentSet(emulator, environment)
-      filePath?.let { addRecentFile(it) }
+      filePath?.let { addRecentFile(Path.of(it), environment) }
     }
 
     override fun doesMatchEnvironment(environment: Environment): Boolean {
@@ -197,7 +227,7 @@ internal sealed class EmulatorEnvironmentAction :
 
     override fun onEnvironmentSet(emulator: EmulatorController, environment: Environment) {
       super.onEnvironmentSet(emulator, environment)
-      addRecentFile(filePath.toString())
+      addRecentFile(filePath, environment)
     }
 
     override fun doesMatchEnvironment(environment: Environment): Boolean {
@@ -250,21 +280,83 @@ internal sealed class EmulatorEnvironmentAction :
 
     private const val RECENT_FILES_KEY = "EmulatorEnvironmentAction.recentFiles"
 
-    fun getRecentFiles(): List<String> {
+    fun getRecentFiles(): List<RecentFile> {
       val properties = PropertiesComponent.getInstance()
       val value = properties.getValue(RECENT_FILES_KEY) ?: return emptyList()
-      return value.split('\n').filter { it.isNotEmpty() }
+      return value.split('\n').filter { it.isNotEmpty() }.map { RecentFile.deserialize(it) }
     }
 
     fun addRecentFile(path: String) {
+      addRecentFile(Path.of(path), null)
+    }
+
+    fun addRecentFile(file: Path, environment: Environment? = null) {
+      val pathStr = toSystemIndependentName(file.toString())
+      val existing =
+        getRecentFiles().firstOrNull {
+          toSystemIndependentName(it.path) == pathStr ||
+            try {
+              Path.of(it.path).toAbsolutePath().normalize() == file.toAbsolutePath().normalize()
+            } catch (_: Exception) {
+              false
+            }
+        }
+      val extractedMode = environment?.environmentMap?.get("scene.mode")?.substringBefore(':')
+      val mode =
+        when {
+          !extractedMode.isNullOrEmpty() -> extractedMode
+          file.fileName.toString().endsWith(".obj", ignoreCase = true) -> "mesh3d"
+          isVideoFile(file) -> "videofile"
+          existing != null && existing.mode.isNotEmpty() -> existing.mode
+          else -> ""
+        }
+      val timestamp =
+        try {
+          Files.getLastModifiedTime(file).toMillis()
+        } catch (_: Exception) {
+          0L
+        }
+      val size =
+        try {
+          Files.size(file)
+        } catch (_: Exception) {
+          0L
+        }
+
+      addRecentFile(RecentFile(pathStr, timestamp, size, mode))
+    }
+
+    fun addRecentFile(recentFile: RecentFile) {
       val properties = PropertiesComponent.getInstance()
       val current = getRecentFiles().toMutableList()
-      current.remove(path)
-      current.add(0, path)
+      val targetPathStr = toSystemIndependentName(recentFile.path)
+      current.removeAll {
+        toSystemIndependentName(it.path) == targetPathStr ||
+          try {
+            Path.of(it.path).toAbsolutePath().normalize() == Path.of(recentFile.path).toAbsolutePath().normalize()
+          } catch (_: Exception) {
+            false
+          }
+      }
+      current.add(0, recentFile)
       while (current.size > 5) {
         current.removeLast()
       }
-      properties.setValue(RECENT_FILES_KEY, current.joinToString("\n"))
+      properties.setValue(RECENT_FILES_KEY, current.joinToString("\n") { it.serialize() })
+    }
+  }
+}
+
+internal data class RecentFile(val path: String, val timestamp: Long = 0L, val size: Long = 0L, val mode: String = "") {
+  fun serialize(): String = "$path\t$timestamp\t$size\t$mode"
+
+  companion object {
+    fun deserialize(line: String): RecentFile {
+      val parts = line.split('\t')
+      if (parts.size >= 4) {
+        return RecentFile(path = parts[0], timestamp = parts[1].toLongOrNull() ?: 0L, size = parts[2].toLongOrNull() ?: 0L, mode = parts[3])
+      }
+      return RecentFile(path = line)
     }
   }
 }

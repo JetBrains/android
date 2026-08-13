@@ -982,6 +982,153 @@ class EmulatorEnvironmentActionTest {
     // This should not throw an exception!
     assertThat(updateAndGetActionPresentation(action, event).isEnabled).isFalse()
   }
+
+  @Test
+  fun testRecentFileMetadataStorage() {
+    val tempFile = tempDirRule.newPath("test_metadata.png")
+    Files.write(tempFile, byteArrayOf(1, 2, 3))
+    val fileTime = Files.getLastModifiedTime(tempFile).toMillis()
+    val fileSize = Files.size(tempFile)
+
+    EmulatorEnvironmentAction.addRecentFile(RecentFile(tempFile.systemIndependentString, fileTime, fileSize, "image360"))
+
+    val recentFiles = EmulatorEnvironmentAction.getRecentFiles()
+    assertThat(recentFiles).isNotEmpty()
+    val entry = recentFiles.first()
+    assertThat(entry.path).isEqualTo(tempFile.systemIndependentString)
+    assertThat(entry.timestamp).isEqualTo(fileTime)
+    assertThat(entry.size).isEqualTo(fileSize)
+    assertThat(entry.mode).isEqualTo("image360")
+  }
+
+  @Test
+  fun testRecentFileDeserializationOldFormat() {
+    val properties = PropertiesComponent.getInstance()
+    properties.setValue("EmulatorEnvironmentAction.recentFiles", "/tmp/old_file.png")
+
+    val recentFiles = EmulatorEnvironmentAction.getRecentFiles()
+    assertThat(recentFiles).hasSize(1)
+    val entry = recentFiles.first()
+    assertThat(entry.path).isEqualTo("/tmp/old_file.png")
+    assertThat(entry.timestamp).isEqualTo(0L)
+    assertThat(entry.size).isEqualTo(0L)
+    assertThat(entry.mode).isEmpty()
+  }
+
+  @Test
+  fun testRecentCustom360ImageCandidate_reusePrevious360Mode_withoutAskingConfirmation() {
+    StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    val w = 200
+    val h = 100
+    val img = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+    for (y in 0 until h) {
+      for (x in 0 until w) {
+        val v = (128 + 127 * sin(2 * PI * x / w)).toInt().coerceIn(0, 255)
+        val color = (v shl 16) or (v shl 8) or v
+        img.setRGB(x, y, color)
+      }
+    }
+    val tempFile = tempDirRule.newPath("equirectangular_reuse360.png")
+    ImageIO.write(img, "png", tempFile.toFile())
+
+    val timestamp = Files.getLastModifiedTime(tempFile).toMillis()
+    val size = Files.size(tempFile)
+
+    // Store in recent files as image360
+    EmulatorEnvironmentAction.addRecentFile(RecentFile(tempFile.systemIndependentString, timestamp, size, "image360"))
+
+    // Set dialog to throw exception if called (dialog should NOT be called!)
+    val oldDialog = TestDialogManager.setTestDialog { message -> error("Dialog should not be shown when reusing mode: $message") }
+    try {
+      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+      val call = emulator.getNextGrpcCall(2.seconds)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+      assertThat(shortDebugString(call.request))
+        .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
+    } finally {
+      TestDialogManager.setTestDialog(oldDialog)
+    }
+  }
+
+  @Test
+  fun testRecentCustom360ImageCandidate_reusePreviousFlatMode_withoutAskingConfirmation() {
+    StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    val w = 200
+    val h = 100
+    val img = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+    for (y in 0 until h) {
+      for (x in 0 until w) {
+        val v = (128 + 127 * sin(2 * PI * x / w)).toInt().coerceIn(0, 255)
+        val color = (v shl 16) or (v shl 8) or v
+        img.setRGB(x, y, color)
+      }
+    }
+    val tempFile = tempDirRule.newPath("equirectangular_reuseFlat.png")
+    ImageIO.write(img, "png", tempFile.toFile())
+
+    val timestamp = Files.getLastModifiedTime(tempFile).toMillis()
+    val size = Files.size(tempFile)
+
+    // Store in recent files as imagefile
+    EmulatorEnvironmentAction.addRecentFile(RecentFile(tempFile.systemIndependentString, timestamp, size, "imagefile"))
+
+    // Set dialog to throw exception if called (dialog should NOT be called!)
+    val oldDialog = TestDialogManager.setTestDialog { message -> error("Dialog should not be shown when reusing mode: $message") }
+    try {
+      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+      val call = emulator.getNextGrpcCall(2.seconds)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+      assertThat(shortDebugString(call.request))
+        .isEqualTo("environment { key: \"scene.mode\" value: \"imagefile:${tempFile.systemIndependentString}\" }")
+    } finally {
+      TestDialogManager.setTestDialog(oldDialog)
+    }
+  }
+
+  @Test
+  fun testRecentCustom360ImageCandidate_modifiedFile_asksConfirmation() {
+    StudioFlags.EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT.overrideForTest(true, testRootDisposable)
+    val w = 200
+    val h = 100
+    val img = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+    for (y in 0 until h) {
+      for (x in 0 until w) {
+        val v = (128 + 127 * sin(2 * PI * x / w)).toInt().coerceIn(0, 255)
+        val color = (v shl 16) or (v shl 8) or v
+        img.setRGB(x, y, color)
+      }
+    }
+    val tempFile = tempDirRule.newPath("equirectangular_modified.png")
+    ImageIO.write(img, "png", tempFile.toFile())
+
+    val size = Files.size(tempFile)
+
+    // Store in recent files with an OLD/DIFFERENT timestamp (12345L)
+    EmulatorEnvironmentAction.addRecentFile(RecentFile(tempFile.systemIndependentString, 12345L, size, "imagefile"))
+
+    var dialogShown = false
+    val oldDialog =
+      TestDialogManager.setTestDialog {
+        dialogShown = true
+        0 // YES
+      }
+    try {
+      val action = EmulatorEnvironmentAction.RecentCustom(tempFile)
+      executeAction(action, project = projectRule.project, extra = dataSnapshotProvider)
+
+      val call = emulator.getNextGrpcCall(2.seconds)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setEnvironment")
+      assertThat(shortDebugString(call.request))
+        .isEqualTo("environment { key: \"scene.mode\" value: \"image360:${tempFile.systemIndependentString}\" }")
+      assertThat(dialogShown).isTrue()
+    } finally {
+      TestDialogManager.setTestDialog(oldDialog)
+    }
+  }
 }
 
 private val Path.systemIndependentString: String
