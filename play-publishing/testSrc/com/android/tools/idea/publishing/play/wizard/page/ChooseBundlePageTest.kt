@@ -403,7 +403,7 @@ class ChooseBundlePageTest {
   }
 
   @Test
-  fun testNextButtonDisabledWhileCheckingRegistration() {
+  fun testNextButtonDisabledAndLoadingIndicatorShownWhileCheckingRegistration() {
     val client: AdiClient = mock()
     val deferred = CompletableDeferred<Pair<Map<String, RegistrationState>, Any?>>()
     wheneverBlocking { client.checkPackageRegistrationStatus(any(), anyOrNull()) }.thenAnswer { runBlocking { deferred.await() } }
@@ -411,8 +411,9 @@ class ChooseBundlePageTest {
     val state = PlayPublishingWizardState(bundlePath = null)
     createWizard(state, adiClient = client) { AppMetadata("New App", "com.new.package", "123", "1.2.3") }
 
-    // During registration check, isCheckingRegistration is true, so "Next" button should be disabled
+    // During registration check, isPackageNameValidating is true, so "Next" button should be disabled and loading indicator shown
     composeTestRule.onNodeWithText("Next").assertIsNotEnabled()
+    composeTestRule.onNodeWithTag("PackageNameLoading").assertIsDisplayed()
 
     // Complete the registration check to NOT_REGISTERED (available)
     deferred.complete(mapOf("com.new.package" to RegistrationState.NOT_REGISTERED) to null)
@@ -423,6 +424,9 @@ class ChooseBundlePageTest {
         }
         .getOrDefault(false)
     }
+
+    composeTestRule.onNodeWithTag("PackageNameLoading").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Package name available").assertIsDisplayed()
   }
 
   @Test

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.publishing.play.wizard.page
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -84,6 +83,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.LocalComponent
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.InlineErrorBanner
@@ -95,7 +95,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 private const val UPLOAD_BUNDLE_DAC_URL = "https://developer.android.com/r/studio-ui/publish/upload-app-bundle"
 
 @Suppress("UnstableApiUsage")
-@OptIn(ExperimentalFoundationApi::class, ExperimentalJewelApi::class)
+@OptIn(ExperimentalJewelApi::class)
 @Composable
 fun WizardPageScope.ChooseBundlePage(
   createAdiClient: (CoroutineScope) -> AdiClient = { AdiClient(it) },
@@ -229,6 +229,13 @@ fun WizardPageScope.ChooseBundlePage(
         }
         else -> null
       }
+    }
+
+  val isPackageNameValidating =
+    remember(metadataResult, listAppsResult, state.packageName, registrationResult) {
+      !state.packageName.isNullOrEmpty() &&
+        metadataResult is MetadataResult.Success &&
+        (listAppsResult is ListAppsResult.Loading || registrationResult is RegistrationResult.Loading)
     }
 
   LaunchedEffect(bundlePathState.text) {
@@ -380,14 +387,17 @@ fun WizardPageScope.ChooseBundlePage(
         Row(modifier = Modifier.testTag("PackageNameRow"), verticalAlignment = Alignment.CenterVertically) {
           Text(text = "Package name", modifier = Modifier.width(100.dp), style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp))
           Text(text = state.packageName.takeIf { !it.isNullOrEmpty() } ?: "—", style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp))
-          packageNameCheck?.let {
+          if (isPackageNameValidating) {
             Spacer(modifier = Modifier.width(8.dp))
-            when (it.type) {
+            CircularProgressIndicator(modifier = Modifier.size(14.dp).testTag("PackageNameLoading"))
+          } else if (packageNameCheck != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            when (packageNameCheck.type) {
               ElementType.SUCCESS -> Icon(key = AllIconsKeys.Status.Success, contentDescription = null, modifier = Modifier.size(14.dp))
               ElementType.ERROR -> Icon(key = AllIconsKeys.General.Error, contentDescription = null, modifier = Modifier.size(14.dp))
             }
             Spacer(modifier = Modifier.width(4.dp))
-            Text(text = it.message, style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold))
+            Text(text = packageNameCheck.message, style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold))
           }
         }
 
