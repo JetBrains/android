@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="androidx-tracing">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/androidx/tracing/tracing-desktop/2.0.0-alpha09/tracing-desktop-2.0.0-alpha09.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/androidx/tracing/tracing-wire-desktop/2.0.0-alpha09/tracing-wire-desktop-2.0.0-alpha09.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/androidx/tracing/tracing-desktop/2.0.0/tracing-desktop-2.0.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/androidx/tracing/tracing-wire-desktop/2.0.0/tracing-wire-desktop-2.0.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/squareup/wire/wire-runtime-jvm/6.4.0/wire-runtime-jvm-6.4.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/squareup/okio/okio-jvm/3.17.0/okio-jvm-3.17.0.jar!/" />
     </CLASSES>
