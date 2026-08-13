@@ -98,7 +98,7 @@ internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 internal const val STREAM_AUDIO = 0x04
 internal const val USE_UINPUT = 0x08
-internal const val DEVICE_IS_XR = 0x10 // TODO: Remove when b/406870742 is fixed.
+internal const val DEVICE_IS_XR = 0x10
 internal const val TRACE_CLIPBOARD_SYNCHRONIZATION = 0x40
 
 /** Maximum cumulative length of agent messages to remember. */
