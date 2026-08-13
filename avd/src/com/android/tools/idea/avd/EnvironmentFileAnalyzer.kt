@@ -34,7 +34,7 @@ data class EnvironmentImage(val path: Path, val title: String, val isDefault: Bo
 internal data class XmpMetadata(val title: String, val isDefault: Boolean)
 
 /** Functions for scanning directories and extracting XMP metadata from emulator virtual scene environment image files. */
-object EnvironmentImageScanner {
+object EnvironmentFileAnalyzer {
   /**
    * Scans the specified directory for image files, parses their XMP metadata, and returns a list of [EnvironmentImage] records for files
    * that have a valid XMP title.
@@ -441,5 +441,99 @@ object EnvironmentImageScanner {
     val denominator = (meanX * meanX + meanY * meanY + c1) * (varX + varY + c2)
 
     return numerator / denominator
+  }
+
+  /** Checks if the specified file is a 3D scene file (.obj). */
+  fun is3dSceneFile(file: Path): Boolean = file.fileName?.toString()?.endsWith(".obj", ignoreCase = true) ?: false
+
+  /** Checks if the specified file is a video file (.mp4 or .webm). */
+  fun isVideoFile(file: Path): Boolean {
+    val name = file.fileName.toString()
+    return name.endsWith(".mp4", ignoreCase = true) || name.endsWith(".webm", ignoreCase = true)
+  }
+
+  /** Checks if the specified file is a valid Wavefront OBJ file. */
+  fun isWavefrontObjFile(path: Path): Boolean {
+    return try {
+      val maxBytes = 4096
+      val bytes =
+        Files.newInputStream(path).use { stream ->
+          val buffer = ByteArray(maxBytes)
+          val read = stream.read(buffer)
+          if (read <= 0) return false
+          buffer.copyOf(read)
+        }
+      if (bytes.contains(0.toByte())) {
+        return false
+      }
+      val text = String(bytes, UTF_8)
+      val lines = text.lines()
+      val linesToCheck = if (bytes.size == maxBytes) lines.dropLast(1) else lines
+
+      var hasVertices = false
+      var hasFaces = false
+      var hasComments = false
+      var hasOtherKeywords = false
+
+      val knownKeywords =
+        setOf(
+          "v",
+          "vt",
+          "vn",
+          "vp",
+          "f",
+          "g",
+          "o",
+          "s",
+          "usemtl",
+          "mtllib",
+          "l",
+          "p",
+          "deg",
+          "bmt",
+          "step",
+          "cstype",
+          "parm",
+          "trim",
+          "hole",
+          "scrv",
+          "sp",
+          "end",
+          "con",
+          "bevel",
+          "c_tech",
+          "d_tech",
+          "lod",
+          "shadow_obj",
+          "trace_obj",
+          "ctech",
+          "dtech",
+        )
+
+      for (line in linesToCheck) {
+        val trimmed = line.trim()
+        if (trimmed.isEmpty()) continue
+        if (trimmed.startsWith("#")) {
+          hasComments = true
+          continue
+        }
+        val parts = trimmed.split(Regex("\\s+"), 2)
+        val keyword = parts[0]
+        if (keyword in knownKeywords) {
+          when (keyword) {
+            "v" -> hasVertices = true
+            "f" -> hasFaces = true
+            else -> hasOtherKeywords = true
+          }
+        } else {
+          if (!hasVertices && !hasFaces && !hasComments && !hasOtherKeywords) {
+            return false
+          }
+        }
+      }
+      hasVertices || hasFaces || hasComments
+    } catch (_: Exception) {
+      false
+    }
   }
 }

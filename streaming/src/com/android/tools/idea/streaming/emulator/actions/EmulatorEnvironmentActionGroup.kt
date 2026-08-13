@@ -18,6 +18,8 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.Camera
 import com.android.emulator.control.CameraList
 import com.android.emulator.control.Environment
+import com.android.tools.idea.avd.EnvironmentFileAnalyzer.is3dSceneFile
+import com.android.tools.idea.avd.EnvironmentFileAnalyzer.isVideoFile
 import com.android.tools.idea.avd.EnvironmentImage
 import com.android.tools.idea.avd.EnvironmentsUpdater
 import com.android.tools.idea.flags.StudioFlags

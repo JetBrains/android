@@ -18,8 +18,11 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.Environment
 import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.avd.EnvironmentImageScanner.is360Image
-import com.android.tools.idea.avd.EnvironmentImageScanner.is360ImageCandidate
+import com.android.tools.idea.avd.EnvironmentFileAnalyzer.is360Image
+import com.android.tools.idea.avd.EnvironmentFileAnalyzer.is360ImageCandidate
+import com.android.tools.idea.avd.EnvironmentFileAnalyzer.is3dSceneFile
+import com.android.tools.idea.avd.EnvironmentFileAnalyzer.isVideoFile
+import com.android.tools.idea.avd.EnvironmentFileAnalyzer.isWavefrontObjFile
 import com.android.tools.idea.avd.EnvironmentsUpdater
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -359,13 +362,6 @@ internal data class RecentFile(val path: String, val timestamp: Long = 0L, val s
   }
 }
 
-internal fun is3dSceneFile(file: Path): Boolean = file.fileName?.toString()?.endsWith(".obj", ignoreCase = true) ?: false
-
-internal fun isVideoFile(file: Path): Boolean {
-  val name = file.fileName.toString()
-  return name.endsWith(".mp4", ignoreCase = true) || name.endsWith(".webm", ignoreCase = true)
-}
-
 private fun getEnvironmentMode(path: Path): String {
   return when {
     is3dSceneFile(path) -> "mesh3d"
@@ -383,89 +379,5 @@ private fun getEnvironmentTypeLabel(path: Path): String {
     "videofile" -> "video"
     "image360" -> "360° photo"
     else -> "photo"
-  }
-}
-
-private fun isWavefrontObjFile(path: Path): Boolean {
-  return try {
-    val maxBytes = 4096
-    val bytes =
-      Files.newInputStream(path).use { stream ->
-        val buffer = ByteArray(maxBytes)
-        val read = stream.read(buffer)
-        if (read <= 0) return false
-        buffer.copyOf(read)
-      }
-    if (bytes.contains(0.toByte())) {
-      return false
-    }
-    val text = String(bytes, Charsets.UTF_8)
-    val lines = text.lines()
-    val linesToCheck = if (bytes.size == maxBytes) lines.dropLast(1) else lines
-
-    var hasVertices = false
-    var hasFaces = false
-    var hasComments = false
-    var hasOtherKeywords = false
-
-    val knownKeywords =
-      setOf(
-        "v",
-        "vt",
-        "vn",
-        "vp",
-        "f",
-        "g",
-        "o",
-        "s",
-        "usemtl",
-        "mtllib",
-        "l",
-        "p",
-        "deg",
-        "bmt",
-        "step",
-        "cstype",
-        "parm",
-        "trim",
-        "hole",
-        "scrv",
-        "sp",
-        "end",
-        "con",
-        "bevel",
-        "c_tech",
-        "d_tech",
-        "lod",
-        "shadow_obj",
-        "trace_obj",
-        "ctech",
-        "dtech",
-      )
-
-    for (line in linesToCheck) {
-      val trimmed = line.trim()
-      if (trimmed.isEmpty()) continue
-      if (trimmed.startsWith("#")) {
-        hasComments = true
-        continue
-      }
-      val parts = trimmed.split(Regex("\\s+"), 2)
-      val keyword = parts[0]
-      if (keyword in knownKeywords) {
-        when (keyword) {
-          "v" -> hasVertices = true
-          "f" -> hasFaces = true
-          else -> hasOtherKeywords = true
-        }
-      } else {
-        if (!hasVertices && !hasFaces && !hasComments && !hasOtherKeywords) {
-          return false
-        }
-      }
-    }
-    hasVertices || hasFaces || hasComments
-  } catch (_: Exception) {
-    false
   }
 }

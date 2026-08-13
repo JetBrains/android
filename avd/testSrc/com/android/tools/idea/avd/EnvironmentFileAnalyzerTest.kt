@@ -27,8 +27,8 @@ import kotlin.text.Charsets.US_ASCII
 import kotlin.text.Charsets.UTF_8
 import org.junit.Test
 
-/** Tests for [EnvironmentImageScanner]. */
-class EnvironmentImageScannerTest {
+/** Tests for [EnvironmentFileAnalyzer]. */
+class EnvironmentFileAnalyzerTest {
 
   @Test
   fun testReadXmpMetadata() {
@@ -39,7 +39,7 @@ class EnvironmentImageScannerTest {
     val tempFile = tempDir.resolve("test.jpg")
     Files.write(tempFile, jpegBytes)
 
-    val metadata = EnvironmentImageScanner.readXmpMetadata(tempFile)
+    val metadata = EnvironmentFileAnalyzer.readXmpMetadata(tempFile)
     assertThat(metadata).isNotNull()
     assertThat(metadata!!.title).isEqualTo(title)
     assertThat(metadata.isDefault).isTrue()
@@ -54,7 +54,7 @@ class EnvironmentImageScannerTest {
     val tempFile = tempDir.resolve("test.jpg")
     Files.write(tempFile, jpegBytes)
 
-    val metadata = EnvironmentImageScanner.readXmpMetadata(tempFile)
+    val metadata = EnvironmentFileAnalyzer.readXmpMetadata(tempFile)
     assertThat(metadata).isNotNull()
     assertThat(metadata!!.title).isEqualTo(title)
     assertThat(metadata.isDefault).isFalse()
@@ -65,7 +65,7 @@ class EnvironmentImageScannerTest {
     val tempDir = Files.createTempDirectory("test")
     val tempFile = tempDir.resolve("invalid.jpg")
     Files.write(tempFile, byteArrayOf(1, 2, 3, 4))
-    assertThat(EnvironmentImageScanner.readXmpMetadata(tempFile)).isNull()
+    assertThat(EnvironmentFileAnalyzer.readXmpMetadata(tempFile)).isNull()
   }
 
   @Test
@@ -84,7 +84,7 @@ class EnvironmentImageScannerTest {
     val jpegBytes = createMockJpegWithXml(xml)
     val tempFile = Files.createTempFile("test", ".jpg")
     Files.write(tempFile, jpegBytes)
-    assertThat(EnvironmentImageScanner.is360Image(tempFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.is360Image(tempFile)).isTrue()
   }
 
   @Test
@@ -101,7 +101,7 @@ class EnvironmentImageScannerTest {
     val jpegBytes = createMockJpegWithXml(xml)
     val tempFile = Files.createTempFile("test", ".jpg")
     Files.write(tempFile, jpegBytes)
-    assertThat(EnvironmentImageScanner.is360Image(tempFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.is360Image(tempFile)).isTrue()
   }
 
   @Test
@@ -120,7 +120,7 @@ class EnvironmentImageScannerTest {
     val jpegBytes = createMockJpegWithXml(xml)
     val tempFile = Files.createTempFile("test", ".jpg")
     Files.write(tempFile, jpegBytes)
-    assertThat(EnvironmentImageScanner.is360Image(tempFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.is360Image(tempFile)).isTrue()
   }
 
   @Test
@@ -137,7 +137,7 @@ class EnvironmentImageScannerTest {
     val jpegBytes = createMockJpegWithXml(xml)
     val tempFile = Files.createTempFile("test", ".jpg")
     Files.write(tempFile, jpegBytes)
-    assertThat(EnvironmentImageScanner.is360Image(tempFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.is360Image(tempFile)).isTrue()
   }
 
   @Test
@@ -156,7 +156,7 @@ class EnvironmentImageScannerTest {
     val jpegBytes = createMockJpegWithXml(xml)
     val tempFile = Files.createTempFile("test", ".jpg")
     Files.write(tempFile, jpegBytes)
-    assertThat(EnvironmentImageScanner.is360Image(tempFile)).isFalse()
+    assertThat(EnvironmentFileAnalyzer.is360Image(tempFile)).isFalse()
   }
 
   private fun createMockJpegWithXml(xml: String): ByteArray {
@@ -242,7 +242,7 @@ class EnvironmentImageScannerTest {
     val pngBytes = createMockPngWithXml(xml, compressed = false)
     val tempFile = Files.createTempFile("test", ".png")
     Files.write(tempFile, pngBytes)
-    assertThat(EnvironmentImageScanner.is360Image(tempFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.is360Image(tempFile)).isTrue()
   }
 
   @Test
@@ -261,7 +261,7 @@ class EnvironmentImageScannerTest {
     val pngBytes = createMockPngWithXml(xml, compressed = true)
     val tempFile = Files.createTempFile("test", ".png")
     Files.write(tempFile, pngBytes)
-    assertThat(EnvironmentImageScanner.is360Image(tempFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.is360Image(tempFile)).isTrue()
   }
 
   @Test
@@ -280,7 +280,7 @@ class EnvironmentImageScannerTest {
     val pngBytes = createMockPngWithXml(xml, compressed = false)
     val tempFile = Files.createTempFile("test", ".png")
     Files.write(tempFile, pngBytes)
-    assertThat(EnvironmentImageScanner.is360Image(tempFile)).isFalse()
+    assertThat(EnvironmentFileAnalyzer.is360Image(tempFile)).isFalse()
   }
 
   private fun createMockPngWithXml(xml: String, compressed: Boolean = false): ByteArray {
@@ -353,7 +353,7 @@ class EnvironmentImageScannerTest {
     val tempFile = Files.createTempFile("seamless", ".png")
     ImageIO.write(img, "png", tempFile.toFile())
 
-    assertThat(EnvironmentImageScanner.is360ImageCandidate(tempFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.is360ImageCandidate(tempFile)).isTrue()
   }
 
   @Test
@@ -371,7 +371,7 @@ class EnvironmentImageScannerTest {
     val tempFile = Files.createTempFile("discontinuous", ".png")
     ImageIO.write(img, "png", tempFile.toFile())
 
-    assertThat(EnvironmentImageScanner.is360ImageCandidate(tempFile)).isFalse()
+    assertThat(EnvironmentFileAnalyzer.is360ImageCandidate(tempFile)).isFalse()
   }
 
   @Test
@@ -380,6 +380,38 @@ class EnvironmentImageScannerTest {
     val tempFile = Files.createTempFile("not2to1", ".png")
     ImageIO.write(img, "png", tempFile.toFile())
 
-    assertThat(EnvironmentImageScanner.is360ImageCandidate(tempFile)).isFalse()
+    assertThat(EnvironmentFileAnalyzer.is360ImageCandidate(tempFile)).isFalse()
+  }
+
+  @Test
+  fun testIs3dSceneFile() {
+    val tempDir = Files.createTempDirectory("test")
+    val objFile = tempDir.resolve("scene.obj")
+    val txtFile = tempDir.resolve("scene.txt")
+    assertThat(EnvironmentFileAnalyzer.is3dSceneFile(objFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.is3dSceneFile(txtFile)).isFalse()
+  }
+
+  @Test
+  fun testIsVideoFile() {
+    val tempDir = Files.createTempDirectory("test")
+    val mp4File = tempDir.resolve("video.mp4")
+    val webmFile = tempDir.resolve("video.webm")
+    val jpgFile = tempDir.resolve("image.jpg")
+    assertThat(EnvironmentFileAnalyzer.isVideoFile(mp4File)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.isVideoFile(webmFile)).isTrue()
+    assertThat(EnvironmentFileAnalyzer.isVideoFile(jpgFile)).isFalse()
+  }
+
+  @Test
+  fun testIsWavefrontObjFile() {
+    val tempDir = Files.createTempDirectory("test")
+    val validObj = tempDir.resolve("valid.obj")
+    Files.writeString(validObj, "# Wavefront OBJ file\nv 1.0 2.0 3.0\nf 1 2 3\n")
+    assertThat(EnvironmentFileAnalyzer.isWavefrontObjFile(validObj)).isTrue()
+
+    val invalidObj = tempDir.resolve("invalid.obj")
+    Files.writeString(invalidObj, "This is not a valid OBJ file")
+    assertThat(EnvironmentFileAnalyzer.isWavefrontObjFile(invalidObj)).isFalse()
   }
 }
