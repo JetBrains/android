@@ -3,7 +3,6 @@ package com.android.tools.profilers.memory
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID
@@ -24,6 +23,7 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
+import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -84,9 +84,9 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     stageView.apply {
       val descendants = (TreeWalker(component).descendants() + TreeWalker(toolbar).descendants()).toSet()
       val expected =
-        if (isLive) listOf(timelineComponent, samplingMenu, selectAllButton, forceGcButton, stopButton)
+        if (isLive) listOf(timelineComponent, samplingMenu.component, selectAllButton, forceGcButton, stopButton)
         else listOf(timelineComponent, selectAllButton)
-      val unexpected = if (isLive) listOf() else listOf(samplingMenu, forceGcButton, stopButton)
+      val unexpected = if (isLive) listOf() else listOf(samplingMenu.component, forceGcButton, stopButton)
       assertThat(descendants).containsAllIn(expected)
       assertThat(expected.all { it.isVisible }).isTrue()
       assertThat(unexpected.all { !it.isVisible || it !in descendants }).isTrue()
@@ -136,11 +136,11 @@ class AllocationStageViewTest(private val isLive: Boolean) {
         .build(),
     )
     tick()
-    assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(FULL)
+    assertThat(stageView.samplingMenu.samplingModeFlow.value.selected).isEqualTo(FULL)
 
     requestSamplingRate(SAMPLED.value)
     tick()
-    assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(SAMPLED)
+    assertThat(stageView.samplingMenu.samplingModeFlow.value.selected).isEqualTo(SAMPLED)
   }
 
   @Test
@@ -204,9 +204,19 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   }
 
   @Test
-  fun `stage shows session timestamp`() {
-    val elapsed = stage.minTrackingTimeUs.toLong() - TimeUnit.NANOSECONDS.toMicros(stage.studioProfilers.session.startTimestamp)
-    assertThat(stageView.captureElapsedTimeLabel.text).endsWith(TimeFormatter.getSimplifiedClockString(elapsed))
+  fun `stage shows recording timer when live and hides when ended`() {
+    if (isLive) {
+      val elapsedUs =
+        if (stage.hasStartedTracking) (stage.timeline.dataRange.max - stage.minTrackingTimeUs).coerceAtLeast(0.0).toLong() else 0L
+      val elapsedNs = TimeUnit.MICROSECONDS.toNanos(elapsedUs)
+      val formattedTime = RecordingScreenModel.formatElapsedTime(elapsedNs)
+      assertThat(stageView.captureElapsedTimeLabel.isVisible).isTrue()
+      assertThat(stageView.captureElapsedTimeLabel.text).contains("Recording")
+      assertThat(stageView.captureElapsedTimeLabel.text).contains(formattedTime)
+    } else {
+      assertThat(stageView.captureElapsedTimeLabel.isVisible).isFalse()
+      assertThat(stageView.captureElapsedTimeLabel.text).isEmpty()
+    }
   }
 
   @Test

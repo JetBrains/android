@@ -20,19 +20,20 @@ import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.adtui.stdui.TimelineScrollbar
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.cpu.CpuUsageView
 import com.android.tools.profilers.memory.FlexibleLegendPanel
+import com.android.tools.profilers.memory.GarbageCollectionComponent
 import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLabel
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Before
@@ -147,10 +148,10 @@ class LiveStageViewTest {
   fun testTopPanelStopRecordingButton() {
     val stageView = LiveStageView(myProfilersView, myStage)
     val result = stageView.toolbar
-    val topLevelToolBar = TreeWalker(result.components[0])
-    val topPanelAxisComponents = topLevelToolBar.descendants().filterIsInstance(CommonButton::class.java)
-    assertThat(topPanelAxisComponents.size).isGreaterThan(0)
-    val stopRecordingButton = topPanelAxisComponents.stream().filter { i -> "Stop Recording" == i.toolTipText }.findAny()
+    val topLevelToolBar = TreeWalker(result)
+    val topPanelButtons = topLevelToolBar.descendants().filterIsInstance(JButton::class.java)
+    assertThat(topPanelButtons.size).isGreaterThan(0)
+    val stopRecordingButton = topPanelButtons.stream().filter { i -> "Stop Recording" == i.toolTipText }.findAny()
     assertThat(stopRecordingButton.isPresent).isTrue()
   }
 
@@ -226,69 +227,44 @@ class LiveStageViewTest {
   @Test
   fun testToolbar() {
     val stageToolbar = getToolbar(true)
-    val topLevelToolBar = TreeWalker(stageToolbar.components[0])
-    val componentsInToolbar = topLevelToolBar.descendants().filterIsInstance(JComponent::class.java)
-    // Toolbar should have elements
+    val componentsInToolbar = TreeWalker(stageToolbar).descendants().filterIsInstance(JComponent::class.java)
     assertThat(componentsInToolbar.size).isGreaterThan(0)
 
-    var toolbar = stageToolbar.getComponent(0) as JPanel
-    // 1st item is garbage collection, 2nd item is stop recording button
-    assertThat(toolbar.components).asList().hasSize(2)
+    val buttons = TreeWalker(stageToolbar).descendants().filterIsInstance(JButton::class.java)
+    val gcButton = buttons.find { it.text == GarbageCollectionComponent.FORCE_GC_TEXT }
+    assertThat(gcButton).isNotNull()
+    assertThat(gcButton!!.isVisible).isTrue()
 
-    val firstElementInToolbar = toolbar.components[0]
+    val stopRecordingButton = buttons.find { it.toolTipText == "Stop Recording" }
+    assertThat(stopRecordingButton).isNotNull()
+    assertThat(stopRecordingButton!!.isVisible).isTrue()
 
-    // Verify garbage collection button is there in toolbar
-    val garbageCollectionButtonInToolbar = TreeWalker(firstElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
-    assertThat(garbageCollectionButtonInToolbar.size).isEqualTo(1)
-    // Check if garbage collection icon is visible
-    assertThat(garbageCollectionButtonInToolbar[0].isVisible).isTrue()
-
-    val secondElementInToolbar = toolbar.components[1]
-    // Verify stop recording icon is there in toolbar
-    val stopRecordingButtonInToolbar = TreeWalker(secondElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
-    assertThat(stopRecordingButtonInToolbar.size).isEqualTo(1)
-    // Check if stop recording icon is visible
-    assertThat(stopRecordingButtonInToolbar[0].isVisible).isTrue()
+    val timerLabels = TreeWalker(stageToolbar).descendants().filterIsInstance(JBLabel::class.java)
+    val recordingTimer = timerLabels.find { it.text.contains("Recording") }
+    assertThat(recordingTimer).isNotNull()
+    assertThat(recordingTimer!!.isVisible).isTrue()
   }
 
   @Test
   fun testStopRecordingButtonClickEndSession() {
     val stageToolbar = getToolbar(true)
-    val topLevelToolBar = TreeWalker(stageToolbar.components[0])
-    val componentsInToolbar = topLevelToolBar.descendants().filterIsInstance(JComponent::class.java)
-    // Toolbar should have elements
-    assertThat(componentsInToolbar.size).isGreaterThan(0)
-
-    var toolbar = stageToolbar.getComponent(0) as JPanel
-    // 1st item is garbage collection, 2nd item is stop recording button
-    assertThat(toolbar.components).asList().hasSize(2)
-
-    val secondElementInToolbar = toolbar.components[1]
-    // Verify stop recording icon is there in toolbar
-    val stopRecordingButtonInToolbar = TreeWalker(secondElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
-    assertThat(stopRecordingButtonInToolbar.size).isEqualTo(1)
-    // Check stop recording icon is visible
-    assertThat(stopRecordingButtonInToolbar[0].isVisible).isTrue()
+    val buttons = TreeWalker(stageToolbar).descendants().filterIsInstance(JButton::class.java)
+    val stopRecordingButton = buttons.find { it.toolTipText == "Stop Recording" }
+    assertThat(stopRecordingButton).isNotNull()
+    assertThat(stopRecordingButton!!.isVisible).isTrue()
   }
 
   @Test
   fun testToolbarForInActiveSession() {
     val stageToolbar = getToolbar(false)
-    val topLevelToolBar = TreeWalker(stageToolbar.components[0])
-    val componentsInToolbar = topLevelToolBar.descendants().filterIsInstance(JComponent::class.java)
-    // Toolbar should have elements
-    assertThat(componentsInToolbar.size).isGreaterThan(0)
+    val buttons = TreeWalker(stageToolbar).descendants().filterIsInstance(JButton::class.java)
+    val stopRecordingButton = buttons.find { it.toolTipText == "Stop Recording" }
+    assertThat(stopRecordingButton).isNotNull()
+    assertThat(stopRecordingButton!!.isVisible).isFalse()
 
-    var toolbar = stageToolbar.getComponent(0) as JPanel
-    // Item is stop recording icon
-    assertThat(toolbar.components).asList().hasSize(1)
-
-    val firstElementInToolbar = toolbar.components[0]
-    // Verify stop recording icon is there in toolbar
-    val stopRecordingButtonInToolbar = TreeWalker(firstElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
-
-    // Check stop recording icon is invisible
-    assertThat(stopRecordingButtonInToolbar[0].isVisible).isFalse()
+    val timerLabels = TreeWalker(stageToolbar).descendants().filterIsInstance(JBLabel::class.java)
+    val recordingTimer = timerLabels.find { it.text.contains("Recording") }
+    assertThat(recordingTimer).isNull()
   }
 
   @Test

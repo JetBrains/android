@@ -248,6 +248,15 @@ class StageWithToolbarView(
     stageCenterComponent.revalidate()
 
     customStageToolbar.removeAll()
+    val currentStageView = stageView
+
+    if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+      if (currentStageView is LiveStageView) {
+        currentStageView.addLeftToolbarComponent(timelineNavigationToolbar)
+      } else {
+        toolbar.add(timelineNavigationToolbar, BorderLayout.EAST)
+      }
+    }
     customStageToolbar.add(stageView!!.toolbar, BorderLayout.CENTER)
     customStageToolbar.revalidate()
 

@@ -152,8 +152,7 @@ open class LiveMemoryFootprintViewTest {
   @Test
   fun testToolbarHasGcButton() {
     val memoryFootprintView = LiveMemoryFootprintView(myProfilersView, myModel)
-    val toolbar = memoryFootprintView.toolbar.getComponent(0) as JPanel
-    assertThat(toolbar.components).asList().containsExactly(memoryFootprintView.garbageCollectionButton)
+    assertThat(memoryFootprintView.toolbar).isEqualTo(memoryFootprintView.garbageCollectionButton)
   }
 
   @Test

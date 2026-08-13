@@ -8,24 +8,25 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
-import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.ProfilerCombobox
-import com.android.tools.profilers.ProfilerComboboxCellRenderer
+import com.android.tools.profilers.ProfilerDropDownComponent
+import com.android.tools.profilers.ProfilerFlows
 import com.android.tools.profilers.ProfilerLayout
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
+import com.android.tools.profilers.Selection
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.stacktrace.LoadingPanel
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBSplitter
@@ -37,11 +38,12 @@ import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
+import java.awt.GridBagConstraints
 import java.util.concurrent.TimeUnit
 import java.util.function.DoubleSupplier
-import javax.swing.DefaultComboBoxModel
+import javax.swing.JButton
 import javax.swing.JComponent
-import javax.swing.JList
+import javax.swing.JLabel
 import javax.swing.JPanel
 
 class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationStage) :
@@ -73,15 +75,15 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
 
   @VisibleForTesting
   val stopButton =
-    CommonButton(
-        if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
-          StudioIcons.Profiler.Toolbar.STOP_SESSION
-        } else {
-          StudioIcons.Profiler.Toolbar.STOP_RECORDING
+    if (profilersView.studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+        JButton(TaskBasedUxStrings.ACTION_BAR_STOP_RECORDING).apply {
+          putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, true)
+          font = font.deriveFont(font.style)
         }
-      )
+      } else {
+        CommonButton(StudioIcons.Profiler.Toolbar.STOP_RECORDING).apply { disabledIcon = IconLoader.getDisabledIcon(icon) }
+      }
       .apply {
-        disabledIcon = IconLoader.getDisabledIcon(icon)
         toolTipText = "Stop recording Java / Kotlin allocations"
         addActionListener {
           if (getStage().studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
@@ -97,6 +99,8 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
   val forceGcButton = garbageCollectionComponent.makeGarbageCollectionButton(stage.memoryDataProvider, profilersView.studioProfilers)
 
   @VisibleForTesting val samplingMenu = AllocationSamplingMenu(stage)
+
+  private val recordingSeparator = FlatSeparator()
 
   private val instanceDetailsSplitter =
     JBSplitter(false).apply {
@@ -129,7 +133,7 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     JBSplitter(true).apply {
       firstComponent = timelineComponent
       secondComponent = chartCaptureSplitter
-      proportion = .2f
+      proportion = .3f
     }
   @VisibleForTesting var loadingPanel: LoadingPanel? = null
   private val mainPanelLayout = CardLayout()
@@ -146,8 +150,23 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
       }
 
     fun updateLabel() {
-      val elapsedUs = stage.minTrackingTimeUs.toLong() - TimeUnit.NANOSECONDS.toMicros(stage.studioProfilers.session.startTimestamp)
-      captureElapsedTimeLabel.text = "Recorded Java / Kotlin Allocations: ${TimeFormatter.getSimplifiedClockString(elapsedUs)}"
+      if (stage.hasEndedTracking || stage.isStatic) {
+        captureElapsedTimeLabel.text = ""
+        captureElapsedTimeLabel.isVisible = false
+        captureElapsedTimeLabel.icon = null
+        recordingSeparator.isVisible = false
+        return
+      }
+      val elapsedUs =
+        if (stage.hasStartedTracking) {
+          (stage.timeline.dataRange.max - stage.minTrackingTimeUs).coerceAtLeast(0.0).toLong()
+        } else 0L
+      val elapsedNs = TimeUnit.MICROSECONDS.toNanos(elapsedUs)
+      val formattedTime = RecordingScreenModel.formatElapsedTime(elapsedNs)
+      captureElapsedTimeLabel.icon = StudioIcons.Profiler.Toolbar.STOP_RECORDING
+      captureElapsedTimeLabel.text = "<html><b>Recording:</b> $formattedTime</html>"
+      captureElapsedTimeLabel.isVisible = true
+      recordingSeparator.isVisible = true
     }
 
     stage.captureSelection.aspect.addDependency(this).onChange(CaptureSelectionAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
@@ -180,27 +199,37 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     }
   }
 
+  val leftToolbar =
+    JBPanel<Nothing>(createToolbarLayout()).apply {
+      border = JBUI.Borders.emptyLeft(5)
+      add(captureElapsedTimeLabel)
+      add(recordingSeparator)
+      add(selectAllButton)
+    }
+
   override fun getToolbar() =
     JBPanel<Nothing>(BorderLayout()).apply {
-      val toolbar =
+      val rightToolbar =
         JBPanel<Nothing>(createToolbarLayout()).apply {
-          add(captureElapsedTimeLabel)
-          add(FlatSeparator())
-          add(selectAllButton)
-          add(stopButton)
-          add(forceGcButton)
-          add(FlatSeparator())
-          add(samplingMenu)
+          border = JBUI.Borders.emptyRight(5)
+          add(samplingMenu.component, GridBagConstraints().apply { insets = JBUI.insets(0, 0, 0, 0) })
+          add(forceGcButton, GridBagConstraints().apply { insets = JBUI.insets(0, 2, 0, 0) })
+          add(stopButton, GridBagConstraints().apply { insets = JBUI.insets(0, 2, 0, 0) })
         }
-      add(toolbar, BorderLayout.WEST)
+      add(leftToolbar, BorderLayout.WEST)
+      add(rightToolbar, BorderLayout.EAST)
       hideLiveButtons()
     }
 
   private fun hideLiveButtons() {
-    if (stage.hasEndedTracking) {
+    if (stage.hasEndedTracking || stage.isStatic) {
       forceGcButton.isVisible = false
-      samplingMenu.isVisible = false
+      samplingMenu.component.isVisible = false
       stopButton.isVisible = false
+      captureElapsedTimeLabel.isVisible = false
+      captureElapsedTimeLabel.text = ""
+      captureElapsedTimeLabel.icon = null
+      recordingSeparator.isVisible = false
     }
   }
 
@@ -294,44 +323,46 @@ class AllocationTimelineComponent(stageView: AllocationStageView, timeAxis: JCom
   }
 }
 
-class AllocationSamplingMenu(private val stage: AllocationStage) : JBPanel<AllocationSamplingMenu>(BorderLayout()) {
-  private val label = JBLabel("Allocation Tracking")
-  val combobox = ProfilerCombobox<LiveAllocationSamplingMode>()
+class AllocationSamplingMenu(private val stage: AllocationStage) {
+  @get:VisibleForTesting
+  val samplingModeFlow =
+    ProfilerFlows.createMutableStateFlow(
+      Selection(if (stage.liveAllocationSamplingMode == NONE) FULL else stage.liveAllocationSamplingMode, listOf(FULL, SAMPLED))
+    )
   private val observer = AspectObserver()
-  private val logger
-    get() = Logger.getInstance(AllocationStageView::class.java)
+
+  val dropDown =
+    ProfilerDropDownComponent(
+      FULL.displayName,
+      "Select allocation tracking mode",
+      null,
+      samplingModeFlow,
+      null,
+      { mode ->
+        samplingModeFlow.value = Selection(mode, listOf(FULL, SAMPLED))
+        stage.requestLiveAllocationSamplingModeUpdate(mode)
+      },
+      { mode -> mode?.displayName ?: FULL.displayName },
+    )
+
+  val component: JPanel =
+    JPanel(createToolbarLayout()).apply {
+      add(
+        JLabel("Allocation Tracking:").apply {
+          foreground = UIUtil.getLabelDisabledForeground()
+          border = JBUI.Borders.empty(4, 12, 0, 2)
+        }
+      )
+      add(dropDown)
+    }
 
   init {
-    combobox.apply {
-      model = DefaultComboBoxModel(arrayOf(FULL, SAMPLED))
-      renderer =
-        object : ProfilerComboboxCellRenderer<LiveAllocationSamplingMode>() {
-          override fun customizeCellRenderer(
-            list: JList<out LiveAllocationSamplingMode>,
-            value: LiveAllocationSamplingMode?,
-            index: Int,
-            selected: Boolean,
-            hasFocus: Boolean,
-          ) {
-            append(value?.displayName ?: "-----")
-          }
-        }
-      addActionListener { stage.requestLiveAllocationSamplingModeUpdate(model.selectedItem as LiveAllocationSamplingMode) }
-    }
     stage.aspect.addDependency(observer).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE, ::onSamplingModeChanged)
     onSamplingModeChanged()
-
-    border = JBUI.Borders.empty(0, 5)
-    add(label, BorderLayout.LINE_START)
-    add(combobox, BorderLayout.CENTER)
   }
 
-  private fun onSamplingModeChanged() =
-    when (val mode = stage.liveAllocationSamplingMode) {
-      FULL,
-      SAMPLED -> {
-        combobox.model.selectedItem = mode
-      }
-      NONE -> {}
-    }
+  private fun onSamplingModeChanged() {
+    val mode = if (stage.liveAllocationSamplingMode == NONE) FULL else stage.liveAllocationSamplingMode
+    samplingModeFlow.value = Selection(mode, listOf(FULL, SAMPLED))
+  }
 }

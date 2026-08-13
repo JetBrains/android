@@ -49,4 +49,9 @@ class ProfilerDropDownComponent<T>(
 
     add(toolbar.component, java.awt.BorderLayout.CENTER)
   }
+
+  // Prevent GridBagLayout from squishing the dropdown and truncating the text when horizontal space is tight
+  override fun getMinimumSize(): java.awt.Dimension {
+    return preferredSize
+  }
 }

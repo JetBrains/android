@@ -32,9 +32,19 @@ import javax.swing.JComponent
 import javax.swing.KeyStroke
 
 class GarbageCollectionComponent {
-  fun makeGarbageCollectionButton(memoryDataProvider: MemoryDataProvider, studioProfilers: StudioProfilers): CommonButton {
-    val myForceGarbageCollectionButton = CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION)
-    myForceGarbageCollectionButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION)
+  fun makeGarbageCollectionButton(memoryDataProvider: MemoryDataProvider, studioProfilers: StudioProfilers): JButton {
+    val myForceGarbageCollectionButton =
+      if (studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+        JButton(FORCE_GC_TEXT).apply {
+          toolTipText = FORCE_GARBAGE_COLLECTION
+          // Strip FontUIResource so DarculaButtonUI doesn't forcefully make it bold
+          font = font.deriveFont(font.style)
+        }
+      } else {
+        CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION).apply {
+          disabledIcon = IconLoader.getDisabledIcon(icon)
+        }
+      }
     myForceGarbageCollectionButton.addActionListener {
       memoryDataProvider.forceGarbageCollection()
       studioProfilers.ideServices.featureTracker.trackForceGc()
@@ -60,7 +70,7 @@ class GarbageCollectionComponent {
   ): DefaultContextMenuItem {
     return DefaultContextMenuItem.Builder(FORCE_GARBAGE_COLLECTION)
       .setContainerComponent(containerComponent)
-      .setIcon(myForceGarbageCollectionButton.icon)
+      .setIcon(myForceGarbageCollectionButton.icon ?: StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION)
       .setActionRunnable { myForceGarbageCollectionButton.doClick(0) }
       .setEnableBooleanSupplier { getGcSupportStatus(profilers).isSupported }
       .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_G, getActionMask()))
@@ -86,6 +96,7 @@ class GarbageCollectionComponent {
   }
 
   companion object {
+    const val FORCE_GC_TEXT = "Force GC"
     private const val FORCE_GARBAGE_COLLECTION = "Force garbage collection"
 
     private fun getActionMask(): Int {

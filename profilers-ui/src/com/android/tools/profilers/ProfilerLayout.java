@@ -73,8 +73,8 @@ public class ProfilerLayout {
   public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
   public static final int FILTER_TEXT_HISTORY_SIZE = 5;
 
-  // The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the toolbar.
-  public static final int TOOLBAR_HEIGHT = JBUI.scale(31);
+  // The total usable height of the toolbar is 37px the 1px is for a 1px border at the bottom of the toolbar.
+  public static final int TOOLBAR_HEIGHT = JBUI.scale(38);
   public static final Border TOOLBAR_LABEL_BORDER = JBUI.Borders.empty(3, 8, 3, 3);
   public static final Border TOOLBAR_ICON_BORDER = JBUI.Borders.empty(4);
 

@@ -168,14 +168,9 @@ public class LiveMemoryFootprintView extends LiveDataView<LiveMemoryFootprintMod
    * @return JComponent
    */
   public JComponent getToolbar() {
-    JPanel panel = new JPanel(new BorderLayout());
-    JPanel toolbar = new JPanel(createToolbarLayout());
-    panel.add(toolbar, BorderLayout.WEST);
-    toolbar.removeAll();
-    toolbar.add(myForceGarbageCollectionButton);
     myGarbageCollectionComponent.updateGcButton(myMemoryFootprintModel.getStudioProfilers(),
                                                 myForceGarbageCollectionButton);
-    return panel;
+    return myForceGarbageCollectionButton;
   }
 
   public JComponent getTooltipComponent() {

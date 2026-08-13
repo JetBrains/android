@@ -54,6 +54,7 @@ import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.HorizontalProgressBar
 import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 
@@ -87,7 +88,14 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
 
   if (isRecording) {
     Row(
-      modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
+      modifier =
+        Modifier.fillMaxWidth()
+          .padding(
+            start = TASK_ACTION_BAR_CONTENT_PADDING_DP,
+            top = TASK_ACTION_BAR_CONTENT_PADDING_DP,
+            bottom = TASK_ACTION_BAR_CONTENT_PADDING_DP,
+            end = 8.dp,
+          ),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       RecordingTimer(leakCanaryModel)
@@ -104,7 +112,7 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
       ) {
         val forceDumpButton =
           @Composable {
-            DefaultButton(onClick = { leakCanaryModel.forceHeapDump(isUserInitiated = true) }, enabled = isForceDumpEnabled) {
+            OutlinedButton(onClick = { leakCanaryModel.forceHeapDump(isUserInitiated = true) }, enabled = isForceDumpEnabled) {
               Text(LEAKCANARY_FORCE_DUMP)
             }
           }
