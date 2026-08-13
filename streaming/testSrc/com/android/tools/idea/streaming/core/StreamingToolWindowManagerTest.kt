@@ -109,7 +109,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -744,7 +743,6 @@ class StreamingToolWindowManagerTest {
     assertThat(mirroringManager.mirroringHandles.value[device]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
   }
 
-  @Ignore("b/545682552")
   @Test
   fun testAvdStarting() {
     EmulatorSettings.getInstance()::launchInToolWindow.override(false, testRootDisposable)
@@ -758,7 +756,11 @@ class StreamingToolWindowManagerTest {
     tablet.start(standalone = true)
     runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
 
-    val popup = triggerAddDevicePopup()
+    lateinit var popup: FakeJBPopup<Any>
+    waitForCondition(2.seconds) {
+      popup = triggerAddDevicePopup()
+      popup.actions.size > 1
+    }
     assertThat(popup.actions.toString())
       .isEqualTo(
         "[Separator (Virtual Devices), ${phone.avdName} (null), " +
@@ -781,9 +783,8 @@ class StreamingToolWindowManagerTest {
     contentManager.removeContent(contentManager.contents[0], true)
     waitForCondition(2.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
     assertThat(RunningAvdTracker.getInstance().runningAvds[phone.avdFolder]?.isShuttingDown).isTrue()
-    val startAction = triggerAddDevicePopup().actions.find { it.templateText == phone.avdName }
-    assertThat(startAction).isNotNull()
-    executeAction(startAction!!, toolWindow.component, project)
+    val startAction = waitForAddDeviceAction(2.seconds, phone.avdName)
+    executeAction(startAction, toolWindow.component, project)
     assertThat(phone.isRunning)
     phone.resumeGrpc() // Allow the phone AVD to finish its shutdown sequence and terminate.
     waitForCondition(2.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
