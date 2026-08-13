@@ -299,16 +299,16 @@ class EnvironmentFileAnalyzerTest {
       chunkBos.write(0) // compression method
       chunkBos.write(0) // language tag null
       chunkBos.write(0) // translated keyword null
-      val deflater = Deflater()
-      deflater.setInput(xml.toByteArray(UTF_8))
-      deflater.finish()
       val deflatedBytes = ByteArray(1024)
       val compressedBos = ByteArrayOutputStream()
-      while (!deflater.finished()) {
-        val count = deflater.deflate(deflatedBytes)
-        compressedBos.write(deflatedBytes, 0, count)
+      Deflater().use { deflater ->
+        deflater.setInput(xml.toByteArray(UTF_8))
+        deflater.finish()
+        while (!deflater.finished()) {
+          val count = deflater.deflate(deflatedBytes)
+          compressedBos.write(deflatedBytes, 0, count)
+        }
       }
-      deflater.end()
       chunkBos.write(compressedBos.toByteArray())
     } else {
       chunkBos.write(0) // compression flag

@@ -806,16 +806,16 @@ class EmulatorEnvironmentActionTest {
       chunkStream.write(0) // compression method
       chunkStream.write(0) // language tag null
       chunkStream.write(0) // translated keyword null
-      val deflater = Deflater()
-      deflater.setInput(xml.toByteArray())
-      deflater.finish()
       val deflatedBytes = ByteArray(1024)
       val compressedStream = ByteArrayOutputStream()
-      while (!deflater.finished()) {
-        val count = deflater.deflate(deflatedBytes)
-        compressedStream.write(deflatedBytes, 0, count)
+      Deflater().use { deflater ->
+        deflater.setInput(xml.toByteArray())
+        deflater.finish()
+        while (!deflater.finished()) {
+          val count = deflater.deflate(deflatedBytes)
+          compressedStream.write(deflatedBytes, 0, count)
+        }
       }
-      deflater.end()
       chunkStream.write(compressedStream.toByteArray())
     } else {
       chunkStream.write(0) // compression flag
