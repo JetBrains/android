@@ -2702,6 +2702,11 @@ public final class StudioFlags {
                     "Enable next edit/action prediction in the IDE",
                     "Enable next edit/action prediction in the IDE");
 
+  public static final Flag<Boolean> GEMINI_NEXT_PREDICTION_LITE =
+    new BooleanFlag(STUDIOBOT, "gemini.next.prediction.lite",
+                    "Enable next edit prediction lite",
+                    "Enable next edit prediction lite for predictions at the cursor");
+
   public static final Flag<Boolean> GEMINI_NEXT_PREDICTION_DEBUG_SETTINGS =
     new BooleanFlag(STUDIOBOT, "gemini.next.prediction.debug.settings",
                     "Enable next edit/action prediction debug settings",
