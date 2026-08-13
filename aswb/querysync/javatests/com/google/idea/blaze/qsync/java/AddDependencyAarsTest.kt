@@ -122,6 +122,7 @@ class AddDependencyAarsTest {
           resFolder = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/res")),
           symbolFile = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/R.txt")),
           packageName = "com.google.idea.blaze.qsync.testdata.android",
+          assetsFolder = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/assets")),
         )
       )
 

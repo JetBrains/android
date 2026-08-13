@@ -73,6 +73,7 @@ class AddDependencyAars(
                   resFolder = added.resolveChild(Path.of("res")),
                   symbolFile = added.resolveChild(Path.of("R.txt")),
                   packageName = packageName.orEmpty(),
+                  assetsFolder = added.resolveChild(Path.of("assets")),
                 )
               )
             }

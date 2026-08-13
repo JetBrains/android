@@ -159,6 +159,7 @@ class ProjectProto {
     val resFolder: ProjectPath,
     val symbolFile: ProjectPath,
     val packageName: String,
+    val assetsFolder: ProjectPath?,
   ) : ProjectProtoModel
 
   data class BuildArtifact(val digest: String) : ProjectProtoModel
