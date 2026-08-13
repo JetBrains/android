@@ -91,7 +91,7 @@ internal class EmulatorRecentEnvironmentsActionGroup : DefaultActionGroup(), Dum
       EmulatorEnvironmentAction.getRecentFiles()
         .map { Path.of(it.path) }
         .filter { Files.isRegularFile(it) }
-        .filter { StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get() || !it.fileName.toString().endsWith(".obj", ignoreCase = true) }
+        .filter { StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get() || !is3dSceneFile(it) }
         .filter { StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.get() || !isVideoFile(it) }
         .any { currentEnvironmentPath == null || it.toAbsolutePath().normalize() != currentEnvironmentPath }
     presentation.isVisible = hasRecentFiles && EmulatorEnvironmentAction.isApplicable(event)
@@ -104,7 +104,7 @@ internal class EmulatorRecentEnvironmentsActionGroup : DefaultActionGroup(), Dum
       EmulatorEnvironmentAction.getRecentFiles()
         .map { Path.of(it.path) }
         .filter { Files.isRegularFile(it) }
-        .filter { StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get() || !it.fileName.toString().endsWith(".obj", ignoreCase = true) }
+        .filter { StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.get() || !is3dSceneFile(it) }
         .filter { StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.get() || !isVideoFile(it) }
         .filter { currentEnvironmentPath == null || it.toAbsolutePath().normalize() != currentEnvironmentPath }
     return recentFiles.map { EmulatorEnvironmentAction.RecentCustom(it) }.toTypedArray()

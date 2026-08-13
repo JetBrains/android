@@ -324,7 +324,7 @@ class EmulatorEnvironmentActionTest {
     StudioFlags.EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT.overrideForTest(false, testRootDisposable)
     children = group.getChildren(event)
     assertThat(children.size).isEqualTo(1)
-    assertThat(children[0].templatePresentation.text).isEqualTo(file1.fileName.toString())
+    assertThat(children[0].templatePresentation.text).isEqualTo("<html>${file1.fileName} <font color=\"gray\">photo</font></html>")
   }
 
   @Test
@@ -351,7 +351,7 @@ class EmulatorEnvironmentActionTest {
     StudioFlags.EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT.overrideForTest(false, testRootDisposable)
     children = group.getChildren(event)
     assertThat(children.size).isEqualTo(1)
-    assertThat(children[0].templatePresentation.text).isEqualTo(file1.fileName.toString())
+    assertThat(children[0].templatePresentation.text).isEqualTo("<html>${file1.fileName} <font color=\"gray\">photo</font></html>")
   }
 
   @Test
@@ -474,8 +474,8 @@ class EmulatorEnvironmentActionTest {
     assertThat(updateAndGetActionPresentation(group, event).isVisible).isTrue()
     var children = group.getChildren(event)
     assertThat(children.size).isEqualTo(2)
-    assertThat(children[0].templatePresentation.text).isEqualTo(file2.fileName.toString())
-    assertThat(children[1].templatePresentation.text).isEqualTo(file1.fileName.toString())
+    assertThat(children[0].templatePresentation.text).isEqualTo("<html>${file2.fileName} <font color=\"gray\">photo</font></html>")
+    assertThat(children[1].templatePresentation.text).isEqualTo("<html>${file1.fileName} <font color=\"gray\">photo</font></html>")
 
     // 2. Set active environment to file2
     val recentAction2 = EmulatorEnvironmentAction.RecentCustom(file2)
@@ -490,7 +490,7 @@ class EmulatorEnvironmentActionTest {
     assertThat(updateAndGetActionPresentation(group, event).isVisible).isTrue()
     children = group.getChildren(event)
     assertThat(children.size).isEqualTo(1)
-    assertThat(children[0].templatePresentation.text).isEqualTo(file1.fileName.toString())
+    assertThat(children[0].templatePresentation.text).isEqualTo("<html>${file1.fileName} <font color=\"gray\">photo</font></html>")
 
     // 3. Set active environment to file1
     val recentAction1 = EmulatorEnvironmentAction.RecentCustom(file1)
@@ -505,7 +505,7 @@ class EmulatorEnvironmentActionTest {
     assertThat(updateAndGetActionPresentation(group, event).isVisible).isTrue()
     children = group.getChildren(event)
     assertThat(children.size).isEqualTo(1)
-    assertThat(children[0].templatePresentation.text).isEqualTo(file2.fileName.toString())
+    assertThat(children[0].templatePresentation.text).isEqualTo("<html>${file2.fileName} <font color=\"gray\">photo</font></html>")
 
     // 4. Set environment to empty (None)
     val action = ActionManager.getInstance().getAction("android.emulator.environment.darkness")
@@ -655,7 +655,7 @@ class EmulatorEnvironmentActionTest {
     val indoorAction = children.firstOrNull() as? EmulatorEnvironmentAction.BuiltInImage
     assertThat(indoorAction).isNotNull()
     assertThat(indoorAction!!.environmentPath.fileName.toString()).isEqualTo("indoor-study-dark.jpg")
-    assertThat(indoorAction.templatePresentation.text).isEqualTo("Indoor Study Dark")
+    assertThat(indoorAction.templatePresentation.text).isEqualTo("<html>Indoor Study Dark <font color=\"gray\">photo</font></html>")
     assertThat(indoorAction.templatePresentation.description).isEqualTo("Select Indoor Study Dark environment")
   }
 
