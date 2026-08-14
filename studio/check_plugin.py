@@ -36,11 +36,6 @@ def check_plugin(kind, id, allow_bundled_updates, files, deps, out):
       sys.exit(1)
 
   if deps is not None:
-    # Check for duplicate <dependencies> elements, because duplicates get
-    # silently overwritten at runtime at XmlReader.readDependencies().
-    if len(element.findall("dependencies")) > 1:
-      sys.exit(f"ERROR: found multiple <dependencies> elements in plugin.xml for plugin '{id}'")
-
     # Collect plugin.xml dependencies, handling both v1 and v2 syntax.
     # Each dependency is represented as a pair: (kind, ID).
     depends_xml = set()
