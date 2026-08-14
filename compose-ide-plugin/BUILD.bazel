@@ -24,13 +24,13 @@ create_kotlinc_options(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fir_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-fir:libraries-kotlinc-kotlin-compiler-fir",
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fir_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-fir:libraries-kotlinc-kotlin-compiler-fir",
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
 )
 
 jvm_provided_library(
@@ -116,9 +116,9 @@ jvm_library(
         "//platform/editor-ui-api:editor-ui",
         "//platform/extensions",
         "//platform/platform-api:ide",
+        "//platform/platform-impl/color-picker",
         "//platform/ide-core",
         "//platform/platform-impl:ide-impl",
-        "//platform/platform-impl/color-picker",
         "//platform/indexing-api:indexing",
         "//platform/lang-api:lang",
         "//platform/lang-impl",
@@ -138,8 +138,8 @@ jvm_library(
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled",
         "//plugins/kotlin/jvm-debugger/base/util",
         "//platform/xdebugger-impl/shared",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fir_provided",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
         ":libraries_kotlinc_libraries-kotlinc-compose-compiler-plugin_provided",
     ],
 )
@@ -165,10 +165,10 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
-        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "//libraries/kotlinc/kotlin-compiler-fir:libraries-kotlinc-kotlin-compiler-fir",
         "//libraries/kotlinc/kotlin-compiler-fir:libraries-kotlinc-kotlin-compiler-fir_test_lib",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//android/project-system:project-system_test_lib",
         "//android/android-common:common_test_lib",
@@ -219,9 +219,9 @@ jvm_library(
         "//platform/editor-ui-api:editor-ui_test_lib",
         "//platform/extensions:extensions_test_lib",
         "//platform/platform-api:ide_test_lib",
+        "//platform/platform-impl/color-picker:color-picker_test_lib",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
-        "//platform/platform-impl/color-picker:color-picker_test_lib",
         "//platform/indexing-api:indexing_test_lib",
         "//platform/lang-api:lang_test_lib",
         "//platform/lang-impl:lang-impl_test_lib",

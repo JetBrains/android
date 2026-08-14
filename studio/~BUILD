@@ -659,8 +659,6 @@ studio_plugin(
         "@intellij//:com.intellij.compose",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.modules.json",
-        "@intellij//:intellij.compose.ide.plugin.gradleTooling.rt",
-        "@intellij//:intellij.compose.ide.plugin.shared",
         "@intellij//:intellij.java",
         "@intellij//:intellij.java.debugger",
         "@intellij//:intellij.java.debugger.impl",
