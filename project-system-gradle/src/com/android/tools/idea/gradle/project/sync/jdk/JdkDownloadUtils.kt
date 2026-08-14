@@ -70,16 +70,16 @@ object JdkDownloadUtils {
     val downloadResult =
       withContext(Dispatchers.EDT) {
         runWithModalProgressBlocking(project, AndroidBundle.message("android.jdk.downloading.jdk.dialog.title", jdkItem.versionString)) {
-          reportRawProgress { indicator -> downloadSdk(sdk, indicator.toBridgeIndicator()) }
+          reportRawProgress { indicator -> downloadSdk(project, sdk, indicator.toBridgeIndicator()) }
         }
       }
     return if (downloadResult) sdk else null
   }
 
-  private suspend fun downloadSdk(sdk: Sdk, indicator: ProgressIndicator): Boolean {
+  private suspend fun downloadSdk(project: Project, sdk: Sdk, indicator: ProgressIndicator): Boolean {
     return Disposer.newDisposable("The JdkDownloader#downloadSdk lifecycle").use { disposable ->
       val tracker = SdkDownloadTracker.getInstance()
-      tracker.startSdkDownloadIfNeeded(sdk)
+      tracker.startSdkDownloadIfNeeded(project, sdk)
       suspendCancellableCoroutine { continuation ->
         val registered = tracker.tryRegisterDownloadingListener(sdk, disposable, indicator) { continuation.resume(it) }
         if (!registered) {
