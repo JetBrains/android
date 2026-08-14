@@ -359,6 +359,29 @@ class TaskHomeTabModelTest {
     waitForCondition(15.seconds) { taskHomeTabModel.isPrevTaskStartDone.value == true }
   }
 
+  @Test
+  fun `start task button remains enabled when starting a new task is canceled via confirmation dialog`() {
+    assertTrue(taskHomeTabModel.isPrevTaskStartDone.value)
+    setCurrentTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE)
+
+    // Create and select the device, process, starting point, and task
+    val selectedDevice = createDevice("FakeDevice", Common.Device.State.ONLINE, "12", AndroidVersion.VersionCodes.S)
+    taskHomeTabModel.processListModel.onDeviceSelection(selectedDevice)
+    val selectedProcess = createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, selectedDevice.deviceId)
+    addDeviceWithProcess(selectedDevice, selectedProcess, myTransportService, myTimer)
+    taskHomeTabModel.processListModel.onProcessSelection(selectedProcess)
+    taskHomeTabModel.setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW)
+    taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.CALLSTACK_SAMPLE)
+
+    // Simulate user clicking "Cancel" on the confirmation dialog
+    ideProfilerServices.setShouldProceedOkCancelDialog(false)
+
+    // Attempting to start the task should NOT disable the start button when canceled
+    taskHomeTabModel.onEnterTaskButtonClick()
+    assertTrue(taskHomeTabModel.isPrevTaskStartDone.value)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(0)
+  }
+
   private fun setCurrentTaskHandler(taskType: ProfilerTaskType) {
     myProfilers.setCurrentTaskHandlerFetcher { myProfilers.taskHandlers.toList().first { it.first == taskType }.second }
   }

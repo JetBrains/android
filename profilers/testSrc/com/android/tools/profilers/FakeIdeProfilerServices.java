@@ -110,6 +110,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    * Whether long trace files should be parsed.
    */
   private boolean myShouldProceedYesNoDialog = false;
+  private boolean myShouldProceedOkCancelDialog = true;
 
   /**
    * Whether the task-based UX should be visible.
@@ -383,7 +384,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public boolean openOkCancelDialog(@NotNull String message, @NotNull String title, @NotNull Consumer<Boolean> okCallback) {
-    return true;
+    return myShouldProceedOkCancelDialog;
   }
 
 
@@ -428,6 +429,10 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setShouldProceedYesNoDialog(boolean shouldProceedYesNoDialog) {
     myShouldProceedYesNoDialog = shouldProceedYesNoDialog;
+  }
+
+  public void setShouldProceedOkCancelDialog(boolean shouldProceedOkCancelDialog) {
+    myShouldProceedOkCancelDialog = shouldProceedOkCancelDialog;
   }
 
   public void addCustomProfilingConfiguration(String name, TraceType type) {

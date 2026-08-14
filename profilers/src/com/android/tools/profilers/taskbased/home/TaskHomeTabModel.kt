@@ -181,6 +181,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
         val device = selectedDevice ?: return
         val startTaskAction = Runnable {
+          disableStartButtonUntilPrevTaskStarts()
           val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
           profilers.ideServices.buildAndLaunchAction(prefersProfileable, device)
           // Reset process selection as process will be recreated and thus the original selection will be lost.
@@ -209,6 +210,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
       ProfilingProcessStartingPoint.NOW -> {
         assert(canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, profilers.taskHandlers))
+        disableStartButtonUntilPrevTaskStarts()
         profilers.setProcess(selectedDevice!!.device, selectedProcess, TaskTypeMappingUtils.convertTaskType(selectedTaskType), false)
       }
 

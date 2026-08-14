@@ -53,26 +53,17 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
       selectedTaskTypeForEditor != null &&
         ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, selectedTaskTypeForEditor)
 
-    when (this) {
-      // Disable start button until the previous task has started successfully.
-      is TaskHomeTabModel -> {
-        disableStartButtonUntilPrevTaskStarts()
-      }
-      // If the existing Profiler task tab is already showing the selected recording, there is no need to load the task again. Instead, the
-      // existing task tab will be re-opened.
-      is PastRecordingsTabModel -> {
-        val selectedSession = selectedRecording!!.session
-        if (selectedSession == profilers.session && !opensInEditor) {
-          profilers.openTaskTab()
-          return
-        }
-      }
-    }
-
     // Bypass current task checks if the past trace task opens in its own editor window
     // so it doesn't conflict with the existing task in the Profiler window.
     if (this is PastRecordingsTabModel && opensInEditor) {
       doEnterTaskButton()
+      return
+    }
+
+    // If the existing Profiler task tab is already showing the selected recording, there is no need to load the task again. Instead, the
+    // existing task tab will be re-opened.
+    if (this is PastRecordingsTabModel && selectedRecording!!.session == profilers.session) {
+      profilers.openTaskTab()
       return
     }
 
