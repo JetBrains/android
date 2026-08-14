@@ -326,4 +326,35 @@ public class QuerySummaryTest {
     QueryData.Rule rule = QuerySummaryKt.getRulesMapForTests(qs).get(testLabel);
     assertThat(rule.deps()).containsExactly(Label.of("//foo:main"));
   }
+
+  @Test
+  public void testBuildPackage_stampPreservedInSerialization() {
+    Query.Summary summaryProto =
+        Query.Summary.newBuilder()
+            .setVersion(QuerySummaryImpl.PROTO_VERSION)
+            .setStringStorage(
+                Query.StringStorage.newBuilder()
+                    .addIndexedStrings("")
+                    .addIndexedStrings("pkg")
+                    .build())
+            .addBuildPackages(
+                Query.StoredBuildPackage.newBuilder()
+                    .setWorkspace(0)
+                    .setBuildPackage(1)
+                    .setStamp(12345L)
+                    .build())
+            .build();
+
+    QuerySummary qs = QuerySummaryImpl.create(summaryProto);
+    QuerySummary.BuildPackage buildPackage = qs.getBuildPackage(Label.of("//pkg:pkg"));
+    assertThat(buildPackage).isNotNull();
+    assertThat(buildPackage.getStamp()).isEqualTo(12345L);
+
+    Query.Summary serialized =
+        QuerySummaryImpl.newBuilder().putAllPackages(qs.getBuildPackages()).build().protoForSerializationOnly();
+    QuerySummary deserialized = QuerySummaryImpl.create(serialized);
+    QuerySummary.BuildPackage deserializedPackage = deserialized.getBuildPackage(Label.of("//pkg:pkg"));
+    assertThat(deserializedPackage).isNotNull();
+    assertThat(deserializedPackage.getStamp()).isEqualTo(12345L);
+  }
 }

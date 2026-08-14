@@ -73,4 +73,5 @@ message StoredBuildPackage {
   repeated StoredSourceFile source_files = 4;
 
   bool has_error = 5;
+  int64 stamp = 6;
 }

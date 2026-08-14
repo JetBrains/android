@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.devtools.build.lib.query2.proto.proto2api.Build
 import com.google.idea.blaze.common.Interners
 import com.google.idea.blaze.common.Label
-import com.google.idea.blaze.common.Label.Companion.fromWorkspacePackageAndName
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -58,6 +57,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
     sourceFiles: Collection<QueryData.SourceFile>,
     rules: Collection<QueryData.Rule>,
     override val hasError: Boolean,
+    override val stamp: Long = 0L,
   ) : QuerySummary.BuildPackage {
     override val sourceFilesMap: Map<Label, QueryData.SourceFile> = sourceFiles.associateBy { it.label }
     override val rulesMap: Map<Label, QueryData.Rule> = rules.associateBy { it.label }
@@ -88,6 +88,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
           sourceFiles = pkg.sourceFilesList.map { lookup.storedSourceFileToSourceFile(it) },
           rules = pkg.storedRulesList.map { lookup.storedRuleToRule(it) },
           hasError = pkg.hasError,
+          stamp = pkg.stamp,
         )
       }
 
@@ -251,6 +252,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
     private class PackageBuilder(
       val packageLabel: Label,
       var hasError: Boolean = false,
+      var stamp: Long = 0L,
       val rules: MutableList<QueryData.Rule> = mutableListOf(),
       val sourceFiles: MutableList<QueryData.SourceFile> = mutableListOf(),
     )
@@ -296,9 +298,16 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
         if (pkg.hasError) {
           pkgBuilder.hasError = true
         }
+        pkgBuilder.stamp = pkg.stamp
         pkgBuilder.rules.addAll(pkg.rulesMap.values)
         pkgBuilder.sourceFiles.addAll(pkg.sourceFilesMap.values)
       }
+      return this
+    }
+
+    fun putPackageStamp(packageLabel: Label, stamp: Long): Builder {
+      val label = packageLabel.getPackageLabel()
+      packageBuilders.getOrPut(label) { PackageBuilder(label) }.stamp = stamp
       return this
     }
 
@@ -314,6 +323,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
             .setWorkspace(indexer.index(pkg.packageLabel.workspace))
             .setBuildPackage(indexer.index(pkg.packageLabel.buildPackage))
             .setHasError(pkg.hasError)
+            .setStamp(pkg.stamp)
 
         pkg.rules.forEach { pkgBuilder.addStoredRules(indexer.ruleToStoredRule(it)) }
         pkg.sourceFiles.forEach { pkgBuilder.addSourceFiles(indexer.sourceFileToStoredSourceFile(it)) }
@@ -334,11 +344,12 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
      * Whenever changing the logic in this class such that the Query.Summary proto contents will be different for the same input, this
      * version should be incremented.
      */
-    @VisibleForTesting const val PROTO_VERSION: Int = 15
+    @VisibleForTesting const val PROTO_VERSION: Int = 16
 
     // Compile-time dependency attributes, as they appear in streamed_proto output
     private val DEPENDENCY_ATTRIBUTES: Set<String> =
-      setOf<String>( // android_local_test depends on junit implicitly using the _junit attribute.
+      setOf<String>(
+        // android_local_test depends on junit implicitly using the _junit attribute.
         "\$junit",
         "deps",
         "test_deps", // java_proto_library and java_lite_proto_library rules depend on the proto runtime
@@ -417,40 +428,52 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
                 attributeName == "hdrs" -> {
                   rule.addAllHdrs(indexer.indexLabels(a.asLabelListSafe()))
                 }
+
                 attributeName == "library" || attributeName == "cc_library" -> {
                   a.asLabelSafe()?.let { rule.setLibrary(indexer.indexLabel(it)) }
                   rule.addAllDeps(indexer.indexLabels(a.asLabelListSafe()))
                 }
+
                 attributeIsTrackedDependency(attributeName, target) -> {
                   rule.addAllDeps(indexer.indexLabels(a.asLabelListSafe()))
                 }
+
                 attributeName == "idl_srcs" -> {
                   rule.addAllIdlSources(indexer.indexLabels(a.asLabelListSafe()))
                 }
+
                 attributeName == "resource_files" -> {
                   rule.addAllResourceFiles(indexer.indexLabels(a.asLabelListSafe()))
                 }
+
                 attributeName == "manifest" -> {
                   a.asLabelSafe()?.let { rule.setManifest(indexer.indexLabel(it)) }
                 }
+
                 attributeName == "custom_package" -> {
                   rule.setCustomPackage(indexer.index((a.getStringValue())))
                 }
+
                 attributeName == "copts" -> {
                   rule.addAllCopts(indexer.index(a.stringListValueList))
                 }
+
                 attributeName == "tags" -> {
                   rule.addAllTags(indexer.index(a.stringListValueList))
                 }
+
                 attributeName == "main_class" -> {
                   rule.setMainClass(indexer.index(a.getStringValue()))
                 }
+
                 attributeName == "test_app" -> {
                   rule.setTestApp(indexer.index(a.getStringValue()))
                 }
+
                 attributeName == "instruments" -> {
                   rule.setInstruments(indexer.index(a.getStringValue()))
                 }
+
                 attributeName == "test_rule" -> {
                   a.asLabelSafe()?.let { rule.setTestRule(indexer.indexLabel(it)) }
                 }
@@ -459,6 +482,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
                 SRCS_ATTRIBUTES.contains(attributeName) -> {
                   rule.addAllSources(indexer.indexLabels(a.asLabelListSafe()))
                 }
+
                 RUNTIME_DEP_ATTRIBUTES.contains(attributeName) -> {
                   rule.addAllRuntimeDeps(indexer.indexLabels(a.asLabelListSafe()))
                 }
@@ -511,6 +535,7 @@ data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
         QuerySpec.QueryStrategy.PLAIN -> Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN
         QuerySpec.QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS ->
           Query.Summary.QueryStrategy.QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS
+
         QuerySpec.QueryStrategy.PLAIN_WITH_SAFE_FILTERS -> Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN_WITH_SAFE_FILTERS
       }
     }

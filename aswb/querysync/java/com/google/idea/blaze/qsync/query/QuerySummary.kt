@@ -31,6 +31,7 @@ interface QuerySummary {
     val sourceFilesMap: Map<Label, QueryData.SourceFile>
     val rulesMap: Map<Label, QueryData.Rule>
     val hasError: Boolean
+    val stamp: Long
 
     /**
      * The set of all `.bzl` files loaded by this build package.
