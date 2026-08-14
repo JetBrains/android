@@ -877,6 +877,8 @@ Android Studio Preview.app/Contents/lib/jna/amd64/libjnidispatch.jnilib
 Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
 Android Studio Preview.app/Contents/lib/kotlinx-coroutines-guava.jar
+Android Studio Preview.app/Contents/lib/ktor-server-content-negotiation.jar
+Android Studio Preview.app/Contents/lib/ktor-server-sse-jvm.jar
 Android Studio Preview.app/Contents/lib/lib.jar
 Android Studio Preview.app/Contents/lib/native/mac-x86_64/libsqliteij.jnilib
 Android Studio Preview.app/Contents/lib/nio-fs.jar

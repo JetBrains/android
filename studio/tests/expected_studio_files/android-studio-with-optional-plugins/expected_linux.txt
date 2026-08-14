@@ -877,6 +877,8 @@ android-studio/lib/jna/amd64/libjnidispatch.so
 android-studio/lib/jps-model.jar
 android-studio/lib/junit4.jar
 android-studio/lib/kotlinx-coroutines-guava.jar
+android-studio/lib/ktor-server-content-negotiation.jar
+android-studio/lib/ktor-server-sse-jvm.jar
 android-studio/lib/lib.jar
 android-studio/lib/native/linux-x86_64/libsqliteij.so
 android-studio/lib/nio-fs.jar

@@ -877,6 +877,8 @@
 +++Android Studio Nightly.app/Contents/lib/jps-model.jar
 +++Android Studio Nightly.app/Contents/lib/junit4.jar
 +++Android Studio Nightly.app/Contents/lib/kotlinx-coroutines-guava.jar
++++Android Studio Nightly.app/Contents/lib/ktor-server-content-negotiation.jar
++++Android Studio Nightly.app/Contents/lib/ktor-server-sse-jvm.jar
 +++Android Studio Nightly.app/Contents/lib/lib.jar
 +++Android Studio Nightly.app/Contents/lib/native/mac-aarch64/libsqliteij.jnilib
 +++Android Studio Nightly.app/Contents/lib/nio-fs.jar
@@ -4912,6 +4914,8 @@
 ---Android Studio Preview.app/Contents/lib/jps-model.jar
 ---Android Studio Preview.app/Contents/lib/junit4.jar
 ---Android Studio Preview.app/Contents/lib/kotlinx-coroutines-guava.jar
+---Android Studio Preview.app/Contents/lib/ktor-server-content-negotiation.jar
+---Android Studio Preview.app/Contents/lib/ktor-server-sse-jvm.jar
 ---Android Studio Preview.app/Contents/lib/lib.jar
 ---Android Studio Preview.app/Contents/lib/native/mac-aarch64/libsqliteij.jnilib
 ---Android Studio Preview.app/Contents/lib/nio-fs.jar
