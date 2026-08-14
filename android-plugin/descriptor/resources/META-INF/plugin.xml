@@ -43,13 +43,6 @@
     <module name="intellij.xml.emmet"/>
     <module name="intellij.java.debugger"/>
     <module name="intellij.java"/>
-<!--  JetBrains patch: no dependency on intellij.java.debugger.impl.frontend and intellij.platform.images.xdebugger. They are content modules without a visibility attribute, private to the Java and Images plugins, and no Android code uses a class or extension point from them (upstream lists them only through iml_to_build). Add them back only if Android code starts importing from these modules, after the owners make them public.-->
-<!--  <module name="intellij.java.debugger.impl.frontend"/>-->
-<!--  <module name="intellij.platform.images.xdebugger"/>-->
-<!--  JetBrains patch: no dependency on intellij.java.debugger.impl.backend, intellij.platform.debugger.impl.frontend and intellij.platform.debugger.impl.backend. They declare visibility="internal" in the jetbrains namespace and org.jetbrains.android has no namespace; no Android code uses a class or extension point from them. Add them back only if Android code starts importing from these modules.-->
-<!--  <module name="intellij.java.debugger.impl.backend"/>-->
-<!--  <module name="intellij.platform.debugger.impl.frontend"/>-->
-<!--  <module name="intellij.platform.debugger.impl.backend"/>-->
     <module name="intellij.java.impl.refactorings"/>
     <module name="intellij.java.uast"/>
     <module name="intellij.java.ui"/>

@@ -40,7 +40,6 @@ iml_module(
         "@intellij//:intellij.java",
         "@intellij//:intellij.java.debugger",
         "@intellij//:intellij.java.debugger.impl",
-        "@intellij//:intellij.platform.debugger.impl.backend",
         "@intellij//:intellij.java.execution",
     ],
 )
