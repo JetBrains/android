@@ -2303,7 +2303,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         """
           .trimIndent()
 
-      val advancedFeatures = "LedIndicators = on\n"
+      val advancedFeatures = "XrStatusLed = on\n"
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties, advancedFeatures)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
@@ -2416,7 +2416,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         """
           .trimIndent()
 
-      val advancedFeatures = "LedIndicators = on\n"
+      val advancedFeatures = "XrStatusLed = on\n"
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties, advancedFeatures)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)

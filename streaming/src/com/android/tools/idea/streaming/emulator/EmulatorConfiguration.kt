@@ -251,7 +251,7 @@ private constructor(
         when {
           configIni[HW_LED_INDICATORS] == "yes" -> {
             val features = systemImageFeatures ?: readSystemImageFeatures(systemImageDir).also { systemImageFeatures = it }
-            features["LedIndicators"] == "on"
+            features["XrStatusLed"] == "on"
           }
           else -> false
         }
