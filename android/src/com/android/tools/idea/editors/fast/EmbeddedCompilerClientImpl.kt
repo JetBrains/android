@@ -28,6 +28,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.util.ProgressWrapper
@@ -51,7 +52,6 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.compilation.KaCompiledFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 private fun Throwable?.isCompilationError(): Boolean = this is LiveEditUpdateException && this.isCompilationError()
@@ -116,7 +116,9 @@ private constructor(
         if (moduleForAllInputs.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(moduleForAllInputs)
         inputs.forEach {
           if (!it.isValid) throw LiveEditUpdateException.fileNotValid(it)
-          it.module?.let { module -> if (module.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(module) }
+          ModuleUtilCore.findModuleForFile(it)?.let { module ->
+            if (module.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(module)
+          }
         }
       }
 
@@ -196,7 +198,7 @@ private constructor(
 
       try {
         allKtInputs
-          .groupBy { readAction { it.module } }
+          .groupBy { readAction { ModuleUtilCore.findModuleForFile(it) } }
           .forEach { (module, inputs) ->
             if (module == null) {
               throw LiveEditUpdateException.internalErrorMultiModule(emptySet())

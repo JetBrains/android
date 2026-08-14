@@ -31,7 +31,11 @@ import com.android.tools.tests.AdtTestKotlinArtifacts
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileTypes.PlainTextFileType
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFileFactory
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.io.delete
 import java.io.File
@@ -43,7 +47,12 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtImplementationDetail
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -460,5 +469,86 @@ internal class EmbeddedCompilerClientImplTest {
       assertTrue("Write action should have completed successfully during compilation", writeActionRan)
       assertEquals("Compilation should complete in a single attempt", 1, beforeCompileCallCount.get())
     }
+  }
+
+  @Test
+  fun `duplicate file inputs in compilation request succeeds`() = runBlocking {
+    val file =
+      projectRule.fixture.addFileToProject(
+        "app/src/main/java/src/com/test/Source.kt",
+        """
+        package com.test
+
+        fun testMethod() {
+        }
+        """
+          .trimIndent(),
+      )
+
+    val outputDirectory = Files.createTempDirectory("out")
+    val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
+    val result =
+      compiler.compileRequest(
+        ApplicationLiveEditServices.LegacyForTests(projectRule.project),
+        listOf(file, file),
+        buildTargetReference,
+        outputDirectory,
+        EmptyProgressIndicator(),
+      )
+    assertInstanceOf<CompilationResult.Success>(result)
+    assertEquals(
+      """
+      SourceKt.class
+      """
+        .trimIndent(),
+      outputDirectory.toFileNameSet().sorted().joinToString("\n"),
+    )
+  }
+
+  @OptIn(KtImplementationDetail::class)
+  @Test
+  fun `compilation request succeeds when psiFile module returns null but findModuleForFile resolves module`() = runBlocking {
+    val file =
+      projectRule.fixture.addFileToProject(
+        "app/src/main/java/src/com/test/Source.kt",
+        """
+        package com.test
+
+        fun testMethod() {
+        }
+        """
+          .trimIndent(),
+      ) as KtFile
+
+    val fileWithContext = readAction {
+      val dummyContext = PsiFileFactory.getInstance(projectRule.project).createFileFromText("dummy.txt", PlainTextFileType.INSTANCE, "")
+      object : KtFile(file.viewProvider, true) {
+        override fun getContext(): PsiElement = dummyContext
+      }
+    }
+
+    readAction {
+      assertNull("fileWithContext.module should return null", fileWithContext.module)
+      assertNotNull("ModuleUtilCore.findModuleForFile should resolve the module", ModuleUtilCore.findModuleForFile(fileWithContext))
+    }
+
+    val outputDirectory = Files.createTempDirectory("out")
+    val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
+    val result =
+      compiler.compileRequest(
+        ApplicationLiveEditServices.LegacyForTests(projectRule.project),
+        listOf(file, fileWithContext),
+        buildTargetReference,
+        outputDirectory,
+        EmptyProgressIndicator(),
+      )
+    assertInstanceOf<CompilationResult.Success>(result)
+    assertEquals(
+      """
+      SourceKt.class
+      """
+        .trimIndent(),
+      outputDirectory.toFileNameSet().sorted().joinToString("\n"),
+    )
   }
 }
