@@ -17,7 +17,8 @@ package com.google.idea.blaze.android.run.runner;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.ndk.run.editor.AutoAndroidDebuggerState;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
+import com.android.tools.ndk.run.editor.NativeAndroidDebuggerState;
 import com.google.idea.blaze.android.cppimpl.debug.BlazeAutoAndroidDebugger;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDebuggerService.DefaultDebuggerService;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
@@ -30,16 +31,14 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class DefaultDebuggerServiceImplTest extends BlazeIntegrationTestCase {
   @Test
-  public void getDebuggerState_nativeDebugger_setsWorkspaceRootAndSourceRemap() {
+  public void getDebuggerState_nativeDebugger_setsWorkingDir() {
     String workspaceRoot = WorkspaceRoot.fromProject(getProject()).directory().getPath();
 
     DefaultDebuggerService debuggerService = new DefaultDebuggerService(getProject());
     BlazeAutoAndroidDebugger nativeDebugger = new BlazeAutoAndroidDebugger();
-    AutoAndroidDebuggerState state = nativeDebugger.createState();
-    debuggerService.configureNativeDebugger(state, null);
+    AndroidDebuggerState state = debuggerService.getDebuggerState(nativeDebugger);
 
-    assertThat(state.getWorkingDir()).isEqualTo(workspaceRoot);
-    assertThat(state.getUserStartupCommands())
-        .contains("settings append target.source-map /proc/self/cwd/ " + workspaceRoot);
+    assertThat(state).isInstanceOf(NativeAndroidDebuggerState.class);
+    assertThat(((NativeAndroidDebuggerState) state).getWorkingDir()).isEqualTo(workspaceRoot);
   }
 }

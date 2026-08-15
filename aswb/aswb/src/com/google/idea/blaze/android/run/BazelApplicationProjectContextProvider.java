@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider;
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
 import com.google.idea.blaze.android.projectsystem.BazelToken;
 import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor;
+import java.util.Collections;
 import javax.annotation.Nullable;
 
 /** An implementation of {@link ApplicationProjectContextProvider} for the Blaze project system. */
@@ -38,6 +39,6 @@ public class BazelApplicationProjectContextProvider
     // Live edit is not supported for already deployed apps.
     LiveEditDataExtractor liveEditDataExtractor = null;
     return new BazelApplicationProjectContext(
-        projectSystem.getProject(), applicationId, liveEditDataExtractor);
+        projectSystem.getProject(), applicationId, liveEditDataExtractor, Collections.emptyList());
   }
 }

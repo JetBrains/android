@@ -107,7 +107,8 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
     var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
     var applicationProjectContext =
-        new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
+        new BazelApplicationProjectContext(
+            project, applicationId, liveEditDataExtractor, deployInfo.getSymbolDirs());
 
     var consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
 

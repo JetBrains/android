@@ -18,6 +18,7 @@ package com.google.idea.blaze.android.run.deployinfo
 import com.android.tools.idea.run.ApkFileUnit
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvisionException
+import com.android.tools.ndk.run.SymbolDir
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest
 import com.google.idea.blaze.android.run.BazelApkProvider
 import com.google.idea.blaze.android.run.BazelApplicationIdProvider
@@ -76,7 +77,10 @@ private constructor(
   fun toAndroidBinaryApplicationIdProvider(): BazelApplicationIdProvider =
     BazelApplicationIdProvider(mainAppPackageName, testPackageName = null)
 
-  fun toApkProvider(): BazelApkProvider = BazelApkProvider(apkInfos, symbolFiles)
+  fun toApkProvider(): BazelApkProvider = BazelApkProvider(apkInfos)
+
+  val symbolDirs: List<SymbolDir>
+    get() = symbolFiles.map { SymbolDir.WithoutSubdirectories(it.parentFile) }.distinct()
 
   companion object {
 

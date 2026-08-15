@@ -22,11 +22,11 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.editor.ProfilerState
+import com.android.tools.ndk.run.SymbolDir
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo
 import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor
 import com.intellij.execution.Executor
 import com.intellij.openapi.project.Project
-import java.io.File
 
 /** Holds the context data required to run an Android application. */
 class BazelAndroidRunContext(
@@ -49,7 +49,7 @@ class BazelApplicationIdProvider(private val packageName: String, private val te
 }
 
 /** Apk provider from deploy info proto */
-class BazelApkProvider(val apkInfos: List<ApkInfo>, val symbolFiles: List<File>) : ApkProvider {
+class BazelApkProvider(val apkInfos: List<ApkInfo>) : ApkProvider {
   override fun getApks(device: IDevice): Collection<ApkInfo> {
     return apkInfos
   }
@@ -60,9 +60,12 @@ class BazelApkProvider(val apkInfos: List<ApkInfo>, val symbolFiles: List<File>)
  *
  * **Note:** The Bazel project system assumes all instances of the [ApplicationProjectContext] associated with its projects to be backed by
  * this specific class.
+ *
+ * @property symbolDirs Directories containing native debugging symbol files.
  */
 class BazelApplicationProjectContext(
   val project: Project,
   override val applicationId: String,
   val liveEditDataExtractor: LiveEditDataExtractor?,
+  val symbolDirs: List<SymbolDir>,
 ) : ApplicationProjectContext

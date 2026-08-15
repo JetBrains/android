@@ -246,9 +246,6 @@ class BlazeAndroidConfigurationExecutor(
     val debugger =
       debuggerService.getDebugger(isNativeDebuggingEnabled) ?: throw ExecutionException("Can't find AndroidDebugger for launch")
     val debuggerState = debuggerService.getDebuggerState(debugger) ?: throw ExecutionException("Can't find AndroidDebuggerState for launch")
-    if (isNativeDebuggingEnabled) {
-      debuggerService.configureNativeDebugger(debuggerState, runContext.apkProvider)
-    }
 
     val debugSession =
       launchStrategy.startDebuggerSession(runContext, debugger, debuggerState, env, device, console, indicator)

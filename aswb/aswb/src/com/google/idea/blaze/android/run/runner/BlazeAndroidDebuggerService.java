@@ -18,16 +18,12 @@ package com.google.idea.blaze.android.run.runner;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
-import com.android.tools.ndk.run.editor.AutoAndroidDebuggerState;
 import com.android.tools.ndk.run.editor.NativeAndroidDebuggerState;
-import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.cppimpl.debug.BlazeAutoAndroidDebugger;
-import com.google.idea.blaze.android.run.BazelApkProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import javax.annotation.Nullable;
 
 /** Provides android debuggers and debugger states for blaze projects. */
 public interface BlazeAndroidDebuggerService {
@@ -47,8 +43,6 @@ public interface BlazeAndroidDebuggerService {
    * workspace directory flags that cannot be handled by the debuggers themselves.
    */
   AndroidDebuggerState getDebuggerState(AndroidDebugger debugger);
-
-  void configureNativeDebugger(AndroidDebuggerState state, @Nullable BazelApkProvider provider);
 
   /** Default debugger service. */
   class DefaultDebuggerService implements BlazeAndroidDebuggerService {
@@ -72,59 +66,8 @@ public interface BlazeAndroidDebuggerService {
         // Source code is always relative to the workspace root in a blaze project.
         String workingDirPath = WorkspaceRoot.fromProject(project).directory().getPath();
         nativeState.setWorkingDir(workingDirPath);
-
-        // Remote built binaries may use /proc/self/cwd to represent the working directory
-        // so we manually map /proc/self/cwd to the workspace root.  We used to use
-        // `plugin.symbol-file.dwarf.comp-dir-symlink-paths = "/proc/self/cwd"`
-        // to automatically resolve this but it's no longer supported in newer versions of
-        // LLDB.
-        String sourceMapToWorkspaceRootCommand =
-            "settings append target.source-map /proc/self/cwd/ " + workingDirPath;
-        ImmutableList<String> startupCommands =
-            ImmutableList.<String>builder()
-                .addAll(nativeState.getUserStartupCommands())
-                .add(sourceMapToWorkspaceRootCommand)
-                .build();
-        nativeState.setUserStartupCommands(startupCommands);
       }
       return debuggerState;
-    }
-
-    @Override
-    public void configureNativeDebugger(
-        AndroidDebuggerState rawState, @Nullable BazelApkProvider provider) {
-      if (!isNdkPluginLoaded() && !(rawState instanceof AutoAndroidDebuggerState)) {
-        return;
-      }
-      AutoAndroidDebuggerState state = (AutoAndroidDebuggerState) rawState;
-
-      // Source code is always relative to the workspace root in a blaze project.
-      String workingDirPath = WorkspaceRoot.fromProject(project).directory().getPath();
-      state.setWorkingDir(workingDirPath);
-
-      // Remote built binaries may use /proc/self/cwd to represent the working directory,
-      // so we manually map /proc/self/cwd to the workspace root.  We used to use
-      // `plugin.symbol-file.dwarf.comp-dir-symlink-paths = "/proc/self/cwd"`
-      // to automatically resolve this, but it's no longer supported in newer versions of
-      // LLDB.
-      String sourceMapToWorkspaceRootCommand =
-          "settings append target.source-map /proc/self/cwd/ " + workingDirPath;
-
-      ImmutableList<String> startupCommands =
-          ImmutableList.<String>builder()
-              .addAll(state.getUserStartupCommands())
-              .add(sourceMapToWorkspaceRootCommand)
-              .build();
-      state.setUserStartupCommands(startupCommands);
-
-      // NDK plugin will pass symbol directories to LLDB as `settings append
-      // target.exec-search-paths`.
-      if (provider != null) {
-        state.setSymbolDirs(
-            provider.getSymbolFiles().stream()
-                .map(symbol -> symbol.getParentFile().getAbsolutePath())
-                .collect(ImmutableList.toImmutableList()));
-      }
     }
   }
 
