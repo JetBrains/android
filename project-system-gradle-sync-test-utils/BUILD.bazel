@@ -29,7 +29,7 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
-        "@lib//:gradle",
+        "//libraries/gradle",
         "@lib//:kotlin-stdlib",
         "//plugins/gradle/tooling-extension-api:toolingExtension",
     ],
@@ -50,6 +50,7 @@ jvm_library(
         ":projectSystem-gradle-sync-testUtils",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
+        "//libraries/gradle:gradle_test_lib",
         "//plugins/gradle/tooling-extension-api:toolingExtension_test_lib",
     ],
 )

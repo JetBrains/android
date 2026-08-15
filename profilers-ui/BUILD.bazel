@@ -157,7 +157,8 @@ jvm_library(
         "//platform/testFramework:testFramework_test_lib",
         "//android/artwork-compose",
         "//android/artwork-compose:artwork-compose_test_lib",
-        "@lib//:mockito-kotlin",
+        "//libraries/mockito-kotlin",
+        "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.profilers.ui` end

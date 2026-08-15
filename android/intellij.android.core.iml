@@ -35,7 +35,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.libraries.asm" />
-    <orderEntry type="library" name="Gradle" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.gradle" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.hdr.histogram" />
     <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
