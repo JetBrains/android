@@ -24,7 +24,6 @@ import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.DeployTasksHelper;
 import com.google.common.collect.ImmutableList;
@@ -49,9 +48,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XSessionStartedResult;
-
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -109,7 +106,7 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
   @Override
   public ImmutableList<BlazeLaunchTask> getDeployTasks(
-    BazelAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
+      BazelAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
       throws ExecutionException {
     if (configState.getLaunchMethod() != AndroidTestLaunchMethod.NON_BLAZE) {
       return ImmutableList.of();
@@ -130,13 +127,15 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
     var applicationIds = deployInfo.toInstrumentationTestApplicationIdProvider();
     var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
-    var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
+    var applicationProjectContext =
+        new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
 
     var consoleProvider =
         switch (configState.getLaunchMethod()) {
-          case MOBILE_INSTALL, NON_BLAZE -> new AitIdeTestConsoleProvider(configuration, configState);
-          case BLAZE_TEST -> new AitBlazeTestConsoleProvider(
-              project, configuration, testResultsHolder);
+          case MOBILE_INSTALL, NON_BLAZE ->
+              new AitIdeTestConsoleProvider(configuration, configState);
+          case BLAZE_TEST ->
+              new AitBlazeTestConsoleProvider(project, configuration, testResultsHolder);
         };
 
     return new BazelAndroidRunContext(
@@ -146,17 +145,16 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
         apkProvider,
         applicationProjectContext,
         env.getExecutor(),
-        null
-    );
+        null);
   }
 
   @Override
   @Nullable
   public BlazeLaunchTask getApplicationLaunchTask(
-    BazelAndroidRunContext runContext,
-    boolean isDebug,
-    @Nullable Integer userId,
-    @NotNull String contributorsAmStartOptions)
+      BazelAndroidRunContext runContext,
+      boolean isDebug,
+      @Nullable Integer userId,
+      @NotNull String contributorsAmStartOptions)
       throws ExecutionException {
     switch (configState.getLaunchMethod()) {
       case BLAZE_TEST:
@@ -180,15 +178,15 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   @Override
   @SuppressWarnings({"unchecked", "rawtypes", "UnstableApiUsage"}) // Raw type from upstream.
   public XSessionStartedResult startDebuggerSession(
-    BazelAndroidRunContext runContext,
-    AndroidDebugger androidDebugger,
-    AndroidDebuggerState androidDebuggerState,
-    ExecutionEnvironment env,
-    IDevice device,
-    ConsoleView consoleView,
-    ProgressIndicator indicator) {
+      BazelAndroidRunContext runContext,
+      AndroidDebugger androidDebugger,
+      AndroidDebuggerState androidDebuggerState,
+      ExecutionEnvironment env,
+      IDevice device,
+      ConsoleView consoleView,
+      ProgressIndicator indicator) {
     try {
-        return BuildersKt.runBlocking(
+      return BuildersKt.runBlocking(
           EmptyCoroutineContext.INSTANCE,
           (scope, continuation) -> {
             switch (configState.getLaunchMethod()) {
@@ -196,12 +194,11 @@ public class AndroidTestDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
                 /**
                  * Wires up listeners to automatically reconnect the debugger for each test method.
-                 * When you `blaze test` an android_test in debug mode, it kills the
-                 * instrumentation process between each test method, disconnecting the debugger. We
-                 * listen for the start of a new method waiting for a debugger, and reconnect. TODO:
-                 * Support stopping Blaze from the UI. This is hard because we have no way to
-                 * distinguish process handler termination/debug session ending initiated by the
-                 * user.
+                 * When you `blaze test` an android_test in debug mode, it kills the instrumentation
+                 * process between each test method, disconnecting the debugger. We listen for the
+                 * start of a new method waiting for a debugger, and reconnect. TODO: Support
+                 * stopping Blaze from the UI. This is hard because we have no way to distinguish
+                 * process handler termination/debug session ending initiated by the user.
                  */
                 final ProcessHandler masterProcessHandler = new NopProcessHandler();
                 addLaunchTaskCompleteListener(

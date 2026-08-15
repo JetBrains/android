@@ -29,15 +29,15 @@ public class BazelApplicationProjectContextProvider
   @Nullable
   @Override
   public ApplicationProjectContext computeApplicationProjectContext(
-    BazelProjectSystem projectSystem,
-    ApplicationProjectContextProvider.RunningApplicationIdentity identity
-  ) {
+      BazelProjectSystem projectSystem,
+      ApplicationProjectContextProvider.RunningApplicationIdentity identity) {
     String applicationId = identity.getHeuristicApplicationId();
     if (applicationId == null) {
       return null;
     }
     // Live edit is not supported for already deployed apps.
     LiveEditDataExtractor liveEditDataExtractor = null;
-    return new BazelApplicationProjectContext(projectSystem.getProject(), applicationId, liveEditDataExtractor);
+    return new BazelApplicationProjectContext(
+        projectSystem.getProject(), applicationId, liveEditDataExtractor);
   }
 }

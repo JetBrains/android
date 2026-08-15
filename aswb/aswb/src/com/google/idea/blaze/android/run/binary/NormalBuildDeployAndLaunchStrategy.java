@@ -47,9 +47,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XSessionStartedResult;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,9 +64,7 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   private final String launchId;
 
   public NormalBuildDeployAndLaunchStrategy(
-      Project project,
-      BlazeAndroidBinaryRunConfigurationState configState,
-      String launchId) {
+      Project project, BlazeAndroidBinaryRunConfigurationState configState, String launchId) {
     this.project = project;
     this.configState = configState;
     this.launchId = launchId;
@@ -110,7 +106,8 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
     var applicationIds = deployInfo.toAndroidBinaryApplicationIdProvider();
     var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
-    var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
+    var applicationProjectContext =
+        new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
 
     var consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
 
@@ -126,10 +123,10 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
 
   @Override
   public BlazeLaunchTask getApplicationLaunchTask(
-    BazelAndroidRunContext runContext,
-    boolean isDebug,
-    @Nullable Integer userId,
-    String contributorsAmStartOptions)
+      BazelAndroidRunContext runContext,
+      boolean isDebug,
+      @Nullable Integer userId,
+      String contributorsAmStartOptions)
       throws ExecutionException {
     var extraFlags = UserIdHelper.getFlagsFromUserId(userId);
     if (!contributorsAmStartOptions.isEmpty()) {
@@ -154,7 +151,7 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   @Nullable
   @Override
   public ImmutableList<BlazeLaunchTask> getDeployTasks(
-    BazelAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
+      BazelAndroidRunContext runContext, IDevice device, DeployOptions deployOptions)
       throws ExecutionException {
     return ImmutableList.of(
         new DeploymentTimingReporterTask(
@@ -197,15 +194,15 @@ public class NormalBuildDeployAndLaunchStrategy implements BlazeAndroidDeployAnd
   @Nullable
   @Override
   public XSessionStartedResult startDebuggerSession(
-    BazelAndroidRunContext runContext,
-    AndroidDebugger androidDebugger,
-    AndroidDebuggerState androidDebuggerState,
-    ExecutionEnvironment env,
-    IDevice device,
-    ConsoleView consoleView,
-    ProgressIndicator indicator) {
+      BazelAndroidRunContext runContext,
+      AndroidDebugger androidDebugger,
+      AndroidDebuggerState androidDebuggerState,
+      ExecutionEnvironment env,
+      IDevice device,
+      ConsoleView consoleView,
+      ProgressIndicator indicator) {
     try {
-        return BuildersKt.runBlocking(
+      return BuildersKt.runBlocking(
           EmptyCoroutineContext.INSTANCE,
           (scope, continuation) ->
               DebugSessionStarter.INSTANCE.attachDebuggerToStartedProcess(

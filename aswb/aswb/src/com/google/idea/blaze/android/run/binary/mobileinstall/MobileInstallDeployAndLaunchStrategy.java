@@ -21,7 +21,6 @@ import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -46,9 +45,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XSessionStartedResult;
-
 import javax.annotation.Nullable;
 import kotlin.Unit;
 import kotlin.coroutines.EmptyCoroutineContext;
@@ -62,9 +59,7 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
   private final String launchId;
 
   public MobileInstallDeployAndLaunchStrategy(
-      Project project,
-      BlazeAndroidBinaryRunConfigurationState configState,
-      String launchId) {
+      Project project, BlazeAndroidBinaryRunConfigurationState configState, String launchId) {
     this.project = project;
     this.configState = configState;
     this.launchId = launchId;
@@ -77,9 +72,7 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
 
   @Override
   public void augmentLaunchOptions(LaunchOptions.Builder options) {
-    options
-        .setDeploy(true)
-        .setOpenLogcatAutomatically(configState.showLogcatAutomatically());
+    options.setDeploy(true).setOpenLogcatAutomatically(configState.showLogcatAutomatically());
     // This is needed for compatibility with #api211
     options.addExtraOptions(
         ImmutableMap.of("android.profilers.state", configState.getProfilerState()));
@@ -105,7 +98,8 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
     var applicationIds = deployInfo.toAndroidBinaryApplicationIdProvider();
     var apkProvider = deployInfo.toApkProvider();
     var applicationId = applicationIds.getPackageName();
-    var applicationProjectContext = new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
+    var applicationProjectContext =
+        new BazelApplicationProjectContext(project, applicationId, liveEditDataExtractor);
 
     var consoleProvider = new BlazeAndroidBinaryConsoleProvider(project);
 
@@ -121,7 +115,7 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
 
   @Override
   public ImmutableList<BlazeLaunchTask> getDeployTasks(
-    BazelAndroidRunContext runContext, IDevice device, DeployOptions deployOptions) {
+      BazelAndroidRunContext runContext, IDevice device, DeployOptions deployOptions) {
     return ImmutableList.of(
         new DeploymentTimingReporterTask(
             launchId, project, runContext.getApkProvider().getApks(device), deployOptions));
@@ -130,10 +124,10 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
   @Override
   @Nullable
   public BlazeLaunchTask getApplicationLaunchTask(
-    BazelAndroidRunContext runContext,
-    boolean isDebug,
-    @Nullable Integer userId,
-    @NotNull String contributorsAmStartOptions)
+      BazelAndroidRunContext runContext,
+      boolean isDebug,
+      @Nullable Integer userId,
+      @NotNull String contributorsAmStartOptions)
       throws ExecutionException {
 
     var extraFlags = UserIdHelper.getFlagsFromUserId(userId);
@@ -149,7 +143,7 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
     var deployInfo = runContext.getDeployInfo();
 
     return BlazeAndroidBinaryApplicationLaunchTaskProvider.getApplicationLaunchTask(
-      runContext.getApplicationIdProvider(),
+        runContext.getApplicationIdProvider(),
         deployInfo.getMainAppMergedManifest(),
         configState,
         startActivityFlagsProvider);
@@ -159,13 +153,13 @@ public class MobileInstallDeployAndLaunchStrategy implements BlazeAndroidDeployA
   @Nullable
   @Override
   public XSessionStartedResult startDebuggerSession(
-    BazelAndroidRunContext runContext,
-    AndroidDebugger androidDebugger,
-    AndroidDebuggerState androidDebuggerState,
-    ExecutionEnvironment env,
-    IDevice device,
-    ConsoleView consoleView,
-    ProgressIndicator indicator) {
+      BazelAndroidRunContext runContext,
+      AndroidDebugger androidDebugger,
+      AndroidDebuggerState androidDebuggerState,
+      ExecutionEnvironment env,
+      IDevice device,
+      ConsoleView consoleView,
+      ProgressIndicator indicator) {
     try {
       return BuildersKt.runBlocking(
           EmptyCoroutineContext.INSTANCE,
