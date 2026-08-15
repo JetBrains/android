@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.run.producers.BlazeRunConfigurationProducerTes
 import com.google.idea.blaze.base.run.producers.TestContextProvider
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 import com.intellij.psi.PsiClassOwner
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,16 +66,19 @@ class BlazeJavaTestFilterFlagsPreservationTest : BlazeRunConfigurationProducerTe
     val target = TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test")
     registerTargets(target)
 
-    val javaClass = (javaFile as PsiClassOwner).classes[0]
-    val method1 = javaClass.findMethodsByName("testMethod1", false)[0]
+    val (javaClass, method1) =
+      runReadAction {
+        val clazz = (javaFile as PsiClassOwner).classes[0]
+        val m = clazz.findMethodsByName("testMethod1", false)[0]
+        clazz to m
+      }
 
     // 1. Create run configuration from class context using standard IDE producer API
     val classContext = createContextFromPsi(javaClass)
-    val fromContextList = runWithProgress { classContext.configurationsFromContext }
-    assertThat(fromContextList).isNotNull()
+    val fromContextList = getConfigurationsFromContext(classContext)
     assertThat(fromContextList).isNotEmpty()
 
-    val fromContext = fromContextList!![0]
+    val fromContext = fromContextList[0]
     val configuration = fromContext.configuration as BlazeCommandRunConfiguration
     performFirstRun(configuration, classContext)
 
@@ -84,15 +88,11 @@ class BlazeJavaTestFilterFlagsPreservationTest : BlazeRunConfigurationProducerTe
 
     // 3. Create context for specific test method and apply to existing configuration
     val methodContext = createContextFromPsi(method1)
-    val testContext = runWithProgress {
-      TestContextProvider.EP_NAME.extensionList.firstNotNullOfOrNull { it.getTestContext(methodContext) }
-    }
+    val testContext = runReadAction { TestContextProvider.EP_NAME.extensionList.firstNotNullOfOrNull { it.getTestContext(methodContext) } }
     assertThat(testContext).isNotNull()
 
-    val setupSuccess = runWithProgress {
-      val resolved = kotlinx.coroutines.runBlocking { testContext!!.resolve(project) }
-      resolved.setupRunConfiguration(configuration)
-    }
+    val resolved = runBlocking { testContext!!.resolve(project) }
+    val setupSuccess = resolved.setupRunConfiguration(configuration)
     assertThat(setupSuccess).isTrue()
 
     // 4. Assert that custom flags are retained while test filter is updated

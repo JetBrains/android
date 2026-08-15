@@ -33,6 +33,7 @@ import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -60,6 +61,11 @@ import org.junit.Before;
 
 /** Run configuration producer integration test base */
 public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestCase {
+
+  @Override
+  protected boolean runTestsOnEdt() {
+    return false;
+  }
 
   protected EditorTestHelper editorTest;
   private DataManager defaultDataManager;
@@ -154,40 +160,39 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
   }
 
   protected ConfigurationContext createContextFromPsi(PsiElement element) {
-    return ConfigurationContext.getFromContext(
-        SimpleDataContext.builder()
-            .add(CommonDataKeys.PROJECT, getProject())
-            .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(element))
-            .add(Location.DATA_KEY, PsiLocation.fromPsiElement(element))
-            .build());
-  }
-
-  protected ConfigurationContext createContextFromMultipleElements(PsiElement[] elements) {
-    return ConfigurationContext.getFromContext(
-        SimpleDataContext.builder()
-            .add(CommonDataKeys.PROJECT, getProject())
-            .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(elements[0]))
-            .add(Location.DATA_KEY, PsiLocation.fromPsiElement(elements[0]))
-            .add(
-                Location.DATA_KEYS,
-                Arrays.stream(elements)
-                    .map(PsiLocation::fromPsiElement)
-                    .toArray(Location<?>[]::new))
-            .add(LangDataKeys.PSI_ELEMENT_ARRAY, elements)
-            .build());
+    return runReadAction(
+        () ->
+            ConfigurationContext.getFromContext(
+                SimpleDataContext.builder()
+                    .add(CommonDataKeys.PROJECT, getProject())
+                    .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(element))
+                    .add(Location.DATA_KEY, PsiLocation.fromPsiElement(element))
+                    .build()));
   }
 
   @Nullable
   protected RunConfiguration createConfigurationFromLocation(PsiFile psiFile) {
-    RunnerAndConfigurationSettings settings =
-        ConfigurationContext.getFromContext(
-                SimpleDataContext.builder()
-                    .add(CommonDataKeys.PROJECT, getProject())
-                    .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(psiFile))
-                    .add(Location.DATA_KEY, PsiLocation.fromPsiElement(psiFile))
-                    .build())
-            .getConfiguration();
-    return settings != null ? settings.getConfiguration() : null;
+    return runReadAction(
+        () -> {
+          RunnerAndConfigurationSettings settings =
+              ConfigurationContext.getFromContext(
+                      SimpleDataContext.builder()
+                          .add(CommonDataKeys.PROJECT, getProject())
+                          .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(psiFile))
+                          .add(Location.DATA_KEY, PsiLocation.fromPsiElement(psiFile))
+                          .build())
+                  .getConfiguration();
+          return settings != null ? settings.getConfiguration() : null;
+        });
+  }
+
+  protected List<ConfigurationFromContext> getConfigurationsFromContext(
+      ConfigurationContext context) {
+    return runReadAction(context::getConfigurationsFromContext);
+  }
+
+  protected <T> T runReadAction(Computable<T> computable) {
+    return ApplicationManager.getApplication().runReadAction(computable);
   }
 
   /**

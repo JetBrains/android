@@ -77,12 +77,12 @@ public class BlazeJavaTestMethodConfigurationProducerTest
             "}");
 
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
-    PsiMethod method = PsiUtils.findFirstChildOfClassRecursive(javaFile, PsiMethod.class);
+    PsiMethod method =
+        runReadAction(() -> PsiUtils.findFirstChildOfClassRecursive(javaFile, PsiMethod.class));
 
     // Act
     ConfigurationContext context = createContextFromPsi(method);
-    List<ConfigurationFromContext> configurations =
-        runWithProgress(context::getConfigurationsFromContext);
+    List<ConfigurationFromContext> configurations = getConfigurationsFromContext(context);
     ConfigurationFromContext fromContext = configurations.get(0);
 
     // Assert
@@ -108,14 +108,14 @@ public class BlazeJavaTestMethodConfigurationProducerTest
   public void testConfigFromContextRecognizesItsOwnConfig() throws Throwable {
     PsiMethod method = setupGenericJunitTestClassAndBlazeTarget();
     ConfigurationContext context = createContextFromPsi(method);
-    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    RunnerAndConfigurationSettings settings = runReadAction(context::getConfiguration);
     assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) settings.getConfiguration();
     performFirstRun(config, context);
 
     boolean isConfigFromContext =
-        runWithProgress(
+        runReadAction(
             () ->
                 new TestContextRunConfigurationProducer()
                     .isConfigurationFromContext(config, context));
@@ -128,7 +128,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
     // Arrange
     PsiMethod method = setupGenericJunitTestClassAndBlazeTarget();
     ConfigurationContext context = createContextFromPsi(method);
-    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    RunnerAndConfigurationSettings settings = runReadAction(context::getConfiguration);
     assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) settings.getConfiguration();
@@ -138,7 +138,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
 
     // Act
     boolean isConfigFromContext =
-        runWithProgress(
+        runReadAction(
             () ->
                 new TestContextRunConfigurationProducer()
                     .isConfigurationFromContext(config, context));
@@ -152,7 +152,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
     // Arrange
     PsiMethod method = setupGenericJunitTestClassAndBlazeTarget();
     ConfigurationContext context = createContextFromPsi(method);
-    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    RunnerAndConfigurationSettings settings = runReadAction(context::getConfiguration);
     assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) settings.getConfiguration();
@@ -168,7 +168,7 @@ public class BlazeJavaTestMethodConfigurationProducerTest
 
     // Act
     boolean isConfigFromContext =
-        runWithProgress(
+        runReadAction(
             () ->
                 new TestContextRunConfigurationProducer()
                     .isConfigurationFromContext(config, context));
@@ -195,6 +195,6 @@ public class BlazeJavaTestMethodConfigurationProducerTest
 
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
-    return PsiUtils.findFirstChildOfClassRecursive(javaFile, PsiMethod.class);
+    return runReadAction(() -> PsiUtils.findFirstChildOfClassRecursive(javaFile, PsiMethod.class));
   }
 }

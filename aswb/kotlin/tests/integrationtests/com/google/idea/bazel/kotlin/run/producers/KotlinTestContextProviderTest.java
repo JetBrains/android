@@ -265,23 +265,29 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
         .containsExactly("//com/google/test:medium_tests");
   }
 
-  private static KtClass findClass(PsiFile kotlinFile) {
-    KtClass kotlinClass = PsiUtils.findFirstChildOfClassRecursive(kotlinFile, KtClass.class);
-    Preconditions.checkNotNull(kotlinClass, "KtClass not found in given test file.");
-    Preconditions.checkNotNull(
-        kotlinClass.getFqName(),
-        "KtClass not properly parsed. Check the definition of the file for errors.");
-    return kotlinClass;
+  private KtClass findClass(PsiFile kotlinFile) {
+    return runReadAction(
+        () -> {
+          KtClass kotlinClass = PsiUtils.findFirstChildOfClassRecursive(kotlinFile, KtClass.class);
+          Preconditions.checkNotNull(kotlinClass, "KtClass not found in given test file.");
+          Preconditions.checkNotNull(
+              kotlinClass.getFqName(),
+              "KtClass not properly parsed. Check the definition of the file for errors.");
+          return kotlinClass;
+        });
   }
 
-  private static KtNamedFunction findFirstMethod(PsiFile kotlinFile) {
-    KtNamedFunction kotlinMethod =
-        PsiUtils.findFirstChildOfClassRecursive(kotlinFile, KtNamedFunction.class);
-    Preconditions.checkNotNull(kotlinMethod, "KtNamedFunction not found in given test file.");
-    Preconditions.checkNotNull(
-        kotlinMethod.getFqName(),
-        "KtNamedFunction not properly parsed. Check the definition of the file for errors.");
-    return kotlinMethod;
+  private KtNamedFunction findFirstMethod(PsiFile kotlinFile) {
+    return runReadAction(
+        () -> {
+          KtNamedFunction kotlinMethod =
+              PsiUtils.findFirstChildOfClassRecursive(kotlinFile, KtNamedFunction.class);
+          Preconditions.checkNotNull(kotlinMethod, "KtNamedFunction not found in given test file.");
+          Preconditions.checkNotNull(
+              kotlinMethod.getFqName(),
+              "KtNamedFunction not properly parsed. Check the definition of the file for errors.");
+          return kotlinMethod;
+        });
   }
 
   private ImmutableList<BlazeCommandRunConfiguration> getBlazeRunConfigurations(
@@ -301,8 +307,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
     // Request the run configurations from IntelliJ's API. This eventually calls into the extension
     // points we use to provide our custom run configurations.
     List<ConfigurationFromContext> configurationsFromContext =
-        Optional.ofNullable(runWithProgress(context::getConfigurationsFromContext))
-            .orElse(ImmutableList.of());
+        Optional.ofNullable(getConfigurationsFromContext(context)).orElse(ImmutableList.of());
 
     for (ConfigurationFromContext fromContext : configurationsFromContext) {
       if (fromContext.getConfiguration() instanceof BlazeCommandRunConfiguration) {

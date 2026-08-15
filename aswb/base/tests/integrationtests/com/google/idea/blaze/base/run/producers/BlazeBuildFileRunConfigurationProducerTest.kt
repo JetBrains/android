@@ -25,6 +25,9 @@ import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils
 import com.google.idea.blaze.base.model.primitives.WorkspacePath
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
+import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -36,19 +39,8 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
   @Test
   fun testProducedFromFuncallExpression() {
     val buildFile = workspace.createPsiFile(WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'")
+    val (config, context) = createConfiguration<FuncallExpression>(buildFile)
 
-    val target = PsiUtils.findFirstChildOfClassRecursive(buildFile, FuncallExpression::class.java)
-    assertThat(target).isNotNull()
-
-    val context = createContextFromPsi(target)
-    val configurations = requireNotNull(context.configurationsFromContext)
-    assertThat(configurations).hasSize(1)
-
-    val fromContext = configurations.first()
-    assertThat(fromContext.isProducedBy(BlazeBuildFileRunConfigurationProducer::class.java)).isTrue()
-    assertThat(fromContext.configuration).isInstanceOf(BlazeCommandRunConfiguration::class.java)
-
-    val config = fromContext.configuration as BlazeCommandRunConfiguration
     performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
     assertThat(config.targetPatterns).containsExactly("//java/com/google/test:unit_tests")
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST)
@@ -57,17 +49,8 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
   @Test
   fun testTestSuiteMacroNameRecognized() {
     val buildFile = workspace.createPsiFile(WorkspacePath("java/com/google/test/BUILD"), "random_junit4_test_suites(name='gen_tests'")
+    val (config, context) = createConfiguration<FuncallExpression>(buildFile)
 
-    val target = PsiUtils.findFirstChildOfClassRecursive(buildFile, FuncallExpression::class.java)
-    val context = createContextFromPsi(target)
-    val configurations = requireNotNull(context.configurationsFromContext)
-    assertThat(configurations).hasSize(1)
-
-    val fromContext = configurations.first()
-    assertThat(fromContext.isProducedBy(BlazeBuildFileRunConfigurationProducer::class.java)).isTrue()
-    assertThat(fromContext.configuration).isInstanceOf(BlazeCommandRunConfiguration::class.java)
-
-    val config = fromContext.configuration as BlazeCommandRunConfiguration
     performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
     assertThat(config.targetPatterns).containsExactly("//java/com/google/test:gen_tests")
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST)
@@ -76,19 +59,8 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
   @Test
   fun testProducedWhenInsideFuncallExpression() {
     val buildFile = workspace.createPsiFile(WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'")
+    val (config, context) = createConfiguration<StringLiteral>(buildFile)
 
-    val nameString = PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral::class.java)
-    assertThat(nameString).isNotNull()
-
-    val context = createContextFromPsi(nameString)
-    val configurations = requireNotNull(context.configurationsFromContext)
-    assertThat(configurations).hasSize(1)
-
-    val fromContext = configurations.first()
-    assertThat(fromContext.isProducedBy(BlazeBuildFileRunConfigurationProducer::class.java)).isTrue()
-    assertThat(fromContext.configuration).isInstanceOf(BlazeCommandRunConfiguration::class.java)
-
-    val config = fromContext.configuration as BlazeCommandRunConfiguration
     performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
     assertThat(config.targetPatterns).containsExactly("//java/com/google/test:unit_tests")
     assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST)
@@ -97,42 +69,58 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
   @Test
   fun testConfigFromContextRecognizesItsOwnConfig() {
     val buildFile = workspace.createPsiFile(WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'")
-
-    val nameString = PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral::class.java)
-    val context = createContextFromPsi(nameString)
-    val config = context.configuration!!.configuration as BlazeCommandRunConfiguration
+    val context = createContextFromPsi(findChild<StringLiteral>(buildFile))
+    val config = runReadAction { context.configuration }!!.configuration as BlazeCommandRunConfiguration
     performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
 
-    assertThat(BlazeBuildFileRunConfigurationProducer().isConfigurationFromContext(config, context)).isTrue()
+    val isConfigFromContext = runReadAction { BlazeBuildFileRunConfigurationProducer().isConfigurationFromContext(config, context) }
+    assertThat(isConfigFromContext).isTrue()
   }
 
   @Test
   fun testConfigWithDifferentLabelIgnored() {
     val buildFile = workspace.createPsiFile(WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'")
-
-    val nameString = PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral::class.java)
-    val context = createContextFromPsi(nameString)
-    val config = context.configuration!!.configuration as BlazeCommandRunConfiguration
+    val context = createContextFromPsi(findChild<StringLiteral>(buildFile))
+    val config = runReadAction { context.configuration }!!.configuration as BlazeCommandRunConfiguration
     performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
 
     // modify the label, and check that is enough for the producer to class it as different.
     config.setTargetPattern("//java/com/google/test:integration_tests")
 
-    assertThat(BlazeBuildFileRunConfigurationProducer().isConfigurationFromContext(config, context)).isFalse()
+    val isConfigFromContext = runReadAction { BlazeBuildFileRunConfigurationProducer().isConfigurationFromContext(config, context) }
+    assertThat(isConfigFromContext).isFalse()
   }
 
   @Test
   fun testConfigWithTestFilterIgnored() {
     val buildFile = workspace.createPsiFile(WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'")
-
-    val nameString = PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral::class.java)
-    val context = createContextFromPsi(nameString)
-    val config = context.configuration!!.configuration as BlazeCommandRunConfiguration
+    val context = createContextFromPsi(findChild<StringLiteral>(buildFile))
+    val config = runReadAction { context.configuration }!!.configuration as BlazeCommandRunConfiguration
     performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
 
     val handlerState = config.getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
     handlerState!!.blazeFlagsState.rawFlags = ImmutableList.of(BlazeFlags.TEST_FILTER + "=com.google.test.SingleTestClass#")
 
-    assertThat(BlazeBuildFileRunConfigurationProducer().isConfigurationFromContext(config, context)).isFalse()
+    val isConfigFromContext = runReadAction { BlazeBuildFileRunConfigurationProducer().isConfigurationFromContext(config, context) }
+    assertThat(isConfigFromContext).isFalse()
+  }
+
+  private inline fun <reified T : PsiElement> createConfiguration(file: PsiFile): Pair<BlazeCommandRunConfiguration, ConfigurationContext> {
+    val target = runReadAction { PsiUtils.findFirstChildOfClassRecursive(file, T::class.java) }
+    assertThat(target).isNotNull()
+
+    val context = createContextFromPsi(target)
+    val configurations = getConfigurationsFromContext(context)
+    assertThat(configurations).hasSize(1)
+
+    val fromContext = configurations.first()
+    assertThat(fromContext.isProducedBy(BlazeBuildFileRunConfigurationProducer::class.java)).isTrue()
+    val config = fromContext.configuration as BlazeCommandRunConfiguration
+
+    return config to context
+  }
+
+  private inline fun <reified T : PsiElement> findChild(file: PsiFile): T = runReadAction {
+    requireNotNull(PsiUtils.findFirstChildOfClassRecursive(file, T::class.java))
   }
 }

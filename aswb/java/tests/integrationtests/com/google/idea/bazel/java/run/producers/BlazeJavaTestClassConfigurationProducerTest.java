@@ -80,8 +80,7 @@ public class BlazeJavaTestClassConfigurationProducerTest
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
     ConfigurationContext context = createContextFromPsi(javaFile);
-    List<ConfigurationFromContext> configurations =
-        runWithProgress(context::getConfigurationsFromContext);
+    List<ConfigurationFromContext> configurations = getConfigurationsFromContext(context);
     assertThat(configurations).hasSize(1);
 
     ConfigurationFromContext fromContext = configurations.get(0);
@@ -113,12 +112,11 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
-    PsiClass javaClass = ((PsiClassOwner) javaFile).getClasses()[0];
+    PsiClass javaClass = runReadAction(() -> ((PsiClassOwner) javaFile).getClasses()[0]);
     assertThat(javaClass).isNotNull();
 
     ConfigurationContext context = createContextFromPsi(javaClass);
-    List<ConfigurationFromContext> configurations =
-        runWithProgress(context::getConfigurationsFromContext);
+    List<ConfigurationFromContext> configurations = getConfigurationsFromContext(context);
     assertThat(configurations).hasSize(1);
 
     ConfigurationFromContext fromContext = configurations.get(0);
@@ -154,12 +152,11 @@ public class BlazeJavaTestClassConfigurationProducerTest
 
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:OuterClass"), "java_test"));
 
-    PsiClass javaClass = ((PsiClassOwner) javaFile).getClasses()[0];
+    PsiClass javaClass = runReadAction(() -> ((PsiClassOwner) javaFile).getClasses()[0]);
     assertThat(javaClass).isNotNull();
 
     ConfigurationContext context = createContextFromPsi(javaClass);
-    List<ConfigurationFromContext> configurations =
-        runWithProgress(context::getConfigurationsFromContext);
+    List<ConfigurationFromContext> configurations = getConfigurationsFromContext(context);
     assertThat(configurations).hasSize(1);
 
     ConfigurationFromContext fromContext = configurations.get(0);
@@ -192,7 +189,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
     ConfigurationContext context = createContextFromPsi(javaFile);
-    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    RunnerAndConfigurationSettings settings =
+        runWithProgress(() -> runReadAction(context::getConfiguration));
     assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) settings.getConfiguration();
@@ -202,8 +200,10 @@ public class BlazeJavaTestClassConfigurationProducerTest
     assertThat(
             runWithProgress(
                 () ->
-                    new TestContextRunConfigurationProducer()
-                        .isConfigurationFromContext(config, context)))
+                    runReadAction(
+                        () ->
+                            new TestContextRunConfigurationProducer()
+                                .isConfigurationFromContext(config, context))))
         .isTrue();
   }
 
@@ -222,7 +222,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
     ConfigurationContext context = createContextFromPsi(javaFile);
-    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    RunnerAndConfigurationSettings settings =
+        runWithProgress(() -> runReadAction(context::getConfiguration));
     assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) settings.getConfiguration();
@@ -235,8 +236,10 @@ public class BlazeJavaTestClassConfigurationProducerTest
     assertThat(
             runWithProgress(
                 () ->
-                    new TestContextRunConfigurationProducer()
-                        .isConfigurationFromContext(config, context)))
+                    runReadAction(
+                        () ->
+                            new TestContextRunConfigurationProducer()
+                                .isConfigurationFromContext(config, context))))
         .isTrue();
   }
 
@@ -255,7 +258,8 @@ public class BlazeJavaTestClassConfigurationProducerTest
     registerTargets(new TargetInfo(Label.create("//java/com/google/test:TestClass"), "java_test"));
 
     ConfigurationContext context = createContextFromPsi(javaFile);
-    RunnerAndConfigurationSettings settings = runWithProgress(context::getConfiguration);
+    RunnerAndConfigurationSettings settings =
+        runWithProgress(() -> runReadAction(context::getConfiguration));
     assertThat(settings).isNotNull();
     BlazeCommandRunConfiguration config =
         (BlazeCommandRunConfiguration) settings.getConfiguration();
@@ -273,8 +277,10 @@ public class BlazeJavaTestClassConfigurationProducerTest
     assertThat(
             runWithProgress(
                 () ->
-                    new TestContextRunConfigurationProducer()
-                        .isConfigurationFromContext(config, context)))
+                    runReadAction(
+                        () ->
+                            new TestContextRunConfigurationProducer()
+                                .isConfigurationFromContext(config, context))))
         .isFalse();
   }
 }
