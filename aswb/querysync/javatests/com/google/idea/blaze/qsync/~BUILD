@@ -191,3 +191,15 @@ aswb_test(
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
     ],
 )
+
+aswb_test(
+    name = "PackageStampAffectedPackagesCalculatorTest",
+    size = "small",
+    srcs = ["PackageStampAffectedPackagesCalculatorTest.kt"],
+    deps = [
+        ":TestUtils",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
+    ],
+)
