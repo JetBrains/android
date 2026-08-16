@@ -1354,7 +1354,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH = new BooleanFlag(
     DEVICE_MIRRORING, "xr.simulated.passthrough", "Enable Simulated Passthrough for XR Headsets",
     "Enable simulated passthrough for XR headsets");
-  public static final Flag<Boolean> DEVICE_MIRRORING_B386236480_TESTING = new DebugFlag(
+  public static final Flag<Boolean> DEVICE_MIRRORING_B386236480_TESTING = new BooleanFlag(
     DEVICE_MIRRORING, "b386236480.testing", "Turn device screen off on Android versions affected by b/386236480",
     "If enabled, Studio will turn off the screen of a mirrored device even if that device is affected by b/386236480.");
   //endregion
