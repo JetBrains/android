@@ -159,6 +159,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.common.iml",
+        "resources/META-INF/android-common-androidstudio.xml",
+        "resources/META-INF/android-common.xml",
     ],
     visibility = ["//visibility:public"],
 )

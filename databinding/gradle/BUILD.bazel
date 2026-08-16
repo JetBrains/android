@@ -55,6 +55,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.databinding.gradle.iml",
+        "resources/META-INF/databinding-gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )

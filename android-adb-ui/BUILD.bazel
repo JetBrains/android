@@ -103,6 +103,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.adb.ui.iml",
+        "resources/META-INF/android-adb-ui.xml",
     ],
     visibility = ["//visibility:public"],
 )

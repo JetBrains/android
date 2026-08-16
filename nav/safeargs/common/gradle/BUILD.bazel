@@ -64,6 +64,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.nav.safeargs.common.gradle.iml",
+        "resources/META-INF/safeargs.common.gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )

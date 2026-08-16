@@ -181,6 +181,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.newProjectWizard.iml",
+        "resources/META-INF/android-npw-androidstudio.xml",
+        "resources/META-INF/android-npw.xml",
     ],
     visibility = ["//visibility:public"],
 )

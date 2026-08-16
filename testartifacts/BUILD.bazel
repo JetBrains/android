@@ -110,6 +110,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.testartifacts.iml",
+        "resources/META-INF/testartifacts.xml",
     ],
     visibility = ["//visibility:public"],
 )

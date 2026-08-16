@@ -119,6 +119,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.execution.common.iml",
+        "resources/META-INF/android-execution-common.xml",
     ],
     visibility = ["//visibility:public"],
 )

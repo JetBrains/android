@@ -62,6 +62,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.layout-inspector.gradle.iml",
+        "resources/META-INF/layout-inspector-gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )

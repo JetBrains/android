@@ -143,6 +143,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.mlkit.iml",
+        "resources/META-INF/mlkit.xml",
     ],
     visibility = ["//visibility:public"],
 )

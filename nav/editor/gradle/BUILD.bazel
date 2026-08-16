@@ -66,6 +66,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.nav.editor.gradle.iml",
+        "resources/META-INF/naveditor-gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )

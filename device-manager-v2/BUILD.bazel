@@ -175,6 +175,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.device-manager-v2.iml",
+        "resources/META-INF/device-manager-v2-androidstudio.xml",
+        "resources/META-INF/device-manager-v2.xml",
     ],
     visibility = ["//visibility:public"],
 )

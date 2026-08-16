@@ -98,6 +98,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.core.editing.metrics.iml",
+        "resources/META-INF/android-editing-metrics.xml",
     ],
     visibility = ["//visibility:public"],
 )

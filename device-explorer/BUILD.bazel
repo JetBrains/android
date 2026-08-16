@@ -89,6 +89,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.device-explorer.iml",
+        "resources/META-INF/intellij.android.device-explorer.xml",
     ],
     visibility = ["//visibility:public"],
 )

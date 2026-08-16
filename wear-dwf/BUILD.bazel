@@ -97,6 +97,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.wear-dwf.iml",
+        "resources/META-INF/wear-dwf.xml",
     ],
     visibility = ["//visibility:public"],
 )

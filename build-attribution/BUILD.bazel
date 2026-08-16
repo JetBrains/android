@@ -130,6 +130,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.build-attribution.iml",
+        "resources/META-INF/build-attribution.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -92,6 +92,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.whats-new-assistant.iml",
+        "resources/META-INF/whats-new-assistant.xml",
+        "resources/whats-new-assistant.xml",
     ],
     visibility = ["//visibility:public"],
 )

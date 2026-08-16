@@ -127,6 +127,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.lang.iml",
+        "resources/META-INF/android-lang.xml",
     ],
     visibility = ["//visibility:public"],
 )

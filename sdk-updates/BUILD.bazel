@@ -105,6 +105,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.sdkUpdates.iml",
+        "resources/META-INF/sdk-updates-as.xml",
+        "resources/META-INF/sdk-updates.xml",
     ],
     visibility = ["//visibility:public"],
 )

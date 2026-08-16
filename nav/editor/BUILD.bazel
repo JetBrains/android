@@ -160,6 +160,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.nav.editor.iml",
+        "resources/META-INF/naveditor.xml",
+        "resources/naveditor_help_assistance_bundle.xml",
     ],
     visibility = ["//visibility:public"],
 )

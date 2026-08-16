@@ -85,6 +85,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.app-inspection.inspectors.network.ide.iml",
+        "resources/META-INF/network-inspector.xml",
     ],
     visibility = ["//visibility:public"],
 )

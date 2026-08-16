@@ -223,6 +223,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.compose-ide-plugin.iml",
+        "resources/META-INF/plugin.k2.xml",
+        "resources/META-INF/plugin.xml",
     ],
     visibility = ["//visibility:public"],
 )

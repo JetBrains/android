@@ -58,6 +58,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.layoutlib.iml",
+        "resources/META-INF/layoutlib.xml",
     ],
     visibility = ["//visibility:public"],
 )

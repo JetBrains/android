@@ -146,6 +146,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.kotlin.idea.common.iml",
+        "resources/META-INF/android-kotlin.common.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -131,6 +131,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.streaming.iml",
+        "resources/META-INF/streaming.xml",
     ],
     visibility = ["//visibility:public"],
 )

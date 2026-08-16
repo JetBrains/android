@@ -45,6 +45,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.gradle.dsl.flags.iml",
+        "resources/META-INF/gradle-dsl-flags.xml",
+        "resources/intellij.android.gradle.dsl.flags.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -154,6 +154,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.debuggers.iml",
+        "resources/META-INF/android-debuggers.xml",
+        "testResources/META-INF/android-debuggers-test.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -513,6 +513,12 @@ jvm_library(
 exports_files(
     [
         "intellij.android.core.iml",
+        "resources/META-INF/android-plugin-androidstudio.xml",
+        "resources/META-INF/android-plugin-idea.xml",
+        "resources/META-INF/android-plugin.xml",
+        "resources/META-INF/android-smali.xml",
+        "resources/META-INF/android-webp.xml",
+        "resources/META-INF/new-deployment-target-selection.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -101,6 +101,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.projectSystem.iml",
+        "resources/META-INF/project-system-plugin.xml",
     ],
     visibility = ["//visibility:public"],
 )

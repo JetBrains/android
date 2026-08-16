@@ -224,6 +224,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.profilersAndroid.iml",
+        "resources/META-INF/profilers.xml",
     ],
     visibility = ["//visibility:public"],
 )

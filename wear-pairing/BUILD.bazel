@@ -158,6 +158,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.wear-pairing.iml",
+        "resources/META-INF/wear-pairing.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -113,6 +113,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.nav.safeargs.common.iml",
+        "resources/META-INF/safeargs.common.xml",
     ],
     visibility = ["//visibility:public"],
 )

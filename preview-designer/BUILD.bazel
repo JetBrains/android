@@ -177,6 +177,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.preview-designer.iml",
+        "resources/META-INF/preview-designer.xml",
     ],
     visibility = ["//visibility:public"],
 )

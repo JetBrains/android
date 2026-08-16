@@ -92,6 +92,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.projectSystem.apk.iml",
+        "resources/META-INF/project-system-apk-plugin.xml",
     ],
     visibility = ["//visibility:public"],
 )

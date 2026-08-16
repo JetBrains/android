@@ -309,6 +309,10 @@ jvm_library(
 exports_files(
     [
         "intellij.android.designer.iml",
+        "resources/META-INF/designer-androidstudio.xml",
+        "resources/META-INF/designer.xml",
+        "resources/constraintlayout_help_assistance_bundle.xml",
+        "resources/layout_editor_help_assistance_bundle.xml",
     ],
     visibility = ["//visibility:public"],
 )

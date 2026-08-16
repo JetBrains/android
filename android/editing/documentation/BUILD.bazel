@@ -153,6 +153,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.core.editing.documentation.iml",
+        "resources/META-INF/android-editing-documentation.xml",
     ],
     visibility = ["//visibility:public"],
 )

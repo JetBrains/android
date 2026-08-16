@@ -55,6 +55,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.gradle.declarative.lang.sync.iml",
+        "resources/intellij.android.gradle.declarative.lang.sync.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -64,6 +64,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.gradle.dsl.groovy.iml",
+        "resources/META-INF/gradle-dsl-groovy.xml",
+        "resources/intellij.android.gradle.dsl.groovy.xml",
     ],
     visibility = ["//visibility:public"],
 )

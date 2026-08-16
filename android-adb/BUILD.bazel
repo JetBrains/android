@@ -123,6 +123,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.adb.iml",
+        "resources/META-INF/android-adb-androidstudio.xml",
+        "resources/META-INF/android-adb.xml",
     ],
     visibility = ["//visibility:public"],
 )

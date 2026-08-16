@@ -58,6 +58,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.logcat.gradle.iml",
+        "resources/META-INF/logcat-gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )

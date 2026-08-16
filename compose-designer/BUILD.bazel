@@ -228,6 +228,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.compose-designer.iml",
+        "resources/META-INF/compose-designer.xml",
     ],
     visibility = ["//visibility:public"],
 )

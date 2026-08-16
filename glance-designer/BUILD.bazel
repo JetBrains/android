@@ -113,6 +113,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.glance-designer.iml",
+        "resources/META-INF/glance-designer.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -72,6 +72,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.nav.safeargs.k2.iml",
+        "resources/META-INF/safeargs.k2.xml",
     ],
     visibility = ["//visibility:public"],
 )

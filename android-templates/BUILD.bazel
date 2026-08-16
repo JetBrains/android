@@ -147,6 +147,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.templates.iml",
+        "resources/META-INF/android-templates.xml",
     ],
     visibility = ["//visibility:public"],
 )

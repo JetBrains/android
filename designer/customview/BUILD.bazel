@@ -109,6 +109,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.designer.customview.iml",
+        "resources/META-INF/customview.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -156,6 +156,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.avd.iml",
+        "resources/META-INF/android-avd.xml",
     ],
     visibility = ["//visibility:public"],
 )

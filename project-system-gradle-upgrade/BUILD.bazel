@@ -150,6 +150,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.projectSystem.gradle.upgrade.iml",
+        "resources/META-INF/project-system-gradle-upgrade.xml",
     ],
     visibility = ["//visibility:public"],
 )

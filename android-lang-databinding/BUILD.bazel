@@ -123,6 +123,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.lang-databinding.iml",
+        "resources/META-INF/android-lang-databinding.xml",
     ],
     visibility = ["//visibility:public"],
 )

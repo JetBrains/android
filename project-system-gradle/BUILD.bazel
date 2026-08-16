@@ -383,6 +383,9 @@ jvm_library(
 exports_files(
     [
         "intellij.android.projectSystem.gradle.iml",
+        "resources/META-INF/project-system-gradle-plugin-androidstudio.xml",
+        "resources/META-INF/project-system-gradle-plugin-idea.xml",
+        "resources/META-INF/project-system-gradle-plugin.xml",
     ],
     visibility = ["//visibility:public"],
 )

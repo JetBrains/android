@@ -125,6 +125,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.glasses-pairing.iml",
+        "resources/META-INF/glasses-pairing.xml",
     ],
     visibility = ["//visibility:public"],
 )

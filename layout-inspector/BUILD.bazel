@@ -297,6 +297,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.layout-inspector.iml",
+        "resources/META-INF/layout-inspector.xml",
     ],
     visibility = ["//visibility:public"],
 )

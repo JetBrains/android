@@ -207,6 +207,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.adt.ui.iml",
+        "resources/META-INF/adt-ui.xml",
+        "resources/META-INF/splittingtabs.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -125,6 +125,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.logcat.iml",
+        "resources/META-INF/logcat.xml",
     ],
     visibility = ["//visibility:public"],
 )

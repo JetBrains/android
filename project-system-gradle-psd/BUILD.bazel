@@ -166,6 +166,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.projectSystem.gradle.psd.iml",
+        "resources/META-INF/project-system-gradle-psd-plugin-androidstudio.xml",
+        "resources/META-INF/project-system-gradle-psd-plugin.xml",
     ],
     visibility = ["//visibility:public"],
 )

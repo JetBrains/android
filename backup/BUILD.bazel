@@ -107,6 +107,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.backup.iml",
+        "resources/META-INF/backup.xml",
     ],
     visibility = ["//visibility:public"],
 )

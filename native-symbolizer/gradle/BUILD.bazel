@@ -66,6 +66,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.native-symbolizer.gradle.iml",
+        "resources/META-INF/native-symbolizer-gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )

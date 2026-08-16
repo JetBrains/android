@@ -141,6 +141,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.deploy.iml",
+        "resources/META-INF/android-deploy.xml",
     ],
     visibility = ["//visibility:public"],
 )

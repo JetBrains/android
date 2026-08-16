@@ -113,6 +113,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.screenshot-test.gradle.iml",
+        "resources/META-INF/screenshot-testing-gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )

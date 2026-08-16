@@ -58,6 +58,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.gradle.dsl.android.iml",
+        "resources/META-INF/gradle-dsl-android.xml",
+        "resources/intellij.android.gradle.dsl.android.xml",
     ],
     visibility = ["//visibility:public"],
 )

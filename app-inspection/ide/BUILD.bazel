@@ -119,6 +119,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.app-inspection.ide.iml",
+        "resources/META-INF/app-inspection.xml",
     ],
     visibility = ["//visibility:public"],
 )

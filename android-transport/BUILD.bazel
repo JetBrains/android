@@ -159,6 +159,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.transport.iml",
+        "resources/META-INF/pipeline.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -63,6 +63,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.native-symbolizer.iml",
+        "resources/META-INF/native-symbolizer.xml",
     ],
     visibility = ["//visibility:public"],
 )

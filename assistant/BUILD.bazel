@@ -102,6 +102,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.assistant.iml",
+        "resources/META-INF/assistant.xml",
     ],
     visibility = ["//visibility:public"],
 )

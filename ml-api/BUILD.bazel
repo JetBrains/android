@@ -59,6 +59,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.ml-api.iml",
+        "src/resources/META-INF/aiplugin-api.xml",
     ],
     visibility = ["//visibility:public"],
 )

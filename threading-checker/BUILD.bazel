@@ -59,6 +59,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.threading-checker.iml",
+        "resources/META-INF/threading-checker.xml",
     ],
     visibility = ["//visibility:public"],
 )

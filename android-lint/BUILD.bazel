@@ -194,6 +194,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.lint.iml",
+        "resources/META-INF/android-lint-plugin.xml",
     ],
     visibility = ["//visibility:public"],
 )

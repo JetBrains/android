@@ -64,6 +64,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.gradle.declarative.lang.iml",
+        "resources/intellij.android.gradle.declarative.lang.xml",
     ],
     visibility = ["//visibility:public"],
 )

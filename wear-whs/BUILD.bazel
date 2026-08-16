@@ -120,6 +120,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.wear-whs.iml",
+        "resources/META-INF/wear-whs-androidstudio.xml",
+        "resources/META-INF/wear-whs.xml",
     ],
     visibility = ["//visibility:public"],
 )

@@ -45,6 +45,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.design-plugin.descriptor.iml",
+        "resources/META-INF/plugin.xml",
     ],
     visibility = ["//visibility:public"],
 )

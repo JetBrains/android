@@ -131,6 +131,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.dagger.iml",
+        "resources/META-INF/android-dagger.xml",
     ],
     visibility = ["//visibility:public"],
 )

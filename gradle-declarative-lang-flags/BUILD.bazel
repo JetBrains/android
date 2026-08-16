@@ -45,6 +45,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.gradle.declarative.lang.flags.iml",
+        "resources/intellij.android.gradle.declarative.lang.flags.xml",
     ],
     visibility = ["//visibility:public"],
 )

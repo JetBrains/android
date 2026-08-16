@@ -141,6 +141,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.wear-designer.iml",
+        "resources/META-INF/wear-designer.xml",
     ],
     visibility = ["//visibility:public"],
 )

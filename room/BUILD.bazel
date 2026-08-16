@@ -101,6 +101,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.room.iml",
+        "resources/META-INF/android-room.xml",
     ],
     visibility = ["//visibility:public"],
 )

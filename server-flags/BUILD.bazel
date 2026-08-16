@@ -64,6 +64,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.server-flags.iml",
+        "resources/META-INF/server-flags.xml",
     ],
     visibility = ["//visibility:public"],
 )

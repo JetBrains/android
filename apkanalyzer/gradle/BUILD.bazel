@@ -61,6 +61,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.apkanalyzer.gradle.iml",
+        "resources/META-INF/apkanalyzer-gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )

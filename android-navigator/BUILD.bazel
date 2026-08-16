@@ -132,6 +132,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.navigator.iml",
+        "resources/META-INF/android-navigator.xml",
     ],
     visibility = ["//visibility:public"],
 )

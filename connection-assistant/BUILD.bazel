@@ -79,6 +79,9 @@ jvm_library(
 exports_files(
     [
         "intellij.android.connection-assistant.iml",
+        "resources/META-INF/connection-assistant.xml",
+        "resources/connection_assistant_bundle.xml",
+        "resources/connection_assistant_unsupported_bundle.xml",
     ],
     visibility = ["//visibility:public"],
 )

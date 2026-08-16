@@ -55,6 +55,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.designer.gradle.iml",
+        "resources/META-INF/designer-gradle.xml",
     ],
     visibility = ["//visibility:public"],
 )
