@@ -128,6 +128,7 @@ exports_files(
     [
         "intellij.android.lang.iml",
         "resources/META-INF/android-lang.xml",
+        "resources/injections/roomSqlInjections.xml",
     ],
     visibility = ["//visibility:public"],
 )

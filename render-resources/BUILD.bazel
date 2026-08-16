@@ -92,6 +92,8 @@ jvm_library(
 exports_files(
     [
         "intellij.android.render-resources.iml",
+        "resources/fonts/empty_font_directory.xml",
+        "resources/fonts/google_font_directory.xml",
     ],
     visibility = ["//visibility:public"],
 )

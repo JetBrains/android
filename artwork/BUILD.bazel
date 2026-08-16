@@ -47,6 +47,7 @@ jvm_library(
 exports_files(
     [
         "intellij.android.artwork.iml",
+        "resources/device-art-resources/device-art.xml",
     ],
     visibility = ["//visibility:public"],
 )

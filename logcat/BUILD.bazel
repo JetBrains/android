@@ -126,6 +126,8 @@ exports_files(
     [
         "intellij.android.logcat.iml",
         "resources/META-INF/logcat.xml",
+        "resources/colorSchemes/LogcatColorSchemeDarcula.xml",
+        "resources/colorSchemes/LogcatColorSchemeDefault.xml",
     ],
     visibility = ["//visibility:public"],
 )

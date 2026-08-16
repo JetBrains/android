@@ -148,6 +148,14 @@ exports_files(
     [
         "intellij.android.templates.iml",
         "resources/META-INF/android-templates.xml",
+        "resources/liveTemplates/Android.xml",
+        "resources/liveTemplates/AndroidComments.xml",
+        "resources/liveTemplates/AndroidCommentsKotlin.xml",
+        "resources/liveTemplates/AndroidKotlin.xml",
+        "resources/liveTemplates/AndroidLog.xml",
+        "resources/liveTemplates/AndroidLogKotlin.xml",
+        "resources/liveTemplates/AndroidParcelable.xml",
+        "resources/liveTemplates/AndroidXML.xml",
     ],
     visibility = ["//visibility:public"],
 )
