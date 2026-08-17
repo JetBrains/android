@@ -17,13 +17,12 @@ package com.google.idea.blaze.base.run.producers
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.idea.blaze.base.dependencies.TargetInfo
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.util.getBestPopupPosition
+import com.intellij.ui.awt.RelativePoint
 import javax.swing.JList
 import javax.swing.ListSelectionModel
 import kotlin.coroutines.resume
@@ -41,7 +40,7 @@ object TestTargetChooser {
    *
    * Fast-paths when there are 0 or 1 candidates without showing any UI. If the user closes or cancels the popup, returns null.
    */
-  suspend fun chooseTarget(context: ConfigurationContext?, targets: List<TargetInfo>): TargetInfo? {
+  suspend fun chooseTarget(position: RelativePoint?, targets: List<TargetInfo>): TargetInfo? {
     if (targets.isEmpty()) {
       return null
     }
@@ -100,8 +99,8 @@ object TestTargetChooser {
 
         continuation.invokeOnCancellation { popup.cancel() }
 
-        if (context != null) {
-          popup.show(getBestPopupPosition(context.dataContext))
+        if (position != null && position.component.isShowing) {
+          popup.show(position)
         } else {
           popup.showInFocusCenter()
         }

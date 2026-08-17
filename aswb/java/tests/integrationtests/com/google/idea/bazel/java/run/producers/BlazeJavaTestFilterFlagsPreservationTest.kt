@@ -91,7 +91,7 @@ class BlazeJavaTestFilterFlagsPreservationTest : BlazeRunConfigurationProducerTe
     val testContext = runReadAction { TestContextProvider.EP_NAME.extensionList.firstNotNullOfOrNull { it.getTestContext(methodContext) } }
     assertThat(testContext).isNotNull()
 
-    val resolved = runBlocking { testContext!!.resolve(project) }
+    val resolved = runBlocking { testContext!!.resolve(project, null) }
     val setupSuccess = resolved.setupRunConfiguration(configuration)
     assertThat(setupSuccess).isTrue()
 

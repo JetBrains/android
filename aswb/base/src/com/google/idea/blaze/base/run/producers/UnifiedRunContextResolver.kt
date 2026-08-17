@@ -18,12 +18,12 @@ package com.google.idea.blaze.base.run.producers
 import com.google.idea.blaze.base.io.VfsUtils
 import com.google.idea.blaze.base.run.SourceToTargetFinder
 import com.google.idea.blaze.base.run.TestTargetHeuristic
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.ui.awt.RelativePoint
 import java.util.Optional
 import kotlinx.coroutines.CancellationException
 
@@ -39,7 +39,7 @@ object UnifiedRunContextResolver {
   suspend fun resolveTargetSpec(
     project: Project,
     spec: TargetSpecification.PendingResolution,
-    context: ConfigurationContext? = null,
+    popupPosition: RelativePoint?,
   ): TargetSpecification {
     val psiFile = readAction {
       val vf = VfsUtils.resolveVirtualFile(spec.file, true) ?: VfsUtils.resolveVirtualFile(spec.file, false)
@@ -56,7 +56,7 @@ object UnifiedRunContextResolver {
     val chosen =
       when {
         candidates.size == 1 -> candidates[0]
-        candidates.size > 1 -> TestTargetChooser.chooseTarget(context, candidates) ?: throw CancellationException("No target chosen")
+        candidates.size > 1 -> TestTargetChooser.chooseTarget(popupPosition, candidates) ?: throw CancellationException("No target chosen")
         else -> null
       }
     return if (chosen != null) TargetSpecification.Resolved(chosen) else spec

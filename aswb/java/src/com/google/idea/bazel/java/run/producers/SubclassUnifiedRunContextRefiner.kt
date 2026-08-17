@@ -22,12 +22,12 @@ import com.google.idea.blaze.base.run.producers.TestFilterSyntax
 import com.google.idea.blaze.base.run.producers.TestSelector
 import com.google.idea.blaze.base.run.producers.UnifiedRunContext
 import com.google.idea.blaze.base.run.producers.UnifiedRunContextRefiner
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.readAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.ui.awt.RelativePoint
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 import org.jetbrains.kotlin.asJava.toLightClass
@@ -37,14 +37,14 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 /** Interactive stage 2 refiner prompting user to choose a concrete subclass when running abstract test classes or methods. */
 class SubclassUnifiedRunContextRefiner : UnifiedRunContextRefiner {
 
-  override suspend fun refine(context: ConfigurationContext, runContext: UnifiedRunContext): UnifiedRunContext {
+  override suspend fun refine(runContext: UnifiedRunContext, popupPosition: RelativePoint?): UnifiedRunContext {
     val psiClass = readAction { getPsiClass(runContext.sourceElement) } ?: return runContext
     val isAbstract = readAction { psiClass.hasModifierProperty(PsiModifier.ABSTRACT) }
     if (!isAbstract) {
       return runContext
     }
 
-    val chosen = SubclassTestChooser.chooseSubclass(context, psiClass) ?: throw CancellationException("No subclass chosen")
+    val chosen = SubclassTestChooser.chooseSubclass(popupPosition, psiClass) ?: throw CancellationException("No subclass chosen")
 
     val refinedInfo =
       readAction {

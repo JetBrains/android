@@ -16,7 +16,6 @@
 package com.google.idea.bazel.java.run.producers
 
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.ide.util.PsiClassListCellRenderer
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
@@ -26,7 +25,7 @@ import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.searches.ClassInheritorsSearch
-import com.intellij.util.getBestPopupPosition
+import com.intellij.ui.awt.RelativePoint
 import javax.swing.ListSelectionModel
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +40,7 @@ object SubclassTestChooser {
 
   @VisibleForTesting var testSelectionHook: (suspend (List<PsiClass>) -> PsiClass?)? = null
 
-  suspend fun chooseSubclass(context: ConfigurationContext, testClass: PsiClass): PsiClass? {
+  suspend fun chooseSubclass(position: RelativePoint?, testClass: PsiClass): PsiClass? {
     val classes = readAction {
       findTestSubclasses(testClass).also {
         if (!testClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
@@ -94,7 +93,11 @@ object SubclassTestChooser {
 
         continuation.invokeOnCancellation { popup.cancel() }
 
-        popup.show(getBestPopupPosition(context.dataContext))
+        if (position != null && position.component.isShowing) {
+          popup.show(position)
+        } else {
+          popup.showInFocusCenter()
+        }
       }
     }
   }

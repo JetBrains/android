@@ -15,12 +15,12 @@
  */
 package com.google.idea.blaze.base.run.producers
 
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.ui.awt.RelativePoint
 
 /** Extension point for refining UnifiedRunContext during Stage 2 (EDT) before target resolution. */
 interface UnifiedRunContextRefiner {
-  suspend fun refine(context: ConfigurationContext, runContext: UnifiedRunContext): UnifiedRunContext
+  suspend fun refine(runContext: UnifiedRunContext, popupPosition: RelativePoint?): UnifiedRunContext
 
   companion object {
     val EP_NAME = ExtensionPointName.create<UnifiedRunContextRefiner>("com.google.idea.blaze.UnifiedRunContextRefiner")

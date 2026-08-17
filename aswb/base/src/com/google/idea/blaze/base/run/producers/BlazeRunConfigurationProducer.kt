@@ -22,12 +22,18 @@ import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.ConfigurationFromContext
 import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationType
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import com.intellij.ui.awt.RelativePoint
+import com.intellij.util.getBestPopupPosition
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -100,10 +106,18 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
   @VisibleForTesting
   suspend fun prepareAndSetupRunConfiguration(config: BlazeCommandRunConfiguration, context: ConfigurationContext): Boolean {
     val initialContext = readAction { findContext(context) } ?: return false
-    val refinedContext = refineContext(initialContext, context)
-    val resolvedContext = resolveContext(refinedContext, context)
+    val popupPosition = getPopupPosition(context.dataContext)
+    val refinedContext = refineContext(initialContext, popupPosition)
+    val resolvedContext = resolveContext(refinedContext, context.project, popupPosition)
     return resolvedContext.setupRunConfiguration(config)
   }
+
+  private fun getPopupPosition(dataContext: DataContext): RelativePoint? =
+    if (PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) != null || CommonDataKeys.EDITOR.getData(dataContext) != null) {
+      getBestPopupPosition(dataContext)
+    } else {
+      null
+    }
 
   final override fun onFirstRun(configuration: ConfigurationFromContext, context: ConfigurationContext, startRunnable: Runnable) {
     val project = context.project
@@ -125,9 +139,12 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
     }
   }
 
-  protected suspend fun refineContext(initialContext: C, context: ConfigurationContext): RunConfigurationContext =
-    initialContext.refine(context)
+  protected suspend fun refineContext(initialContext: RunConfigurationContext, popupPosition: RelativePoint?): RunConfigurationContext =
+    initialContext.refine(popupPosition)
 
-  protected suspend fun resolveContext(refinedContext: RunConfigurationContext, context: ConfigurationContext): RunConfigurationContext =
-    refinedContext.resolve(context.project, context)
+  protected suspend fun resolveContext(
+    refinedContext: RunConfigurationContext,
+    project: Project,
+    popupPosition: RelativePoint?,
+  ): RunConfigurationContext = refinedContext.resolve(project, popupPosition)
 }

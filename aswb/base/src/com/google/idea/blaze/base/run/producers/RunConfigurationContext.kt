@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.run.producers
 
 import com.google.idea.blaze.base.command.BlazeCommandName
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
@@ -25,6 +24,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiQualifiedNamedElement
+import com.intellij.ui.awt.RelativePoint
 
 /** A context used to configure a blaze run configuration, possibly asynchronously. */
 interface RunConfigurationContext {
@@ -36,10 +36,10 @@ interface RunConfigurationContext {
   fun setupConfigurationName(config: BlazeCommandRunConfiguration)
 
   /** Stage 2 (EDT): Interactive user prompts (e.g. choosing subclass for abstract test classes). */
-  suspend fun refine(context: ConfigurationContext): RunConfigurationContext
+  suspend fun refine(popupPosition: RelativePoint?): RunConfigurationContext
 
   /** Stage 2.5 (Background): Resolves the context (e.g. fetches target info in background). */
-  suspend fun resolve(project: Project, context: ConfigurationContext? = null): RunConfigurationContext
+  suspend fun resolve(project: Project, popupPosition: RelativePoint?): RunConfigurationContext
 
   /** Stage 3: Fully configures the run configuration post-refinement and post-resolution. */
   fun setupRunConfiguration(config: BlazeCommandRunConfiguration): Boolean

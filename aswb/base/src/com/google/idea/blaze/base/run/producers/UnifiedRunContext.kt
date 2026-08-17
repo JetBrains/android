@@ -21,9 +21,9 @@ import com.google.idea.blaze.base.dependencies.TestSize
 import com.google.idea.blaze.base.model.primitives.RuleType
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.BlazeConfigurationNameBuilder
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.intellij.ui.awt.RelativePoint
 import java.io.File
 
 /** Specifies how the Bazel test runner parses --test_filter flags. */
@@ -85,10 +85,10 @@ data class UnifiedRunContext(
     }
   }
 
-  override suspend fun refine(context: ConfigurationContext): RunConfigurationContext {
+  override suspend fun refine(popupPosition: RelativePoint?): RunConfigurationContext {
     var current = this
     for (refiner in UnifiedRunContextRefiner.EP_NAME.extensions) {
-      current = refiner.refine(context, current)
+      current = refiner.refine(current, popupPosition)
     }
     return current
   }
@@ -101,10 +101,10 @@ data class UnifiedRunContext(
     return UnifiedContextApplier.matches(config, this)
   }
 
-  override suspend fun resolve(project: Project, context: ConfigurationContext?): RunConfigurationContext {
+  override suspend fun resolve(project: Project, popupPosition: RelativePoint?): RunConfigurationContext {
     val currentTarget = target
     if (currentTarget !is TargetSpecification.PendingResolution) return this
-    val resolvedTarget = UnifiedRunContextResolver.resolveTargetSpec(project, currentTarget, context)
-    return copy(sourceElement = sourceElement, target = resolvedTarget, testFilter = testFilter, command = command)
+    val resolvedTarget = UnifiedRunContextResolver.resolveTargetSpec(project, currentTarget, popupPosition)
+    return copy(target = resolvedTarget)
   }
 }
