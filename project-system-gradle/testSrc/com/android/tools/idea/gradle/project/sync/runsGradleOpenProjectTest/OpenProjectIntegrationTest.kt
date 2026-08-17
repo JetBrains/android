@@ -238,7 +238,7 @@ class OpenProjectIntegrationTest {
 
   @Test
   fun testOpen36Project() {
-    AndroidGradleTests.addJdk8ToTableButUseCurrent()
+    AndroidGradleTests.addJdk17ToTableButUseCurrent()
     doNotEnableExternalStorageByDefaultInTests {
       val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.RUN_APP_36)
       preparedProject.open { project ->
@@ -266,7 +266,7 @@ class OpenProjectIntegrationTest {
 
   @Test
   fun testOpen36ProjectWithoutModules() {
-    runWriteActionAndWait { AndroidGradleTests.addJdk8ToTableButUseCurrent() }
+    runWriteActionAndWait { AndroidGradleTests.addJdk17ToTableButUseCurrent() }
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.RUN_APP_36)
     runWriteActionAndWait {
       val projectRootVirtualFile = VfsUtil.findFileByIoFile(preparedProject.root, false)!!

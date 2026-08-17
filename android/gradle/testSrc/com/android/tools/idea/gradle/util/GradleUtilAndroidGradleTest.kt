@@ -19,10 +19,8 @@ import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationMana
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
-import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.findModuleByFullName
 import com.android.utils.FileUtils
 import com.google.common.truth.Expect
@@ -84,12 +82,6 @@ class GradleUtilAndroidGradleTest {
   }
 
   @Test
-  fun testJdkPathFromProjectJava8() = runBlocking {
-    val jdk8Path = AndroidGradleTests.getEmbeddedJdk8Path()
-    verifyJdkPathFromProject(jdk8Path)
-  }
-
-  @Test
   fun testJdkPathFromProjectJavaCurrent() = runBlocking {
     verifyJdkPathFromProject(IdeSdks.getInstance().jdkPath!!.toAbsolutePath().toString())
   }
@@ -119,7 +111,7 @@ class GradleUtilAndroidGradleTest {
   private fun verifyJdkPathFromProject(javaPath: String) = underProgressIndicator {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      // Change value returned by IdeSdks.getJdkPath to Java 8
+      // Change value returned by IdeSdks.getJdkPath to the specified Java path
       ApplicationManager.getApplication().runWriteAction { IdeSdks.getInstance().setJdkPath(Paths.get(javaPath)) }
       val basePath = project.basePath
       assertThat(basePath).isNotNull()

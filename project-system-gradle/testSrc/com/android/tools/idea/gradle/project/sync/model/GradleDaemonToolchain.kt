@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.model
 
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
-import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_21_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor
@@ -40,8 +39,7 @@ data class GradleDaemonToolchain(
   val vendor: String? = null,
   val autoDetectionEnabled: Boolean = false,
   val autoProvisioningEnabled: Boolean = false,
-  val customToolchainInstallationsPath: List<@SystemIndependent String> =
-    listOf(JDK_EMBEDDED_PATH, JDK_21_PATH, JDK_17_PATH, JDK_11_PATH, JDK_1_8_PATH),
+  val customToolchainInstallationsPath: List<@SystemIndependent String> = listOf(JDK_EMBEDDED_PATH, JDK_21_PATH, JDK_17_PATH, JDK_11_PATH),
   val customToolchainInstallationsEnv: List<String>? = null,
   val applyToolchainResolverPlugin: Boolean = false,
 )

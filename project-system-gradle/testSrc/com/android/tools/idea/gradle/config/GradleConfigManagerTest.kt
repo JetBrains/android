@@ -19,7 +19,7 @@ import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.util.GradleConfigProperties
-import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_21_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -60,7 +60,7 @@ class GradleConfigManagerTest : LightPlatformTestCase() {
   fun `test Given valid project JDK and valid default JDK When initialize javaHome Then project JDK path was used`() {
     AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     setProjectJdk(JDK_EMBEDDED_PATH)
-    GradleDefaultJdkPathStore.jdkPath = JDK_1_8_PATH
+    GradleDefaultJdkPathStore.jdkPath = JDK_21_PATH
     GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
 
     val properties = GradleConfigProperties(temporaryFolder.root)
@@ -70,11 +70,11 @@ class GradleConfigManagerTest : LightPlatformTestCase() {
   @Test
   fun `test Given invalid project JDK and valid default JDK When initialize javaHome Then default JDK path was used`() {
     setProjectJdk("jdk-invalid-path")
-    GradleDefaultJdkPathStore.jdkPath = JDK_1_8_PATH
+    GradleDefaultJdkPathStore.jdkPath = JDK_21_PATH
     GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
 
     val properties = GradleConfigProperties(temporaryFolder.root)
-    assertEquals(JDK_1_8_PATH, properties.javaHome?.path)
+    assertEquals(JDK_21_PATH, properties.javaHome?.path)
   }
 
   @Test

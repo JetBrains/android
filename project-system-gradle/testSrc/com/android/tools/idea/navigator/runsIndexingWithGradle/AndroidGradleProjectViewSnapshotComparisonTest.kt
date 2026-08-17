@@ -71,7 +71,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
   @Test
   @RunsInEdt
   fun testMissingImlIsIgnored() {
-    AndroidGradleTests.addJdk8ToTableButUseCurrent()
+    AndroidGradleTests.addJdk17ToTableButUseCurrent()
     try {
       val preparedProject = projectRule.prepareTestProject(TestProjectOther.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40)
       val text = preparedProject.open { project: Project -> project.dumpAndroidProjectView() }

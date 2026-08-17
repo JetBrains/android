@@ -22,8 +22,9 @@ import com.android.tools.idea.gradle.service.notification.OpenProjectJdkLocation
 import com.android.tools.idea.gradle.service.notification.UseJdkAsProjectJdkListener.Companion.baseId
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
+import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo
 import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR
@@ -151,7 +152,7 @@ class GradleJvmNotificationExtensionTest {
 
   @Test
   fun `Given expected exception and IdeSdks JDK different to embedded When customize notificationData Then this JDK was suggested`() {
-    overrideJdkTo8()
+    overrideJdkTo(JDK_17_PATH)
 
     val originalTitle = "Test error title"
     val messageErrorText = "Test error message"

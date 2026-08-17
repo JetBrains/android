@@ -304,7 +304,6 @@ class ProjectDumper(
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() -> "<JDK_PATH-21>"
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString() -> "<JDK_PATH-17>"
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString() -> "<JDK_PATH-11>"
-      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() -> "<JDK_PATH-1_8>"
       else -> this
     }
   }

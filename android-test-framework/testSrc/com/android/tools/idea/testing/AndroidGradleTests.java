@@ -70,7 +70,6 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidRunConfigurationsManager;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -86,7 +85,9 @@ import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderMa
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManagerImpl;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -872,12 +873,11 @@ public class AndroidGradleTests {
     }
   }
 
-  public static void overrideJdkTo8() throws IOException {
-    String jdk8Path = getEmbeddedJdk8Path();
+  public static void overrideJdkTo(@NotNull String jdkPath) {
     @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
-    LOG.info("Using JDK from " + jdk8Path);
-    ideSdks.overrideJdkEnvVariable(jdk8Path);
-    assertTrue("Could not use JDK from " + jdk8Path, ideSdks.isJdkEnvVariableValid());
+    LOG.info("Using JDK from " + jdkPath);
+    ideSdks.overrideJdkEnvVariable(jdkPath);
+    assertTrue("Could not use JDK from " + jdkPath, ideSdks.isJdkEnvVariableValid());
   }
 
   public static void overrideJdkToCurrentJdk() {
@@ -889,17 +889,13 @@ public class AndroidGradleTests {
     assertTrue("Could not use JDK from " + jdkPath, ideSdks.isJdkEnvVariableValid());
   }
 
-  public static void addJdk8ToTableButUseCurrent() throws IOException {
-    String jdk8Path = getEmbeddedJdk8Path();
-    Jdks.getInstance().createAndAddJdk(jdk8Path);
+  public static void addJdk17ToTableButUseCurrent() {
+    Sdk jdk = JavaSdk.getInstance().createJdk("jdk17", JdkConstants.INSTANCE.getJDK_17_PATH());
+    ApplicationManager.getApplication().invokeAndWait(() -> SdkConfigurationUtil.addSdk(jdk));
     overrideJdkToCurrentJdk();
   }
 
   public static void restoreJdk() {
     IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
-  }
-
-  public static String getEmbeddedJdk8Path() {
-    return TestUtils.getJava8Jdk().toAbsolutePath().toString();
   }
 }

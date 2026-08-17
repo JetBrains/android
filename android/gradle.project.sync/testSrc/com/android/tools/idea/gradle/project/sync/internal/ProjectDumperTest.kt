@@ -74,10 +74,6 @@ class ProjectDumperTest {
 
     val dumper = ProjectDumper(offlineRepos = emptyList(), androidSdk = File("/nowhere"))
     assertEquals(
-      "<JDK_PATH-1_8>",
-      dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString()),
-    )
-    assertEquals(
       "<JDK_PATH-11>",
       dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString()),
     )
