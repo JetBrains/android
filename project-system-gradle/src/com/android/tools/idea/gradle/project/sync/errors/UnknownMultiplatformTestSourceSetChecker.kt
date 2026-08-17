@@ -22,15 +22,13 @@ import com.intellij.build.issue.BuildIssue
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
 
 private const val DEVICE_TEST_SOURCE_SET = "KotlinSourceSet with name 'androidTestOnDevice' not found"
 private const val HOST_TEST_SOURCE_SET = "KotlinSourceSet with name 'androidTestOnJvm' not found"
 
 class UnknownMultiplatformTestSourceSetChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = getRootCauseAndLocation(issueData.error).first
-    val message = rootCause.message ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
     if (!message.contains(DEVICE_TEST_SOURCE_SET) && !message.contains(HOST_TEST_SOURCE_SET)) return null
 
     return createBuildIssue(message)

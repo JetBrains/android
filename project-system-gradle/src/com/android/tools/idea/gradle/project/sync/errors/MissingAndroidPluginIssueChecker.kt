@@ -36,23 +36,26 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class MissingAndroidPluginIssueChecker : GradleIssueChecker {
   private val PATTERN = "Could not find com.android.tools.build:gradle:"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
     if (!message.startsWith(PATTERN)) return null
 
     SyncFailureUsageReporter.getInstance()
-      .collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE)
+      .collectFailure(
+        issueData.projectRoot.toCanonicalPath(),
+        AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE,
+      )
 
     return BuildIssueComposer(message)
       .apply {

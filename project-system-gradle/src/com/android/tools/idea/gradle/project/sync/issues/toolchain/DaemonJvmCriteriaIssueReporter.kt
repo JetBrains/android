@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.jdk.JdkAnalyticsTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.GRADLE_DAEMON_JVM_CRITERIA_ERROR
 import com.google.wireless.android.sdk.stats.GradleDaemonJvmCriteriaErrorEvent
 import com.intellij.build.issue.BuildIssue
+import com.intellij.openapi.util.io.toCanonicalPath
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
@@ -37,8 +38,8 @@ abstract class DaemonJvmCriteriaIssueReporter(
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     checker.check(issueData)?.run {
-      JdkAnalyticsTracker.reportDaemonJvmCriteriaException(issueData.projectPath, errorEvent)
-      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GRADLE_DAEMON_JVM_CRITERIA_ERROR)
+      JdkAnalyticsTracker.reportDaemonJvmCriteriaException(issueData.projectRoot.toCanonicalPath(), errorEvent)
+      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), GRADLE_DAEMON_JVM_CRITERIA_ERROR)
     }
     return null
   }

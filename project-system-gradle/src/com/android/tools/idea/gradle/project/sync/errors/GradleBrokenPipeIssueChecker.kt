@@ -22,20 +22,20 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class GradleBrokenPipeIssueChecker : GradleIssueChecker {
   private val BROKEN_PIPE = "Broken pipe"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
     if (message.isBlank() || !message.startsWith(BROKEN_PIPE)) return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.BROKEN_PIPE)
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.BROKEN_PIPE)
     return BuildIssueComposer("Broken pipe.")
       .apply {
         addDescriptionOnNewLine("The Gradle daemon may be trying to use ipv4 instead of ipv6.")

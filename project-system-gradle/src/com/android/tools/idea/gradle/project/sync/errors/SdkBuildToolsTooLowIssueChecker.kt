@@ -39,6 +39,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.util.concurrent.CompletableFuture
@@ -46,7 +47,6 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /**
  * This IssueChecker is for olg AGP version where having an old build tools version ends up in a sync issue. For newer AGP (tested for 3.1.0
@@ -58,12 +58,13 @@ class SdkBuildToolsTooLowIssueChecker : GradleIssueChecker {
 
   @Slow
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
     if (message.isEmpty()) return null
-    val composer = getBuildIssueDescriptionAndQuickFixes(message, issueData.projectPath) ?: return null
+    val composer = getBuildIssueDescriptionAndQuickFixes(message, issueData.projectRoot.toCanonicalPath()) ?: return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
+    SyncFailureUsageReporter.getInstance()
+      .collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
 
     return composer.composeBuildIssue()
   }

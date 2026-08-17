@@ -21,6 +21,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.nio.file.Path
 import java.util.function.Consumer
 import kotlin.io.path.Path
@@ -28,7 +29,6 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /**
  * A [GradleIssueChecker] class used as base for related errors regarding runtime Java compiled version, parsing different expected
@@ -49,7 +49,7 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
     val buildIssue = createBuildIssue(issueData)
     if (buildIssue != null) {
       // Log metrics.
-      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, failure)
+      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), failure)
     }
     return buildIssue
   }
@@ -73,10 +73,10 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
 
   @VisibleForTesting
   fun createBuildIssue(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
     val match = expectedErrorRegex.find(message) ?: return null
     return parseErrorRegexMatch(match)?.let { (pluginMinCompatibleJdkVersion, gradleJdkVersion) ->
-      val projectPath = Path(issueData.projectPath)
+      val projectPath = Path(issueData.projectRoot.toCanonicalPath())
       val gradleVersion = issueData.getGradleVersion() ?: return null
       createJdkVersionIncompatibleBuildIssue(pluginMinCompatibleJdkVersion, gradleJdkVersion, projectPath, gradleVersion, issueData.error)
     }

@@ -23,10 +23,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 class InternetConnectionIssueChecker : GradleIssueChecker {
@@ -35,14 +35,15 @@ class InternetConnectionIssueChecker : GradleIssueChecker {
   private val NETWORK_UNREACHABLE = "Network is unreachable"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
     if (!message.startsWith(COULD_NOT_GET) && !message.startsWith(COULD_NOT_HEAD) && !message.startsWith(NETWORK_UNREACHABLE)) return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.INTERNET_CONNECTION_ERROR)
+    SyncFailureUsageReporter.getInstance()
+      .collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.INTERNET_CONNECTION_ERROR)
     return BuildIssueComposer(message)
       .apply {
-        val project = fetchIdeaProjectForGradleProject(issueData.projectPath) ?: return@apply
+        val project = fetchIdeaProjectForGradleProject(issueData.projectRoot.toCanonicalPath()) ?: return@apply
         if (GradleSettings.getInstance(project).isOfflineWork) {
           addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(false))
         }

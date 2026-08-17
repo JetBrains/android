@@ -28,7 +28,6 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 private const val INVOKE_CUSTOM = "Invoke-customs are only supported starting with Android O"
 private const val DEFAULT_INTERFACE_METHOD = "Default interface methods are only supported starting with Android N (--min-api 24)"
@@ -48,8 +47,9 @@ class DexDisabledIssueChecker : GradleIssueChecker {
    */
   override fun check(issueData: GradleIssueData): BuildIssue? {
     // Confirm rootCause is one of the expected causes.
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first ?: return null
-    if (rootCause !is RuntimeException) {
+    val rootCause = issueData.failure.rootCause
+    val rootCauseClassName = rootCause.className ?: return null
+    if (!rootCauseClassName.contains("java.lang.RuntimeException")) {
       return null
     }
     var rootMessage = rootCause.message ?: return null

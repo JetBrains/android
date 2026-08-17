@@ -39,12 +39,12 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class ClassLoadingIssueChecker : GradleIssueChecker {
   private val CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.")
@@ -53,10 +53,11 @@ class ClassLoadingIssueChecker : GradleIssueChecker {
   private val CANNOT_BE_CAST_TO_EXCEPTION = "cannot be cast to"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val rootCause = issueData.failure.rootCause
     val message = rootCause.message ?: ""
 
-    val buildIssueComposer = BuildIssueComposer(getExceptionMessage(rootCause, message, issueData.projectPath) ?: return null)
+    val buildIssueComposer =
+      BuildIssueComposer(getExceptionMessage(rootCause.className, message, issueData.projectRoot.toCanonicalPath()) ?: return null)
 
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     val stopGradleDaemonQuickFix = StopGradleDaemonQuickFix()
@@ -125,9 +126,10 @@ class ClassLoadingIssueChecker : GradleIssueChecker {
     return false
   }
 
-  private fun getExceptionMessage(exception: Throwable, message: String, projectPath: String): String? {
-    when (exception) {
-      is ClassNotFoundException -> {
+  private fun getExceptionMessage(exceptionClassName: String?, message: String, projectPath: String): String? {
+    if (exceptionClassName.isNullOrEmpty()) return null
+    when {
+      exceptionClassName.contains("java.lang.ClassNotFoundException") -> {
         var className = message
         val matcher = CLASS_NOT_FOUND_PATTERN.matcher(className)
         if (matcher.matches()) {
@@ -137,7 +139,7 @@ class ClassLoadingIssueChecker : GradleIssueChecker {
         SyncFailureUsageReporter.getInstance().collectFailure(projectPath, CLASS_NOT_FOUND)
         return "Unable to load class '${className}'"
       }
-      is NoSuchMethodError -> {
+      exceptionClassName.contains("java.lang.NoSuchMethodError") -> {
         // Log metrics.
         SyncFailureUsageReporter.getInstance().collectFailure(projectPath, METHOD_NOT_FOUND)
         return "Unable to find method '$message'"

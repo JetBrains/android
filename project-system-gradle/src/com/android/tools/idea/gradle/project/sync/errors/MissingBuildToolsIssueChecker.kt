@@ -22,12 +22,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.externalSystem.model.ExternalSystemException
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /**
  * This IssueChecker is for olg AGP version where having an old build tools version ends up in a sync issue. For newer AGP (tested for 3.6
@@ -40,14 +39,20 @@ class MissingBuildToolsIssueChecker : GradleIssueChecker {
     Pattern.compile("Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException(.*)")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val rootCause = issueData.failure.rootCause
+    val rootCauseClassName = rootCause.className ?: return null
     val message = rootCause.message ?: return null
-    if (message.isBlank() || rootCause !is IllegalStateException && rootCause !is ExternalSystemException) return null
+    if (
+      message.isBlank() ||
+        !rootCauseClassName.contains("java.lang.IllegalStateException") &&
+          !rootCauseClassName.contains("com.intellij.openapi.externalSystem.model.ExternalSystemException")
+    )
+      return null
     val matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(message.lines()[0])
     if (!matcher.matches()) return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, MISSING_BUILD_TOOLS)
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), MISSING_BUILD_TOOLS)
     val version = matcher.group(3)
     val buildIssueComposer = getBuildIssueDescription(message, version)
     return buildIssueComposer.composeBuildIssue()

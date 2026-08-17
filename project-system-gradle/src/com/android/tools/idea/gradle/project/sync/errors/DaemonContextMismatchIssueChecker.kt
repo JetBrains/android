@@ -22,10 +22,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /**
  * This checker only produces issue for only of possible DaemonContextMismatch errors, the one related to jdk mismatch. Other cases (see
@@ -38,7 +38,7 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
   private val JAVA_HOME_DIFFERENT = "Java home is different."
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
     val messageLines = message.lines()
     if (messageLines[0].isBlank() || messageLines.size <= 3) return null
     if (messageLines[0].contains(ERROR_DAEMON) && (messageLines[2] == JVM_IS_INCOMPATIBLE || messageLines[2] == JAVA_HOME_DIFFERENT)) {
@@ -46,7 +46,8 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
       if (expectedAndActual.isEmpty()) return null
 
       // Log metrics.
-      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
+      SyncFailureUsageReporter.getInstance()
+        .collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
       return BuildIssueComposer(messageLines[2])
         .apply {
           addDescriptionOnNewLine(expectedAndActual)

@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.Navigatable
 import java.io.File
@@ -54,7 +55,7 @@ class DataBindingIssueChecker : GradleIssueChecker {
 
     val buildIssues =
       errors.mapIndexedNotNull { index, errorJson ->
-        convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX), issueData.projectPath)
+        convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX), issueData.projectRoot.toCanonicalPath())
       }
 
     if (buildIssues.isEmpty()) return null

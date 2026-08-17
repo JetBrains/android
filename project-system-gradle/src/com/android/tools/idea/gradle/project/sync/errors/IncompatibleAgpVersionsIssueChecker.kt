@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.AndroidSyncException
-import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
+import com.android.tools.idea.gradle.project.sync.AgpVersionsMismatch
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
@@ -24,17 +23,16 @@ import com.intellij.build.issue.BuildIssue
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class IncompatibleAgpVersionsIssueChecker : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
-    if (rootCause !is AndroidSyncException) return null
-    if (rootCause.type != AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH) return null
+    val rootCauseClassName = issueData.failure.rootCause.className ?: return null
+    val message = issueData.failure.message ?: return null
+    if (!rootCauseClassName.contains("com.android.tools.idea.gradle.project.sync.AndroidSyncException")) return null
+    if (!AgpVersionsMismatch.MULTIPLE_AGP_VERSIONS.matcher(message).find()) return null
     // Note: no need to report failure to SyncFailureUsageReporter as for AndroidSyncException
     // instances it is reported in AndroidGradleProjectResolver.
-    val message = rootCause.message ?: return null
     val messageLines = message.lines()
     if (messageLines.isEmpty()) return null
     return BuildIssueComposer("${messageLines[0]}\n${messageLines[1]}").composeBuildIssue()

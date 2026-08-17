@@ -28,22 +28,22 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class UnexpectedIssueChecker : GradleIssueChecker {
   private val UNEXPECTED_ERROR_FILE_BUG = "This is an unexpected error. Please file a bug containing the idea.log file."
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
     if (message.isBlank() || !message.contains(UNEXPECTED_ERROR_FILE_BUG)) return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.UNEXPECTED_ERROR)
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.UNEXPECTED_ERROR)
     val buildIssueComposer =
       BuildIssueComposer(message).apply {
         addQuickFix("File a bug", FileBugQuickFix())

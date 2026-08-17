@@ -38,6 +38,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.util.text.StringUtil
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
@@ -46,7 +47,6 @@ import java.util.regex.Pattern.DOTALL
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
 import org.jetbrains.plugins.gradle.settings.DistributionType
 
 class UnsupportedGradleVersionIssueChecker : GradleIssueChecker {
@@ -55,17 +55,16 @@ class UnsupportedGradleVersionIssueChecker : GradleIssueChecker {
     Pattern.compile("Minimum supported Gradle version is (.*)\\. Current version is.*", DOTALL)
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val error = getRootCauseAndLocation(issueData.error).first
-
     // If formatMessage returns null then we can't handle this error
-    val message = formatMessage(error.message) ?: return null
+    val message = formatMessage(issueData.failure.rootCause.message) ?: return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
+    SyncFailureUsageReporter.getInstance()
+      .collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
     val buildIssueComposer = BuildIssueComposer(message)
 
     // Get QuickFixes.
-    val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
+    val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectRoot.toCanonicalPath())
 
     if (ideaProject != null) {
       val gradleWrapper = GradleWrapper.find(ideaProject)

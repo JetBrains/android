@@ -33,29 +33,30 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.util.SystemProperties.getUserName
 import java.io.File
 import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 open class FailedToParseSdkIssueChecker : GradleIssueChecker {
   private val FAILED_TO_PARSE = "failed to parse SDK"
   private val EXCEPTION_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.RuntimeException(.*)")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val rootCause = issueData.failure.rootCause
+    val rootCauseClassName = rootCause.className ?: return null
     val message = rootCause.message ?: return null
-    if (rootCause !is RuntimeException || message.isBlank() || !message.contains(FAILED_TO_PARSE)) return null
+    if (!rootCauseClassName.contains("java.lang.RuntimeException") || message.isBlank() || !message.contains(FAILED_TO_PARSE)) return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.FAILED_TO_PARSE_SDK)
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.FAILED_TO_PARSE_SDK)
 
     val buildIssueComposer = BuildIssueComposer(message)
     val pathOfBrokenSdk =
-      findPathOfSdkWithoutAddonsFolder(issueData.projectPath)
+      findPathOfSdkWithoutAddonsFolder(issueData.projectRoot.toCanonicalPath())
         ?: return buildIssueComposer
           .apply { addDescriptionOnNewLine("The Android SDK may be missing the directory 'add-ons'.") }
           .composeBuildIssue()

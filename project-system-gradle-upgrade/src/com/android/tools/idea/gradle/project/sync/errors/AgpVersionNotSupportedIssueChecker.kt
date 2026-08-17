@@ -22,8 +22,6 @@ import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
-import com.android.tools.idea.gradle.project.sync.AndroidSyncException
-import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
@@ -35,35 +33,36 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /** IssueChecker to handle projects with incompatible (too old or mismatched preview) AGP versions. */
 class AgpVersionNotSupportedIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val rootCause = issueData.failure.rootCause
     val message = rootCause.message ?: ""
+    val rootCauseClassName = rootCause.className ?: return null
     if (message.isBlank()) return null
-    if (rootCause !is AndroidSyncException) return null
+    if (!rootCauseClassName.contains("com.android.tools.idea.gradle.project.sync.AndroidSyncException")) return null
     // Note: no need to report failure to SyncFailureUsageReporter as for AndroidSyncException
     // instances it is reported in AndroidGradleProjectResolver.
 
     val (agpVersion, userMessage, url) =
-      when (rootCause.type) {
-        AndroidSyncExceptionType.AGP_VERSION_TOO_OLD -> {
+      when {
+        AgpVersionTooOld.ALWAYS_PRESENT_STRINGS.all { message.contains(it) } -> {
           val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
           if (!tooOldMatcher.find()) return null
           Triple(tooOldMatcher.group(1), tooOldMatcher.group(0), TOO_OLD_URL)
         }
-        AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE -> {
+        AgpVersionIncompatible.ALWAYS_PRESENT_STRINGS.all { message.contains(it) } -> {
           val incompatiblePreviewMatcher = AgpVersionIncompatible.pattern(AgpVersions.latestKnown).matcher(message)
           if (!incompatiblePreviewMatcher.find()) return null
           Triple(incompatiblePreviewMatcher.group(1), incompatiblePreviewMatcher.group(0), PREVIEW_URL)
         }
-        AndroidSyncExceptionType.AGP_VERSION_TOO_NEW -> {
+        AgpVersionTooNew.ALWAYS_PRESENT_STRINGS.all { message.contains(it) } -> {
           val tooNewMatcher = AgpVersionTooNew.pattern(AgpVersions.latestKnown).matcher(message)
           if (!tooNewMatcher.find()) return null
           Triple(tooNewMatcher.group(1), tooNewMatcher.group(0), TOO_NEW_URL)
@@ -73,10 +72,12 @@ class AgpVersionNotSupportedIssueChecker : GradleIssueChecker {
     val buildIssueComposer = BuildIssueComposer(userMessage)
 
     return buildIssueComposer.run {
-      if (rootCause.type == AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE) {
+      if (AgpVersionIncompatible.ALWAYS_PRESENT_STRINGS.all { message.contains(it) }) {
         AgpVersion.tryParse(agpVersion)?.let { version ->
           if (!AndroidGradleProjectResolver.shouldDisableForceUpgrades()) {
-            fetchIdeaProjectForGradleProject(issueData.projectPath)?.let { project -> updateAndRequestSync(project, version) }
+            fetchIdeaProjectForGradleProject(issueData.projectRoot.toCanonicalPath())?.let { project ->
+              updateAndRequestSync(project, version)
+            }
           }
           addQuickFix(AgpUpgradeQuickFix(version))
         }
@@ -86,7 +87,7 @@ class AgpVersionNotSupportedIssueChecker : GradleIssueChecker {
         addQuickFix("See Android Studio & AGP compatibility options.", OpenLinkQuickFix(url))
       }
       else {
-        enableFutureAgpVersionSupportQuickFix(rootCause.type)
+        enableFutureAgpVersionSupportQuickFix(AgpVersionTooNew.ALWAYS_PRESENT_STRINGS.all { message.contains(it) })
       }
       composeBuildIssue()
     }

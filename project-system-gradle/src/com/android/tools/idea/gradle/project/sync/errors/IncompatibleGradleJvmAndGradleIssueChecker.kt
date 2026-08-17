@@ -27,6 +27,7 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
+import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.util.lang.JavaVersion
 import java.nio.file.Path
 import java.util.function.Consumer
@@ -51,14 +52,14 @@ class IncompatibleGradleJvmAndGradleIssueChecker : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val gradleVersion = issueData.getGradleVersion() ?: return null
-    val projectPath = Path(issueData.projectPath)
+    val projectPath = Path(issueData.projectRoot.toCanonicalPath())
     val javaVersion = getJavaVersion(issueData, projectPath, gradleVersion)
 
     if (javaVersion != null) {
       if (!GradleJvmSupportMatrix.isSupported(gradleVersion, javaVersion)) {
         // Log metrics
         SyncFailureUsageReporter.getInstance()
-          .collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP)
+          .collectFailure(issueData.projectRoot.toCanonicalPath(), AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP)
 
         return createBuildIssue(projectPath, javaVersion, gradleVersion)
       }

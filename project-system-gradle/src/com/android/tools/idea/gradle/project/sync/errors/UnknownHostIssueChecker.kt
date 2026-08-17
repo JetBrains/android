@@ -24,26 +24,26 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import java.net.UnknownHostException
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 class UnknownHostIssueChecker : GradleIssueChecker {
   private val UNKNOWN_HOST_PATTERN = Pattern.compile("java.net.UnknownHostException(.*)")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val rootCause = issueData.failure.rootCause
+    val rootCauseClassName = rootCause.className ?: return null
     val message = rootCause.message ?: return null
-    if (message.isBlank() || rootCause !is UnknownHostException) return null
+    if (message.isBlank() || !rootCauseClassName.contains("java.net.UnknownHostException")) return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.UNKNOWN_HOST)
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.UNKNOWN_HOST)
 
-    val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
+    val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectRoot.toCanonicalPath())
     return BuildIssueComposer("Unknown host '$message'. You may need to adjust the proxy settings in Gradle.")
       .apply {
         if (ideaProject != null && !GradleSettings.getInstance(ideaProject).isOfflineWork) {

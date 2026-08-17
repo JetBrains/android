@@ -22,24 +22,24 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import java.net.SocketException
+import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class ConnectionPermissionDeniedIssueChecker : GradleIssueChecker {
   private val SOCKET_EXCEPTION_PATTERN = Pattern.compile("Caused by: java.net.SocketException(.*)")
   private val PERMISSION_DENIED = "Permission denied: connect"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val rootCause = issueData.failure.rootCause
+    val rootCauseClassName = rootCause.className ?: return null
     val message = rootCause.message ?: return null
-    if (rootCause !is SocketException || message.isBlank() || !message.contains(PERMISSION_DENIED)) return null
+    if (!rootCauseClassName.contains("java.net.SocketException") || message.isBlank() || !message.contains(PERMISSION_DENIED)) return null
 
     // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, CONNECTION_DENIED)
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), CONNECTION_DENIED)
 
     return BuildIssueComposer("Connection to the Internet denied.")
       .apply {

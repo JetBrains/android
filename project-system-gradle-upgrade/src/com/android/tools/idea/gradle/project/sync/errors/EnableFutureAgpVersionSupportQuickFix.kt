@@ -4,7 +4,6 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
-import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeBundle
@@ -14,8 +13,8 @@ import com.intellij.openapi.util.Version
 import com.intellij.util.ui.RestartDialogImpl
 import java.util.concurrent.CompletableFuture
 
-internal fun BuildIssueComposer.enableFutureAgpVersionSupportQuickFix(rootCauseType: AndroidSyncExceptionType) {
-  if (rootCauseType !== AndroidSyncExceptionType.AGP_VERSION_TOO_NEW) return
+internal fun BuildIssueComposer.enableFutureAgpVersionSupportQuickFix(isAgpVersionTooNew: Boolean) {
+  if (!isAgpVersionTooNew) return
   if (StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get()) {
     val supportedVersion = AgpVersions.latestKnown.toString()
     val unsupportedVersion = Version.parseVersion(supportedVersion)?.run { Version(major, minor + 1, 0).toString() } ?: "unknown"

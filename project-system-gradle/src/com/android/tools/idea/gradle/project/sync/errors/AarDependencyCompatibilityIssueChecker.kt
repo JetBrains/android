@@ -26,7 +26,6 @@ import com.intellij.openapi.ui.Messages
 import java.util.concurrent.CompletableFuture
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 private const val MODULE_COMPILED_AGAINST_PATTERN = """(?<modulePath>\S+) is currently compiled against \S+."""
 private const val COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN =
@@ -39,8 +38,8 @@ private val COMPILE_SDK_ISSUE_REGEX =
 class AarDependencyCompatibilityIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     // Confirm rootCause is one of the expected causes.
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first ?: return null
-    if (rootCause !is RuntimeException) {
+    val rootCause = issueData.failure.rootCause
+    if (rootCause.className?.contains("java.lang.RuntimeException") == false) {
       return null
     }
     val rootMessage = rootCause.message ?: return null

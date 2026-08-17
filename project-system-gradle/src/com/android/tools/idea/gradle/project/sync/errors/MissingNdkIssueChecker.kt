@@ -36,7 +36,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 private const val VERSION_PATTERN = "(?<version>([0-9]+)(?:\\.([0-9]+)(?:\\.([0-9]+))?)?([\\s-]*)?(?:(rc|alpha|beta|\\.)([0-9]+))?)"
 private val PREFERRED_VERSION_PATTERNS =
@@ -47,7 +46,7 @@ private val PREFERRED_VERSION_PATTERNS =
 
 class MissingNdkIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = errorMessage(issueData) ?: return null
+    val message = issueData.failure.rootCause.message ?: return null
 
     val preferredVersion = tryExtractPreferredNdkDownloadVersion(message)
     val quickFixes = mutableListOf<BuildIssueQuickFix>()
@@ -117,12 +116,6 @@ class MissingNdkIssueChecker : GradleIssueChecker {
   private fun appendQuickFix(quickFixes: MutableList<BuildIssueQuickFix>, quickFix: BuildIssueQuickFix, message: String): String {
     quickFixes += quickFix
     return "\n<a href=\"${quickFix.id}\">$message</a>"
-  }
-
-  private fun errorMessage(issueData: GradleIssueData): String? {
-    val rootCauseAndLocation = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error)
-    val rootCause = rootCauseAndLocation.first ?: return null
-    return rootCause.message
   }
 
   private fun matchesNdkNotConfigured(errorMessage: String): Boolean {
