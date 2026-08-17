@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
-import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -75,14 +74,6 @@ class ProjectJdkRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testUpdateFromJdk8() {
-    setGradleInstallationPath(JDK_1_8_PATH)
-    val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
-    assertFalse(processor.isBlocked)
-    assertThat(processor.findUsages()).isNotEmpty()
-  }
-
-  @Test
   fun testUpdateFromJdk11() {
     setGradleInstallationPath(JDK_11_PATH)
     val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
@@ -99,10 +90,11 @@ class ProjectJdkRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testIsBlockedFromJdk8ToJdk11() {
-    setGradleInstallationPath(JDK_1_8_PATH)
-    val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("7.0.0"))
-    // This is blocked because the Project JDK Table has no entry for JDK11
+  fun testIsBlockedFromJdk11ToJdk17() {
+    jdk17?.let { runWriteAction { ProjectJdkTable.getInstance().removeJdk(it) } }?.also { jdk17 = null }
+    setGradleInstallationPath(JDK_11_PATH)
+    val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+    // This is blocked because the Project JDK Table has no entry for JDK17
     assertTrue(processor.isBlocked)
   }
 
@@ -111,7 +103,7 @@ class ProjectJdkRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     Registry.get("gradle.daemon.jvm.criteria").setValue(true)
     project.createDaemonJvmPropertiesFile("21")
     GradleWrapper.find(project)?.updateDistribution(GradleVersion.version("8.13"))
-    setGradleInstallationPath(JDK_1_8_PATH)
+    setGradleInstallationPath(JDK_11_PATH)
 
     val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     assertThat(processor.findUsages()).isEmpty()
