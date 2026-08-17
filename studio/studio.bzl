@@ -896,7 +896,7 @@ def _android_studio_os(ctx, platform, added_plugins, out, lst_out):
 
     suffix = "64" if platform == LINUX else ("64.exe" if platform == WIN else "")
     vm_options_path = platform_prefix + platform.base_path + "bin/studio" + suffix + ".vmoptions"
-    vm_options = config.vm_options + ctx.attr.vm_options + {
+    vm_options = ctx.attr.vm_options + config.vm_options + {
         LINUX: ctx.attr.vm_options_linux,
         MAC: ctx.attr.vm_options_mac,
         MAC_ARM: ctx.attr.vm_options_mac_arm,
