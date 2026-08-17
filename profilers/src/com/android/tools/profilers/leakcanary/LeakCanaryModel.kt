@@ -141,8 +141,7 @@ class LeakCanaryModel(
   val objectRetainedCount = _objectRetainedCount.asStateFlow()
   private val _analysisProgress = MutableStateFlow(0)
   val analysisProgress = _analysisProgress.asStateFlow()
-  private val _isLeakCanaryPresent = MutableStateFlow(true)
-  val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
+
   private val _isStopping = MutableStateFlow(false)
   val isStopping = _isStopping.asStateFlow()
   private val scope = CoroutineScope(coroutineContext + SupervisorJob())

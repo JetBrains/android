@@ -139,9 +139,7 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
       Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
         val innerSplitState = rememberSplitLayoutState(0.3f)
         val outerSplitState = rememberSplitLayoutState(0.7f)
-
         val isRecording by leakCanaryModel.isRecording.collectAsState()
-        val isLeakCanaryPresent by leakCanaryModel.isLeakCanaryPresent.collectAsState()
 
         val mainWorkspace =
           @Composable {
@@ -155,7 +153,6 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
                   selectedLeak = selectedLeak,
                   gotoDeclaration = leakCanaryModel::goToDeclaration,
                   isRecording = isRecording,
-                  isLeakCanaryPresent = isLeakCanaryPresent,
                   hasActiveFilter = hasLeaks && filteredLeaks.size != leaks.size,
                   isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
                   openStates = openStates,

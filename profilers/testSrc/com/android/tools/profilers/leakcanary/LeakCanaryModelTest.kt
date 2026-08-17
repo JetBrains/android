@@ -1118,7 +1118,6 @@ class FakeLeakCanaryCommandHandler(
   val profilers: StudioProfilers,
   val leaksToSendFiles: List<String>,
   val startTimestamp: Long,
-  val isLeakCanaryPresent: Boolean = true,
   val retainedObjectThreshold: Int = 5,
 ) : CommandHandler(timer) {
   override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {

@@ -102,7 +102,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = true,
-        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
@@ -137,7 +136,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = true,
-        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
@@ -189,7 +187,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = mockLeakCanaryModel::goToDeclaration,
         isRecording = true,
-        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = mockLeakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
@@ -235,7 +232,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = null,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = true,
-        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = emptyList(),
         onOpenStatesChange = {},
@@ -253,7 +249,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = null,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = false,
-        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = emptyList(),
         onOpenStatesChange = {},
@@ -313,7 +308,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = mockLeakCanaryModel::goToDeclaration,
         isRecording = true,
-        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = mockLeakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
@@ -362,7 +356,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
         selectedLeak = selectedLeak,
         gotoDeclaration = leakCanaryModel::goToDeclaration,
         isRecording = true,
-        isLeakCanaryPresent = true,
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
@@ -373,25 +366,6 @@ class LeakDetailsPanelTest : WithFakeTimer {
     // Check if the GC Root node text is displayed correctly.
     val gcRootDescription = selectedLeak.displayedLeakTrace[0].gcRootType.description
     composeTestRule.onNodeWithText("${TaskBasedUxStrings.LEAKCANARY_GC_ROOT} ($gcRootDescription)").assertIsDisplayed()
-  }
-
-  @Test
-  fun `test leak details shows missing message when leakcanary is not present`() {
-    composeTestRule.setContent {
-      LeakDetailsPanel(
-        selectedLeak = null,
-        gotoDeclaration = leakCanaryModel::goToDeclaration,
-        isRecording = true,
-        isLeakCanaryPresent = false,
-        isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
-        openStates = emptyList(),
-        onOpenStatesChange = {},
-        onCopy = {},
-      )
-    }
-
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_MISSING_MESSAGE).assertIsDisplayed()
-    composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
   }
 
   private fun getLeakWithNavigatableAndNonNavigatableNode(): List<Leak> {
