@@ -74,7 +74,7 @@ studio_plugin(
     name = "org.jetbrains.android",
     directory = "android",
     libs = [
-        "//prebuilts/r8",
+        "//tools/adt/idea/.idea/libraries:r8",
         "//prebuilts/tools/common/archive-patcher:explainer",
         "//prebuilts/tools/common/archive-patcher:generator",
         "//prebuilts/tools/common/archive-patcher:shared",

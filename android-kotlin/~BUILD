@@ -59,7 +59,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-android:intellij.android.gradle.dsl.android",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
-        "//prebuilts/r8",
+        "//tools/adt/idea/.idea/libraries:r8",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/gmaven:intellij.android.gmaven",
         "@intellij//:intellij.java.impl",
@@ -144,7 +144,7 @@ kotlin_library(
     lint_enabled = False,
     visibility = ["//visibility:public"],
     deps = [
-        "//prebuilts/r8",
+        "//tools/adt/idea/.idea/libraries:r8",
         "@intellij//:intellij-sdk",
         "@intellij//:org.jetbrains.kotlin",
     ],

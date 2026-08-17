@@ -34,7 +34,7 @@ iml_module(
         "//tools/base/kexter:studio.android.sdktools.kexter",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger",
-        "//prebuilts/r8",
+        "//tools/adt/idea/.idea/libraries:r8",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "@intellij//:intellij.java",

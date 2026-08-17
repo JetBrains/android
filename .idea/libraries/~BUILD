@@ -365,3 +365,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:protobuf-java-util_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "r8",
+    jars = ["//prebuilts/tools/common/m2:r8.jar"],
+    visibility = ["//visibility:public"],
+)

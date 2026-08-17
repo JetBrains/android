@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="r8">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/prebuilts/tools/common/m2/r8.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

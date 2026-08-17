@@ -34,7 +34,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/logcat:logcat-proto",
-        "//prebuilts/r8",
+        "//tools/adt/idea/.idea/libraries:r8",
         "@intellij//:com.intellij.modules.json",
         "@intellij//:intellij.java.debugger",
         "@intellij//:intellij.java.indexing",
