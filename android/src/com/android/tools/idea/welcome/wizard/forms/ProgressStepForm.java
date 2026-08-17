@@ -21,7 +21,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
@@ -64,7 +63,6 @@ public class ProgressStepForm implements Disposable {
     myConsoleEditor.reinitSettings();
     myConsoleEditor.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 0));
     myHighlighter = new ConsoleHighlighter();
-    myHighlighter.setModalityState(ModalityState.stateForComponent(myLabel));
     myConsoleEditor.setHighlighter(myHighlighter);
     JComponent editorComponent = myConsoleEditor.getComponent();
     myConsole.add(editorComponent, BorderLayout.CENTER);
@@ -79,7 +77,6 @@ public class ProgressStepForm implements Disposable {
    * @param contentType attributes of the text to output
    */
   public void print(@NotNull String s, @NotNull ConsoleViewContentType contentType) {
-    myHighlighter.setModalityState(ModalityState.stateForComponent(myConsole));
     myHighlighter.print(s + (s.endsWith("\n") ? "" : "\n"), contentType.getAttributes());
   }
 

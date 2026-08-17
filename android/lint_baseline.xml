@@ -344,17 +344,6 @@
 
     <issue
         id="WrongThread"
-        message="Call must be from `@UiThread`, but context is allowing `@AnyThread`"
-        errorLine1="    form.print(s, contentType)"
-        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/welcome/wizard/AbstractProgressStep.kt"
-            line="72"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="WrongThread"
         message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
         errorLine1="    return wizard.showAndGet()"
         errorLine2="                  ~~~~~~~~~~~~">

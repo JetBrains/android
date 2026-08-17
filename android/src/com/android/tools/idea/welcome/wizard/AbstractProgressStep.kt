@@ -131,18 +131,16 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) : M
 
     override fun setText(text: String) {
       super.setText(text)
-      invokeLater(ModalityState.stateForComponent(form.label)) { form.label.text = text }
+      invokeLater(ModalityState.any()) { form.label.text = text }
     }
 
     override fun setText2(text: String?) {
       super.setText2(text)
-      invokeLater(ModalityState.stateForComponent(form.label)) {
-        form.label2.text = if (text == null) "" else shortenTextWithEllipsis(text, 80, 10)
-      }
+      invokeLater(ModalityState.any()) { form.label2.text = if (text == null) "" else shortenTextWithEllipsis(text, 80, 10) }
     }
 
     override fun stop() {
-      invokeLater(ModalityState.stateForComponent(form.progressBar)) {
+      invokeLater(ModalityState.any()) {
         form.label.text = null
         form.label2.text = null
         form.progressBar.isVisible = false
@@ -153,12 +151,12 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) : M
 
     override fun setIndeterminate(indeterminate: Boolean) {
       super.setIndeterminate(indeterminate)
-      invokeLater(ModalityState.stateForComponent(form.progressBar)) { form.progressBar.isIndeterminate = indeterminate }
+      invokeLater(ModalityState.any()) { form.progressBar.isIndeterminate = indeterminate }
     }
 
     override fun setFraction(fraction: Double) {
       super.setFraction(fraction)
-      invokeLater(ModalityState.stateForComponent(form.root)) { form.fraction = fraction }
+      invokeLater(ModalityState.any()) { form.fraction = fraction }
     }
   }
 }
