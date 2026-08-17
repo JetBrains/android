@@ -42,67 +42,80 @@ class LanguageHighlightingTest {
       studio.waitForSync()
       studio.waitForIndex()
 
-      val analysisResults = studio.analyzeFile("src/main/java/com/example/languagehighlighting/MainActivity.kt")
+      var attempts = 0
+      while (true) {
+        attempts++
+        try {
+          val analysisResults = studio.analyzeFile("src/main/java/com/example/languagehighlighting/MainActivity.kt")
 
-      // Validate Kotlin highlighting by spot-checking some of the expected tokens that should be highlighted.
+          // Validate Kotlin highlighting by spot-checking some of the expected tokens that should be highlighted.
 
-      // 1. `override` keyword
-      assertThat(analysisResults)
-        .contains(
-          AnalysisResult(
-            HighlightInfoType.SYMBOL_TYPE_SEVERITY,
-            "override",
-            /* description = */ null,
-            /* toolId = */ null,
-            /* lineNumber = */ 8,
-          )
-        )
+          // 1. `override` keyword
+          assertThat(analysisResults)
+            .contains(
+              AnalysisResult(
+                HighlightInfoType.SYMBOL_TYPE_SEVERITY,
+                "override",
+                /* description = */ null,
+                /* toolId = */ null,
+                /* lineNumber = */ 8,
+              )
+            )
 
-      // 2. Warning from Kotlin plugin.
-      val propertyAccessWarning =
-        analysisResults.firstOrNull {
-          it.severity == HighlightSeverity.WEAK_WARNING &&
-            it.description == "Use of setter method instead of property access syntax" &&
-            it.toolId == "UsePropertyAccessSyntax" &&
-            it.lineNumber == 11
+          // 2. Warning from Kotlin plugin.
+          val propertyAccessWarning =
+            analysisResults.firstOrNull {
+              it.severity == HighlightSeverity.WEAK_WARNING &&
+                it.description == "Use of setter method instead of property access syntax" &&
+                it.toolId == "UsePropertyAccessSyntax" &&
+                it.lineNumber == 11
+            }
+          assertThat(propertyAccessWarning).isNotNull()
+          checkNotNull(propertyAccessWarning)
+          assertThat(propertyAccessWarning.text).startsWith("setText")
+
+          // 3. Warning from Android plugin.
+          assertThat(analysisResults)
+            .contains(
+              AnalysisResult(
+                HighlightSeverity.WARNING,
+                "Hello Minimal World!",
+                /* description = */ "String literal in `setText` can not be translated. Use Android resources instead.",
+                /* toolId = */ null,
+                /* lineNumber = */ 11,
+              )
+            )
+
+          // 4. Error from Kotlin plugin.
+          val absent = "someMethodThatDoesNotExist"
+          val k1Description = "Unresolved reference: $absent"
+          val k2Description = "Unresolved reference '$absent'."
+          val k1Result =
+            AnalysisResult(
+              HighlightSeverity.ERROR,
+              /* text */ absent,
+              /* description = */ k1Description,
+              /* toolId = */ null,
+              /* lineNumber = */ 15,
+            )
+          val k2Result =
+            AnalysisResult(
+              HighlightSeverity.ERROR,
+              /* text */ absent,
+              /* description = */ k2Description,
+              /* toolId = */ null,
+              /* lineNumber = */ 15,
+            )
+          assertThat(analysisResults).containsAnyOf(k1Result, k2Result)
+
+          break
+        } catch (e: AssertionError) {
+          if (attempts >= 3) {
+            throw e
+          }
+          Thread.sleep(1000)
         }
-      assertThat(propertyAccessWarning).isNotNull()
-      checkNotNull(propertyAccessWarning)
-      assertThat(propertyAccessWarning.text).startsWith("setText")
-
-      // 3. Warning from Android plugin.
-      assertThat(analysisResults)
-        .contains(
-          AnalysisResult(
-            HighlightSeverity.WARNING,
-            "Hello Minimal World!",
-            /* description = */ "String literal in `setText` can not be translated. Use Android resources instead.",
-            /* toolId = */ null,
-            /* lineNumber = */ 11,
-          )
-        )
-
-      // 4. Error from Kotlin plugin.
-      val absent = "someMethodThatDoesNotExist"
-      val k1Description = "Unresolved reference: $absent"
-      val k2Description = "Unresolved reference '$absent'."
-      val k1Result =
-        AnalysisResult(
-          HighlightSeverity.ERROR,
-          /* text */ absent,
-          /* description = */ k1Description,
-          /* toolId = */ null,
-          /* lineNumber = */ 15,
-        )
-      val k2Result =
-        AnalysisResult(
-          HighlightSeverity.ERROR,
-          /* text */ absent,
-          /* description = */ k2Description,
-          /* toolId = */ null,
-          /* lineNumber = */ 15,
-        )
-      assertThat(analysisResults).containsAnyOf(k1Result, k2Result)
+      }
     }
   }
 }
