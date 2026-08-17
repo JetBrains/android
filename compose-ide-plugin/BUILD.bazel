@@ -12,6 +12,11 @@ create_kotlinc_options(
     x_context_parameters = True,
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fir_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-fir:libraries-kotlinc-kotlin-compiler-fir",
+)
+
 jvm_library(
     name = "compose-ide-plugin",
     srcs = glob(
@@ -43,7 +48,6 @@ jvm_library(
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
-        "@lib//:kotlinc-kotlin-compiler-fir-provided",
         "//plugins/kotlin/completion/impl-k2:kotlin-completion-impl",
         "//android/android-material",
         "//android/artwork",
@@ -115,6 +119,7 @@ jvm_library(
         "//platform/forms_rt:java-guiForms-rt",
         "//platform/xdebugger-impl/shared",
         "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fir_provided",
     ],
 )
 
@@ -143,7 +148,8 @@ jvm_library(
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
-        "@lib//:kotlinc-kotlin-compiler-fir-provided",
+        "//libraries/kotlinc/kotlin-compiler-fir:libraries-kotlinc-kotlin-compiler-fir",
+        "//libraries/kotlinc/kotlin-compiler-fir:libraries-kotlinc-kotlin-compiler-fir_test_lib",
         "//plugins/kotlin/completion/impl-k2:kotlin-completion-impl_test_lib",
         "//android/android-material:android-material_test_lib",
         "//android/artwork:artwork_test_lib",
