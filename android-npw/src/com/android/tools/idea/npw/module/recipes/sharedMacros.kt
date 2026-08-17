@@ -72,7 +72,7 @@ fun generateManifest(
   """
 }
 
-fun proguardConfig(useLegacyMinifyEnabled: Boolean, isDeclarative: Boolean) =
+fun proguardConfig(useLegacyMinifyEnabled: Boolean, isDeclarative: Boolean, enableGradualR8: Boolean) =
   if (useLegacyMinifyEnabled) {
     """
     buildTypes {
@@ -84,15 +84,28 @@ fun proguardConfig(useLegacyMinifyEnabled: Boolean, isDeclarative: Boolean) =
     """
   } else {
     val blockName = if (isDeclarative) """buildType("release")""" else "release"
-    """
-    buildTypes {
-        $blockName {
-            optimization {
-                enable false
-            }
-        }
+    if (enableGradualR8) {
+      """
+      buildTypes {
+          $blockName {
+              optimization {
+                  enable true
+                  packageScope = ["androidx.**", "kotlin.**", "kotlinx.**"]
+              }
+          }
+      }
+      """
+    } else {
+      """
+      buildTypes {
+          $blockName {
+              optimization {
+                  enable false
+              }
+          }
+      }
+      """
     }
-    """
   }
 
 fun minSdk(androidVersion: AndroidMajorVersion, agpVersion: AgpVersion): String =
@@ -149,9 +162,10 @@ fun androidConfig(
     }
 
   val useLegacyProguardApi = agpVersion < AgpVersion.parse("9.0.0")
+  val enableGradualR8 = agpVersion >= AgpVersion.parse("9.4.0")
   val proguardConsumerBlock =
     renderIf(canUseProguard && isLibraryProject && useLegacyProguardApi) { "consumerProguardFiles \"consumer-rules.pro\"" }
-  val proguardConfigBlock = renderIf(canUseProguard && !isLibraryProject) { proguardConfig(useLegacyProguardApi, isDcl) }
+  val proguardConfigBlock = renderIf(canUseProguard && !isLibraryProject) { proguardConfig(useLegacyProguardApi, isDcl, enableGradualR8) }
   val lintOptionsBlock =
     renderIf(addLintOptions) {
       """

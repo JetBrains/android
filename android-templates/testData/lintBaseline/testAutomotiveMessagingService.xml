@@ -9,7 +9,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/in/MyMessagingService.java"
-            line="100"
+            line="125"
             column="9"/>
     </issue>
 
@@ -20,7 +20,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/in/MyMessagingService.java"
-            line="100"
+            line="125"
             column="9"/>
     </issue>
 
@@ -31,7 +31,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/in/MyMessagingService.java"
-            line="100"
+            line="125"
             column="9"/>
     </issue>
 
@@ -97,7 +97,7 @@
         errorLine2="          ~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/in/MyMessagingService.java"
-            line="106"
+            line="131"
             column="11"/>
     </issue>
 
@@ -108,11 +108,11 @@
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/in/MyMessagingService.java"
-            line="96"
+            line="120"
             column="18"/>
         <location
             file="src/main/java/template/test/in/MyMessagingService.java"
-            line="56"
+            line="55"
             column="43"
             message="This `BroadcastReceiver` intent is launched from a notification; this is discouraged except as notification actions"/>
     </issue>

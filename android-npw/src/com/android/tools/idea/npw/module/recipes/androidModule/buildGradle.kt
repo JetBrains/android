@@ -112,6 +112,13 @@ private fun String.toKtsFunction(funcName: String): String =
 
 private fun String.toKtsProperty(funcName: String): String = this.replace(Regex("$funcName\\s(?![={])"), "$funcName = ")
 
+private fun String.toKtsSetOf(funcName: String): String =
+  if (this.contains("$funcName = [")) {
+    this.replace("[", "setOf(").replace("]", ")")
+  } else {
+    this
+  }
+
 internal fun String.gradleToKtsOrDcl(apply: Boolean): String =
   if (apply) {
     split("\n").joinToString("\n") {
@@ -134,6 +141,7 @@ internal fun String.gradleToKtsOrDcl(apply: Boolean): String =
         .toKtsProperty("testInstrumentationRunner")
         .toKtsProperty("minifyEnabled")
         .toKtsProperty("enable")
+        .toKtsSetOf("packageScope")
         .toKtsFunction("proguardFiles")
         .toKtsFunction("consumerProguardFiles")
         .toKtsFunction("implementation") // For dynamic app: implementation project(":app") -> implementation(project(":app"))

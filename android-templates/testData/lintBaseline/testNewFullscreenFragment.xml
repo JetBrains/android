@@ -31,7 +31,7 @@
         errorLine2="                       ~~~~~~~">
         <location
             file="src/main/java/template/test/in/FullscreenFragment.java"
-            line="101"
+            line="95"
             column="24"/>
     </issue>
 
@@ -42,7 +42,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/in/FullscreenFragment.java"
-            line="141"
+            line="137"
             column="9"/>
     </issue>
 

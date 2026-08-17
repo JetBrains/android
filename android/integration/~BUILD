@@ -1,5 +1,4 @@
-load("@rules_java//java:defs.bzl", "java_library")
-load("//tools/adt/idea/android/integration:build_defs.bzl", "AGP_ARTIFACTS_FOR_TESTS", "INTEGRATION_TEST_BUILD_TOOLS", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "AGP_9_4_ARTIFACTS_FOR_TESTS", "AGP_ARTIFACTS_FOR_TESTS", "INTEGRATION_TEST_BUILD_TOOLS", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/adt/idea/emulator-snapshots:emulator_test_env.bzl", "emulator_snapshot_data", "emulator_snapshot_jvm_flags", "emulator_test_jvm_flags")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test", "studio_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -535,7 +534,7 @@ create_project_test_data = [
     ":createproject_deps",
     INTEGRATION_TEST_BUILD_TOOLS,
     "//prebuilts/studio/sdk:platforms/android-36",
-    "//tools/base/build-system:gradle-distrib-9.1.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
+    "//tools/base/build-system:gradle-distrib-9.6.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
 
 studio_test(
@@ -604,6 +603,7 @@ maven_repository(
         "@maven//:androidx.core.core-ktx_1.16.0",  # Compose BOM 2026.02.01
         "@maven//:androidx.databinding.viewbinding_7.4.1",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.9.2",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.9.4",  # Compose BOM 2026.02.01
         "@maven//:androidx.lifecycle.lifecycle-livedata_2.9.2",  # Compose BOM 2026.02.01
         "@maven//:androidx.lifecycle.lifecycle-livedata_2.9.4",  # Compose BOM 2026.02.01
@@ -631,6 +631,7 @@ maven_repository(
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
         "@maven//:junit.junit_4.13.2",
+        "@maven//:org.gradle.toolchains.foojay-resolver-convention.org.gradle.toolchains.foojay-resolver-convention.gradle.plugin_1.0.0",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.jvm.org.jetbrains.kotlin.jvm.gradle.plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kapt.org.jetbrains.kotlin.kapt.gradle.plugin_1.8.10",
@@ -646,8 +647,11 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_2.0.21",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_2.1.20",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_2.2.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_2.3.21",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.8.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib_2.2.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
@@ -657,7 +661,7 @@ maven_repository(
         "@maven//:org.junit.junit-bom_5.11.0-M2",
         "@maven//:org.junit.junit-bom_5.9.2",
         "@maven//:org.junit.junit-bom_5.9.3",
-    ] + AGP_ARTIFACTS_FOR_TESTS + KOTLIN_ARTIFACTS_FOR_TESTS,
+    ] + AGP_ARTIFACTS_FOR_TESTS + KOTLIN_ARTIFACTS_FOR_TESTS + AGP_9_4_ARTIFACTS_FOR_TESTS,
 )
 
 maven_repository(

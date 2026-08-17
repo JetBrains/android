@@ -47,3 +47,10 @@ AGP_ARTIFACTS_FOR_TESTS = [
     "@maven//:com.android.tools.build.aapt2_9.0.0-14304508",
     "@maven//:com.android.tools.build.gradle_9.0.0",
 ]
+
+AGP_9_4_ARTIFACTS_FOR_TESTS = [
+    "@maven//:com.android.application.com.android.application.gradle.plugin_9.4.0",
+    "@maven//:com.android.library.com.android.library.gradle.plugin_9.4.0",
+    "@maven//:com.android.tools.build.aapt2_9.4.0-15978811",
+    "@maven//:com.android.tools.build.gradle_9.4.0",
+]
