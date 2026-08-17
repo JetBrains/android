@@ -29,6 +29,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import java.awt.event.HierarchyEvent
 import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -92,7 +93,9 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
     val editor =
       withContext(Dispatchers.EDT) {
-        (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>)
+        (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>).also {
+          Disposer.register(projectRule.testRootDisposable, it)
+        }
       }
     withContext(Dispatchers.EDT) { fixture.openFileInEditor(file.virtualFile) }
     editor.selectNotify()
@@ -126,6 +129,41 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     // Now, if we open the file in the editor and call selectNotify, the activation should happen
     withContext(Dispatchers.EDT) { fixture.openFileInEditor(file.virtualFile) }
     editor.selectNotify()
+
+    assertTrue(editor.hasBeenActivatedForTest())
+  }
+
+  @Test
+  // Regression test for b/545671285
+  fun testEditorActivatesWhenComponentHierarchyBecomesShowing() = runBlocking {
+    val file = fixture.addFileToProject("src/Preview.kt", "")
+    val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
+    val editor =
+      withContext(Dispatchers.EDT) {
+        (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>).also {
+          Disposer.register(projectRule.testRootDisposable, it)
+        }
+      }
+    // Simulate startup where selectNotify is called before FileEditorManager.selectedFiles is populated
+    editor.selectNotify()
+    assertFalse(editor.hasBeenActivatedForTest())
+
+    // When startup completes, the file is selected in FileEditorManager and the component becomes showing
+    withContext(Dispatchers.EDT) {
+      fixture.openFileInEditor(file.virtualFile)
+      editor.isComponentShowingForTesting = true
+      val event =
+        HierarchyEvent(
+          editor.component,
+          HierarchyEvent.HIERARCHY_CHANGED,
+          editor.component,
+          editor.component,
+          HierarchyEvent.SHOWING_CHANGED.toLong(),
+        )
+      for (listener in editor.component.hierarchyListeners) {
+        listener.hierarchyChanged(event)
+      }
+    }
 
     assertTrue(editor.hasBeenActivatedForTest())
   }

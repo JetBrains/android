@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+import java.awt.event.HierarchyEvent
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -103,6 +104,8 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   /** Action that replaces the default "Show Preview" action with one that registers when the user has clicked it explicitly. */
   private var _showPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.showPreviewAction)
 
+  @TestOnly internal var isComponentShowingForTesting = false
+
   init {
     putUserData(FileEditorManagerKeys.DUMB_AWARE, true)
     isPureTextEditor = preview.representationNames.isEmpty()
@@ -124,6 +127,19 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
         }
       }
     )
+    // HierarchyListener ensures that when the editor component becomes visible in the Swing hierarchy
+    // (e.g. on project startup when the active tab is restored, or when switching to a background tab),
+    // we initialize and activate the editor.
+    // This is necessary because during project startup restoration, selectNotify() may be called before
+    // FileEditorManager has populated its selectedFiles list (causing selectNotify to return early to prevent
+    // eager initialization of background tabs, b/487042085). IntelliJ selects the active tab silently on
+    // startup without re-invoking selectNotify(), which would otherwise leave the editor uninitialized and
+    // cause the Code/Split/Design tabs to never appear (b/545671285).
+    component.addHierarchyListener { event ->
+      if ((event.changeFlags and HierarchyEvent.SHOWING_CHANGED.toLong()) != 0L && (component.isShowing || isComponentShowingForTesting)) {
+        onEditorSelected()
+      }
+    }
   }
 
   /**
@@ -166,10 +182,12 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     super.navigateTo(navigatable)
   }
 
-  final override fun selectNotify() {
-    super.selectNotify()
-    // selectNotify can be triggered for tabs that are not selected when opening a project. We only want to activate the preview once
-    // the tab has been selected to avoid initializing files/tabs too eagerly.
+  private fun onEditorSelected() {
+    // We only want to activate the preview once the file has been selected in FileEditorManager to avoid initializing
+    // files/tabs too eagerly (b/487042085).
+    // Note: During project startup restoration, selectNotify may be called before FileEditorManager has populated selectedFiles,
+    // in which case this check returns early. The hierarchy listener on [component] will invoke onEditorSelected again once the
+    // active tab becomes visible and selected in FileEditorManager (b/545671285).
     if (file !in FileEditorManager.getInstance(project).selectedFiles) return
 
     if (firstActivation) {
@@ -197,6 +215,11 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
       // The editor has been selected, but only activate if it's visible.
       if (preview.component.isShowing) activate()
     }
+  }
+
+  final override fun selectNotify() {
+    super.selectNotify()
+    onEditorSelected()
   }
 
   final override fun deselectNotify() {
