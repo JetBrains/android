@@ -416,6 +416,14 @@
       "path": "ActionManager"
     },
     {
+      "hit": "Migrate Layout XML to Jetpack Compose using AI.",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Migrate to Compose",
+      "path": "ActionManager"
+    },
+    {
       "hit": "Move or Accept Next Edit Prediction",
       "path": "ActionManager"
     },
