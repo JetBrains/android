@@ -76,6 +76,7 @@ android-studio/bin/profiler.bat
 android-studio/bin/profiler.exe
 android-studio/bin/restarter.exe
 android-studio/bin/studio.bat
+android-studio/bin/studio.exe
 android-studio/bin/studio.ico
 android-studio/bin/studio.svg
 android-studio/bin/studio64.exe
