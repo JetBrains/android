@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.execution.common.stats.RunStats
@@ -154,6 +155,8 @@ open class ComposePreviewRunConfiguration(
   override fun getConfigurationEditor() = ComposePreviewSettingsEditor(project, this)
 
   /** Returns whether [composableMethodFqn] points to a `@Composable` function annotated with `@Preview`. */
+  @AnyThread
+  @Suppress("WrongThread") // This method explicitly handles the thread and handles calls from EDT or Background
   private fun isValidComposableSet(): Boolean {
     if (ApplicationManager.getApplication().isDispatchThread) {
       // When executing a configuration, ExecutionManagerImpl#executeConfiguration is called. This
