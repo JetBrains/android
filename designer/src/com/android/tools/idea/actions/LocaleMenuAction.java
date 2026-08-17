@@ -83,13 +83,6 @@ public class LocaleMenuAction extends DropDownAction {
       locales.sort(Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
         title = Locale.getLocaleLabel(locale, false);
-
-        VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
-        if (better != null) {
-          VirtualFile file = ConfigurationFileUtil.getVirtualFile(configuration);
-          title = ConfigurationAction.getBetterMatchLabel(Locale.getLocaleLabel(locale, true), better, file);
-        }
-
         add(new SetLocaleAction(title, locale, currentLocalLabel.equals(title)));
       }
 
@@ -210,8 +203,6 @@ public class LocaleMenuAction extends DropDownAction {
     private final boolean myIsCurrentLocale;
 
     public SetLocaleAction(String title, @NotNull Locale locale, boolean isCurrentLocale) {
-      // TODO: Rather than passing in the title, update the code to implement update() instead; that
-      // way we can lazily compute the label as part of the list rendering
       super(title, null);
       myLocale = locale;
       myIsCurrentLocale = isCurrentLocale;
@@ -221,6 +212,32 @@ public class LocaleMenuAction extends DropDownAction {
     public void update(@NotNull AnActionEvent event) {
       Presentation presentation = event.getPresentation();
       Toggleable.setSelected(presentation, myIsCurrentLocale);
+
+      // Default ("Any") locale doesn't need to search for locale-specific file variations.
+      if (myLocale == Locale.ANY) {
+        return;
+      }
+
+      VirtualFile better = null;
+      VirtualFile file = null;
+      Collection<Configuration> configurations = event.getData(CONFIGURATIONS);
+      if (configurations != null) {
+        Configuration configuration = Iterables.getFirst(configurations, null);
+        if (configuration != null) {
+          file = ConfigurationFileUtil.getVirtualFile(configuration);
+          if (file != null && !IdeResourcesUtil.getResourceVariations(file, false).isEmpty()) {
+            better = ConfigurationMatcher.getBetterMatch(configuration, null, null, myLocale, null);
+          }
+        }
+      }
+
+      if (better != null) {
+        String title = ConfigurationAction.getBetterMatchLabel(Locale.getLocaleLabel(myLocale, true), better, file);
+        presentation.setText(title);
+      }
+      else {
+        presentation.setText(Locale.getLocaleLabel(myLocale, false));
+      }
     }
 
     @Override
