@@ -44,7 +44,6 @@ internal fun extractPattern(line: String, pattern: Regex): String? {
 }
 
 /** Adapts an [IShellOutputReceiver] to a [DeployerIShellOutputReceiver]. */
-// TODO studio-merge
 internal fun IShellOutputReceiver.asDeployerReceiver(): DeployerIShellOutputReceiver =
   object : DeployerIShellOutputReceiver {
     override fun addOutput(data: ByteArray, offset: Int, length: Int) = this@asDeployerReceiver.addOutput(data, offset, length)
@@ -55,7 +54,6 @@ internal fun IShellOutputReceiver.asDeployerReceiver(): DeployerIShellOutputRece
   }
 
 /** Adapts a [DeployerIShellOutputReceiver] to an [IShellOutputReceiver]. */
-// TODO studio-merge
 internal fun DeployerIShellOutputReceiver.asIShellOutputReceiver(): IShellOutputReceiver =
   object : IShellOutputReceiver {
     override fun addOutput(data: ByteArray, offset: Int, length: Int) = this@asIShellOutputReceiver.addOutput(data, offset, length)

@@ -85,7 +85,6 @@ class AndroidWatchFaceConfigurationExecutor(
     val deviceHolder = DeviceHolder(device, connectedDevice, AdbLibService.getSession(environment.project))
     try {
       getActivator(app)
-        // TODO studio-merge
         .activate(
           watchFaceLaunchOptions.componentType,
           watchFaceLaunchOptions.componentName!!,
@@ -114,7 +113,6 @@ class WatchFaceLaunchOptions : WearSurfaceLaunchOptions {
 
 internal fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiverV1()
-  // TODO studio-merge
   device.executeShellCommand(UNSET_WATCH_FACE, console, receiver.asIShellOutputReceiver(), indicator = null)
   if (receiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
     console.printlnError("Warning: Watch face was not stopped.")

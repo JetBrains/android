@@ -87,7 +87,6 @@ class AndroidTileConfigurationExecutor(
     val tileIndex = setWatchTile(app, mode, indicator, console, device, connectedDevice)
     val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
     val showTileReceiver = CommandResultReceiverV1()
-    // TODO studio-merge
     device.executeShellCommand(showTileCommand, console, showTileReceiver.asIShellOutputReceiver(), indicator = indicator)
     verifyResponse(showTileReceiver, console)
   }
@@ -106,7 +105,6 @@ class AndroidTileConfigurationExecutor(
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
       val deviceHolder = DeviceHolder(device, connectedDevice, AdbLibService.getSession(environment.project))
-      // TODO studio-merge
       getActivator(app)
         .activate(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver.asDeployerReceiver(), deviceHolder)
     } catch (ex: DeployerException) {
@@ -132,8 +130,9 @@ private class AddTileCommandResultReceiver(private val isCancelledCheck: () -> B
 
   override fun isCancelled(): Boolean = isCancelledCheck()
 
-  override fun processNewLines(lines: Array<String>) =
-    lines.forEach { line -> extractPattern(line, indexPattern)?.let { index = it.toInt() } }
+  override fun processNewLines(lines: Array<String>) = lines.forEach { line ->
+    extractPattern(line, indexPattern)?.let { index = it.toInt() }
+  }
 }
 
 class TileLaunchOptions : WearSurfaceLaunchOptions {
@@ -152,7 +151,6 @@ class TileLaunchOptions : WearSurfaceLaunchOptions {
 private fun getStopTileCallback(tileName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiverV1()
   val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
-  // TODO studio-merge
   device.executeShellCommand(removeTileCommand, console, receiver.asIShellOutputReceiver(), indicator = null)
   if (receiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
     console.printlnError("Warning: Tile was not stopped.")

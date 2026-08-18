@@ -108,7 +108,6 @@ class AndroidWearWidgetConfigurationExecutor(
     val widgetIndex = setWearWidget(app, mode, indicator, console, device, connectedDevice)
     val showWidgetCommand = SHOW_WEAR_WIDGET_COMMAND + widgetIndex
     val showWidgetReceiver = CommandResultReceiverV1()
-    // TODO studio-merge
     device.executeShellCommand(showWidgetCommand, console, showWidgetReceiver.asIShellOutputReceiver(), indicator = indicator)
     verifyResponse(showWidgetReceiver, console)
   }
@@ -128,7 +127,6 @@ class AndroidWearWidgetConfigurationExecutor(
     val deviceHolder = DeviceHolder(device, connectedDevice, AdbLibService.getSession(environment.project))
     try {
       getActivator(app)
-        // TODO studio-merge
         .activate(
           wearWidgetLaunchOptions.componentType,
           wearWidgetLaunchOptions.componentName!!,
@@ -159,8 +157,9 @@ private class AddWidgetCommandResultReceiver(private val isCancelledCheck: () ->
 
   override fun isCancelled(): Boolean = isCancelledCheck()
 
-  override fun processNewLines(lines: Array<String>) =
-    lines.forEach { line -> extractPattern(line, indexPattern)?.let { index = it.toInt() } }
+  override fun processNewLines(lines: Array<String>) = lines.forEach { line ->
+    extractPattern(line, indexPattern)?.let { index = it.toInt() }
+  }
 }
 
 class WearWidgetLaunchOptions : WearSurfaceLaunchOptions {
@@ -179,7 +178,6 @@ class WearWidgetLaunchOptions : WearSurfaceLaunchOptions {
 private fun getStopWidgetCallback(widgetName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiverV1()
   val removeWidgetCommand = UNSET_WEAR_WIDGET + widgetName
-  // TODO studio-merge
   device.executeShellCommand(removeWidgetCommand, console, receiver.asIShellOutputReceiver(), indicator = null)
   if (receiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
     console.printlnError("Warning: Widget was not stopped.")

@@ -67,7 +67,6 @@ abstract class AndroidWearConfigurationExecutor(
     device.executeShellCommand(
       WatchFace.ShellCommand.SHOW_WATCH_FACE,
       console,
-      // TODO studio-merge
       resultReceiver.asIShellOutputReceiver(),
       indicator = indicator,
     )
