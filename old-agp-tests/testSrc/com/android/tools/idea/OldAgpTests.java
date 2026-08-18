@@ -17,11 +17,6 @@ package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.junit4.OldAgpSuite;
-import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_33Test;
-import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_35Test;
-import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_40Test;
-import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_41Test;
-import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_42Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_70Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_71Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_72Test;
@@ -57,11 +52,6 @@ import org.junit.runner.RunWith;
 @JarTestSuiteRunner.ExcludeClasses({
   OldAgpTests.class,
   IdeModelTestSuite.class,
-  SyncProject_AGP_33Test.class,
-  SyncProject_AGP_35Test.class,
-  SyncProject_AGP_40Test.class,
-  SyncProject_AGP_41Test.class,
-  SyncProject_AGP_42Test.class,
   SyncProject_AGP_70Test.class,
   SyncProject_AGP_71Test.class,
   SyncProject_AGP_72_V1Test.class,

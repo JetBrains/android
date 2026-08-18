@@ -26,12 +26,6 @@ COMMON_MAVEN_DEPS = [
     "//tools/base/third_party/kotlin:kotlin-m2repository",
 ]
 
-AGP_3_1_4 = "3.1.4"
-AGP_3_3_2 = "3.3.2"
-AGP_3_5 = "3.5.0"
-AGP_4_0 = "4.0.0"
-AGP_4_1 = "4.1.0"
-AGP_4_2 = "4.2.2"
 AGP_7_0 = "7.0.0"
 AGP_7_1 = "7.1.0"
 AGP_7_2 = "7.2.0"
@@ -53,12 +47,6 @@ AGP_8_12 = "8.12.0"
 AGP_8_13 = "8.13.0"
 
 AGP_MAVEN_REPOS = {
-    AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],
-    AGP_3_3_2: ["//tools/base/build-system/previous-versions:3.3.2"],
-    AGP_3_5: ["//tools/base/build-system/previous-versions:3.5.0"],
-    AGP_4_0: ["//tools/base/build-system/previous-versions:4.0.0"],
-    AGP_4_1: ["//tools/base/build-system/previous-versions:4.1.0"],
-    AGP_4_2: ["//tools/base/build-system/previous-versions:4.2.2"],
     AGP_7_0: ["//tools/base/build-system/previous-versions:7.0.0"],
     AGP_7_1: ["//tools/base/build-system/previous-versions:7.1.0"],
     AGP_7_2: ["//tools/base/build-system/previous-versions:7.2.0"],
@@ -81,31 +69,6 @@ AGP_MAVEN_REPOS = {
 }
 
 AGP_DATA = {
-    AGP_3_1_4: [
-        "//prebuilts/studio/sdk:build-tools/27.0.3",
-        "//prebuilts/studio/sdk:platforms/android-32",
-    ],
-    AGP_3_3_2: [
-        "//prebuilts/studio/sdk:build-tools/28.0.3",
-        "//prebuilts/studio/sdk:platforms/android-32",
-    ],
-    AGP_3_5: [
-        "//prebuilts/studio/sdk:build-tools/28.0.3",
-        "//prebuilts/studio/sdk:platforms/android-28",
-        "//prebuilts/studio/sdk:platforms/android-32",
-    ],
-    AGP_4_0: [
-        "//prebuilts/studio/sdk:build-tools/29.0.2",
-        "//prebuilts/studio/sdk:platforms/android-32",
-    ],
-    AGP_4_1: [
-        "//prebuilts/studio/sdk:build-tools/29.0.2",
-        "//prebuilts/studio/sdk:platforms/android-32",
-    ],
-    AGP_4_2: [
-        "//prebuilts/studio/sdk:build-tools/30.0.2",
-        "//prebuilts/studio/sdk:platforms/android-32",
-    ],
     AGP_7_0: [
         "//prebuilts/studio/sdk:build-tools/30.0.2",
         "//prebuilts/studio/sdk:platforms/android-32",
@@ -199,11 +162,9 @@ GRADLE_7_4 = "7.4"
 GRADLE_7_3_3 = "7.3.3"
 GRADLE_7_2 = "7.2"
 GRADLE_7_0_2 = "7.0.2"
+
+# Used in //tools/adt/idea/apkanalyzer/gradle/integration-tests
 GRADLE_6_7_1 = "6.7.1"
-GRADLE_6_5 = "6.5"
-GRADLE_6_1_1 = "6.1.1"
-GRADLE_5_5 = "5.5"
-GRADLE_5_3_1 = "5.3.1"
 
 GRADLE_DISTRIBUTIONS = {
     GRADLE_LATEST: ["//tools/base/build-system:gradle-distrib"],
@@ -221,11 +182,6 @@ GRADLE_DISTRIBUTIONS = {
     GRADLE_7_3_3: ["//tools/base/build-system:gradle-distrib-7.3.3"],
     GRADLE_7_2: ["//tools/base/build-system:gradle-distrib-7.2"],
     GRADLE_7_0_2: ["//tools/base/build-system:gradle-distrib-7.0.2"],
-    GRADLE_6_7_1: ["//tools/base/build-system:gradle-distrib-6.7.1"],
-    GRADLE_6_5: ["//tools/base/build-system:gradle-distrib-6.5"],
-    GRADLE_6_1_1: ["//tools/base/build-system:gradle-distrib-6.1.1"],
-    GRADLE_5_5: ["//tools/base/build-system:gradle-distrib-5.5"],
-    GRADLE_5_3_1: ["//tools/base/build-system:gradle-distrib-5.3.1"],
 }
 
 def _local_old_agp_test_update_kwargs(
@@ -234,8 +190,6 @@ def _local_old_agp_test_update_kwargs(
         additional_jdks = [],
         **kwargs):
     jdk_data = []
-    if "1.8" in additional_jdks:
-        jdk_data.append("//prebuilts/studio/jdk/jdk8:jdk_runtime_files")
     if "11" in additional_jdks:
         jdk_data.append("//prebuilts/studio/jdk/jdk11:jdk_runtime_files")
     if "17" in additional_jdks:

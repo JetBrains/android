@@ -21,11 +21,6 @@ import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectTest
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
@@ -75,16 +70,6 @@ class SyncedProjectsAllAgpTest(agpVersion: AgpVersionSoftwareEnvironmentDescript
 
 // Convenience test classes to run tests in the IDE. These classes are explicitly excluded from running in bazel in [OldAgpTests] since
 // it relies on [SyncedProjectsAllAgpTest] to run tests in the requested environment.
-
-class SyncProject_AGP_33Test : SyncedProjectTest(agpVersion = AGP_33)
-
-class SyncProject_AGP_35Test : SyncedProjectTest(agpVersion = AGP_35)
-
-class SyncProject_AGP_40Test : SyncedProjectTest(agpVersion = AGP_40)
-
-class SyncProject_AGP_41Test : SyncedProjectTest(agpVersion = AGP_41)
-
-class SyncProject_AGP_42Test : SyncedProjectTest(agpVersion = AGP_42)
 
 class SyncProject_AGP_70Test : SyncedProjectTest(agpVersion = AGP_70)
 
