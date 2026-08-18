@@ -21,6 +21,7 @@ import com.intellij.ide.setToolTipText
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import java.awt.Color
@@ -74,17 +75,31 @@ internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable:
 
     for (indicator in LedIndicator.entries) {
       val y = (1 - indicator.ordinal) * (size + spacing)
-      val color = ledStates[indicator.facing]
+      val ledColor = ledStates[indicator.facing]?.rgb ?: 0
 
-      if (color != null) {
-        g.color = color
-        g.fillOval(x, y, size, size)
-      }
       g.color = JBColor.border()
-      g.drawOval(x, y, size, size)
+      g.fillOval(x, y, size, size)
+      @Suppress("UseJBColor")
+      g.color = Color(combineWithBackground(ledColor, INDICATOR_BACKGROUND_COLOR.rgb))
+      g.fillOval(
+        x + INDICATOR_BORDER_WIDTH,
+        y + INDICATOR_BORDER_WIDTH,
+        size - INDICATOR_BORDER_WIDTH * 2,
+        size - INDICATOR_BORDER_WIDTH * 2,
+      )
     }
     g.dispose()
   }
+
+  private fun combineWithBackground(foreground: Int, background: Int): Int {
+    var result = 0
+    for (offset in 0..16 step 8) {
+      result += (255 - (255 - getChannel(foreground, offset)) * (255 - getChannel(background, offset)) / 255) shl offset
+    }
+    return result
+  }
+
+  private fun getChannel(rgb: Int, offset: Int): Int = (rgb shr offset) and 0xFF
 
   override fun getToolTipText(event: MouseEvent): String? {
     val size = JBUIScale.scale(INDICATOR_SIZE)
@@ -104,8 +119,10 @@ internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable:
   }
 
   companion object {
-    @VisibleForTesting const val INDICATOR_SIZE = 10
+    @VisibleForTesting const val INDICATOR_SIZE = 12
+    @VisibleForTesting const val INDICATOR_BORDER_WIDTH = 3
     @VisibleForTesting const val INDICATOR_SPACING = 12
+    private val INDICATOR_BACKGROUND_COLOR = JBColor(Gray._128, Gray._64)
   }
 
   private enum class LedIndicator(val facing: LedIndicatorMessage.Facing, val displayName: String) {

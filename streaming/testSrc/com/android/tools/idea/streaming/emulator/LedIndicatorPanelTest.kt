@@ -25,6 +25,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.Gray
 import com.intellij.ui.scale.JBUIScale
 import java.awt.Color
 import java.awt.Dimension
@@ -68,27 +69,35 @@ class LedIndicatorPanelTest {
 
   @Test
   fun testLedIndicatorTooltipsAndStateChanges() {
-    val defaultBackground = Color(ui.render(ledPanel).getRGB(0, 0), true)
+    val offColor = Gray._128
+    val redColor = Color(255, 128, 128)
+    val greenColor = Color(128, 255, 128)
+    val blueColor = Color(128, 128, 255)
 
     // Both LEDs should be OFF initially.
     assertThat(getTooltipText(4)).isEqualTo("Outside LED")
     assertThat(getTooltipText(24)).isEqualTo("Inside LED")
-    assertThat(getLedColors()).containsExactly(defaultBackground, defaultBackground).inOrder()
+    assertThat(getLedColors()).containsExactly(offColor, offColor).inOrder()
 
-    // Turn LED 0 on.
+    // Make LED 0 red.
     glasses.setLedState(LedIndicator.Facing.INSIDE, Color.RED)
-    waitForCondition(2.seconds) { getLedColors()[1] == Color.RED }
-    assertThat(getLedColors()).containsExactly(defaultBackground, Color.RED).inOrder()
+    waitForCondition(2.seconds) { getLedColors()[1] == redColor }
+    assertThat(getLedColors()).containsExactly(offColor, redColor).inOrder()
 
-    // Turn LED 1 on
+    // Make LED 1 green
     glasses.setLedState(LedIndicator.Facing.OUTSIDE, Color.GREEN)
-    waitForCondition(2.seconds) { getLedColors()[0] == Color.GREEN }
-    assertThat(getLedColors()).containsExactly(Color.GREEN, Color.RED).inOrder()
+    waitForCondition(2.seconds) { getLedColors()[0] == greenColor }
+    assertThat(getLedColors()).containsExactly(greenColor, redColor).inOrder()
+
+    // Make LED 1 blue
+    glasses.setLedState(LedIndicator.Facing.OUTSIDE, Color.BLUE)
+    waitForCondition(2.seconds) { getLedColors()[0] == blueColor }
+    assertThat(getLedColors()).containsExactly(blueColor, redColor).inOrder()
 
     // Turn LED 0 off
     glasses.setLedState(LedIndicator.Facing.INSIDE, null)
-    waitForCondition(2.seconds) { getLedColors()[1] == defaultBackground }
-    assertThat(getLedColors()).containsExactly(Color.GREEN, defaultBackground).inOrder()
+    waitForCondition(2.seconds) { getLedColors()[1] == offColor }
+    assertThat(getLedColors()).containsExactly(blueColor, offColor).inOrder()
   }
 
   private fun getTooltipText(y: Int): String? {
