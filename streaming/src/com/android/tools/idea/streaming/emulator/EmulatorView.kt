@@ -258,6 +258,8 @@ internal class EmulatorView(
   private var notificationCollectionJob: Job? = null
   private var environmentCollectionJob: Job? = null
 
+  private val alarm = Alarm(this)
+
   private val sourceFrameListeners = DisposableWrapperList<SourceFrameListener>()
   private val currentPosture: PostureValue?
     get() = notificationReceiver.currentPosture.value?.posture
@@ -746,7 +748,6 @@ internal class EmulatorView(
   }
 
   private fun cancelScreenshotFeed() {
-    screenshotReceiver?.let { Disposer.dispose(it) }
     screenshotReceiver = null
     screenshotFeed?.cancel()
     screenshotFeed = null
@@ -1255,13 +1256,12 @@ internal class EmulatorView(
     }
   }
 
-  private inner class ScreenshotReceiver(val maxImageSize: Dimension, val orientationQuadrants: Int) :
-    EmptyStreamObserver<ImageMessage>(), Disposable {
+  private inner class ScreenshotReceiver(val maxImageSize: Dimension, val orientationQuadrants: Int) : EmptyStreamObserver<ImageMessage>() {
+
     private val screenshotForProcessing = AtomicReference<Screenshot?>()
     private val screenshotForDisplay = AtomicReference<Screenshot?>()
     private val skinLayoutCache = SkinLayoutCache(emulator)
     private val recycledImage = AtomicReference<SofterReference<BufferedImage>?>()
-    private val alarm = Alarm(this)
     private var expectedFrameNumber = -1
 
     override fun onNext(message: ImageMessage) {
@@ -1466,8 +1466,6 @@ internal class EmulatorView(
         firePropertyChange(DISPLAY_MODE_PROPERTY, lastDisplayMode, screenshot.displayShape.displayMode)
       }
     }
-
-    override fun dispose() {}
 
     override fun onError(t: Throwable) {
       if (screenshotReceiver == this && t is EmulatorController.RetryException) {
