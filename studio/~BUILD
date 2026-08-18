@@ -941,7 +941,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/v2/agent-runtime:aiplugin.v2.agent-runtime",
             "//tools/vendor/google/ml/aiplugin/v2/agent-sdk-api:aiplugin.v2.agent-sdk-api",
             "//tools/vendor/google/ml/aiplugin/v2/agent-ui:aiplugin.v2.agent-ui",
-            "//tools/vendor/google/ml/aiplugin/v2/agent-ui-container:aiplugin.v2.agent-ui-container",
+            "//tools/vendor/google/ml/aiplugin/v2/agent-ui-host:aiplugin.v2.agent-ui-host",
             "//tools/vendor/google/ml/aiplugin/v2/agent-ui-api:aiplugin.v2.agent-ui-api",
             "//tools/vendor/google/ml:aiplugin.v2.agent-uistate",
             "//tools/vendor/google/ml/aiplugin/v2/datamodel:aiplugin.v2.datamodel",
