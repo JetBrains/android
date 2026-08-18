@@ -20,6 +20,7 @@ iml_module(
     test_data = [
         "//prebuilts/tools:lldb",
         "//prebuilts/tools/common/trace-processor-daemon",
+        "//prebuilts/tools/common/traceconv",
         "//tools/adt/idea/profilers:test_data",
     ],
     # do not sort: must match IML order
@@ -97,6 +98,7 @@ kotlin_test(
     ],
     data = [
         "//prebuilts/tools/common/trace-processor-daemon",
+        "//prebuilts/tools/common/traceconv",
         "//tools/adt/idea/profilers:test_data",
     ],
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.jar"] + get_xbootclasspath_jvm_flags(),
@@ -139,6 +141,7 @@ kotlin_test(
     ],
     data = [
         "//prebuilts/tools/common/trace-processor-daemon",
+        "//prebuilts/tools/common/traceconv",
         "//tools/adt/idea/profilers:test_data",
     ],
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.captureDetails.jar"] + get_xbootclasspath_jvm_flags(),
