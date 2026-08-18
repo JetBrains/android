@@ -124,7 +124,7 @@ class ZoomableContainer(
     val availableHeight = viewport.height - verticalMargin
 
     if (availableWidth <= 0 || availableHeight <= 0) {
-      return ACTUAL_ZOOM_PERCENT
+      return MIN_ZOOM_PERCENT
     }
 
     val currentPreferredSize = contentPanel.preferredSize
@@ -134,7 +134,7 @@ class ZoomableContainer(
     val currentScaledHeight = currentPreferredSize.height - verticalMargin
 
     if (currentScaledWidth <= 0 || currentScaledHeight <= 0) {
-      return ACTUAL_ZOOM_PERCENT
+      return MIN_ZOOM_PERCENT
     }
 
     // Divide by current scale to get original unscaled dimensions

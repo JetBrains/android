@@ -215,7 +215,7 @@ class AppInspectionSnapshotSupportTest {
       // Start with focus on the editorComponent
       editorComponent.requestFocusInWindow()
       assertThat(focusManager.focusOwner).isEqualTo(editorComponent)
-      assertThat(settings.scalePercent).isEqualTo(100)
+      assertThat(settings.scalePercent).isEqualTo(10)
 
       // Wait until the properties table is displaying attributes
       waitForCondition(30.seconds) {
@@ -227,8 +227,8 @@ class AppInspectionSnapshotSupportTest {
       assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
 
       // Verify that the zoom controls shortcut keys are active from the action buttons
-      pressAndReleaseCtrlMinus()
-      assertThat(settings.scalePercent).isEqualTo(90)
+      pressAndReleaseCtrlPlus()
+      assertThat(settings.scalePercent).isEqualTo(20)
 
       // Move out of the component tree toolbar
       while (focusManager.focusOwner is ActionButton) {
@@ -242,11 +242,11 @@ class AppInspectionSnapshotSupportTest {
       // The keystrokes should cause expand all/collapse all in the component tree, so zoom is NOT performed.
       assertThat(tree.rowCount).isEqualTo(2)
       pressAndReleaseCtrlPlus()
-      assertThat(settings.scalePercent).isEqualTo(90)
+      assertThat(settings.scalePercent).isEqualTo(20)
       assertThat(tree.rowCount).isEqualTo(12)
       pressAndReleaseCtrlMinus()
       assertThat(tree.rowCount).isEqualTo(2)
-      assertThat(settings.scalePercent).isEqualTo(90)
+      assertThat(settings.scalePercent).isEqualTo(20)
 
       // Move out of the component tree
       ui.tab()
@@ -255,8 +255,8 @@ class AppInspectionSnapshotSupportTest {
       assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
 
       // Verify that the zoom controls shortcut keys are active from the zoom action buttons
-      pressAndReleaseCtrlPlus()
-      assertThat(settings.scalePercent).isEqualTo(100)
+      pressAndReleaseCtrlMinus()
+      assertThat(settings.scalePercent).isEqualTo(10)
 
       // Move out of the zoom buttons
       while (focusManager.focusOwner is ActionButton) {
@@ -267,8 +267,8 @@ class AppInspectionSnapshotSupportTest {
       assertThat(SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner)).isNotNull()
 
       // Verify that the zoom controls shortcut keys are active from the attributes table
-      pressAndReleaseCtrlMinus()
-      assertThat(settings.scalePercent).isEqualTo(90)
+      pressAndReleaseCtrlPlus()
+      assertThat(settings.scalePercent).isEqualTo(20)
 
       // Move out of the attributes table
       while (SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner) != null) {
