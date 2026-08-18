@@ -2961,6 +2961,7 @@
 +++Android Studio.app/Contents/plugins/android/resources/trace_agent.jar
 +++Android Studio.app/Contents/plugins/android/resources/trace_processor_daemon/trace_processor_daemon
 +++Android Studio.app/Contents/plugins/android/resources/trace_processor_server/trace-processor
++++Android Studio.app/Contents/plugins/android/resources/traceconv/traceconv
 +++Android Studio.app/Contents/plugins/android/resources/transport/arm64-v8a/transport
 +++Android Studio.app/Contents/plugins/android/resources/transport/armeabi-v7a/transport
 +++Android Studio.app/Contents/plugins/android/resources/transport/native/agent/arm64-v8a/libjvmtiagent.so
@@ -6997,6 +6998,7 @@
 ---Android Studio Preview.app/Contents/plugins/android/resources/trace_agent.jar
 ---Android Studio Preview.app/Contents/plugins/android/resources/trace_processor_daemon/trace_processor_daemon
 ---Android Studio Preview.app/Contents/plugins/android/resources/trace_processor_server/trace-processor
+---Android Studio Preview.app/Contents/plugins/android/resources/traceconv/traceconv
 ---Android Studio Preview.app/Contents/plugins/android/resources/transport/arm64-v8a/transport
 ---Android Studio Preview.app/Contents/plugins/android/resources/transport/armeabi-v7a/transport
 ---Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/arm64-v8a/libjvmtiagent.so

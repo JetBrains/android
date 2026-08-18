@@ -2240,6 +2240,7 @@ android-studio/plugins/android/resources/threading_agent.jar
 android-studio/plugins/android/resources/trace_agent.jar
 android-studio/plugins/android/resources/trace_processor_daemon/trace_processor_daemon.exe
 android-studio/plugins/android/resources/trace_processor_server/trace-processor.exe
+android-studio/plugins/android/resources/traceconv/traceconv.exe
 android-studio/plugins/android/resources/transport/arm64-v8a/transport
 android-studio/plugins/android/resources/transport/armeabi-v7a/transport
 android-studio/plugins/android/resources/transport/native/agent/arm64-v8a/libjvmtiagent.so
