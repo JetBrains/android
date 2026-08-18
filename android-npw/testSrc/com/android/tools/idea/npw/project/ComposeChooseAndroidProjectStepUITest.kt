@@ -150,6 +150,7 @@ class ComposeChooseAndroidProjectStepUITest {
 
   @Test
   fun showMobileFormFactorAsDefaultFocus() = runTest {
+    StudioFlags.IMPORT_PROJECT_ENABLED.override(false)
     val formFactorSupplier = Supplier<List<FormFactor>> { FormFactor.entries }
     val model = ChooseAndroidProjectStepModel(formFactorSupplier)
     model.getAndroidProjectEntries()
