@@ -74,10 +74,10 @@ class DrawableGridTest {
         },
       )
 
+    grid.selectedIndex = 0
+    Truth.assertThat(grid.selectedIndex).isEqualTo(0)
     grid.selectedIndex = 1
-    Truth.assertThat(grid.selectedIndex).isEqualTo(1)
-    grid.selectedIndex = 2
-    Truth.assertThat(grid.selectedIndex).isEqualTo(1)
+    Truth.assertThat(grid.selectedIndex).isEqualTo(0)
   }
 
   private val testColor = Color(0xFF, 0xAA, 0xBB, 0xFF)
@@ -109,25 +109,22 @@ class DrawableGridTest {
         },
       )
 
-    grid.cellRenderer.getListCellRendererComponent(grid, resourceValue, 1, false, false)
-
-    UIUtil.invokeAndWaitIfNeeded(
-      Runnable {
-        renderer.simulateRender(image)
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-      }
-    )
+    grid.cellRenderer.getListCellRendererComponent(grid, resourceValue, 0, false, false)
 
     renderer.waitForRender()
     Truth.assertWithMessage("Renderer was never called").that(renderer.hasRendered()).isTrue()
 
-    val component1 = grid.cellRenderer.getListCellRendererComponent(grid, resourceValue, 1, false, false) as JComponent
+    renderer.simulateRender(image)
+
+    UIUtil.invokeAndWaitIfNeeded(Runnable { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() })
+
+    val component1 = grid.cellRenderer.getListCellRendererComponent(grid, resourceValue, 0, false, false) as JComponent
     val list = UIUtil.findComponentsOfType(component1, JLabel::class.java)
 
     assertColor(list[0].icon, testColor.rgb)
     assertColor(list[0].disabledIcon, disabledNonNullColor)
 
-    val component2 = grid.cellRenderer.getListCellRendererComponent(grid, null, 2, false, false) as JComponent
+    val component2 = grid.cellRenderer.getListCellRendererComponent(grid, null, 1, false, false) as JComponent
     val list2 = UIUtil.findComponentsOfType(component2, JLabel::class.java)
     assertColor(list2[0].icon, enabledNullColor)
     assertColor(list2[0].disabledIcon, disabledNullColor)
@@ -155,12 +152,13 @@ class StubRenderer : DesignAssetRenderer {
 
   override fun isFileSupported(file: VirtualFile) = true
 
-  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension, context: Any?): CompletableFuture<out BufferedImage?> =
-    future
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension, context: Any?): CompletableFuture<out BufferedImage?> {
+    latch.countDown()
+    return future
+  }
 
   fun simulateRender(image: BufferedImage?) {
     future.complete(image)
-    latch.countDown()
   }
 
   fun waitForRender() {

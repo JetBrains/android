@@ -72,6 +72,13 @@ open class DrawableGrid(
     super.setSelectionInterval(anchor, lead)
   }
 
+  override fun setSelectedIndex(index: Int) {
+    if (index >= 0 && index < model.size && model.getElementAt(index) == null) {
+      return
+    }
+    super.setSelectedIndex(index)
+  }
+
   private fun setImageSize(drawableSize: Int) {
     fixedCellWidth = drawableSize + ITEM_BORDER_WIDTH * 2
     fixedCellHeight = fixedCellWidth
