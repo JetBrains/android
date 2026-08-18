@@ -52,6 +52,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalO
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState;
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
 import com.android.tools.profilers.transporteventutils.TransportListenerTracker;
@@ -484,6 +485,12 @@ CpuProfilerStage extends StreamingStage implements InterimStage {
               getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> {
                 if (captureFile.exists()) {
                   getStudioProfilers().getIdeServices().openTraceFile(captureFile);
+                  // When Task-Based UX is enabled and the trace opens in the Editor, it bypasses
+                  // the legacy CpuCaptureStage (where task completion is usually tracked).
+                  // Therefore, we must log trackTaskFinished here for live recordings.
+                  if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+                    myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED);
+                  }
                   if (isSystemTrace) {
                     getStudioProfilers().getIdeServices().closeTaskTab(ProfilerTaskType.SYSTEM_TRACE);
                   } else if (isArtTrace) {

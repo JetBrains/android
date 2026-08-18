@@ -568,10 +568,10 @@ public class CpuCaptureParser {
               myTaskTracker.trackProcessingTaskFailed(new TaskProcessingFailedMetadata(metadata));
             }
           }
-          else {
-            myServices.getFeatureTracker()
-              .trackImportTrace(createCpuImportTraceMetadata(type, isSuccess, metadata.getHasComposeTracingNodes()));
-          }
+          // Always track import trace regardless of whether Task-Based UX is enabled or not,
+          // because imported legacy traces still use this parser.
+          var importMetadata = createCpuImportTraceMetadata(type, isSuccess, metadata.getHasComposeTracingNodes());
+          myServices.getFeatureTracker().trackImportTrace(importMetadata);
         }
         myCaptureMetadataMap.remove(traceId);
       }

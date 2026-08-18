@@ -24,6 +24,10 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.analytics.TaskDataOrigin
+import com.android.tools.profilers.tasks.analytics.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskTracker
+import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata
 import java.io.File
 
 /** Helper class responsible for handling the opening of editor enabled tasks via the Unified Profiler. */
@@ -48,7 +52,24 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
 
     if (isCpuTrace) {
       val traceId = artifacts.firstNotNullOfOrNull { (it as? CpuCaptureSessionArtifact)?.artifactProto?.traceId } ?: return false
-      return openTrace(session, traceId, ProfilerCaptureFileUtils.getTraceFile(traceId))
+      val opened = openTrace(session, traceId, ProfilerCaptureFileUtils.getTraceFile(traceId))
+      if (opened) {
+        // Traces opened directly in the Editor bypass the legacy capture parsers where task metrics
+        // are normally fired. We fire trackTaskEntered and trackTaskFinished here to ensure parity.
+        val tracker = TaskTracker.createTaskTracker(profilers)
+        tracker.trackTaskEntered()
+        tracker.trackTaskFinished(TaskFinishedState.COMPLETED)
+
+        if (tracker.taskMetadata.taskDataOrigin == TaskDataOrigin.IMPORTED) {
+          val importMetadata =
+            CpuImportTraceMetadata.newBuilder()
+              .setTechnology(technologyForProfilerTaskType(currentTaskType))
+              .setImportStatus(CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS)
+              .build()
+          profilers.ideServices.featureTracker.trackImportTrace(importMetadata)
+        }
+      }
+      return opened
     }
 
     return artifacts
@@ -61,7 +82,15 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
         }
       }
       ?.let { (startTime, extension) ->
-        openTrace(session, startTime, ProfilerCaptureFileUtils.getCaptureFile("capture_$startTime.$extension"))
+        val opened = openTrace(session, startTime, ProfilerCaptureFileUtils.getCaptureFile("capture_$startTime.$extension"))
+        if (opened) {
+          // Traces opened directly in the Editor bypass the legacy capture parsers where task metrics
+          // are normally fired. We fire trackTaskEntered and trackTaskFinished here to ensure parity.
+          val tracker = TaskTracker.createTaskTracker(profilers)
+          tracker.trackTaskEntered()
+          tracker.trackTaskFinished(TaskFinishedState.COMPLETED)
+        }
+        opened
       } ?: false
   }
 
@@ -78,5 +107,14 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
     val traceFile = localCache.takeIf { it.exists() } ?: File(response.filePath)
 
     return profilers.ideServices.openTraceFile(traceFile)
+  }
+
+  private fun technologyForProfilerTaskType(taskType: ProfilerTaskType): CpuImportTraceMetadata.Technology {
+    return when (taskType) {
+      ProfilerTaskType.SYSTEM_TRACE -> CpuImportTraceMetadata.Technology.PERFETTO_TECHNOLOGY
+      ProfilerTaskType.CALLSTACK_SAMPLE -> CpuImportTraceMetadata.Technology.SIMPLEPERF_TECHNOLOGY
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> CpuImportTraceMetadata.Technology.ART_TECHNOLOGY
+      else -> CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY
+    }
   }
 }
