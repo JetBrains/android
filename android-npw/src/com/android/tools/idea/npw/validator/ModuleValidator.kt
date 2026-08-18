@@ -38,8 +38,7 @@ class ModuleValidator(val project: Project) : Validator<String> {
   override fun validate(moduleGradlePath: String): Result {
     val illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(moduleGradlePath)
     val rootedModuleGradlePath = if (moduleGradlePath.startsWith(":")) moduleGradlePath else ":" + moduleGradlePath
-    // TODO(b/149203281): Fix support for composite projects. This code assumes that `moduleGradlePath` is for a Gradle build at the root
-    //                    of the IDE project.
+    // TODO(b/548392746): Resolve gradleProjectPath to be composite aware
     val gradleProjectPath = GradleHolderProjectPath(projectPath, rootedModuleGradlePath)
     return when {
       moduleGradlePath.isEmpty() -> Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
