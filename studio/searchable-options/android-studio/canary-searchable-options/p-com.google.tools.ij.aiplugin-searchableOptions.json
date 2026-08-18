@@ -356,10 +356,6 @@
       "path": "ActionManager"
     },
     {
-      "hit": "Document Code",
-      "path": "ActionManager"
-    },
-    {
       "hit": "Explain Code",
       "path": "ActionManager"
     },
@@ -369,10 +365,6 @@
     },
     {
       "hit": "Generate Code From Image",
-      "path": "ActionManager"
-    },
-    {
-      "hit": "Generate Code\u2026",
       "path": "ActionManager"
     },
     {
@@ -521,10 +513,6 @@
     },
     {
       "hit": "Suggest commit message by summarizing changes",
-      "path": "ActionManager"
-    },
-    {
-      "hit": "Transform Selected Code\u2026",
       "path": "ActionManager"
     },
     {
