@@ -1,16 +1,14 @@
 # Failure
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.InlineScopesAndK2IdeK2CodeEvaluateExpressionTestGenerated$SingleBreakpoint$Frame#testHideContinuationThis
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK1CodeKotlinSteppingTestGenerated$Custom#testKt14057
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK1CodeKotlinSteppingTestGenerated$Custom#testSmartStepIntoAsyncLambda
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK1CodeKotlinSteppingTestGenerated$Filters#testDoNotSkipClassloader
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinEvaluateExpressionTestGenerated$SingleBreakpoint$Frame#testHideContinuationThis
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Custom#testKt14057
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Custom#testSmartStepIntoAsyncLambda
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Custom#testSmartStepIntoLambdaWithparametersDestructuring
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Filters#testDoNotSkipClassloader
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IndyLambdaKotlinSteppingTestGenerated$Custom#testKt14057
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IndyLambdaKotlinSteppingTestGenerated$Custom#testSmartStepIntoAsyncLambda
-org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IndyLambdaKotlinSteppingTestGenerated$Filters#testDoNotSkipClassloader
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Custom.testKt14057
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Custom.testSmartStepIntoAnonymousObjectReceiver
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Custom.testSmartStepIntoAsyncLambda
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Custom.testSmartStepIntoLambdaWithparametersDestructuring
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IdeK2CodeKotlinSteppingTestGenerated$Filters.testDoNotSkipClassloader
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IndyLambdaKotlinSteppingTestGenerated$Custom.testKt14057
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IndyLambdaKotlinSteppingTestGenerated$Custom.testSmartStepIntoAnonymousObjectReceiver
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IndyLambdaKotlinSteppingTestGenerated$Custom.testSmartStepIntoAsyncLambda
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IndyLambdaKotlinSteppingTestGenerated$Custom.testSmartStepIntoLambdaWithparametersDestructuring
+org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2IndyLambdaKotlinSteppingTestGenerated$Filters.testDoNotSkipClassloader
 
 # Error
 

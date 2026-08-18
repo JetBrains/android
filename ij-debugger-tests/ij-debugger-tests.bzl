@@ -77,7 +77,7 @@ def debugger_test(
         target_compatible_with = select({
             "@platforms//os:windows": ["@platforms//:incompatible"],
             "@platforms//os:macos": ["@platforms//:incompatible"],
-            "//conditions:default": ["@platforms//:incompatible"],
+            "//conditions:default": [],
         }),
         timeout = "long",
         use_testrunner = False,

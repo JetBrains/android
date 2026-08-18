@@ -51,7 +51,7 @@ class ExpectedFailuresInterceptor : TestExecutionResultInterceptor {
 
   private fun TestIdentifier.expectedResult(): ExpectedResult {
     val source = source.getOrNull() as? MethodSource ?: return PASS
-    return expectedResults.getValue("${source.className}#${source.methodName}")
+    return expectedResults.getValue("${source.className}.${source.methodName}")
   }
 }
 
@@ -130,10 +130,10 @@ fun String.isValidTestMethodFormat(): Boolean {
   // ^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)* -> Standard package structure
   // \.[A-Z][a-zA-Z0-9_]* -> The top-level class name
   // (\$[a-zA-Z0-9_]+)* -> Optional: $ followed by inner class names
-  // #                                     -> The method delimiter
+  // .                                     -> The method delimiter
   // [a-zA-Z0-9_]+                         -> The test method name
   // $
 
-  val pattern = Regex("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.[A-Z][a-zA-Z0-9_]*(\\$[a-zA-Z0-9_]+)*#[a-zA-Z0-9_]+$")
+  val pattern = Regex("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.[A-Z][a-zA-Z0-9_]*(\\$[a-zA-Z0-9_]+)*\\.[a-zA-Z0-9_]+$")
   return pattern.matches(this)
 }
