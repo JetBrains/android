@@ -96,7 +96,7 @@ internal fun getDefaultModuleState(
       apis =
         ApiTemplateData(
           buildApi = AndroidVersion.fromString(versions.compileSdk),
-          targetApi = AndroidMajorVersion(versions.targetSdk.toInt()),
+          targetApi = AndroidMajorVersion(maxOf(versions.targetSdk.toInt(), minSdk)),
           minApi = AndroidMajorVersion(minSdk),
           // The highest supported/recommended appCompat version is P(28)
           appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P),
