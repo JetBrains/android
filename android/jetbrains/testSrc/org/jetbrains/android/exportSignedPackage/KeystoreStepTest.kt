@@ -25,13 +25,12 @@ import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.TestPasswordSafeImpl
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.workspaceModel.ide.legacyBridge.ModuleBridge
-import java.io.File
-import java.util.Arrays
-import java.util.concurrent.TimeUnit
+import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.testFramework.utils.io.deleteRecursively
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_STORE_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
@@ -39,8 +38,12 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
+import java.io.File
+import java.nio.file.Files
+import java.util.Arrays
+import java.util.concurrent.TimeUnit
 
-class KeystoreStepTest : LightPlatformTestCase() {
+internal class KeystoreStepTest : HeavyPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var facets: MutableList<AndroidFacet>
   private lateinit var myAndroidFacet1: AndroidFacet
@@ -60,7 +63,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
   override fun tearDown() {
     try {
       mockitoCleaner.cleanupAndTearDown()
-    } finally {
+    }
+    finally {
       super.tearDown()
     }
   }
@@ -103,20 +107,23 @@ class KeystoreStepTest : LightPlatformTestCase() {
   }
 
   fun testModuleDropDownOrder() {
+    val tmpDir = Files.createTempDirectory("androidTest")
+    Disposer.register(testRootDisposable) {
+      tmpDir.deleteRecursively()
+    }
     val wizard = setupWizardHelper()
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     val unsortedModulesOrder = listOf("appB", "app1", "appD", "xappC", "appA")
-    val moduleBridge = module as ModuleBridge
-    unsortedModulesOrder.forEach { name ->
-      val nModule =
-        object : ModuleBridge by moduleBridge {
-          override fun getName(): String = name
 
-          override fun dispose() {}
-        }
-      Disposer.register(testRootDisposable, nModule)
-      facets.add(FakeAndroidFacet(nModule))
+    val moduleManager = ModuleManager.getInstance(project)
+    WriteAction.run<Throwable> {
+      for (moduleName in unsortedModulesOrder) {
+        val module = moduleManager.newNonPersistentModule(moduleName, "JAVA_MODULE")
+        Disposer.register(testRootDisposable, module)
+        facets.add(FakeAndroidFacet(module))
+      }
     }
+
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
 
