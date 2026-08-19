@@ -213,7 +213,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_8_11(agpVersion = "8.11.0", gradleVersion = "8.13", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_8_12(agpVersion = "8.12.0", gradleVersion = "8.13", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_8_13(agpVersion = "8.13.0", gradleVersion = "8.13", jdkVersion = JDK_17, compileSdk = "35"),
-  AGP_9_0(agpVersion = "9.0.0", gradleVersion = "9.0.0", jdkVersion = JDK_17, compileSdk = "35"),
+  AGP_9_0(agpVersion = "9.0.0", gradleVersion = "9.1.0", kotlinVersion = "2.2.10", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_LATEST_KOTLIN_SNAPSHOT(agpVersion = null, gradleVersion = null, kotlinVersion = KOTLIN_SNAPSHOT_VERSION, compileSdk = "34"),
   AGP_LATEST_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_SNAPSHOT_VERSION, compileSdk = "34"),
   AGP_DECLARATIVE_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_DECLARATIVE_SNAPSHOT_VERSION, compileSdk = "34"),

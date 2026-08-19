@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_8_10_Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_8_11_Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_8_12_Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_8_13_Test;
+import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_9_0_Test;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.MavenRepoRule;
 import com.intellij.openapi.util.IconLoader;
@@ -72,6 +73,7 @@ import org.junit.runner.RunWith;
   SyncProject_AGP_8_11_Test.class,
   SyncProject_AGP_8_12_Test.class,
   SyncProject_AGP_8_13_Test.class,
+  SyncProject_AGP_9_0_Test.class,
 })
 public class OldAgpTests extends IdeaTestSuiteBase {
 
