@@ -24,6 +24,16 @@ Workspace model changed #5, phase: N/A
     With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
     Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
     With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
+    Added LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.app.androidTest))
+    Added LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.app.main))
+    Added LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.app.unitTest))
+    Added LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.javaLib.main))
+    Added LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.javaLib.test))
+    Removed LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.app.androidTest))
+    Removed LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.app.main))
+    Removed LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.app.unitTest))
+    Removed LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.javaLib.main))
+    Removed LibraryEntity: Gradle: kaptGeneratedClasses (module level library for ModuleId(name=MainActivity.javaLib.test))
     Replaced: LibraryEntity: Gradle: androidx.annotation:annotation:1.0.0
     With:     LibraryEntity: Gradle: androidx.annotation:annotation:1.0.0
     Replaced: LibraryEntity: Gradle: androidx.arch.core:core-common:2.0.0
