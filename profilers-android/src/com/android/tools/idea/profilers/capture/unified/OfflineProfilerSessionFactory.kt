@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.capture.unified
 
+import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.profilers.IntellijProfilerServices
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator
@@ -50,6 +51,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
+import java.awt.BorderLayout
 import java.io.File
 import java.util.function.Supplier
 import javax.swing.JComponent
@@ -155,6 +157,7 @@ object OfflineProfilerSessionFactory {
             } else {
               CpuCaptureStageView(view, stage as CpuCaptureStage)
             }
+          view.stageComponent.add(stageView.component, BorderLayout.CENTER)
           stage.enter()
         }
 
@@ -198,14 +201,16 @@ object OfflineProfilerSessionFactory {
   }
 
   private fun createPlaceholderProfilersView(profilers: StudioProfilers, components: IdeProfilerComponents): StudioProfilersView {
+    val stageComponent = JPanel(BorderLayout())
+    val layeredPane = TooltipLayeredPane(stageComponent)
     return object : StudioProfilersView {
       override val studioProfilers: StudioProfilers = profilers
       override val ideProfilerComponents: IdeProfilerComponents = components
-      override val component: JComponent = JPanel()
+      override val component: JComponent = layeredPane
       override val stageWithToolbarView: StageWithToolbarView
         get() = throw UnsupportedOperationException("Not implemented for placeholder view")
 
-      override val stageComponent: JPanel = JPanel()
+      override val stageComponent: JPanel = stageComponent
       override val stageView: StageView<*>? = null
 
       override fun installCommonMenuItems(component: JComponent) {}

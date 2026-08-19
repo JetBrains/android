@@ -140,7 +140,7 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
       offlineProfilers = session.profilers
       profilersView = session.profilersView
       profilerStageView = session.stageView
-      session.stageView?.let { component.add(it.component, BorderLayout.CENTER) }
+      session.stageView?.let { component.add(session.profilersView.component, BorderLayout.CENTER) }
       component.revalidate()
       component.repaint()
     }
