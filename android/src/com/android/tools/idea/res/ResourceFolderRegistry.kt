@@ -203,7 +203,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   }
 
   private fun buildCache(): Cache<VirtualFile, ResourceFolderRepository> {
-    return CacheBuilder.newBuilder().build()
+    return CacheBuilder.newBuilder().softValues().build()
   }
 
   private fun createRepository(facet: AndroidFacet, dir: VirtualFile, namespace: ResourceNamespace): ResourceFolderRepository {
