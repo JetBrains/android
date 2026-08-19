@@ -501,6 +501,16 @@ LIBRARY_TABLE
         artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         artifactAddress               : com.android.support:support-annotations:28.0.0@jar
         component                     : com.android.support:support-annotations:28.0.0
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+        artifactAddress               : org.jetbrains:annotations:13.0@jar
+        component                     : org.jetbrains:annotations:13.0
+        docJar                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-javadoc.jar
+        - srcJars                     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
     - library                     : <ROOT>::app@basicDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
@@ -643,6 +653,7 @@ MODULE                        : project.app
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
+        BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : basicDebug
         applicationId                 : com.example.dependentmodules.app
         testApplicationId             : com.example.dependentmodules.app.test
@@ -950,6 +961,7 @@ MODULE                        : project.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicDebug/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicDebug/compileBasicDebugKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicDebug/generateBasicDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicDebug/compileBasicDebugJavaWithJavac/classes [-]
                 VariantSourceProvider
@@ -1081,6 +1093,9 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1197,6 +1212,9 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                 ApplicationId                 : com.example.dependentmodules.app
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1220,6 +1238,7 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicDebugAndroidTest/compileBasicDebugAndroidTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicDebugAndroidTest/generateBasicDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicDebugAndroidTest/compileBasicDebugAndroidTestJavaWithJavac/classes [-]
                 VariantSourceProvider
@@ -1351,8 +1370,12 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                 ProvidedDependencies
                     - provided                    : android.arch.core:common:1.1.1
@@ -1385,6 +1408,8 @@ MODULE                        : project.app
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : com.example.dependentmodules.app.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1408,6 +1433,7 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicDebugUnitTest/compileBasicDebugUnitTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/basicDebug/processBasicDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicDebugUnitTest/compileBasicDebugUnitTestJavaWithJavac/classes [-]
                 VariantSourceProvider
@@ -1538,8 +1564,12 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1656,9 +1686,87 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    kotlinGradleModel             : KotlinGradleModelImpl
+        additionalVisibleSourceSets
+            basicDebug                    : <empty>
+            basicDebugAndroidTest         : <empty>
+            basicDebugUnitTest            : <empty>
+        compilerArgumentsBySourceSet
+            basicDebug
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/basicDebug/compileBasicDebugKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app
+                    noReflect                     : true
+                    noStdlib                      : true
+                    useInlineScopesNumbers        : true
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    explicitApi                   : disable
+                    explicitReturnTypes           : disable
+                    headerModeType                : any
+                    returnValueChecker            : disable
+                    useFirLT                      : true
+            basicDebugAndroidTest
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/basicDebugAndroidTest/compileBasicDebugAndroidTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app
+                    noReflect                     : true
+                    noStdlib                      : true
+                    useInlineScopesNumbers        : true
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    explicitApi                   : disable
+                    explicitReturnTypes           : disable
+                    headerModeType                : any
+                    returnValueChecker            : disable
+                    useFirLT                      : true
+            basicDebugUnitTest
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/intermediates/built_in_kotlinc/basicDebugUnitTest/compileBasicDebugUnitTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : app
+                    noReflect                     : true
+                    noStdlib                      : true
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    explicitApi                   : disable
+                    explicitReturnTypes           : disable
+                    headerModeType                : any
+                    returnValueChecker            : disable
+                    useFirLT                      : true
+        gradleUserHome                : <GRADLE>
+        hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            versionString                 : <AGP_BUILT_IN_KOTLIN_VERSION>
+        kotlinTarget                  : kotlin-android
+        kotlinTaskProperties
+            basicDebug                    : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+            basicDebugAndroidTest         : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+            basicDebugUnitTest            : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
@@ -1733,6 +1841,7 @@ MODULE                        : project.lib
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
         GenerateManifestClass         : false
+        BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : debug
         testApplicationId             : com.example.dependentmodules.lib.test
         buildType                     : debug
@@ -1911,6 +2020,7 @@ MODULE                        : project.lib
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
@@ -2030,6 +2140,9 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2040,6 +2153,8 @@ MODULE                        : project.lib
                             androidLibrary                : com.android.support:support-fragment:28.0.0@aar
                             androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
                             androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         androidLibrary                : com.android.support:support-compat:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2070,6 +2185,7 @@ MODULE                        : project.lib
                         androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
                             androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
                             javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
                             javaLibrary                   : android.arch.core:common:1.1.1@jar
@@ -2162,6 +2278,7 @@ MODULE                        : project.lib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
@@ -2281,8 +2398,12 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2399,8 +2520,12 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 ApplicationId                 : com.example.dependentmodules.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2424,6 +2549,7 @@ MODULE                        : project.lib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
@@ -2543,8 +2669,12 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2661,9 +2791,86 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    kotlinGradleModel             : KotlinGradleModelImpl
+        additionalVisibleSourceSets
+            debug                         : <empty>
+            debugAndroidTest              : <empty>
+            debugUnitTest                 : <empty>
+        compilerArgumentsBySourceSet
+            debug
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/lib/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : lib
+                    noReflect                     : true
+                    noStdlib                      : true
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    explicitApi                   : disable
+                    explicitReturnTypes           : disable
+                    headerModeType                : any
+                    returnValueChecker            : disable
+                    useFirLT                      : true
+            debugAndroidTest
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : lib
+                    noReflect                     : true
+                    noStdlib                      : true
+                    useInlineScopesNumbers        : true
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    explicitApi                   : disable
+                    explicitReturnTypes           : disable
+                    headerModeType                : any
+                    returnValueChecker            : disable
+                    useFirLT                      : true
+            debugUnitTest
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
+                    jvmTarget                     : 11
+                    moduleName                    : lib
+                    noReflect                     : true
+                    noStdlib                      : true
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    explicitApi                   : disable
+                    explicitReturnTypes           : disable
+                    headerModeType                : any
+                    returnValueChecker            : disable
+                    useFirLT                      : true
+        gradleUserHome                : <GRADLE>
+        hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            versionString                 : <AGP_BUILT_IN_KOTLIN_VERSION>
+        kotlinTarget                  : kotlin-android
+        kotlinTaskProperties
+            debug                         : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+            debugAndroidTest              : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
+            debugUnitTest                 : KotlinTaskPropertiesImpl
+                incremental                   : true
+                pluginVersion                 : <CUT>
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
 MODULE                        : project.lib.main
