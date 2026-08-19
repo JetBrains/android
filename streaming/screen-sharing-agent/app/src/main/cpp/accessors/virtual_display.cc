@@ -25,7 +25,7 @@ using namespace std;
 
 VirtualDisplay::VirtualDisplay(JObject&& virtual_display)
     : JObject(std::move(virtual_display)) {
-  if (set_surface_method_ == nullptr) {
+  if (set_surface_method_ == nullptr && IsNotNull()) {
     JClass virtual_display_class = GetClass();
     set_surface_method_ = virtual_display_class.GetMethod("setSurface", "(Landroid/view/Surface;)V");
     resize_method_ = virtual_display_class.GetMethod("resize", "(III)V");
