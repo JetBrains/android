@@ -202,6 +202,13 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
                 .mapNotNull { it.displaySettings.group?.let { group -> PreviewGroup.namedGroup(group) } }
                 .toSet()
 
+            val currentFilter = filterFlow.value
+            if (currentFilter is PreviewElementFilter.Group && !allGroups.contains(currentFilter.filterGroup)) {
+              // If the currently filtered group no longer exists (e.g. parameter removed or group renamed),
+              // reset the filter to Disabled (show all previews) so the user isn't stuck with 0 previews.
+              filterFlow.value = PreviewElementFilter.Disabled()
+            }
+
             // UI Check works in the output of one particular instance (similar to interactive
             // preview).
             // When enabled, UI Check will generate here a number of previews in different reference

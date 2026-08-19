@@ -602,6 +602,48 @@ class CommonPreviewRepresentationTest {
     restoredPreviewRepresentation.onDeactivateImmediately()
   }
 
+  // Regression test for b/428143625
+  @Test
+  fun groupFilterIsResetWhenGroupIsRemoved(): Unit = runTest {
+    val initialElement = PsiTestPreviewElement(displayName = "element 1", groupName = "test group")
+    var previewElements = listOf(initialElement)
+    val previewElementProvider =
+      object : PreviewElementProvider<PsiTestPreviewElement> {
+        override suspend fun previewElements(): Sequence<PsiTestPreviewElement> = previewElements.asSequence()
+      }
+    val representation = createPreviewRepresentation(previewElementProvider)
+    representation.compileAndWaitForRefresh()
+
+    // Verify initial setup: element is rendered and "test group" is available
+    retryUntilPassing(2.seconds) {
+      assertThat(representation.renderedPreviewElementsFlowForTest().value.asCollection().toList()).containsExactly(initialElement)
+      assertThat(representation.groupManager.availableGroupsFlow.value).containsExactly(PreviewGroup.namedGroup("test group"))
+    }
+
+    // Filter by "test group"
+    representation.groupManager.groupFilter = PreviewGroup.namedGroup("test group")
+    assertThat(representation.groupManager.groupFilter).isEqualTo(PreviewGroup.namedGroup("test group"))
+
+    // Remove the group from the element
+    val updatedElement = PsiTestPreviewElement(displayName = "element 1")
+    previewElements = listOf(updatedElement)
+
+    // Modify the file to trigger psiFileChangeFlow
+    ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+      fixture.editor.moveCaretToEnd()
+      fixture.editor.executeAndSave { insertText(" ") }
+    }
+
+    // Wait until groupFilter is reset to All, "test group" is no longer available, and updated element is rendered
+    retryUntilPassing(2.seconds) {
+      assertThat(representation.groupManager.groupFilter).isEqualTo(PreviewGroup.All)
+      assertThat(representation.groupManager.availableGroupsFlow.value).isEmpty()
+      assertThat(representation.renderedPreviewElementsFlowForTest().value.asCollection().toList()).containsExactly(updatedElement)
+    }
+
+    representation.onDeactivateImmediately()
+  }
+
   @Test
   fun `test animation preview is hidden if there is build error in the file`() = runBlocking {
     val animationPreview =
