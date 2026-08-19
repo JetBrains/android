@@ -59,7 +59,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
-import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN
+//import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN // TODO android-merge
 import com.android.tools.idea.wizard.template.withoutSkipLines
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
@@ -646,7 +646,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // activity template
     val currentJavaVersion = buildModel.getTargetJavaVersion()
     if (currentJavaVersion == null || currentJavaVersion.isLessThan(languageLevel)) {
-      val kgpApplied = if (agpApplied) isKotlin && projectTemplateData.agpVersion < AGP_VERSION_WITH_BUILT_IN_KOTLIN else isKotlin
+      val kgpApplied = true//if (agpApplied) isKotlin && projectTemplateData.agpVersion < AGP_VERSION_WITH_BUILT_IN_KOTLIN else isKotlin // todo android-merge uncomment + remove "true"
       buildModel.setJavaKotlinCompileOptions(languageLevel, agpApplied, kgpApplied)
     }
   }

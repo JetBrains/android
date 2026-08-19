@@ -156,8 +156,8 @@ public abstract class AbstractDeployTask {
       .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get())
       .setMaxDeltaInstallPatchSize(StudioFlags.DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE.get()).build();
     Deployer deployer =
-      new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(), installer, uiService,
-                   metrics, logger, option);
+      new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(), installer, null, uiService,
+                   metrics, logger, option); // TODO android-merge fix null terminator argument (this null is added to satisfy compiler)
     List<String> idsSkippedInstall = new ArrayList<>();
     List<Deployer.Result> results = new ArrayList<>();
     for (ApkInfo apkInfo : myPackages) {

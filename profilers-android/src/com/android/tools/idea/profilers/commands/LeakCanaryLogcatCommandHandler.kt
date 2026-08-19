@@ -107,7 +107,7 @@ class LeakCanaryLogcatCommandHandler(
         Commands.Command.newBuilder()
           .setStreamId(command.streamId)
           .setPid(pid)
-          .setType(Commands.Command.CommandType.START_LEAKCANARY_OBJECT_COUNT_TRACKING)
+          //.setType(Commands.Command.CommandType.START_LEAKCANARY_OBJECT_COUNT_TRACKING) // TODO android-merge uncomment
           .build()
       try {
         transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(objectCountCommand).build())

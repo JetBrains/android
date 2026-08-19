@@ -16,7 +16,7 @@
 package com.android.tools.idea.tracer
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.tracer.TracingService
+//import com.android.tools.tracer.TracingService // TODO android-merge uncomment
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -43,7 +43,8 @@ class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project
-    val service = TracingService.getInstance() ?: return
+    // TODO android-merge uncomment /**/ block below
+    /*val service = TracingService.getInstance() ?: return
 
     CoroutineScope(Dispatchers.Default).launch {
       val virtualFile =
@@ -78,5 +79,6 @@ class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
         }
       }
     }
+    */
   }
 }
