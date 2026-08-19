@@ -42,6 +42,7 @@ import com.android.tools.adtui.categorytable.stringSerializer
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.avd.showAddDeviceDialog
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.devicemanagerv2.DeviceTableColumns.columns
 import com.android.tools.idea.devicemanagerv2.details.DeviceDetailsPanel
@@ -64,6 +65,7 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.UI
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -173,9 +175,7 @@ constructor(
         "No devices connected.",
         actionData =
           addDevice?.let {
-            ActionData(it.templatePresentation.description.titlecase() + "...") {
-              ActionToolbarUtil.findActionButton(toolbar, addDevice)?.click()
-            }
+            ActionData("Add a new device...") { panelScope.launch(Dispatchers.UI) { showAddDeviceDialog(project, parent) } }
           },
       )
       .apply { background = JBUI.CurrentTheme.Table.background(false, true) }
