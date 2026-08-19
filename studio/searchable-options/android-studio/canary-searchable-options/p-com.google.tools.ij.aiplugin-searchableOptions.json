@@ -416,6 +416,10 @@
       "path": "ActionManager"
     },
     {
+      "hit": "Migrate File to Compose",
+      "path": "ActionManager"
+    },
+    {
       "hit": "Migrate Layout XML to Jetpack Compose using AI.",
       "path": "ActionManager"
     },
@@ -501,6 +505,10 @@
     },
     {
       "hit": "Start a code review of your pending changes using the AI agent",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Starts the migration of the project to Compose using AI",
       "path": "ActionManager"
     },
     {
