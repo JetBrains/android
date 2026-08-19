@@ -160,7 +160,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
             environment,
             androidDebugger,
             androidDebuggerState,
-            { it.forceStop(client.clientData.processName!!) },
+            { it.forceStop(client.clientData.packageName!!) },
             indicator = EmptyProgressIndicator(),
             consoleViewToReuse,
           )
