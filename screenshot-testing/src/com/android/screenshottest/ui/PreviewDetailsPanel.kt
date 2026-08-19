@@ -517,6 +517,7 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
         border = BorderFactory.createEmptyBorder(15, 5, 5, 5)
         alignmentX = JComponent.LEFT_ALIGNMENT
       }
+    private val separator = JSeparator().apply { alignmentX = JComponent.LEFT_ALIGNMENT }
     private val horizontalPreviewsPanel =
       JPanel(FlowLayout(FlowLayout.LEFT, 10, 0)).apply {
         border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
@@ -533,6 +534,7 @@ class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLay
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
       isOpaque = true
       add(functionNameLabel)
+      add(separator)
       add(horizontalPreviewsPanel)
     }
 
