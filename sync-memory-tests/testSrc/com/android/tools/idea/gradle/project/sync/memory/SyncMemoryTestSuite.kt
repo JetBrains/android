@@ -107,18 +107,14 @@ class Benchmark200Repeated20TimesMemoryTest {
 
 class Benchmark2000MemoryLatestGradleTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_2000_GRADLE_LATEST_NAME, STANDARD_1000, useLatestGradle = true)
-  @get:Rule
-  val captureFromHistogramRule =
-    CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
 
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark2000MemoryLatestKotlinTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_2000_KOTLIN_LATEST_NAME, STANDARD_1000, useLatestKotlin = true)
-  @get:Rule
-  val captureFromHistogramRule =
-    CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
 
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }

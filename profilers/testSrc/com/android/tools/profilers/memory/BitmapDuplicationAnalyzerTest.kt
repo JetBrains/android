@@ -154,13 +154,12 @@ class BitmapDuplicationAnalyzerTest {
    * pixel data buffers. This structure is what the analyzer inspects to find bitmap data.
    */
   private fun createDumpDataInstance(capture: FakeCaptureObject, nativePtrs: List<Long>, buffers: List<ByteArray>): FakeInstanceObject {
-    val bufferInstances =
-      buffers.mapIndexed { i, bytes ->
-        FakeInstanceObject.Builder(capture, 1000L + i, BYTE_ARRAY_CLASS_NAME)
-          .setValueType(ValueObject.ValueType.ARRAY)
-          .setArray(ValueObject.ValueType.BYTE, bytes, bytes.size)
-          .build()
-      }
+    val bufferInstances = buffers.mapIndexed { i, bytes ->
+      FakeInstanceObject.Builder(capture, 1000L + i, BYTE_ARRAY_CLASS_NAME)
+        .setValueType(ValueObject.ValueType.ARRAY)
+        .setArray(ValueObject.ValueType.BYTE, bytes, bytes.size)
+        .build()
+    }
 
     val buffersArray =
       FakeInstanceObject.Builder(capture, 2000L, BYTE_ARRAY_ARRAY_CLASS_NAME).setFields(buffers.indices.map { it.toString() }).build()

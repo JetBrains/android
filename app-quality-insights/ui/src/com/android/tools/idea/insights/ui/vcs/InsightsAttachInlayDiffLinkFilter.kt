@@ -217,11 +217,13 @@ class InsightsTextInlayPresentation(
 
   private fun getOrCreateMetrics(): InlayTextMetrics {
     val metrics = normalTextMetrics
-    if (metrics == null ||
+    if (
+      metrics == null ||
         metrics.font.size2D != normalTextSize ||
         metrics.font.family != familyName ||
         metrics.ideScale != UISettings.getInstance().ideScale ||
-        getCurrentContext(editor.contentComponent) != metrics.fontMetrics.fontRenderContext) {
+        getCurrentContext(editor.contentComponent) != metrics.fontMetrics.fontRenderContext
+    ) {
 
       normalTextMetrics = createMetrics(editor, normalTextSize)
     }

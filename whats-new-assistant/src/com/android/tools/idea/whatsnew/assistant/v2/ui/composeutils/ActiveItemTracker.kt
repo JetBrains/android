@@ -76,10 +76,9 @@ internal fun <T> ColumnWithActiveItemTracking(
   var containerCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
   Column(modifier.onGloballyPositioned { containerCoordinates = it }) {
     items.forEachIndexed { index, t ->
-      val modifier =
-        Modifier.onGloballyPositioned { coordinates ->
-          containerCoordinates?.localPositionOf(coordinates)?.also { rowOffset -> tracker.onItemLayout(t, rowOffset, coordinates.size) }
-        }
+      val modifier = Modifier.onGloballyPositioned { coordinates ->
+        containerCoordinates?.localPositionOf(coordinates)?.also { rowOffset -> tracker.onItemLayout(t, rowOffset, coordinates.size) }
+      }
       item(index, t, modifier)
     }
   }

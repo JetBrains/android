@@ -38,10 +38,9 @@ fun interface FrameworkResourceRepositoryManager {
 
   companion object {
     @Suppress("UnstableApiUsage")
-    private val instanceSupplier: Supplier<FrameworkResourceRepositoryManager?> =
-      CachedSingletonsRegistry.lazy {
-        ServiceLoader.load(Provider::class.java, this::class.java.classLoader).firstOrNull()?.frameworkResourceRepositoryManager
-      }
+    private val instanceSupplier: Supplier<FrameworkResourceRepositoryManager?> = CachedSingletonsRegistry.lazy {
+      ServiceLoader.load(Provider::class.java, this::class.java.classLoader).firstOrNull()?.frameworkResourceRepositoryManager
+    }
 
     @JvmStatic
     fun getInstance(): FrameworkResourceRepositoryManager {

@@ -101,9 +101,9 @@ private fun extractLocatorFromVisitor(visitor: ClassVisitor): PseudoClassLocator
   val field = findField(visitor.javaClass, "classLocator") ?: return null
   if (!PseudoClassLocator::class.java.isAssignableFrom(field.type)) return null
   return runCatching {
-      field.isAccessible = true
-      field.get(visitor) as? PseudoClassLocator
-    }
+    field.isAccessible = true
+    field.get(visitor) as? PseudoClassLocator
+  }
     .getOrNull()
 }
 
@@ -111,9 +111,9 @@ private fun extractLocatorFromVisitor(visitor: ClassVisitor): PseudoClassLocator
 private fun getNextVisitorInChain(visitor: ClassVisitor): ClassVisitor? {
   val cvField = ClassVisitor::class.java.declaredFields.firstOrNull { it.name == "cv" } ?: return null
   return runCatching {
-      cvField.isAccessible = true
-      cvField.get(visitor) as? ClassVisitor
-    }
+    cvField.isAccessible = true
+    cvField.get(visitor) as? ClassVisitor
+  }
     .getOrNull()
 }
 

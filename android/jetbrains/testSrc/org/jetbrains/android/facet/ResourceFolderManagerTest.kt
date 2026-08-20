@@ -42,13 +42,12 @@ class ResourceFolderManagerTest {
     var earlyListenerCalls = AtomicInteger(0)
     var listenerCalls = AtomicInteger(0)
     val earlyListener = ResourceFolderManager.ResourceFolderListener { _, _ -> earlyListenerCalls.incrementAndGet() }
-    val listener =
-      ResourceFolderManager.ResourceFolderListener { _, _ ->
-        val previousCounter = listenerCalls.getAndIncrement()
-        assertWithMessage("EARLY_TOPIC is expected to always be called before TOPIC")
-          .that(previousCounter)
-          .isLessThan(earlyListenerCalls.get())
-      }
+    val listener = ResourceFolderManager.ResourceFolderListener { _, _ ->
+      val previousCounter = listenerCalls.getAndIncrement()
+      assertWithMessage("EARLY_TOPIC is expected to always be called before TOPIC")
+        .that(previousCounter)
+        .isLessThan(earlyListenerCalls.get())
+    }
 
     projectRule.fixture.addFileToProject("res1/layout/test_layout.xml", emptyLayout)
     val res1Directory = projectRule.fixture.findFileInTempDir("res1")

@@ -179,11 +179,10 @@ private constructor(
           // Clear the interrupted state
           Thread.interrupted()
           queueTimeoutFuture?.cancel(false)
-          val isPending =
-            pendingActionsQueueLock.withLock {
-              pendingActionsQueueByTopic[renderingTopic]?.remove(future)
-              allPendingActionsQueue.remove(future)
-            }
+          val isPending = pendingActionsQueueLock.withLock {
+            pendingActionsQueueByTopic[renderingTopic]?.remove(future)
+            allPendingActionsQueue.remove(future)
+          }
 
           if (!isPending || future.isDone) return@PriorityRunnable
 
@@ -353,15 +352,15 @@ private constructor(
   }
 
   /** True when the number of pending actions that are not tagged with [RenderingTopic.CLEAN] is bigger than [maxQueueingTasksSoftLimit]. */
-  private fun tasksQueueSoftLimitExceeded(): Boolean =
-    pendingActionsQueueLock.withLock {
-      maxQueueingTasksSoftLimit > 0 &&
-        allPendingActionsQueue.size - (pendingActionsQueueByTopic[RenderingTopic.CLEAN]?.size ?: 0) > maxQueueingTasksSoftLimit
-    }
+  private fun tasksQueueSoftLimitExceeded(): Boolean = pendingActionsQueueLock.withLock {
+    maxQueueingTasksSoftLimit > 0 &&
+      allPendingActionsQueue.size - (pendingActionsQueueByTopic[RenderingTopic.CLEAN]?.size ?: 0) > maxQueueingTasksSoftLimit
+  }
 
   /** True when the total number of pending actions is bigger than [maxQueueingTasksHardLimit]. */
-  private fun tasksQueueHardLimitExceeded(): Boolean =
-    pendingActionsQueueLock.withLock { maxQueueingTasksHardLimit > 0 && allPendingActionsQueue.size > maxQueueingTasksHardLimit }
+  private fun tasksQueueHardLimitExceeded(): Boolean = pendingActionsQueueLock.withLock {
+    maxQueueingTasksHardLimit > 0 && allPendingActionsQueue.size > maxQueueingTasksHardLimit
+  }
 
   private fun createSoftLimitExceededException() =
     EvictedException("Max number ($maxQueueingTasksSoftLimit) of non-clean render actions reached")

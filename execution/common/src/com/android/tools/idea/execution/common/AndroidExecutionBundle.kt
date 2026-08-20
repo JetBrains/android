@@ -24,7 +24,7 @@ internal object AndroidExecutionBundle {
   private val bundleRef = MessageBundleReference(ANDROID_EXECUTION_BUNDLE_NAME)
 
   @JvmStatic
-  fun message( @PropertyKey(resourceBundle = ANDROID_EXECUTION_BUNDLE_NAME) key: String, vararg params: Any): String {
+  fun message(@PropertyKey(resourceBundle = ANDROID_EXECUTION_BUNDLE_NAME) key: String, vararg params: Any): String {
     return bundleRef.message(key, *params)
   }
 }

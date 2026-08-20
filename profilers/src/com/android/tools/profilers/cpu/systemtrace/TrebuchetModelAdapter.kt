@@ -108,44 +108,41 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Trace
         .sortedBy { core -> core.id }
   }
 
-  private fun mapSlicesToTraceEvents(slices: List<SliceGroup>): List<TraceEventModel> =
-    slices.map {
-      TraceEventModel(
-        it.name,
-        convertToUserTimeUs(it.startTime),
-        convertToUserTimeUs(it.endTime),
-        convertSecondsToUs(it.cpuTime),
-        mapSlicesToTraceEvents(it.children),
-      )
-    }
+  private fun mapSlicesToTraceEvents(slices: List<SliceGroup>): List<TraceEventModel> = slices.map {
+    TraceEventModel(
+      it.name,
+      convertToUserTimeUs(it.startTime),
+      convertToUserTimeUs(it.endTime),
+      convertSecondsToUs(it.cpuTime),
+      mapSlicesToTraceEvents(it.children),
+    )
+  }
 
-  private fun mapSchedSliceToSchedEvent(slices: List<SchedSlice>, pid: Int, tid: Int): List<SchedulingEventModel> =
-    slices.map {
-      SchedulingEventModel(
-        convertSchedulingState(it),
-        convertToUserTimeUs(it.startTime),
-        convertToUserTimeUs(it.endTime),
-        convertSecondsToUs(it.duration),
-        convertSecondsToUs(it.cpuTime),
-        pid,
-        tid,
-        0,
-      )
-    }
+  private fun mapSchedSliceToSchedEvent(slices: List<SchedSlice>, pid: Int, tid: Int): List<SchedulingEventModel> = slices.map {
+    SchedulingEventModel(
+      convertSchedulingState(it),
+      convertToUserTimeUs(it.startTime),
+      convertToUserTimeUs(it.endTime),
+      convertSecondsToUs(it.duration),
+      convertSecondsToUs(it.cpuTime),
+      pid,
+      tid,
+      0,
+    )
+  }
 
-  private fun mapCpuProcessSliceToSchedEvent(slices: List<CpuProcessSlice>, core: Int): List<SchedulingEventModel> =
-    slices.map {
-      SchedulingEventModel(
-        ThreadState.RUNNING_CAPTURED,
-        convertToUserTimeUs(it.startTime),
-        convertToUserTimeUs(it.endTime),
-        convertSecondsToUs(it.duration),
-        convertSecondsToUs(it.cpuTime),
-        it.id,
-        it.threadId,
-        core,
-      )
-    }
+  private fun mapCpuProcessSliceToSchedEvent(slices: List<CpuProcessSlice>, core: Int): List<SchedulingEventModel> = slices.map {
+    SchedulingEventModel(
+      ThreadState.RUNNING_CAPTURED,
+      convertToUserTimeUs(it.startTime),
+      convertToUserTimeUs(it.endTime),
+      convertSecondsToUs(it.duration),
+      convertSecondsToUs(it.cpuTime),
+      it.id,
+      it.threadId,
+      core,
+    )
+  }
 
   private fun convertSchedulingState(slice: SchedSlice): ThreadState {
     return when (slice.state) {

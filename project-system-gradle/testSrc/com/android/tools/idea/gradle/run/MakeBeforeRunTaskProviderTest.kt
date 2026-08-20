@@ -373,12 +373,11 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
       assertThat(path).isNotEmpty()
       val paths = path.split(',')
       assertThat(paths).hasSize(expectedJson.size)
-      val actualJsons =
-        paths.map { p ->
-          val jsonFile = File(p)
-          assertThat(jsonFile.exists()).isTrue()
-          FileUtils.readFileToString(jsonFile, Charset.forName("UTF-8"))
-        }
+      val actualJsons = paths.map { p ->
+        val jsonFile = File(p)
+        assertThat(jsonFile.exists()).isTrue()
+        FileUtils.readFileToString(jsonFile, Charset.forName("UTF-8"))
+      }
       assertThat(actualJsons).isEqualTo(expectedJson.toList())
       paths.forEach { File(it).delete() }
     }

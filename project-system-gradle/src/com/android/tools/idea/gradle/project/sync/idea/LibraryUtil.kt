@@ -62,19 +62,18 @@ class ResolvedLibraryTableBuilder(
 
   private fun resolveAdditionalKmpSourceSets(sourceSet: GradleSourceSetProjectPath): List<GradleSourceSetProjectPath> {
     return sequence {
-        yield(sourceSet)
-        val targetSourceSetData =
-          getModuleDataNode(sourceSet)
-            ?: let {
-              if (!ignoreKmpFailures) {
-                logger.error("Resolved source set not found for: $sourceSet")
-              }
-              return@sequence
+      yield(sourceSet)
+      val targetSourceSetData =
+        getModuleDataNode(sourceSet)
+          ?: let {
+            if (!ignoreKmpFailures) {
+              logger.error("Resolved source set not found for: $sourceSet")
             }
-        val kmpDependsOn =
-          ExternalSystemApiUtil.find(targetSourceSetData, KotlinSourceSetData.KEY)?.data?.sourceSetInfo?.dependsOn.orEmpty()
-        yieldAll(kmpDependsOn.mapNotNull(getGradlePathBy))
-      }
+            return@sequence
+          }
+      val kmpDependsOn = ExternalSystemApiUtil.find(targetSourceSetData, KotlinSourceSetData.KEY)?.data?.sourceSetInfo?.dependsOn.orEmpty()
+      yieldAll(kmpDependsOn.mapNotNull(getGradlePathBy))
+    }
       .distinct()
       .filterIsInstance<GradleSourceSetProjectPath>()
       .toList()

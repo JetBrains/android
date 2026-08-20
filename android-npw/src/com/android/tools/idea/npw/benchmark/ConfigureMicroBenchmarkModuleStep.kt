@@ -28,23 +28,23 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 @Deprecated(
   message = "Will be removed soon",
-  replaceWith = ReplaceWith("ConfigureBenchmarkModuleStep", imports = ["com.android.tools.idea.npw.benchmark.ConfigureBenchmarkModuleStep"]),
+  replaceWith =
+    ReplaceWith("ConfigureBenchmarkModuleStep", imports = ["com.android.tools.idea.npw.benchmark.ConfigureBenchmarkModuleStep"]),
 )
 class ConfigureMicroBenchmarkModuleStep(model: NewBenchmarkModuleModel, title: String, minSdkLevel: Int) :
   ConfigureModuleStep<NewBenchmarkModuleModel>(model, MOBILE, minSdkLevel, getSuggestedProjectPackage(), title) {
-  override fun createMainPanel(): DialogPanel =
-    panel {
-        row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
+  override fun createMainPanel(): DialogPanel = panel {
+    row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
-        row("Package name") { cell(packageName).align(AlignX.FILL) }
+    row("Package name") { cell(packageName).align(AlignX.FILL) }
 
-        row("Language") { cell(languageCombo).align(AlignX.FILL) }
+    row("Language") { cell(languageCombo).align(AlignX.FILL) }
 
-        row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
+    row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-      }
-      .withBorder(empty(6))
+    generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+  }
+    .withBorder(empty(6))
 
   override fun getPreferredFocusComponent() = moduleName
 }

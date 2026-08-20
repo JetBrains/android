@@ -137,7 +137,8 @@ class StackTraceConsoleTest {
                               offset = 196,
                               library = "dev.firebase.appdistribution",
                               blame = Blames.BLAMED,
-                              rawSymbol = "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)",
+                              rawSymbol =
+                                "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)",
                             ),
                             Frame(
                               symbol = "dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder",

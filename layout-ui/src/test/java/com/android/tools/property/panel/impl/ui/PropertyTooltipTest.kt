@@ -30,8 +30,7 @@ private val LONG_VALUE = "1234567890".repeat(1000)
 
 class PropertyTooltipTest {
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun normal() {

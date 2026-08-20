@@ -51,24 +51,22 @@ class DeviceDetailsPanelTest {
   }
 
   private fun createPhoneHandle(wearPairingId: String? = null) = runBlocking {
-    val properties =
-      DeviceProperties.buildForTest {
-        model = "phone"
-        deviceType = DeviceType.HANDHELD
-        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-        this.wearPairingId = wearPairingId
-      }
+    val properties = DeviceProperties.buildForTest {
+      model = "phone"
+      deviceType = DeviceType.HANDHELD
+      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      this.wearPairingId = wearPairingId
+    }
     FakeDeviceHandle(this, FakeDeviceTemplate(properties), properties)
   }
 
   private fun createGlassesHandle() = runBlocking {
-    val properties =
-      DeviceProperties.buildForTest {
-        model = "glasses"
-        deviceType = DeviceType.AI_GLASSES
-        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-        pairedPhoneId = DeviceId("Fake", false, "phone1")
-      }
+    val properties = DeviceProperties.buildForTest {
+      model = "glasses"
+      deviceType = DeviceType.AI_GLASSES
+      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      pairedPhoneId = DeviceId("Fake", false, "phone1")
+    }
     FakeDeviceHandle(this, FakeDeviceTemplate(properties), properties)
   }
 

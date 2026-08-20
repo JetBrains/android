@@ -37,21 +37,20 @@ private constructor(
   androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent(),
   private val wizardUiContext: WizardUiContext,
 ) : ChooseGalleryItemStep(renderModel, formFactor, moduleTemplates, activityGalleryStepMessageKeys, "Empty Activity", androidSdkInfo) {
-  override val templateRenderers: List<TemplateRenderer> =
-    sequence {
-        if (isNewModule) {
-          yield(NewTemplateRenderer(Template.NoActivity))
-        }
-        val rendererStrategy = renderModel.templateRendererStrategy.valueOrNull
-        yieldAll(
-          TemplateResolver.getAllTemplates()
-            .filter { wizardUiContext in it.uiContexts }
-            .filter { formFactor.toTemplateFormFactor() == it.formFactor }
-            .filter { rendererStrategy == null || rendererStrategy.isTemplateApplicable(it) }
-            .map(::NewTemplateRenderer)
-        )
-      }
-      .toList()
+  override val templateRenderers: List<TemplateRenderer> = sequence {
+    if (isNewModule) {
+      yield(NewTemplateRenderer(Template.NoActivity))
+    }
+    val rendererStrategy = renderModel.templateRendererStrategy.valueOrNull
+    yieldAll(
+      TemplateResolver.getAllTemplates()
+        .filter { wizardUiContext in it.uiContexts }
+        .filter { formFactor.toTemplateFormFactor() == it.formFactor }
+        .filter { rendererStrategy == null || rendererStrategy.isTemplateApplicable(it) }
+        .map(::NewTemplateRenderer)
+    )
+  }
+    .toList()
 
   companion object Factory {
     fun forNewModule(

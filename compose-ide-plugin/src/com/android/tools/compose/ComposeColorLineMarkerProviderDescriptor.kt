@@ -187,46 +187,46 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
     return when (constructorType) {
       ComposeColorConstructor.INT,
       ComposeColorConstructor.LONG -> { color: Color ->
-          val valueArgumentList = ktCallExpression.valueArgumentList
-          if (valueArgumentList != null) {
-            val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
-            val hexString = "0x${String.format("%08X", color.rgb)}"
-            val argumentText = if (needsArgumentName) "(color = $hexString)" else "($hexString)"
-            valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
-          }
+        val valueArgumentList = ktCallExpression.valueArgumentList
+        if (valueArgumentList != null) {
+          val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
+          val hexString = "0x${String.format("%08X", color.rgb)}"
+          val argumentText = if (needsArgumentName) "(color = $hexString)" else "($hexString)"
+          valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
         }
+      }
       ComposeColorConstructor.INT_X3,
       ComposeColorConstructor.INT_X4 -> { color: Color ->
-          val valueArgumentList = ktCallExpression.valueArgumentList
-          if (valueArgumentList != null) {
-            val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
-            val hasHexFormat = valueArgumentList.arguments.any { it.getArgumentExpression()?.text?.startsWith("0x") ?: false }
-            val red = if (hasHexFormat) color.red.toHexString() else color.red.toString()
-            val green = if (hasHexFormat) color.green.toHexString() else color.green.toString()
-            val blue = if (hasHexFormat) color.blue.toHexString() else color.blue.toString()
-            val alpha = if (hasHexFormat) color.alpha.toHexString() else color.alpha.toString()
+        val valueArgumentList = ktCallExpression.valueArgumentList
+        if (valueArgumentList != null) {
+          val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
+          val hasHexFormat = valueArgumentList.arguments.any { it.getArgumentExpression()?.text?.startsWith("0x") ?: false }
+          val red = if (hasHexFormat) color.red.toHexString() else color.red.toString()
+          val green = if (hasHexFormat) color.green.toHexString() else color.green.toString()
+          val blue = if (hasHexFormat) color.blue.toHexString() else color.blue.toString()
+          val alpha = if (hasHexFormat) color.alpha.toHexString() else color.alpha.toString()
 
-            val argumentText =
-              if (needsArgumentName) "(red = $red, green = $green, blue = $blue, alpha = $alpha)" else "($red, $green, $blue, $alpha)"
-            valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
-          }
+          val argumentText =
+            if (needsArgumentName) "(red = $red, green = $green, blue = $blue, alpha = $alpha)" else "($red, $green, $blue, $alpha)"
+          valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
         }
+      }
       ComposeColorConstructor.FLOAT_X3,
       ComposeColorConstructor.FLOAT_X4 -> { color: Color ->
-          val valueArgumentList = ktCallExpression.valueArgumentList
-          if (valueArgumentList != null) {
-            val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
-            val red = (color.red / 255f).toRoundString()
-            val green = (color.green / 255f).toRoundString()
-            val blue = (color.blue / 255f).toRoundString()
-            val alpha = (color.alpha / 255f).toRoundString()
+        val valueArgumentList = ktCallExpression.valueArgumentList
+        if (valueArgumentList != null) {
+          val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
+          val red = (color.red / 255f).toRoundString()
+          val green = (color.green / 255f).toRoundString()
+          val blue = (color.blue / 255f).toRoundString()
+          val alpha = (color.alpha / 255f).toRoundString()
 
-            val argumentText =
-              if (needsArgumentName) "(red = ${red}f, green = ${green}f, blue = ${blue}f, alpha = ${alpha}f)"
-              else "(${red}f, ${green}f, ${blue}f, ${alpha}f)"
-            valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
-          }
+          val argumentText =
+            if (needsArgumentName) "(red = ${red}f, green = ${green}f, blue = ${blue}f, alpha = ${alpha}f)"
+            else "(${red}f, ${green}f, ${blue}f, ${alpha}f)"
+          valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
         }
+      }
       ComposeColorConstructor.FLOAT_X4_COLORSPACE -> null // TODO: support ComposeColorConstructor.FLOAT_X4_COLORSPACE in the future.
     }
   }

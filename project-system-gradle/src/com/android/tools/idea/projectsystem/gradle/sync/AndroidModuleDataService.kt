@@ -116,9 +116,11 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
       // In the case of duplicated module names, the final module name may have been updated.
       // Make sure to update the data node with the new name.
-      nodeToImport.visitData(Function<GradleAndroidModelData, GradleAndroidModelData> {
-        it.copy(moduleNameField = mainIdeModule.name)
-      })
+      nodeToImport.visitData(
+        Function<GradleAndroidModelData, GradleAndroidModelData> {
+          it.copy(moduleNameField = mainIdeModule.name)
+        }
+      )
       val gradleAndroidModelData = nodeToImport.data
       val coreModel = modelFactory(gradleAndroidModelData)
       setGradleAndroidModelFromDataNode(storage, mainIdeModule, coreModel, resolver)

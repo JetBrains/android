@@ -36,14 +36,13 @@ fun createDesignSurfaceZoomControllerFake(
   trackZoom: ((ZoomType) -> Unit)? = null,
   fitScaleProvider: () -> Double = { 1.0 },
 ): DesignSurfaceZoomController {
-  val designerAnalyticsManager =
-    trackZoom?.let {
-      object : DesignerAnalyticsManager(TestDesignSurface(project, disposable), disposable.createCoroutineScope()) {
-        override fun trackZoom(type: ZoomType) {
-          trackZoom(type)
-        }
+  val designerAnalyticsManager = trackZoom?.let {
+    object : DesignerAnalyticsManager(TestDesignSurface(project, disposable), disposable.createCoroutineScope()) {
+      override fun trackZoom(type: ZoomType) {
+        trackZoom(type)
       }
     }
+  }
   return TestDesignSurfaceZoomController(
     designerAnalyticsManager = designerAnalyticsManager,
     selectionModel = null,

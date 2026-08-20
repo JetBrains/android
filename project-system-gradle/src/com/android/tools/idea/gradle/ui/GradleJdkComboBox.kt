@@ -102,15 +102,14 @@ class GradleJdkComboBox(
     when (selectedGradleJvmReference) {
       USE_JAVA_HOME -> createJdkInfo(name = JAVA_HOME, homePath = IdeSdks.getInstance().jdkFromJavaHome)
       USE_GRADLE_LOCAL_JAVA_HOME -> createJdkInfo(name = GRADLE_LOCAL_JAVA_HOME, homePath = gradleLocalJavaHome)
-      else ->
-        runBlocking {
-            sdkLookupProvider.resolveGradleJvmInfo(
-              project = model.project,
-              projectSdk = getProjectSdk(),
-              externalProjectPath = externalProjectFile.absolutePath,
-              gradleJvm = selectedGradleJvmReference,
-            )
-          }
+      else -> runBlocking {
+          sdkLookupProvider.resolveGradleJvmInfo(
+            project = model.project,
+            projectSdk = getProjectSdk(),
+            externalProjectPath = externalProjectFile.absolutePath,
+            gradleJvm = selectedGradleJvmReference,
+          )
+        }
           .takeUnless { it == SdkLookupProvider.SdkInfo.Unresolved || it == SdkLookupProvider.SdkInfo.Undefined }
           ?: sdkLookupProvider.nonblockingResolveSdkBySdkName(selectedGradleJvmReference)
     }

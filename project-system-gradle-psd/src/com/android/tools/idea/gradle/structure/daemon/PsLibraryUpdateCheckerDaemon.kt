@@ -94,30 +94,28 @@ class PsLibraryUpdateCheckerDaemon(
     val requests = keys.filter { !existingUpdateKeys.containsKey(it) && beingSearchedKeys.add(it) }.toSet()
 
     val searcher = repositorySearchFactory.create(repositories)
-    val resultFutures =
-      runningLock.withLock {
-        if (isStopped) return@search
-        // If we passed this point, it means that [dispose] has not yet begun to cancel requests and it won't until we release the lock.
-        requests.map { key ->
-          val future = searcher.search(SearchRequest(SingleModuleSearchQuery(key.group, key.name), 1, 0))
-          runningSearches.add(future)
-          key to future
-        }
+    val resultFutures = runningLock.withLock {
+      if (isStopped) return@search
+      // If we passed this point, it means that [dispose] has not yet begun to cancel requests and it won't until we release the lock.
+      requests.map { key ->
+        val future = searcher.search(SearchRequest(SingleModuleSearchQuery(key.group, key.name), 1, 0))
+        runningSearches.add(future)
+        key to future
       }
+    }
 
     val searchResults = resultFutures.map { it.first to it.second.getResultSafely() }
 
     runningLock.withLock { runningSearches.removeAll(resultFutures.map { it.second }) }
 
-    val foundArtifacts =
-      searchResults.flatMap {
-        it.second?.artifacts?.nullize()
-          ?: run {
-            val key = it.first
-            val result = it.second
-            if (result?.errors?.isEmpty() == true) listOf(FoundArtifact("", key.group, key.name, listOf())) else listOf()
-          }
-      }
+    val foundArtifacts = searchResults.flatMap {
+      it.second?.artifacts?.nullize()
+        ?: run {
+          val key = it.first
+          val result = it.second
+          if (result?.errors?.isEmpty() == true) listOf(FoundArtifact("", key.group, key.name, listOf())) else listOf()
+        }
+    }
     searchResults.forEach { beingSearchedKeys.remove(it.first) }
     runningLock.withLock {
       // Under the lock to prevent stop/dispose from exiting while updating storage.

@@ -391,13 +391,12 @@ class CategoryTable<T : Any>(
     // Kotlin's groupBy preserving this pre-sorted order in the resulting grouped lists.
     val sortedValues = groupAndSort(values, groupByAttributes, columnSorters)
     val valuesByKey = sortedValues.associateBy { primaryKey(it) }
-    val valuesByParentKey =
-      sortedValues.groupBy { child ->
-        parentKeyProvider(child)?.takeIf { parentKey ->
-          val parent = valuesByKey[parentKey]
-          parent != null && shouldNest(child, parent) && child.shareSameCategories(parent)
-        }
+    val valuesByParentKey = sortedValues.groupBy { child ->
+      parentKeyProvider(child)?.takeIf { parentKey ->
+        val parent = valuesByKey[parentKey]
+        parent != null && shouldNest(child, parent) && child.shareSameCategories(parent)
       }
+    }
     val topLevel = valuesByParentKey[null] ?: emptyList()
 
     val depthMap = mutableMapOf<Any, Int>()

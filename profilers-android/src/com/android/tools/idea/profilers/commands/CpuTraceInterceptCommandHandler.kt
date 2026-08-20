@@ -181,12 +181,12 @@ class CpuTraceInterceptCommandHandler(val device: IDevice, private val transport
           // map the broadcast output to a key/value pair for the library.
           parseJsonMap = { jsonString: String ->
             sequence {
-                JsonReader(StringReader(jsonString)).use { reader ->
-                  reader.beginObject()
-                  while (reader.hasNext()) yield(reader.nextName() to reader.nextString())
-                  reader.endObject()
-                }
+              JsonReader(StringReader(jsonString)).use { reader ->
+                reader.beginObject()
+                while (reader.hasNext()) yield(reader.nextName() to reader.nextString())
+                reader.endObject()
               }
+            }
               .toMap()
           },
           // The library doesn't have details about communicating with a device.

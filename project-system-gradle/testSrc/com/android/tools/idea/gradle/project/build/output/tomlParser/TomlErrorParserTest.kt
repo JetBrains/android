@@ -67,11 +67,13 @@ class TomlErrorParserTest {
 
   private val service =
     object : VersionCatalogFilesModel {
-      override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
-        catalogMap.mapValues { project.basePath + "/" + it.value }
+      override fun getCatalogNameToFileMapping(project: Project): Map<String, String> = catalogMap.mapValues {
+        project.basePath + "/" + it.value
+      }
 
-      override fun getCatalogNameToFileMapping(module: Module): Map<String, String> =
-        catalogMap.mapValues { project.basePath + "/" + it.value }
+      override fun getCatalogNameToFileMapping(module: Module): Map<String, String> = catalogMap.mapValues {
+        project.basePath + "/" + it.value
+      }
     }
 
   @Before

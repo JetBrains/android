@@ -163,13 +163,12 @@ class GradleSyncStateHolder constructor(private val project: Project) {
     get() = state.get { state.isInProgress }
 
   val syncResult: ProjectSystemSyncManager.SyncResult
-    get() =
-      state.get {
-        when (state) {
-          LastSyncState.IN_PROGRESS -> stateBeforeSyncStarted.toSyncResult()
-          else -> state.toSyncResult()
-        }
+    get() = state.get {
+      when (state) {
+        LastSyncState.IN_PROGRESS -> stateBeforeSyncStarted.toSyncResult()
+        else -> state.toSyncResult()
       }
+    }
 
   private val isGradleJvmConfigurationModified: Boolean
     get() = state.get { isGradleJvmConfigurationModified }

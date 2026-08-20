@@ -36,8 +36,9 @@ private const val OPTIONAL_JAVA = "java.util.Optional"
  * a consumer can request a `Lazy<Foo>`. That consumer would be stored in the index under "Lazy", so we always need to add that value to the
  * keys being looked up.
  */
-internal fun extraIndexKeysForProvider(project: Project, scope: GlobalSearchScope) =
-  wrappingDaggerTypeSimpleNames.flatMap { listOf(it) + getAliasSimpleNames(it, project, scope) }
+internal fun extraIndexKeysForProvider(project: Project, scope: GlobalSearchScope) = wrappingDaggerTypeSimpleNames.flatMap {
+  listOf(it) + getAliasSimpleNames(it, project, scope)
+}
 
 /**
  * Dagger allows consumers to wrap a requested type with Lazy<>, Provider<>, or Provider<Lazy<>>. This method returns the type inside those

@@ -402,14 +402,13 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   }
 }
 
-private val gradleProjectSystemModuleTypeComparator: Comparator<Module> =
-  Comparator.comparingInt {
-    when {
-      it.isMainModule() -> 0
-      it.isAndroidTestModule() -> 1
-      else -> 2
-    }
+private val gradleProjectSystemModuleTypeComparator: Comparator<Module> = Comparator.comparingInt {
+  when {
+    it.isMainModule() -> 0
+    it.isAndroidTestModule() -> 1
+    else -> 2
   }
+}
 
 fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   val all =

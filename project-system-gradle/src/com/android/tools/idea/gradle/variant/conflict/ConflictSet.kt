@@ -127,14 +127,13 @@ data class DependencyVariantConflict(val dependencyName: String, val expectedVar
 fun Module.variantConflictMessage(conflicts: ImmutableList<Conflict>): String {
   val affectedModules =
     conflicts.flatMap { conflict -> conflict.affectedModules }.filter { affectedModule -> affectedModule.target.name == this.name }
-  val dependenciesVariantConflict =
-    affectedModules.map { affectedModule ->
-      DependencyVariantConflict(
-        affectedModule.conflict.source.displayName,
-        affectedModule.expectedVariant,
-        affectedModule.conflict.selectedVariant,
-      )
-    }
+  val dependenciesVariantConflict = affectedModules.map { affectedModule ->
+    DependencyVariantConflict(
+      affectedModule.conflict.source.displayName,
+      affectedModule.expectedVariant,
+      affectedModule.conflict.selectedVariant,
+    )
+  }
 
   return buildString {
     append("Only a single variant of a Android Gradle project can be loaded at a time in Android Studio.<br>")

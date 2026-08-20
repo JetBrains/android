@@ -59,8 +59,9 @@ fun verifyDeviceStateReflected(sourceConfig: Configuration, modelsToVerify: Coll
 
   for (state in device.allStates) {
     val stateName = state.name
-    val configsShouldResponse =
-      configsToVerify.filter { it.device?.allStates?.map { deviceState -> deviceState.name }?.contains(stateName) ?: false }
+    val configsShouldResponse = configsToVerify.filter {
+      it.device?.allStates?.map { deviceState -> deviceState.name }?.contains(stateName) ?: false
+    }
 
     val currentStateNames = configsToVerify.associateWith { it.deviceState?.name }
     sourceConfig.deviceState = state

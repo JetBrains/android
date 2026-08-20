@@ -55,8 +55,9 @@ class VersionCatalogFindKtsUsagesTest {
 
       override fun getCatalogNameToFileMapping(project: Project): Map<String, String> = map.mapValues { project.basePath + "/" + it.value }
 
-      override fun getCatalogNameToFileMapping(module: Module): Map<String, String> =
-        map.mapValues { module.project.basePath + "/" + it.value }
+      override fun getCatalogNameToFileMapping(module: Module): Map<String, String> = map.mapValues {
+        module.project.basePath + "/" + it.value
+      }
     }
 
   @Before

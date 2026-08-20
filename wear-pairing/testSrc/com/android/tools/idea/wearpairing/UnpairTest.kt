@@ -68,21 +68,20 @@ class UnpairTest {
   fun unpairPixelDevice() = runBlocking {
     var clearedCompanion = false
     val unexpectedAdbRequests = mutableListOf<String>()
-    val phoneIDevice =
-      phoneDevice.buildIDevice { request ->
-        return@buildIDevice handlePhoneAdbRequest(request)
-          ?: when {
-            request.contains("settings get secure") -> PIXEL_COMPANION_APP_ID
-            request == "pm clear com.google.android.apps.wear.companion" -> {
-              clearedCompanion = true
-              "OK"
-            }
-            else -> {
-              unexpectedAdbRequests.add("PHONE $request")
-              throw IllegalStateException("Unknown executeShellCommand request $request")
-            }
+    val phoneIDevice = phoneDevice.buildIDevice { request ->
+      return@buildIDevice handlePhoneAdbRequest(request)
+        ?: when {
+          request.contains("settings get secure") -> PIXEL_COMPANION_APP_ID
+          request == "pm clear com.google.android.apps.wear.companion" -> {
+            clearedCompanion = true
+            "OK"
           }
-      }
+          else -> {
+            unexpectedAdbRequests.add("PHONE $request")
+            throw IllegalStateException("Unknown executeShellCommand request $request")
+          }
+        }
+    }
 
     val wearIDevice =
       wearDevice.buildIDevice(avdInfo = avdWearInfo, systemProperties = mapOf("ro.oem.companion_package" to "")) { request ->
@@ -107,14 +106,13 @@ class UnpairTest {
   @Test
   fun unpairNonPixelDevice() = runBlocking {
     val unexpectedAdbRequests = mutableListOf<String>()
-    val phoneIDevice =
-      phoneDevice.buildIDevice { request ->
-        return@buildIDevice handlePhoneAdbRequest(request)
-          ?: run {
-            unexpectedAdbRequests.add("PHONE $request")
-            throw IllegalStateException("Unknown executeShellCommand request $request")
-          }
-      }
+    val phoneIDevice = phoneDevice.buildIDevice { request ->
+      return@buildIDevice handlePhoneAdbRequest(request)
+        ?: run {
+          unexpectedAdbRequests.add("PHONE $request")
+          throw IllegalStateException("Unknown executeShellCommand request $request")
+        }
+    }
 
     val wearIDevice =
       wearDevice.buildIDevice(avdInfo = avdWearInfo, systemProperties = mapOf("ro.oem.companion_package" to "")) { request ->

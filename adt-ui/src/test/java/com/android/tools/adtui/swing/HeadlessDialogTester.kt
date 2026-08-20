@@ -122,32 +122,31 @@ private fun createModalDialogAndInteractWithIt(
   val dialogClosed = CountDownLatch(1)
   var dialogShown = false
 
-  val futureTask =
-    ListenableFutureTask.create {
-      modalityChangeLock.lock()
-      try {
-        while (true) {
-          if (modalDialogStack.size == modalDepth) {
-            dialogShown = true
-            val dialog = modalDialogStack.last()
-            EventQueue.invokeLater {
-              try {
-                dialogInteractor(dialog)
-              } finally {
-                if (dialog.isShowing) {
-                  dialog.close(CANCEL_EXIT_CODE)
-                }
-                dialogClosed.countDown()
+  val futureTask = ListenableFutureTask.create {
+    modalityChangeLock.lock()
+    try {
+      while (true) {
+        if (modalDialogStack.size == modalDepth) {
+          dialogShown = true
+          val dialog = modalDialogStack.last()
+          EventQueue.invokeLater {
+            try {
+              dialogInteractor(dialog)
+            } finally {
+              if (dialog.isShowing) {
+                dialog.close(CANCEL_EXIT_CODE)
               }
+              dialogClosed.countDown()
             }
-            break
           }
-          modalityChangeCondition.await()
+          break
         }
-      } finally {
-        modalityChangeLock.unlock()
+        modalityChangeCondition.await()
       }
+    } finally {
+      modalityChangeLock.unlock()
     }
+  }
   getApplication().executeOnPooledThread(futureTask)
 
   try {

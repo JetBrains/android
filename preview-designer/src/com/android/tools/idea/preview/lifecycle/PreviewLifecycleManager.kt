@@ -101,54 +101,51 @@ private constructor(
   @GuardedBy("activationLock") private var isFirstActivation = true
 
   /** The user should call this to indicate that the parent was activated. */
-  fun activate(): Unit =
-    activationLock.withLock {
-      if (isActive.get()) return
+  fun activate(): Unit = activationLock.withLock {
+    if (isActive.get()) return
 
-      activationScope?.cancel()
-      val scope = parentScope.createChildScope(true)
-      activationScope = scope
+    activationScope?.cancel()
+    val scope = parentScope.createChildScope(true)
+    activationScope = scope
 
-      isActive.set(true)
-      if (isFirstActivation) {
-        isFirstActivation = false
-        scope.onInitActivate()
-      } else {
-        scope.onResumeActivate()
-      }
+    isActive.set(true)
+    if (isFirstActivation) {
+      isFirstActivation = false
+      scope.onInitActivate()
+    } else {
+      scope.onResumeActivate()
     }
+  }
 
   fun isActive() = isActive.get()
 
-  private fun delayedDeactivate() =
-    activationLock.withLock {
-      if (!isActive.get()) {
-        onDelayedDeactivate()
-      }
+  private fun delayedDeactivate() = activationLock.withLock {
+    if (!isActive.get()) {
+      onDelayedDeactivate()
     }
+  }
 
   /**
    * The user should call this to indicate that the parent was deactivated. If [deactivateImmediately] is false, part of the deactivation
    * might run later, allowing for a quicker re-activation.
    */
-  private fun deactivate(deactivateImmediately: Boolean = false): Unit =
-    activationLock.withLock {
-      if (!isActive.get()) return
+  private fun deactivate(deactivateImmediately: Boolean = false): Unit = activationLock.withLock {
+    if (!isActive.get()) return
 
-      activationScope?.cancel()
-      activationScope = null
-      isActive.set(false)
+    activationScope?.cancel()
+    activationScope = null
+    isActive.set(false)
 
-      onDeactivate()
+    onDeactivate()
 
-      if (deactivateImmediately || PreviewEssentialsModeManager.isEssentialsModeEnabled) {
-        // When in essentials mode or if deactivateImmediately, deactivate immediately to free
-        // resources.
-        onDelayedDeactivate()
-      } else {
-        scheduleDelayed(scopeDisposable, this::delayedDeactivate)
-      }
+    if (deactivateImmediately || PreviewEssentialsModeManager.isEssentialsModeEnabled) {
+      // When in essentials mode or if deactivateImmediately, deactivate immediately to free
+      // resources.
+      onDelayedDeactivate()
+    } else {
+      scheduleDelayed(scopeDisposable, this::delayedDeactivate)
     }
+  }
 
   /**
    * Call this method to indicate that the parent is being deactivated. The full deactivation might be delayed allowing for a quick

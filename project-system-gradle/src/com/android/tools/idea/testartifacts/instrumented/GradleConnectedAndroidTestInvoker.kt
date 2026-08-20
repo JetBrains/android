@@ -102,11 +102,10 @@ class GradleConnectedAndroidTestInvoker(
   ) {
     androidTestSuiteView.println("Running tests")
 
-    val adapters =
-      devices.associate {
-        val adapter = gradleTestResultAdapterFactory(it, taskId, gradleAndroidModel.getArtifactForAndroidTest(), androidTestSuiteView)
-        adapter.device.id to adapter
-      }
+    val adapters = devices.associate {
+      val adapter = gradleTestResultAdapterFactory(it, taskId, gradleAndroidModel.getArtifactForAndroidTest(), androidTestSuiteView)
+      adapter.device.id to adapter
+    }
 
     val path: File = Projects.getBaseDirPath(project)
     val taskNames: List<String> = getTaskNames(gradleAndroidModel)

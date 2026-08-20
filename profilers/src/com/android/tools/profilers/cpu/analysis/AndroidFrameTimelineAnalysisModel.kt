@@ -78,8 +78,9 @@ object AndroidFrameTimelineAnalysisModel {
     )
 
   private fun lifeCycleDurationIndex(layers: List<TraceProcessor.AndroidFrameEventsResult.Layer>): (Long, Phase) -> Long {
-    fun cache(cache: MutableMap<Long, Long>, events: List<TraceProcessor.AndroidFrameEventsResult.FrameEvent>) =
-      events.forEach { cache[it.frameNumber.toLong()] = TimeUnit.NANOSECONDS.toMicros(it.durationNanoseconds) }
+    fun cache(cache: MutableMap<Long, Long>, events: List<TraceProcessor.AndroidFrameEventsResult.FrameEvent>) = events.forEach {
+      cache[it.frameNumber.toLong()] = TimeUnit.NANOSECONDS.toMicros(it.durationNanoseconds)
+    }
     val appCache = mutableMapOf<Long, Long>()
     val gpuCache = mutableMapOf<Long, Long>()
     val compCache = mutableMapOf<Long, Long>()

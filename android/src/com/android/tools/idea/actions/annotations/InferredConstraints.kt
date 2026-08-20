@@ -739,12 +739,11 @@ private constructor(
           is PsiAnnotationOwner -> element.annotations.mapNotNull { UastFacade.convertElement(it, null) as? UAnnotation }.toList()
           else -> evaluator.getAllAnnotations(annotated, false)
         }
-      val ignore =
-        annotations.any {
-          val qualifiedName = it.qualifiedName
-          (qualifiedName == KOTLIN_SUPPRESS || qualifiedName == "java.lang.SuppressWarnings") &&
-            it.sourcePsi?.text?.contains("InferAnnotations") == true
-        }
+      val ignore = annotations.any {
+        val qualifiedName = it.qualifiedName
+        (qualifiedName == KOTLIN_SUPPRESS || qualifiedName == "java.lang.SuppressWarnings") &&
+          it.sourcePsi?.text?.contains("InferAnnotations") == true
+      }
       // TODO: Consider looking up @RestrictTo annotations and taking that into consideration for public-ness as well
       val readOnly = inferrer.settings.publicOnly && !isPublic(annotated, element)
       return create(inferrer, element, annotations, readOnly, ignore = ignore)

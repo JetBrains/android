@@ -169,8 +169,9 @@ constructor(
       .awaitAll()
 
     val appExecutorService = AppExecutorUtil.getAppExecutorService()
-    val futures =
-      devices.map { Futures.submit({ getApplicationLaunchTask(testPackageName).run(it, console, processHandler) }, appExecutorService) }
+    val futures = devices.map {
+      Futures.submit({ getApplicationLaunchTask(testPackageName).run(it, console, processHandler) }, appExecutorService)
+    }
     Futures.whenAllComplete(futures).call({ processHandler.detachProcess() }, appExecutorService)
   }
 

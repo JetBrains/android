@@ -83,12 +83,11 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
       }
       val modelPsiElement = model.psiElement ?: return@model
       val moduleDirectory = model.moduleRootDirectory
-      val manifestValue =
-        moduleDirectory.computeExtractNativeLibsWith { attribute ->
-          val wrappedPsiElement = WrappedPsiElement(attribute, this, REMOVE_MANIFEST_EXTRACT_NATIVE_LIBS)
-          val usageInfo = AndroidManifestExtractNativeLibsInfo(wrappedPsiElement)
-          usages.add(usageInfo)
-        }
+      val manifestValue = moduleDirectory.computeExtractNativeLibsWith { attribute ->
+        val wrappedPsiElement = WrappedPsiElement(attribute, this, REMOVE_MANIFEST_EXTRACT_NATIVE_LIBS)
+        val usageInfo = AndroidManifestExtractNativeLibsInfo(wrappedPsiElement)
+        usages.add(usageInfo)
+      }
       manifestValue?.let {
         if (model.android().packaging().jniLibs().useLegacyPackaging().valueType != GradlePropertyModel.ValueType.NONE) return@let
         val psiElement =

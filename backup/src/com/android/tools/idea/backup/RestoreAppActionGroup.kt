@@ -59,9 +59,9 @@ internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = Ac
     val project = e?.project ?: return emptyArray()
     val files = BackupFileHistory(project).getFileHistory()
     return buildList {
-        add(RestoreAppAction(Browse))
-        files.forEach { add(RestoreAppAction(File(Path.of(it)))) }
-      }
+      add(RestoreAppAction(Browse))
+      files.forEach { add(RestoreAppAction(File(Path.of(it)))) }
+    }
       .toTypedArray()
   }
 

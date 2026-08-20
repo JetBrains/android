@@ -73,7 +73,10 @@ class SdkComponentsStepTest {
       SdkComponentCategoryTreeNode(
         "Root",
         "Root node that is not supposed to appear in the UI",
-        listOf(FakeOptionalInstallableSdkComponent("Optional component"), FakeOptionalInstallableSdkComponent("Another optional component")),
+        listOf(
+          FakeOptionalInstallableSdkComponent("Optional component"),
+          FakeOptionalInstallableSdkComponent("Another optional component"),
+        ),
       )
     whenever(model.componentTree).thenReturn(root)
   }

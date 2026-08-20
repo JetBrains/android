@@ -174,11 +174,10 @@ private fun rememberMostInViewItemIndex(listState: LazyListState, itemCount: Int
         val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
 
         // Find the item whose center is closest to the viewport center
-        val closestItem =
-          visibleItemsInfo.minByOrNull { itemInfo ->
-            val itemCenter = itemInfo.offset + itemInfo.size / 2
-            abs(itemCenter - viewportCenter)
-          }
+        val closestItem = visibleItemsInfo.minByOrNull { itemInfo ->
+          val itemCenter = itemInfo.offset + itemInfo.size / 2
+          abs(itemCenter - viewportCenter)
+        }
 
         closestItem?.index ?: listState.firstVisibleItemIndex.coerceIn(0, itemCount - 1)
       }

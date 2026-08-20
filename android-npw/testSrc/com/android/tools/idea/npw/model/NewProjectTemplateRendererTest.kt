@@ -245,8 +245,11 @@ class NewProjectTemplateRendererTest {
   }
 
   private fun withGradleSettings(action: StringBuilder.() -> Unit) {
-    val gradleSettings =
-      runReadActionBlocking { getTopLevelBuildScriptSettingsPsiFile(projectRule.project, projectBasePath) }?.virtualFile?.toIoFile()
+    val gradleSettings = runReadActionBlocking {
+      getTopLevelBuildScriptSettingsPsiFile(projectRule.project, projectBasePath)
+    }
+      ?.virtualFile
+      ?.toIoFile()
     val gradleSettingsBuilder = StringBuilder(gradleSettings!!.readText())
 
     action.invoke(gradleSettingsBuilder)

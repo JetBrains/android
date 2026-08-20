@@ -43,8 +43,10 @@ object ProjectIdeaConfigFilesUtils {
     """
       .trimMargin()
 
-  private fun buildGradleSettings(gradleRoots: List<GradleRoot>) =
-    buildString { gradleRoots.forEach { appendLine(buildGradleSettings(it)) } }.trim()
+  private fun buildGradleSettings(gradleRoots: List<GradleRoot>) = buildString {
+    gradleRoots.forEach { appendLine(buildGradleSettings(it)) }
+  }
+    .trim()
 
   private fun buildGradleSettings(gradleRoot: GradleRoot) =
     """
@@ -71,10 +73,9 @@ object ProjectIdeaConfigFilesUtils {
     """
       .trimIndent()
 
-  private fun buildProjectModulesListXml(modules: List<String>) =
-    buildString {
-        appendLine("<option value=\"$PROJECT_DIR\" />")
-        modules.forEach { appendLine("<option value=\"${getProjectPath(it)}\" />") }
-      }
-      .trim()
+  private fun buildProjectModulesListXml(modules: List<String>) = buildString {
+    appendLine("<option value=\"$PROJECT_DIR\" />")
+    modules.forEach { appendLine("<option value=\"${getProjectPath(it)}\" />") }
+  }
+    .trim()
 }

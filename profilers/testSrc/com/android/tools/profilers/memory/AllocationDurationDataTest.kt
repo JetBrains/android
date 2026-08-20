@@ -35,16 +35,15 @@ class AllocationDurationDataTest {
 
     val allocSeries = DataSeries.using { listOf(makeAllocData(1), makeAllocData(3)) }
 
-    val samplingSeries =
-      DataSeries.using {
-        listOf(
-          makeSamplingData(1, 1, FULL),
-          makeSamplingData(2, 1, NONE),
-          makeSamplingData(3, 1, SAMPLED),
-          makeSamplingData(4, 2, FULL),
-          makeSamplingData(6, 1, NONE),
-        )
-      }
+    val samplingSeries = DataSeries.using {
+      listOf(
+        makeSamplingData(1, 1, FULL),
+        makeSamplingData(2, 1, NONE),
+        makeSamplingData(3, 1, SAMPLED),
+        makeSamplingData(4, 2, FULL),
+        makeSamplingData(6, 1, NONE),
+      )
+    }
 
     val model = AllocationDurationData.makeModel(viewRange, dataRange, allocSeries, samplingSeries)
     model.series.series.let { series ->

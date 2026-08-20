@@ -27,15 +27,11 @@ class CurrentFocusedAppProvider {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
     val adbLibService = AdbLibService.getInstance(project)
 
-    val shellOutput =
-      adbLibService.session.deviceServices.shellAsText(deviceSelector, FOCUSED_APP_COMMAND)
+    val shellOutput = adbLibService.session.deviceServices.shellAsText(deviceSelector, FOCUSED_APP_COMMAND)
 
     if (shellOutput.exitCode != 0) {
       return "$FOCUSED_APP_COMMAND failed with exit code ${shellOutput.exitCode}. ${shellOutput.stderr}"
     }
-    return shellOutput.stdout
-      .lines()
-      .filter { it.contains("mCurrentFocus") || it.contains("mFocusedApp") }
-      .joinToString("\n")
+    return shellOutput.stdout.lines().filter { it.contains("mCurrentFocus") || it.contains("mFocusedApp") }.joinToString("\n")
   }
 }

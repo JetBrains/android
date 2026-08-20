@@ -37,9 +37,12 @@ import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPlu
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
-class AddJavaToolchainDefinition(project: Project, private val gradleRootPath: @SystemIndependent String?,
-  private val versionToSet: Int, private val modules: List<Module>) :
-  BaseRefactoringProcessor(project) {
+class AddJavaToolchainDefinition(
+  project: Project,
+  private val gradleRootPath: @SystemIndependent String?,
+  private val versionToSet: Int,
+  private val modules: List<Module>,
+) : BaseRefactoringProcessor(project) {
   private val projectBuildModel = ProjectBuildModel.get(myProject)
 
   protected override fun findUsages(): Array<UsageInfo> {
@@ -138,8 +141,8 @@ class AddJavaToolchainDefinition(project: Project, private val gradleRootPath: @
   private class AddPluginUsageInfo(
     psiElement: PsiElement,
     val projectBuildModel: ProjectBuildModel,
-    private val gradleRootPath: @SystemIndependent String?
-    ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
+    private val gradleRootPath: @SystemIndependent String?,
+  ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
       PluginsHelper.withModel(projectBuildModel)
         .applySettingsPlugin(FOOJAY_RESOLVER_CONVENTION_NAME, getFoojayPluginVersion(getGradleVersion()))

@@ -112,11 +112,10 @@ class PhasedSyncVariantNameResolutionTest {
     // Setup: lib3 is the switch target.
     setSwitchVariantRequest(":lib3", "")
 
-    val nodes =
-      projects.map { project ->
-        val params = createMocksForProject(project)
-        ProjectNode(project.moduleId, params.basicGradleProject.moduleId(), project.projectType, project.dependencies)
-      }
+    val nodes = projects.map { project ->
+      val params = createMocksForProject(project)
+      ProjectNode(project.moduleId, params.basicGradleProject.moduleId(), project.projectType, project.dependencies)
+    }
 
     val sortedBatches = sortProjectsByPriority(nodes, { it }, syncOptions)
 
@@ -858,15 +857,14 @@ class PhasedSyncVariantNameResolutionTest {
         ),
       )
 
-    val nodes =
-      projects.map { project ->
-        ProjectNode(
-          path = project.moduleId,
-          moduleId = project.moduleId,
-          projectType = project.projectType,
-          outgoingDependencies = project.dependencies,
-        )
-      }
+    val nodes = projects.map { project ->
+      ProjectNode(
+        path = project.moduleId,
+        moduleId = project.moduleId,
+        projectType = project.projectType,
+        outgoingDependencies = project.dependencies,
+      )
+    }
 
     // This should not throw or loop infinitely
     val sortedBatches = sortProjectsByPriority(nodes, { it }, syncOptions)
@@ -950,7 +948,8 @@ class PhasedSyncVariantNameResolutionTest {
           dependencies = emptyList(),
           defaultVariant = "debug",
           variants = listOf("debug", "release", "qa"),
-          buildTypes = listOf(TestAndroidBuildType("debug"), TestAndroidBuildType("release"), TestAndroidBuildType("qa", listOf("release"))),
+          buildTypes =
+            listOf(TestAndroidBuildType("debug"), TestAndroidBuildType("release"), TestAndroidBuildType("qa", listOf("release"))),
         ),
         ProjectSetup(
           moduleId = ":lib1",
@@ -1172,18 +1171,17 @@ class PhasedSyncVariantNameResolutionTest {
       )
 
     val projects = setup.map { createMocksForProject(it) }
-    val projectsWithNodes =
-      projects.map { params ->
-        params.basicGradleProject to
-          ProjectNode(
-            path = params.basicGradleProject.path,
-            moduleId = params.basicGradleProject.path,
-            projectType =
-              if (params.basicGradleProject.path == ":app") IdeAndroidProjectType.PROJECT_TYPE_APP
-              else IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
-            outgoingDependencies = setup.first { it.moduleId == params.basicGradleProject.path }.dependencies,
-          )
-      }
+    val projectsWithNodes = projects.map { params ->
+      params.basicGradleProject to
+        ProjectNode(
+          path = params.basicGradleProject.path,
+          moduleId = params.basicGradleProject.path,
+          projectType =
+            if (params.basicGradleProject.path == ":app") IdeAndroidProjectType.PROJECT_TYPE_APP
+            else IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+          outgoingDependencies = setup.first { it.moduleId == params.basicGradleProject.path }.dependencies,
+        )
+    }
 
     val batches = sortProjectsByPriority(projectsWithNodes, { it.second }, syncOptions)
 
@@ -1239,29 +1237,28 @@ class PhasedSyncVariantNameResolutionTest {
   }
 
   private fun sortProjectsAndGetSelectedVariants(projectsSetups: List<ProjectSetup>): Map<String, String> {
-    val projectDataList =
-      projectsSetups.map { projectSetup ->
-        val projectParamsMock = createMocksForProject(projectSetup)
-        val androidProjectData =
-          AndroidProjectData(
-            versions = Mockito.mock(Versions::class.java),
-            modelVersions = projectParamsMock.modelVersions,
-            basicAndroidProject = projectParamsMock.basicAndroidProject,
-            androidProject = projectParamsMock.androidProject,
-            androidDsl = projectParamsMock.androidDsl,
-            declaredDependencies = projectParamsMock.declaredDependencies,
-            gradlePluginModel = Mockito.mock(GradlePluginModel::class.java),
-            gradleTaskModel = Mockito.mock(GradleTaskModel::class.java),
-            ideAndroidProject =
-              Mockito.mock(IdeAndroidProjectImpl::class.java).apply { whenever(projectType).thenReturn(projectSetup.projectType) },
-            selectedVariantName =
-              switchVariantRequest.takeIf { it.moduleId == projectParamsMock.basicGradleProject.moduleId() }?.variantName
-                ?: projectSetup.defaultVariant,
-            shouldSkipRuntimeClassPathForLibraries = false,
-            legacyAndroidGradlePluginProperties = projectParamsMock.legacyAndroidGradlePluginPropertiesImpl,
-          )
-        projectParamsMock.basicGradleProject to androidProjectData
-      }
+    val projectDataList = projectsSetups.map { projectSetup ->
+      val projectParamsMock = createMocksForProject(projectSetup)
+      val androidProjectData =
+        AndroidProjectData(
+          versions = Mockito.mock(Versions::class.java),
+          modelVersions = projectParamsMock.modelVersions,
+          basicAndroidProject = projectParamsMock.basicAndroidProject,
+          androidProject = projectParamsMock.androidProject,
+          androidDsl = projectParamsMock.androidDsl,
+          declaredDependencies = projectParamsMock.declaredDependencies,
+          gradlePluginModel = Mockito.mock(GradlePluginModel::class.java),
+          gradleTaskModel = Mockito.mock(GradleTaskModel::class.java),
+          ideAndroidProject =
+            Mockito.mock(IdeAndroidProjectImpl::class.java).apply { whenever(projectType).thenReturn(projectSetup.projectType) },
+          selectedVariantName =
+            switchVariantRequest.takeIf { it.moduleId == projectParamsMock.basicGradleProject.moduleId() }?.variantName
+              ?: projectSetup.defaultVariant,
+          shouldSkipRuntimeClassPathForLibraries = false,
+          legacyAndroidGradlePluginProperties = projectParamsMock.legacyAndroidGradlePluginPropertiesImpl,
+        )
+      projectParamsMock.basicGradleProject to androidProjectData
+    }
 
     val cachedModels = ModelProviderCachedData(disableLegacyModelProvidersForSupportedProjects = false)
 

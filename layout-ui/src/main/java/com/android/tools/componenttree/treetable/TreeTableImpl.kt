@@ -473,14 +473,13 @@ class TreeTableImpl(
           val item = model.getValueAt(cell.row, cell.column)
           val renderer = getCellRenderer(cell.row, cell.column)
           val cellRenderer = renderer.getTableCellRendererComponent(this@TreeTableImpl, item, false, false, cell.row, cell.column)
-          val childCursor =
-            cellRenderer?.let { cellComponent ->
-              val rect = getCellRect(cell.row, cell.column, true)
-              cellComponent.bounds = rect
-              TreeWalker(cellComponent).descendantStream().forEach { it.doLayout() }
-              val component = SwingUtilities.getDeepestComponentAt(cellComponent, event.x - rect.x, event.y - rect.y)
-              component?.cursor
-            }
+          val childCursor = cellRenderer?.let { cellComponent ->
+            val rect = getCellRect(cell.row, cell.column, true)
+            cellComponent.bounds = rect
+            TreeWalker(cellComponent).descendantStream().forEach { it.doLayout() }
+            val component = SwingUtilities.getDeepestComponentAt(cellComponent, event.x - rect.x, event.y - rect.y)
+            component?.cursor
+          }
           childCursor ?: Cursor.getDefaultCursor()
         }
     }

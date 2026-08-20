@@ -156,8 +156,10 @@ internal suspend fun TestScope.runWithSingleFakeDevice(block: suspend SingleFake
   fixture.handleScope.cancel()
 }
 
-internal fun UsageTrackerRule.deviceManagerEvents(): List<AndroidStudioEvent> =
-  usages.mapNotNull { it.studioEvent.takeIf { it.kind == AndroidStudioEvent.EventKind.DEVICE_MANAGER } }
+internal fun UsageTrackerRule.deviceManagerEvents(): List<AndroidStudioEvent> = usages.mapNotNull {
+  it.studioEvent.takeIf { it.kind == AndroidStudioEvent.EventKind.DEVICE_MANAGER }
+}
 
-fun UsageTrackerRule.deviceManagerEventKinds() =
-  usages.mapNotNull { it.studioEvent.deviceManagerEvent.kind.takeIf { it != DeviceManagerEvent.EventKind.UNSPECIFIED } }
+fun UsageTrackerRule.deviceManagerEventKinds() = usages.mapNotNull {
+  it.studioEvent.deviceManagerEvent.kind.takeIf { it != DeviceManagerEvent.EventKind.UNSPECIFIED }
+}

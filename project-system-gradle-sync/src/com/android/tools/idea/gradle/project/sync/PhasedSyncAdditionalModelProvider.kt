@@ -35,14 +35,13 @@ class PhasedSyncAdditionalModelProvider(val cachedModels: ModelProviderCachedDat
     if (cachedModels.shouldRunLegacyModelProviders) {
       return
     }
-    val actions =
-      buildModels.flatMap { buildModel ->
-        buildModel.projects.mapNotNull { gradleProject ->
-          BuildAction { controller ->
-            gradleProject to controller.fetchModel<KotlinGradleModel>(gradleProject, cachedModels.data[gradleProject]?.selectedVariantName)
-          }
+    val actions = buildModels.flatMap { buildModel ->
+      buildModel.projects.mapNotNull { gradleProject ->
+        BuildAction { controller ->
+          gradleProject to controller.fetchModel<KotlinGradleModel>(gradleProject, cachedModels.data[gradleProject]?.selectedVariantName)
         }
       }
+    }
 
     controller.run(actions).filterNotNull().forEach { (gradleProject, kotlinModel) ->
       kotlinModel?.let { modelConsumer.consumeProjectModel(gradleProject, it, KotlinGradleModel::class.java) }

@@ -422,8 +422,8 @@ private class CustomImpl(private val _directoryUrls: Sequence<String>) : IdeaSou
 private fun Sequence<String>.toVirtualFiles(): Iterable<VirtualFile> {
   val fileManager = VirtualFileManager.getInstance()
   return mapNotNull {
-      ProgressManager.checkCanceled()
-      fileManager.findFileByUrl(it)
-    }
+    ProgressManager.checkCanceled()
+    fileManager.findFileByUrl(it)
+  }
     .asIterable()
 }

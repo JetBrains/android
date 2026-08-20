@@ -41,8 +41,7 @@ class CpuThreadAnalysisEventsTabModel(captureRange: Range) : CpuAnalysisEventsTa
 class CaptureNodeAnalysisEventsTabModel(captureRange: Range) : CpuAnalysisEventsTabModel<CaptureNodeAnalysisModel>(captureRange) {
 
   /** @return all occurrences of this node in the current thread. */
-  override fun getNodes() =
-    dataSeries.flatMap {
-      it.node.findRootNode().descendantsStream.filter { child -> child.data.fullName == it.node.data.fullName }.toList()
-    }
+  override fun getNodes() = dataSeries.flatMap {
+    it.node.findRootNode().descendantsStream.filter { child -> child.data.fullName == it.node.data.fullName }.toList()
+  }
 }

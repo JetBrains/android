@@ -19,41 +19,40 @@ object ArgumentUtils {
     data: NavXmlData,
     modulePackage: String,
     adjustArgumentsWithDefaults: Boolean = false,
-  ): List<NavActionData> =
-    actions.map { action ->
-      if (action.destination == null) {
-        return@map if (action.popUpTo == null) {
-          // No destination, no popUpTo: nothing we can do to resolve this, return untouched.
-          action
-        } else {
-          // No destination, but has popUpTo: No args are supposed to be passed to this action.
-          object : NavActionData by action {
-            override val arguments: List<NavArgumentData> = emptyList()
-          }
+  ): List<NavActionData> = actions.map { action ->
+    if (action.destination == null) {
+      return@map if (action.popUpTo == null) {
+        // No destination, no popUpTo: nothing we can do to resolve this, return untouched.
+        action
+      } else {
+        // No destination, but has popUpTo: No args are supposed to be passed to this action.
+        object : NavActionData by action {
+          override val arguments: List<NavArgumentData> = emptyList()
         }
-      }
-
-      val argsFromTargetDestination = action.getTargetDestination(data)?.arguments.orEmpty()
-
-      val resolvedArguments =
-        (action.arguments + argsFromTargetDestination)
-          .groupBy { it.name }
-          .map { entry ->
-            if (entry.value.size > 1) checkArguments(entry, modulePackage)
-            entry.value.first()
-          }
-
-      val adjustedArguments =
-        if (adjustArgumentsWithDefaults) {
-          resolvedArguments.sortedBy { it.defaultValue != null }
-        } else {
-          resolvedArguments
-        }
-
-      return@map object : NavActionData by action {
-        override val arguments: List<NavArgumentData> = adjustedArguments
       }
     }
+
+    val argsFromTargetDestination = action.getTargetDestination(data)?.arguments.orEmpty()
+
+    val resolvedArguments =
+      (action.arguments + argsFromTargetDestination)
+        .groupBy { it.name }
+        .map { entry ->
+          if (entry.value.size > 1) checkArguments(entry, modulePackage)
+          entry.value.first()
+        }
+
+    val adjustedArguments =
+      if (adjustArgumentsWithDefaults) {
+        resolvedArguments.sortedBy { it.defaultValue != null }
+      } else {
+        resolvedArguments
+      }
+
+    return@map object : NavActionData by action {
+      override val arguments: List<NavArgumentData> = adjustedArguments
+    }
+  }
 
   /** Warn if incompatible types of argument exist. We still provide best results though it fails to compile. */
   private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>, modulePackage: String) {

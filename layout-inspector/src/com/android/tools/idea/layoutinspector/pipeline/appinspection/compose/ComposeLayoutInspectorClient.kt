@@ -433,18 +433,17 @@ class ComposeLayoutInspectorClient(
     lastGeneration = newGeneration
     launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetComposablesCommand")
-    val response =
-      messenger.sendCommand {
-        getComposablesCommand =
-          GetComposablesCommand.newBuilder()
-            .apply {
-              this.rootViewId = rootViewId
-              this.generation = lastGeneration
-              this.extractAllParameters = forSnapshot
-              this.allowEmptyIfUnchanged = allowEmptyIfUnchanged
-            }
-            .build()
-      }
+    val response = messenger.sendCommand {
+      getComposablesCommand =
+        GetComposablesCommand.newBuilder()
+          .apply {
+            this.rootViewId = rootViewId
+            this.generation = lastGeneration
+            this.extractAllParameters = forSnapshot
+            this.allowEmptyIfUnchanged = allowEmptyIfUnchanged
+          }
+          .build()
+    }
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Receiving: GetComposablesResult nodes: %d, system nodes: %d, max depth: %d") {
       response.getComposablesResponse.countNodes()
     }
@@ -454,18 +453,17 @@ class ComposeLayoutInspectorClient(
 
   suspend fun getParameters(rootViewId: Long, composableId: Long, anchorHash: Int): GetParametersResponse {
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetParametersCommand")
-    val response =
-      messenger.sendCommand {
-        getParametersCommand =
-          GetParametersCommand.newBuilder()
-            .apply {
-              this.rootViewId = rootViewId
-              this.composableId = composableId
-              this.anchorHash = anchorHash
-              generation = lastGeneration
-            }
-            .build()
-      }
+    val response = messenger.sendCommand {
+      getParametersCommand =
+        GetParametersCommand.newBuilder()
+          .apply {
+            this.rootViewId = rootViewId
+            this.composableId = composableId
+            this.anchorHash = anchorHash
+            generation = lastGeneration
+          }
+          .build()
+    }
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Receiving: GetParametersResponse parameters: %d") {
       arrayOf(response.getParametersResponse.parameterGroup.parameterCount)
     }
@@ -474,16 +472,15 @@ class ComposeLayoutInspectorClient(
 
   suspend fun getAllParameters(rootViewId: Long): GetAllParametersResponse {
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetAllParametersCommand")
-    val response =
-      messenger.sendCommand {
-        getAllParametersCommand =
-          GetAllParametersCommand.newBuilder()
-            .apply {
-              this.rootViewId = rootViewId
-              generation = lastGeneration
-            }
-            .build()
-      }
+    val response = messenger.sendCommand {
+      getAllParametersCommand =
+        GetAllParametersCommand.newBuilder()
+          .apply {
+            this.rootViewId = rootViewId
+            generation = lastGeneration
+          }
+          .build()
+    }
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Receiving: GetAllParametersResponse groups: %d, parameters: %d") {
       arrayOf(
         response.getAllParametersResponse.parameterGroupsCount,
@@ -499,25 +496,24 @@ class ComposeLayoutInspectorClient(
     startIndex: Int,
     maxElements: Int,
   ): GetParameterDetailsResponse {
-    val response =
-      messenger.sendCommand {
-        getParameterDetailsCommand =
-          GetParameterDetailsCommand.newBuilder()
-            .apply {
-              this.rootViewId = rootViewId
-              generation = lastGeneration
-              this.startIndex = startIndex
-              this.maxElements = maxElements
-              referenceBuilder.apply {
-                composableId = reference.nodeId
-                anchorHash = reference.anchorHash
-                kind = reference.kind.convert()
-                parameterIndex = reference.parameterIndex
-                addAllCompositeIndex(reference.indices.asIterable())
-              }
+    val response = messenger.sendCommand {
+      getParameterDetailsCommand =
+        GetParameterDetailsCommand.newBuilder()
+          .apply {
+            this.rootViewId = rootViewId
+            generation = lastGeneration
+            this.startIndex = startIndex
+            this.maxElements = maxElements
+            referenceBuilder.apply {
+              composableId = reference.nodeId
+              anchorHash = reference.anchorHash
+              kind = reference.kind.convert()
+              parameterIndex = reference.parameterIndex
+              addAllCompositeIndex(reference.indices.asIterable())
             }
-            .build()
-      }
+          }
+          .build()
+    }
     return response.getParameterDetailsResponse
   }
 
@@ -537,18 +533,17 @@ class ComposeLayoutInspectorClient(
     includeExtra: Boolean,
   ): GetRecompositionStateReadResponse {
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: GetComposeStateReadCommand")
-    val response =
-      messenger.sendCommand {
-        getRecompositionStateReadCommand =
-          GetRecompositionStateReadCommand.newBuilder()
-            .apply {
-              this.anchorHash = anchorHash
-              this.recompositionNumberStart = recompositionNumberStart
-              this.recompositionNumberEnd = recompositionNumberEnd
-              this.includeExtra = includeExtra
-            }
-            .build()
-      }
+    val response = messenger.sendCommand {
+      getRecompositionStateReadCommand =
+        GetRecompositionStateReadCommand.newBuilder()
+          .apply {
+            this.anchorHash = anchorHash
+            this.recompositionNumberStart = recompositionNumberStart
+            this.recompositionNumberEnd = recompositionNumberEnd
+            this.includeExtra = includeExtra
+          }
+          .build()
+    }
     return response.getRecompositionStateReadResponse
   }
 
@@ -557,32 +552,31 @@ class ComposeLayoutInspectorClient(
     logDiagnostics(ComposeLayoutInspectorClient::class.java, "Sending: UpdateSettingsCommand")
     val observations = model.recompositionModel.observedForRecompositions.value
     val maxStateReads = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_MAX_STATE_READS.get()
-    val response =
-      messenger.sendCommand {
-        updateSettingsCommand =
-          UpdateSettingsCommand.newBuilder()
-            .apply {
-              includeRecomposeCounts = treeSettings.showRecompositions
-              keepRecomposeCounts = keepRecompositionCounts
-              stateReadSettingsBuilder.apply {
-                when (observations) {
-                  is None -> noneBuilder
-                  is All -> {
-                    allBuilder.maxStateReads = maxStateReads
-                    allBuilder.includeParameterChanges = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.get()
-                  }
-                  is Some -> {
-                    byIdBuilder.addAllComposableToObserve(observations.nodeAnchors)
-                    byIdBuilder.maxStateReads = maxStateReads
-                    byIdBuilder.includeParameterChanges = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.get()
-                  }
+    val response = messenger.sendCommand {
+      updateSettingsCommand =
+        UpdateSettingsCommand.newBuilder()
+          .apply {
+            includeRecomposeCounts = treeSettings.showRecompositions
+            keepRecomposeCounts = keepRecompositionCounts
+            stateReadSettingsBuilder.apply {
+              when (observations) {
+                is None -> noneBuilder
+                is All -> {
+                  allBuilder.maxStateReads = maxStateReads
+                  allBuilder.includeParameterChanges = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.get()
+                }
+                is Some -> {
+                  byIdBuilder.addAllComposableToObserve(observations.nodeAnchors)
+                  byIdBuilder.maxStateReads = maxStateReads
+                  byIdBuilder.includeParameterChanges = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_PARAMETER_CHANGES.get()
                 }
               }
-              delayParameterExtractions = true
-              reduceChildNesting = true
             }
-            .build()
-      }
+            delayParameterExtractions = true
+            reduceChildNesting = true
+          }
+          .build()
+    }
     logDiagnostics(
       ComposeLayoutInspectorClient::class.java,
       "Receiving: UpdateSettingsResponse canDelay: %b",

@@ -49,57 +49,51 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    lightBindingCache =
-      cachedValuesManager.createCachedValue {
-        val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
-        val allBindingClasses =
-          enabledFacetsProvider.getAllBindingEnabledFacets().flatMap { facet ->
-            LayoutBindingModuleCache.getInstance(facet).getLightBindingClasses()
-          }
-
-        val groupedClasses = allBindingClasses.groupBy { it.name }.toMutableMap()
-        for (suffix in listOf("Binding", "BindingImpl")) {
-          allBindingClasses
-            .filter { bindingClass -> bindingClass.name.endsWith(suffix) }
-            .takeIf { matches -> matches.isNotEmpty() }
-            ?.let { matches -> groupedClasses[suffix] = matches }
+    lightBindingCache = cachedValuesManager.createCachedValue {
+      val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
+      val allBindingClasses =
+        enabledFacetsProvider.getAllBindingEnabledFacets().flatMap { facet ->
+          LayoutBindingModuleCache.getInstance(facet).getLightBindingClasses()
         }
 
-        CachedValueProvider.Result.create(groupedClasses as Map<String, List<LightBindingClass>>, getModificationTrackers(project))
+      val groupedClasses = allBindingClasses.groupBy { it.name }.toMutableMap()
+      for (suffix in listOf("Binding", "BindingImpl")) {
+        allBindingClasses
+          .filter { bindingClass -> bindingClass.name.endsWith(suffix) }
+          .takeIf { matches -> matches.isNotEmpty() }
+          ?.let { matches -> groupedClasses[suffix] = matches }
       }
 
-    allClassNamesCache =
-      cachedValuesManager.createCachedValue {
-        CachedValueProvider.Result.create(ArrayUtil.toStringArray(lightBindingCache.value.keys), getModificationTrackers(project))
-      }
+      CachedValueProvider.Result.create(groupedClasses as Map<String, List<LightBindingClass>>, getModificationTrackers(project))
+    }
 
-    methodsByNameCache =
-      cachedValuesManager.createCachedValue {
-        val allMethods =
-          lightBindingCache.value.values.flatten().flatMap { psiClass -> psiClass.methods.asIterable() }.groupBy { method -> method.name }
+    allClassNamesCache = cachedValuesManager.createCachedValue {
+      CachedValueProvider.Result.create(ArrayUtil.toStringArray(lightBindingCache.value.keys), getModificationTrackers(project))
+    }
 
-        CachedValueProvider.Result.create(allMethods, getModificationTrackers(project))
-      }
+    methodsByNameCache = cachedValuesManager.createCachedValue {
+      val allMethods =
+        lightBindingCache.value.values.flatten().flatMap { psiClass -> psiClass.methods.asIterable() }.groupBy { method -> method.name }
 
-    fieldsByNameCache =
-      cachedValuesManager.createCachedValue {
-        val allFields =
-          lightBindingCache.value.values.flatten().flatMap { psiClass -> psiClass.fields.asIterable() }.groupBy { field -> field.name }
+      CachedValueProvider.Result.create(allMethods, getModificationTrackers(project))
+    }
 
-        CachedValueProvider.Result.create(allFields, getModificationTrackers(project))
-      }
+    fieldsByNameCache = cachedValuesManager.createCachedValue {
+      val allFields =
+        lightBindingCache.value.values.flatten().flatMap { psiClass -> psiClass.fields.asIterable() }.groupBy { field -> field.name }
 
-    allMethodNamesCache =
-      cachedValuesManager.createCachedValue {
-        val names = methodsByNameCache.value.keys
-        CachedValueProvider.Result.create(names.toTypedArray(), getModificationTrackers(project))
-      }
+      CachedValueProvider.Result.create(allFields, getModificationTrackers(project))
+    }
 
-    allFieldNamesCache =
-      cachedValuesManager.createCachedValue {
-        val names = fieldsByNameCache.value.keys
-        CachedValueProvider.Result.create(names.toTypedArray(), getModificationTrackers(project))
-      }
+    allMethodNamesCache = cachedValuesManager.createCachedValue {
+      val names = methodsByNameCache.value.keys
+      CachedValueProvider.Result.create(names.toTypedArray(), getModificationTrackers(project))
+    }
+
+    allFieldNamesCache = cachedValuesManager.createCachedValue {
+      val names = fieldsByNameCache.value.keys
+      CachedValueProvider.Result.create(names.toTypedArray(), getModificationTrackers(project))
+    }
   }
 
   private fun getModificationTrackers(project: Project): List<Any> =

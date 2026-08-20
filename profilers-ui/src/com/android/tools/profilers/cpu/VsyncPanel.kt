@@ -97,14 +97,13 @@ object VsyncPanel {
           val scaleY = height.toFloat()
           val clipRect = g2d.clipBounds
 
-          fun overlapIndex(x: Float, w: Float) =
-            intervalsInView.binarySearch { value ->
-              when {
-                value.x + value.w < x -> -1
-                value.x > x + w -> 1
-                else -> 0
-              }
+          fun overlapIndex(x: Float, w: Float) = intervalsInView.binarySearch { value ->
+            when {
+              value.x + value.w < x -> -1
+              value.x > x + w -> 1
+              else -> 0
             }
+          }
 
           updateIntervalsInView()
 

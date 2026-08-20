@@ -29,8 +29,9 @@ import kotlinx.coroutines.flow.combine
 sealed class PreviewElementFilter<T : PreviewElement<*>> {
   /** Filters the given input [PreviewElement]s using the given [filterGroup] and returns only the ones that belong to that group. */
   class Group<T : PreviewElement<*>>(val filterGroup: PreviewGroup.Named) : PreviewElementFilter<T>() {
-    override fun filter(input: FlowableCollection<T>): FlowableCollection<T> =
-      input.filter inner@{ PreviewGroup.namedGroup(it.displaySettings.group ?: return@inner false) == filterGroup }
+    override fun filter(input: FlowableCollection<T>): FlowableCollection<T> = input.filter inner@{
+      PreviewGroup.namedGroup(it.displaySettings.group ?: return@inner false) == filterGroup
+    }
   }
 
   /** Filter that selects a single element. */

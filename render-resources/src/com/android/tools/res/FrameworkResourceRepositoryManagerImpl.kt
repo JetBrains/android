@@ -65,8 +65,9 @@ open class FrameworkResourceRepositoryManagerImpl(
       return baseRepository
     }
 
-    val overlayRepositories =
-      overlays.map { getFrameworkRepository(resourceJarFile, it.overlayName, useCompiled9Patches, languages, cachingData) }
+    val overlayRepositories = overlays.map {
+      getFrameworkRepository(resourceJarFile, it.overlayName, useCompiled9Patches, languages, cachingData)
+    }
     return FrameworkWithOverlaysResourceRepository(baseRepository, overlayRepositories)
   }
 

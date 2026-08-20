@@ -54,24 +54,23 @@ internal open class RecompositionHyperLinkDetector(
   @TestOnly val filterJob: Job
 
   init {
-    filterJob =
-      scope.launch {
-        // Add all standard filters (this will include hyperlinks of the fileName of each line)
-        // Performed as a background task based on `ConsoleViewImpl.updatePredefinedFiltersLater()`
-        // TODO: Remove filterJob when Intellij allows us to specify a testDispatcher in a
-        // readAction.
-        val filters = smartReadAction(project) { ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)) }
-        // Allow custom extensions to add hyperlinks:
-        LayoutInspectorRecompositionFilterProvider.EP_NAME.extensionList.map { it.create(editor) }.forEach { filter.addFilter(it) }
+    filterJob = scope.launch {
+      // Add all standard filters (this will include hyperlinks of the fileName of each line)
+      // Performed as a background task based on `ConsoleViewImpl.updatePredefinedFiltersLater()`
+      // TODO: Remove filterJob when Intellij allows us to specify a testDispatcher in a
+      // readAction.
+      val filters = smartReadAction(project) { ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)) }
+      // Allow custom extensions to add hyperlinks:
+      LayoutInspectorRecompositionFilterProvider.EP_NAME.extensionList.map { it.create(editor) }.forEach { filter.addFilter(it) }
 
-        filters.forEach { filter.addFilter(it) }
+      filters.forEach { filter.addFilter(it) }
 
-        replaceClickLinkAction()
+      replaceClickLinkAction()
 
-        if (filterLoadState.getAndSet(FilterLoadState.LOADED) == FilterLoadState.DETECT_LINKS_REQUESTED_WHILE_LOADING) {
-          detectHyperlinks()
-        }
+      if (filterLoadState.getAndSet(FilterLoadState.LOADED) == FilterLoadState.DETECT_LINKS_REQUESTED_WHILE_LOADING) {
+        detectHyperlinks()
       }
+    }
 
     // addEditorHyperlinkListener is marked @ApiStatus.Internal, but there doesn't seem
     // to be a different way to track these hyperlink events.

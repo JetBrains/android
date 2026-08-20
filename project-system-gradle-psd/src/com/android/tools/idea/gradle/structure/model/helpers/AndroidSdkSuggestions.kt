@@ -81,13 +81,12 @@ fun androidSdkSuggestions(
   val compiledApisMap = targets.associate { platformName(it) to getTargetLabel(it) }
   val ndksMap = ndkLocalPackages.map { it.version.toString() }.toSet()
 
-  val majorVersions =
-    buildSet {
-        addAll(knownAndroidVersions)
-        targets.stream().filter { it.isPlatform }.map { it.version }.forEach { add(it) }
-      }
-      .filter { it.isBaseExtension && (it.androidApiLevel.minorVersion == 0 || it.isPreview) }
-      .sorted()
+  val majorVersions = buildSet {
+    addAll(knownAndroidVersions)
+    targets.stream().filter { it.isPlatform }.map { it.version }.forEach { add(it) }
+  }
+    .filter { it.isBaseExtension && (it.androidApiLevel.minorVersion == 0 || it.isPreview) }
+    .sorted()
 
   fun AndroidVersion.minOrTargetPlatformName(): String = if (isPreview) platformHashString else "${androidApiLevel.majorVersion}"
   fun AndroidVersion.fullApiName() = getFullApiName(includeReleaseName = true, includeCodeName = true, includeMinorVersion = false)

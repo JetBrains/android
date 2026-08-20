@@ -31,36 +31,38 @@ data class GradleModuleModelEntityId(val moduleId: ModuleId) : SymbolicEntityId<
     get() = "GradleModuleModelEntity for ${moduleId.presentableName}"
 }
 
-interface GradleModuleModelEntity: WorkspaceEntityWithSymbolicId {
+interface GradleModuleModelEntity : WorkspaceEntityWithSymbolicId {
   override val symbolicId: GradleModuleModelEntityId
     get() = GradleModuleModelEntityId(ModuleId(gradleModuleModel.moduleName))
 
-  @Parent
-  val module: ModuleEntity
+  @Parent val module: ModuleEntity
   val gradleModuleModel: GradleModuleModel
 }
 
 internal fun setGradleModuleModelFromDataNode(storage: MutableEntityStorage, module: Module, model: GradleModuleModel) {
-  val moduleEntity = checkNotNull(storage.resolve(ModuleId(module.name))) { "Can't find module entity for ${module.name}"}
+  val moduleEntity = checkNotNull(storage.resolve(ModuleId(module.name))) { "Can't find module entity for ${module.name}" }
   // We still need to create a new entity when the module itself is not supported by sync contributors
   modifyExistingEntity(storage, moduleEntity, model) ?: createNewEntity(storage, moduleEntity, model)
 }
 
 private fun createNewEntity(storage: MutableEntityStorage, moduleEntity: ModuleEntity, model: GradleModuleModel): ModuleEntity =
   storage.modifyModuleEntity(moduleEntity) {
-    this.gradleModuleModel = GradleModuleModelEntity(
-      entitySource = this@modifyModuleEntity.entitySource,
-      gradleModuleModel = model
-    )
+    this.gradleModuleModel =
+      GradleModuleModelEntity(
+        entitySource = this@modifyModuleEntity.entitySource,
+        gradleModuleModel = model,
+      )
   }
 
-private fun modifyExistingEntity(storage: MutableEntityStorage, moduleEntity: ModuleEntity, model: GradleModuleModel): GradleModuleModelEntity? =
+private fun modifyExistingEntity(
+  storage: MutableEntityStorage,
+  moduleEntity: ModuleEntity,
+  model: GradleModuleModel,
+): GradleModuleModelEntity? =
   storage.resolve(GradleModuleModelEntityId(moduleEntity.symbolicId))?.let {
     storage.modifyGradleModuleModelEntity(it) {
       gradleModuleModel = model
     }
   }
 
-
-val ModuleEntity.gradleModuleModel: GradleModuleModelEntity?
-  by WorkspaceEntity.extension()
+val ModuleEntity.gradleModuleModel: GradleModuleModelEntity? by WorkspaceEntity.extension()

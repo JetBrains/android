@@ -177,8 +177,9 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
     val modificationTracker = MergedManifestModificationTracker.getInstance(module)
     val dumbServiceTracker = DumbService.getInstance(module.project)
 
-    val defaultThemeCache =
-      cachedDefaultThemesLock.withLock { cachedDefaultThemes.getOrPut(configuration) { ChangeTrackerCachedValue.softReference() } }
+    val defaultThemeCache = cachedDefaultThemesLock.withLock {
+      cachedDefaultThemes.getOrPut(configuration) { ChangeTrackerCachedValue.softReference() }
+    }
     val weakConfig = WeakReference(configuration)
     return runBlocking {
       ChangeTrackerCachedValue.get(

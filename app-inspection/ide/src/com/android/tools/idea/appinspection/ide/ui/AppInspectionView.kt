@@ -385,10 +385,9 @@ constructor(
           emptyList()
         }
 
-      val tabs =
-        tabTargetsList.map { tabTargets ->
-          withContext(uiContext) { AppInspectorTabShell(tabTargets) }.also { shell -> launchInspectorForTab(process, shell, force) }
-        }
+      val tabs = tabTargetsList.map { tabTargets ->
+        withContext(uiContext) { AppInspectorTabShell(tabTargets) }.also { shell -> launchInspectorForTab(process, shell, force) }
+      }
 
       withContext(uiContext) {
         inspectorTabs.clear()

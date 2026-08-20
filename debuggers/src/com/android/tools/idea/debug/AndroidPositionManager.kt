@@ -220,11 +220,10 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
    */
   private fun getCompanionClasses(position: SourcePosition, types: List<ReferenceType>): List<ReferenceType> {
     // Find all interface classes that may have a companion class.
-    val candidatesForDesugaringCompanion =
-      types.filter { type ->
-        DumbService.getInstance(debugProcess.project)
-          .runReadActionInSmartMode(Computable { debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring() == true })
-      }
+    val candidatesForDesugaringCompanion = types.filter { type ->
+      DumbService.getInstance(debugProcess.project)
+        .runReadActionInSmartMode(Computable { debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring() == true })
+    }
 
     return getCompanionsOfTypes(position, candidatesForDesugaringCompanion) + getCompanionsForPositionByName(position)
   }
@@ -242,8 +241,10 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
       }
     }
 
-  private fun ReferenceType.hasLocationsForPosition(position: SourcePosition) =
-    runCatching { locationsOfLine(this, position).isNotEmpty() }.getOrDefault(false)
+  private fun ReferenceType.hasLocationsForPosition(position: SourcePosition) = runCatching {
+    locationsOfLine(this, position).isNotEmpty()
+  }
+    .getOrDefault(false)
 
   private fun ReferenceType.isCompanion(className: String, position: SourcePosition) =
     startsWith("$className$") && containsPosition(position)

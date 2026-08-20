@@ -227,38 +227,37 @@ class LeakCanaryLogcatCommandHandler(
   /** Identifies and reads leakCanary logs from logcat and sends them to the event queue. */
   private fun readLeakLog() {
     val logcatService: LogcatService = LogcatService.getInstance(ProjectManager.getInstance().defaultProject)
-    logCollectionJob =
-      scope.launch {
-        logger.info("Started LeakCanary logcat collection coroutine for PID $pid")
-        logcatService.readLogcat(serialNumber = device.serialNumber, sdk = device.version.androidApiLevel, maxHistoryEntries = 0).collect {
-          logcatMessages ->
-          logcatMessages.forEach { logcatMessage ->
-            val isAppLog = logcatMessage.header.pid == pid
-            val isInjectedLeak = logcatMessage.header.tag == LEAKCANARY_MANUAL_TAG
+    logCollectionJob = scope.launch {
+      logger.info("Started LeakCanary logcat collection coroutine for PID $pid")
+      logcatService.readLogcat(serialNumber = device.serialNumber, sdk = device.version.androidApiLevel, maxHistoryEntries = 0).collect {
+        logcatMessages ->
+        logcatMessages.forEach { logcatMessage ->
+          val isAppLog = logcatMessage.header.pid == pid
+          val isInjectedLeak = logcatMessage.header.tag == LEAKCANARY_MANUAL_TAG
 
-            if (!isAppLog && !isInjectedLeak) {
-              return@forEach
-            }
-
-            // Handlers are called sequentially. If a handler returns true, it means it processed the event
-            // and subsequent handlers are skipped for this logcatMessage.
-            var handled = detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
-
-            if (!handled) {
-              handled = detectAndHandleCompleteLeakTraces(logcatMessage)
-            }
-
-            // Partial traces should only run if the logcat message was not handled by an explicit LeakCanary event (complete trace,
-            // trigger, etc.)
-            if (!handled) {
-              detectAndHandlePartialLeakTraces(logcatMessage)
-            }
-            // Note: detectAndHandlePartialLeakTraces doesn't return a boolean because it often spans multiple logcat entries.
-            // The logic for partial trace completion is handled inside the function itself, including the TWO_SECONDS check
-            // against the previous log entry.
+          if (!isAppLog && !isInjectedLeak) {
+            return@forEach
           }
+
+          // Handlers are called sequentially. If a handler returns true, it means it processed the event
+          // and subsequent handlers are skipped for this logcatMessage.
+          var handled = detectAndHandleObjectRetainedAndAnalysis(logcatMessage)
+
+          if (!handled) {
+            handled = detectAndHandleCompleteLeakTraces(logcatMessage)
+          }
+
+          // Partial traces should only run if the logcat message was not handled by an explicit LeakCanary event (complete trace,
+          // trigger, etc.)
+          if (!handled) {
+            detectAndHandlePartialLeakTraces(logcatMessage)
+          }
+          // Note: detectAndHandlePartialLeakTraces doesn't return a boolean because it often spans multiple logcat entries.
+          // The logic for partial trace completion is handled inside the function itself, including the TWO_SECONDS check
+          // against the previous log entry.
         }
       }
+    }
   }
 
   private fun isValidTag(tag: String): Boolean {

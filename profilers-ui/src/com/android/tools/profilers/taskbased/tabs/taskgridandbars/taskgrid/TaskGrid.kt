@@ -156,10 +156,9 @@ fun TaskGridV2(taskGridModel: TaskGridModel, taskTypes: List<ProfilerTaskType>) 
             val maxTileHeight = measurables.maxOfOrNull { it.maxIntrinsicHeight(colWidth) } ?: 0
 
             // Step 2: Measure all children ONCE with the fixed max height
-            val placeables =
-              measurables.map {
-                it.measure(constraints.copy(minWidth = colWidth, maxWidth = colWidth, minHeight = maxTileHeight, maxHeight = maxTileHeight))
-              }
+            val placeables = measurables.map {
+              it.measure(constraints.copy(minWidth = colWidth, maxWidth = colWidth, minHeight = maxTileHeight, maxHeight = maxTileHeight))
+            }
 
             val rows = (placeables.size + columns - 1) / columns
             val totalHeight = if (rows == 0) 0 else rows * maxTileHeight + (rows - 1) * vSpacing.roundToPx()

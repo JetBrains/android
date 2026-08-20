@@ -26,13 +26,12 @@ import javax.swing.SwingConstants
 internal val MAIN_PANEL_BORDER = JBUI.Borders.empty(10)
 internal val MAIN_PANEL_BACKGROUND = UIUtil.getListBackground()
 
-fun setAssistantFont(component: JComponent, foregroundColor: Color? = null) =
-  component.apply {
-    font = JBUI.Fonts.smallFont()
-    if (foregroundColor != null) {
-      foreground = foregroundColor
-    }
+fun setAssistantFont(component: JComponent, foregroundColor: Color? = null) = component.apply {
+  font = JBUI.Fonts.smallFont()
+  if (foregroundColor != null) {
+    foreground = foregroundColor
   }
+}
 
 @JvmOverloads
 fun assistantLabel(text: String, alignment: Int = SwingConstants.LEADING): JLabel =

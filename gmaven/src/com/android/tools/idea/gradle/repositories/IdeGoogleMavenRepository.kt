@@ -44,10 +44,9 @@ abstract class IdeGoogleMavenRepositoryBase(cacheDir: Path?) : GoogleMavenReposi
     Logger.getInstance(IdeGoogleMavenRepositoryBase::class.java).warn(message, throwable)
   }
 
-  fun getArtifactsForAll(groupIds: List<String>): Map<String, CompletableFuture<Set<String>>> =
-    groupIds.associateWith { groupId ->
-      getPackageMap()[groupId]?.artifacts?.thenApply { it.values.map { it.id }.toSet() } ?: CompletableFuture.completedFuture(emptySet())
-    }
+  fun getArtifactsForAll(groupIds: List<String>): Map<String, CompletableFuture<Set<String>>> = groupIds.associateWith { groupId ->
+    getPackageMap()[groupId]?.artifacts?.thenApply { it.values.map { it.id }.toSet() } ?: CompletableFuture.completedFuture(emptySet())
+  }
 
   private var packageMap: MutableMap<String, PackageInfoAsync>? = null
 

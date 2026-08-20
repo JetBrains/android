@@ -35,8 +35,9 @@ interface ResourceFolderManagerToken<P : AndroidProjectSystem> : Token {
     val EP_NAME =
       ExtensionPointName<ResourceFolderManagerToken<AndroidProjectSystem>>("org.jetbrains.android.facet.resourceFolderManagerToken")
 
-    private fun defaultFoldersFromSourceProviders(sourceProviders: SourceProviders) =
-      sourceProviders.run { (currentSourceProviders.flatMap { it.resDirectories } + generatedSources.resDirectories).toList() }
+    private fun defaultFoldersFromSourceProviders(sourceProviders: SourceProviders) = sourceProviders.run {
+      (currentSourceProviders.flatMap { it.resDirectories } + generatedSources.resDirectories).toList()
+    }
 
     fun computeFoldersFromSourceProviders(sourceProviders: SourceProviders, module: Module): List<VirtualFile> {
       val projectSystem = module.project.getProjectSystem()

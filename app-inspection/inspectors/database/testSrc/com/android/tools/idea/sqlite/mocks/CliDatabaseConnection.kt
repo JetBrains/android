@@ -189,15 +189,14 @@ class CliDatabaseConnection(
         rawCells.dataRows
           .groupBy { it.getCell("tableName") }
           .map { (tableName, tableLines) ->
-            val columns =
-              tableLines.map { row ->
-                val name = row.getCell("columnName")
-                val type = row.getCell("columnType")
-                val affinity = SqliteAffinity.fromTypename(type)
-                val isNullable = row.getCell("notnull") == "0"
-                val isPrimaryKey = row.getCell("pk") != "0"
-                SqliteColumn(name, affinity, isNullable, isPrimaryKey)
-              }
+            val columns = tableLines.map { row ->
+              val name = row.getCell("columnName")
+              val type = row.getCell("columnType")
+              val affinity = SqliteAffinity.fromTypename(type)
+              val isNullable = row.getCell("notnull") == "0"
+              val isPrimaryKey = row.getCell("pk") != "0"
+              SqliteColumn(name, affinity, isNullable, isPrimaryKey)
+            }
             val rowIdName = getRowIdName(columns)
             val isView =
               tableLines.first().getCell("type").let {

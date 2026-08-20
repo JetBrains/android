@@ -58,24 +58,22 @@ class JdbcDatabaseConnection(
 
   private val sequentialTaskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
 
-  override fun close(): ListenableFuture<Unit> =
-    sequentialTaskExecutor.executeAsync {
-      connection.close()
-      logger.info("Successfully closed database: ${sqliteFile.path}")
+  override fun close(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
+    connection.close()
+    logger.info("Successfully closed database: ${sqliteFile.path}")
+  }
+
+  override fun readSchema(): ListenableFuture<SqliteSchema> = sequentialTaskExecutor.executeAsync {
+    val tables = connection.metaData.getTables(null, null, null, null)
+    val sqliteTables = mutableListOf<SqliteTable>()
+    while (tables.next()) {
+      val columns = readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
+      val rowIdName = getRowIdName(columns)
+      sqliteTables.add(SqliteTable(tables.getString("TABLE_NAME"), columns, rowIdName, isView = tables.getString("TABLE_TYPE") == "VIEW"))
     }
 
-  override fun readSchema(): ListenableFuture<SqliteSchema> =
-    sequentialTaskExecutor.executeAsync {
-      val tables = connection.metaData.getTables(null, null, null, null)
-      val sqliteTables = mutableListOf<SqliteTable>()
-      while (tables.next()) {
-        val columns = readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
-        val rowIdName = getRowIdName(columns)
-        sqliteTables.add(SqliteTable(tables.getString("TABLE_NAME"), columns, rowIdName, isView = tables.getString("TABLE_TYPE") == "VIEW"))
-      }
-
-      SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
-    }
+    SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
+  }
 
   override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     val resultSet =

@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.leakcanary
 
-/**
- * A generic container of values that may not yet be ready with a possibility of failure.
- */
+/** A generic container of values that may not yet be ready with a possibility of failure. */
 sealed class LoadingState<out T> {
 
   /** The value is being loaded and is not yet available. */

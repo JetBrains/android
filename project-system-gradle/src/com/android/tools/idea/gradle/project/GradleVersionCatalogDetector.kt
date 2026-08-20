@@ -186,25 +186,24 @@ class GradleVersionCatalogDetector(private val project: Project) : Disposable {
 
   @get:Slow
   val isVersionCatalogProject: Boolean
-    get() =
-      versionCatalogDetectorResult.run {
-        if (shouldSendTrackerEvent) {
-          shouldSendTrackerEvent = false
-          val thunk = {
-            val event =
-              AndroidStudioEvent.newBuilder()
-                .setCategory(PROJECT_SYSTEM)
-                .setKind(GRADLE_VERSION_CATALOG_DETECTOR)
-                .setGradleVersionCatalogDetectorEvent(GradleVersionCatalogDetectorEvent.newBuilder().setState(state))
-            UsageTracker.log(event)
-          }
-          when (ApplicationManager.getApplication().isUnitTestMode) {
-            true -> thunk()
-            false -> executeOnPooledThread(thunk)
-          }
+    get() = versionCatalogDetectorResult.run {
+      if (shouldSendTrackerEvent) {
+        shouldSendTrackerEvent = false
+        val thunk = {
+          val event =
+            AndroidStudioEvent.newBuilder()
+              .setCategory(PROJECT_SYSTEM)
+              .setKind(GRADLE_VERSION_CATALOG_DETECTOR)
+              .setGradleVersionCatalogDetectorEvent(GradleVersionCatalogDetectorEvent.newBuilder().setState(state))
+          UsageTracker.log(event)
         }
-        result
+        when (ApplicationManager.getApplication().isUnitTestMode) {
+          true -> thunk()
+          false -> executeOnPooledThread(thunk)
+        }
       }
+      result
+    }
 
   interface SettingsVisitorResults {
     val enableFeaturePreview: Boolean

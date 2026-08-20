@@ -85,13 +85,12 @@ fun Module.getTestSuiteModules(): List<Module> =
 
 fun Module.isTestSuiteModule(): Boolean = getTestSuiteModules().contains(this)
 
-private fun ModulePointer.getMandatoryModuleOrLog(originalModule: Module): Module? =
-  module.also {
-    if (it == null) {
-      Logger.getInstance(LinkedAndroidGradleModuleGroup::class.java)
-        .error("Missing mandatory module $moduleName in group for $originalModule")
-    }
+private fun ModulePointer.getMandatoryModuleOrLog(originalModule: Module): Module? = module.also {
+  if (it == null) {
+    Logger.getInstance(LinkedAndroidGradleModuleGroup::class.java)
+      .error("Missing mandatory module $moduleName in group for $originalModule")
   }
+}
 
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true if the given module is the module

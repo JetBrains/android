@@ -363,12 +363,11 @@ internal class FilterTextField(
         contentComponent.addMouseMotionListener(
           object : MouseAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-              contentComponent.toolTipText =
-                editor?.let { editor ->
-                  val position = editor.xyToLogicalPosition(e.point)
-                  // The editor is in a single line, so we don't have to convert to an offset
-                  filter?.findFilterForOffset(position.column)?.displayText
-                }
+              contentComponent.toolTipText = editor?.let { editor ->
+                val position = editor.xyToLogicalPosition(e.point)
+                // The editor is in a single line, so we don't have to convert to an offset
+                filter?.findFilterForOffset(position.column)?.displayText
+              }
             }
           }
         )

@@ -97,26 +97,27 @@ fun List<WithCount<Device>>.summarizeDevicesFromRawDataPoints(minGroupSize: Int,
   val topDevice = first().value
   val totalEvents = sumOf { it.count }
 
-  val statsGroups =
-    groupBy { it.value.manufacturer }
-      .map { (manufacturer, reports) ->
-        val groupEvents = reports.sumOf { it.count }
+  val statsGroups = groupBy {
+    it.value.manufacturer
+  }
+    .map { (manufacturer, reports) ->
+      val groupEvents = reports.sumOf { it.count }
 
-        val totalDataPoints =
-          reports.sortedByDescending { it.count }.map { DataPoint(it.value.model.substringAfter("/"), it.count.percentOf(totalEvents)) }
+      val totalDataPoints =
+        reports.sortedByDescending { it.count }.map { DataPoint(it.value.model.substringAfter("/"), it.count.percentOf(totalEvents)) }
 
-        val resolvedGroupSize = totalDataPoints.map { it.percentage }.resolveElementCountBy(minGroupSize, minPercentage)
+      val resolvedGroupSize = totalDataPoints.map { it.percentage }.resolveElementCountBy(minGroupSize, minPercentage)
 
-        val topGroupSizePercentages = totalDataPoints.take(resolvedGroupSize).sumOf { it.percentage }
-        StatsGroup(
-          manufacturer,
-          groupEvents.percentOf(totalEvents),
-          totalDataPoints.take(resolvedGroupSize) +
-            if (resolvedGroupSize >= totalDataPoints.size) listOf()
-            else listOf(DataPoint(OTHER_GROUP, groupEvents.percentOf(totalEvents) - topGroupSizePercentages)),
-        )
-      }
-      .sortedByDescending { it.percentage }
+      val topGroupSizePercentages = totalDataPoints.take(resolvedGroupSize).sumOf { it.percentage }
+      StatsGroup(
+        manufacturer,
+        groupEvents.percentOf(totalEvents),
+        totalDataPoints.take(resolvedGroupSize) +
+          if (resolvedGroupSize >= totalDataPoints.size) listOf()
+          else listOf(DataPoint(OTHER_GROUP, groupEvents.percentOf(totalEvents) - topGroupSizePercentages)),
+      )
+    }
+    .sortedByDescending { it.percentage }
 
   val resolvedGroupSize = statsGroups.map { it.percentage }.resolveElementCountBy(minGroupSize, minPercentage)
 

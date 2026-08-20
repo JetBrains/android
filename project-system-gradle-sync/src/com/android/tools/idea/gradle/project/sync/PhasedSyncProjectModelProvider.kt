@@ -113,52 +113,51 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
             buildModel.projects.mapNotNull { gradleProject ->
               BuildAction {
                 runCatching {
-                    val versions = cachedModels.versions[gradleProject] ?: return@BuildAction null
-                    val modelVersions = versions.convert()
-                    val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)!!
-                    val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)!!
-                    val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
-                    val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!
-                    val legacyAndroidGradlePluginProperties =
-                      getLegacyAndroidGradlePluginProperties(controller, gradleProject, modelVersions)
+                  val versions = cachedModels.versions[gradleProject] ?: return@BuildAction null
+                  val modelVersions = versions.convert()
+                  val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)!!
+                  val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)!!
+                  val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
+                  val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!
+                  val legacyAndroidGradlePluginProperties = getLegacyAndroidGradlePluginProperties(controller, gradleProject, modelVersions)
 
-                    val defaultVariantName =
-                      basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
-                    val selectedVariantName =
-                      computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, defaultVariantName)
-                        ?: return@BuildAction null
+                  val defaultVariantName =
+                    basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
+                  val selectedVariantName =
+                    computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, defaultVariantName)
+                      ?: return@BuildAction null
 
-                    val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = syncOptions.syncTestMode)
-                    val ideAndroidProject =
-                      modelCache
-                        .androidProjectFrom(
-                          rootBuildId,
-                          buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir),
-                          basicAndroidProject,
-                          androidProject,
-                          modelVersions,
-                          androidDsl,
-                          legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
-                          gradlePropertiesModel,
-                          defaultVariantName,
-                        )
-                        .let { it.exceptions.takeIf { it.isNotEmpty() }?.first()?.let { throw it } ?: it.ignoreExceptionsAndGet()!! }
-                    gradleProject to
-                      AndroidProjectData(
-                        versions,
-                        modelVersions,
+                  val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = syncOptions.syncTestMode)
+                  val ideAndroidProject =
+                    modelCache
+                      .androidProjectFrom(
+                        rootBuildId,
+                        buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir),
                         basicAndroidProject,
                         androidProject,
+                        modelVersions,
                         androidDsl,
-                        controller.findModel(gradleProject, DeclaredDependencies::class.java)!!,
-                        controller.findModel(gradleProject, GradlePluginModel::class.java)!!,
-                        controller.findModel(gradleProject, GradleTaskModel::class.java)!!,
-                        ideAndroidProject,
-                        selectedVariantName,
-                        shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel),
-                        legacyAndroidGradlePluginProperties,
+                        legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
+                        gradlePropertiesModel,
+                        defaultVariantName,
                       )
-                  }
+                      .let { it.exceptions.takeIf { it.isNotEmpty() }?.first()?.let { throw it } ?: it.ignoreExceptionsAndGet()!! }
+                  gradleProject to
+                    AndroidProjectData(
+                      versions,
+                      modelVersions,
+                      basicAndroidProject,
+                      androidProject,
+                      androidDsl,
+                      controller.findModel(gradleProject, DeclaredDependencies::class.java)!!,
+                      controller.findModel(gradleProject, GradlePluginModel::class.java)!!,
+                      controller.findModel(gradleProject, GradleTaskModel::class.java)!!,
+                      ideAndroidProject,
+                      selectedVariantName,
+                      shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel),
+                      legacyAndroidGradlePluginProperties,
+                    )
+                }
                   .onFailure { exceptionsPerProject += gradleProject to it }
                   .getOrNull()
               }
@@ -261,14 +260,14 @@ private fun populateGradleProjectModel(
     .distinct()
     .forEach { projectModel ->
       runCatching {
-          val basicModelsMap = projectModel.getAllChildren { it.children.toList() }.associateBy { it.path }
+        val basicModelsMap = projectModel.getAllChildren { it.children.toList() }.associateBy { it.path }
 
-          controller.findModel(projectModel, GradleProject::class.java)?.let {
-            it
-              .getAllChildren { it.children.toList() }
-              .forEach { modelConsumer.consumeProjectModel(basicModelsMap[it.path]!!, it, GradleProject::class.java) }
-          }
+        controller.findModel(projectModel, GradleProject::class.java)?.let {
+          it
+            .getAllChildren { it.children.toList() }
+            .forEach { modelConsumer.consumeProjectModel(basicModelsMap[it.path]!!, it, GradleProject::class.java) }
         }
+      }
         .onFailure { exceptionsPerProject += projectModel to it }
     }
 }

@@ -68,15 +68,14 @@ class NavigationEventHandlerTransform(delegate: ClassVisitor) : ClassVisitor(Opc
    * This ASMified code is used to override isInspectionMode, and it returns false
    *
    * Actual code in androidx navigation3 version 1.1.0:
-   *     @Composable
-   *     internal actual fun isInspectionMode(): Boolean = LocalInspection.current
+   *
+   * @param delegate the delegate of the method we want to transform, we didn't use the name "delegate" to avoid colliding overrides in ASM
+   *   9.6 getDelegate in JVM.
+   *     @Composable internal actual fun isInspectionMode(): Boolean = LocalInspection.current
    *
    * Transformed code:
-   *     @Composable
-   *     internal actual fun isInspectionMode(): Boolean = false
    *
-   * @param delegate the delegate of the method we want to transform, we didn't use the name "delegate" to avoid colliding
-   * overrides in ASM 9.6 getDelegate in JVM.
+   *     @Composable internal actual fun isInspectionMode(): Boolean = false
    */
   private class LocalInspectionModeMethodVisitor(delegate: MethodVisitor) : MethodVisitor(Opcodes.ASM9, delegate) {
     override fun visitInsn(opcode: Int) {

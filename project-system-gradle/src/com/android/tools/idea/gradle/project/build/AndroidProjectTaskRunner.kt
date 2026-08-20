@@ -74,10 +74,9 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
       return resolvedPromise(TaskRunnerResults.FAILURE)
     }
 
-    val requests =
-      tasksGroups.map { (taskGroup, tasks) ->
-        GradleBuildInvoker.Request.builder(project, taskGroup.gradleProjectRoot.toFile(), tasks).setMode(taskGroup.buildMode).build()
-      }
+    val requests = tasksGroups.map { (taskGroup, tasks) ->
+      GradleBuildInvoker.Request.builder(project, taskGroup.gradleProjectRoot.toFile(), tasks).setMode(taskGroup.buildMode).build()
+    }
 
     return gradleBuildInvoker.executeTasks(requests).toPromise { it.toTaskRunnerResults() }
   }

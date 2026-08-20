@@ -94,10 +94,10 @@ fun <T : Any> Project.dumpAndroidProjectView(
     val nodeText = if (coloredText.isEmpty()) presentableText else coloredText.joinToString(separator = "") { it.text }
 
     return buildString {
-        append(nodeText)
-        if (iconText != null) append(" (icon: $iconText)")
-        background?.let { append(" (color: ${it.toText()})") }
-      }
+      append(nodeText)
+      if (iconText != null) append(" (icon: $iconText)")
+      background?.let { append(" (color: ${it.toText()})") }
+    }
       .replaceVariableParts()
   }
 
@@ -113,24 +113,24 @@ fun <T : Any> Project.dumpAndroidProjectView(
     val comparator = GroupByTypeComparator(null, AndroidProjectViewPane.ID)
 
     return buildString {
-        fun dump(element: AbstractTreeNode<*>, prefix: String = "", state: T) {
-          val newState = filter(element, state) ?: return
+      fun dump(element: AbstractTreeNode<*>, prefix: String = "", state: T) {
+        val newState = filter(element, state) ?: return
 
-          appendLine("$prefix${element.presentation.toTestText()}")
-          treeStructure
-            .getChildElements(element)
-            .map { it as AbstractTreeNode<*> }
-            .onEach { it.update() }
-            .sortedWith(comparator)
-            .forEach { dump(it, "    $prefix", newState) }
-        }
-
-        val rootNode = rootElement as AbstractTreeNode<*>
-        // dump() updates only the child nodes; before calling it we need to update the root to
-        // ensure its presentation is available.
-        rootNode.update()
-        dump(rootNode, state = initialState)
+        appendLine("$prefix${element.presentation.toTestText()}")
+        treeStructure
+          .getChildElements(element)
+          .map { it as AbstractTreeNode<*> }
+          .onEach { it.update() }
+          .sortedWith(comparator)
+          .forEach { dump(it, "    $prefix", newState) }
       }
+
+      val rootNode = rootElement as AbstractTreeNode<*>
+      // dump() updates only the child nodes; before calling it we need to update the root to
+      // ensure its presentation is available.
+      rootNode.update()
+      dump(rootNode, state = initialState)
+    }
       // Trim the trailing line end since snapshots are loaded without it.
       .trimEnd()
   }

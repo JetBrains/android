@@ -92,11 +92,10 @@ internal class DeviceEnumValueBuilder {
     diagonalIn: Double,
     orientation: Orientation,
   ): DeviceEnumValueBuilder = apply {
-    val dpi =
-      kotlin.run {
-        val dpiCalc = sqrt((1.0 * widthPx * widthPx) + (1.0 * heightPx * heightPx)) / diagonalIn
-        round(dpiCalc * 100) / 100.0
-      }
+    val dpi = kotlin.run {
+      val dpiCalc = sqrt((1.0 * widthPx * widthPx) + (1.0 * heightPx * heightPx)) / diagonalIn
+      round(dpiCalc * 100) / 100.0
+    }
     val density = Densities.getCommonScreenDensity(true, dpi, heightPx)
     val deviceSpec =
       DeviceConfig(

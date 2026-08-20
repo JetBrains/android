@@ -41,36 +41,35 @@ fun buildDrawNodeCommand(
   type: LayoutInspectorViewProtocol.DrawCommand.Type,
   label: DrawInstruction.Label? = null,
 ): Command {
-  val drawInstructions =
-    bounds.map {
-      val rect =
-        LayoutInspectorViewProtocol.Rect.newBuilder()
-          .apply {
-            x = it.x
-            y = it.y
-            w = it.width
-            h = it.height
-          }
-          .build()
-
-      LayoutInspectorViewProtocol.DrawInstruction.newBuilder()
+  val drawInstructions = bounds.map {
+    val rect =
+      LayoutInspectorViewProtocol.Rect.newBuilder()
         .apply {
-          this.rootId = rootId
-          this.bounds = rect
-          this.color = color
-          this.strokeThickness = strokeThickness
-          if (label != null) {
-            this.label =
-              LayoutInspectorViewProtocol.Label.newBuilder()
-                .apply {
-                  text = label.text
-                  size = label.size
-                }
-                .build()
-          }
+          x = it.x
+          y = it.y
+          w = it.width
+          h = it.height
         }
         .build()
-    }
+
+    LayoutInspectorViewProtocol.DrawInstruction.newBuilder()
+      .apply {
+        this.rootId = rootId
+        this.bounds = rect
+        this.color = color
+        this.strokeThickness = strokeThickness
+        if (label != null) {
+          this.label =
+            LayoutInspectorViewProtocol.Label.newBuilder()
+              .apply {
+                text = label.text
+                size = label.size
+              }
+              .build()
+        }
+      }
+      .build()
+  }
 
   return Command.newBuilder()
     .apply {

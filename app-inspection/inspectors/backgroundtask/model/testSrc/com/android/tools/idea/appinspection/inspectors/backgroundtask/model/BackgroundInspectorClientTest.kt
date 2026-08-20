@@ -213,14 +213,13 @@ class BackgroundInspectorClientTest {
     val workIdList = (1..8).map { "work${it}" }
     val dependencyList =
       listOf(Pair(1, 3), Pair(1, 4), Pair(2, 4), Pair(2, 5), Pair(4, 6), Pair(4, 7)).map { Pair("work${it.first}", "work${it.second}") }
-    val workInfoList =
-      workIdList.map { id ->
-        WorkInfo.newBuilder()
-          .setId(id)
-          .addAllPrerequisites(dependencyList.filter { it.second == id }.map { it.first })
-          .addAllDependents(dependencyList.filter { it.first == id }.map { it.second })
-          .build()
-      }
+    val workInfoList = workIdList.map { id ->
+      WorkInfo.newBuilder()
+        .setId(id)
+        .addAllPrerequisites(dependencyList.filter { it.second == id }.map { it.first })
+        .addAllDependents(dependencyList.filter { it.first == id }.map { it.second })
+        .build()
+    }
     for (workInfo in workInfoList) {
       sendWorkAddedEvent(workInfo)
     }

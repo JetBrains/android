@@ -1,55 +1,47 @@
 #!/usr/bin/env kotlin
-
 /**
  * Gradle Problems Report Aggregator
  *
- * Abandon all hope, ye who enter here (as in, code below is fully generated via AI)
- * I recommend not engaging with the code below at all both in terms of reading it and
- * reviewing it. Instead, edit it via AI in case requirements or the expected format change.
- * That said, I have been using this and at least can attest to the correctness of the script's header which you are now
- * reading. If some assumption of the script changes substantially, I recommend simply recreating this script from
- * scratch using AI.
+ * Abandon all hope, ye who enter here (as in, code below is fully generated via AI) I recommend not engaging with the code below at all
+ * both in terms of reading it and reviewing it. Instead, edit it via AI in case requirements or the expected format change. That said, I
+ * have been using this and at least can attest to the correctness of the script's header which you are now reading. If some assumption of
+ * the script changes substantially, I recommend simply recreating this script from scratch using AI.
  *
- * DESCRIPTION:
- * Throwaway script to scan test execution output logs (e.g., from remote test executions in Bazel)
- * for Gradle problem reports (`problems-report.html`) and aggregates all discovered problems into
- * a single unified HTML report with problematic code snippets included for easier discovery.
+ * DESCRIPTION: Throwaway script to scan test execution output logs (e.g., from remote test executions in Bazel) for Gradle problem reports
+ * (`problems-report.html`) and aggregates all discovered problems into a single unified HTML report with problematic code snippets included
+ * for easier discovery.
  *
- * When a Gradle problem report lacks specific source file locations (e.g., global script
- * deprecations like `val name by extra`), the script analyzes `daemon-*.log` files in the same test
- * output archive to correlate warnings and extract exact line-highlighted source code snippets. This mostly highlights
- * everything correctly apart from some issues in some corner cases.
+ * When a Gradle problem report lacks specific source file locations (e.g., global script deprecations like `val name by extra`), the script
+ * analyzes `daemon-*.log` files in the same test output archive to correlate warnings and extract exact line-highlighted source code
+ * snippets. This mostly highlights everything correctly apart from some issues in some corner cases.
  *
- * The generated report groups issues by problem type (Issue ID), and then groups occurrences by
- * their code snippet, full problem message, and test target, using a 3-column layout:
+ * The generated report groups issues by problem type (Issue ID), and then groups occurrences by their code snippet, full problem message,
+ * and test target, using a 3-column layout:
  * - "Code snippet": Shows line-highlighted source code or a clear explanation when no file snippet exists.
  * - "Full problem message": Displays detailed label, description, solutions, and documentation links.
  * - "Targets/Tests": Lists affected test targets and exact location paths.
  *
  * USAGE:
- * 1. Run a special bazel test which includes all test projects and Gradle daemon logs in the outputs
- * Recommended invocation to be run remotely to detect all failures:
+ * 1. Run a special bazel test which includes all test projects and Gradle daemon logs in the outputs Recommended invocation to be run
+ *    remotely to detect all failures:
  *
- * 	bazel --output_base='<bazel_output_dir>' test \
- * 	--jvmopt=-DKEEP_TEST_PROJECTS \
- * 	--jvmopt=-DCOLLECT_GRADLE_DIAGNOSTICS \
- * 	--test_tag_filters=-noci:studio-linux,-qa_smoke,-qa_fast,-qa_unreliable,-perfgate-release,-no_k2 -- //tools/...
- *
+ * bazel --output_base='<bazel_output_dir>' test \ --jvmopt=-DKEEP_TEST_PROJECTS \ --jvmopt=-DCOLLECT_GRADLE_DIAGNOSTICS \
+ * --test_tag_filters=-noci:studio-linux,-qa_smoke,-qa_fast,-qa_unreliable,-perfgate-release,-no_k2 -- //tools/...
  *
  * 2. Then run this script itself, replacing the bazel_output_dir with the one initially specified:
  *
  * prebuilts/studio/intellij-sdk/AI/linux/android-studio/plugins/Kotlin/kotlinc/bin/kotlin \
- *   tools/adt/idea/project-system-gradle/scripts/report_gradle_problems.main.kts `bazel --output_base='<bazel_output_dir>' info bazel-testlogs` <output_html>
+ * tools/adt/idea/project-system-gradle/scripts/report_gradle_problems.main.kts `bazel --output_base='<bazel_output_dir>' info
+ * bazel-testlogs` <output_html>
  *
  * This should output the report at <output_html> path.
  *
- * RECOMMENDED WORKFLOW:
- * When fixing individual issues, one should run smaller suites with the work-in-progress fixes instead of using the catch all //tools/...
- * target and generate reports based on that.
+ * RECOMMENDED WORKFLOW: When fixing individual issues, one should run smaller suites with the work-in-progress fixes instead of using the
+ * catch all //tools/... target and generate reports based on that.
  *
- * NOTE:
- * Currently the execution above contains AGP upgrade assistant tests as well, causing reports to be inflated with a bunch of older
+ * NOTE: Currently the execution above contains AGP upgrade assistant tests as well, causing reports to be inflated with a bunch of older
  * deprecations that are not relevant. Ideally we should tag those tests and filter them out from executions (or from script processing)
+ *
  * ```
  *
  * ## Arguments
@@ -57,7 +49,6 @@
  * - `output_html`: The destination file path for the generated aggregation HTML report.
  *   Defaults to `tools/adt/idea/report_gradle_problems.html`
  */
-
 import java.io.File
 import java.util.zip.ZipFile
 import kotlin.system.exitProcess
@@ -66,402 +57,435 @@ import kotlin.system.measureTimeMillis
 // --- Data Models ---
 
 data class SnippetOccurrence(
-    val targetName: String,
-    val locationPath: String
+  val targetName: String,
+  val locationPath: String,
 )
 
 data class ProblemRowKey(
-    val snippetHtml: String?, // null if no file snippet
-    val noSnippetReason: String, // shown if snippetHtml is null
-    val fullMessageHtml: String
+  val snippetHtml: String?, // null if no file snippet
+  val noSnippetReason: String, // shown if snippetHtml is null
+  val fullMessageHtml: String,
 )
 
 class IssueBucket(val issueId: String) {
-    val rows = mutableMapOf<ProblemRowKey, MutableList<SnippetOccurrence>>()
-    var totalOccurrences = 0
+  val rows = mutableMapOf<ProblemRowKey, MutableList<SnippetOccurrence>>()
+  var totalOccurrences = 0
 
-    fun addOccurrence(key: ProblemRowKey, occurrence: SnippetOccurrence) {
-        totalOccurrences++
-        val list = rows.getOrPut(key) { mutableListOf() }
-        list.add(occurrence)
-    }
+  fun addOccurrence(key: ProblemRowKey, occurrence: SnippetOccurrence) {
+    totalOccurrences++
+    val list = rows.getOrPut(key) { mutableListOf() }
+    list.add(occurrence)
+  }
 }
 
 data class DaemonLogLoc(
-    val path: String,
-    val line: Int,
-    val message: String
+  val path: String,
+  val line: Int,
+  val message: String,
 )
 
 // --- Lightweight JSON Parser (zero external dependencies) ---
 
 sealed class JsonValue
+
 data class JsonObj(val map: Map<String, JsonValue>) : JsonValue()
+
 data class JsonArr(val list: List<JsonValue>) : JsonValue()
+
 data class JsonStr(val value: String) : JsonValue()
+
 data class JsonNum(val value: Double) : JsonValue()
+
 data class JsonBool(val value: Boolean) : JsonValue()
+
 object JsonNull : JsonValue()
 
 fun JsonValue?.asObj(): JsonObj? = this as? JsonObj
+
 fun JsonValue?.asArr(): JsonArr? = this as? JsonArr
+
 fun JsonValue?.asStr(): String? = (this as? JsonStr)?.value
+
 fun JsonValue?.asNum(): Double? = (this as? JsonNum)?.value
+
 fun JsonObj.getStr(key: String): String? = map[key].asStr()
+
 fun JsonObj.getArr(key: String): List<JsonValue> = map[key].asArr()?.list ?: emptyList()
 
 class SimpleJsonParser(private val text: String) {
-    private var pos = 0
+  private var pos = 0
 
-    fun parse(): JsonValue {
-        skipWhitespace()
-        return parseValue()
+  fun parse(): JsonValue {
+    skipWhitespace()
+    return parseValue()
+  }
+
+  private fun skipWhitespace() {
+    while (pos < text.length && text[pos] <= ' ') {
+      pos++
     }
+  }
 
-    private fun skipWhitespace() {
-        while (pos < text.length && text[pos] <= ' ') {
-            pos++
+  private fun parseValue(): JsonValue {
+    skipWhitespace()
+    if (pos >= text.length) return JsonNull
+    return when (val ch = text[pos]) {
+      '{' -> parseObject()
+      '[' -> parseArray()
+      '"' -> parseString()
+      't',
+      'f' -> parseBoolean()
+      'n' -> parseNull()
+      else ->
+        if (ch == '-' || ch.isDigit()) parseNumber()
+        else {
+          pos++
+          JsonNull
         }
     }
+  }
 
-    private fun parseValue(): JsonValue {
-        skipWhitespace()
-        if (pos >= text.length) return JsonNull
-        return when (val ch = text[pos]) {
-            '{' -> parseObject()
-            '[' -> parseArray()
-            '"' -> parseString()
-            't', 'f' -> parseBoolean()
-            'n' -> parseNull()
-            else -> if (ch == '-' || ch.isDigit()) parseNumber() else { pos++; JsonNull }
-        }
+  private fun parseObject(): JsonObj {
+    pos++ // skip '{'
+    val map = mutableMapOf<String, JsonValue>()
+    skipWhitespace()
+    if (pos < text.length && text[pos] == '}') {
+      pos++
+      return JsonObj(map)
     }
+    while (pos < text.length) {
+      skipWhitespace()
+      if (pos >= text.length || text[pos] != '"') break
+      val key = (parseString() as JsonStr).value
+      skipWhitespace()
+      if (pos < text.length && text[pos] == ':') pos++
+      val valObj = parseValue()
+      map[key] = valObj
+      skipWhitespace()
+      if (pos < text.length && text[pos] == ',') {
+        pos++
+      } else if (pos < text.length && text[pos] == '}') {
+        pos++
+        break
+      } else {
+        break
+      }
+    }
+    return JsonObj(map)
+  }
 
-    private fun parseObject(): JsonObj {
-        pos++ // skip '{'
-        val map = mutableMapOf<String, JsonValue>()
-        skipWhitespace()
-        if (pos < text.length && text[pos] == '}') {
-            pos++
-            return JsonObj(map)
-        }
-        while (pos < text.length) {
-            skipWhitespace()
-            if (pos >= text.length || text[pos] != '"') break
-            val key = (parseString() as JsonStr).value
-            skipWhitespace()
-            if (pos < text.length && text[pos] == ':') pos++
-            val valObj = parseValue()
-            map[key] = valObj
-            skipWhitespace()
-            if (pos < text.length && text[pos] == ',') {
-                pos++
-            } else if (pos < text.length && text[pos] == '}') {
-                pos++
-                break
-            } else {
-                break
+  private fun parseArray(): JsonArr {
+    pos++ // skip '['
+    val list = mutableListOf<JsonValue>()
+    skipWhitespace()
+    if (pos < text.length && text[pos] == ']') {
+      pos++
+      return JsonArr(list)
+    }
+    while (pos < text.length) {
+      val valObj = parseValue()
+      list.add(valObj)
+      skipWhitespace()
+      if (pos < text.length && text[pos] == ',') {
+        pos++
+      } else if (pos < text.length && text[pos] == ']') {
+        pos++
+        break
+      } else {
+        break
+      }
+    }
+    return JsonArr(list)
+  }
+
+  private fun parseString(): JsonStr {
+    pos++ // skip starting quote
+    val sb = StringBuilder()
+    while (pos < text.length) {
+      val ch = text[pos++]
+      if (ch == '"') break
+      if (ch == '\\' && pos < text.length) {
+        when (val esc = text[pos++]) {
+          '"' -> sb.append('"')
+          '\\' -> sb.append('\\')
+          '/' -> sb.append('/')
+          'b' -> sb.append('\b')
+          'f' -> sb.append('\u000c')
+          'n' -> sb.append('\n')
+          'r' -> sb.append('\r')
+          't' -> sb.append('\t')
+          'u' -> {
+            if (pos + 4 <= text.length) {
+              val hex = text.substring(pos, pos + 4)
+              try {
+                sb.append(hex.toInt(16).toChar())
+              } catch (_: Exception) {}
+              pos += 4
             }
+          }
+          else -> sb.append(esc)
         }
-        return JsonObj(map)
+      } else {
+        sb.append(ch)
+      }
     }
+    return JsonStr(sb.toString())
+  }
 
-    private fun parseArray(): JsonArr {
-        pos++ // skip '['
-        val list = mutableListOf<JsonValue>()
-        skipWhitespace()
-        if (pos < text.length && text[pos] == ']') {
-            pos++
-            return JsonArr(list)
-        }
-        while (pos < text.length) {
-            val valObj = parseValue()
-            list.add(valObj)
-            skipWhitespace()
-            if (pos < text.length && text[pos] == ',') {
-                pos++
-            } else if (pos < text.length && text[pos] == ']') {
-                pos++
-                break
-            } else {
-                break
-            }
-        }
-        return JsonArr(list)
+  private fun parseBoolean(): JsonBool {
+    return if (text.startsWith("true", pos)) {
+      pos += 4
+      JsonBool(true)
+    } else if (text.startsWith("false", pos)) {
+      pos += 5
+      JsonBool(false)
+    } else {
+      pos++
+      JsonBool(false)
     }
+  }
 
-    private fun parseString(): JsonStr {
-        pos++ // skip starting quote
-        val sb = StringBuilder()
-        while (pos < text.length) {
-            val ch = text[pos++]
-            if (ch == '"') break
-            if (ch == '\\' && pos < text.length) {
-                when (val esc = text[pos++]) {
-                    '"' -> sb.append('"')
-                    '\\' -> sb.append('\\')
-                    '/' -> sb.append('/')
-                    'b' -> sb.append('\b')
-                    'f' -> sb.append('\u000c')
-                    'n' -> sb.append('\n')
-                    'r' -> sb.append('\r')
-                    't' -> sb.append('\t')
-                    'u' -> {
-                        if (pos + 4 <= text.length) {
-                            val hex = text.substring(pos, pos + 4)
-                            try { sb.append(hex.toInt(16).toChar()) } catch (_: Exception) {}
-                            pos += 4
-                        }
-                    }
-                    else -> sb.append(esc)
-                }
-            } else {
-                sb.append(ch)
-            }
-        }
-        return JsonStr(sb.toString())
+  private fun parseNull(): JsonNull {
+    if (text.startsWith("null", pos)) {
+      pos += 4
+    } else {
+      pos++
     }
+    return JsonNull
+  }
 
-    private fun parseBoolean(): JsonBool {
-        return if (text.startsWith("true", pos)) {
-            pos += 4
-            JsonBool(true)
-        } else if (text.startsWith("false", pos)) {
-            pos += 5
-            JsonBool(false)
-        } else {
-            pos++
-            JsonBool(false)
-        }
+  private fun parseNumber(): JsonNum {
+    val start = pos
+    if (pos < text.length && text[pos] == '-') pos++
+    while (pos < text.length && text[pos].isDigit()) pos++
+    if (pos < text.length && text[pos] == '.') {
+      pos++
+      while (pos < text.length && text[pos].isDigit()) pos++
     }
-
-    private fun parseNull(): JsonNull {
-        if (text.startsWith("null", pos)) {
-            pos += 4
-        } else {
-            pos++
-        }
-        return JsonNull
+    if (pos < text.length && (text[pos] == 'e' || text[pos] == 'E')) {
+      pos++
+      if (pos < text.length && (text[pos] == '+' || text[pos] == '-')) pos++
+      while (pos < text.length && text[pos].isDigit()) pos++
     }
-
-    private fun parseNumber(): JsonNum {
-        val start = pos
-        if (pos < text.length && text[pos] == '-') pos++
-        while (pos < text.length && text[pos].isDigit()) pos++
-        if (pos < text.length && text[pos] == '.') {
-            pos++
-            while (pos < text.length && text[pos].isDigit()) pos++
-        }
-        if (pos < text.length && (text[pos] == 'e' || text[pos] == 'E')) {
-            pos++
-            if (pos < text.length && (text[pos] == '+' || text[pos] == '-')) pos++
-            while (pos < text.length && text[pos].isDigit()) pos++
-        }
-        val numStr = text.substring(start, pos)
-        return JsonNum(numStr.toDoubleOrNull() ?: 0.0)
-    }
+    val numStr = text.substring(start, pos)
+    return JsonNum(numStr.toDoubleOrNull() ?: 0.0)
+  }
 }
 
 // --- Helper Functions ---
 
 fun htmlEscape(text: String): String {
-    return text.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace("\"", "&quot;")
-        .replace("'", "&#x27;")
+  return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#x27;")
 }
 
 fun extractSnippetFromZip(zip: ZipFile, relPath: String, lineNum: Int): String? {
-    val entry = zip.getEntry(relPath) ?: return null
-    return try {
-        val lines = zip.getInputStream(entry).reader().use { it.readLines() }
-        val l = lineNum - 1 // 0-indexed
-        val start = maxOf(0, l - 3)
-        val end = minOf(lines.size, l + 4)
-        val sb = StringBuilder()
-        for (i in start until end) {
-            val isTarget = (i == l)
-            val lineContent = htmlEscape(lines[i])
-            val lineClass = if (isTarget) "line target-line" else "line"
-            sb.append("<div class=\"$lineClass\"><span class=\"line-num\">${i + 1}</span>$lineContent</div>\n")
-        }
-        sb.toString().trimEnd()
-    } catch (e: Exception) {
-        null
+  val entry = zip.getEntry(relPath) ?: return null
+  return try {
+    val lines = zip.getInputStream(entry).reader().use { it.readLines() }
+    val l = lineNum - 1 // 0-indexed
+    val start = maxOf(0, l - 3)
+    val end = minOf(lines.size, l + 4)
+    val sb = StringBuilder()
+    for (i in start until end) {
+      val isTarget = (i == l)
+      val lineContent = htmlEscape(lines[i])
+      val lineClass = if (isTarget) "line target-line" else "line"
+      sb.append("<div class=\"$lineClass\"><span class=\"line-num\">${i + 1}</span>$lineContent</div>\n")
     }
+    sb.toString().trimEnd()
+  } catch (e: Exception) {
+    null
+  }
 }
 
 fun extractDaemonLogLocations(zip: ZipFile): List<DaemonLogLoc> {
-    val locs = mutableListOf<DaemonLogLoc>()
-    val regex = "^[we]: (?:file://)?(.*?):(\\d+):(?:\\d+:)?\\s*(.*)".toRegex()
-    for (entry in zip.entries()) {
-        if (!entry.isDirectory && entry.name.contains("daemon-") && entry.name.endsWith(".log")) {
-            try {
-                zip.getInputStream(entry).reader().useLines { lines ->
-                    for (l in lines) {
-                        val m = regex.find(l)
-                        if (m != null) {
-                            val path = m.groupValues[1]
-                            val lineNum = m.groupValues[2].toIntOrNull() ?: continue
-                            val msg = m.groupValues[3]
-                            locs.add(DaemonLogLoc(path, lineNum, msg))
-                        }
-                    }
-                }
-            } catch (_: Exception) {}
+  val locs = mutableListOf<DaemonLogLoc>()
+  val regex = "^[we]: (?:file://)?(.*?):(\\d+):(?:\\d+:)?\\s*(.*)".toRegex()
+  for (entry in zip.entries()) {
+    if (!entry.isDirectory && entry.name.contains("daemon-") && entry.name.endsWith(".log")) {
+      try {
+        zip.getInputStream(entry).reader().useLines { lines ->
+          for (l in lines) {
+            val m = regex.find(l)
+            if (m != null) {
+              val path = m.groupValues[1]
+              val lineNum = m.groupValues[2].toIntOrNull() ?: continue
+              val msg = m.groupValues[3]
+              locs.add(DaemonLogLoc(path, lineNum, msg))
+            }
+          }
         }
+      } catch (_: Exception) {}
     }
-    return locs
+  }
+  return locs
 }
 
 fun DaemonLogLoc.matchesDiag(solutionsArr: List<String>, label: String?, details: String?): Boolean {
-    for (sol in solutionsArr) {
-        if (sol.isNotBlank() && message.contains(sol)) return true
-    }
-    if (!label.isNullOrBlank()) {
-        if (message.contains(label)) return true
-        if (label.contains("by extra") && (message.contains("by extra") || message.contains("ExtraPropertiesExtension.invoke"))) return true
-        if (label.contains("withJava()") && message.contains("withJava()")) return true
-    }
-    if (!details.isNullOrBlank() && message.contains(details)) return true
-    return false
+  for (sol in solutionsArr) {
+    if (sol.isNotBlank() && message.contains(sol)) return true
+  }
+  if (!label.isNullOrBlank()) {
+    if (message.contains(label)) return true
+    if (label.contains("by extra") && (message.contains("by extra") || message.contains("ExtraPropertiesExtension.invoke"))) return true
+    if (label.contains("withJava()") && message.contains("withJava()")) return true
+  }
+  if (!details.isNullOrBlank() && message.contains(details)) return true
+  return false
 }
 
 fun processReportContent(
-    content: String,
-    targetName: String,
-    zip: ZipFile,
-    daemonLogLocs: List<DaemonLogLoc>,
-    issues: MutableMap<String, IssueBucket>
+  content: String,
+  targetName: String,
+  zip: ZipFile,
+  daemonLogLocs: List<DaemonLogLoc>,
+  issues: MutableMap<String, IssueBucket>,
 ) {
-    val beginMarker = "// begin-report-data"
-    val endMarker = "// end-report-data"
-    val beginIdx = content.indexOf(beginMarker)
-    val endIdx = content.indexOf(endMarker, beginIdx)
-    if (beginIdx < 0 || endIdx < 0) return
+  val beginMarker = "// begin-report-data"
+  val endMarker = "// end-report-data"
+  val beginIdx = content.indexOf(beginMarker)
+  val endIdx = content.indexOf(endMarker, beginIdx)
+  if (beginIdx < 0 || endIdx < 0) return
 
-    val jsonStr = content.substring(beginIdx + beginMarker.length, endIdx).trim()
-    val rootObj = SimpleJsonParser(jsonStr).parse().asObj() ?: return
-    val diagnostics = rootObj.getArr("diagnostics")
+  val jsonStr = content.substring(beginIdx + beginMarker.length, endIdx).trim()
+  val rootObj = SimpleJsonParser(jsonStr).parse().asObj() ?: return
+  val diagnostics = rootObj.getArr("diagnostics")
 
-    for (diagVal in diagnostics) {
-        val diag = diagVal.asObj() ?: continue
-        val problemIdArr = diag.getArr("problemId")
-        val idParts = problemIdArr.mapNotNull {
-            val obj = it.asObj()
-            obj?.getStr("displayName") ?: obj?.getStr("name")
-        }
-        val issueId = if (idParts.isNotEmpty()) idParts.joinToString(" > ") else (diag.getStr("contextualLabel") ?: "Unknown Gradle Problem")
-        val problemDetails = diag.getStr("problemDetails")
-        val contextualLabel = diag.getStr("contextualLabel")
-        val solutionsArr = diag.getArr("solutions").mapNotNull { it.asStr() }
-        val docLink = diag.getStr("documentationLink")
-
-        val msgBuilder = StringBuilder()
-        if (!contextualLabel.isNullOrBlank()) {
-            msgBuilder.append("<div style=\"font-weight: 600; margin-bottom: 8px; color: #202124;\">${htmlEscape(contextualLabel)}</div>")
-        }
-        if (!problemDetails.isNullOrBlank()) {
-            msgBuilder.append("<div style=\"margin-bottom: 8px; color: #3c4043;\">${htmlEscape(problemDetails)}</div>")
-        }
-        if (solutionsArr.isNotEmpty()) {
-            msgBuilder.append("<div style=\"margin-bottom: 8px;\"><span style=\"font-weight: 600; color: #1e8e3e;\">Solution: </span>")
-            msgBuilder.append(solutionsArr.joinToString("<br>") { htmlEscape(it) })
-            msgBuilder.append("</div>")
-        }
-        if (!docLink.isNullOrBlank()) {
-            msgBuilder.append("<div><a href=\"${htmlEscape(docLink)}\" target=\"_blank\" style=\"color: #1a73e8; text-decoration: none;\">Documentation Link &nearr;</a></div>")
-        }
-        val fullMessageHtml = msgBuilder.toString().ifEmpty { "No details provided" }
-
-        val bucket = issues.getOrPut(issueId) { IssueBucket(issueId) }
-
-        val locations = diag.getArr("locations")
-        val fileLocations = locations.mapNotNull { it.asObj() }.filter {
-            it.getStr("path") != null && (it.getStr("line") ?: (it.map["line"] as? JsonNum)?.value?.toInt()?.toString()) != null
-        }
-
-        if (fileLocations.isNotEmpty()) {
-            for (loc in fileLocations) {
-                val path = loc.getStr("path")!!
-                val line = loc.getStr("line")?.toIntOrNull() ?: (loc.map["line"] as? JsonNum)?.value?.toInt()!!
-                val relPathInZip = if (path.contains("/test.outputs/")) {
-                    path.substringAfter("/test.outputs/")
-                } else {
-                    path
-                }
-
-                val snippetHtml = extractSnippetFromZip(zip, relPathInZip, line)
-                val key = if (snippetHtml != null) {
-                    ProblemRowKey(snippetHtml, "", fullMessageHtml)
-                } else {
-                    ProblemRowKey(null, "No source code snippet available (File not found in archive: $relPathInZip, line $line)", fullMessageHtml)
-                }
-                bucket.addOccurrence(key, SnippetOccurrence(targetName, "$path:$line"))
-            }
-        } else {
-            // Fallback: try matching against daemon log locations
-            val matchedDaemonLocs = daemonLogLocs.filter { it.matchesDiag(solutionsArr, contextualLabel, problemDetails) }
-            if (matchedDaemonLocs.isNotEmpty()) {
-                for (logLoc in matchedDaemonLocs) {
-                    val path = logLoc.path
-                    val line = logLoc.line
-                    val relPathInZip = if (path.contains("/test.outputs/")) {
-                        path.substringAfter("/test.outputs/")
-                    } else {
-                        path
-                    }
-
-                    val snippetHtml = extractSnippetFromZip(zip, relPathInZip, line)
-                    val key = if (snippetHtml != null) {
-                        ProblemRowKey(snippetHtml, "", fullMessageHtml)
-                    } else {
-                        ProblemRowKey(null, "No source code snippet available (File not found in archive: $relPathInZip, line $line)", fullMessageHtml)
-                    }
-                    bucket.addOccurrence(key, SnippetOccurrence(targetName, "$path:$line (from daemon log)"))
-                }
-            } else {
-                // Check if pluginId was reported
-                val pluginLoc = locations.mapNotNull { it.asObj() }.firstOrNull { it.getStr("pluginId") != null }
-                if (pluginLoc != null) {
-                    val pluginId = pluginLoc.getStr("pluginId")!!
-                    val key = ProblemRowKey(
-                        snippetHtml = null,
-                        noSnippetReason = "No source code snippet available (Problem reported at plugin level: $pluginId)",
-                        fullMessageHtml = fullMessageHtml
-                    )
-                    bucket.addOccurrence(key, SnippetOccurrence(targetName, "Plugin: $pluginId"))
-                } else {
-                    val key = ProblemRowKey(
-                        snippetHtml = null,
-                        noSnippetReason = "No source code snippet available (Gradle problem report provided no file location for this deprecation)",
-                        fullMessageHtml = fullMessageHtml
-                    )
-                    bucket.addOccurrence(key, SnippetOccurrence(targetName, "No location"))
-                }
-            }
-        }
+  for (diagVal in diagnostics) {
+    val diag = diagVal.asObj() ?: continue
+    val problemIdArr = diag.getArr("problemId")
+    val idParts = problemIdArr.mapNotNull {
+      val obj = it.asObj()
+      obj?.getStr("displayName") ?: obj?.getStr("name")
     }
+    val issueId = if (idParts.isNotEmpty()) idParts.joinToString(" > ") else (diag.getStr("contextualLabel") ?: "Unknown Gradle Problem")
+    val problemDetails = diag.getStr("problemDetails")
+    val contextualLabel = diag.getStr("contextualLabel")
+    val solutionsArr = diag.getArr("solutions").mapNotNull { it.asStr() }
+    val docLink = diag.getStr("documentationLink")
+
+    val msgBuilder = StringBuilder()
+    if (!contextualLabel.isNullOrBlank()) {
+      msgBuilder.append("<div style=\"font-weight: 600; margin-bottom: 8px; color: #202124;\">${htmlEscape(contextualLabel)}</div>")
+    }
+    if (!problemDetails.isNullOrBlank()) {
+      msgBuilder.append("<div style=\"margin-bottom: 8px; color: #3c4043;\">${htmlEscape(problemDetails)}</div>")
+    }
+    if (solutionsArr.isNotEmpty()) {
+      msgBuilder.append("<div style=\"margin-bottom: 8px;\"><span style=\"font-weight: 600; color: #1e8e3e;\">Solution: </span>")
+      msgBuilder.append(solutionsArr.joinToString("<br>") { htmlEscape(it) })
+      msgBuilder.append("</div>")
+    }
+    if (!docLink.isNullOrBlank()) {
+      msgBuilder.append(
+        "<div><a href=\"${htmlEscape(docLink)}\" target=\"_blank\" style=\"color: #1a73e8; text-decoration: none;\">Documentation Link &nearr;</a></div>"
+      )
+    }
+    val fullMessageHtml = msgBuilder.toString().ifEmpty { "No details provided" }
+
+    val bucket = issues.getOrPut(issueId) { IssueBucket(issueId) }
+
+    val locations = diag.getArr("locations")
+    val fileLocations =
+      locations
+        .mapNotNull { it.asObj() }
+        .filter {
+          it.getStr("path") != null && (it.getStr("line") ?: (it.map["line"] as? JsonNum)?.value?.toInt()?.toString()) != null
+        }
+
+    if (fileLocations.isNotEmpty()) {
+      for (loc in fileLocations) {
+        val path = loc.getStr("path")!!
+        val line = loc.getStr("line")?.toIntOrNull() ?: (loc.map["line"] as? JsonNum)?.value?.toInt()!!
+        val relPathInZip =
+          if (path.contains("/test.outputs/")) {
+            path.substringAfter("/test.outputs/")
+          } else {
+            path
+          }
+
+        val snippetHtml = extractSnippetFromZip(zip, relPathInZip, line)
+        val key =
+          if (snippetHtml != null) {
+            ProblemRowKey(snippetHtml, "", fullMessageHtml)
+          } else {
+            ProblemRowKey(null, "No source code snippet available (File not found in archive: $relPathInZip, line $line)", fullMessageHtml)
+          }
+        bucket.addOccurrence(key, SnippetOccurrence(targetName, "$path:$line"))
+      }
+    } else {
+      // Fallback: try matching against daemon log locations
+      val matchedDaemonLocs = daemonLogLocs.filter { it.matchesDiag(solutionsArr, contextualLabel, problemDetails) }
+      if (matchedDaemonLocs.isNotEmpty()) {
+        for (logLoc in matchedDaemonLocs) {
+          val path = logLoc.path
+          val line = logLoc.line
+          val relPathInZip =
+            if (path.contains("/test.outputs/")) {
+              path.substringAfter("/test.outputs/")
+            } else {
+              path
+            }
+
+          val snippetHtml = extractSnippetFromZip(zip, relPathInZip, line)
+          val key =
+            if (snippetHtml != null) {
+              ProblemRowKey(snippetHtml, "", fullMessageHtml)
+            } else {
+              ProblemRowKey(
+                null,
+                "No source code snippet available (File not found in archive: $relPathInZip, line $line)",
+                fullMessageHtml,
+              )
+            }
+          bucket.addOccurrence(key, SnippetOccurrence(targetName, "$path:$line (from daemon log)"))
+        }
+      } else {
+        // Check if pluginId was reported
+        val pluginLoc = locations.mapNotNull { it.asObj() }.firstOrNull { it.getStr("pluginId") != null }
+        if (pluginLoc != null) {
+          val pluginId = pluginLoc.getStr("pluginId")!!
+          val key =
+            ProblemRowKey(
+              snippetHtml = null,
+              noSnippetReason = "No source code snippet available (Problem reported at plugin level: $pluginId)",
+              fullMessageHtml = fullMessageHtml,
+            )
+          bucket.addOccurrence(key, SnippetOccurrence(targetName, "Plugin: $pluginId"))
+        } else {
+          val key =
+            ProblemRowKey(
+              snippetHtml = null,
+              noSnippetReason = "No source code snippet available (Gradle problem report provided no file location for this deprecation)",
+              fullMessageHtml = fullMessageHtml,
+            )
+          bucket.addOccurrence(key, SnippetOccurrence(targetName, "No location"))
+        }
+      }
+    }
+  }
 }
 
 fun generateHtmlReport(
-    targetDir: File,
-    outputFile: File,
-    issues: Map<String, IssueBucket>,
-    scannedManifests: Int,
-    scannedReports: Int,
-    elapsedMillis: Long
+  targetDir: File,
+  outputFile: File,
+  issues: Map<String, IssueBucket>,
+  scannedManifests: Int,
+  scannedReports: Int,
+  elapsedMillis: Long,
 ) {
-    val totalOccurrences = issues.values.sumOf { it.totalOccurrences }
-    val sortedIssues = issues.values.sortedWith(
-        compareByDescending<IssueBucket> {
-            it.issueId.startsWith("Deprecation >", ignoreCase = true)
-        }.thenByDescending { it.totalOccurrences }
+  val totalOccurrences = issues.values.sumOf { it.totalOccurrences }
+  val sortedIssues =
+    issues.values.sortedWith(
+      compareByDescending<IssueBucket> {
+          it.issueId.startsWith("Deprecation >", ignoreCase = true)
+        }
+        .thenByDescending { it.totalOccurrences }
     )
 
-    val html = StringBuilder()
-    html.append("""
+  val html = StringBuilder()
+  html.append(
+    """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -731,15 +755,18 @@ fun generateHtmlReport(
 <details class="category-section" open>
     <summary class="category-summary"><h2 class="category-title" style="display: inline;">Aggregated Problem Types (${sortedIssues.size})</h2></summary>
     <div class="issue-meta" style="margin-top: 8px;">Total Occurrences: $totalOccurrences | Unique Problem Types: ${sortedIssues.size}</div>
-    """.trimIndent())
+    """
+      .trimIndent()
+  )
 
-    sortedIssues.forEachIndexed { idx, bucket ->
-        val issueNum = idx + 1
-        val uniqueTargets = bucket.rows.values.flatMap { it }.map { it.targetName }.distinct().sorted()
-        val totalOccs = bucket.totalOccurrences
-        val totalRows = bucket.rows.size
+  sortedIssues.forEachIndexed { idx, bucket ->
+    val issueNum = idx + 1
+    val uniqueTargets = bucket.rows.values.flatMap { it }.map { it.targetName }.distinct().sorted()
+    val totalOccs = bucket.totalOccurrences
+    val totalRows = bucket.rows.size
 
-        html.append("""
+    html.append(
+      """
     <details class="issue-card" ${if (issueNum <= 5) "open" else ""}>
         <summary class="issue-header">
             <h3 class="issue-title">#$issueNum Issue: <code>${htmlEscape(bucket.issueId)}</code></h3>
@@ -749,11 +776,13 @@ fun generateHtmlReport(
         <details class="targets-details">
             <summary>Targets (${uniqueTargets.size})</summary>
             <ul class="targets-list">
-        """)
-        uniqueTargets.forEach { tName ->
-            html.append("                <li>${htmlEscape(tName)}</li>\n")
-        }
-        html.append("""
+        """
+    )
+    uniqueTargets.forEach { tName ->
+      html.append("                <li>${htmlEscape(tName)}</li>\n")
+    }
+    html.append(
+      """
             </ul>
         </details>
         <details class="snippets-section-details" open>
@@ -763,56 +792,73 @@ fun generateHtmlReport(
                 <div class="col-message-hdr">Full problem message</div>
                 <div class="col-targets-hdr">Targets / Tests</div>
             </div>
-        """)
+        """
+    )
 
-        val sortedRows = bucket.rows.entries.sortedByDescending { it.value.size }
-        for ((key, occurrences) in sortedRows) {
-            val snippetColHtml = if (key.snippetHtml != null) {
-                """<div class="col-snippet"><pre class="snippet-code"><code>${key.snippetHtml}</code></pre></div>"""
-            } else {
-                """<div class="col-snippet no-code"><div><span style="font-size: 20px; display: block; margin-bottom: 6px;">ℹ️</span>${htmlEscape(key.noSnippetReason)}</div></div>"""
-            }
+    val sortedRows = bucket.rows.entries.sortedByDescending { it.value.size }
+    for ((key, occurrences) in sortedRows) {
+      val snippetColHtml =
+        if (key.snippetHtml != null) {
+          """<div class="col-snippet"><pre class="snippet-code"><code>${key.snippetHtml}</code></pre></div>"""
+        } else {
+          """<div class="col-snippet no-code"><div><span style="font-size: 20px; display: block; margin-bottom: 6px;">ℹ️</span>${htmlEscape(key.noSnippetReason)}</div></div>"""
+        }
 
-            html.append("""
+      html.append(
+        """
             <div class="snippet-details">
                 $snippetColHtml
                 <div class="col-message">${key.fullMessageHtml}</div>
                 <div class="col-targets">
-            """)
+            """
+      )
 
-            val byTarget = occurrences.groupBy { it.targetName }
-            for ((tName, occs) in byTarget.toSortedMap()) {
-                html.append("""
+      val byTarget = occurrences.groupBy { it.targetName }
+      for ((tName, occs) in byTarget.toSortedMap()) {
+        html.append(
+          """
                     <div class="snippet-target-group">
                         <div class="snippet-target-name">${htmlEscape(tName)} (${occs.size})</div>
-                """)
-                occs.map { it.locationPath }.distinct().sorted().forEach { locPath ->
-                    html.append("                        <div class=\"snippet-file-item\">${htmlEscape(locPath)}</div>\n")
-                }
-                html.append("                    </div>\n")
-            }
+                """
+        )
+        occs
+          .map { it.locationPath }
+          .distinct()
+          .sorted()
+          .forEach { locPath ->
+            html.append("                        <div class=\"snippet-file-item\">${htmlEscape(locPath)}</div>\n")
+          }
+        html.append("                    </div>\n")
+      }
 
-            html.append("""
+      html.append(
+        """
                 </div>
             </div>
-            """)
-        }
-
-        html.append("""
-        </details>
-    </details>
-        """)
+            """
+      )
     }
 
-    html.append("""
-</details>
-</body>
-</html>
-    """.trimIndent())
+    html.append(
+      """
+        </details>
+    </details>
+        """
+    )
+  }
 
-    outputFile.parentFile?.mkdirs()
-    outputFile.writeText(html.toString())
-    println("Report successfully generated at: ${outputFile.absolutePath}")
+  html.append(
+    """
+    </details>
+    </body>
+    </html>
+    """
+      .trimIndent()
+  )
+
+  outputFile.parentFile?.mkdirs()
+  outputFile.writeText(html.toString())
+  println("Report successfully generated at: ${outputFile.absolutePath}")
 }
 
 // --- Main Execution ---
@@ -824,9 +870,10 @@ val targetDirPath = args.getOrNull(0) ?: defaultTargetDir
 val outputHtmlPath = args.getOrNull(1) ?: defaultOutputHtml
 
 val targetDir = File(targetDirPath)
+
 if (!targetDir.exists() || !targetDir.isDirectory) {
-    println("Error: Target directory does not exist or is not a directory: $targetDirPath")
-    exitProcess(1)
+  println("Error: Target directory does not exist or is not a directory: $targetDirPath")
+  exitProcess(1)
 }
 
 println("Scanning target directory: ${targetDir.absolutePath}...")
@@ -836,42 +883,44 @@ var scannedManifests = 0
 var scannedReports = 0
 
 val elapsedMillis = measureTimeMillis {
-    targetDir.walkTopDown().filter { it.isFile && it.name == "MANIFEST" }.forEach { manifestFile ->
-        scannedManifests++
-        val lines = try {
-            manifestFile.readLines()
+  targetDir
+    .walkTopDown()
+    .filter { it.isFile && it.name == "MANIFEST" }
+    .forEach { manifestFile ->
+      scannedManifests++
+      val lines =
+        try {
+          manifestFile.readLines()
         } catch (_: Exception) {
-            emptyList()
+          emptyList()
         }
 
-        val reportEntries = lines.filter { it.contains("problems-report.html") }.map { it.split("\\s+".toRegex())[0] }
-        if (reportEntries.isEmpty()) return@forEach
+      val reportEntries = lines.filter { it.contains("problems-report.html") }.map { it.split("\\s+".toRegex())[0] }
+      if (reportEntries.isEmpty()) return@forEach
 
-        val testDir = manifestFile.parentFile?.parentFile ?: return@forEach
-        val zipFile = File(testDir, "test.outputs/outputs.zip")
+      val testDir = manifestFile.parentFile?.parentFile ?: return@forEach
+      val zipFile = File(testDir, "test.outputs/outputs.zip")
 
-        val targetName = testDir.absolutePath
-            .removePrefix(targetDir.absolutePath)
-            .removePrefix("/")
-            .removeSuffix("/")
+      val targetName = testDir.absolutePath.removePrefix(targetDir.absolutePath).removePrefix("/").removeSuffix("/")
 
-        if (zipFile.exists() && zipFile.isFile) {
-            try {
-                ZipFile(zipFile).use { zip ->
-                    val daemonLogLocs = extractDaemonLogLocations(zip)
-                    for (entryName in reportEntries) {
-                        val entry = zip.getEntry(entryName) ?: continue
-                        scannedReports++
-                        val content = zip.getInputStream(entry).reader().use { it.readText() }
-                        processReportContent(content, targetName, zip, daemonLogLocs, issues)
-                    }
-                }
-            } catch (e: Exception) {
-                // Ignore corrupt zip or read errors
+      if (zipFile.exists() && zipFile.isFile) {
+        try {
+          ZipFile(zipFile).use { zip ->
+            val daemonLogLocs = extractDaemonLogLocations(zip)
+            for (entryName in reportEntries) {
+              val entry = zip.getEntry(entryName) ?: continue
+              scannedReports++
+              val content = zip.getInputStream(entry).reader().use { it.readText() }
+              processReportContent(content, targetName, zip, daemonLogLocs, issues)
             }
+          }
+        } catch (e: Exception) {
+          // Ignore corrupt zip or read errors
         }
+      }
     }
 }
 
 val outputFile = File(outputHtmlPath)
+
 generateHtmlReport(targetDir, outputFile, issues, scannedManifests, scannedReports, elapsedMillis)

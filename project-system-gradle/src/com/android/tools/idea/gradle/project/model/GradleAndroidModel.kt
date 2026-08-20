@@ -241,24 +241,24 @@ data class GradleAndroidModelImpl(val data: GradleAndroidModelData) : GradleAndr
       synchronized(this) {
         minSdkVersionField
           ?: run {
-              var minSdkVersion = selectedVariant.minSdkVersion
-              if (minSdkVersion.codename != null) {
-                val defaultConfigVersion = androidProject.multiVariantData?.defaultConfig?.minSdkVersion
-                if (defaultConfigVersion != null) {
-                  minSdkVersion = defaultConfigVersion
-                }
-                val flavors = selectedVariant.productFlavors
-                for (flavor in flavors) {
-                  val productFlavor = myProductFlavorsByName[flavor]!!
-                  val flavorVersion = productFlavor.productFlavor.minSdkVersion
-                  if (flavorVersion != null) {
-                    minSdkVersion = flavorVersion
-                    break
-                  }
+            var minSdkVersion = selectedVariant.minSdkVersion
+            if (minSdkVersion.codename != null) {
+              val defaultConfigVersion = androidProject.multiVariantData?.defaultConfig?.minSdkVersion
+              if (defaultConfigVersion != null) {
+                minSdkVersion = defaultConfigVersion
+              }
+              val flavors = selectedVariant.productFlavors
+              for (flavor in flavors) {
+                val productFlavor = myProductFlavorsByName[flavor]!!
+                val flavorVersion = productFlavor.productFlavor.minSdkVersion
+                if (flavorVersion != null) {
+                  minSdkVersion = flavorVersion
+                  break
                 }
               }
-              convertVersion(minSdkVersion, null)
             }
+            convertVersion(minSdkVersion, null)
+          }
             .also { minSdkVersionField = it }
       }
 
@@ -287,20 +287,20 @@ data class GradleAndroidModelImpl(val data: GradleAndroidModelData) : GradleAndr
     synchronized(this) {
       overridesManifestPackageField
         ?: run {
-            var result = androidProject.multiVariantData?.defaultConfig?.applicationId != null
-            if (!result) {
-              val variant = selectedVariant
-              val flavors = variant.productFlavors
-              for (flavor in flavors) {
-                val productFlavor = myProductFlavorsByName[flavor]!!
-                if (productFlavor.productFlavor.applicationId != null) {
-                  result = true
-                  break
-                }
+          var result = androidProject.multiVariantData?.defaultConfig?.applicationId != null
+          if (!result) {
+            val variant = selectedVariant
+            val flavors = variant.productFlavors
+            for (flavor in flavors) {
+              val productFlavor = myProductFlavorsByName[flavor]!!
+              if (productFlavor.productFlavor.applicationId != null) {
+                result = true
+                break
               }
             }
-            result
           }
+          result
+        }
           .also { overridesManifestPackageField = it }
     }
 

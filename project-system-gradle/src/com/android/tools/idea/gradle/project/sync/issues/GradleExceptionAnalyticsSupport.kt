@@ -213,6 +213,7 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
     return hiddenNameReplacement
   }
 
-  private fun isClassAllowed(className: String) =
-    packagesAllowList.any { allowedPackagePrefix -> className.startsWith(allowedPackagePrefix) }
+  private fun isClassAllowed(className: String) = packagesAllowList.any { allowedPackagePrefix ->
+    className.startsWith(allowedPackagePrefix)
+  }
 }

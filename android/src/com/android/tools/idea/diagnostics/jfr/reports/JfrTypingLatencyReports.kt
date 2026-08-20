@@ -180,11 +180,10 @@ object JfrTypingLatencyReports {
       // First cancel and remove any previous instance of this timeout type. There should only ever be one of each timeout type running.
       timeouts.remove(timeoutType)?.cancel()
 
-      timeouts[timeoutType] =
-        coroutineScope.launch {
-          delay(timeoutType.timeout())
-          handleTimeout(timeoutType)
-        }
+      timeouts[timeoutType] = coroutineScope.launch {
+        delay(timeoutType.timeout())
+        handleTimeout(timeoutType)
+      }
     }
 
     @UiThread

@@ -131,17 +131,15 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
       databaseConnection.readSchema().await()
     }
 
-  override fun runQuery(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> =
-    scope.future {
-      val databaseConnection = getDatabaseConnection(databaseId)
-      databaseConnection.query(sqliteStatement).await()
-    }
+  override fun runQuery(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> = scope.future {
+    val databaseConnection = getDatabaseConnection(databaseId)
+    databaseConnection.query(sqliteStatement).await()
+  }
 
-  override fun executeStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> =
-    scope.future {
-      val databaseConnection = getDatabaseConnection(databaseId)
-      databaseConnection.execute(sqliteStatement).await()
-    }
+  override fun executeStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> = scope.future {
+    val databaseConnection = getDatabaseConnection(databaseId)
+    databaseConnection.execute(sqliteStatement).await()
+  }
 
   override fun updateTable(
     databaseId: SqliteDatabaseId,
@@ -149,21 +147,20 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
     targetRow: SqliteRow,
     targetColumnName: String,
     newValue: SqliteValue,
-  ): ListenableFuture<Unit> =
-    scope.future {
-      val databaseConnection = getDatabaseConnection(databaseId)
-      val whereExpression = getWhereExpression(targetTable, targetRow) ?: error("No primary keys or rowid column")
+  ): ListenableFuture<Unit> = scope.future {
+    val databaseConnection = getDatabaseConnection(databaseId)
+    val whereExpression = getWhereExpression(targetTable, targetRow) ?: error("No primary keys or rowid column")
 
-      val updateStatement =
-        "UPDATE ${AndroidSqlLexer.getValidName(targetTable.name)} " +
-          "SET ${AndroidSqlLexer.getValidName(targetColumnName)} = ? " +
-          "WHERE ${whereExpression.expression}"
+    val updateStatement =
+      "UPDATE ${AndroidSqlLexer.getValidName(targetTable.name)} " +
+        "SET ${AndroidSqlLexer.getValidName(targetColumnName)} = ? " +
+        "WHERE ${whereExpression.expression}"
 
-      withContext(Dispatchers.EDT) {
-        val sqliteStatement = createSqliteStatement(project, updateStatement, listOf(newValue) + whereExpression.parameters)
-        withContext(workerDispatcher) { databaseConnection.execute(sqliteStatement).await() }
-      }
+    withContext(Dispatchers.EDT) {
+      val sqliteStatement = createSqliteStatement(project, updateStatement, listOf(newValue) + whereExpression.parameters)
+      withContext(workerDispatcher) { databaseConnection.execute(sqliteStatement).await() }
     }
+  }
 
   override fun removeRows(databaseId: SqliteDatabaseId, targetTable: SqliteTable, targetRows: List<SqliteRow>): ListenableFuture<Unit> =
     scope.future {
@@ -187,28 +184,27 @@ class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executo
     databaseId: SqliteDatabaseId,
     sqliteStatement: SqliteStatement,
     orderBy: OrderBy,
-  ): ListenableFuture<SqliteResultSet> =
-    scope.future {
-      val (order, targetColumnName) =
-        when (orderBy) {
-          is OrderBy.Asc -> Pair("ASC", orderBy.columnName)
-          is OrderBy.Desc -> Pair("DESC", orderBy.columnName)
-          is OrderBy.NotOrdered -> Pair("", "")
-        }
+  ): ListenableFuture<SqliteResultSet> = scope.future {
+    val (order, targetColumnName) =
+      when (orderBy) {
+        is OrderBy.Asc -> Pair("ASC", orderBy.columnName)
+        is OrderBy.Desc -> Pair("DESC", orderBy.columnName)
+        is OrderBy.NotOrdered -> Pair("", "")
+      }
 
-      val selectOrderByStatement =
-        when (orderBy) {
-          is OrderBy.Asc,
-          is OrderBy.Desc ->
-            sqliteStatement.transform(SqliteStatementType.SELECT) {
-              "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(targetColumnName)} $order"
-            }
-          is OrderBy.NotOrdered -> sqliteStatement
-        }
+    val selectOrderByStatement =
+      when (orderBy) {
+        is OrderBy.Asc,
+        is OrderBy.Desc ->
+          sqliteStatement.transform(SqliteStatementType.SELECT) {
+            "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(targetColumnName)} $order"
+          }
+        is OrderBy.NotOrdered -> sqliteStatement
+      }
 
-      val databaseConnection = getDatabaseConnection(databaseId)
-      databaseConnection.query(selectOrderByStatement).await()
-    }
+    val databaseConnection = getDatabaseConnection(databaseId)
+    databaseConnection.query(selectOrderByStatement).await()
+  }
 
   override suspend fun clear() =
     withContext(workerDispatcher) {

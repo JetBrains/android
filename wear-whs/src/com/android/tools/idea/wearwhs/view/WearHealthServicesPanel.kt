@@ -393,14 +393,13 @@ internal fun createWearHealthServicesPanel(
 }
 
 private fun createTriggerEventGroupsButton(triggerEvent: (EventTrigger) -> Unit): ActionButton {
-  val eventTriggerGroupActions =
-    EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
-      val eventTriggerActions =
-        eventTriggerGroup.eventTriggers.map { eventTrigger ->
-          createEventTriggerAction(eventTrigger = eventTrigger, triggerEvent = { triggerEvent(it) })
-        }
-      DropDownAction(eventTriggerGroup.eventGroupLabel, null, null).apply { addAll(eventTriggerActions) }
-    }
+  val eventTriggerGroupActions = EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
+    val eventTriggerActions =
+      eventTriggerGroup.eventTriggers.map { eventTrigger ->
+        createEventTriggerAction(eventTrigger = eventTrigger, triggerEvent = { triggerEvent(it) })
+      }
+    DropDownAction(eventTriggerGroup.eventGroupLabel, null, null).apply { addAll(eventTriggerActions) }
+  }
   val eventTriggerGroups = DropDownAction(null, null, AllIcons.Actions.More).apply { addAll(eventTriggerGroupActions) }
 
   return ActionButton(
@@ -445,8 +444,9 @@ private fun createLoadCapabilityPresetComboBox(stateManager: WearHealthServicesS
   return presetComboBox
 }
 
-private fun WearHealthServicesStateManager.hasAtLeastOneCapabilityEnabled() =
-  capabilitiesList.any { getState(it).value.upToDateState.enabled }
+private fun WearHealthServicesStateManager.hasAtLeastOneCapabilityEnabled() = capabilitiesList.any {
+  getState(it).value.upToDateState.enabled
+}
 
 private fun createHelpButton(): JComponent {
   val helpButton = JButton(DialogWrapper.HelpAction { BrowserUtil.browse(LEARN_MORE_URL) })

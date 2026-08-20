@@ -272,15 +272,16 @@ class PsVariable(override val parent: PsModel, val scopePsVariables: PsVariables
 }
 
 /** Combines multiple [KnownValues] instances by intersecting non-empty sets of known-values. */
-private fun <T : Any> Collection<KnownValues<out T>>.combineKnownValues() =
-  map { it.literals.toSet() }
-    .fold(setOf<ValueDescriptor<T>>()) { acc, v ->
-      when {
-        acc.isEmpty() -> v
-        v.isEmpty() -> acc
-        else -> acc intersect v
-      }
+private fun <T : Any> Collection<KnownValues<out T>>.combineKnownValues() = map {
+  it.literals.toSet()
+}
+  .fold(setOf<ValueDescriptor<T>>()) { acc, v ->
+    when {
+      acc.isEmpty() -> v
+      v.isEmpty() -> acc
+      else -> acc intersect v
     }
-    .toList()
+  }
+  .toList()
 
 private val FAKE_PROPERTY: Nothing? = null

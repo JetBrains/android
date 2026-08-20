@@ -32,11 +32,10 @@ class ModelResultTest {
 
   @Test
   fun `create when succeeds with exceptions`() {
-    val result =
-      ModelResult.create {
-        recordException { error("123") }
-        "abc"
-      }
+    val result = ModelResult.create {
+      recordException { error("123") }
+      "abc"
+    }
     expect.that(result.exceptions).hasSize(1)
     expect.that(result.exceptions.getOrNull(0)?.message).isEqualTo("123")
     expect.that(result.exceptions.getOrNull(0)?.stackTrace).isNotEmpty()
@@ -45,11 +44,10 @@ class ModelResultTest {
 
   @Test
   fun `create when fails with exceptions`() {
-    val result =
-      ModelResult.create {
-        error("123")
-        @Suppress("UNREACHABLE_CODE") "this is just to infer types"
-      }
+    val result = ModelResult.create {
+      error("123")
+      @Suppress("UNREACHABLE_CODE") "this is just to infer types"
+    }
     expect.that(result.exceptions).hasSize(1)
     expect.that(result.exceptions.getOrNull(0)?.message).isEqualTo("123")
     expect.that(result.exceptions.getOrNull(0)?.stackTrace).isNotEmpty()
@@ -58,16 +56,14 @@ class ModelResultTest {
 
   @Test
   fun `create records exceptions from recordAndGet`() {
-    val intermediateResult =
-      ModelResult.create {
-        recordException { error("123") }
-        "abc"
-      }
-    val result =
-      ModelResult.create {
-        val intermediateValue = intermediateResult.recordAndGet()
-        intermediateValue + "xyz"
-      }
+    val intermediateResult = ModelResult.create {
+      recordException { error("123") }
+      "abc"
+    }
+    val result = ModelResult.create {
+      val intermediateValue = intermediateResult.recordAndGet()
+      intermediateValue + "xyz"
+    }
     expect.that(result.exceptions).hasSize(1)
     expect.that(result.exceptions.getOrNull(0)?.message).isEqualTo("123")
     expect.that(result.exceptions.getOrNull(0)?.stackTrace).isNotEmpty()
@@ -76,16 +72,14 @@ class ModelResultTest {
 
   @Test
   fun `create records exceptions from recordAndGet when intermediate step fails`() {
-    val intermediateResult =
-      ModelResult.create {
-        error("123")
-        @Suppress("UNREACHABLE_CODE") "this is just to infer types"
-      }
-    val result =
-      ModelResult.create {
-        val intermediateValue = intermediateResult.recordAndGet()
-        (intermediateValue ?: "(was null)") + "xyz"
-      }
+    val intermediateResult = ModelResult.create {
+      error("123")
+      @Suppress("UNREACHABLE_CODE") "this is just to infer types"
+    }
+    val result = ModelResult.create {
+      val intermediateValue = intermediateResult.recordAndGet()
+      (intermediateValue ?: "(was null)") + "xyz"
+    }
     expect.that(result.exceptions).hasSize(1)
     expect.that(result.exceptions.getOrNull(0)?.message).isEqualTo("123")
     expect.that(result.exceptions.getOrNull(0)?.stackTrace).isNotEmpty()

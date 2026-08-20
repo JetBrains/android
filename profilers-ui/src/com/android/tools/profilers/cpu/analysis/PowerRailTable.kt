@@ -209,17 +209,16 @@ class PowerRailTable(
     }
 
     private fun computePowerSummary() {
-      dataRows =
-        powerRailCounters.map {
-          val powerUsageRange = computePowerUsageRange(it.value.cumulativeData, selectionRange)
-          // When the range selection only contains one or zero data points, it is possible for the
-          // upper bound's timestamp (x) to be less than or equal to the lower bound's timestamp (x).
-          // Thus, in this case, the cumulative value should be 0 as there is no positive difference
-          // in start and end power values.
-          val consumption = computeCumulativeEnergyInRange(powerUsageRange)
-          val average = computeAveragePowerInRange(powerUsageRange)
-          PowerRailRow(it.key, consumption, average)
-        }
+      dataRows = powerRailCounters.map {
+        val powerUsageRange = computePowerUsageRange(it.value.cumulativeData, selectionRange)
+        // When the range selection only contains one or zero data points, it is possible for the
+        // upper bound's timestamp (x) to be less than or equal to the lower bound's timestamp (x).
+        // Thus, in this case, the cumulative value should be 0 as there is no positive difference
+        // in start and end power values.
+        val consumption = computeCumulativeEnergyInRange(powerUsageRange)
+        val average = computeAveragePowerInRange(powerUsageRange)
+        PowerRailRow(it.key, consumption, average)
+      }
       fireTableDataChanged()
     }
 

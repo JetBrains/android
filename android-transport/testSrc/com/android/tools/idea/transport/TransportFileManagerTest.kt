@@ -201,8 +201,9 @@ class TransportFileManagerTest {
 
     val expectedAbis = listOf(Abi.ARMEABI, Abi.X86_64)
 
-    val expectedHostPaths =
-      expectedAbis.map { temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "simpleperf" }
+    val expectedHostPaths = expectedAbis.map {
+      temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "simpleperf"
+    }
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
 
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}simpleperf_${it.cpuArch}" }
@@ -251,8 +252,9 @@ class TransportFileManagerTest {
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
     val expectedAbis = listOf(Abi.ARMEABI, Abi.X86_64)
 
-    val expectedHostPaths =
-      expectedAbis.map { temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "perfetto" }
+    val expectedHostPaths = expectedAbis.map {
+      temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "perfetto"
+    }
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
 
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}${it.cpuArch}/perfetto" }

@@ -336,15 +336,14 @@ abstract class AnimationPreview<T : AnimationManager>(
   }
 
   /** Remove all tabs from [tabbedPane], replace it with [noAnimationsPanel], and clears the cached animations. */
-  open fun invalidatePanel(): Job =
-    scope.launch {
-      /**
-       * Calling [removeAnimationManager] for all animations will properly remove the cards from AllTabPanel, animationsMap, and tabs from
-       * tabbedPane. It will also show the noAnimationsPanel when removing all tabs.
-       */
-      val toRemove = animations.toList()
-      toRemove.forEach { removeAnimationManager(it) }
-    }
+  open fun invalidatePanel(): Job = scope.launch {
+    /**
+     * Calling [removeAnimationManager] for all animations will properly remove the cards from AllTabPanel, animationsMap, and tabs from
+     * tabbedPane. It will also show the noAnimationsPanel when removing all tabs.
+     */
+    val toRemove = animations.toList()
+    toRemove.forEach { removeAnimationManager(it) }
+  }
 
   protected suspend fun removeAnimationManager(animationManager: T) {
     withContext(Dispatchers.EDT) {

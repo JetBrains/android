@@ -42,8 +42,9 @@ internal class ConstraintSetModel(jsonProperty: JsonProperty) : JsonPropertyMode
    *
    * Note that it does not resolve constraints inherited from [extendsFrom].
    */
-  val constraintsById: Map<String, ConstraintsModel> =
-    propertiesWithConstraints.associate { property -> property.name to ConstraintsModel(property) }
+  val constraintsById: Map<String, ConstraintsModel> = propertiesWithConstraints.associate { property ->
+    property.name to ConstraintsModel(property)
+  }
 
   // TODO(b/207030860): Add a method that can pull all resolved constraints for each widget ID, it
   // could be useful to make sure we are not

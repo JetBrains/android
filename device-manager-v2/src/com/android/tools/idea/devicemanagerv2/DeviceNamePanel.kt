@@ -139,14 +139,13 @@ internal fun AndroidVersion.toLabelText(): String {
 
 /** Makes this color closer to the background color (lighter in light theme, darker in dark theme). */
 @VisibleForTesting
-internal fun Color.lighten() =
-  JBColor.lazy {
-    // Color.brigher() on black only takes us from 0x000000 to 0x030303; even +50 is rather subtle.
-    val red = min(red + 50, 255)
-    val green = min(green + 50, 255)
-    val blue = min(blue + 50, 255)
-    JBColor(Color(red, green, blue), darker())
-  }
+internal fun Color.lighten() = JBColor.lazy {
+  // Color.brigher() on black only takes us from 0x000000 to 0x030303; even +50 is rather subtle.
+  val red = min(red + 50, 255)
+  val green = min(green + 50, 255)
+  val blue = min(blue + 50, 255)
+  JBColor(Color(red, green, blue), darker())
+}
 
 internal fun DeviceRowData.stateTransitionText() = handle?.state?.takeIf { it.isTransitioning }?.status?.takeIf { it.isNotEmpty() }
 

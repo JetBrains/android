@@ -39,22 +39,21 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    lightClassesCache =
-      cachedValuesManager.createCachedValue {
-        val builders =
-          enabledFacetsProvider.modulesUsingSafeArgs
-            .asSequence()
-            .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).args.asSequence() }
-            .flatMap { it.innerClasses.asSequence() }
-            .filterIsInstance<LightArgsBuilderClass>()
-            .toList()
+    lightClassesCache = cachedValuesManager.createCachedValue {
+      val builders =
+        enabledFacetsProvider.modulesUsingSafeArgs
+          .asSequence()
+          .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).args.asSequence() }
+          .flatMap { it.innerClasses.asSequence() }
+          .filterIsInstance<LightArgsBuilderClass>()
+          .toList()
 
-        CachedValueProvider.Result.create(
-          builders,
-          ProjectNavigationResourceModificationTracker.getInstance(project),
-          project.safeArgsModeTracker,
-        )
-      }
+      CachedValueProvider.Result.create(
+        builders,
+        ProjectNavigationResourceModificationTracker.getInstance(project),
+        project.safeArgsModeTracker,
+      )
+    }
   }
 
   override fun getAllClassNames(): Array<String> = arrayOf("Builder")

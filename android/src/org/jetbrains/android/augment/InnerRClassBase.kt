@@ -161,8 +161,9 @@ abstract class InnerRClassBase protected constructor(context: AndroidLightClassB
     ): List<StyleableAttrFieldUrl> {
       val attributes = (resource.resourceValue as? StyleableResourceValue)?.allAttributes ?: return emptyList()
       val resourceReference = ResourceReference(resource.namespace, ResourceType.STYLEABLE, resource.name)
-      val attributeResourceReferences =
-        attributes.mapNotNull { getAttributeResourceReference(it.name, it.namespace, repositoryProvider, resourceFilter) }
+      val attributeResourceReferences = attributes.mapNotNull {
+        getAttributeResourceReference(it.name, it.namespace, repositoryProvider, resourceFilter)
+      }
       // StyleableAttrFieldUrl maps from the resource itself to the attribute of that resource.
       return attributeResourceReferences.map { StyleableAttrFieldUrl(resourceReference, it) }
     }
@@ -175,13 +176,12 @@ abstract class InnerRClassBase protected constructor(context: AndroidLightClassB
       psiType: PsiType,
       context: PsiClass,
       fieldModifier: AndroidLightField.FieldModifier,
-    ): List<ResourceLightField> =
-      entries.mapIndexed { i, (fieldName, visibility) ->
-        val fieldId = innerRClassFields?.get(fieldName) ?: (nextId + i)
-        ResourceLightField(fieldName, context, psiType, fieldModifier, fieldId.takeIf { fieldModifier == FINAL }, visibility).apply {
-          initializer = factory.createExpressionFromText(fieldId.toString(), this)
-        }
+    ): List<ResourceLightField> = entries.mapIndexed { i, (fieldName, visibility) ->
+      val fieldId = innerRClassFields?.get(fieldName) ?: (nextId + i)
+      ResourceLightField(fieldName, context, psiType, fieldModifier, fieldId.takeIf { fieldModifier == FINAL }, visibility).apply {
+        initializer = factory.createExpressionFromText(fieldId.toString(), this)
       }
+    }
 
     /** Converts the attributes in [this] to [StyleableAttrLightField]s. */
     private fun Collection<StyleableAttrFieldUrl>.toLightFields(

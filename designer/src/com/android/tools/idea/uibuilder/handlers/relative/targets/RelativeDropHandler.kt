@@ -214,11 +214,13 @@ private fun hasVerticalConstraint(component: SceneComponent): Boolean {
   return VERTICAL_ALIGNING_ATTRIBUTE_NAMES.any { nlComponent.getAndroidAttribute(it) != null }
 }
 
-private fun clearHorizontalConstrains(attributes: NlAttributesHolder) =
-  HORIZONTAL_ALIGNING_ATTRIBUTE_NAMES.map { attributes.removeAndroidAttribute(it) }
+private fun clearHorizontalConstrains(attributes: NlAttributesHolder) = HORIZONTAL_ALIGNING_ATTRIBUTE_NAMES.map {
+  attributes.removeAndroidAttribute(it)
+}
 
-private fun clearVerticalConstrains(attributes: NlAttributesHolder) =
-  VERTICAL_ALIGNING_ATTRIBUTE_NAMES.map { attributes.removeAndroidAttribute(it) }
+private fun clearVerticalConstrains(attributes: NlAttributesHolder) = VERTICAL_ALIGNING_ATTRIBUTE_NAMES.map {
+  attributes.removeAndroidAttribute(it)
+}
 
 private val MARGINS_WITHOUT_RTL =
   arrayOf(

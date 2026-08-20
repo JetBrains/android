@@ -53,8 +53,9 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
   private val componentModel = NlPropertiesModel(this, facet, queue)
   private val componentView = NlPropertiesView(componentModel)
   private val motionModel: NlPropertiesModel? = NlPropertiesModel.EP_NAME.extensionList.singleOrNull()?.create(this, facet, queue)
-  private val motionEditorView: PropertiesView<NlPropertyItem>? =
-    motionModel?.let { NlPropertiesView.EP_NAME.extensionList.singleOrNull()?.create(it) }
+  private val motionEditorView: PropertiesView<NlPropertyItem>? = motionModel?.let {
+    NlPropertiesView.EP_NAME.extensionList.singleOrNull()?.create(it)
+  }
   private val properties = PropertiesPanel<NlPropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)

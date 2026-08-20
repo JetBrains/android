@@ -66,9 +66,6 @@ object PropertyTooltip {
 
   private fun createTooltipWithContent(component: JComponent, text: String, title: String? = null) {
     val truncatedText = if (text.length > MAX_TOOLTIP_TEXT_LENGTH) "${text.substring(0, MAX_TOOLTIP_TEXT_LENGTH)}..." else text
-    HelpTooltip()
-      .setPlainTextTitle(title)
-      .setDescription(HtmlChunk.text(truncatedText))
-      .installOn(component)
+    HelpTooltip().setPlainTextTitle(title).setDescription(HtmlChunk.text(truncatedText)).installOn(component)
   }
 }

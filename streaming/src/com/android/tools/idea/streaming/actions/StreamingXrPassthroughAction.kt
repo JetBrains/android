@@ -74,45 +74,44 @@ private class XrPassthroughPopup(val xrController: AbstractXrInputController) {
     var passthroughCheckBox: Cell<JBCheckBox>? = null
     var dimmingSlider: Cell<JSlider>? = null
 
-    val panel =
-      panel {
-          row("Passthrough:") {
-            passthroughCheckBox =
-              checkBox("").accessibleName("Passthrough").selected(xrController.passthroughEnabled).onChanged {
-                dimmingSlider!!.component.isEnabled = it.isSelected
-                if (!isUpdatingUi) {
-                  setPassthroughAndDimming(it, dimmingSlider!!.component)
-                }
+    val panel = panel {
+      row("Passthrough:") {
+        passthroughCheckBox =
+          checkBox("").accessibleName("Passthrough").selected(xrController.passthroughEnabled).onChanged {
+            dimmingSlider!!.component.isEnabled = it.isSelected
+            if (!isUpdatingUi) {
+              setPassthroughAndDimming(it, dimmingSlider!!.component)
+            }
+          }
+      }
+      row("Dimming:") {
+        val smallFont = JBFont.label().lessOn(4f)
+        dimmingSlider =
+          slider(0, dimmingLevels.size - 1, 0, 1)
+            .accessibleName("Dimming")
+            .labelTable(dimmingLevels.indices.associateWith { JBLabel("${dimmingLevels[it].toPercent()}%").apply { font = smallFont } })
+            .enabled(xrController.passthroughEnabled)
+            .applyToComponent {
+              snapToTicks = true
+              value = xrController.dimmingLevelIndex
+              // JSlider is rendered with some internal margins that make it appear misaligned compared to other widgets.
+              // Adding the left empty border makes the UI DSL layout mechanics shift the slider to the left making it
+              // appear aligned with the checkbox.
+              border = JBUI.Borders.emptyLeft(16)
+            }
+            .onChanged {
+              if (!isUpdatingUi && !it.valueIsAdjusting) {
+                setPassthroughAndDimming(passthroughCheckBox!!.component, it)
               }
-          }
-          row("Dimming:") {
-            val smallFont = JBFont.label().lessOn(4f)
-            dimmingSlider =
-              slider(0, dimmingLevels.size - 1, 0, 1)
-                .accessibleName("Dimming")
-                .labelTable(dimmingLevels.indices.associateWith { JBLabel("${dimmingLevels[it].toPercent()}%").apply { font = smallFont } })
-                .enabled(xrController.passthroughEnabled)
-                .applyToComponent {
-                  snapToTicks = true
-                  value = xrController.dimmingLevelIndex
-                  // JSlider is rendered with some internal margins that make it appear misaligned compared to other widgets.
-                  // Adding the left empty border makes the UI DSL layout mechanics shift the slider to the left making it
-                  // appear aligned with the checkbox.
-                  border = JBUI.Borders.emptyLeft(16)
-                }
-                .onChanged {
-                  if (!isUpdatingUi && !it.valueIsAdjusting) {
-                    setPassthroughAndDimming(passthroughCheckBox!!.component, it)
-                  }
-                }
-          }
-        }
-        .apply {
-          isFocusCycleRoot = true
-          isFocusTraversalPolicyProvider = true
-          focusTraversalPolicy = LayoutFocusTraversalPolicy()
-          border = JBUI.Borders.empty(14)
-        }
+            }
+      }
+    }
+      .apply {
+        isFocusCycleRoot = true
+        isFocusTraversalPolicyProvider = true
+        focusTraversalPolicy = LayoutFocusTraversalPolicy()
+        border = JBUI.Borders.empty(14)
+      }
 
     checkNotNull(passthroughCheckBox)
     checkNotNull(dimmingSlider)

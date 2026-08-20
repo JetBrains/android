@@ -182,30 +182,28 @@ private class AutoValueFormatter<T : FormattableModel>(clazz: KClass<T>) : Value
           property
         }
         .orEmpty()
-    val cases: List<Case<T, *>> =
-      props.map {
-        @Suppress("UNCHECKED_CAST")
-        when {
-          it.returnType.isSimple ->
-            SimpleCase(it as KProperty<T>, it.getter as (T) -> Any?, dumper(it.returnType.classifier as KClass<Any>))
+    val cases: List<Case<T, *>> = props.map {
+      @Suppress("UNCHECKED_CAST")
+      when {
+        it.returnType.isSimple -> SimpleCase(it as KProperty<T>, it.getter as (T) -> Any?, dumper(it.returnType.classifier as KClass<Any>))
 
-          it.returnType.classifier == List::class || it.returnType.classifier == Set::class ->
-            ListCase<T, Any>(
-              it as KProperty<List<Any>>,
-              it.getter as (T) -> List<Any>?,
-              dumper((it.returnType).arguments[0].type?.classifier as KClass<*>),
-            )
+        it.returnType.classifier == List::class || it.returnType.classifier == Set::class ->
+          ListCase<T, Any>(
+            it as KProperty<List<Any>>,
+            it.getter as (T) -> List<Any>?,
+            dumper((it.returnType).arguments[0].type?.classifier as KClass<*>),
+          )
 
-          it.returnType.classifier == Map::class ->
-            MapCase<T, Any>(
-              it as KProperty<Map<Any, Any>>,
-              it.getter as (T) -> Map<Any, Any>?,
-              dumper((it.returnType).arguments[1].type?.classifier as KClass<*>),
-            )
+        it.returnType.classifier == Map::class ->
+          MapCase<T, Any>(
+            it as KProperty<Map<Any, Any>>,
+            it.getter as (T) -> Map<Any, Any>?,
+            dumper((it.returnType).arguments[1].type?.classifier as KClass<*>),
+          )
 
-          else -> error("Unsupported: $it")
-        }
+        else -> error("Unsupported: $it")
       }
+    }
     val valueFunction =
       cases.firstOrNull()?.let { it as? SimpleCase<T, *> }?.let { fun(v: T?): String = valueOnlyPrinter { it.printTo(v, this) } }
 

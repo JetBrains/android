@@ -329,11 +329,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           } catch (e: Throwable) {
             val failure =
               runCatching {
-                  buildAttributionManager?.onBuildFailure(myRequest)
-                  if (e !is BuildException) {
-                    handleTaskExecutionError(e)
-                  }
+                buildAttributionManager?.onBuildFailure(myRequest)
+                if (e !is BuildException) {
+                  handleTaskExecutionError(e)
                 }
+              }
                 .exceptionOrNull() ?: e
             GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get(), executionContext.buildEnvironment)
           }

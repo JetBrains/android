@@ -96,53 +96,51 @@ class VitalsConfigurationManager(
   private val refreshConfigurationFlow = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
   private val loader = ComponentLoader()
 
-  private val queryConnectionsFlow =
-    flow {
-        // Wait for the client and controller to finish initializing before emitting from this flow.
-        loader.getController()
-        refreshConfigurationFlow
-          .combine(loginState) { _, _ -> LoginFeature.feature<VitalsLoginFeature>().isLoggedIn() }
-          .collect { isLoggedIn ->
-            if (!isLoggedIn) {
-              emit(LoadingState.Unauthorized("Android Vitals is not an allowed feature for current user"))
-            } else {
-              val connections = loader.getClient().listConnections()
-              if (connections is LoadingState.Ready) {
-                logger.info("Accessible Android Vitals connections: ${connections.value}")
-              }
-              emit(connections)
-            }
+  private val queryConnectionsFlow = flow {
+    // Wait for the client and controller to finish initializing before emitting from this flow.
+    loader.getController()
+    refreshConfigurationFlow
+      .combine(loginState) { _, _ -> LoginFeature.feature<VitalsLoginFeature>().isLoggedIn() }
+      .collect { isLoggedIn ->
+        if (!isLoggedIn) {
+          emit(LoadingState.Unauthorized("Android Vitals is not an allowed feature for current user"))
+        } else {
+          val connections = loader.getClient().listConnections()
+          if (connections is LoadingState.Ready) {
+            logger.info("Accessible Android Vitals connections: ${connections.value}")
           }
+          emit(connections)
+        }
       }
-      .shareIn(scope, SharingStarted.Eagerly, replay = 1)
+  }
+    .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
   override val offlineStatusManager = OfflineStatusManagerImpl()
 
-  override val configuration =
-    flow {
-        var isFirstAppsEmitted = false
-        queryConnectionsFlow.collect { connections ->
-          if (isFirstAppsEmitted && connections is LoadingState.NetworkFailure) {
-            emit(AppInsightsModel.Authenticated(loader.getController()))
-            return@collect
-          }
-          emit(
-            when (connections) {
-              is LoadingState.Ready -> {
-                isFirstAppsEmitted = true
-                AppInsightsModel.Authenticated(loader.getController())
-              }
-              is LoadingState.Unauthorized -> {
-                AppInsightsModel.Unauthenticated
-              }
-              is LoadingState.Failure -> {
-                AppInsightsModel.InitializationFailed
-              }
-            }
-          )
-        }
+  override val configuration = flow {
+    var isFirstAppsEmitted = false
+    queryConnectionsFlow.collect { connections ->
+      if (isFirstAppsEmitted && connections is LoadingState.NetworkFailure) {
+        emit(AppInsightsModel.Authenticated(loader.getController()))
+        return@collect
       }
-      .stateIn(scope, SharingStarted.Eagerly, AppInsightsModel.Uninitialized)
+      emit(
+        when (connections) {
+          is LoadingState.Ready -> {
+            isFirstAppsEmitted = true
+            AppInsightsModel.Authenticated(loader.getController())
+          }
+          is LoadingState.Unauthorized -> {
+            AppInsightsModel.Unauthenticated
+          }
+          is LoadingState.Failure -> {
+            AppInsightsModel.InitializationFailed
+          }
+        }
+      )
+    }
+  }
+    .stateIn(scope, SharingStarted.Eagerly, AppInsightsModel.Uninitialized)
 
   init {
     if (project.isDisposed) {

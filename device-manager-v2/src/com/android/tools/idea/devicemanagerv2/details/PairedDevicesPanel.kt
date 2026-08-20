@@ -126,8 +126,9 @@ private constructor(
     }
   }
 
-  private fun getDelegateForPairedDevice(pairedDevice: DeviceHandle): PairingDelegate? =
-    pairingDelegates.find { it.isDelegateForDevice(handle, pairedDevice) }
+  private fun getDelegateForPairedDevice(pairedDevice: DeviceHandle): PairingDelegate? = pairingDelegates.find {
+    it.isDelegateForDevice(handle, pairedDevice)
+  }
 
   fun updatePairedDeviceData(pairedDeviceData: PairedDeviceData) {
     when (pairedDeviceData.state) {

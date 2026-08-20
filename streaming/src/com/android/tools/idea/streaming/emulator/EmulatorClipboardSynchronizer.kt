@@ -81,24 +81,23 @@ internal class EmulatorClipboardSynchronizer(disposableParent: Disposable, val e
     synchronized(lock) {
       cancelClipboardFeed()
       if (emulator.connectionState == EmulatorController.ConnectionState.CONNECTED) {
-        clipboardReceiver =
-          coroutineScope.launch {
-            while (true) {
-              try {
-                emulator.streamClipboard().collect { message ->
-                  logger.debug { "ClipboardReceiver.onNext: \"${message.text}\"" }
-                  if (message.text.isNotEmpty()) {
-                    onDeviceClipboardChanged(message.text)
-                  }
+        clipboardReceiver = coroutineScope.launch {
+          while (true) {
+            try {
+              emulator.streamClipboard().collect { message ->
+                logger.debug { "ClipboardReceiver.onNext: \"${message.text}\"" }
+                if (message.text.isNotEmpty()) {
+                  onDeviceClipboardChanged(message.text)
                 }
-              } catch (_: EmulatorController.RetryException) {
-                continue
-              } catch (t: Throwable) {
-                t.throwIfCancellation()
               }
-              break
+            } catch (_: EmulatorController.RetryException) {
+              continue
+            } catch (t: Throwable) {
+              t.throwIfCancellation()
             }
+            break
           }
+        }
       }
     }
   }

@@ -112,13 +112,12 @@ class FakeFindingsClient : FindingsClient {
 
   /** Returns findings from the local mock database, filtered by the package name and request criteria. */
   override suspend fun fetchFindings(request: FetchFindingsRequest): LoadingState.Done<List<AppFinding>> {
-    val filtered =
-      database.filter { finding ->
-        val matchesPackage = finding.name.startsWith("applications/${request.packageName}/findings/")
-        val matchesType = request.filters.findingTypes.isEmpty() || request.filters.findingTypes.contains(finding.type)
-        val matchesSeverity = request.filters.severities.isEmpty() || request.filters.severities.contains(finding.severity)
-        matchesPackage && matchesType && matchesSeverity
-      }
+    val filtered = database.filter { finding ->
+      val matchesPackage = finding.name.startsWith("applications/${request.packageName}/findings/")
+      val matchesType = request.filters.findingTypes.isEmpty() || request.filters.findingTypes.contains(finding.type)
+      val matchesSeverity = request.filters.severities.isEmpty() || request.filters.severities.contains(finding.severity)
+      matchesPackage && matchesType && matchesSeverity
+    }
     return LoadingState.Ready(filtered)
   }
 }

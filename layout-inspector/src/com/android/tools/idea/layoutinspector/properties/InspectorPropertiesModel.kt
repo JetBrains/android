@@ -46,10 +46,9 @@ class InspectorPropertiesModel(parentDisposable: Disposable) : PropertiesModel<I
   private val selectionListener: SelectionListener = SelectionListener { oldView, newView, selectionOrigin ->
     handleNewSelection(oldView, newView, selectionOrigin)
   }
-  private val modificationListener =
-    InspectorModel.ModificationListener { oldWindow, newWindow, isStructuralChange ->
-      handleModelChange(oldWindow, newWindow, isStructuralChange)
-    }
+  private val modificationListener = InspectorModel.ModificationListener { oldWindow, newWindow, isStructuralChange ->
+    handleModelChange(oldWindow, newWindow, isStructuralChange)
+  }
   private val connectionListener: ConnectionListener = ConnectionListener { handleConnectionChange(it) }
   private val propertiesListener = ResultListener { propertiesProvider, viewNode, propertiesTable ->
     updateProperties(propertiesProvider, viewNode, propertiesTable)

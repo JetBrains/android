@@ -230,8 +230,9 @@ private class AndroidDependenciesSetupContext(
         (libraryName.startsWith(ANDROIDX_ANNOTATIONS_ARTIFACT) || libraryName.startsWith(ANNOTATIONS_LIB_ARTIFACT)) &&
           binaryPath.name.endsWith(DOT_JAR)
       ) {
-        val annotationsFile =
-          binaryPath.let { it.parentFile?.resolve(it.name.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP) ?: return@forEach }
+        val annotationsFile = binaryPath.let {
+          it.parentFile?.resolve(it.name.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP) ?: return@forEach
+        }
         if (annotationsFile.isFile) {
           libraryData.addPath(LibraryPathType.ANNOTATION, annotationsFile.absolutePath)
         }

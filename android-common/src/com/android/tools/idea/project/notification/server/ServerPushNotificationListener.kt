@@ -16,22 +16,16 @@
 package com.android.tools.idea.project.notification.server
 
 /**
- * Listener callback interface provided by [StudioServerPushNotificationService] to bridge renderers.
- * Bridge renderers invoke these callbacks when UI interactions occur on screen.
+ * Listener callback interface provided by [StudioServerPushNotificationService] to bridge renderers. Bridge renderers invoke these
+ * callbacks when UI interactions occur on screen.
  */
 interface ServerPushNotificationListener {
-  /**
-   * Invoked when the notification is rendered on screen.
-   */
+  /** Invoked when the notification is rendered on screen. */
   fun onNotificationShown(notificationId: String)
 
-  /**
-   * Invoked when the notification is dismissed or closed by the user or expired.
-   */
+  /** Invoked when the notification is dismissed or closed by the user or expired. */
   fun onNotificationDismissed(notificationId: String)
 
-  /**
-   * Invoked when the user clicks an action link or button in the notification.
-   */
+  /** Invoked when the user clicks an action link or button in the notification. */
   fun onNotificationActionClicked(notificationId: String, actionTitle: String = "")
 }

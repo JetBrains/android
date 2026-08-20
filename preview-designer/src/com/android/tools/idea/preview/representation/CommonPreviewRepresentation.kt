@@ -679,27 +679,26 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     }
   }
 
-  private fun configureLayoutlibSceneManager(layoutlibSceneManager: LayoutlibSceneManager) =
-    layoutlibSceneManager.apply {
-      sceneRenderConfiguration.let { config ->
-        // When the cache successful render image is enabled, the scene manager will retain the last
-        // valid image even if subsequent renders fail. But do not cache in interactive mode as it
-        // does not help, and it would make unnecessary copies of the bitmap.
-        config.cacheSuccessfulRenderImage = mode.value !is PreviewMode.Interactive
-        config.classesToPreload = if (mode.value is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
-        config.sessionClockProvider = {
-          // For static preview use a clock that increments the time by 500ms on each read so that
-          // callbacks are executed in a deterministic way and without needing to actually wait for
-          // the 500ms to pass.
-          if (mode.value.isNormal) SteppingSessionClock(step = 500.milliseconds)
-          // For interactive and animation preview use a "real" clock to better simulate an
-          // interactive session
-          else RealTimeSessionClock()
-        }
-        config.usePrivateClassLoader = mode.value is PreviewMode.Interactive
-        config.quality = qualityManager.getTargetQuality(this@apply)
+  private fun configureLayoutlibSceneManager(layoutlibSceneManager: LayoutlibSceneManager) = layoutlibSceneManager.apply {
+    sceneRenderConfiguration.let { config ->
+      // When the cache successful render image is enabled, the scene manager will retain the last
+      // valid image even if subsequent renders fail. But do not cache in interactive mode as it
+      // does not help, and it would make unnecessary copies of the bitmap.
+      config.cacheSuccessfulRenderImage = mode.value !is PreviewMode.Interactive
+      config.classesToPreload = if (mode.value is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+      config.sessionClockProvider = {
+        // For static preview use a clock that increments the time by 500ms on each read so that
+        // callbacks are executed in a deterministic way and without needing to actually wait for
+        // the 500ms to pass.
+        if (mode.value.isNormal) SteppingSessionClock(step = 500.milliseconds)
+        // For interactive and animation preview use a "real" clock to better simulate an
+        // interactive session
+        else RealTimeSessionClock()
       }
+      config.usePrivateClassLoader = mode.value is PreviewMode.Interactive
+      config.quality = qualityManager.getTargetQuality(this@apply)
     }
+  }
 
   private fun CoroutineScope.activate(isResuming: Boolean) {
     qualityPolicy.activate()

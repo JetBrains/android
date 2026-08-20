@@ -57,10 +57,9 @@ class ScreenshotTestAnalyticsTest {
     analytics.logAction()
 
     val usages = metricsTrackerRule.testTracker.usages
-    val toolbarEvents =
-      usages.filter {
-        it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_TOOLBAR_ACTION
-      }
+    val toolbarEvents = usages.filter {
+      it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_TOOLBAR_ACTION
+    }
 
     assertThat(toolbarEvents).hasSize(1)
   }

@@ -73,16 +73,15 @@ abstract class AbstractCompileGradleModuleAction : AndroidStudioGradleAction("Co
     val selectedModules = arrayOfNulls<Module>(previouslySelectedModules.size)
     var id = 0
 
-    val allValid =
-      previouslySelectedModules.all {
-        val selectedModule = moduleManager.findModuleByName(it)
-        if (selectedModule == null || selectedModule.isDisposed) {
-          false
-        } else {
-          selectedModules[id++] = selectedModule
-          true
-        }
+    val allValid = previouslySelectedModules.all {
+      val selectedModule = moduleManager.findModuleByName(it)
+      if (selectedModule == null || selectedModule.isDisposed) {
+        false
+      } else {
+        selectedModules[id++] = selectedModule
+        true
       }
+    }
 
     return if (allValid && selectedModules.isNotEmpty()) {
       @Suppress("UNCHECKED_CAST")

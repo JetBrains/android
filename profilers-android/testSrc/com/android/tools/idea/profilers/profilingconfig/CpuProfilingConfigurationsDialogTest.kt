@@ -89,17 +89,16 @@ class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
 
   @Test
   fun testApplyButtonNotAvailableForTaskBasedUx() {
-    val a =
-      SwingUtilities.invokeAndWait {
-        myIdeServices.enableTaskBasedUx(true)
-        val cpuProfilingConfigurationsDialog =
-          CpuProfilingConfigurationsDialog(project, deviceLevel, model, {}, featureTracker, myIdeServices)
-        try {
-          assertEquals(3, cpuProfilingConfigurationsDialog.createActions().size) // ok, cancel, help
-        } finally {
-          Disposer.dispose(cpuProfilingConfigurationsDialog.disposable)
-        }
+    val a = SwingUtilities.invokeAndWait {
+      myIdeServices.enableTaskBasedUx(true)
+      val cpuProfilingConfigurationsDialog =
+        CpuProfilingConfigurationsDialog(project, deviceLevel, model, {}, featureTracker, myIdeServices)
+      try {
+        assertEquals(3, cpuProfilingConfigurationsDialog.createActions().size) // ok, cancel, help
+      } finally {
+        Disposer.dispose(cpuProfilingConfigurationsDialog.disposable)
       }
+    }
   }
 
   @Test

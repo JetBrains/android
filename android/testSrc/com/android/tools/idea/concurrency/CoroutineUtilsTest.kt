@@ -59,7 +59,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -244,10 +243,9 @@ class CoroutineUtilsTest {
 
       private val scope = AndroidCoroutineScope(this)
 
-      fun run() =
-        scope.launch {
-          // work
-        }
+      fun run() = scope.launch {
+        // work
+      }
 
       override fun dispose() {}
     }

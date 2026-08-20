@@ -31,11 +31,11 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 /**
- * A bridge interface that decouples the server-driven push notifications framework
- * from AI-specific implementations (such as Gemini user tiers and UI navigation).
+ * A bridge interface that decouples the server-driven push notifications framework from AI-specific implementations (such as Gemini user
+ * tiers and UI navigation).
  *
- * High-level consumer modules (like aiplugin) must implement this interface and register
- * it as an extension to connect the platform engine to their feature checks.
+ * High-level consumer modules (like aiplugin) must implement this interface and register it as an extension to connect the platform engine
+ * to their feature checks.
  */
 interface ServerPushNotificationBridge {
   /**
@@ -50,27 +50,26 @@ interface ServerPushNotificationBridge {
    * Renders and displays the given [notification].
    *
    * @param notification The push notification campaign to render (e.g. Balloon or GotItTooltip).
-   * @param listener Callback handle that MUST be invoked by individual bridge implementations when UI
-   *   interaction events occur:
-   *   - [ServerPushNotificationListener.onNotificationShown] when the UI popup/toast is rendered on screen.
-   *   - [ServerPushNotificationListener.onNotificationDismissed] when the UI popup/toast is closed or expired.
-   *   - [ServerPushNotificationListener.onNotificationActionClicked] when a CTA action link or button is clicked.
-   * @return `true` if this bridge handled and rendered the notification, or `false` to allow other
-   *   bridges in the extension chain to try.
+   * @param listener Callback handle that MUST be invoked by individual bridge implementations when UI interaction events occur:
+   *     - [ServerPushNotificationListener.onNotificationShown] when the UI popup/toast is rendered on screen.
+   *     - [ServerPushNotificationListener.onNotificationDismissed] when the UI popup/toast is closed or expired.
+   *     - [ServerPushNotificationListener.onNotificationActionClicked] when a CTA action link or button is clicked.
+   *
+   * @return `true` if this bridge handled and rendered the notification, or `false` to allow other bridges in the extension chain to try.
    */
   fun showNotification(notification: StudioPushNotification, listener: ServerPushNotificationListener): Boolean
 
   companion object {
-    private val EP_NAME = ExtensionPointName.create<ServerPushNotificationBridge>("com.android.tools.idea.project.notification.server.bridge")
+    private val EP_NAME =
+      ExtensionPointName.create<ServerPushNotificationBridge>("com.android.tools.idea.project.notification.server.bridge")
 
-    fun getBridges(project: Project): List<ServerPushNotificationBridge> =
-      EP_NAME.getExtensions(project).toList()
+    fun getBridges(project: Project): List<ServerPushNotificationBridge> = EP_NAME.getExtensions(project).toList()
   }
 }
 
 /**
- * Helper function to execute an IDE action ID for a notification CTA button click.
- * Injects key-value DataContext parameters from protobuf server flags into the action's DataContext.
+ * Helper function to execute an IDE action ID for a notification CTA button click. Injects key-value DataContext parameters from protobuf
+ * server flags into the action's DataContext.
  */
 fun executeIdeAction(
   project: Project,

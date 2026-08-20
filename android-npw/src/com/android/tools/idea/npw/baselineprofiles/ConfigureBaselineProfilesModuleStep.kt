@@ -176,12 +176,11 @@ class ConfigureBaselineProfilesModuleStep(model: NewBaselineProfilesModuleModel,
     validatorPanel.registerValidator(
       model.packageName,
       createValidator {
-        val packageName =
-          it.ifEmpty {
-            return@createValidator Validator.Result.fromNullableMessage(
-              AndroidBundle.message("android.wizard.validate.module.empty.package.name.baseline.profiles")
-            )
-          }
+        val packageName = it.ifEmpty {
+          return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message("android.wizard.validate.module.empty.package.name.baseline.profiles")
+          )
+        }
         val module =
           model.targetModule.get().let { optionalModule ->
             if (optionalModule.isEmpty) {

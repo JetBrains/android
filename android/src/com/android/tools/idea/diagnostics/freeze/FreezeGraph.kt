@@ -95,8 +95,9 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
         continue
       }
       val stackTrace = threadInfo.stackTrace
-      val match =
-        stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.AnyThreadWriteThreadingSupport.runWriteAction") }
+      val match = stackTrace.indexOfLast {
+        matchMethod(it, "com.intellij.openapi.application.impl.AnyThreadWriteThreadingSupport.runWriteAction")
+      }
       if (match != -1) {
         writerNode = node
         break

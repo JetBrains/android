@@ -207,20 +207,20 @@ class AndroidRestrictToCompletionWeigherTest {
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
       return runReadAction {
-          lookupElements
-            .orEmpty()
-            .map { lookupElement -> LookupElementPresentation().apply { lookupElement.renderElement(this) } }
-            .map { presentation ->
-              buildString {
-                append(presentation.itemText)
-                append(presentation.tailText)
-                if (!presentation.typeText.isNullOrEmpty()) {
-                  append(" ")
-                  append(presentation.typeText)
-                }
+        lookupElements
+          .orEmpty()
+          .map { lookupElement -> LookupElementPresentation().apply { lookupElement.renderElement(this) } }
+          .map { presentation ->
+            buildString {
+              append(presentation.itemText)
+              append(presentation.tailText)
+              if (!presentation.typeText.isNullOrEmpty()) {
+                append(" ")
+                append(presentation.typeText)
               }
             }
-        }
+          }
+      }
         .filter { it.contains("androidx.") }
     }
 }

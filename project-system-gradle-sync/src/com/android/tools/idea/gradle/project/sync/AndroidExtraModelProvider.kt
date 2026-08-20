@@ -214,20 +214,19 @@ private fun checkGradleVersionIsAtLeast(controller: BuildController, buildModel:
   return parsedGradleVersion >= version
 }
 
-private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> =
-  sequence {
-      val seen = HashSet<Any>()
-      val queue = ArrayDeque(listOf(root))
+private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {
+  val seen = HashSet<Any>()
+  val queue = ArrayDeque(listOf(root))
 
-      while (queue.isNotEmpty()) {
-        val item = queue.removeFirst()
-        if (seen.add(getId(item))) {
-          queue.addAll(getChildren(item))
-          yield(item)
-        }
-      }
+  while (queue.isNotEmpty()) {
+    val item = queue.removeFirst()
+    if (seen.add(getId(item))) {
+      queue.addAll(getChildren(item))
+      yield(item)
     }
-    .toList()
+  }
+}
+  .toList()
 
 private fun writeStatsToFile(directory: String, syncCounters: SyncCounters) {
   File(directory).resolve("${Instant.now().toEpochMilli()}_sync_stats").writeText(syncCounters.toString())

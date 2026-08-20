@@ -155,24 +155,23 @@ constructor(
   }
 
   /** A StateFlow that tracks DeviceHandles to build [DeviceHandleState]s. */
-  private val deviceStateFlow: StateFlow<List<DeviceHandleState>> =
-    run {
-        val connectionTimes = mutableMapOf<DeviceId, Instant>()
-        devicesFlow
-          .pairWithDeviceAndActivationState()
-          .onEach { handles -> connectionTimes.keys.retainAll(handles.map { it.first.id }.toSet()) }
-          .mapChangedState { handle, (state, activationState) ->
-            val connectionTime =
-              if (state.isOnline()) {
-                connectionTimes.computeIfAbsent(handle.id) { clock.now() }
-              } else {
-                connectionTimes.remove(handle.id)
-                null
-              }
-            DeviceHandleState(handle, state, activationState, connectionTime)
+  private val deviceStateFlow: StateFlow<List<DeviceHandleState>> = run {
+    val connectionTimes = mutableMapOf<DeviceId, Instant>()
+    devicesFlow
+      .pairWithDeviceAndActivationState()
+      .onEach { handles -> connectionTimes.keys.retainAll(handles.map { it.first.id }.toSet()) }
+      .mapChangedState { handle, (state, activationState) ->
+        val connectionTime =
+          if (state.isOnline()) {
+            connectionTimes.computeIfAbsent(handle.id) { clock.now() }
+          } else {
+            connectionTimes.remove(handle.id)
+            null
           }
+        DeviceHandleState(handle, state, activationState, connectionTime)
       }
-      .stateIn(scope = coroutineScope, SharingStarted.Eagerly, emptyList())
+  }
+    .stateIn(scope = coroutineScope, SharingStarted.Eagerly, emptyList())
 
   /**
    * Provides a flow of DeploymentTargetDevice based on DeviceHandles, by combining the deviceStateFlow with the current ADB and
@@ -181,20 +180,19 @@ constructor(
   private fun deviceHandleFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
     launchCompatibilityChecker: LaunchCompatibilityChecker,
-  ): Flow<List<DeploymentTargetDevice>> =
-    deviceStateFlow.map {
-      it.map {
-        val device = DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state)
-        val launchCompatibility = it.activationState.toLaunchCompatibilityChecker().combine(launchCompatibilityChecker).validate(device)
-        val snapshots = it.handle.bootSnapshotAction?.snapshots() ?: emptyList()
-        DeploymentTargetDevice(
-          DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state),
-          it.connectionTime,
-          snapshots,
-          launchCompatibility,
-        )
-      }
+  ): Flow<List<DeploymentTargetDevice>> = deviceStateFlow.map {
+    it.map {
+      val device = DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state)
+      val launchCompatibility = it.activationState.toLaunchCompatibilityChecker().combine(launchCompatibilityChecker).validate(device)
+      val snapshots = it.handle.bootSnapshotAction?.snapshots() ?: emptyList()
+      DeploymentTargetDevice(
+        DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state),
+        it.connectionTime,
+        snapshots,
+        launchCompatibility,
+      )
     }
+  }
 
   private fun deviceTemplateFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,

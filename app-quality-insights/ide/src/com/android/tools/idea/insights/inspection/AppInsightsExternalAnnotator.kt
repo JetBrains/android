@@ -73,14 +73,13 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     val project = collectedInfo.project
     val insights = collectedInfo.insights
 
-    val resolved =
-      insights.mapNotNull { insight ->
-        ProgressManager.checkCanceled()
-        if (collectedInfo.editor.isDisposed) return@mapNotNull null
-        if (insight.issue.sampleEvent.appVcsInfo !is AppVcsInfo.ValidInfo) return@mapNotNull insight
+    val resolved = insights.mapNotNull { insight ->
+      ProgressManager.checkCanceled()
+      if (collectedInfo.editor.isDisposed) return@mapNotNull null
+      if (insight.issue.sampleEvent.appVcsInfo !is AppVcsInfo.ValidInfo) return@mapNotNull insight
 
-        insight.updateToCurrentLineNumber(collectedInfo.vFile, collectedInfo.editor.document, project)
-      }
+      insight.updateToCurrentLineNumber(collectedInfo.vFile, collectedInfo.editor.document, project)
+    }
 
     return AnnotationResult(resolved)
   }

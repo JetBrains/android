@@ -32,7 +32,11 @@ open class ExtendedRenderResult protected constructor(renderResult: RenderResult
     ) =
       ExtendedRenderResult(
         renderResult,
-        ExtendedStats(firstExecuteCallbacksResult.durationMs, firstInteractionEventResult.durationMs, postInteractionEventResult.durationMs),
+        ExtendedStats(
+          firstExecuteCallbacksResult.durationMs,
+          firstInteractionEventResult.durationMs,
+          postInteractionEventResult.durationMs,
+        ),
       )
   }
 }

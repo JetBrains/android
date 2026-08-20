@@ -54,18 +54,17 @@ constructor(
     private set
 
   @VisibleForTesting
-  val configComponents: ConfigComponentGroup? =
-    editConfig?.let {
-      ConfigComponentGroup(
-        JButton(EDIT_CONFIG).apply { addActionListener { editConfig(recordingModel.customConfigurationModel) } },
-        JRadioButton("").apply { addActionListener { recordingModel.selectCurrentCustomConfiguration() } },
-        ProfilerCombobox(recordingModel.customConfigurationModel).apply {
-          // Sets prototype value to minimum width option to compute width of dropdown.
-          // Now dropdown width is always constrained/overriden by parent width as parent is always wider.
-          prototypeDisplayValue = PrototypeDisplayRecordingOption
-        },
-      )
-    }
+  val configComponents: ConfigComponentGroup? = editConfig?.let {
+    ConfigComponentGroup(
+      JButton(EDIT_CONFIG).apply { addActionListener { editConfig(recordingModel.customConfigurationModel) } },
+      JRadioButton("").apply { addActionListener { recordingModel.selectCurrentCustomConfiguration() } },
+      ProfilerCombobox(recordingModel.customConfigurationModel).apply {
+        // Sets prototype value to minimum width option to compute width of dropdown.
+        // Now dropdown width is always constrained/overriden by parent width as parent is always wider.
+        prototypeDisplayValue = PrototypeDisplayRecordingOption
+      },
+    )
+  }
 
   @VisibleForTesting val startStopButton: JButton = JButton(START).apply { addActionListener { onStartStopButtonPressed() } }
 
@@ -97,9 +96,10 @@ constructor(
         add(btnRow, BorderLayout.SOUTH)
       }
 
-    layout = GridLayout().apply {
-      respectMinimumSize = true
-    }
+    layout =
+      GridLayout().apply {
+        respectMinimumSize = true
+      }
 
     val builder = RowsGridBuilder(this)
     builder
@@ -141,8 +141,10 @@ constructor(
   }
 
   private fun makeRows(): List<OptionRow> {
-    val result = builtInRadios.mapIndexed { index, button -> OptionRow(button, null, recordingModel.builtInOptions[index].description) }
-      .toMutableList()
+    val result =
+      builtInRadios
+        .mapIndexed { index, button -> OptionRow(button, null, recordingModel.builtInOptions[index].description) }
+        .toMutableList()
     configComponents?.let {
       result.add(OptionRow(it.radio, it.menu, ADD_CONFIG_DESC))
     }
@@ -315,13 +317,11 @@ private fun createView(rows: List<OptionRow>, viewMode: FlexibleGrid.Mode): JCom
     buttonsGroup {
       for (row in rows) {
         row {
-          val radioButtonCell = cell(row.radioButton)
-            .gap(RightGap.SMALL)
-          val additionalCell = row.additional?.let {
-            cell(it)
-              .resizableColumn()
-              .align(AlignX.FILL)
-          }
+          val radioButtonCell = cell(row.radioButton).gap(RightGap.SMALL)
+          val additionalCell =
+            row.additional?.let {
+              cell(it).resizableColumn().align(AlignX.FILL)
+            }
 
           when (viewMode) {
             FlexibleGrid.Mode.Wide -> comment(row.desc, maxLineLength = MAX_LINE_LENGTH_NO_WRAP)

@@ -91,11 +91,10 @@ class AndroidModularizeProcessor(
     myTargetModule = module
 
     // Tune default selection behavior: it's safe to select all references only if the target module is depended on (downstream dependency).
-    shouldSelectAllReferences =
-      myRoots.all { root ->
-        AndroidFacet.getInstance(root)?.let { facet -> collectModulesClosure(facet.module, Sets.newHashSet()).contains(myTargetModule) }
-          ?: true
-      }
+    shouldSelectAllReferences = myRoots.all { root ->
+      AndroidFacet.getInstance(root)?.let { facet -> collectModulesClosure(facet.module, Sets.newHashSet()).contains(myTargetModule) }
+        ?: true
+    }
   }
 
   val ktTopLevelDeclarationsCount: Int by lazy {

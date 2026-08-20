@@ -88,12 +88,12 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
     }
 
     playPolicyInsightsUsageEvent {
-        type = PlayPolicyInsightsUsageEventType.BATCH_INSPECTION
-        batchInspectionDetails = batchInspectionDetails {
-          enabledIssueCount = tools.count { it.isEnabled }
-          totalIssueCount = tools.size
-        }
+      type = PlayPolicyInsightsUsageEventType.BATCH_INSPECTION
+      batchInspectionDetails = batchInspectionDetails {
+        enabledIssueCount = tools.count { it.isEnabled }
+        totalIssueCount = tools.size
       }
+    }
       .track()
 
     super.runInspections(project, scope)

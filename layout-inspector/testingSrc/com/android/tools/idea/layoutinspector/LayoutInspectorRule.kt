@@ -156,14 +156,14 @@ class LayoutInspectorRule(
     } else {
       asyncLauncherThreads.add(
         Thread {
-            runningThreadCount.incrementAndGet()
-            try {
-              runnable.run()
-            } finally {
-              runningThreadCount.decrementAndGet()
-              asyncLaunchLatch.countDown()
-            }
+          runningThreadCount.incrementAndGet()
+          try {
+            runnable.run()
+          } finally {
+            runningThreadCount.decrementAndGet()
+            asyncLaunchLatch.countDown()
           }
+        }
           .apply { start() }
       )
     }

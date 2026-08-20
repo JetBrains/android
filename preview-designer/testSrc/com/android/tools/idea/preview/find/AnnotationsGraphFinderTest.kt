@@ -229,12 +229,11 @@ class AnnotationsGraphFinderTest {
 
       assertThat(previews).hasSize(4)
 
-      val topLevelAnnotationsToDepth =
-        previews.map {
-          val topLevelAnnotationName = runReadAction { (it.subtreeInfo?.topLevelAnnotation?.tryResolve() as PsiClass).name }
-          val depth = it.subtreeInfo?.depth ?: -1
-          topLevelAnnotationName to depth
-        }
+      val topLevelAnnotationsToDepth = previews.map {
+        val topLevelAnnotationName = runReadAction { (it.subtreeInfo?.topLevelAnnotation?.tryResolve() as PsiClass).name }
+        val depth = it.subtreeInfo?.depth ?: -1
+        topLevelAnnotationName to depth
+      }
       assertEquals(
         listOf("Intermediate1" to 2, "Intermediate2" to 2, "Intermediate2" to 2, "MyTestPreview" to 1),
         topLevelAnnotationsToDepth.sortedBy { it.first },

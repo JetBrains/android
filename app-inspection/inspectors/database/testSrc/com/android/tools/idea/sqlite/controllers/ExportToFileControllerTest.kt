@@ -508,10 +508,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
     val tmpDir = tempDirTestFixture.findOrCreateDir("unzipped")
     val decompress: (Path) -> List<Path> = { it.unzipTo(tmpDir.toNioPath()) }
-    val expectedOutput =
-      tableValuePairs.map { (table, values) ->
-        ExpectedOutputFile(tmpDir.toNioPath().resolve("$table.csv"), values.toCsvOutputLines(exportRequest.delimiter))
-      }
+    val expectedOutput = tableValuePairs.map { (table, values) ->
+      ExpectedOutputFile(tmpDir.toNioPath().resolve("$table.csv"), values.toCsvOutputLines(exportRequest.delimiter))
+    }
 
     testExport(exportRequest, decompress, expectedOutput)
   }
@@ -687,12 +686,11 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       table.content.forEach { (v1, v2) -> database.execute("insert into '${table.name}' values ('$v1', '$v2')") }
     }
 
-    val tableValuePairs =
-      tableNames.mapIndexed { ix, tableName ->
-        val first = ix + 1
-        val last = first * 11
-        Table(tableName, (first..last).toTwoColumnTable())
-      }
+    val tableValuePairs = tableNames.mapIndexed { ix, tableName ->
+      val first = ix + 1
+      val last = first * 11
+      Table(tableName, (first..last).toTwoColumnTable())
+    }
     tableValuePairs.forEach { createTable(database, it) }
 
     viewNames.forEach { viewName ->

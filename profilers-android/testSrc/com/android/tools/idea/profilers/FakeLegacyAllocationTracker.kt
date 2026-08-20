@@ -34,13 +34,13 @@ class FakeLegacyAllocationTracker() : LegacyAllocationTracker {
     trackingState = enabled
     if (!enabled) {
       Thread {
-          try {
-            parsingWaitLatch.await()
-          } catch (ignored: InterruptedException) {}
+        try {
+          parsingWaitLatch.await()
+        } catch (ignored: InterruptedException) {}
 
-          allocationConsumer!!.accept(if (returnNullTrackingData) null else RAW_DATA)
-          parsingDoneLatch.countDown()
-        }
+        allocationConsumer!!.accept(if (returnNullTrackingData) null else RAW_DATA)
+        parsingDoneLatch.countDown()
+      }
         .start()
     }
 

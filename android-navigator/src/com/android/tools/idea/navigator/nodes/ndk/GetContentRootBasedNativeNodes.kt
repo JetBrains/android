@@ -35,13 +35,12 @@ fun getContentRootBasedNativeNodes(module: Module, settings: ViewSettings): Coll
   val sourceRootPsiDirs = sourceRoots.mapNotNull { sourceRoot -> psiManager.findDirectory(sourceRoot) }
 
   val nativeWorkspaceService = NativeWorkspaceService.getInstance(module.project)
-  var sourceRootNodes: Collection<AbstractTreeNode<*>> =
-    sourceRootPsiDirs.map {
-      val folderLabel = null // We don't want to label ndk content root nodes
-      AndroidPsiDirectoryNode(project, it, settings, folderLabel, it) { item ->
-        nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
-      }
+  var sourceRootNodes: Collection<AbstractTreeNode<*>> = sourceRootPsiDirs.map {
+    val folderLabel = null // We don't want to label ndk content root nodes
+    AndroidPsiDirectoryNode(project, it, settings, folderLabel, it) { item ->
+      nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
     }
+  }
 
   val additionalFiles =
     nativeWorkspaceService.getAdditionalNativeFiles(module).mapNotNull { vf ->

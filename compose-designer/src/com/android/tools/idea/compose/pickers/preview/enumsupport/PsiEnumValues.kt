@@ -77,11 +77,10 @@ internal open class UiModeWithNightMaskEnumValue(
 
   override val fqClass: String = SdkConstants.CLASS_CONFIGURATION
 
-  override val resolvedValue: String =
-    kotlin.run {
-      val nightModeValue = if (isNight) 0x20 else 0x10
-      return@run ((uiModeTypeResolvedValue.toIntOrNull() ?: 0) or nightModeValue).toString()
-    }
+  override val resolvedValue: String = kotlin.run {
+    val nightModeValue = if (isNight) 0x20 else 0x10
+    return@run ((uiModeTypeResolvedValue.toIntOrNull() ?: 0) or nightModeValue).toString()
+  }
 
   override val trackableValue: PreviewPickerValue = if (isNight) PreviewPickerValue.UI_MODE_NIGHT else PreviewPickerValue.UI_MODE_NOT_NIGHT
 

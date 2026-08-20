@@ -83,24 +83,25 @@ class ServerFlagInitializer {
   }
 }
 
-private fun List<ServerFlagData>.getOverriddenFlags(overriddenFlags: Map<String, Int>) =
-  filter { overriddenFlags.containsKey(it.name) }
-    .associateNotNull {
-      val flagValueIndex = overriddenFlags[it.name]!!
-      if (it.hasMultiValueServerFlag()) {
-        val flagValue =
-          try {
-            it.multiValueServerFlag.flagValuesList[flagValueIndex]
-          } catch (_: IndexOutOfBoundsException) {
-            Logger.getInstance("ServerFlagInitializer").warn("Index $flagValueIndex is out of bounds for flag ${it.name}")
-            return@associateNotNull null
-          }
-        it.name to ServerFlagValueData(flagValueIndex, flagValue)
-      } else {
-        Logger.getInstance("ServerFlagInitializer").warn("Expected MultiValueServerFlag to be set for overridden flag ${it.name}")
-        null
-      }
+private fun List<ServerFlagData>.getOverriddenFlags(overriddenFlags: Map<String, Int>) = filter {
+  overriddenFlags.containsKey(it.name)
+}
+  .associateNotNull {
+    val flagValueIndex = overriddenFlags[it.name]!!
+    if (it.hasMultiValueServerFlag()) {
+      val flagValue =
+        try {
+          it.multiValueServerFlag.flagValuesList[flagValueIndex]
+        } catch (_: IndexOutOfBoundsException) {
+          Logger.getInstance("ServerFlagInitializer").warn("Index $flagValueIndex is out of bounds for flag ${it.name}")
+          return@associateNotNull null
+        }
+      it.name to ServerFlagValueData(flagValueIndex, flagValue)
+    } else {
+      Logger.getInstance("ServerFlagInitializer").warn("Expected MultiValueServerFlag to be set for overridden flag ${it.name}")
+      null
     }
+  }
 
 private fun ServerFlagData.isEnabled(osType: OSType, brand: Brand): Boolean {
   return isOSEnabled(osType) && isBrandEnabled(brand)

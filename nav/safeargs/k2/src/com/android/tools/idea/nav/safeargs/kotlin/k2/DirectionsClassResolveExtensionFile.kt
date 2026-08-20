@@ -129,8 +129,9 @@ internal class DirectionsClassResolveExtensionFile(
     return actionTag
   }
 
-  private fun KaSession.findMatchingAction(symbol: KaNamedFunctionSymbol): NavActionData? =
-    actionsWithResolvedArguments.firstOrNull { it.id.toCamelCase() == symbol.name.identifierOrNullIfSpecial }
+  private fun KaSession.findMatchingAction(symbol: KaNamedFunctionSymbol): NavActionData? = actionsWithResolvedArguments.firstOrNull {
+    it.id.toCamelCase() == symbol.name.identifierOrNullIfSpecial
+  }
 
   private fun XmlTag.findChildArgumentTag(argument: NavArgumentData): XmlTag? =
     findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, argument.name)

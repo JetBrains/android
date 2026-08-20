@@ -44,15 +44,14 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
 
   private val allProperties = klass.memberProperties
 
-  private val allNamedProperties: List<Property> =
-    allProperties.mapNotNull { property ->
-      when {
-        property.visibility == KVisibility.PUBLIC -> Property(property.name, property.apply { isAccessible = true }::get)
-        property.visibility != KVisibility.PUBLIC ->
-          allFunctions[property.name]?.let { function -> Property(property.name, function.apply { isAccessible = true }::call) }
-        else -> null
-      }
+  private val allNamedProperties: List<Property> = allProperties.mapNotNull { property ->
+    when {
+      property.visibility == KVisibility.PUBLIC -> Property(property.name, property.apply { isAccessible = true }::get)
+      property.visibility != KVisibility.PUBLIC ->
+        allFunctions[property.name]?.let { function -> Property(property.name, function.apply { isAccessible = true }::call) }
+      else -> null
     }
+  }
 
   /** Return a property which is can be used to name instances of the class described by this object. */
   val displayNameProperty: Property? =

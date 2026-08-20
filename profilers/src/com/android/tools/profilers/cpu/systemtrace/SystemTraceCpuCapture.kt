@@ -79,24 +79,23 @@ class SystemTraceCpuCapture(
         getCaptureNode(threadId)?.descendantsStream?.asSequence()?.find { it.data.nameWithSuffix == name }
       val mainThreadEvent = eventByName(mainThreadId, "$MAIN_THREAD_EVENT_PREFIX ${event.surfaceFrameToken}")
       val renderThreadEvent = eventByName(renderThreadId, "$RENDER_THREAD_EVENT_PREFIX ${event.surfaceFrameToken}")
-      val gpuThreadEvent =
-        renderThreadEvent?.let {
-          fun eventsFromEndToHere(threadId: Int, prefix: String) =
-            getCaptureNode(threadId)!!
-              .descendantsStream
-              .filter { it.data.name.startsWith(prefix) }
-              .sorted(compareByDescending(CaptureNode::startGlobal))
-              .takeWhile { renderThreadEvent.startGlobal <= it.startGlobal }
-          var remainingRenderEvents = eventsFromEndToHere(renderThreadId, RENDER_THREAD_EVENT_PREFIX).toList()
-          eventsFromEndToHere(gpuThreadId, GPU_THREAD_EVENT_PREFIX).asSequence().find { gpu ->
-            val i = remainingRenderEvents.indexOfFirst { it.startGlobal < gpu.startGlobal }
-            when {
-              i < 0 -> false
-              remainingRenderEvents[i] === renderThreadEvent -> true
-              else -> false.also { remainingRenderEvents = remainingRenderEvents.subList(i + 1, remainingRenderEvents.size) }
-            }
+      val gpuThreadEvent = renderThreadEvent?.let {
+        fun eventsFromEndToHere(threadId: Int, prefix: String) =
+          getCaptureNode(threadId)!!
+            .descendantsStream
+            .filter { it.data.name.startsWith(prefix) }
+            .sorted(compareByDescending(CaptureNode::startGlobal))
+            .takeWhile { renderThreadEvent.startGlobal <= it.startGlobal }
+        var remainingRenderEvents = eventsFromEndToHere(renderThreadId, RENDER_THREAD_EVENT_PREFIX).toList()
+        eventsFromEndToHere(gpuThreadId, GPU_THREAD_EVENT_PREFIX).asSequence().find { gpu ->
+          val i = remainingRenderEvents.indexOfFirst { it.startGlobal < gpu.startGlobal }
+          when {
+            i < 0 -> false
+            remainingRenderEvents[i] === renderThreadEvent -> true
+            else -> false.also { remainingRenderEvents = remainingRenderEvents.subList(i + 1, remainingRenderEvents.size) }
           }
         }
+      }
       RenderSequence(mainThreadEvent, renderThreadEvent, gpuThreadEvent)
     }
 

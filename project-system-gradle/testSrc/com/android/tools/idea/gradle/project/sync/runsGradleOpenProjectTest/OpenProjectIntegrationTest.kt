@@ -87,11 +87,10 @@ class OpenProjectIntegrationTest {
   fun testReopenProject() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val before = preparedProject.open { project -> project.saveAndDump() }
-    val after =
-      preparedProject.open { project ->
-        verifySyncSkipped(project, projectRule.testRootDisposable)
-        project.saveAndDump()
-      }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
     Truth.assertThat(after).isEqualTo(before)
   }
 
@@ -99,11 +98,10 @@ class OpenProjectIntegrationTest {
   fun testReopenProject_kmpWithJs() {
     val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_MULTIPLATFORM_WITHJS)
     val before = preparedProject.open { project -> project.saveAndDump() }
-    val after =
-      preparedProject.open { project ->
-        verifySyncSkipped(project, projectRule.testRootDisposable)
-        project.saveAndDump()
-      }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
     Truth.assertThat(after).isEqualTo(before)
   }
 
@@ -124,22 +122,20 @@ class OpenProjectIntegrationTest {
   @Test
   fun testReopenProject_withCustomEntry() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
-    val before =
-      preparedProject.open { project ->
-        runWriteActionAndWait {
-          val appMainModule = project.gradleModule(":app")!!.getMainModule()
-          val modifieableModule = ModuleRootManagerEx.getInstanceEx(appMainModule).modifiableModel
-          val abc = appMainModule.fileUnderGradleRoot("src")!!.createChildDirectory("test", "abc")
-          modifieableModule.addContentEntry(abc)
-          modifieableModule.commit()
-        }
-        project.saveAndDump()
+    val before = preparedProject.open { project ->
+      runWriteActionAndWait {
+        val appMainModule = project.gradleModule(":app")!!.getMainModule()
+        val modifieableModule = ModuleRootManagerEx.getInstanceEx(appMainModule).modifiableModel
+        val abc = appMainModule.fileUnderGradleRoot("src")!!.createChildDirectory("test", "abc")
+        modifieableModule.addContentEntry(abc)
+        modifieableModule.commit()
       }
-    val after =
-      preparedProject.open { project ->
-        verifySyncSkipped(project, projectRule.testRootDisposable)
-        project.saveAndDump()
-      }
+      project.saveAndDump()
+    }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
     Truth.assertThat(after).isEqualTo(before)
   }
 
@@ -150,12 +146,11 @@ class OpenProjectIntegrationTest {
     FileUtil.delete(File(preparedProject.root, ".idea"))
     projectsDataDir.deleteRecursively()
 
-    val after =
-      preparedProject.open { project ->
-        // Synced again.
-        verifySyncSuccessful(project, projectRule.testRootDisposable)
-        project.saveAndDump()
-      }
+    val after = preparedProject.open { project ->
+      // Synced again.
+      verifySyncSuccessful(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
     Truth.assertThat(after).isEqualTo(before)
   }
 
@@ -163,11 +158,10 @@ class OpenProjectIntegrationTest {
   fun testReopenKaptProject() {
     val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
     val before = preparedProject.open { project -> project.saveAndDump() }
-    val after =
-      preparedProject.open { project ->
-        verifySyncSkipped(project, projectRule.testRootDisposable)
-        project.saveAndDump()
-      }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
     Truth.assertThat(after).isEqualTo(before)
   }
 
@@ -216,11 +210,10 @@ class OpenProjectIntegrationTest {
   fun testReopenCompositeBuildProject() {
     val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
     val before = preparedProject.open { project -> project.saveAndDump() }
-    val after =
-      preparedProject.open { project ->
-        verifySyncSkipped(project, projectRule.testRootDisposable)
-        project.saveAndDump()
-      }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
     Truth.assertThat(after).isEqualTo(before)
   }
 
@@ -228,11 +221,10 @@ class OpenProjectIntegrationTest {
   fun testReopenPsdSampleGroovy() {
     val preparedProject = projectRule.prepareTestProject(TestProject.PSD_SAMPLE_GROOVY)
     val before = preparedProject.open { project -> project.saveAndDump() }
-    val after =
-      preparedProject.open { project ->
-        verifySyncSkipped(project, projectRule.testRootDisposable)
-        project.saveAndDump()
-      }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
     Truth.assertThat(after).isEqualTo(before)
   }
 
@@ -310,23 +302,21 @@ class OpenProjectIntegrationTest {
   @Test
   fun testReopenAndResync() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
-    val debugBefore =
-      preparedProject.open { project: Project ->
-        runWriteActionAndWait {
-          // Modify the project build file to ensure the project is synced when opened.
-          project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
-            file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
-          }
+    val debugBefore = preparedProject.open { project: Project ->
+      runWriteActionAndWait {
+        // Modify the project build file to ensure the project is synced when opened.
+        project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
+          file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
         }
-        project.saveAndDump()
       }
-    val reopenedDebug =
-      preparedProject.open { project ->
-        // TODO(b/146535390): Uncomment when sync required status survives restarts.
-        //
-        // assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
-        project.saveAndDump()
-      }
+      project.saveAndDump()
+    }
+    val reopenedDebug = preparedProject.open { project ->
+      // TODO(b/146535390): Uncomment when sync required status survives restarts.
+      //
+      // assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      project.saveAndDump()
+    }
     Truth.assertThat(reopenedDebug).isEqualTo(debugBefore)
   }
 
@@ -345,22 +335,21 @@ class OpenProjectIntegrationTest {
   fun testGradleVersionAfterClose() {
     val preparedProjectA = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION, name = "A")
     val preparedProjectB = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION_PLUGINS_DSL, name = "B")
-    val syncResult =
-      preparedProjectA.open { A ->
-        preparedProjectB.open { B ->
-          runInEdtAndWait { ProjectManager.getInstance().closeAndDispose(A) }
-          B.requestSyncAndWait()
-          runInEdtAndWait {
-            val wrapper = GradleWrapper.find(B)!!
-            wrapper.updateDistribution(GradleVersion.version("7.999"))
-          }
-
-          AndroidGradleTests.syncProject(B, GradleSyncInvoker.Request.testRequest()) {
-            // Do not check status.
-          }
-          B.getProjectSystem().getSyncManager().getLastSyncResult()
+    val syncResult = preparedProjectA.open { A ->
+      preparedProjectB.open { B ->
+        runInEdtAndWait { ProjectManager.getInstance().closeAndDispose(A) }
+        B.requestSyncAndWait()
+        runInEdtAndWait {
+          val wrapper = GradleWrapper.find(B)!!
+          wrapper.updateDistribution(GradleVersion.version("7.999"))
         }
+
+        AndroidGradleTests.syncProject(B, GradleSyncInvoker.Request.testRequest()) {
+          // Do not check status.
+        }
+        B.getProjectSystem().getSyncManager().getLastSyncResult()
       }
+    }
     Truth.assertThat(syncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
   }
 
@@ -377,11 +366,10 @@ class OpenProjectIntegrationTest {
     // Simulate corrupt external configuration caches
     externalConfigurationDir.deleteRecursively()
 
-    val after =
-      preparedProject.open { project ->
-        verifySyncSuccessful(project, projectRule.testRootDisposable)
-        project.saveAndDump(ignoreModuleFileAndType = true)
-      }
+    val after = preparedProject.open { project ->
+      verifySyncSuccessful(project, projectRule.testRootDisposable)
+      project.saveAndDump(ignoreModuleFileAndType = true)
+    }
     Truth.assertThat(after).isEqualTo(before)
   }
 }

@@ -29,7 +29,6 @@ import kotlin.collections.Map.Entry
  * A [XNamedValue] representing the recomposition state of the enclosing Composable function/lambda
  *
  * The node looks something like this:
- *
  *  ```
  *  + Recomposition State = Composable fun FunctionName(): Arguments: Different: ["arg1"] Same: ["arg2", "this"]
  *    + arg1 = Different

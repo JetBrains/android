@@ -93,20 +93,20 @@ class DeviceMonitorControllerImpl(
       processTrackerJob =
         currentDevice.scope.launch {
           runCatching {
-              val allProcesses = mutableMapOf<Int, ProcessInfo>()
-              currentDevice.jdwpProcessChangeFlow.collect { processChange ->
-                when (processChange) {
-                  is JdwpProcessChange.Added ->
-                    allProcesses[processChange.processInfo.properties.pid] = processChange.processInfo.toProcessInfo()
+            val allProcesses = mutableMapOf<Int, ProcessInfo>()
+            currentDevice.jdwpProcessChangeFlow.collect { processChange ->
+              when (processChange) {
+                is JdwpProcessChange.Added ->
+                  allProcesses[processChange.processInfo.properties.pid] = processChange.processInfo.toProcessInfo()
 
-                  is JdwpProcessChange.Updated ->
-                    allProcesses[processChange.processInfo.properties.pid] = processChange.processInfo.toProcessInfo()
+                is JdwpProcessChange.Updated ->
+                  allProcesses[processChange.processInfo.properties.pid] = processChange.processInfo.toProcessInfo()
 
-                  is JdwpProcessChange.Removed -> allProcesses.remove(processChange.processInfo.properties.pid)
-                }
-                withContext(Dispatchers.EDT) { model.setAllProcesses(allProcesses.values.toList()) }
+                is JdwpProcessChange.Removed -> allProcesses.remove(processChange.processInfo.properties.pid)
               }
+              withContext(Dispatchers.EDT) { model.setAllProcesses(allProcesses.values.toList()) }
             }
+          }
             .onFailure { throwable ->
               val logger = adbLogger(currentDevice.session).withPrefix("${currentDevice.session} - $currentDevice")
               logger.logIOCompletionErrors(throwable)

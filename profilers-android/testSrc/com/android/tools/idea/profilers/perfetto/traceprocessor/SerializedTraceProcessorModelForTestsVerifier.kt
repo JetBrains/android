@@ -64,8 +64,9 @@ class SerializedTraceProcessorModelForTestsVerifier {
     val serializedProcesssList = loadSerializedProcessList(CpuProfilerTestUtils.getTraceFile("perfetto.trace_process_list"))
     assertThat(realProcessList).containsExactlyElementsIn(serializedProcesssList).inOrder()
 
-    val sfProcessId =
-      realProcessList.find { it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME) }
+    val sfProcessId = realProcessList.find {
+      it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
+    }
 
     // We load the serialized model map and check that all processes are present.
     val serializedModelMap = loadSerializedModelMap(CpuProfilerTestUtils.getTraceFile("perfetto.trace_tpd_model"))
@@ -92,8 +93,9 @@ class SerializedTraceProcessorModelForTestsVerifier {
     val serializedProcesssList = loadSerializedProcessList(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace_process_list"))
     assertThat(realProcessList).containsExactlyElementsIn(serializedProcesssList).inOrder()
 
-    val sfProcessId =
-      realProcessList.find { it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME) }
+    val sfProcessId = realProcessList.find {
+      it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
+    }
 
     // We load the serialized model map and check that all processes are present.
     val serializedModelMap = loadSerializedModelMap(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace_tpd_model"))

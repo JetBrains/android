@@ -45,8 +45,9 @@ class ReRunUiCheckModeAction : AnAction() {
 
   override fun update(e: AnActionEvent) {
     val project = e.project
-    val uiCheckInstancePreviewDef =
-      project?.let { ProblemsView.getToolWindow(it)?.contentManager?.selectedContent?.getUserData(TAB_PREVIEW_DEFINITION) }
+    val uiCheckInstancePreviewDef = project?.let {
+      ProblemsView.getToolWindow(it)?.contentManager?.selectedContent?.getUserData(TAB_PREVIEW_DEFINITION)
+    }
 
     if (uiCheckInstancePreviewDef == null || runReadAction { uiCheckInstancePreviewDef.element == null }) {
       e.presentation.isVisible = false

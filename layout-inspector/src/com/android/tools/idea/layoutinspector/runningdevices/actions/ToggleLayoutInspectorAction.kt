@@ -46,8 +46,9 @@ const val STUDIO_DOC_LI_URL = "https://d.android.com/r/studio-ui/layout-inspecto
 /** The min API supported by the Embedded Layout Inspector. Before API 29 we don't have support for live updates. */
 const val EMBEDDED_LAYOUT_INSPECTOR_MIN_API = 29
 
-private val ACTION_WARNING_ICON: Icon =
-  LayeredIcon.layeredIcon { arrayOf(StudioIcons.Shell.ToolWindows.CAPTURES, AllIcons.General.WarningDecorator) }
+private val ACTION_WARNING_ICON: Icon = LayeredIcon.layeredIcon {
+  arrayOf(StudioIcons.Shell.ToolWindows.CAPTURES, AllIcons.General.WarningDecorator)
+}
 private val ACTION_ICON: Icon = StudioIcons.Shell.ToolWindows.CAPTURES
 
 private val ACTION_TITLE = LayoutInspectorBundle.message("toggle.layout.inspector")

@@ -116,31 +116,30 @@ fun createDeviceSpecs(
 
   if (devices.isEmpty()) return ProcessedDeviceSpec.MultipleDeviceSpec(emptyList())
 
-  val deviceSpecList =
-    devices.map { device ->
-      var density: Density? = null
-      val version = if (device.version == AndroidVersion.DEFAULT) null else device.version
+  val deviceSpecList = devices.map { device ->
+    var density: Density? = null
+    val version = if (device.version == AndroidVersion.DEFAULT) null else device.version
 
-      if (device.supportsMultipleScreenFormats()) {
-        log.info("Creating spec for resizable device ${device.name}")
-      } else {
-        density = Density.create(device.density)
-      }
-      val preferredAbi = device.appPreferredAbi
-      val abis =
-        if (StudioFlags.RISC_V.get() && preferredAbi != null) {
-          listOf(preferredAbi)
-        } else {
-          device.abis.map { it.toString() }
-        }
-      log.info("Creating spec for device ${device.name} with ABIs: ${abis.ifEmpty { "<none specified>" }}")
-      val deviceSerial = devices.mapNotNull { if (device.isRunning) device.launchedDevice.get().serialNumber else null }
-      log.info("Creating spec for ${device.name}.")
-
-      AndroidDeviceSpecImpl(version, version, density, abis, deviceSerials = deviceSerial) {
-        combineDeviceLanguages(listOf(device), timeout, unit)
-      }
+    if (device.supportsMultipleScreenFormats()) {
+      log.info("Creating spec for resizable device ${device.name}")
+    } else {
+      density = Density.create(device.density)
     }
+    val preferredAbi = device.appPreferredAbi
+    val abis =
+      if (StudioFlags.RISC_V.get() && preferredAbi != null) {
+        listOf(preferredAbi)
+      } else {
+        device.abis.map { it.toString() }
+      }
+    log.info("Creating spec for device ${device.name} with ABIs: ${abis.ifEmpty { "<none specified>" }}")
+    val deviceSerial = devices.mapNotNull { if (device.isRunning) device.launchedDevice.get().serialNumber else null }
+    log.info("Creating spec for ${device.name}.")
+
+    AndroidDeviceSpecImpl(version, version, density, abis, deviceSerials = deviceSerial) {
+      combineDeviceLanguages(listOf(device), timeout, unit)
+    }
+  }
   return ProcessedDeviceSpec.MultipleDeviceSpec(deviceSpecList)
 }
 

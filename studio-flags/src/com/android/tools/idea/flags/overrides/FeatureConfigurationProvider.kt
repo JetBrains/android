@@ -71,21 +71,20 @@ class FeatureConfigurationProvider private constructor(private val values: Map<S
     fun loadValues(inputStream: InputStream = featureFlagsResourceStream()): FeatureConfigurationProvider {
       val configsByName = FeatureConfiguration.entries.associateBy { it.name }
 
-      val map =
-        inputStream.use { stream ->
-          stream.reader(Charsets.UTF_8).use { reader ->
-            reader
-              .readLines()
-              .filter { !it.startsWith("#") }
-              .mapNotNull {
-                val tokens = parseLine(it) ?: return@mapNotNull null
-                val flagConfig =
-                  configsByName[tokens.second] ?: throw RuntimeException("Invalid value '${tokens.second}' for flag '${tokens.first}'")
-                tokens.first to flagConfig
-              }
-              .toMap()
-          }
+      val map = inputStream.use { stream ->
+        stream.reader(Charsets.UTF_8).use { reader ->
+          reader
+            .readLines()
+            .filter { !it.startsWith("#") }
+            .mapNotNull {
+              val tokens = parseLine(it) ?: return@mapNotNull null
+              val flagConfig =
+                configsByName[tokens.second] ?: throw RuntimeException("Invalid value '${tokens.second}' for flag '${tokens.first}'")
+              tokens.first to flagConfig
+            }
+            .toMap()
         }
+      }
 
       return FeatureConfigurationProvider(map)
     }

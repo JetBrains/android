@@ -85,79 +85,78 @@ internal constructor(
    * The core logic of this class: an actor flow which processes events serially, updates its internal state, and emits the resulting device
    * and target selection. This flow emits additional internal state used only by [getTargetsSelectedWithDialog].
    */
-  private val internalDevicesAndTargetsFlow: StateFlow<Pair<SelectionState, DevicesAndTargets>> =
-    flow {
-        var currentSelectionState = SelectionState()
-        var presentDevices: List<DeploymentTargetDevice> = emptyList()
-        var selectedTargets: List<DeploymentTarget> = emptyList()
-        for (message in messageChannel) {
-          when (message) {
-            is RunConfigUpdate -> {
-              if (message.runConfig != null) {
-                val savedSelectionState = selectedTargetStateService.getState(message.runConfig)
-                if (savedSelectionState.isEmpty()) {
-                  // This is a new run config with no saved selection. Assign the existing selection to the run config.
-                  currentSelectionState = currentSelectionState.copy(runConfigName = message.runConfig.name)
-                  selectedTargetStateService.updateState(currentSelectionState)
-                } else {
-                  currentSelectionState = savedSelectionState
-                }
-              }
-            }
-            is DeviceListUpdate -> {
-              presentDevices = message.devices.sortedWith(DeviceComparator)
-            }
-            is UserComboboxSelection -> {
-              currentSelectionState =
-                currentSelectionState.copy(
-                  selectionMode = SelectionMode.DROPDOWN,
-                  dropdownSelection = DropdownSelection(target = message.target.id, timestamp = clock.now()),
-                )
+  private val internalDevicesAndTargetsFlow: StateFlow<Pair<SelectionState, DevicesAndTargets>> = flow {
+    var currentSelectionState = SelectionState()
+    var presentDevices: List<DeploymentTargetDevice> = emptyList()
+    var selectedTargets: List<DeploymentTarget> = emptyList()
+    for (message in messageChannel) {
+      when (message) {
+        is RunConfigUpdate -> {
+          if (message.runConfig != null) {
+            val savedSelectionState = selectedTargetStateService.getState(message.runConfig)
+            if (savedSelectionState.isEmpty()) {
+              // This is a new run config with no saved selection. Assign the existing selection to the run config.
+              currentSelectionState = currentSelectionState.copy(runConfigName = message.runConfig.name)
               selectedTargetStateService.updateState(currentSelectionState)
-            }
-            is UserDialogSelection -> {
-              currentSelectionState =
-                currentSelectionState.copy(
-                  // Update the dialog selection, but if nothing is selected in the dialog, set the mode to
-                  // dropdown.
-                  dialogSelection = DialogSelection(targets = message.targets.map { it.id }),
-                  selectionMode = if (message.targets.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG,
-                )
-              selectedTargetStateService.updateState(currentSelectionState)
+            } else {
+              currentSelectionState = savedSelectionState
             }
           }
-
-          // Selection or devices updated; now resolve the selection against the present devices
-
-          if (currentSelectionState.selectionMode == SelectionMode.DIALOG) {
-            selectedTargets = currentSelectionState.dialogSelection.targets.mapNotNull { it.resolve(presentDevices) }
-            if (selectedTargets.isEmpty()) {
-              // When none of the selected devices are present, we switch the persisted selection from multiple to single selection.
-              // This is longstanding behavior, though questionable.
-              currentSelectionState = currentSelectionState.copy(selectionMode = SelectionMode.DROPDOWN)
-              selectedTargetStateService.updateState(currentSelectionState)
-            }
-          }
-          // We may have just changed the mode in the previous if statement
-          if (currentSelectionState.selectionMode == SelectionMode.DROPDOWN) {
-            selectedTargets =
-              listOfNotNull(
-                updateSingleSelection(
-                  presentDevices,
-                  currentSelectionState.dropdownSelection?.target,
-                  currentSelectionState.dropdownSelection?.timestamp,
-                )
-              )
-          }
-          emit(
-            Pair(
-              currentSelectionState,
-              DevicesAndTargets(presentDevices, currentSelectionState.selectionMode == SelectionMode.DIALOG, selectedTargets),
+        }
+        is DeviceListUpdate -> {
+          presentDevices = message.devices.sortedWith(DeviceComparator)
+        }
+        is UserComboboxSelection -> {
+          currentSelectionState =
+            currentSelectionState.copy(
+              selectionMode = SelectionMode.DROPDOWN,
+              dropdownSelection = DropdownSelection(target = message.target.id, timestamp = clock.now()),
             )
-          )
+          selectedTargetStateService.updateState(currentSelectionState)
+        }
+        is UserDialogSelection -> {
+          currentSelectionState =
+            currentSelectionState.copy(
+              // Update the dialog selection, but if nothing is selected in the dialog, set the mode to
+              // dropdown.
+              dialogSelection = DialogSelection(targets = message.targets.map { it.id }),
+              selectionMode = if (message.targets.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG,
+            )
+          selectedTargetStateService.updateState(currentSelectionState)
         }
       }
-      .stateIn(coroutineScope, SharingStarted.Eagerly, Pair(SelectionState(), DevicesAndTargets(emptyList(), false, emptyList())))
+
+      // Selection or devices updated; now resolve the selection against the present devices
+
+      if (currentSelectionState.selectionMode == SelectionMode.DIALOG) {
+        selectedTargets = currentSelectionState.dialogSelection.targets.mapNotNull { it.resolve(presentDevices) }
+        if (selectedTargets.isEmpty()) {
+          // When none of the selected devices are present, we switch the persisted selection from multiple to single selection.
+          // This is longstanding behavior, though questionable.
+          currentSelectionState = currentSelectionState.copy(selectionMode = SelectionMode.DROPDOWN)
+          selectedTargetStateService.updateState(currentSelectionState)
+        }
+      }
+      // We may have just changed the mode in the previous if statement
+      if (currentSelectionState.selectionMode == SelectionMode.DROPDOWN) {
+        selectedTargets =
+          listOfNotNull(
+            updateSingleSelection(
+              presentDevices,
+              currentSelectionState.dropdownSelection?.target,
+              currentSelectionState.dropdownSelection?.timestamp,
+            )
+          )
+      }
+      emit(
+        Pair(
+          currentSelectionState,
+          DevicesAndTargets(presentDevices, currentSelectionState.selectionMode == SelectionMode.DIALOG, selectedTargets),
+        )
+      )
+    }
+  }
+    .stateIn(coroutineScope, SharingStarted.Eagerly, Pair(SelectionState(), DevicesAndTargets(emptyList(), false, emptyList())))
 
   /**
    * The primary output of this class, which is the result of combining the current set of devices and the persisted selection to determine

@@ -98,14 +98,13 @@ private constructor(val scope: CoroutineScope, heading: String, mainComponent: J
           )
         } else null
 
-      val tabbedPane =
-        pairedDevicesPanel?.let { panel ->
-          JBTabbedPane().apply {
-            tabComponentInsets = JBUI.emptyInsets()
-            insertTab("Device Info", null, JBScrollPane(deviceInfoPanel), null, DEVICE_INFO_TAB_INDEX)
-            insertTab("Paired Devices", null, JBScrollPane(panel), null, PAIRED_DEVICES_TAB_INDEX)
-          }
+      val tabbedPane = pairedDevicesPanel?.let { panel ->
+        JBTabbedPane().apply {
+          tabComponentInsets = JBUI.emptyInsets()
+          insertTab("Device Info", null, JBScrollPane(deviceInfoPanel), null, DEVICE_INFO_TAB_INDEX)
+          insertTab("Paired Devices", null, JBScrollPane(panel), null, PAIRED_DEVICES_TAB_INDEX)
         }
+      }
 
       val mainComponent = tabbedPane ?: JBScrollPane(deviceInfoPanel)
       return DeviceDetailsPanel(scope, handle.state.properties.title, mainComponent, tabbedPane)

@@ -154,11 +154,10 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
           override fun onSelectedTabsChanged(selectedTabs: List<StreamingDeviceId>) {
             selectedRunningDevicesTabs = selectedTabs
 
-            val selectedTabsWithLayoutInspector =
-              selectedTabs.filter {
-                // Keep only tabs that have layout inspector enabled on them.
-                tabsWithLayoutInspector.contains(it)
-              }
+            val selectedTabsWithLayoutInspector = selectedTabs.filter {
+              // Keep only tabs that have layout inspector enabled on them.
+              tabsWithLayoutInspector.contains(it)
+            }
 
             if (selectedTabsWithLayoutInspector.size > 1) {
               // If there is more than one selected tab with Layout Inspector, remove Layout

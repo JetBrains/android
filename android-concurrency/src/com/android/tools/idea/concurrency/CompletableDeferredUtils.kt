@@ -18,12 +18,11 @@ package com.android.tools.idea.concurrency
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 
-private fun <T> CompletableDeferred<T>.completeFromOtherDeferred(other: Deferred<T>) =
-  other.invokeOnCompletion { throwable ->
-    if (!isCompleted) {
-      if (throwable == null) complete(other.getCompleted()) else completeExceptionally(throwable)
-    }
+private fun <T> CompletableDeferred<T>.completeFromOtherDeferred(other: Deferred<T>) = other.invokeOnCompletion { throwable ->
+  if (!isCompleted) {
+    if (throwable == null) complete(other.getCompleted()) else completeExceptionally(throwable)
   }
+}
 
 /**
  * Wraps all the given [collection] [CompletableDeferred]s into one. When the returned one completes, all the [CompletableDeferred]s in the

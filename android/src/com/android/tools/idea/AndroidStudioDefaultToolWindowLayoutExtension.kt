@@ -53,10 +53,7 @@ internal class AndroidStudioDefaultToolWindowLayoutExtension : DefaultToolWindow
       addOrUpdate("StudioBot") {
         // b/428227953: Open the Gemini tool window by default in Android Studio Cloud.
         // TODO(b/475565083): temporarily do the above for all of Studio
-        if (
-          System.getenv("GOOGLE_CLOUD_WORKSTATIONS") != null ||
-            OpenStudioBotOnFirstStart.shouldShow()
-        ) {
+        if (System.getenv("GOOGLE_CLOUD_WORKSTATIONS") != null || OpenStudioBotOnFirstStart.shouldShow()) {
           isVisible = true
         }
         weight = 0.25f

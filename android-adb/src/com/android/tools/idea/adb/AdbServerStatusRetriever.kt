@@ -47,14 +47,14 @@ class AdbServerStatusRetriever(project: Project) {
           return@collect
         }
         runCatching {
-            val hostServices = adbSession.hostServices
-            if (hostServices.hostFeatures().contains(AdbFeatures.SERVER_STATUS)) {
-              hostServices.serverStatus().let { serverStatus ->
-                _serverStatus.value = serverStatus
-                logger.info("ADB server logs can be found at: ${serverStatus.absoluteLogPath}")
-              }
+          val hostServices = adbSession.hostServices
+          if (hostServices.hostFeatures().contains(AdbFeatures.SERVER_STATUS)) {
+            hostServices.serverStatus().let { serverStatus ->
+              _serverStatus.value = serverStatus
+              logger.info("ADB server logs can be found at: ${serverStatus.absoluteLogPath}")
             }
           }
+        }
           .onFailure { e ->
             _serverStatus.value = null
             if (e !is CancellationException) {

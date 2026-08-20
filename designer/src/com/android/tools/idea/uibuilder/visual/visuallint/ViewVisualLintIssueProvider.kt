@@ -56,25 +56,24 @@ class ViewVisualLintSuppressTask(private val typeToSuppress: VisualLintErrorType
 
   override fun run() {
     val attributeToAdd = typeToSuppress.ignoredAttributeValue
-    val transactions =
-      components.mapNotNull { component ->
-        // First we check if tools:ignored="" attribute already exists.
-        val newIgnoreAttribute: String
-        val existIgnored = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
-        newIgnoreAttribute =
-          if (existIgnored != null) {
-            // It may ignore multiple things by using comma as separator already.
-            val ignores = existIgnored.split(",")
-            if (ignores.contains(attributeToAdd)) {
-              // This model has been suppressed by this type already. Ignore it.
-              return@mapNotNull null
-            }
-            "$existIgnored,$attributeToAdd"
-          } else {
-            attributeToAdd
+    val transactions = components.mapNotNull { component ->
+      // First we check if tools:ignored="" attribute already exists.
+      val newIgnoreAttribute: String
+      val existIgnored = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
+      newIgnoreAttribute =
+        if (existIgnored != null) {
+          // It may ignore multiple things by using comma as separator already.
+          val ignores = existIgnored.split(",")
+          if (ignores.contains(attributeToAdd)) {
+            // This model has been suppressed by this type already. Ignore it.
+            return@mapNotNull null
           }
-        component.startAttributeTransaction().apply { setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, newIgnoreAttribute) }
-      }
+          "$existIgnored,$attributeToAdd"
+        } else {
+          attributeToAdd
+        }
+      component.startAttributeTransaction().apply { setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, newIgnoreAttribute) }
+    }
 
     if (transactions.isNotEmpty()) {
       val project = transactions.first().component.model.project

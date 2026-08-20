@@ -363,14 +363,13 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     val componentsToAdd = draggedComponents.map { it.authoritativeNlComponent }
     val anchor = placeholder.findNextSibling(myComponent, placeholder.host)?.nlComponent
 
-    val attributesTransactions =
-      draggedComponents.map {
-        val modification = ComponentModification(it.authoritativeNlComponent, "Drag component")
-        if (!isPlaceholderLiveUpdatable(placeholder)) {
-          placeholder.updateAttribute(it, modification)
-        }
-        modification
+    val attributesTransactions = draggedComponents.map {
+      val modification = ComponentModification(it.authoritativeNlComponent, "Drag component")
+      if (!isPlaceholderLiveUpdatable(placeholder)) {
+        placeholder.updateAttribute(it, modification)
       }
+      modification
+    }
 
     treeWriter.addComponentsAndSelectedIfCreated(
       componentsToAdd,
@@ -390,12 +389,11 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
   /** Apply any pending transactions on mouse released. */
   private fun handleRemainingComponentsOnRelease() {
-    val components =
-      draggedComponents.mapNotNull { draggedComponent ->
-        // We only need to apply changes if there are any pending.
-        val nlComponent = draggedComponent.authoritativeNlComponent
-        if (nlComponent.attributeTransaction?.hasPendingChanges() == true) nlComponent else null
-      }
+    val components = draggedComponents.mapNotNull { draggedComponent ->
+      // We only need to apply changes if there are any pending.
+      val nlComponent = draggedComponent.authoritativeNlComponent
+      if (nlComponent.attributeTransaction?.hasPendingChanges() == true) nlComponent else null
+    }
     if (components.isNotEmpty()) {
       NlWriteCommandActionUtil.run(components, "Drag component") {
         for (component in components) {

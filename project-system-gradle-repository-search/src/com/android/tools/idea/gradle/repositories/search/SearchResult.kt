@@ -68,12 +68,13 @@ fun Collection<SearchResultStats>.combine(): SearchResultStats =
       .mapValues { (_, v) -> v.fold(SearchResultRepoStats.EMPTY) { acc, it -> acc.combineWith(it) } }
   )
 
-fun Future<SearchResult>.getResultSafely(): SearchResult =
-  takeUnless { isCancelled }
-    .let {
-      try {
-        get()!!
-      } catch (e: Exception) {
-        SearchResult(e)
-      }
+fun Future<SearchResult>.getResultSafely(): SearchResult = takeUnless {
+  isCancelled
+}
+  .let {
+    try {
+      get()!!
+    } catch (e: Exception) {
+      SearchResult(e)
     }
+  }

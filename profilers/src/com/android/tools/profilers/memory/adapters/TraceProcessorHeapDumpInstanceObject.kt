@@ -186,14 +186,13 @@ class TraceProcessorHeapDumpInstanceObject(
         groups.map { refs ->
           val ownerInst = captureObject.findInstanceObjectByIdCached(refs.first().ownerId)
           if (ownerInst != null) {
-            val fieldNames =
-              refs.map { ref ->
-                if (ownerInst.valueType == ValueObject.ValueType.ARRAY) {
-                  ref.fieldName.substringAfter("[").substringBefore("]")
-                } else {
-                  ref.fieldName.substringAfterLast('.')
-                }
+            val fieldNames = refs.map { ref ->
+              if (ownerInst.valueType == ValueObject.ValueType.ARRAY) {
+                ref.fieldName.substringAfter("[").substringBefore("]")
+              } else {
+                ref.fieldName.substringAfterLast('.')
               }
+            }
             ReferenceObject(fieldNames, ownerInst)
           } else {
             val placeholderEntry =

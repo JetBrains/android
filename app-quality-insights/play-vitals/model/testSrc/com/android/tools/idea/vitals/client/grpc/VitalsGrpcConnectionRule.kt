@@ -52,12 +52,11 @@ class VitalsGrpcConnectionRule(connection: VitalsConnection) : NamedExternalReso
     grpcConnectionRule.after(description)
   }
 
-  suspend fun collectEvents(): List<GeneratedMessageV3> =
-    flow {
-        while (true) {
-          withTimeout(200) { emit(channel.receive()) }
-        }
-      }
-      .catch { e -> if (e !is TimeoutCancellationException) throw e }
-      .toList(mutableListOf())
+  suspend fun collectEvents(): List<GeneratedMessageV3> = flow {
+    while (true) {
+      withTimeout(200) { emit(channel.receive()) }
+    }
+  }
+    .catch { e -> if (e !is TimeoutCancellationException) throw e }
+    .toList(mutableListOf())
 }

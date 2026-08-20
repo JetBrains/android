@@ -65,10 +65,9 @@ internal class WearHealthServicesStateManagerImpl(
 
   override val preset = MutableStateFlow(Preset.ALL)
 
-  private val capabilityToState =
-    capabilitiesList.associateWith {
-      MutableStateFlow<CapabilityUIState>(UpToDateCapabilityUIState(upToDateState = CapabilityState(true, it.dataType.noValue())))
-    }
+  private val capabilityToState = capabilitiesList.associateWith {
+    MutableStateFlow<CapabilityUIState>(UpToDateCapabilityUIState(upToDateState = CapabilityState(true, it.dataType.noValue())))
+  }
 
   private val _status = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Initializing)
   override val status = _status
@@ -183,47 +182,44 @@ internal class WearHealthServicesStateManagerImpl(
   override fun getState(capability: WhsCapability): StateFlow<CapabilityUIState> =
     capabilityToState[capability]?.asStateFlow() ?: throw IllegalArgumentException()
 
-  override suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean): Unit =
-    capabilityUpdatesLock.withLock {
-      val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
-      val uiState = stateFlow.value
-      if (enabled == uiState.currentState.enabled) {
-        return
-      }
-
-      val newState = if (enabled) uiState.currentState.enable() else uiState.currentState.disable()
-      stateFlow.value =
-        if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
-        else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
+  override suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean): Unit = capabilityUpdatesLock.withLock {
+    val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
+    val uiState = stateFlow.value
+    if (enabled == uiState.currentState.enabled) {
+      return
     }
 
-  override suspend fun setOverrideValue(capability: WhsCapability, value: Number): Unit =
-    capabilityUpdatesLock.withLock {
-      val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
-      val dataValue = capability.dataType.value(value)
-      val uiState = stateFlow.value
-      if (dataValue == uiState.currentState.overrideValue || !uiState.currentState.enabled) {
-        return
-      }
+    val newState = if (enabled) uiState.currentState.enable() else uiState.currentState.disable()
+    stateFlow.value =
+      if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
+      else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
+  }
 
-      val newState = uiState.currentState.override(dataValue)
-      stateFlow.value =
-        if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
-        else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
+  override suspend fun setOverrideValue(capability: WhsCapability, value: Number): Unit = capabilityUpdatesLock.withLock {
+    val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
+    val dataValue = capability.dataType.value(value)
+    val uiState = stateFlow.value
+    if (dataValue == uiState.currentState.overrideValue || !uiState.currentState.enabled) {
+      return
     }
 
-  override suspend fun clearOverrideValue(capability: WhsCapability): Unit =
-    capabilityUpdatesLock.withLock {
-      val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
-      val uiState = stateFlow.value
-      if (uiState.currentState.overrideValue is WhsDataValue.NoValue || !uiState.currentState.enabled) {
-        return
-      }
-      val newState = uiState.currentState.clearOverride()
-      stateFlow.value =
-        if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
-        else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
+    val newState = uiState.currentState.override(dataValue)
+    stateFlow.value =
+      if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
+      else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
+  }
+
+  override suspend fun clearOverrideValue(capability: WhsCapability): Unit = capabilityUpdatesLock.withLock {
+    val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
+    val uiState = stateFlow.value
+    if (uiState.currentState.overrideValue is WhsDataValue.NoValue || !uiState.currentState.enabled) {
+      return
     }
+    val newState = uiState.currentState.clearOverride()
+    stateFlow.value =
+      if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
+      else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
+  }
 
   override suspend fun applyChanges() =
     runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {

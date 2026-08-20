@@ -176,26 +176,25 @@ class PreparedTemplateBasedTestProject(
   private fun <T> openProject(
     updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
     body: (project: Project, projectRoot: File) -> T,
-  ) =
-    templateBasedTestProject.usingTestProjectSetup {
-      val embeddedJdkPath = getEmbeddedJdkPathWithVersion(resolvedAgpVersion.jdkVersion)
-      val options =
-        updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectGradleJdkPath = embeddedJdkPath))
-      integrationTestEnvironment.openPreparedProject(name = "$name${templateBasedTestProject.pathToOpen}", options = options) { project ->
-        IndexingTestUtil.waitUntilIndexesAreReady(project)
-        invokeAndWaitIfNeeded { AndroidGradleTests.waitForProjectStructureUsageTracker(project) }
-        invokeAndWaitIfNeeded { AndroidGradleTests.waitForCreateRunConfigurations(project) }
-        invokeAndWaitIfNeeded { AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project) }
-        if (!options.skipSwitchingVariants) {
-          templateBasedTestProject.switchVariant?.let { switchVariant ->
-            switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
-            invokeAndWaitIfNeeded { AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project) }
-            templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
-          }
+  ) = templateBasedTestProject.usingTestProjectSetup {
+    val embeddedJdkPath = getEmbeddedJdkPathWithVersion(resolvedAgpVersion.jdkVersion)
+    val options =
+      updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectGradleJdkPath = embeddedJdkPath))
+    integrationTestEnvironment.openPreparedProject(name = "$name${templateBasedTestProject.pathToOpen}", options = options) { project ->
+      IndexingTestUtil.waitUntilIndexesAreReady(project)
+      invokeAndWaitIfNeeded { AndroidGradleTests.waitForProjectStructureUsageTracker(project) }
+      invokeAndWaitIfNeeded { AndroidGradleTests.waitForCreateRunConfigurations(project) }
+      invokeAndWaitIfNeeded { AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project) }
+      if (!options.skipSwitchingVariants) {
+        templateBasedTestProject.switchVariant?.let { switchVariant ->
+          switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
+          invokeAndWaitIfNeeded { AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project) }
+          templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
         }
-        body(project, root)
       }
+      body(project, root)
     }
+  }
 }
 
 private inline fun <T> TemplateBasedTestProject.usingTestProjectSetup(body: () -> T): T {

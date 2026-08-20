@@ -1298,12 +1298,12 @@ private fun LogcatMessage.length() = FormattingOptions().getHeaderWidth() + mess
 
 private fun List<AnAction>.mapToStrings(indent: String = ""): List<String> {
   return flatMap {
-      when (it) {
-        is Separator -> listOf("-")
-        is PopupActionGroupAction -> listOf(it.templateText) + it.getPopupActions().mapToStrings("$indent  ")
-        else -> listOf(it.templateText ?: "null")
-      }
+    when (it) {
+      is Separator -> listOf("-")
+      is PopupActionGroupAction -> listOf(it.templateText) + it.getPopupActions().mapToStrings("$indent  ")
+      else -> listOf(it.templateText ?: "null")
     }
+  }
     .map { "$indent$it" }
 }
 

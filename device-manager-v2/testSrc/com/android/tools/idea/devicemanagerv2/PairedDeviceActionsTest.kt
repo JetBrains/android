@@ -343,13 +343,12 @@ class PairedDeviceActionsTest {
         )
       val phoneHandle = FakeDeviceHandle(this, phoneTemplate, phoneTemplate.properties)
 
-      val glassesProperties =
-        DeviceProperties.buildForTest {
-          model = "glassesDevice"
-          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-          deviceType = DeviceType.AI_GLASSES
-          pairedPhoneId = phoneHandle.id
-        }
+      val glassesProperties = DeviceProperties.buildForTest {
+        model = "glassesDevice"
+        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        deviceType = DeviceType.AI_GLASSES
+        pairedPhoneId = phoneHandle.id
+      }
       val glassesHandle = FakeDeviceHandle(this, glassesDeviceTemplate, glassesProperties)
 
       whenever(mockDeviceProvisioner.devices).thenReturn(MutableStateFlow(listOf(glassesHandle)))

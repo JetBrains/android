@@ -1012,11 +1012,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
             sendShutdown()
           } else {
             keepAliveJob?.cancel()
-            keepAliveJob =
-              coroutineScope.launch {
-                delay(KEEP_ALIVE_INTERVAL)
-                sendKeepAlive()
-              }
+            keepAliveJob = coroutineScope.launch {
+              delay(KEEP_ALIVE_INTERVAL)
+              sendKeepAlive()
+            }
           }
         }
       }

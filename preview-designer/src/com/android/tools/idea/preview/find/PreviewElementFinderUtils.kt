@@ -106,10 +106,9 @@ private constructor(private val methodName: String, private val parentAnnotation
    */
   fun buildParameterName(nameParameter: String? = null): String? = nameParameter ?: buildParentAnnotationInfo()
 
-  private fun buildParentAnnotationInfo(): String? =
-    parentAnnotationInfo?.let {
-      "${it.traversedPreviewChildrenCount.toString().padStart(it.directPreviewChildrenCount.toString().length, '0')} ${it.annotationName}"
-    }
+  private fun buildParentAnnotationInfo(): String? = parentAnnotationInfo?.let {
+    "${it.traversedPreviewChildrenCount.toString().padStart(it.directPreviewChildrenCount.toString().length, '0')} ${it.annotationName}"
+  }
 
   companion object {
     /**

@@ -312,28 +312,25 @@ class EmbeddedRendererModel(
   /** Sets the visible nodes, while respecting render settings. */
   private fun setVisibleNodes(nodes: List<ViewNode>) {
     if (renderSettings.drawBorders) {
-      _visibleNodes.value =
-        nodes.mapNotNull {
-          it.toDrawInstruction(color = renderSettings.baseColor, strokeThickness = NORMAL_BORDER_THICKNESS, outlineColor = null)
-        }
+      _visibleNodes.value = nodes.mapNotNull {
+        it.toDrawInstruction(color = renderSettings.baseColor, strokeThickness = NORMAL_BORDER_THICKNESS, outlineColor = null)
+      }
     } else {
       _visibleNodes.value = emptyList()
     }
   }
 
   private fun setRecomposingNodes(nodes: List<ViewNode>) {
-    _recomposingNodes.value =
-      nodes.mapNotNull {
-        val color = renderSettings.recompositionColor.applyRecompositionAlpha(it, inspectorModel)
-        it.toDrawInstruction(color = color, strokeThickness = RECOMPOSITION_BORDER_THICKNESS, outlineColor = null)
-      }
+    _recomposingNodes.value = nodes.mapNotNull {
+      val color = renderSettings.recompositionColor.applyRecompositionAlpha(it, inspectorModel)
+      it.toDrawInstruction(color = color, strokeThickness = RECOMPOSITION_BORDER_THICKNESS, outlineColor = null)
+    }
   }
 
   private fun setImages(windows: Collection<AndroidWindow>) {
-    _images.value =
-      windows.mapNotNull { window ->
-        window.root.toDrawInstruction(color = TRANSPARENT_COLOR_ARGB, strokeThickness = 0f, outlineColor = null, image = window.image)
-      }
+    _images.value = windows.mapNotNull { window ->
+      window.root.toDrawInstruction(color = TRANSPARENT_COLOR_ARGB, strokeThickness = 0f, outlineColor = null, image = window.image)
+    }
   }
 
   /** Convert a ViewNode to [DrawInstruction]. */

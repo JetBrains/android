@@ -79,8 +79,9 @@ class ViewInfoParserTest {
             }
             .flatMap { it.allChildren() }
 
-        val previewViewInfos =
-          viewInfos.filter { it.sourceLocation.fileName == "MainActivity.kt" && it.sourceLocation.packageHash == 34180119 }
+        val previewViewInfos = viewInfos.filter {
+          it.sourceLocation.fileName == "MainActivity.kt" && it.sourceLocation.packageHash == 34180119
+        }
 
         var expectedLineNumber = previewStartLine + 1
         assertEquals(6, previewViewInfos.size)

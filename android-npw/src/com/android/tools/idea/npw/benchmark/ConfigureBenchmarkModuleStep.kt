@@ -107,32 +107,31 @@ class ConfigureBenchmarkModuleStep(model: NewBenchmarkModuleModel) :
     )
   }
 
-  override fun createMainPanel(): DialogPanel =
-    panel {
-        buttonsGroup {
-          row(contextLabel("Benchmark module type", message("android.wizard.module.help.benchmark.module.type"))) {
-            cell(macrobenchmarkRadioButton)
-            cell(microbenchmarkRadioButton)
-          }
-        }
-
-        targetModuleRow =
-          row(contextLabel("Target application", message("android.wizard.module.help.benchmark.target.module"))) {
-              cell(targetModuleCombo).align(AlignX.FILL)
-            }
-            .visible(benchmarkModuleType.get() == MACROBENCHMARK)
-
-        row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
-
-        row("Package name") { cell(packageName).align(AlignX.FILL) }
-
-        row("Language") { cell(languageCombo).align(AlignX.FILL) }
-
-        row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
-
-        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+  override fun createMainPanel(): DialogPanel = panel {
+    buttonsGroup {
+      row(contextLabel("Benchmark module type", message("android.wizard.module.help.benchmark.module.type"))) {
+        cell(macrobenchmarkRadioButton)
+        cell(microbenchmarkRadioButton)
       }
-      .withBorder(empty(6))
+    }
+
+    targetModuleRow =
+      row(contextLabel("Target application", message("android.wizard.module.help.benchmark.target.module"))) {
+          cell(targetModuleCombo).align(AlignX.FILL)
+        }
+        .visible(benchmarkModuleType.get() == MACROBENCHMARK)
+
+    row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
+
+    row("Package name") { cell(packageName).align(AlignX.FILL) }
+
+    row("Language") { cell(languageCombo).align(AlignX.FILL) }
+
+    row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
+
+    generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+  }
+    .withBorder(empty(6))
 
   override fun getPreferredFocusComponent() = moduleName
 

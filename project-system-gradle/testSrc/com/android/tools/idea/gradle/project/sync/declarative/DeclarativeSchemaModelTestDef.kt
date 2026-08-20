@@ -263,23 +263,27 @@ fun Project.dumpDeclarativeSchemaModel(): String {
   }
 }
 
-private fun DataTypeReference.toSignatureString(): String = when (this) {
-  is DataClassRef -> fqName.name
-  is SimpleTypeRef -> dataType.name
-  is GenericTypeRef -> "<T>"
-  is DataClassRefWithTypes -> fqName.name + typeArgument.joinToString(prefix = "<", postfix = ">") {
-    when (it) {
-      is ConcreteGeneric -> it.reference.toSignatureString()
-      is StarGeneric -> "*"
-      else -> it.toString()
-    }
+private fun DataTypeReference.toSignatureString(): String =
+  when (this) {
+    is DataClassRef -> fqName.name
+    is SimpleTypeRef -> dataType.name
+    is GenericTypeRef -> "<T>"
+    is DataClassRefWithTypes ->
+      fqName.name +
+        typeArgument.joinToString(prefix = "<", postfix = ">") {
+          when (it) {
+            is ConcreteGeneric -> it.reference.toSignatureString()
+            is StarGeneric -> "*"
+            else -> it.toString()
+          }
+        }
   }
-}
 
-private fun FunctionSemantic.toSignatureString(): String = when (this) {
-  is PlainFunction -> returnValue.toSignatureString()
-  is BlockFunction -> accessor.fqName.name
-}
+private fun FunctionSemantic.toSignatureString(): String =
+  when (this) {
+    is PlainFunction -> returnValue.toSignatureString()
+    is BlockFunction -> accessor.fqName.name
+  }
 
 private fun SchemaMemberFunction.toSignatureString(): String {
   val params = parameters.joinToString(prefix = "(", postfix = ")") { it.type.toSignatureString() }

@@ -40,25 +40,25 @@ internal class UnusedResourcesDialog(project: Project, private val filterAndDesc
 
   override fun createCenterPanel(): JComponent {
     return panel {
-        row {
-          if (filterAndDescription != null) {
-            checkBox("Search entire project")
-              .bindSelected(::searchEntireProject)
-              .comment("When unchecked, ${filterAndDescription.description}.")
-          } else {
-            checkBox("Search entire project")
-              .bindSelected(::searchEntireProject)
-              .enabled(false)
-              .selected(true)
-              .comment(
-                "To restrict the scope, open a resource file or " +
-                  "select some files/directories in the Project tool window, " +
-                  "and then invoke the refactoring."
-              )
-          }
+      row {
+        if (filterAndDescription != null) {
+          checkBox("Search entire project")
+            .bindSelected(::searchEntireProject)
+            .comment("When unchecked, ${filterAndDescription.description}.")
+        } else {
+          checkBox("Search entire project")
+            .bindSelected(::searchEntireProject)
+            .enabled(false)
+            .selected(true)
+            .comment(
+              "To restrict the scope, open a resource file or " +
+                "select some files/directories in the Project tool window, " +
+                "and then invoke the refactoring."
+            )
         }
-        row { checkBox("Delete unused @id declarations too").bindSelected(::includeIds) }
       }
+      row { checkBox("Delete unused @id declarations too").bindSelected(::includeIds) }
+    }
       .also { centerPanel = it }
   }
 

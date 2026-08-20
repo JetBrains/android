@@ -84,12 +84,13 @@ private fun SyncContributorAndroidProjectContext.createFacet(
   configuration: FacetConfiguration,
   moduleEntity: ModuleEntityBuilder,
 ) {
-  val facet = FacetEntity(
-    facetId.parentId,
-    facetId.name,
-    facetId.type,
-    createProjectEntitySource(GradleSyncPhase.SOURCE_SET_MODEL_PHASE)
-  )
+  val facet =
+    FacetEntity(
+      facetId.parentId,
+      facetId.name,
+      facetId.type,
+      createProjectEntitySource(GradleSyncPhase.SOURCE_SET_MODEL_PHASE),
+    )
   // Set external source for facet, as this is not serialized
   registerModuleAction(moduleEntity.name) { module ->
     val facet = FacetManager.getInstance(module).getFacetByType(facetTypeId) ?: return@registerModuleAction

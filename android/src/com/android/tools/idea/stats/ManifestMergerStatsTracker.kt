@@ -55,8 +55,9 @@ object ManifestMergerStatsTracker : MergedManifestSnapshotComputeListener {
   fun reportMergerStats() {
     val statsBuilder = ManifestMergerStats.newBuilder()
 
-    val histogramsWithValues =
-      histogramsByResult.mapValuesNotNull { it.value.intervalHistogram?.takeIf { histogram -> histogram.totalCount > 0L }?.toProto() }
+    val histogramsWithValues = histogramsByResult.mapValuesNotNull {
+      it.value.intervalHistogram?.takeIf { histogram -> histogram.totalCount > 0L }?.toProto()
+    }
 
     if (histogramsWithValues.isEmpty()) return
 

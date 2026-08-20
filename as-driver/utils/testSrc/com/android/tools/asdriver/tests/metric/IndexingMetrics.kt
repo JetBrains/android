@@ -57,15 +57,14 @@ class IndexingMetrics(private val indexingDiagnosticsDir: Path) {
   fun get(project: AndroidProject): List<IndexingMetric> {
     val indexDiagnosticDirectoryChildren = Files.list(indexingDiagnosticsDir).filter { it.toFile().isDirectory }.use { it.toList() }
 
-    val projectIndexDiagnosticDirectory =
-      indexDiagnosticDirectoryChildren.let { perProjectDirs ->
-        val projectName = project.targetProject.fileName
-        if (projectName == null) {
-          perProjectDirs.singleOrNull() ?: error("Only one project diagnostic dir is expected: ${perProjectDirs.joinToString()}")
-        } else {
-          perProjectDirs.find { it.name.startsWith("$projectName.") }
-        }
+    val projectIndexDiagnosticDirectory = indexDiagnosticDirectoryChildren.let { perProjectDirs ->
+      val projectName = project.targetProject.fileName
+      if (projectName == null) {
+        perProjectDirs.singleOrNull() ?: error("Only one project diagnostic dir is expected: ${perProjectDirs.joinToString()}")
+      } else {
+        perProjectDirs.find { it.name.startsWith("$projectName.") }
       }
+    }
     val jsonIndexDiagnostics =
       Files.list(projectIndexDiagnosticDirectory)
         .use { stream -> stream.filter { it.extension == "json" }.toList() }
@@ -96,8 +95,9 @@ class IndexingMetrics(private val indexingDiagnosticsDir: Path) {
       get() = indexingHistories.count { it.projectName.isNotEmpty() }
 
     private val totalDumbModeTimeWithPauses: Long
-      get() =
-        jsonIndexDiagnostics.sumOf { TimeUnit.NANOSECONDS.toMillis(it.projectIndexingActivityHistory.times.dumbWallTimeWithPauses.nano) }
+      get() = jsonIndexDiagnostics.sumOf {
+        TimeUnit.NANOSECONDS.toMillis(it.projectIndexingActivityHistory.times.dumbWallTimeWithPauses.nano)
+      }
 
     private val totalIndexingTimeWithoutPauses: Long
       get() = TimeUnit.NANOSECONDS.toMillis(indexingHistories.sumOf { it.times.totalWallTimeWithoutPauses.nano })
@@ -112,22 +112,20 @@ class IndexingMetrics(private val indexingDiagnosticsDir: Path) {
       get() = indexingHistories.sumOf { history -> history.fileProviderStatistics.sumOf { it.totalNumberOfIndexedFiles } }
 
     private val totalNumberOfIndexedFilesWritingIndexValues: Int
-      get() =
-        indexingHistories.sumOf { history ->
-          history.fileProviderStatistics.sumOf { it.totalNumberOfIndexedFiles - it.totalNumberOfNothingToWriteFiles }
-        }
+      get() = indexingHistories.sumOf { history ->
+        history.fileProviderStatistics.sumOf { it.totalNumberOfIndexedFiles - it.totalNumberOfNothingToWriteFiles }
+      }
 
     private val totalNumberOfIndexedFilesWithNothingToWrite: Int
       get() = indexingHistories.sumOf { history -> history.fileProviderStatistics.sumOf { it.totalNumberOfNothingToWriteFiles } }
 
     private val totalNumberOfFilesFullyIndexedByExtensions: Int
-      get() =
-        jsonIndexDiagnostics.sumOf {
-          when (val fileCount = it.projectIndexingActivityHistory.fileCount) {
-            is JsonProjectScanningFileCount -> fileCount.numberOfFilesIndexedByInfrastructureExtensionsDuringScan
-            is JsonProjectDumbIndexingFileCount -> fileCount.numberOfFilesIndexedByInfrastructureExtensionsDuringIndexingStage
-          }
+      get() = jsonIndexDiagnostics.sumOf {
+        when (val fileCount = it.projectIndexingActivityHistory.fileCount) {
+          is JsonProjectScanningFileCount -> fileCount.numberOfFilesIndexedByInfrastructureExtensionsDuringScan
+          is JsonProjectDumbIndexingFileCount -> fileCount.numberOfFilesIndexedByInfrastructureExtensionsDuringIndexingStage
         }
+      }
 
     private val processingSpeedPerFileTypeWorst: Map<String, Int>
       get() {
@@ -148,11 +146,12 @@ class IndexingMetrics(private val indexingDiagnosticsDir: Path) {
           .computeAverageSpeed()
       }
 
-    private fun Collection<Triple<String, Double, JsonFileSize>>.computeAverageSpeed(): Map<String, Int> =
-      groupBy { it.first }
-        .mapValues { entry ->
-          JsonProcessingSpeed(entry.value.sumOf { it.third.bytes }, entry.value.sumOf { it.second.toLong() }).toKiloBytesPerSecond()
-        }
+    private fun Collection<Triple<String, Double, JsonFileSize>>.computeAverageSpeed(): Map<String, Int> = groupBy {
+      it.first
+    }
+      .mapValues { entry ->
+        JsonProcessingSpeed(entry.value.sumOf { it.third.bytes }, entry.value.sumOf { it.second.toLong() }).toKiloBytesPerSecond()
+      }
 
     private val processingSpeedPerBaseLanguageWorst: Map<String, Int>
       get() {
@@ -194,15 +193,18 @@ class IndexingMetrics(private val indexingDiagnosticsDir: Path) {
     }
 
     private fun getProcessingSpeedOfFileTypes(mapFileTypeToSpeed: Map<String, Int>, suffix: String): List<IndexingMetric> =
-      mapFileTypeToSpeed.map { IndexingMetric("processingSpeed${suffix}_${prepareMetricLabel(it.key)}", it.value.toLong()) }
+      mapFileTypeToSpeed.map {
+        IndexingMetric("processingSpeed${suffix}_${prepareMetricLabel(it.key)}", it.value.toLong())
+      }
 
     private fun getProcessingSpeedOfBaseLanguages(mapBaseLanguageToSpeed: Map<String, Int>, suffix: String): List<IndexingMetric> =
       mapBaseLanguageToSpeed.map {
         IndexingMetric("processingSpeedOfBaseLanguage${suffix}_${prepareMetricLabel(it.key)}", it.value.toLong())
       }
 
-    private fun getProcessingTimeOfFileType(mapFileTypeToDuration: Map<String, Long>): List<IndexingMetric> =
-      mapFileTypeToDuration.map { IndexingMetric("processingTime_${prepareMetricLabel(it.key)}", TimeUnit.NANOSECONDS.toMillis(it.value)) }
+    private fun getProcessingTimeOfFileType(mapFileTypeToDuration: Map<String, Long>): List<IndexingMetric> = mapFileTypeToDuration.map {
+      IndexingMetric("processingTime_${prepareMetricLabel(it.key)}", TimeUnit.NANOSECONDS.toMillis(it.value))
+    }
 
     fun getIndexingMetrics(): List<IndexingMetric> {
       val numberOfIndexedFiles = totalNumberOfIndexedFiles.toLong()

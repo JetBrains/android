@@ -178,14 +178,13 @@ sealed class Action {
     override fun toString(): String = "Multiple(${actions.joinToString()}"
 
     override fun maybeDoCancel(reasons: List<Single>): Action? {
-      val notCancelled =
-        actions.flatMap {
-          when (val a = it.maybeDoCancel(reasons)) {
-            null -> listOf()
-            is Single -> listOf(a)
-            is Multiple -> a.actions
-          }
+      val notCancelled = actions.flatMap {
+        when (val a = it.maybeDoCancel(reasons)) {
+          null -> listOf()
+          is Single -> listOf(a)
+          is Multiple -> a.actions
         }
+      }
       @Suppress("DEPRECATION_ERROR")
       return when {
         notCancelled.isEmpty() -> null

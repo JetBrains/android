@@ -73,9 +73,9 @@ class SingleThreadExecutorServiceTest {
         assertTrue(executor.hasSpawnedCurrentThread())
 
         Thread {
-            // Child threads must also return hasSpawnedCurrentThread
-            assertTrue(executor.hasSpawnedCurrentThread())
-          }
+          // Child threads must also return hasSpawnedCurrentThread
+          assertTrue(executor.hasSpawnedCurrentThread())
+        }
           .also {
             it.setUncaughtExceptionHandler { t, e -> exception = e }
             it.start()

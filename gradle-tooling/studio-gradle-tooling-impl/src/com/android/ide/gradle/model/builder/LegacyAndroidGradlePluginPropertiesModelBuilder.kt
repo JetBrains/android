@@ -282,17 +282,16 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
       val missingDimensionStrategy = productFlavor.invokeMethod<Map<String, Any>>("getMissingDimensionStrategies")
       val name = productFlavor.invokeMethod<String>("getName")
       if (missingDimensionStrategy.isNotEmpty()) {
-        productFlavorsToStrategies[name] =
-          missingDimensionStrategy.mapValues { (_, it) ->
-            val requested = it.invokeMethod<String>("getRequested")
-            val fallbacks = it.invokeMethod<List<String>>("getFallbacks")
-            // For ProductFlavors: AGP < 9.0 puts the name of the current productFlavor as the 'requested' dimension, which doesn't match
-            // the user intent and caused some unintended matching. (see https://issuetracker.google.com/460094802).
-            // As we're collecting these values for the purposes of the variant selection heuristics, we will "correctly" reflect the user
-            // intent by
-            // dropping the "requested" value, rather than replicating the incorrect behavior in older AGPs.
-            if (isDefaultConfig) listOf(requested).plus(fallbacks) else fallbacks
-          }
+        productFlavorsToStrategies[name] = missingDimensionStrategy.mapValues { (_, it) ->
+          val requested = it.invokeMethod<String>("getRequested")
+          val fallbacks = it.invokeMethod<List<String>>("getFallbacks")
+          // For ProductFlavors: AGP < 9.0 puts the name of the current productFlavor as the 'requested' dimension, which doesn't match
+          // the user intent and caused some unintended matching. (see https://issuetracker.google.com/460094802).
+          // As we're collecting these values for the purposes of the variant selection heuristics, we will "correctly" reflect the user
+          // intent by
+          // dropping the "requested" value, rather than replicating the incorrect behavior in older AGPs.
+          if (isDefaultConfig) listOf(requested).plus(fallbacks) else fallbacks
+        }
       }
     }
     try {

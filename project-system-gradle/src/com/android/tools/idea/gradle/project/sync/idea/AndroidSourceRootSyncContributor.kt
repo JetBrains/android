@@ -492,22 +492,21 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(s
   val mainSourceSetName = IdeArtifactName.MAIN.toWellKnownSourceSet().sourceSetName
   LOG.debug("Configuring module $projectModuleName")
 
-  val knownArtifactsSources =
-    allSourceSets.associate { (sourceSetArtifactName, typeToDirsMap) ->
-      // For each source set in the project, create entity source and the actual entities.
-      val sourceSetName = sourceSetArtifactName.toWellKnownSourceSet().sourceSetName
-      val entitySource = AndroidGradleSourceSetEntitySource(context.projectPath, sourceSetName)
-      val moduleName = resolveSourceSetModuleName(storage, sourceSetName)
-      LOG.debug("Configuring source set for $moduleName: $typeToDirsMap")
-      val productionModuleName =
-        resolveSourceSetModuleName(storage, mainSourceSetName).takeIf { it != moduleName } // Only set for test modules
-      val newModuleEntity = findOrCreateModuleEntity(moduleName, entitySource, moduleEntitiesMap, productionModuleName)
+  val knownArtifactsSources = allSourceSets.associate { (sourceSetArtifactName, typeToDirsMap) ->
+    // For each source set in the project, create entity source and the actual entities.
+    val sourceSetName = sourceSetArtifactName.toWellKnownSourceSet().sourceSetName
+    val entitySource = AndroidGradleSourceSetEntitySource(context.projectPath, sourceSetName)
+    val moduleName = resolveSourceSetModuleName(storage, sourceSetName)
+    LOG.debug("Configuring source set for $moduleName: $typeToDirsMap")
+    val productionModuleName =
+      resolveSourceSetModuleName(storage, mainSourceSetName).takeIf { it != moduleName } // Only set for test modules
+    val newModuleEntity = findOrCreateModuleEntity(moduleName, entitySource, moduleEntitiesMap, productionModuleName)
 
-      // Create the content roots and associate it with the module
-      newModuleEntity.contentRoots += createContentRootEntities(moduleName, entitySource, typeToDirsMap)
-      newModuleEntity.javaSettings = createJavaModuleSettingsEntity(entitySource, sourceSetArtifactName)
-      sourceSetArtifactName to newModuleEntity
-    }
+    // Create the content roots and associate it with the module
+    newModuleEntity.contentRoots += createContentRootEntities(moduleName, entitySource, typeToDirsMap)
+    newModuleEntity.javaSettings = createJavaModuleSettingsEntity(entitySource, sourceSetArtifactName)
+    sourceSetArtifactName to newModuleEntity
+  }
 
   val testSuitesEnabled = StudioFlags.AGP_TEST_SUITES_ENABLED.get() && versions[ModelFeature.HAS_TEST_SUITES]
   val testSuiteSources =
@@ -693,8 +692,9 @@ private fun SyncContributorAndroidProjectContext.createContentRootEntity(
     // Create the source roots and exclusions by type
     val (excluded, roots) = typeToDirsMap.entries.partition { (sourceRootType, _) -> sourceRootType == ExternalSystemSourceType.EXCLUDED }
 
-    excludedUrls +=
-      excluded.flatMap { (_, urls) -> urls.map { ExcludeUrlEntity(entitySource = entitySource, url = it.toVirtualFileUrl()) } }
+    excludedUrls += excluded.flatMap { (_, urls) ->
+      urls.map { ExcludeUrlEntity(entitySource = entitySource, url = it.toVirtualFileUrl()) }
+    }
 
     sourceRoots +=
       roots

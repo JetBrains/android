@@ -160,19 +160,18 @@ private constructor(
     progressIndicator?.isIndeterminate = true
     progressIndicator?.text = AndroidBundle.message("android.refactoring.migrateto.defaulttargetsdktocompilesdkifunset.progress.findusages")
 
-    val usages: List<UsageInfo> =
-      facetsToMigrate.mapNotNull { facet ->
-        val gradleAndroidModel: GradleAndroidModel? = GradleAndroidModel.get(facet)
+    val usages: List<UsageInfo> = facetsToMigrate.mapNotNull { facet ->
+      val gradleAndroidModel: GradleAndroidModel? = GradleAndroidModel.get(facet)
 
-        if (gradleAndroidModel?.selectedVariant?.targetSdkVersion == null && gradleAndroidModel?.selectedVariant?.minSdkVersion != null) {
+      if (gradleAndroidModel?.selectedVariant?.targetSdkVersion == null && gradleAndroidModel?.selectedVariant?.minSdkVersion != null) {
 
-          projectBuildModel.getModuleBuildModel(facet.module)?.let { buildModel ->
-            buildModel.psiFile?.let { MigrateUsageInfo(it, projectBuildModel, facet.module, gradleAndroidModel.minSdkVersion) }
-          }
-        } else {
-          null
+        projectBuildModel.getModuleBuildModel(facet.module)?.let { buildModel ->
+          buildModel.psiFile?.let { MigrateUsageInfo(it, projectBuildModel, facet.module, gradleAndroidModel.minSdkVersion) }
         }
+      } else {
+        null
       }
+    }
 
     progressIndicator?.text = null
 

@@ -39,17 +39,16 @@ import javax.swing.plaf.metal.MetalButtonUI
 private val DEFAULT_BORDER = RoundedLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR, 2, 1)
 
 /** Setup the given button with the L&F for the arrow buttons (sizes, colors, etc) */
-private fun setupArrowUI(button: JButton, newBorder: Border, icon: Icon): JButton =
-  button.apply {
-    // Use the MetalButtonIU to have a consistent UI across platforms
-    setUI(MetalButtonUI())
-    isContentAreaFilled = false
-    isFocusPainted = false
-    isOpaque = false
-    minimumSize = Dimension(icon.iconWidth, icon.iconHeight)
-    preferredSize = Dimension(icon.iconWidth, icon.iconHeight)
-    border = newBorder
-  }
+private fun setupArrowUI(button: JButton, newBorder: Border, icon: Icon): JButton = button.apply {
+  // Use the MetalButtonIU to have a consistent UI across platforms
+  setUI(MetalButtonUI())
+  isContentAreaFilled = false
+  isFocusPainted = false
+  isOpaque = false
+  minimumSize = Dimension(icon.iconWidth, icon.iconHeight)
+  preferredSize = Dimension(icon.iconWidth, icon.iconHeight)
+  border = newBorder
+}
 
 /** Interface to be implemented by a custom cell renderer for [HorizontalSpinner] */
 interface HorizontalSpinnerCellRenderer<T> {
@@ -60,8 +59,9 @@ interface HorizontalSpinnerCellRenderer<T> {
 class DefaultRenderer<T> : HorizontalSpinnerCellRenderer<T> {
   private val label = JLabel("", SwingConstants.CENTER).apply { border = JBUI.Borders.empty(2, 5) }
 
-  override fun getCellRendererComponent(list: HorizontalSpinner<T>, value: T, index: Int): Component =
-    label.apply { text = value.toString() }
+  override fun getCellRendererComponent(list: HorizontalSpinner<T>, value: T, index: Int): Component = label.apply {
+    text = value.toString()
+  }
 }
 
 /** Component that displays one element at a time from a given list. Two buttons are displayed on the sides */

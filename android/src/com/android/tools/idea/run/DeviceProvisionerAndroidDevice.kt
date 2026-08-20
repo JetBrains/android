@@ -221,10 +221,9 @@ private suspend fun DeviceProvisionerAndroidDevice.DdmlibDeviceLookup.findDdmlib
     ?: throw IllegalStateException("IDevice not found for ${connectedDevice.serialNumber}")
 }
 
-fun AndroidDebugBridge.asDdmlibDeviceLookup() =
-  DeviceProvisionerAndroidDevice.DdmlibDeviceLookup { connectedDevice ->
-    pollUntilPresent { devices.firstOrNull { it.serialNumber == connectedDevice.serialNumber } }
-  }
+fun AndroidDebugBridge.asDdmlibDeviceLookup() = DeviceProvisionerAndroidDevice.DdmlibDeviceLookup { connectedDevice ->
+  pollUntilPresent { devices.firstOrNull { it.serialNumber == connectedDevice.serialNumber } }
+}
 
 suspend inline fun <R> pollUntilPresent(block: () -> R?): R {
   while (true) {

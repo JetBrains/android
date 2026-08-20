@@ -69,12 +69,11 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
               !duplicateJar
             }
             .toList()
-        val jars =
-          jarsToAdd.map { jar ->
-            seen.add(jar.digest)
-            addIfNewer(jar.artifactPath, jar, target.buildContext)
-            ArtifactDirectories.JAVADEPS.resolveChild(jar.artifactPath)
-          }
+        val jars = jarsToAdd.map { jar ->
+          seen.add(jar.digest)
+          addIfNewer(jar.artifactPath, jar, target.buildContext)
+          ArtifactDirectories.JAVADEPS.resolveChild(jar.artifactPath)
+        }
         if (jars.isNotEmpty()) {
           libNameToJars.getOrPut(target.label) { mutableSetOf() } += jars
         }

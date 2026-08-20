@@ -131,9 +131,9 @@ import java.util.IdentityHashMap
 import java.util.function.Function
 import java.util.zip.ZipException
 import kotlin.io.path.Path
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
-import kotlinx.coroutines.Job
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
@@ -355,17 +355,16 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val gradleSettingsFile = findGradleSettingsFile(rootModulePath!!)
     val hasArtifactsOrNoRootSettingsFile = hasArtifacts(externalProject) || !gradleSettingsFile.isFile
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
-      gradleModel =
-        externalProject?.let { externalProject -> // shouldn't be null in general case
-          createGradleModuleModel(
-            moduleName,
-            gradleModule,
-            externalProject,
-            androidModels?.androidProject?.agpVersion,
-            buildScriptClasspathModel,
-            gradlePluginModel,
-          )
-        }
+      gradleModel = externalProject?.let { externalProject -> // shouldn't be null in general case
+        createGradleModuleModel(
+          moduleName,
+          gradleModule,
+          externalProject,
+          androidModels?.androidProject?.agpVersion,
+          buildScriptClasspathModel,
+          gradlePluginModel,
+        )
+      }
     }
     if (gradleModel != null) {
       moduleNode.createChild(AndroidProjectKeys.GRADLE_MODULE_MODEL, gradleModel)

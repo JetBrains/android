@@ -42,16 +42,14 @@ class DeviceHandleRendererTest {
     icon = EmptyIcon.DEFAULT
   }
 
-  val properties1 =
-    DeviceProperties.buildForTest {
-      baseProperties()
-      disambiguator = "SN1"
-    }
-  val properties2 =
-    DeviceProperties.buildForTest {
-      baseProperties()
-      disambiguator = "SN2"
-    }
+  val properties1 = DeviceProperties.buildForTest {
+    baseProperties()
+    disambiguator = "SN1"
+  }
+  val properties2 = DeviceProperties.buildForTest {
+    baseProperties()
+    disambiguator = "SN2"
+  }
   val device1 by lazy { deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(properties = properties1) }
   val device2 by lazy { deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(properties = properties2) }
 

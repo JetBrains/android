@@ -103,14 +103,13 @@ sealed interface ProjectPath : ProjectProtoModel {
 
       @JvmStatic
       fun createAndPrepare(workspaceRoot: Path): ExternalRepositoryFinder {
-        val outputBase =
-          runCatching {
-              // External repositories are supported by Bazel only.
-              // See https://bazel.build/remote/output-directories: bazel-out is a symlink to $output_base/execroot/_main/bazel_out
-              val bazelOut = workspaceRoot.resolve("bazel-out")
-              if (Files.exists(bazelOut)) bazelOut.toRealPath().resolve("../../..").toRealPath() else workspaceRoot
-            }
-            .getOrDefault(workspaceRoot)
+        val outputBase = runCatching {
+          // External repositories are supported by Bazel only.
+          // See https://bazel.build/remote/output-directories: bazel-out is a symlink to $output_base/execroot/_main/bazel_out
+          val bazelOut = workspaceRoot.resolve("bazel-out")
+          if (Files.exists(bazelOut)) bazelOut.toRealPath().resolve("../../..").toRealPath() else workspaceRoot
+        }
+          .getOrDefault(workspaceRoot)
 
         return object : ExternalRepositoryFinder {
           override fun find(name: String): Path? {

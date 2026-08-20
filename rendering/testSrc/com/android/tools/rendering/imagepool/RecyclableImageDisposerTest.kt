@@ -89,12 +89,12 @@ class RecyclableImageDisposerTest {
     val latch = CountDownLatch(1)
     val disposableImage = TestDisposableImage()
     Thread {
-        disposableImage.runWithDisposeLock {
-          threadStarted.countDown()
-          latch.await()
-        }
-        threadEnded.countDown()
+      disposableImage.runWithDisposeLock {
+        threadStarted.countDown()
+        latch.await()
       }
+      threadEnded.countDown()
+    }
       .start()
     threadStarted.await()
     // The disposableImage is not locked and can not be disposed

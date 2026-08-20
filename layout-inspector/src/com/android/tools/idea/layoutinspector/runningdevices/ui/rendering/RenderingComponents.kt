@@ -67,10 +67,9 @@ fun createRenderingComponents(
   return if (useOnDeviceRendering) {
     createOnDeviceRenderingComponents(disposable = disposable, layoutInspector = layoutInspector, displayList = displayList)
   } else {
-    val renderingComponents =
-      displayList.map { displayView ->
-        createEmbeddedRenderingComponents(disposable = disposable, layoutInspector = layoutInspector, displayView = displayView)
-      }
+    val renderingComponents = displayList.map { displayView ->
+      createEmbeddedRenderingComponents(disposable = disposable, layoutInspector = layoutInspector, displayView = displayView)
+    }
 
     val glassesRenderingComponents =
       if (aiGlassesData != null) {

@@ -266,7 +266,9 @@ class InspectorClientLauncherTest {
               override suspend fun doConnect() = throw IllegalStateException()
             }
           },
-          ClientFactory { params -> FakeInspectorClient("Fallback client", projectRule.project, params.process, disposableRule.disposable) },
+          ClientFactory { params ->
+            FakeInspectorClient("Fallback client", projectRule.project, params.process, disposableRule.disposable)
+          },
         ),
         projectRule.project,
         NotificationModel(projectRule.project),

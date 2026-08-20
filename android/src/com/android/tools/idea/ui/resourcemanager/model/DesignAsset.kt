@@ -56,22 +56,21 @@ interface Asset {
    * Returns the appropriate [ResourceUrl] according to its [ResourceNamespace] and whether this [Asset] represents a theme attribute.
    */
   val resourceUrl: ResourceUrl
-    get() =
-      kotlin.run {
-        val resourceReference = resourceItem.referenceToSelf
-        val namespace =
-          if (resourceReference.namespace == ResourceNamespace.TOOLS) {
-            SdkConstants.TOOLS_NS_NAME
-          } else {
-            resourceReference.namespace.packageName
-          }
-        return if (type != ResourceType.ATTR && resourceItem.type == ResourceType.ATTR) {
-          // This Attribute resource is being used as a theme attribute
-          ResourceUrl.createThemeReference(namespace, resourceReference.resourceType, resourceReference.name)
+    get() = kotlin.run {
+      val resourceReference = resourceItem.referenceToSelf
+      val namespace =
+        if (resourceReference.namespace == ResourceNamespace.TOOLS) {
+          SdkConstants.TOOLS_NS_NAME
         } else {
-          ResourceUrl.create(namespace, resourceReference.resourceType, resourceReference.name)
+          resourceReference.namespace.packageName
         }
+      return if (type != ResourceType.ATTR && resourceItem.type == ResourceType.ATTR) {
+        // This Attribute resource is being used as a theme attribute
+        ResourceUrl.createThemeReference(namespace, resourceReference.resourceType, resourceReference.name)
+      } else {
+        ResourceUrl.create(namespace, resourceReference.resourceType, resourceReference.name)
       }
+    }
 
   /** A light-weight object to represent [Asset] instances, use for maps that may outlive the current Module. E.g. Cache<AssetKey, V> */
   val key: AssetKey

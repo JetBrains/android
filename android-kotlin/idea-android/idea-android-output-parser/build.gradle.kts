@@ -1,4 +1,3 @@
-
 apply { plugin("kotlin") }
 
 apply { plugin("jps-compatible") }
@@ -15,4 +14,3 @@ sourceSets {
     "main" { projectDefault() }
     "test" {}
 }
-

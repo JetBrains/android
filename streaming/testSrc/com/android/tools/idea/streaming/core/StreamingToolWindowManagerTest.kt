@@ -471,11 +471,10 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testRemoteDevice() {
-    val properties =
-      DeviceProperties.buildForTest {
-        icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR
-        model = "Pixel 9000"
-      }
+    val properties = DeviceProperties.buildForTest {
+      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR
+      model = "Pixel 9000"
+    }
     val device = provisionerRule.deviceProvisionerPlugin.newDevice(properties = properties)
     device.sourceTemplate =
       object : DeviceTemplate {
@@ -509,17 +508,15 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testReservableRemoteDevice() {
-    val templateProperties =
-      DeviceProperties.buildForTest {
-        icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_PHONE
-        model = "Pixel Reservable"
-        isRemote = true
-      }
-    val deviceProperties =
-      DeviceProperties.buildForTest {
-        icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_WEAR
-        model = "Pixel Reserved"
-      }
+    val templateProperties = DeviceProperties.buildForTest {
+      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_PHONE
+      model = "Pixel Reservable"
+      isRemote = true
+    }
+    val deviceProperties = DeviceProperties.buildForTest {
+      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_WEAR
+      model = "Pixel Reserved"
+    }
     val template =
       object : DeviceTemplate {
         override val id = DeviceId("TEST", true, "")

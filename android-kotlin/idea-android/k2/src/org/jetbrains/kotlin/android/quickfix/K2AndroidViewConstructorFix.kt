@@ -63,8 +63,9 @@ class K2AndroidViewConstructorFix(element: KtSuperTypeEntry, private val useThre
             }
 
             @OptIn(KaExperimentalApi::class) val superConstructors = superType.scope?.getConstructors() ?: return null
-            val superConstructorClassSignatures =
-                superConstructors.map { constructor -> constructor.valueParameters.map { param -> classId(param.returnType) } }
+            val superConstructorClassSignatures = superConstructors.map { constructor ->
+                constructor.valueParameters.map { param -> classId(param.returnType) }
+            }
 
             if (KotlinAndroidViewConstructorUtils.REQUIRED_CONSTRUCTOR_SIGNATURE !in superConstructorClassSignatures) {
                 return null
@@ -94,6 +95,7 @@ class K2AndroidViewConstructorFix(element: KtSuperTypeEntry, private val useThre
 }
 
 class K2AndroidViewConstructorFixRegistrar : KotlinQuickFixRegistrar() {
-    override val list: KotlinQuickFixesList =
-        KtQuickFixesListBuilder.registerPsiQuickFix { registerFactory(K2AndroidViewConstructorFix.FACTORY) }
+    override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix {
+        registerFactory(K2AndroidViewConstructorFix.FACTORY)
+    }
 }

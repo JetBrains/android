@@ -80,14 +80,13 @@ class GradleDependencyCompatibilityAnalyzer(
   fun analyzeComponentCompatibility(
     components: List<Component>
   ): ListenableFuture<Triple<Map<Component, Component>, List<Dependency>, String>> {
-    val dependenciesToComponents =
-      components.map { component ->
-        val stability = component.stability
-        val upperBound = stability.expiration(component.version)
-        val range = VersionRange(Range.closedOpen(component.version, upperBound))
-        val dependency = Dependency(component.group, component.name, RichVersion.strictly(range))
-        dependency to component
-      }
+    val dependenciesToComponents = components.map { component ->
+      val stability = component.stability
+      val upperBound = stability.expiration(component.version)
+      val range = VersionRange(Range.closedOpen(component.version, upperBound))
+      val dependency = Dependency(component.group, component.name, RichVersion.strictly(range))
+      dependency to component
+    }
     return findVersions(dependenciesToComponents.map { it.first }).transform(MoreExecutors.directExecutor()) { results ->
       analyzeCompatibility(dependenciesToComponents, results)
     }
@@ -532,17 +531,16 @@ private fun Component.dependency() = Dependency(group, name, RichVersion.parse(v
 
 private fun Dependency.externalModule() = group?.let { ExternalModule(it, name) }
 
-private fun Dependency.versionRange(): VersionRange? =
-  version?.let {
-    when {
-      hasExplicitDistinctUpperBound -> it.require ?: it.strictly
-      else ->
-        explicitSingletonVersion?.let { v ->
-          val stability = group?.let { g -> Component(g, name, v).stability } ?: return null
-          VersionRange(Range.closedOpen(v, stability.expiration(v)))
-        }
-    }
+private fun Dependency.versionRange(): VersionRange? = version?.let {
+  when {
+    hasExplicitDistinctUpperBound -> it.require ?: it.strictly
+    else ->
+      explicitSingletonVersion?.let { v ->
+        val stability = group?.let { g -> Component(g, name, v).stability } ?: return null
+        VersionRange(Range.closedOpen(v, stability.expiration(v)))
+      }
   }
+}
 
 private fun ExternalModule.toComponent(version: Version) = Component(this, version)
 

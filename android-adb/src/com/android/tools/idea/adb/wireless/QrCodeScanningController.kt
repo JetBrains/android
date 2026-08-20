@@ -142,16 +142,15 @@ class QrCodeScanningController(
     scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       val mdnsTrackServicesFlow = service.trackMdnsServices().map { it.pairingMdnsServices }
       combine(mdnsTrackServicesFlow, state) { pairingServices, currentState ->
-          val newServices =
-            pairingServices.map {
-              PairingMdnsService(
-                it.mdnsService.serviceInstanceName.instance,
-                it.toPairingType(),
-                InetAddress.getByName(it.mdnsService.ipv4),
-                it.mdnsService.port,
-                it.mdnsService.serial,
-              )
-            }
+          val newServices = pairingServices.map {
+            PairingMdnsService(
+              it.mdnsService.serviceInstanceName.instance,
+              it.toPairingType(),
+              InetAddress.getByName(it.mdnsService.ipv4),
+              it.mdnsService.port,
+              it.mdnsService.serial,
+            )
+          }
 
           when (currentState) {
             State.Polling -> {
@@ -183,11 +182,10 @@ class QrCodeScanningController(
   }
 
   private fun updatePairingCodeServices(newServices: List<PairingMdnsService>) {
-    view.model.pairingCodeServices =
-      newServices.filter {
-        it.serviceType == ServiceType.PairingCode &&
-          (mdnsServiceUnderPairing == null || mdnsServiceUnderPairing.serviceName == it.serviceName)
-      }
+    view.model.pairingCodeServices = newServices.filter {
+      it.serviceType == ServiceType.PairingCode &&
+        (mdnsServiceUnderPairing == null || mdnsServiceUnderPairing.serviceName == it.serviceName)
+    }
   }
 
   private fun MdnsPairingService.toPairingType(): ServiceType {

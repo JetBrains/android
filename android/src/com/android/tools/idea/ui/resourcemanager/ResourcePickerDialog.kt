@@ -65,27 +65,26 @@ class ResourcePickerDialog(
 ) : DialogWrapper(facet.module.project) {
 
   @TestOnly // TODO: consider getting this for tests in a better way.
-  val resourceExplorerPanel =
-    kotlin.run {
-      // Get the resource name and type from the given resource url and try to select it in the ResourceExplorer.
-      // Eg: From '@android:color/color_primary' we select 'color_primary' under 'Color' resources.
-      val resourceValue =
-        initialResourceUrl?.let { ResourceValue.reference(initialResourceUrl)?.takeIf { it.resourceName != null && it.type != null } }
-      // Check if the inferred ResourceType is valid for the supported types, fallback to the preferred type value.
-      val resourceType =
-        resourceValue?.type?.takeIf { supportedTypes.contains(it) } ?: preferredType?.takeIf { supportedTypes.contains(it) }
-      return@run ResourceExplorer.createResourcePicker(
-        facet,
-        getSortedResourceTypes(supportedTypes),
-        resourceValue?.resourceName,
-        resourceType,
-        showSampleData,
-        showThemeAttributes,
-        currentFile,
-        this::updateSelectedResource,
-        this::doSelectResource,
-      )
+  val resourceExplorerPanel = kotlin.run {
+    // Get the resource name and type from the given resource url and try to select it in the ResourceExplorer.
+    // Eg: From '@android:color/color_primary' we select 'color_primary' under 'Color' resources.
+    val resourceValue = initialResourceUrl?.let {
+      ResourceValue.reference(initialResourceUrl)?.takeIf { it.resourceName != null && it.type != null }
     }
+    // Check if the inferred ResourceType is valid for the supported types, fallback to the preferred type value.
+    val resourceType = resourceValue?.type?.takeIf { supportedTypes.contains(it) } ?: preferredType?.takeIf { supportedTypes.contains(it) }
+    return@run ResourceExplorer.createResourcePicker(
+      facet,
+      getSortedResourceTypes(supportedTypes),
+      resourceValue?.resourceName,
+      resourceType,
+      showSampleData,
+      showThemeAttributes,
+      currentFile,
+      this::updateSelectedResource,
+      this::doSelectResource,
+    )
+  }
 
   private var pickedResourceName: String? = null
 
@@ -101,8 +100,9 @@ class ResourcePickerDialog(
     this.isOKActionEnabled = false
   }
 
-  override fun createCenterPanel() =
-    resourceExplorerPanel.apply { border = BorderFactory.createMatteBorder(0, 0, JBUI.scale(1), 0, AdtUiUtils.DEFAULT_BORDER_COLOR) }
+  override fun createCenterPanel() = resourceExplorerPanel.apply {
+    border = BorderFactory.createMatteBorder(0, 0, JBUI.scale(1), 0, AdtUiUtils.DEFAULT_BORDER_COLOR)
+  }
 
   override fun getPreferredFocusedComponent(): JComponent = resourceExplorerPanel.getPreferredFocusedComponent()
 

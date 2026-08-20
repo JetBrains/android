@@ -187,22 +187,22 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
   /** Creates contents of the dialog. */
   private fun createPanel(): DialogPanel {
     return panel {
-        row { label(message("manage.snapshots.list.title")) }
-        row {
-            cell(createTablePanel()).align(AlignY.FILL)
-            panel {
-                row { cell(previewPanel).align(Align.FILL) }.resizableRow()
-                row { cell(snapshotInfoPanel).align(AlignX.FILL) }
-              }
-              .align(Align.FILL)
+      row { label(message("manage.snapshots.list.title")) }
+      row {
+        cell(createTablePanel()).align(AlignY.FILL)
+        panel {
+            row { cell(previewPanel).align(Align.FILL) }.resizableRow()
+            row { cell(snapshotInfoPanel).align(AlignX.FILL) }
           }
-          .resizableRow()
-        row {
-          cell(createSnapshotButton)
-          cell(runningOperationLabel)
-        }
-        row { cell(coldBootCheckBox) }
+          .align(Align.FILL)
       }
+        .resizableRow()
+      row {
+        cell(createSnapshotButton)
+        cell(runningOperationLabel)
+      }
+      row { cell(coldBootCheckBox) }
+    }
       .apply {
         snapshotTable.selectionModel.addListSelectionListener {
           clearError()
@@ -229,14 +229,13 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
   }
 
   private fun updateSnapshotDetails(snapshot: SnapshotInfo) {
-    snapshotImagePanel.image =
-      snapshotIoLock.read {
-        try {
-          ImageIO.read(snapshot.screenshotFile.toFile())
-        } catch (_: IOException) {
-          null
-        }
+    snapshotImagePanel.image = snapshotIoLock.read {
+      try {
+        ImageIO.read(snapshot.screenshotFile.toFile())
+      } catch (_: IOException) {
+        null
       }
+    }
     val htmlEscaper = HtmlEscapers.htmlEscaper()
     val name = htmlEscaper.escape(snapshot.displayName)
     val size = getHumanizedSize(snapshot.sizeOnDisk)

@@ -53,21 +53,19 @@ class ShellCommandScreenshotProvider(
   override suspend fun captureScreenshot(): ScreenshotImage {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
 
-    val dumpsysJob =
-      coroutineScope.async {
-        // TODO: Check for `stderr` and `exitCode` to report errors
-        adbLibService.session.deviceServices.shellAsText(deviceSelector, "dumpsys display", commandTimeout = commandTimeout).stdout
-      }
+    val dumpsysJob = coroutineScope.async {
+      // TODO: Check for `stderr` and `exitCode` to report errors
+      adbLibService.session.deviceServices.shellAsText(deviceSelector, "dumpsys display", commandTimeout = commandTimeout).stdout
+    }
 
-    val screenshotJob =
-      coroutineScope.async {
-        val physicalDisplayId =
-          when (displayId) {
-            PRIMARY_DISPLAY_ID -> null
-            else -> getPhysicalDisplayIdFromDumpsysOutput(dumpsysJob.await(), displayId)
-          }
-        adbLibService.session.deviceServices.screenCapAsBufferedImage(deviceSelector, physicalDisplayId)
-      }
+    val screenshotJob = coroutineScope.async {
+      val physicalDisplayId =
+        when (displayId) {
+          PRIMARY_DISPLAY_ID -> null
+          else -> getPhysicalDisplayIdFromDumpsysOutput(dumpsysJob.await(), displayId)
+        }
+      adbLibService.session.deviceServices.screenCapAsBufferedImage(deviceSelector, physicalDisplayId)
+    }
 
     try {
       val dumpsysOutput = dumpsysJob.await()

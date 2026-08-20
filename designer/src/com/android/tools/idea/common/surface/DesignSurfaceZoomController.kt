@@ -333,16 +333,15 @@ abstract class DesignSurfaceZoomController(
    */
   @UiThread
   protected open fun zoomToFitIfReady(bitwiseNumber: Int): Boolean {
-    val newMask =
-      currentZoomToFitMask.updateAndGet {
-        if (it == expectedZoomToFitMask || it == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
-          // The operations needed to apply zoom-to-fit are complete, we mark the mask as done.
-          ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK
-        } else {
-          // Calculate the new mask value.
-          it or bitwiseNumber
-        }
+    val newMask = currentZoomToFitMask.updateAndGet {
+      if (it == expectedZoomToFitMask || it == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
+        // The operations needed to apply zoom-to-fit are complete, we mark the mask as done.
+        ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK
+      } else {
+        // Calculate the new mask value.
+        it or bitwiseNumber
       }
+    }
     if (newMask == expectedZoomToFitMask) {
       return zoom(ZoomType.FIT, -1, -1)
     }

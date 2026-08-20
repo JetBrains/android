@@ -39,15 +39,14 @@ class ConfigureKotlinMultiplatformLibraryModuleStep(model: NewKotlinMultiplatfor
     validatorPanel.registerValidator(model.agpVersionSelector, MultiplatformAgpMinVersionValidator())
   }
 
-  override fun createMainPanel(): DialogPanel =
-    panel {
-        row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
-        row("Package name") {
-          cell(packageName).align(AlignX.FILL)
-          rowComment(AndroidBundle.message("android.wizard.module.kotlin.multiplatform.library.disclaimer"))
-        }
-      }
-      .withBorder(empty(6))
+  override fun createMainPanel(): DialogPanel = panel {
+    row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
+    row("Package name") {
+      cell(packageName).align(AlignX.FILL)
+      rowComment(AndroidBundle.message("android.wizard.module.kotlin.multiplatform.library.disclaimer"))
+    }
+  }
+    .withBorder(empty(6))
 
   override fun onProceeding() {
     super.onProceeding()

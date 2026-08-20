@@ -47,22 +47,21 @@ class AndroidSdkCompatibilityChecker {
   ) {
     if (StudioUpgradeReminder(project).shouldAsk().not()) return
 
-    val modulesViolatingSupportRules =
-      importedModules.mapNotNull {
-        val androidProject = it.data.androidProject
-        val moduleName = it.data.moduleName
+    val modulesViolatingSupportRules = importedModules.mapNotNull {
+      val androidProject = it.data.androidProject
+      val moduleName = it.data.moduleName
 
-        val compileTargetSdk: String = androidProject.compileTarget
-        val version: AndroidVersion? = AndroidTargetHash.getPlatformVersion(compileTargetSdk)
-        return@mapNotNull version?.let { sdkVersion ->
-          // Don't worry about extension levels for this check.
-          if (AndroidVersion.API_LEVEL_ORDERING.compare(sdkVersion, maxRecommendedCompileSdk) > 0) {
-            Pair(moduleName, sdkVersion)
-          } else {
-            null
-          }
+      val compileTargetSdk: String = androidProject.compileTarget
+      val version: AndroidVersion? = AndroidTargetHash.getPlatformVersion(compileTargetSdk)
+      return@mapNotNull version?.let { sdkVersion ->
+        // Don't worry about extension levels for this check.
+        if (AndroidVersion.API_LEVEL_ORDERING.compare(sdkVersion, maxRecommendedCompileSdk) > 0) {
+          Pair(moduleName, sdkVersion)
+        } else {
+          null
         }
       }
+    }
 
     if (modulesViolatingSupportRules.isEmpty()) return
 

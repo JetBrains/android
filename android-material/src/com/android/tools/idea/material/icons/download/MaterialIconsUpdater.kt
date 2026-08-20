@@ -220,20 +220,19 @@ private fun getIconsUpdateData(
 ): IconsUpdateData {
   val commonFamilies = oldMetadata.families.intersect(newMetadata.families.asIterable())
   val commonIcons = oldMetadata.icons.intersect(newMetadata.icons.asIterable())
-  val brokenIcons =
-    commonFamilies.flatMap { family ->
-      return@flatMap if (iconsUrlProvider.getStyleUrl(family) == null) emptySequence()
-      else
-        commonIcons
-          .filter { icon ->
-            if (icon.unsupportedFamilies.contains(family)) return@filter false // This is not broken since it's not supported by this family
-            val expectedFileName = getIconFileNameWithoutExtension(iconName = icon.name, styleName = family) + SdkConstants.DOT_XML
-            val uri = iconsUrlProvider.getIconUrl(family, icon.name, expectedFileName)?.toURI() ?: return@filter false
+  val brokenIcons = commonFamilies.flatMap { family ->
+    return@flatMap if (iconsUrlProvider.getStyleUrl(family) == null) emptySequence()
+    else
+      commonIcons
+        .filter { icon ->
+          if (icon.unsupportedFamilies.contains(family)) return@filter false // This is not broken since it's not supported by this family
+          val expectedFileName = getIconFileNameWithoutExtension(iconName = icon.name, styleName = family) + SdkConstants.DOT_XML
+          val uri = iconsUrlProvider.getIconUrl(family, icon.name, expectedFileName)?.toURI() ?: return@filter false
 
-            !Path.of(uri).exists()
-          }
-          .asSequence()
-    }
+          !Path.of(uri).exists()
+        }
+        .asSequence()
+  }
 
   // Icons can have the same name but be from different styles. Typically, you will have two
   // versions of the same icon, one for Material Icons and one for Material Symbols.

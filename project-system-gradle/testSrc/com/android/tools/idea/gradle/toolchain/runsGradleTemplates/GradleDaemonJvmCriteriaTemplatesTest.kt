@@ -29,11 +29,11 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.util.lang.JavaVersion
-import org.gradle.util.GradleVersion
 import java.io.File
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.readText
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.GradleBuildScriptSupport
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getTopLevelBuildScriptSettingsPsiFile
 import org.jetbrains.kotlin.tools.projectWizard.compatibility.GradleToPluginsCompatibilityStore
@@ -97,8 +97,10 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
     }
 
     private fun updateTemplatesMetadataVersionOfFoojay() {
-      val properties = Properties().apply {
-        put(TEMPLATE_METADATA_FOOJAY_PROPERTY, getFoojayPluginVersion(gradleVersion)) }
+      val properties =
+        Properties().apply {
+          put(TEMPLATE_METADATA_FOOJAY_PROPERTY, getFoojayPluginVersion(gradleVersion))
+        }
       val metadataFile = workspaceTemplateFile(TEMPLATE_METADATA_FILE)
       PropertiesFiles.savePropertiesToFile(
         properties,

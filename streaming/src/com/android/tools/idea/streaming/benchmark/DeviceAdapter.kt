@@ -166,32 +166,31 @@ private fun BufferedImage.findTouchableArea(): Rectangle? {
 }
 
 /** Returns a [Sequence] of [Point]s scribbling sinusoidally back and forth across the [Rectangle]. */
-private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Sequence<Point> =
-  sequence {
-      // Each row is width points, so make sure we have enough rows.
-      val numRows = if (numPoints > (width * height) / step) height else ((numPoints * step + width - 1) / width).coerceIn(1, height)
-      val targetStripeHeight = height / numRows.toDouble()
-      val p = Point()
-      // Scaling factor to compress x coordinates, so we go from [0, 1) to [0, 2πn)
-      val xScalingFactor = 2 * Math.PI * spikiness
-      repeat(numRows) { rowIdx ->
-        val stripeStart = y + (targetStripeHeight * rowIdx).roundToInt().coerceIn(0, bottom)
-        val stripeEnd = y + (targetStripeHeight * (rowIdx + 1)).roundToInt().coerceIn(0, bottom)
-        val verticalMidpoint = (stripeEnd + stripeStart) / 2
-        val xCoordinates = if (rowIdx.isEven()) x until right else (x until right).reversed()
-        xCoordinates.forEach { xCoordinate ->
-          p.x = xCoordinate
-          // How far along are we in [0, 1) ?
-          val normalizedX = (xCoordinate - x) / width.toDouble()
-          val yDisplacement = sin(xScalingFactor * normalizedX) * targetStripeHeight / 2
-          p.y = (verticalMidpoint - yDisplacement).roundToInt().coerceIn(stripeStart, stripeEnd - 1)
-          yield(Point(p))
-        }
-      }
+private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Sequence<Point> = sequence {
+  // Each row is width points, so make sure we have enough rows.
+  val numRows = if (numPoints > (width * height) / step) height else ((numPoints * step + width - 1) / width).coerceIn(1, height)
+  val targetStripeHeight = height / numRows.toDouble()
+  val p = Point()
+  // Scaling factor to compress x coordinates, so we go from [0, 1) to [0, 2πn)
+  val xScalingFactor = 2 * Math.PI * spikiness
+  repeat(numRows) { rowIdx ->
+    val stripeStart = y + (targetStripeHeight * rowIdx).roundToInt().coerceIn(0, bottom)
+    val stripeEnd = y + (targetStripeHeight * (rowIdx + 1)).roundToInt().coerceIn(0, bottom)
+    val verticalMidpoint = (stripeEnd + stripeStart) / 2
+    val xCoordinates = if (rowIdx.isEven()) x until right else (x until right).reversed()
+    xCoordinates.forEach { xCoordinate ->
+      p.x = xCoordinate
+      // How far along are we in [0, 1) ?
+      val normalizedX = (xCoordinate - x) / width.toDouble()
+      val yDisplacement = sin(xScalingFactor * normalizedX) * targetStripeHeight / 2
+      p.y = (verticalMidpoint - yDisplacement).roundToInt().coerceIn(stripeStart, stripeEnd - 1)
+      yield(Point(p))
     }
-    .chunked(step)
-    .map { it.first() }
-    .take(numPoints)
+  }
+}
+  .chunked(step)
+  .map { it.first() }
+  .take(numPoints)
 
 internal class DeviceAdapter(
   private val project: Project,

@@ -216,13 +216,12 @@ private fun ProjectInfo.isKmpAndroidComponent(): Boolean {
     attributes[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
 }
 
-private fun Library.getComponent() =
-  libraryInfo?.let {
-    when (it.group) {
-      "__local_aars__",
-      "__wrapped_aars__",
-      "__local_asars__",
-      "artifacts" -> null
-      else -> Component(it.group, it.name, Version.parse(it.version))
-    }
+private fun Library.getComponent() = libraryInfo?.let {
+  when (it.group) {
+    "__local_aars__",
+    "__wrapped_aars__",
+    "__local_asars__",
+    "artifacts" -> null
+    else -> Component(it.group, it.name, Version.parse(it.version))
   }
+}

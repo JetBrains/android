@@ -34,15 +34,14 @@ class ConfigureLibraryModuleStep(model: NewLibraryModuleModel, title: String) :
   ConfigureModuleStep<NewLibraryModuleModel>(model, FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API, title = title) {
   private val className: JTextField = JBTextField()
 
-  override fun createMainPanel(): DialogPanel =
-    panel {
-        row(contextLabel("Library name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
-        row("Package name") { cell(packageName).align(AlignX.FILL) }
-        row("Class name") { cell(className).align(AlignX.FILL) }
-        row("Language") { cell(languageCombo).align(AlignX.FILL) }
-        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-      }
-      .withBorder(empty(6))
+  override fun createMainPanel(): DialogPanel = panel {
+    row(contextLabel("Library name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
+    row("Package name") { cell(packageName).align(AlignX.FILL) }
+    row("Class name") { cell(className).align(AlignX.FILL) }
+    row("Language") { cell(languageCombo).align(AlignX.FILL) }
+    generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+  }
+    .withBorder(empty(6))
 
   init {
     bindings.bindTwoWay(TextProperty(className), model.className)

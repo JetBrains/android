@@ -92,10 +92,9 @@ class LaunchUtilsDumbModeTest {
   }
 
   private fun setupManifests(vararg contents: String) {
-    val manifestFiles =
-      contents.mapIndexed { index, content ->
-        projectRule.fixture.addFileToProject("src/manifest_$index/AndroidManifest.xml", content.trimIndent()).virtualFile
-      }
+    val manifestFiles = contents.mapIndexed { index, content ->
+      projectRule.fixture.addFileToProject("src/manifest_$index/AndroidManifest.xml", content.trimIndent()).virtualFile
+    }
     val sourceProvider = mock<NamedIdeaSourceProvider>()
     whenever(sourceProvider.manifestFiles).thenReturn(manifestFiles)
     SourceProviders.replaceForTest(facet, projectRule.testRootDisposable, sourceProvider)

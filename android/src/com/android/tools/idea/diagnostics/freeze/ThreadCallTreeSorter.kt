@@ -36,17 +36,14 @@ class ThreadCallTreeSorter(values: MutableCollection<ThreadCallTree>) {
       if (callTree.isAwtThread) {
         importance = 2
       } else {
-        val hasRunReadAction: Boolean =
-          callTree.exists { ste: StackTraceElement ->
-            val methodCallString = ste.className + "." + ste.methodName
-            methodCallString == "com.intellij.openapi.application.impl.ApplicationImpl.tryRunReadAction" ||
-              ste.methodName == "runReadAction"
-          }
-        val hasAcquireReadLock: Boolean =
-          callTree.exists { ste: StackTraceElement ->
-            val methodCallString = ste.className + "." + ste.methodName
-            ste.methodName == "acquireReadLock" || methodCallString == "com.intellij.openapi.application.impl.ReadMostlyRWLock.startRead"
-          }
+        val hasRunReadAction: Boolean = callTree.exists { ste: StackTraceElement ->
+          val methodCallString = ste.className + "." + ste.methodName
+          methodCallString == "com.intellij.openapi.application.impl.ApplicationImpl.tryRunReadAction" || ste.methodName == "runReadAction"
+        }
+        val hasAcquireReadLock: Boolean = callTree.exists { ste: StackTraceElement ->
+          val methodCallString = ste.className + "." + ste.methodName
+          ste.methodName == "acquireReadLock" || methodCallString == "com.intellij.openapi.application.impl.ReadMostlyRWLock.startRead"
+        }
         importance = if (!hasAcquireReadLock && hasRunReadAction) 1 else 0
       }
       return CallTreeWithPriority(callTree, importance, depth)

@@ -72,21 +72,20 @@ class OnDeviceRendererModel(disposable: Disposable, scope: CoroutineScope, val r
   /** Job used to control the on-device rendering on a client */
   @VisibleForTesting var onNewClientJob: Job? = null
 
-  private val connectionListener =
-    InspectorModel.ConnectionListener { newClient ->
-      if (newClient.isConnected && newClient is AppInspectionInspectorClient) {
-        logger.info("Setting up rendering on new client")
+  private val connectionListener = InspectorModel.ConnectionListener { newClient ->
+    if (newClient.isConnected && newClient is AppInspectionInspectorClient) {
+      logger.info("Setting up rendering on new client")
 
-        val viewInspector = checkNotNull(newClient.viewInspector) { "View Inspector is null on a connected client." }
+      val viewInspector = checkNotNull(newClient.viewInspector) { "View Inspector is null on a connected client." }
 
-        // When a new client is connected, set up on-device rendering events.
-        onNewClientJob?.cancel()
-        onNewClientJob = childScope.launch { onNewClientConnected(viewInspector.onDeviceRendering) }
-      } else {
-        // Each time the connection changes the current instance of client is stale.
-        onNewClientJob?.cancel()
-      }
+      // When a new client is connected, set up on-device rendering events.
+      onNewClientJob?.cancel()
+      onNewClientJob = childScope.launch { onNewClientConnected(viewInspector.onDeviceRendering) }
+    } else {
+      // Each time the connection changes the current instance of client is stale.
+      onNewClientJob?.cancel()
     }
+  }
 
   init {
     Disposer.register(disposable, this)

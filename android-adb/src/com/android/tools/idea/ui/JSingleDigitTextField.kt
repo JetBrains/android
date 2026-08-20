@@ -49,7 +49,11 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
     // Add custom traversal keys to quickly move to the next or previous control
     setFocusTraversalKeys(
       KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-      hashSetOf(AWTKeyStroke.getAWTKeyStroke("shift TAB"), AWTKeyStroke.getAWTKeyStroke("LEFT"), AWTKeyStroke.getAWTKeyStroke("BACK_SPACE")),
+      hashSetOf(
+        AWTKeyStroke.getAWTKeyStroke("shift TAB"),
+        AWTKeyStroke.getAWTKeyStroke("LEFT"),
+        AWTKeyStroke.getAWTKeyStroke("BACK_SPACE"),
+      ),
     )
     setFocusTraversalKeys(
       KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,

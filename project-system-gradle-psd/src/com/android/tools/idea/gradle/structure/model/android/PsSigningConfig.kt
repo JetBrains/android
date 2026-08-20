@@ -95,7 +95,9 @@ class PsSigningConfig(override val parent: PsAndroidModule, private val renamed:
           // TODO: Store project relative path if possible.
           setter = { setValue(it.toString()) },
           parser = ::parseFile,
-          matcher = { model, parsedValue, resolvedValue -> matchFiles(model.parent.resolvedModel?.rootDirPath, parsedValue, resolvedValue) },
+          matcher = { model, parsedValue, resolvedValue ->
+            matchFiles(model.parent.resolvedModel?.rootDirPath, parsedValue, resolvedValue)
+          },
         )
         .withFileSelectionRoot(browseRoot = { null }, resolveRoot = { null })
 

@@ -90,15 +90,28 @@ class StudioServerPushNotificationService(
   }
 
   override fun onNotificationShown(notificationId: String) {
-    logAnalyticsEvent(notificationId, ServerPushNotificationEvent.NotificationType.BALLOON_NOTIFICATION, ServerPushNotificationEvent.EventType.SHOWN)
+    logAnalyticsEvent(
+      notificationId,
+      ServerPushNotificationEvent.NotificationType.BALLOON_NOTIFICATION,
+      ServerPushNotificationEvent.EventType.SHOWN,
+    )
   }
 
   override fun onNotificationDismissed(notificationId: String) {
-    logAnalyticsEvent(notificationId, ServerPushNotificationEvent.NotificationType.BALLOON_NOTIFICATION, ServerPushNotificationEvent.EventType.DISMISSED)
+    logAnalyticsEvent(
+      notificationId,
+      ServerPushNotificationEvent.NotificationType.BALLOON_NOTIFICATION,
+      ServerPushNotificationEvent.EventType.DISMISSED,
+    )
   }
 
   override fun onNotificationActionClicked(notificationId: String, actionTitle: String) {
-    logAnalyticsEvent(notificationId, ServerPushNotificationEvent.NotificationType.BALLOON_NOTIFICATION, ServerPushNotificationEvent.EventType.ACTION_CLICKED, actionTitle)
+    logAnalyticsEvent(
+      notificationId,
+      ServerPushNotificationEvent.NotificationType.BALLOON_NOTIFICATION,
+      ServerPushNotificationEvent.EventType.ACTION_CLICKED,
+      actionTitle,
+    )
   }
 
   private fun fetchConfiguredNotifications(): List<StudioPushNotification> {
@@ -161,9 +174,10 @@ class StudioServerPushNotificationService(
       }
 
       if (canShowNotification(clock, notificationIdentifier, notification)) {
-        val shown = bridgesProvider().any { bridge ->
-          bridge.showNotification(notification, listener = this)
-        }
+        val shown =
+          bridgesProvider().any { bridge ->
+            bridge.showNotification(notification, listener = this)
+          }
         if (shown) {
           serverNotificationStoreProvider().markNotificationAsShown(notificationIdentifier, clock)
           return
@@ -192,19 +206,21 @@ class StudioServerPushNotificationService(
   }
 
   private val StudioPushNotification.notificationIdentifier: String?
-    get() = when {
-      hasGotItTooltipSpec() && gotItTooltipSpec.id.isNotBlank() -> gotItTooltipSpec.id
-      hasNotificationSpec() && notificationSpec.id.isNotBlank() -> notificationSpec.id
-      else -> null
-    }
+    get() =
+      when {
+        hasGotItTooltipSpec() && gotItTooltipSpec.id.isNotBlank() -> gotItTooltipSpec.id
+        hasNotificationSpec() && notificationSpec.id.isNotBlank() -> notificationSpec.id
+        else -> null
+      }
 
   private val StudioPushNotification.presentationPriorityWeight: Int
-    get() = when (priority) {
-      StudioPushNotification.Priority.P0 -> 1
-      StudioPushNotification.Priority.P1 -> 2
-      StudioPushNotification.Priority.P2 -> 3
-      else -> 4
-    }
+    get() =
+      when (priority) {
+        StudioPushNotification.Priority.P0 -> 1
+        StudioPushNotification.Priority.P1 -> 2
+        StudioPushNotification.Priority.P2 -> 3
+        else -> 4
+      }
 
   private fun canShowNotification(
     clock: Clock = Clock.System,

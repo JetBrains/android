@@ -47,10 +47,9 @@ class ConfigurationCacheErrorParser : FailureDetailsHandler {
           override val buildErrorMessage: BuildErrorMessage
             get() = BuildErrorMessage.newBuilder().setErrorShownType(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE).build()
 
-          override fun getNavigatable(project: Project): Navigatable? =
-            location?.let {
-              return FileNavigatable(project, it)
-            }
+          override fun getNavigatable(project: Project): Navigatable? = location?.let {
+            return FileNavigatable(project, it)
+          }
         }
       messageConsumer.accept(BuildIssueEventImpl(parentEventId, buildIssue, MessageEvent.Kind.ERROR))
       return true

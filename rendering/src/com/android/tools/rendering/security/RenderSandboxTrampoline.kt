@@ -660,8 +660,9 @@ object RenderSandboxTransformTrampoline {
   private val localKey = ThreadLocal.withInitial { CallKey() }
 
   /** Index by class name and method name to allow for quick lookup of interceptors. */
-  private val interceptorIndex: Map<CallKey, Intercept> =
-    defaultInterceptors.associateBy { CallKey(it.classInternalName, it.methodName, it is Intercept.StaticIntercept) }
+  private val interceptorIndex: Map<CallKey, Intercept> = defaultInterceptors.associateBy {
+    CallKey(it.classInternalName, it.methodName, it is Intercept.StaticIntercept)
+  }
 
   private val ownerStrings: Set<String> = defaultInterceptors.map { it.classInternalName }.toSet()
 

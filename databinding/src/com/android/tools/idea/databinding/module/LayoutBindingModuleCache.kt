@@ -162,16 +162,15 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    * information from the given facet at this time (e.g. because we couldn't determine the class's fully-qualified name).
    */
   val lightBrClass: LightBrClass?
-    get() =
-      _lightBrClass.updateAndGet { clazz ->
-        val facet = AndroidFacet.getInstance(module) ?: return@updateAndGet null
+    get() = _lightBrClass.updateAndGet { clazz ->
+      val facet = AndroidFacet.getInstance(module) ?: return@updateAndGet null
 
-        // Reuse the existing class if it's already been created.
-        if (clazz != null) return@updateAndGet clazz
+      // Reuse the existing class if it's already been created.
+      if (clazz != null) return@updateAndGet clazz
 
-        val qualifiedName = DataBindingUtil.getBrQualifiedName(facet) ?: return@updateAndGet null
-        LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName).withMarkedBackingFile()
-      }
+      val qualifiedName = DataBindingUtil.getBrQualifiedName(facet) ?: return@updateAndGet null
+      LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName).withMarkedBackingFile()
+    }
 
   private val _lightDataBindingComponentClass = AtomicReference<LightDataBindingComponentClass?>()
   /**
@@ -183,14 +182,13 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    * (e.g. it's not an app module).
    */
   val lightDataBindingComponentClass: LightDataBindingComponentClass?
-    get() =
-      _lightDataBindingComponentClass.updateAndGet { clazz ->
-        val facet = AndroidFacet.getInstance(module)?.takeUnless { it.configuration.isLibraryProject } ?: return@updateAndGet null
+    get() = _lightDataBindingComponentClass.updateAndGet { clazz ->
+      val facet = AndroidFacet.getInstance(module)?.takeUnless { it.configuration.isLibraryProject } ?: return@updateAndGet null
 
-        // Reuse the existing class if it's already been created.
-        if (clazz != null) return@updateAndGet clazz
-        LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet).withMarkedBackingFile()
-      }
+      // Reuse the existing class if it's already been created.
+      if (clazz != null) return@updateAndGet clazz
+      LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet).withMarkedBackingFile()
+    }
 
   /**
    * Returns all [BindingLayoutGroup] instances associated with this module, representing all layouts that should have bindings generated

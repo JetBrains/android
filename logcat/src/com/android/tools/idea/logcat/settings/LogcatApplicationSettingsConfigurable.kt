@@ -100,49 +100,48 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
 
   private val component = JPanel(GridBagLayout())
 
-  override fun createComponent() =
+  override fun createComponent() = component.apply {
     component.apply {
-      component.apply {
-        cyclicBufferSizeWarningLabel.foreground = JBColor.red
-        cycleBufferSizeTextField.document.addDocumentListener(
-          object : DocumentAdapter() {
-            override fun textChanged(e: DocumentEvent) {
-              updateWarningLabel()
-            }
+      cyclicBufferSizeWarningLabel.foreground = JBColor.red
+      cycleBufferSizeTextField.document.addDocumentListener(
+        object : DocumentAdapter() {
+          override fun textChanged(e: DocumentEvent) {
+            updateWarningLabel()
           }
-        )
-        val gridBag = GridBag().anchor(NORTHWEST)
-        add(JLabel(LogcatBundle.message("logcat.settings.buffer.size")), gridBag.nextLine().next().anchor(WEST))
-        add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-        add(cycleBufferSizeTextField, gridBag.next().anchor(WEST))
-        add(JLabel(LogcatBundle.message("logcat.settings.buffer.kb")), gridBag.next().weightx(1.0).anchor(WEST))
-        add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
+        }
+      )
+      val gridBag = GridBag().anchor(NORTHWEST)
+      add(JLabel(LogcatBundle.message("logcat.settings.buffer.size")), gridBag.nextLine().next().anchor(WEST))
+      add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+      add(cycleBufferSizeTextField, gridBag.next().anchor(WEST))
+      add(JLabel(LogcatBundle.message("logcat.settings.buffer.kb")), gridBag.next().weightx(1.0).anchor(WEST))
+      add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
 
-        add(JLabel(LogcatBundle.message("logcat.settings.default.filter")), gridBag.nextLine().next().anchor(WEST))
-        add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-        add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
-        add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
-        defaultFilterTextField.text = logcatSettings.defaultFilter
+      add(JLabel(LogcatBundle.message("logcat.settings.default.filter")), gridBag.nextLine().next().anchor(WEST))
+      add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+      add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
+      add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
+      defaultFilterTextField.text = logcatSettings.defaultFilter
 
-        add(overrideFontSize, gridBag.nextLine().next().anchor(WEST))
-        add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-        add(fontSize, gridBag.next().anchor(WEST))
+      add(overrideFontSize, gridBag.nextLine().next().anchor(WEST))
+      add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+      add(fontSize, gridBag.next().anchor(WEST))
 
-        add(JLabel(LogcatBundle.message("logcat.settings.ignore.tags.label")), gridBag.nextLine().next().anchor(WEST))
-        add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-        add(ignoreTagsTextField.component, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
-        add(JLabel(LogcatBundle.message("logcat.settings.ignore.apps.label")), gridBag.nextLine().next().anchor(WEST))
-        add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-        add(ignoreAppsTextField.component, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
-        add(ignoreValuesNote, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
-        ignoreValuesNote.isVisible = LogcatToolWindowFactory.logcatPresenters.flatMap { it.getTags() }.isEmpty()
+      add(JLabel(LogcatBundle.message("logcat.settings.ignore.tags.label")), gridBag.nextLine().next().anchor(WEST))
+      add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+      add(ignoreTagsTextField.component, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
+      add(JLabel(LogcatBundle.message("logcat.settings.ignore.apps.label")), gridBag.nextLine().next().anchor(WEST))
+      add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+      add(ignoreAppsTextField.component, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
+      add(ignoreValuesNote, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
+      ignoreValuesNote.isVisible = LogcatToolWindowFactory.logcatPresenters.flatMap { it.getTags() }.isEmpty()
 
-        add(filterHistoryAutocompleteCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
+      add(filterHistoryAutocompleteCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
 
-        // Add an empty panel that consumes all vertical space bellow.
-        add(JPanel(), gridBag.nextLine().next().weighty(1.0))
-      }
+      // Add an empty panel that consumes all vertical space bellow.
+      add(JPanel(), gridBag.nextLine().next().weighty(1.0))
     }
+  }
 
   private fun updateWarningLabel() {
     val value = getBufferSizeKb()

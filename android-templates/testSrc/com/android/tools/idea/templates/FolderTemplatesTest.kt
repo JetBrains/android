@@ -28,8 +28,8 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.LocalFileSystem
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files

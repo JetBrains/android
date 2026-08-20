@@ -45,19 +45,18 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel, m
 
   override fun getPreferredFocusComponent(): JComponent? = appName
 
-  override fun createMainPanel(): JPanel =
-    panel {
-        row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
+  override fun createMainPanel(): JPanel = panel {
+    row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
-        row("Package name") { cell(packageName).align(AlignX.FILL) }
+    row("Package name") { cell(packageName).align(AlignX.FILL) }
 
-        row("Language") { cell(languageCombo).align(AlignX.FILL) }
+    row("Language") { cell(languageCombo).align(AlignX.FILL) }
 
-        row("C++ Standard") { cell(cppStandard).align(AlignX.FILL) }
+    row("C++ Standard") { cell(cppStandard).align(AlignX.FILL) }
 
-        row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
+    row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-      }
-      .withBorder(JBUI.Borders.empty(6))
+    generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+  }
+    .withBorder(JBUI.Borders.empty(6))
 }

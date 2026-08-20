@@ -235,137 +235,131 @@ class ForegroundProcessDetectionImpl(
   override fun start(selectedDeviceId: String?) {
     transportListenerJob?.cancel()
 
-    transportListenerJob =
-      scope.launch {
-        streamManager
-          .streamActivityFlow()
-          .filter {
-            // Ignores events not originating from the selected device, if provided.
-            selectedDeviceId == null || it.streamChannel.stream.device.serial == selectedDeviceId
-          }
-          .collect { activity ->
-            val streamChannel = activity.streamChannel
-            val streamDevice = streamChannel.stream.device.toDeviceDescriptor()
-            val stream = streamChannel.stream
+    transportListenerJob = scope.launch {
+      streamManager
+        .streamActivityFlow()
+        .filter {
+          // Ignores events not originating from the selected device, if provided.
+          selectedDeviceId == null || it.streamChannel.stream.device.serial == selectedDeviceId
+        }
+        .collect { activity ->
+          val streamChannel = activity.streamChannel
+          val streamDevice = streamChannel.stream.device.toDeviceDescriptor()
+          val stream = streamChannel.stream
 
-            if (activity is StreamConnected) {
-              connectedStreams[streamChannel.stream.streamId] = streamChannel
+          if (activity is StreamConnected) {
+            connectedStreams[streamChannel.stream.streamId] = streamChannel
 
-              val timeRequest = Transport.TimeRequest.newBuilder().setStreamId(stream.streamId).build()
-              val currentTime = activity.streamChannel.client.getCurrentTime(timeRequest).timestampNs
+            val timeRequest = Transport.TimeRequest.newBuilder().setStreamId(stream.streamId).build()
+            val currentTime = activity.streamChannel.client.getCurrentTime(timeRequest).timestampNs
 
-              addTimeStamp(streamDevice, currentTime, layoutInspectorMetrics)
+            addTimeStamp(streamDevice, currentTime, layoutInspectorMetrics)
 
-              // start listening for LAYOUT_INSPECTOR_FOREGROUND_PROCESS events
-              launch {
-                streamChannel
-                  .eventFlow(
-                    StreamEventQuery(eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS, startTime = { currentTime })
-                  )
-                  // There can be multiple projects or devices open, which can lead to race
-                  // conditions. For example, in the case of projects: Project1 with device1
-                  // selected,
-                  // Project2 with device2 selected.
-                  // Because every event from the Transport is dispatched to every open project,
-                  // both Project1 and Project2 are going to receive events from device1 and
-                  // device2.
-                  .filter { activity -> streamDevice == deviceModel.selectedDevice }
-                  .collect { streamEvent ->
-                    val foregroundProcess = streamEvent.toForegroundProcess()
-                    if (foregroundProcess != null) {
-                      // The ProcessesModel only contains debuggable processes.
-                      val isDebuggable = foregroundProcess.matchToProcessDescriptor(processModel) != null
-                      invokeListeners(streamDevice, foregroundProcess, isDebuggable)
-                    }
+            // start listening for LAYOUT_INSPECTOR_FOREGROUND_PROCESS events
+            launch {
+              streamChannel
+                .eventFlow(StreamEventQuery(eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS, startTime = { currentTime }))
+                // There can be multiple projects or devices open, which can lead to race
+                // conditions. For example, in the case of projects: Project1 with device1
+                // selected,
+                // Project2 with device2 selected.
+                // Because every event from the Transport is dispatched to every open project,
+                // both Project1 and Project2 are going to receive events from device1 and
+                // device2.
+                .filter { activity -> streamDevice == deviceModel.selectedDevice }
+                .collect { streamEvent ->
+                  val foregroundProcess = streamEvent.toForegroundProcess()
+                  if (foregroundProcess != null) {
+                    // The ProcessesModel only contains debuggable processes.
+                    val isDebuggable = foregroundProcess.matchToProcessDescriptor(processModel) != null
+                    invokeListeners(streamDevice, foregroundProcess, isDebuggable)
                   }
-              }
+                }
+            }
 
-              val handshakeExecutor =
-                HandshakeExecutor(streamDevice, stream, scope, workDispatcher, transportClient, metrics, pollingIntervalMs)
+            val handshakeExecutor =
+              HandshakeExecutor(streamDevice, stream, scope, workDispatcher, transportClient, metrics, pollingIntervalMs)
 
-              // start listening for LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED events
-              launch {
-                streamChannel
-                  .eventFlow(
-                    StreamEventQuery(
-                      eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
-                      startTime = { currentTime },
-                    )
+            // start listening for LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED events
+            launch {
+              streamChannel
+                .eventFlow(
+                  StreamEventQuery(
+                    eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
+                    startTime = { currentTime },
                   )
-                  .collect { streamEvent ->
-                    if (streamEvent.event.hasLayoutInspectorTrackingForegroundProcessSupported()) {
-                      val trackingForegroundProcessSupportedEvent = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported
-                      val supportType = trackingForegroundProcessSupportedEvent.supportType!!
-                      when (supportType) {
-                        LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN -> {
-                          handshakeExecutor.post(HandshakeState.UnknownSupported(trackingForegroundProcessSupportedEvent))
-                          deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
-                            ForegroundProcessDetectionSupport.NOT_SUPPORTED
-                        }
-                        LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED -> {
-                          handshakeExecutor.post(HandshakeState.Supported(trackingForegroundProcessSupportedEvent))
+                )
+                .collect { streamEvent ->
+                  if (streamEvent.event.hasLayoutInspectorTrackingForegroundProcessSupported()) {
+                    val trackingForegroundProcessSupportedEvent = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported
+                    val supportType = trackingForegroundProcessSupportedEvent.supportType!!
+                    when (supportType) {
+                      LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN -> {
+                        handshakeExecutor.post(HandshakeState.UnknownSupported(trackingForegroundProcessSupportedEvent))
+                        deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.NOT_SUPPORTED
+                      }
+                      LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED -> {
+                        handshakeExecutor.post(HandshakeState.Supported(trackingForegroundProcessSupportedEvent))
 
-                          deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.SUPPORTED
+                        deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.SUPPORTED
 
-                          // If there are no devices connected, we can automatically connect to the
-                          // first device.
-                          // So the user doesn't have to handpick the device.
-                          if (deviceModel.selectedDevice == null && deviceModel.devices.contains(streamDevice)) {
-                            // TODO make sure this doesn't happen when the tool window is collapsed
-                            startPollingDevice(streamDevice)
-                          }
-                        }
-                        LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED -> {
-                          handshakeExecutor.post(HandshakeState.NotSupported(trackingForegroundProcessSupportedEvent))
-
-                          deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
-                            ForegroundProcessDetectionSupport.NOT_SUPPORTED
-
-                          // the device is not added to
-                          // DeviceModel#foregroundProcessDetectionSupportedDevices,
-                          // so it will be handled in the UI by showing a process picker.
-                        }
-                        LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNRECOGNIZED -> {
-                          deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
-                            ForegroundProcessDetectionSupport.NOT_SUPPORTED
-                          throw RuntimeException("Unrecognized support type: $supportType")
+                        // If there are no devices connected, we can automatically connect to the
+                        // first device.
+                        // So the user doesn't have to handpick the device.
+                        if (deviceModel.selectedDevice == null && deviceModel.devices.contains(streamDevice)) {
+                          // TODO make sure this doesn't happen when the tool window is collapsed
+                          startPollingDevice(streamDevice)
                         }
                       }
+                      LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED -> {
+                        handshakeExecutor.post(HandshakeState.NotSupported(trackingForegroundProcessSupportedEvent))
 
-                      logger.info(
-                        "ForegroundProcessDetection handshake - " +
-                          "device: \"${streamDevice.manufacturer} ${streamDevice.model} " +
-                          "API${streamDevice.apiLevel}\" " +
-                          "status: $supportType"
-                      )
+                        deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.NOT_SUPPORTED
+
+                        // the device is not added to
+                        // DeviceModel#foregroundProcessDetectionSupportedDevices,
+                        // so it will be handled in the UI by showing a process picker.
+                      }
+                      LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNRECOGNIZED -> {
+                        deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.NOT_SUPPORTED
+                        throw RuntimeException("Unrecognized support type: $supportType")
+                      }
                     }
+
+                    logger.info(
+                      "ForegroundProcessDetection handshake - " +
+                        "device: \"${streamDevice.manufacturer} ${streamDevice.model} " +
+                        "API${streamDevice.apiLevel}\" " +
+                        "status: $supportType"
+                    )
                   }
-              }
-
-              handshakeExecutor.post(HandshakeState.Connected)
-              deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.HANDSHAKE_IN_PROGRESS
-              handshakeExecutors[streamDevice] = handshakeExecutor
-            } else if (activity is StreamDisconnected) {
-              connectedStreams.remove(stream.streamId)
-              deviceModel.foregroundProcessDetectionDevicesSupport.remove(streamDevice)
-
-              if (lastForegroundProcess?.device == streamDevice) {
-                // If the last foreground process is from this device, clear it. We don't want to
-                // notify new listeners about this process.
-                lastForegroundProcess = null
-              }
-
-              val handler = handshakeExecutors.remove(streamDevice)
-              handler?.post(HandshakeState.Disconnected)
-
-              if (streamDevice.serial == deviceModel.selectedDevice?.serial) {
-                deviceModel.selectedDevice = null
-              }
-
-              onDeviceDisconnected(streamDevice)
+                }
             }
+
+            handshakeExecutor.post(HandshakeState.Connected)
+            deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.HANDSHAKE_IN_PROGRESS
+            handshakeExecutors[streamDevice] = handshakeExecutor
+          } else if (activity is StreamDisconnected) {
+            connectedStreams.remove(stream.streamId)
+            deviceModel.foregroundProcessDetectionDevicesSupport.remove(streamDevice)
+
+            if (lastForegroundProcess?.device == streamDevice) {
+              // If the last foreground process is from this device, clear it. We don't want to
+              // notify new listeners about this process.
+              lastForegroundProcess = null
+            }
+
+            val handler = handshakeExecutors.remove(streamDevice)
+            handler?.post(HandshakeState.Disconnected)
+
+            if (streamDevice.serial == deviceModel.selectedDevice?.serial) {
+              deviceModel.selectedDevice = null
+            }
+
+            onDeviceDisconnected(streamDevice)
           }
-      }
+        }
+    }
   }
 
   override fun stop() {

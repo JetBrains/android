@@ -28,22 +28,21 @@ internal enum class DumbModeStatus {
   SMART_MODE,
 }
 
-internal fun dumbModeFlow(project: Project): Flow<DumbModeStatus> =
-  callbackFlow {
-      val connection = project.messageBus.connect()
-      connection.subscribe(
-        DumbService.DUMB_MODE,
-        object : DumbService.DumbModeListener {
-          override fun enteredDumbMode() {
-            trySendBlocking(DumbModeStatus.DUMB_MODE)
-          }
+internal fun dumbModeFlow(project: Project): Flow<DumbModeStatus> = callbackFlow {
+  val connection = project.messageBus.connect()
+  connection.subscribe(
+    DumbService.DUMB_MODE,
+    object : DumbService.DumbModeListener {
+      override fun enteredDumbMode() {
+        trySendBlocking(DumbModeStatus.DUMB_MODE)
+      }
 
-          override fun exitDumbMode() {
-            trySendBlocking(DumbModeStatus.SMART_MODE)
-          }
-        },
-      )
-      trySendBlocking(if (DumbService.isDumb(project)) DumbModeStatus.DUMB_MODE else DumbModeStatus.SMART_MODE)
-      awaitClose { connection.disconnect() }
-    }
-    .conflate()
+      override fun exitDumbMode() {
+        trySendBlocking(DumbModeStatus.SMART_MODE)
+      }
+    },
+  )
+  trySendBlocking(if (DumbService.isDumb(project)) DumbModeStatus.DUMB_MODE else DumbModeStatus.SMART_MODE)
+  awaitClose { connection.disconnect() }
+}
+  .conflate()

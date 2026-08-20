@@ -119,15 +119,14 @@ class DefaultRenderQualityManager(
     return myPolicy.getTargetQuality(mySurface.zoomController.scale, isSceneManagerVisible(sceneManager))
   }
 
-  override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =
-    sceneManager.let {
-      // Refreshes are skipped in any of the following scenarios:
-      // - Last render failed and not due to a cancellation exception
-      // - The current target quality is substantially different to the one used in the last
-      //   successful render or the last render was cancelled.
-      it.renderResult.isCancellationException() ||
-        (!it.renderResult.isErrorResult() && abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin)
-    }
+  override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean = sceneManager.let {
+    // Refreshes are skipped in any of the following scenarios:
+    // - Last render failed and not due to a cancellation exception
+    // - The current target quality is substantially different to the one used in the last
+    //   successful render or the last render was cancelled.
+    it.renderResult.isCancellationException() ||
+      (!it.renderResult.isErrorResult() && abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin)
+  }
 
   @TestOnly internal fun sceneViewRectanglesContainsForTest(sceneView: SceneView) = sceneViewRectangles.containsKey(sceneView)
 }

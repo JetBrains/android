@@ -279,6 +279,7 @@ class GotoDeclarationActionTest {
     assertThat(data.gotoDeclaration.keyStrokesShortcut).isEqualTo(keyStrokeCount)
   }
 
-  private fun InspectorModel.findByTagName(tagName: String): ViewNode? =
-    ViewNode.readAccess { root.flatten().firstOrNull { it.qualifiedName == tagName } }
+  private fun InspectorModel.findByTagName(tagName: String): ViewNode? = ViewNode.readAccess {
+    root.flatten().firstOrNull { it.qualifiedName == tagName }
+  }
 }

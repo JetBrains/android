@@ -90,24 +90,24 @@ class AppInspectorTabLaunchSupport(
     val compatibilityResponse = apiServices.attachToProcess(process, project.name).getLibraryVersions(compatibilities)
 
     return mapIndexed { i, config ->
-        config.id to
-          when (compatibilityResponse[i].status) {
-            LibraryCompatibilityInfo.Status.COMPATIBLE ->
-              getInspectorJarTarget(RunningArtifactCoordinate(artifactCoordinates[i], compatibilityResponse[i].version))
-            LibraryCompatibilityInfo.Status.APP_PROGUARDED -> InspectorJarTarget.Unresolved(APP_PROGUARDED_MESSAGE, artifactCoordinates[i])
-            else -> {
-              if (currentIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
-                // Ignore the compatibility check result if user is using ASwB.
-                // We still want to perform the check because it gives us other useful warnings such
-                // as
-                // when the app is proguarded.
-                getInspectorJarTarget(artifactCoordinates[i].toWild())
-              } else {
-                InspectorJarTarget.Unresolved(provider.toIncompatibleVersionMessage(), artifactCoordinates[i])
-              }
+      config.id to
+        when (compatibilityResponse[i].status) {
+          LibraryCompatibilityInfo.Status.COMPATIBLE ->
+            getInspectorJarTarget(RunningArtifactCoordinate(artifactCoordinates[i], compatibilityResponse[i].version))
+          LibraryCompatibilityInfo.Status.APP_PROGUARDED -> InspectorJarTarget.Unresolved(APP_PROGUARDED_MESSAGE, artifactCoordinates[i])
+          else -> {
+            if (currentIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
+              // Ignore the compatibility check result if user is using ASwB.
+              // We still want to perform the check because it gives us other useful warnings such
+              // as
+              // when the app is proguarded.
+              getInspectorJarTarget(artifactCoordinates[i].toWild())
+            } else {
+              InspectorJarTarget.Unresolved(provider.toIncompatibleVersionMessage(), artifactCoordinates[i])
             }
           }
-      }
+        }
+    }
       .toMap()
   }
 

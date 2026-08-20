@@ -47,11 +47,10 @@ class TraceProcessorBitmapDuplicationAnalyzer {
   fun analyze(instances: Iterable<InstanceObject>, captureObject: CaptureObject? = null) {
     duplicateBitmapInstances.clear()
 
-    val targetInstances =
-      instances.filter {
-        (it.classEntry.className == BITMAP_CLASS_NAME || it.classEntry.className == BITMAP_DUMP_DATA_CLASS_NAME) &&
-          it.depth != Integer.MAX_VALUE
-      }
+    val targetInstances = instances.filter {
+      (it.classEntry.className == BITMAP_CLASS_NAME || it.classEntry.className == BITMAP_DUMP_DATA_CLASS_NAME) &&
+        it.depth != Integer.MAX_VALUE
+    }
 
     val dumpDataInstances = targetInstances.filter { it.classEntry.className == BITMAP_DUMP_DATA_CLASS_NAME }
     val bitmapInstances = targetInstances.filter { it.classEntry.className == BITMAP_CLASS_NAME }

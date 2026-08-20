@@ -96,15 +96,15 @@ class GradleJdkPathEditComboBox(
 
   private fun createJdkComboBox() {
     panel {
-        row {
-          add(jdkComboBox)
-          comment(comment = hintMessage) { BrowserUtil.browse(it.url) }
-            .applyToComponent {
-              foreground = UIUtil.getLabelFontColor(UIUtil.FontColor.BRIGHTER)
-              font = JBFont.small()
-            }
-        }
+      row {
+        add(jdkComboBox)
+        comment(comment = hintMessage) { BrowserUtil.browse(it.url) }
+          .applyToComponent {
+            foreground = UIUtil.getLabelFontColor(UIUtil.FontColor.BRIGHTER)
+            font = JBFont.small()
+          }
       }
+    }
       .also { add(it) }
   }
 

@@ -142,22 +142,21 @@ object JCenterRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITOR
     val array = JsonParser.parseReader(response).asJsonArray
     val errors = mutableListOf<Exception>()
 
-    val artifacts =
-      array.flatMap { result ->
-        val root = result.asJsonObject
-        try {
-          val versions = root.getAsJsonArray("versions")
-          val systemIds = root.getAsJsonArray("system_ids")
-          val availableVersions = versions.mapNotNull { Version.parse(it.asString) }.toSet()
+    val artifacts = array.flatMap { result ->
+      val root = result.asJsonObject
+      try {
+        val versions = root.getAsJsonArray("versions")
+        val systemIds = root.getAsJsonArray("system_ids")
+        val availableVersions = versions.mapNotNull { Version.parse(it.asString) }.toSet()
 
-          systemIds.mapNotNull { name ->
-            name.asString.split(':').takeIf { it.size == 2 }?.let { FoundArtifact(JCenterRepository.name, it[0], it[1], availableVersions) }
-          }
-        } catch (ex: Exception) {
-          errors.add(ex)
-          listOf<FoundArtifact>()
+        systemIds.mapNotNull { name ->
+          name.asString.split(':').takeIf { it.size == 2 }?.let { FoundArtifact(JCenterRepository.name, it[0], it[1], availableVersions) }
         }
+      } catch (ex: Exception) {
+        errors.add(ex)
+        listOf<FoundArtifact>()
       }
+    }
 
     return SearchResult(artifacts, errors, SearchResultStats.EMPTY)
   }

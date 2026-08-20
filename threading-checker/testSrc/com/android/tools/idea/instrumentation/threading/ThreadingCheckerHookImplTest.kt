@@ -166,14 +166,14 @@ class ThreadingCheckerHookImplTest {
     fun violateAll() {
       val m = MyClass()
       thread {
-          m.methodUiThreadA()
-          m.methodUiThreadB()
+        m.methodUiThreadA()
+        m.methodUiThreadB()
 
-          m.methodReadLockA()
-          m.methodReadLockB()
-          m.methodWriteLockA()
-          m.methodWriteLockB()
-        }
+        m.methodReadLockA()
+        m.methodReadLockB()
+        m.methodWriteLockA()
+        m.methodWriteLockB()
+      }
         .join()
 
       m.methodWorkerThreadA()
@@ -219,9 +219,9 @@ class ThreadingCheckerHookImplTest {
   fun `verify the write lock check adds a violation when called without a write lock`() {
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(0)
     thread {
-        ThreadingCheckerTrampoline.verifyWriteLock()
-        Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(1)
-      }
+      ThreadingCheckerTrampoline.verifyWriteLock()
+      Truth.assertThat(threadingCheckerHook.threadingViolations.keys).hasSize(1)
+    }
       .join()
   }
 

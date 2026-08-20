@@ -123,22 +123,21 @@ object FacetFinder {
     return Result(facet = androidFacet, applicationId = androidFacet.getModuleSystem().getApplicationIdProvider().packageName)
   }
 
-  private val androidModuleTypeComparator: Comparator<Module> =
-    Comparator.comparing {
-      // Explicitly prioritize app and similar modules over libraries
-      val moduleSystem = it.getModuleSystem()
-      when (moduleSystem.type) {
-        AndroidModuleSystem.Type.TYPE_NON_ANDROID -> 0
-        AndroidModuleSystem.Type.TYPE_LIBRARY,
-        AndroidModuleSystem.Type.TYPE_FUSED_LIBRARY -> 1
-        AndroidModuleSystem.Type.TYPE_TEST -> 2
-        AndroidModuleSystem.Type.TYPE_APP,
-        AndroidModuleSystem.Type.TYPE_INSTANTAPP,
-        AndroidModuleSystem.Type.TYPE_ATOM,
-        AndroidModuleSystem.Type.TYPE_FEATURE,
-        AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> 3
-      }
+  private val androidModuleTypeComparator: Comparator<Module> = Comparator.comparing {
+    // Explicitly prioritize app and similar modules over libraries
+    val moduleSystem = it.getModuleSystem()
+    when (moduleSystem.type) {
+      AndroidModuleSystem.Type.TYPE_NON_ANDROID -> 0
+      AndroidModuleSystem.Type.TYPE_LIBRARY,
+      AndroidModuleSystem.Type.TYPE_FUSED_LIBRARY -> 1
+      AndroidModuleSystem.Type.TYPE_TEST -> 2
+      AndroidModuleSystem.Type.TYPE_APP,
+      AndroidModuleSystem.Type.TYPE_INSTANTAPP,
+      AndroidModuleSystem.Type.TYPE_ATOM,
+      AndroidModuleSystem.Type.TYPE_FEATURE,
+      AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> 3
     }
+  }
 }
 
 /**

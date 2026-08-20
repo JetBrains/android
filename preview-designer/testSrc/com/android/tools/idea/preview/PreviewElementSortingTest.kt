@@ -76,17 +76,16 @@ class PreviewElementSortingTest {
       )
 
     displayNamesWithLocale.forEach { (locale, displayNames) ->
-      val expectedPreviews =
-        displayNames.mapIndexed { index, name ->
-          ParametrizedComposePreviewElementInstance(
-            basePreviewElement = previewInstance(name = "PreviewComposableName", locale = locale),
-            parameterName = "param-$index",
-            providerClassFqn = "ProviderClass",
-            index = index,
-            maxIndex = displayNames.size,
-            displayName = name,
-          )
-        }
+      val expectedPreviews = displayNames.mapIndexed { index, name ->
+        ParametrizedComposePreviewElementInstance(
+          basePreviewElement = previewInstance(name = "PreviewComposableName", locale = locale),
+          parameterName = "param-$index",
+          providerClassFqn = "ProviderClass",
+          index = index,
+          maxIndex = displayNames.size,
+          displayName = name,
+        )
+      }
       // Because we  want to check if we correctly sort the PreviewElement we shuffle
       // the previews
       val shuffledPreviews = expectedPreviews.shuffled()

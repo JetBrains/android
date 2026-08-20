@@ -42,14 +42,14 @@ interface LlmPrompt {
 
 fun LlmPrompt.formatForTests(): String {
   return buildString {
-      for (message in messages) {
-        append(message.role.name)
-        append(message.text)
-        appendLine()
-        message.filesUsed.forEach { append("<${it.name}>") }
-        appendLine()
-      }
+    for (message in messages) {
+      append(message.role.name)
+      append(message.text)
+      appendLine()
+      message.filesUsed.forEach { append("<${it.name}>") }
+      appendLine()
     }
+  }
     .trimEnd()
 }
 

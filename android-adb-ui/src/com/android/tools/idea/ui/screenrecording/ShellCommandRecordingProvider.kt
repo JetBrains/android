@@ -70,20 +70,20 @@ internal class ShellCommandRecordingProvider(
     val job =
       createCoroutineScope().launch {
         runCatching {
-            val physicalDisplayId =
-              when {
-                options.displayId == PRIMARY_DISPLAY_ID -> 0L
-                else -> adbSession.getPhysicalDisplayId(device, options.displayId)
-              }
-            val adbOptions =
-              ScreenRecordOptions(
-                physicalDisplayId = if (physicalDisplayId != 0L) physicalDisplayId else null,
-                videoSize = if (options.width != 0 && options.height != 0) Dimension(options.width, options.height) else null,
-                bitRateMbps = if (options.bitrateMbps != 0) options.bitrateMbps else null,
-                timeLimitSec = if (options.timeLimitSec != 0) options.timeLimitSec else null,
-              )
-            adbSession.deviceServices.screenRecord(device, remotePath, adbOptions, stopRecordingSignal)
-          }
+          val physicalDisplayId =
+            when {
+              options.displayId == PRIMARY_DISPLAY_ID -> 0L
+              else -> adbSession.getPhysicalDisplayId(device, options.displayId)
+            }
+          val adbOptions =
+            ScreenRecordOptions(
+              physicalDisplayId = if (physicalDisplayId != 0L) physicalDisplayId else null,
+              videoSize = if (options.width != 0 && options.height != 0) Dimension(options.width, options.height) else null,
+              bitRateMbps = if (options.bitrateMbps != 0) options.bitrateMbps else null,
+              timeLimitSec = if (options.timeLimitSec != 0) options.timeLimitSec else null,
+            )
+          adbSession.deviceServices.screenRecord(device, remotePath, adbOptions, stopRecordingSignal)
+        }
           .onSuccess {
             // The screen recording to `remotePath` was successful
             result.complete(Unit)

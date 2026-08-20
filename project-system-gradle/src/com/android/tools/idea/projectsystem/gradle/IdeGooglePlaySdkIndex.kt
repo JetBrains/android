@@ -128,7 +128,9 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
         VIEW_DETAILS_MESSAGE,
         null,
         url,
-        onUrlOpen = { logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, buildFile, SDK_INDEX_LINK_FOLLOWED) },
+        onUrlOpen = {
+          logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, buildFile, SDK_INDEX_LINK_FOLLOWED)
+        },
       )
     else null
   }

@@ -42,8 +42,9 @@ class ParametersBindingController(
   init {
     val (_, myParameters) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
     // rename parameters that start with '?' (eg: '?' and '?1') with 'param #'
-    parameters =
-      myParameters.mapIndexed { i, p -> SqliteParameter(if (p.name.startsWith("?")) "param ${i + 1}" else p.name, p.isCollection) }
+    parameters = myParameters.mapIndexed { i, p ->
+      SqliteParameter(if (p.name.startsWith("?")) "param ${i + 1}" else p.name, p.isCollection)
+    }
   }
 
   fun setUp() {
@@ -66,13 +67,12 @@ class ParametersBindingController(
 
       val newPsi = expandCollectionParameters(sqliteStatementPsi, LinkedList(parametersValues))
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(newPsi)
-      val sqliteValues =
-        parametersValues.flatMap { sqliteParameterValue ->
-          when (sqliteParameterValue) {
-            is SqliteParameterValue.SingleValue -> listOf(sqliteParameterValue.value)
-            is SqliteParameterValue.CollectionValue -> sqliteParameterValue.value
-          }
+      val sqliteValues = parametersValues.flatMap { sqliteParameterValue ->
+        when (sqliteParameterValue) {
+          is SqliteParameterValue.SingleValue -> listOf(sqliteParameterValue.value)
+          is SqliteParameterValue.CollectionValue -> sqliteParameterValue.value
         }
+      }
 
       runStatement(createSqliteStatement(sqliteStatementPsi.project, sqliteStatement, sqliteValues))
     }

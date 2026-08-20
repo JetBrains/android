@@ -91,14 +91,13 @@ class TransportStreamManager
 @VisibleForTesting
 constructor(private val client: TransportServiceGrpc.TransportServiceBlockingStub, scope: CoroutineScope) {
 
-  private val streamState =
-    flow {
-        while (true) {
-          emit(StreamQueryUtils.queryForDevices(client))
-          delay(DELAY_MILLIS)
-        }
-      }
-      .shareIn(scope, SharingStarted.Lazily, 1)
+  private val streamState = flow {
+    while (true) {
+      emit(StreamQueryUtils.queryForDevices(client))
+      delay(DELAY_MILLIS)
+    }
+  }
+    .shareIn(scope, SharingStarted.Lazily, 1)
 
   /** Collects the current state of connected devices in the form of a flow of [StreamActivity] events. */
   fun streamActivityFlow(): Flow<StreamActivity> = flow {

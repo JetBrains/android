@@ -139,38 +139,37 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
     val sdkManager = sdkHandler.getRepoManager(progressIndicator)
     val progressRunner = StudioProgressRunner(false, "Loading Remote SDK", project)
 
-    val onComplete =
-      RepoManager.RepoLoadedListener { packages: RepositoryPackages ->
-        invokeLater(ModalityState.any()) {
-          val cmakePackages = packages.getRemotePackagesForPrefix(SdkConstants.FD_CMAKE)
-          val cmakePackage =
-            if (myCmakeVersion == null) {
-              // Install the latest version from the SDK.
-              if (cmakePackages.size == 1) {
-                ContainerUtil.getFirstItem(cmakePackages)
-              } else {
-                sdkHandler.getLatestRemotePackageForPrefix(SdkConstants.FD_CMAKE, null, false /* do not allow preview */, progressIndicator)
-              }
+    val onComplete = RepoManager.RepoLoadedListener { packages: RepositoryPackages ->
+      invokeLater(ModalityState.any()) {
+        val cmakePackages = packages.getRemotePackagesForPrefix(SdkConstants.FD_CMAKE)
+        val cmakePackage =
+          if (myCmakeVersion == null) {
+            // Install the latest version from the SDK.
+            if (cmakePackages.size == 1) {
+              ContainerUtil.getFirstItem(cmakePackages)
             } else {
-              // Install the version the user requested.
-              cmakePackages.stream().filter { remotePackage -> remotePackage!!.version == myCmakeVersion }.findFirst().orElse(null)
+              sdkHandler.getLatestRemotePackageForPrefix(SdkConstants.FD_CMAKE, null, false /* do not allow preview */, progressIndicator)
             }
-
-          if (cmakePackage != null) {
-            // Found: Trigger installation of the package.
-            val dialog = SdkQuickfixUtils.createDialogForPaths(project, ImmutableList.of(cmakePackage.path), true)
-            if (dialog != null && dialog.showAndGet()) {
-              project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED.toReason())
-            }
-            future.complete(null)
-            return@invokeLater
+          } else {
+            // Install the version the user requested.
+            cmakePackages.stream().filter { remotePackage -> remotePackage!!.version == myCmakeVersion }.findFirst().orElse(null)
           }
 
-          // Either no CMake versions were found, or the requested CMake version was not found.
-          notifyCmakePackageNotFound(project)
+        if (cmakePackage != null) {
+          // Found: Trigger installation of the package.
+          val dialog = SdkQuickfixUtils.createDialogForPaths(project, ImmutableList.of(cmakePackage.path), true)
+          if (dialog != null && dialog.showAndGet()) {
+            project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED.toReason())
+          }
           future.complete(null)
+          return@invokeLater
         }
+
+        // Either no CMake versions were found, or the requested CMake version was not found.
+        notifyCmakePackageNotFound(project)
+        future.complete(null)
       }
+    }
 
     val onError = Runnable {
       invokeLater(ModalityState.any()) {

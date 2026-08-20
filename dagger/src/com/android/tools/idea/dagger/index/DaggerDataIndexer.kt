@@ -176,12 +176,15 @@ class DaggerConceptIndexers(
   val methodIndexers: List<DaggerConceptIndexer<DaggerIndexMethodWrapper>> = emptyList(),
 ) {
 
-  fun doIndexing(wrapper: DaggerIndexClassWrapper, indexEntries: IndexEntries) =
-    classIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
+  fun doIndexing(wrapper: DaggerIndexClassWrapper, indexEntries: IndexEntries) = classIndexers.forEach {
+    it.addIndexEntries(wrapper, indexEntries)
+  }
 
-  fun doIndexing(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) =
-    fieldIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
+  fun doIndexing(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) = fieldIndexers.forEach {
+    it.addIndexEntries(wrapper, indexEntries)
+  }
 
-  fun doIndexing(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) =
-    methodIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
+  fun doIndexing(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) = methodIndexers.forEach {
+    it.addIndexEntries(wrapper, indexEntries)
+  }
 }

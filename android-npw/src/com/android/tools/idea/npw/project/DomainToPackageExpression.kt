@@ -26,12 +26,11 @@ import com.android.tools.idea.observable.expressions.Expression
  */
 class DomainToPackageExpression(private val companyDomain: StringProperty, private val applicationName: StringProperty) :
   Expression<String>(companyDomain, applicationName) {
-  override fun get(): String =
-    sequence {
-        yieldAll(companyDomain.get().split(".").asReversed())
-        yield(applicationName.get())
-      }
-      .map { NewProjectModel.nameToJavaPackage(it) }
-      .filter(String::isNotEmpty)
-      .joinToString(".")
+  override fun get(): String = sequence {
+    yieldAll(companyDomain.get().split(".").asReversed())
+    yield(applicationName.get())
+  }
+    .map { NewProjectModel.nameToJavaPackage(it) }
+    .filter(String::isNotEmpty)
+    .joinToString(".")
 }

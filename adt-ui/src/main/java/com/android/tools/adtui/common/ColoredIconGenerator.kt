@@ -65,18 +65,17 @@ object ColoredIconGenerator {
     )
 
   /** Generate an icon where all the alpha values are decreased thus giving a more faint version of the specified [icon]. */
-  fun generateDeEmphasizedIcon(icon: Icon): Icon =
-    IconLoader.createLazy {
-      IconLoader.filterIcon(
-        icon,
-        object : RgbImageFilterSupplier {
-          override fun getFilter(): RGBImageFilter =
-            object : RGBImageFilter() {
-              @Suppress("UseJBColor") override fun filterRGB(x: Int, y: Int, rgb: Int): Int = Color(rgb, true).deEmphasize().rgb
-            }
-        },
-      )
-    }
+  fun generateDeEmphasizedIcon(icon: Icon): Icon = IconLoader.createLazy {
+    IconLoader.filterIcon(
+      icon,
+      object : RgbImageFilterSupplier {
+        override fun getFilter(): RGBImageFilter =
+          object : RGBImageFilter() {
+            @Suppress("UseJBColor") override fun filterRGB(x: Int, y: Int, rgb: Int): Int = Color(rgb, true).deEmphasize().rgb
+          }
+      },
+    )
+  }
 
   /** Return a [Color] where the alpha value is decreased to make a more faint version of the given [Color]. */
   @Suppress("UseJBColor") fun Color.deEmphasize(): Color = Color(red, green, blue, (alpha + 1) / 2)

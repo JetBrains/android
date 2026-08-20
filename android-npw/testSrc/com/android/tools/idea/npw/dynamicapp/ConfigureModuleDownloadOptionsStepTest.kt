@@ -19,6 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.HelpTooltip
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.ide.browsers.WebBrowser
 import com.intellij.openapi.application.ApplicationManager
@@ -27,7 +28,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import com.intellij.ide.HelpTooltip
 import com.intellij.ui.ContextHelpLabel
 import java.nio.file.Path
 import javax.swing.JEditorPane
@@ -88,20 +88,22 @@ class ConfigureModuleDownloadOptionsStepTest {
     val launcher = TestBrowserLauncher()
     ApplicationManager.getApplication().replaceService(BrowserLauncher::class.java, launcher, projectRule.fixture.testRootDisposable)
 
-    val model = DynamicFeatureModel(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-      templateName = "Dynamic Feature",
-      templateDescription = "Creates a dynamic feature module",
-    )
+    val model =
+      DynamicFeatureModel(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+        templateName = "Dynamic Feature",
+        templateDescription = "Creates a dynamic feature module",
+      )
     val step = ConfigureModuleDownloadOptionsStep(model)
     Disposer.register(projectRule.fixture.testRootDisposable, step)
     val fakeUi = FakeUi(step.component, createFakeWindow = true, parentDisposable = projectRule.fixture.testRootDisposable)
 
-    val helpLabel = fakeUi.findAllComponents<ContextHelpLabel>().firstOrNull {
-      HelpTooltip.getTooltipFor(it)?.link != null
-    } ?: error("Fusing help label not found")
+    val helpLabel =
+      fakeUi.findAllComponents<ContextHelpLabel>().firstOrNull {
+        HelpTooltip.getTooltipFor(it)?.link != null
+      } ?: error("Fusing help label not found")
     val tooltip = HelpTooltip.getTooltipFor(helpLabel)!!
     val link = tooltip.link!!
     link.doClick()

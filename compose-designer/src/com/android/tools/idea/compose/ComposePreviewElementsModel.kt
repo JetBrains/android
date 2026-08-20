@@ -51,6 +51,7 @@ object ComposePreviewElementsModel {
   /** Instantiates all the given [ComposePreviewElement] into [ComposePreviewElementInstance]s. */
   fun instantiatedPreviewElementsFlow(
     input: Flow<FlowableCollection<PsiComposePreviewElement>>
-  ): Flow<FlowableCollection<PsiComposePreviewElementInstance>> =
-    input.map { inputPreviews -> inputPreviews.flatMap { it.resolve() }.map { applyBackground(it) } }
+  ): Flow<FlowableCollection<PsiComposePreviewElementInstance>> = input.map { inputPreviews ->
+    inputPreviews.flatMap { it.resolve() }.map { applyBackground(it) }
+  }
 }

@@ -172,28 +172,27 @@ private class ResourceClassVisitor(private val resourceClassResolver: (String) -
 
   /** Resolve all [ResourceClass.Field.UnresolvedInt] in this [ResourceClass]. */
   private fun ResourceClass.resolveUnresolvedFields(): ResourceClass {
-    val resolvedFieldsIndex =
-      declaredFieldsIndex.mapValues { (name, field) ->
-        when (field) {
-          is ResourceClass.Field.Int -> field
-          is ResourceClass.Field.UnresolvedInt -> field.resolve()
-          is ResourceClass.Field.IntArray -> {
-            ResourceClass.Field.IntArray(
-              name,
-              field.isStatic,
-              field.value
-                .map {
-                  when (it) {
-                    is ResourceClass.Field.Int -> it
-                    is ResourceClass.Field.UnresolvedInt -> it.resolve()
-                    is ResourceClass.Field.IntArray -> throw IllegalStateException("Nested arrays are not supported")
-                  }
+    val resolvedFieldsIndex = declaredFieldsIndex.mapValues { (name, field) ->
+      when (field) {
+        is ResourceClass.Field.Int -> field
+        is ResourceClass.Field.UnresolvedInt -> field.resolve()
+        is ResourceClass.Field.IntArray -> {
+          ResourceClass.Field.IntArray(
+            name,
+            field.isStatic,
+            field.value
+              .map {
+                when (it) {
+                  is ResourceClass.Field.Int -> it
+                  is ResourceClass.Field.UnresolvedInt -> it.resolve()
+                  is ResourceClass.Field.IntArray -> throw IllegalStateException("Nested arrays are not supported")
                 }
-                .toList(),
-            )
-          }
+              }
+              .toList(),
+          )
         }
       }
+    }
     return copy(declaredFieldsIndex = resolvedFieldsIndex, hasUnresolvedFields = false)
   }
 

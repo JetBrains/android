@@ -193,11 +193,10 @@ class WizardFlowTest {
     assertThat(SettingsSyncSettings.getInstance().syncEnabled).isFalse()
 
     // Action
-    val pushResult: PushResult =
-      communicator.awaitForPush {
-        composeTestRule.waitUntil { composeTestRule.onNodeWithText("Finish").isDisplayed() }
-        composeTestRule.onNodeWithText("Finish").assertIsDisplayed().performClick()
-      }
+    val pushResult: PushResult = communicator.awaitForPush {
+      composeTestRule.waitUntil { composeTestRule.onNodeWithText("Finish").isDisplayed() }
+      composeTestRule.onNodeWithText("Finish").assertIsDisplayed().performClick()
+    }
 
     // Verify
     // 1. check locally stored data
@@ -241,11 +240,10 @@ class WizardFlowTest {
 
     // Action
     composeTestRule.onNodeWithText("Plugins").assertIsDisplayed().performClick()
-    val pushResult: PushResult =
-      communicator.awaitForPush {
-        composeTestRule.waitUntil { composeTestRule.onNodeWithText("Finish").isDisplayed() }
-        composeTestRule.onNodeWithText("Finish").assertIsDisplayed().performClick()
-      }
+    val pushResult: PushResult = communicator.awaitForPush {
+      composeTestRule.waitUntil { composeTestRule.onNodeWithText("Finish").isDisplayed() }
+      composeTestRule.onNodeWithText("Finish").assertIsDisplayed().performClick()
+    }
 
     // Verify
     // 1. check locally stored data

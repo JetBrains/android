@@ -101,17 +101,16 @@ class ConsumerRulesInspection : LocalInspectionTool() {
           val rule = flag.parentOfType<ProguardR8Rule>()
           val arguments = rule?.childrenOfType<ProguardR8FlagArgument>()
           val argumentValues = arguments?.flatMap { it.childrenOfType<ProguardR8File>() } ?: emptyList()
-          val bannedArgumentValues =
-            argumentValues.filter { proguardR8FileElement ->
-              val argumentValue = proguardR8FileElement.text
-              if (BANNED_KEEP_ATTRIBUTES_VALUES.contains(argumentValue)) {
-                // Fast check
-                true
-              } else {
-                val regex = argumentValue.wildCardAsRegexOrNull() // Check for wildcard matches.
-                regex?.matches(argumentValue) ?: false
-              }
+          val bannedArgumentValues = argumentValues.filter { proguardR8FileElement ->
+            val argumentValue = proguardR8FileElement.text
+            if (BANNED_KEEP_ATTRIBUTES_VALUES.contains(argumentValue)) {
+              // Fast check
+              true
+            } else {
+              val regex = argumentValue.wildCardAsRegexOrNull() // Check for wildcard matches.
+              regex?.matches(argumentValue) ?: false
             }
+          }
           if (bannedArgumentValues.isNotEmpty()) {
             bannedArgumentValues.forEach { argument ->
               holder.registerProblem(

@@ -245,8 +245,9 @@ internal constructor(
         .groupBy { it.second }
         .mapValues { it.value.map { it.first } }
 
-    val futures: List<ListenableFuture<GradleInvocationResult>> =
-      request.map { executeTasks(it, createOutputBuildAction(modulesByRootProject[it.rootProjectPath.toPath()].orEmpty())) }
+    val futures: List<ListenableFuture<GradleInvocationResult>> = request.map {
+      executeTasks(it, createOutputBuildAction(modulesByRootProject[it.rootProjectPath.toPath()].orEmpty()))
+    }
     val resultFuture: ListenableFuture<GradleMultiInvocationResult> = combineGradleInvocationResults(futures)
     return Futures.transform(resultFuture, { AssembleInvocationResult(it!!, buildMode) }, directExecutor())
   }

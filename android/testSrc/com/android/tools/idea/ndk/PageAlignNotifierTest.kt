@@ -750,12 +750,11 @@ class PageAlignNotifierTest {
     vararg apks: Apk,
   ): TestablePageAlignNotifier {
 
-    val apkFiles =
-      apks.mapIndexed { apkIndex, apk ->
-        val builder = ZipBuilder()
-        apk.sos.forEachIndexed { index, (so, zipLayout) -> builder.addFile("elf-${index+1}.so", so, zipLayout) }
-        ApkFileUnit("module.name-${apkIndex+1}", builder.toByteArray().toFile())
-      }
+    val apkFiles = apks.mapIndexed { apkIndex, apk ->
+      val builder = ZipBuilder()
+      apk.sos.forEachIndexed { index, (so, zipLayout) -> builder.addFile("elf-${index+1}.so", so, zipLayout) }
+      ApkFileUnit("module.name-${apkIndex+1}", builder.toByteArray().toFile())
+    }
     val apkInfo = ApkInfo(apkFiles, "application.id")
 
     val service = Mockito.mock(ServerFlagService::class.java)

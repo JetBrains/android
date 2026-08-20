@@ -53,17 +53,16 @@ class ParametrizedComposePreviewElementInstanceTest {
         "" to "$basePreviewElementName ($parameterName 2)",
         null to "$basePreviewElementName ($parameterName 3)",
       )
-    val previews =
-      parameterDisplayNames.mapIndexed { index, (displayName, _) ->
-        ParametrizedComposePreviewElementInstance(
-          basePreviewElement = previewInstance(name = basePreviewElementName),
-          parameterName = parameterName,
-          providerClassFqn = "ProviderClass",
-          index = index,
-          maxIndex = parameterDisplayNames.size,
-          displayName = displayName,
-        )
-      }
+    val previews = parameterDisplayNames.mapIndexed { index, (displayName, _) ->
+      ParametrizedComposePreviewElementInstance(
+        basePreviewElement = previewInstance(name = basePreviewElementName),
+        parameterName = parameterName,
+        providerClassFqn = "ProviderClass",
+        index = index,
+        maxIndex = parameterDisplayNames.size,
+        displayName = displayName,
+      )
+    }
 
     previews.forEach {
       val expectedDisplayName = parameterDisplayNames[it.index].second
@@ -82,17 +81,16 @@ class ParametrizedComposePreviewElementInstanceTest {
         "" to "$basePreviewElementName - $parameterName 2",
         null to "$basePreviewElementName - $parameterName 3",
       )
-    val previews =
-      parameterDisplayNames.mapIndexed { index, (displayName, _) ->
-        ParametrizedComposePreviewElementInstance(
-          basePreviewElement = previewInstance(name = basePreviewElementName),
-          parameterName = parameterName,
-          providerClassFqn = "ProviderClass",
-          index = index,
-          maxIndex = parameterDisplayNames.size,
-          displayName = displayName,
-        )
-      }
+    val previews = parameterDisplayNames.mapIndexed { index, (displayName, _) ->
+      ParametrizedComposePreviewElementInstance(
+        basePreviewElement = previewInstance(name = basePreviewElementName),
+        parameterName = parameterName,
+        providerClassFqn = "ProviderClass",
+        index = index,
+        maxIndex = parameterDisplayNames.size,
+        displayName = displayName,
+      )
+    }
 
     previews.forEach {
       val expectedDisplayName = parameterDisplayNames[it.index].second

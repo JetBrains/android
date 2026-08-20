@@ -33,15 +33,15 @@ internal class UiSettingsHeader(private val model: UiSettingsModel) : BorderLayo
     background = JBUI.CurrentTheme.ComplexPopup.HEADER_BACKGROUND
     add(
       panel {
-          row(title(TITLE)) {
-            this
-            link(RESET_TITLE) { model.resetAction() }
-              .accessibleName(RESET_TITLE)
-              .apply { component.name = RESET_TITLE }
-              .visibleIf(model.differentFromDefault)
-              .align(AlignX.RIGHT)
-          }
+        row(title(TITLE)) {
+          this
+          link(RESET_TITLE) { model.resetAction() }
+            .accessibleName(RESET_TITLE)
+            .apply { component.name = RESET_TITLE }
+            .visibleIf(model.differentFromDefault)
+            .align(AlignX.RIGHT)
         }
+      }
         .apply { isOpaque = false }
     )
   }

@@ -87,13 +87,12 @@ class InsightToolbarPanelTest {
     submittedFeedback = mutableListOf()
     copyProvider = FakeCopyProvider()
     currentInsightFlow.update { LoadingState.Ready(null) }
-    testEvent =
-      TestActionEvent.createTestEvent {
-        when {
-          PlatformDataKeys.COPY_PROVIDER.`is`(it) -> copyProvider
-          else -> null
-        }
+    testEvent = TestActionEvent.createTestEvent {
+      when {
+        PlatformDataKeys.COPY_PROVIDER.`is`(it) -> copyProvider
+        else -> null
       }
+    }
   }
 
   @Test

@@ -42,17 +42,17 @@ fun trackDeprecation(
   userClickedUpdate: Boolean? = null,
 ) {
   playPolicyInsightsUsageEvent {
-      type = PlayPolicyInsightsUsageEventType.SERVICE_DEPRECATION
-      serviceDeprecationInfo = serviceDeprecationInfo {
-        devServiceDeprecationInfo =
-          DevServiceDeprecationInfoBuilder(
-            status,
-            DevServiceDeprecationInfo.DeliveryType.PANEL,
-            userNotified,
-            userClickedMoreInfo,
-            userClickedUpdate,
-          )
-      }
+    type = PlayPolicyInsightsUsageEventType.SERVICE_DEPRECATION
+    serviceDeprecationInfo = serviceDeprecationInfo {
+      devServiceDeprecationInfo =
+        DevServiceDeprecationInfoBuilder(
+          status,
+          DevServiceDeprecationInfo.DeliveryType.PANEL,
+          userNotified,
+          userClickedMoreInfo,
+          userClickedUpdate,
+        )
     }
+  }
     .track()
 }

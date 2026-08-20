@@ -436,24 +436,23 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
 
   private fun changeDeltaInstanceInformation(instanceObject: InstanceObject, isAllocation: Boolean, op: SetOperation): DeltaChange =
     synchronized(this) {
-      val change =
-        state.let { s ->
-          when {
-            s is State.Partitioned -> {
-              val classifierSet = s.classifier.getClassifierSet(instanceObject, op == SetOperation.ADD)
-              classifierSet?.changeDeltaInstanceInformation(instanceObject, isAllocation, op) ?: DeltaChange.UNCHANGED
-            }
-            s is State.Coalesced &&
-              (op == SetOperation.ADD || !instanceObject.hasTimeData()) &&
-              // `contains` is more expensive, so deferred to after above test fails.
-              // This line is run often enough to make a difference.
-              op == SetOperation.ADD != s.deltaInstances.contains(instanceObject) -> {
-              op.invoke(s.deltaInstances, instanceObject)
-              DeltaChange.INSTANCE_ADDED_OR_REMOVED
-            }
-            else -> DeltaChange.INSTANCE_MODIFIED
+      val change = state.let { s ->
+        when {
+          s is State.Partitioned -> {
+            val classifierSet = s.classifier.getClassifierSet(instanceObject, op == SetOperation.ADD)
+            classifierSet?.changeDeltaInstanceInformation(instanceObject, isAllocation, op) ?: DeltaChange.UNCHANGED
           }
+          s is State.Coalesced &&
+            (op == SetOperation.ADD || !instanceObject.hasTimeData()) &&
+            // `contains` is more expensive, so deferred to after above test fails.
+            // This line is run often enough to make a difference.
+            op == SetOperation.ADD != s.deltaInstances.contains(instanceObject) -> {
+            op.invoke(s.deltaInstances, instanceObject)
+            DeltaChange.INSTANCE_ADDED_OR_REMOVED
+          }
+          else -> DeltaChange.INSTANCE_MODIFIED
         }
+      }
 
       if (change.countsChanged) {
         if (isAllocation) {
@@ -505,14 +504,13 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   private fun getStreamOf(
     condition: (ClassifierSet) -> Boolean,
     extract: (State.Coalesced) -> Stream<InstanceObject>,
-  ): Stream<InstanceObject> =
-    state.let { s ->
-      when {
-        !condition(this) -> Stream.empty()
-        s is State.Coalesced -> extract(s)
-        else -> (s as State.Partitioned).classifier.classifierSetSequence.asStream().flatMap { it.getStreamOf(condition, extract) }
-      }
+  ): Stream<InstanceObject> = state.let { s ->
+    when {
+      !condition(this) -> Stream.empty()
+      s is State.Coalesced -> extract(s)
+      else -> (s as State.Partitioned).classifier.classifierSetSequence.asStream().flatMap { it.getStreamOf(condition, extract) }
     }
+  }
 
   fun hasStackInfo(): Boolean = instancesWithStackInfoCount > 0
 

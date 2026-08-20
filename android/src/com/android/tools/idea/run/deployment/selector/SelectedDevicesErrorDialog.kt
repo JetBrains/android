@@ -71,13 +71,12 @@ internal constructor(private val project: Project, private val devices: Iterable
     }
   }
 
-  override fun createCenterPanel(): JComponent =
-    panel {
-        row {
-          val icon = if (anyDeviceHasError) StudioIcons.Common.ERROR else StudioIcons.Common.WARNING
-          icon(IconUtil.scale(icon, null, 2.5f))
-          panel { devices.forEach { row { label("<html>${it.launchCompatibility.reason} on device ${it.name}</html>") } } }
-        }
-      }
-      .withBorder(JBEmptyBorder(16))
+  override fun createCenterPanel(): JComponent = panel {
+    row {
+      val icon = if (anyDeviceHasError) StudioIcons.Common.ERROR else StudioIcons.Common.WARNING
+      icon(IconUtil.scale(icon, null, 2.5f))
+      panel { devices.forEach { row { label("<html>${it.launchCompatibility.reason} on device ${it.name}</html>") } } }
+    }
+  }
+    .withBorder(JBEmptyBorder(16))
 }

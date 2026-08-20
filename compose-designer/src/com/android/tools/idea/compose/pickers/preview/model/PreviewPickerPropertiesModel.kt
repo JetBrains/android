@@ -144,23 +144,22 @@ private constructor(
        * This either makes the existing default values of the @Preview Class presentable, or changes the value based on what the value
        * actually represents on the preview.
        */
-      val defaultValues =
-        libraryDefaultValues.mapValues { entry ->
-          when (entry.key) {
-            PARAMETER_API_LEVEL -> entry.value?.apiToReadable() ?: defaultApiLevel
-            PARAMETER_WIDTH,
-            PARAMETER_WIDTH_DP,
-            PARAMETER_HEIGHT,
-            PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
-            PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
-            PARAMETER_UI_MODE -> UiMode.entries.firstOrNull { it.resolvedValue == entry.value }?.display ?: UiMode.UNDEFINED.display
-            PARAMETER_DEVICE -> Device.entries.firstOrNull { it.resolvedValue == entry.value }?.display ?: Device.DEFAULT.display
-            PARAMETER_LOCALE -> entry.value?.takeIf { it.isNotEmpty() } ?: "Default (en-US)"
-            PARAMETER_WALLPAPER -> Wallpaper.entries.firstOrNull { it.resolvedValue == entry.value }?.display ?: Wallpaper.NONE.display
-            PARAMETER_FONT_SCALE -> entry.value?.removeSuffix("f")
-            else -> entry.value
-          }
+      val defaultValues = libraryDefaultValues.mapValues { entry ->
+        when (entry.key) {
+          PARAMETER_API_LEVEL -> entry.value?.apiToReadable() ?: defaultApiLevel
+          PARAMETER_WIDTH,
+          PARAMETER_WIDTH_DP,
+          PARAMETER_HEIGHT,
+          PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
+          PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
+          PARAMETER_UI_MODE -> UiMode.entries.firstOrNull { it.resolvedValue == entry.value }?.display ?: UiMode.UNDEFINED.display
+          PARAMETER_DEVICE -> Device.entries.firstOrNull { it.resolvedValue == entry.value }?.display ?: Device.DEFAULT.display
+          PARAMETER_LOCALE -> entry.value?.takeIf { it.isNotEmpty() } ?: "Default (en-US)"
+          PARAMETER_WALLPAPER -> Wallpaper.entries.firstOrNull { it.resolvedValue == entry.value }?.display ?: Wallpaper.NONE.display
+          PARAMETER_FONT_SCALE -> entry.value?.removeSuffix("f")
+          else -> entry.value
         }
+      }
 
       if (annotationEntry == null) {
         Logger.getInstance(PsiCallPropertiesModel::class.java).error("Non-null value is expected for annotation entry")

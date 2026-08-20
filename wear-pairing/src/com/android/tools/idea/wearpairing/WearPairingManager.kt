@@ -237,8 +237,9 @@ class WearPairingManager(
     pairingStatusListeners.forEach { it.pairingStatusChanged(phoneWearPair) }
   }
 
-  fun getPairsForDevice(deviceID: String): List<PhoneWearPair> =
-    pairedDevicesList.filter { it.phone.deviceID == deviceID || it.wear.deviceID == deviceID }
+  fun getPairsForDevice(deviceID: String): List<PhoneWearPair> = pairedDevicesList.filter {
+    it.phone.deviceID == deviceID || it.wear.deviceID == deviceID
+  }
 
   suspend fun createPairedDeviceBridge(
     phone: PairingDevice,

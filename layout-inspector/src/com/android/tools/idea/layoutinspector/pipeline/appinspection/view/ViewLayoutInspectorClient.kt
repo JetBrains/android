@@ -233,8 +233,9 @@ class ViewLayoutInspectorClient(
   suspend fun startFetching(continuous: Boolean) {
     isFetchingContinuously = continuous
     launchMonitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
-    val response =
-      messenger.sendCommand { startFetchCommand = StartFetchCommand.newBuilder().apply { this.continuous = continuous }.build() }
+    val response = messenger.sendCommand {
+      startFetchCommand = StartFetchCommand.newBuilder().apply { this.continuous = continuous }.build()
+    }
     if (!response.startFetchResponse.error.isNullOrEmpty()) {
       throw ConnectionFailedException(response.startFetchResponse.error, response.startFetchResponse.code.toAttachErrorCode())
     }
@@ -269,16 +270,15 @@ class ViewLayoutInspectorClient(
   }
 
   suspend fun getProperties(rootViewId: Long, viewId: Long): GetPropertiesResponse {
-    val response =
-      messenger.sendCommand {
-        getPropertiesCommand =
-          GetPropertiesCommand.newBuilder()
-            .apply {
-              this.rootViewId = rootViewId
-              this.viewId = viewId
-            }
-            .build()
-      }
+    val response = messenger.sendCommand {
+      getPropertiesCommand =
+        GetPropertiesCommand.newBuilder()
+          .apply {
+            this.rootViewId = rootViewId
+            this.viewId = viewId
+          }
+          .build()
+    }
     return response.getPropertiesResponse
   }
 
@@ -414,8 +414,9 @@ class ViewLayoutInspectorClient(
   }
 
   private suspend fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata, screenshotType: Screenshot.Type) {
-    val response =
-      messenger.sendCommand { captureSnapshotCommand = CaptureSnapshotCommand.newBuilder().setScreenshotType(screenshotType).build() }
+    val response = messenger.sendCommand {
+      captureSnapshotCommand = CaptureSnapshotCommand.newBuilder().setScreenshotType(screenshotType).build()
+    }
 
     val snapshotResponse = response.captureSnapshotResponse ?: throw Exception("Failed to receive snapshot from agent.")
 

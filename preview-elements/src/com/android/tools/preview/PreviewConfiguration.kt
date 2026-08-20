@@ -130,9 +130,9 @@ fun ConfigurablePreviewElement<*>.applyTo(
 }
 
 /**
- * If specified in the [ConfigurablePreviewElement], this method will return the `widthDp` and `heightDp` dimensions as a [Dimension] as long as
- * the device frame is disabled (i.e. `showDecorations` is false). If only one of the dimensions (width or height) is specified, the unspecified
- * dimension will be returned as [UNDEFINED_DIMENSION] in the [Dimension] object.
+ * If specified in the [ConfigurablePreviewElement], this method will return the `widthDp` and `heightDp` dimensions as a [Dimension] as
+ * long as the device frame is disabled (i.e. `showDecorations` is false). If only one of the dimensions (width or height) is specified, the
+ * unspecified dimension will be returned as [UNDEFINED_DIMENSION] in the [Dimension] object.
  */
 @AndroidDpCoordinate
 private fun ConfigurablePreviewElement<*>.getCustomDeviceSize(): Dimension? =
@@ -231,9 +231,9 @@ private fun PreviewConfiguration.applyTo(
 }
 
 /**
- * Resolves a custom dimension (width or height) to pixels.
- * If the custom dimension is [UNDEFINED_DIMENSION], it falls back to the corresponding dimension of the [device] (resolved using the current orientation).
- * Otherwise, it converts the custom dimension from DP to pixels.
+ * Resolves a custom dimension (width or height) to pixels. If the custom dimension is [UNDEFINED_DIMENSION], it falls back to the
+ * corresponding dimension of the [device] (resolved using the current orientation). Otherwise, it converts the custom dimension from DP to
+ * pixels.
  */
 private fun getCustomDimensionInPx(
   customDim: Int,
@@ -247,7 +247,6 @@ private fun getCustomDimensionInPx(
   } else {
     ConversionUtil.dpToPx(customDim, renderConfiguration.density.dpiValue)
   }
-
 
 @TestOnly
 fun PreviewConfiguration.applyConfigurationForTest(

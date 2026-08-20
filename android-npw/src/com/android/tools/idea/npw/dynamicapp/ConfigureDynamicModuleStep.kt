@@ -46,21 +46,20 @@ class ConfigureDynamicModuleStep(model: DynamicFeatureModel, basePackage: String
   ) {
   private val baseApplication: JComboBox<Module> = ModuleComboProvider().createComponent()
 
-  override fun createMainPanel(): DialogPanel =
-    panel {
-        row("Base Application Module") { cell(baseApplication).align(AlignX.FILL) }
+  override fun createMainPanel(): DialogPanel = panel {
+    row("Base Application Module") { cell(baseApplication).align(AlignX.FILL) }
 
-        row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
+    row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
-        row("Package name") { cell(packageName).align(AlignX.FILL) }
+    row("Package name") { cell(packageName).align(AlignX.FILL) }
 
-        row("Language") { cell(languageCombo).align(AlignX.FILL) }
+    row("Language") { cell(languageCombo).align(AlignX.FILL) }
 
-        row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
+    row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-      }
-      .withBorder(empty(6))
+    generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+  }
+    .withBorder(empty(6))
 
   init {
     AndroidProjectInfo.getInstance(model.project).getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP).forEach { module: Module

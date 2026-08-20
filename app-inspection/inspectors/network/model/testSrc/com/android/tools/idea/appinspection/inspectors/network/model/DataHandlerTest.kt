@@ -394,14 +394,12 @@ private inline val Int.secondsInMicros
 
 private fun String.toByteString() = ByteString.copyFromUtf8(this)
 
-private fun DataHandler.handleHttpConnectionEvent(vararg events: Event) =
-  events.forEach {
-    val result = handleHttpConnectionEvent(it)
-    assertThat(result.updateTimeline).isTrue()
-  }
+private fun DataHandler.handleHttpConnectionEvent(vararg events: Event) = events.forEach {
+  val result = handleHttpConnectionEvent(it)
+  assertThat(result.updateTimeline).isTrue()
+}
 
-private fun DataHandler.handleGrpcEvent(vararg events: Event) =
-  events.forEach {
-    val result = handleGrpcEvent(it)
-    assertThat(result.updateTimeline).isTrue()
-  }
+private fun DataHandler.handleGrpcEvent(vararg events: Event) = events.forEach {
+  val result = handleGrpcEvent(it)
+  assertThat(result.updateTimeline).isTrue()
+}

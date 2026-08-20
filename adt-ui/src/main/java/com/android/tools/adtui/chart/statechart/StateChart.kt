@@ -143,58 +143,57 @@ class StateChart<T : Any>(
     val gap = rectHeight * heightGap
     val barHeight = rectHeight - gap
 
-    rectangleCache =
-      series.mapIndexed { seriesIndex, data ->
-        val min = data.xRange.min
-        val max = data.xRange.max
-        val invRange = 1.0 / (max - min)
-        val startHeight = 1.0 - rectHeight * (seriesIndex + 1)
-        val barY = startHeight + gap * 0.5f
-        val seriesDataList = data.series
-        val rectangles = mutableListOf<Rectangle2D.Float>()
-        val rectangleValues = mutableListOf<T>()
+    rectangleCache = series.mapIndexed { seriesIndex, data ->
+      val min = data.xRange.min
+      val max = data.xRange.max
+      val invRange = 1.0 / (max - min)
+      val startHeight = 1.0 - rectHeight * (seriesIndex + 1)
+      val barY = startHeight + gap * 0.5f
+      val seriesDataList = data.series
+      val rectangles = mutableListOf<Rectangle2D.Float>()
+      val rectangleValues = mutableListOf<T>()
 
-        fun addRectangleDelta(value: T, previousX: Double, currentX: Double) {
-          // Because we start our activity line from the bottom and grow up we offset the height
-          // from the bottom of the component
-          // instead of the top by subtracting our height from 1.
-          rectangles.add(
-            Rectangle2D.Float(
-              ((previousX - min) * invRange).toFloat(),
-              barY.toFloat(),
-              ((currentX - previousX) * invRange).toFloat(),
-              barHeight,
-            )
+      fun addRectangleDelta(value: T, previousX: Double, currentX: Double) {
+        // Because we start our activity line from the bottom and grow up we offset the height
+        // from the bottom of the component
+        // instead of the top by subtracting our height from 1.
+        rectangles.add(
+          Rectangle2D.Float(
+            ((previousX - min) * invRange).toFloat(),
+            barY.toFloat(),
+            ((currentX - previousX) * invRange).toFloat(),
+            barHeight,
           )
-          rectangleValues.add(value)
-        }
-
-        if (seriesDataList.isNotEmpty()) {
-          // Construct rectangles.
-          var previousX = seriesDataList[0].x.toDouble()
-          var previousValue = seriesDataList[0].value
-          for ((x, value) in seriesDataList.subList(1, seriesDataList.size)) {
-            if (value != previousValue) { // Ignore repeated values.
-              // Don't draw if this block doesn't intersect with [min..max]
-              if (x >= min) {
-                // Draw the previous block if previous value is non-null
-                previousValue?.let { addRectangleDelta(it, previousX, x.toDouble()) }
-              }
-
-              // Start a new block.
-              previousValue = value
-              previousX = x.toDouble()
-              if (previousX >= max) break // Drawn past max range, stop.
-            }
-          }
-          // The last data point continues till max
-          if (previousX < max && previousValue != null) {
-            addRectangleDelta(previousValue, max(min, previousX), max)
-          }
-        }
-
-        rectangles to rectangleValues
+        )
+        rectangleValues.add(value)
       }
+
+      if (seriesDataList.isNotEmpty()) {
+        // Construct rectangles.
+        var previousX = seriesDataList[0].x.toDouble()
+        var previousValue = seriesDataList[0].value
+        for ((x, value) in seriesDataList.subList(1, seriesDataList.size)) {
+          if (value != previousValue) { // Ignore repeated values.
+            // Don't draw if this block doesn't intersect with [min..max]
+            if (x >= min) {
+              // Draw the previous block if previous value is non-null
+              previousValue?.let { addRectangleDelta(it, previousX, x.toDouble()) }
+            }
+
+            // Start a new block.
+            previousValue = value
+            previousX = x.toDouble()
+            if (previousX >= max) break // Drawn past max range, stop.
+          }
+        }
+        // The last data point continues till max
+        if (previousX < max && previousValue != null) {
+          addRectangleDelta(previousValue, max(min, previousX), max)
+        }
+      }
+
+      rectangles to rectangleValues
+    }
   }
 
   override fun draw(g2d: Graphics2D, dim: Dimension) {

@@ -125,7 +125,8 @@ class AppInsightsCacheTest {
           0 ->
             issue.copy(
               issueDetails = issue.issueDetails.copy(eventsCount = 4, fatality = FailureType.NON_FATAL),
-              sampleEvent = issue.sampleEvent.copy(eventData = issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(31)))),
+              sampleEvent =
+                issue.sampleEvent.copy(eventData = issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(31)))),
             )
           1 ->
             issue.copy(
@@ -142,12 +143,14 @@ class AppInsightsCacheTest {
             issue.copy(
               issueDetails =
                 issue.issueDetails.copy(eventsCount = 44, fatality = FailureType.NON_FATAL, signals = setOf(SignalType.SIGNAL_REGRESSED)),
-              sampleEvent = issue.sampleEvent.copy(eventData = issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(14)))),
+              sampleEvent =
+                issue.sampleEvent.copy(eventData = issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(14)))),
             )
           4 ->
             issue.copy(
               issueDetails = issue.issueDetails.copy(eventsCount = 67, fatality = FailureType.FATAL),
-              sampleEvent = issue.sampleEvent.copy(eventData = issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(89)))),
+              sampleEvent =
+                issue.sampleEvent.copy(eventData = issue.sampleEvent.eventData.copy(eventTime = now.minus(Duration.ofDays(89)))),
             )
           else -> throw RuntimeException()
         }

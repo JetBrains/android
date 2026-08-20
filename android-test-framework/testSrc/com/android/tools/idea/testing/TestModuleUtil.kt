@@ -44,24 +44,22 @@ fun Project.findModule(name: String): Module =
 /**
  * Attempts to find a module by its full name.
  *
- * This method first tries to find a module using [ModuleManager.findModuleByName]. If that fails,
- * it iterates through all modules and returns the first one whose name exactly matches the given [name].
+ * This method first tries to find a module using [ModuleManager.findModuleByName]. If that fails, it iterates through all modules and
+ * returns the first one whose name exactly matches the given [name].
  *
  * @param name The full name of the module to find.
  * @return The [Module] if found, or `null` otherwise.
  */
 fun Project.findModuleByFullName(name: String): Module =
   maybeFindModuleByFullName(name)
-  ?: error(
-    "Unable to find module with name '$name', existing modules are ${ModuleManager.getInstance(this).modules.joinToString { it.name }}"
-  )
+    ?: error(
+      "Unable to find module with name '$name', existing modules are ${ModuleManager.getInstance(this).modules.joinToString { it.name }}"
+    )
 
 private fun Project.maybeFindModuleByFullName(name: String): Module? = runReadAction {
-
   val moduleManager = ModuleManager.getInstance(this)
-    moduleManager.findModuleByName(name) ?: moduleManager.modules.firstOrNull { module -> module.name == name }
+  moduleManager.findModuleByName(name) ?: moduleManager.modules.firstOrNull { module -> module.name == name }
 }
-
 
 fun Project.hasModule(name: String): Boolean = maybeFindModule(name) != null
 
@@ -73,6 +71,5 @@ private fun Project.maybeFindModule(name: String): Module? = runReadAction {
     moduleManager.findModuleByName(name)
   } else {
     moduleManager.findModuleByName("${this.name}.$name")
-  }
-    ?: moduleManager.modules.firstOrNull { module -> module.name.endsWith(".$name") }
+  } ?: moduleManager.modules.firstOrNull { module -> module.name.endsWith(".$name") }
 }

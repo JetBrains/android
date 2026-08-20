@@ -114,22 +114,21 @@ class MaterialSymbolsUpdaterTest {
       val downloader = Mockito.mock(FileDownloader::class.java)
       whenever(downloader.download(Mockito.any())).thenAnswer { downloadInvocation ->
         val downloadFolder = downloadInvocation.arguments[0] as File
-        val results =
-          descriptions.map { desc ->
-            val matchingDownload = downloads.find { it.url == desc.downloadUrl }
-            val content = matchingDownload?.content ?: NEW_FILE_CONTENT
-            val fileName = matchingDownload?.downloadPath ?: desc.defaultFileName
-            val downloadedFile =
-              downloadFolder
-                .toPath()
-                .resolve(fileName)
-                .apply {
-                  parent.createDirectories()
-                  writeText(content)
-                }
-                .toFile()
-            Pair<File, DownloadableFileDescription>(downloadedFile, desc)
-          }
+        val results = descriptions.map { desc ->
+          val matchingDownload = downloads.find { it.url == desc.downloadUrl }
+          val content = matchingDownload?.content ?: NEW_FILE_CONTENT
+          val fileName = matchingDownload?.downloadPath ?: desc.defaultFileName
+          val downloadedFile =
+            downloadFolder
+              .toPath()
+              .resolve(fileName)
+              .apply {
+                parent.createDirectories()
+                writeText(content)
+              }
+              .toFile()
+          Pair<File, DownloadableFileDescription>(downloadedFile, desc)
+        }
         return@thenAnswer results
       }
       return@thenAnswer downloader

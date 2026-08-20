@@ -53,10 +53,9 @@ class DataBindingIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val errors = findDataBindingErrors(issueData.error) ?: return null
 
-    val buildIssues =
-      errors.mapIndexedNotNull { index, errorJson ->
-        convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX), issueData.projectRoot.toCanonicalPath())
-      }
+    val buildIssues = errors.mapIndexedNotNull { index, errorJson ->
+      convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX), issueData.projectRoot.toCanonicalPath())
+    }
 
     if (buildIssues.isEmpty()) return null
 

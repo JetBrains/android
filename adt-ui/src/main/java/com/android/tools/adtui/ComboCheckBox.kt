@@ -60,21 +60,20 @@ object ComboCheckBox {
           onOk(selectionState.toList())
         }
       }
-    val checkBoxes =
-      options.map {
-        val title = abbreviate(it)
-        JBCheckBox(title).apply {
-          putClientProperty(BasicHTML.documentBaseKey, null)
-          putClientProperty("html.disable", true)
-          isSelected = it in initialSelection
-          text = title
-          toolTipText = elaborate(it).takeIf { it.isNotEmpty() }?.let { StringUtil.escapeXmlEntities(it) }
-          addItemListener { _ ->
-            if (isSelected) selectionState.add(it) else selectionState.remove(it)
-            okButton.isEnabled = selectionState != initialSelection
-          }
+    val checkBoxes = options.map {
+      val title = abbreviate(it)
+      JBCheckBox(title).apply {
+        putClientProperty(BasicHTML.documentBaseKey, null)
+        putClientProperty("html.disable", true)
+        isSelected = it in initialSelection
+        text = title
+        toolTipText = elaborate(it).takeIf { it.isNotEmpty() }?.let { StringUtil.escapeXmlEntities(it) }
+        addItemListener { _ ->
+          if (isSelected) selectionState.add(it) else selectionState.remove(it)
+          okButton.isEnabled = selectionState != initialSelection
         }
       }
+    }
     val checkBoxList =
       JPanel().apply {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)

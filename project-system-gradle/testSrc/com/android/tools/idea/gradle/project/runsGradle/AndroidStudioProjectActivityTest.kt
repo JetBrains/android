@@ -44,7 +44,9 @@ class AndroidStudioProjectActivityTest {
     jdkIntegrationTest.run(
       project = JdkTestProject.SimpleApplication(gradleDaemonToolchain = GradleDaemonToolchain("invalid")),
       environment =
-        JdkIntegrationTest.TestEnvironment(studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)),
+        JdkIntegrationTest.TestEnvironment(
+          studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)
+        ),
     ) {
       sync(
         assertOnFailure = {
@@ -59,7 +61,9 @@ class AndroidStudioProjectActivityTest {
     jdkIntegrationTest.run(
       project = JdkTestProject.SimpleApplication(ideaGradleJdk = "invalid"),
       environment =
-        JdkIntegrationTest.TestEnvironment(studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)),
+        JdkIntegrationTest.TestEnvironment(
+          studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)
+        ),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = JdkConstants.JDK_EMBEDDED,

@@ -134,13 +134,12 @@ class ConfigureTemplateParametersStep(
 
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
 
-  private val mainPanel =
-    panel {
-        row { cell(templateTitleLabel).align(Align.FILL).resizableColumn() }
-        row { cell(templateDescriptionLabel).align(Align.FILL).resizableColumn() }
-        row { cell(parametersPanel).align(Align.FILL).resizableColumn() }
-      }
-      .apply { border = JBUI.Borders.emptyTop(32) }
+  private val mainPanel = panel {
+    row { cell(templateTitleLabel).align(Align.FILL).resizableColumn() }
+    row { cell(templateDescriptionLabel).align(Align.FILL).resizableColumn() }
+    row { cell(parametersPanel).align(Align.FILL).resizableColumn() }
+  }
+    .apply { border = JBUI.Borders.emptyTop(32) }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, mainPanel)
   private val rootPanel: JScrollPane = wrapWithVScroll(validatorPanel)

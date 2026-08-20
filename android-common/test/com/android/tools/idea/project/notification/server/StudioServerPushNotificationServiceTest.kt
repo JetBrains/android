@@ -70,18 +70,20 @@ class StudioServerPushNotificationServiceTest : LightIdeaTestCase() {
   override fun setUp() {
     super.setUp()
 
-    fakeBridge = object : ServerPushNotificationBridge {
-      override fun checkRequirement(requirement: Requirement): Boolean? {
-        checkedRequirements.add(requirement)
-        return true
+    fakeBridge =
+      object : ServerPushNotificationBridge {
+        override fun checkRequirement(requirement: Requirement): Boolean? {
+          checkedRequirements.add(requirement)
+          return true
+        }
+
+        override fun showNotification(notification: StudioPushNotification, listener: ServerPushNotificationListener): Boolean {
+          shownNotifications.add(notification)
+          val id = if (notification.hasGotItTooltipSpec()) notification.gotItTooltipSpec.id else notification.notificationSpec.id
+          listener.onNotificationShown(id)
+          return true
+        }
       }
-      override fun showNotification(notification: StudioPushNotification, listener: ServerPushNotificationListener): Boolean {
-        shownNotifications.add(notification)
-        val id = if (notification.hasGotItTooltipSpec()) notification.gotItTooltipSpec.id else notification.notificationSpec.id
-        listener.onNotificationShown(id)
-        return true
-      }
-    }
 
     ApplicationManager.getApplication().apply {
       replaceService(ServerFlagService::class.java, serverFlagService, testRootDisposable)
@@ -112,16 +114,19 @@ class StudioServerPushNotificationServiceTest : LightIdeaTestCase() {
 
   @Test
   fun testCanShowNotification_requirementNotFulfilled_returnsFalse() = runTest {
-    val fakeFailingBridge = object : ServerPushNotificationBridge {
-      override fun checkRequirement(requirement: Requirement): Boolean? = false
-      override fun showNotification(notification: StudioPushNotification, listener: ServerPushNotificationListener): Boolean = true
-    }
-    val serviceWithFailingBridge = StudioServerPushNotificationService(
-      project = project,
-      scope = CoroutineScope(Dispatchers.Unconfined),
-      serverNotificationStoreProvider = { mockNotificationStore },
-      bridgesProvider = { listOf(fakeFailingBridge) },
-    )
+    val fakeFailingBridge =
+      object : ServerPushNotificationBridge {
+        override fun checkRequirement(requirement: Requirement): Boolean? = false
+
+        override fun showNotification(notification: StudioPushNotification, listener: ServerPushNotificationListener): Boolean = true
+      }
+    val serviceWithFailingBridge =
+      StudioServerPushNotificationService(
+        project = project,
+        scope = CoroutineScope(Dispatchers.Unconfined),
+        serverNotificationStoreProvider = { mockNotificationStore },
+        bridgesProvider = { listOf(fakeFailingBridge) },
+      )
     val requirement = Requirement.newBuilder().build()
     val notification = gotItTooltipWithAllData.toBuilder().addRequirements(requirement).build()
     registerNotification(notification)
@@ -152,17 +157,20 @@ class StudioServerPushNotificationServiceTest : LightIdeaTestCase() {
 
   @Test
   fun testCustomRequirementChecker() = runTest {
-    val fakeCustomBridge = object : ServerPushNotificationBridge {
-      override fun checkRequirement(requirement: Requirement): Boolean? = true
-      override fun showNotification(notification: StudioPushNotification, listener: ServerPushNotificationListener): Boolean = true
-    }
+    val fakeCustomBridge =
+      object : ServerPushNotificationBridge {
+        override fun checkRequirement(requirement: Requirement): Boolean? = true
 
-    val serviceWithCustomBridge = StudioServerPushNotificationService(
-      project = project,
-      scope = CoroutineScope(Dispatchers.Unconfined),
-      serverNotificationStoreProvider = { mockNotificationStore },
-      bridgesProvider = { listOf(fakeCustomBridge) },
-    )
+        override fun showNotification(notification: StudioPushNotification, listener: ServerPushNotificationListener): Boolean = true
+      }
+
+    val serviceWithCustomBridge =
+      StudioServerPushNotificationService(
+        project = project,
+        scope = CoroutineScope(Dispatchers.Unconfined),
+        serverNotificationStoreProvider = { mockNotificationStore },
+        bridgesProvider = { listOf(fakeCustomBridge) },
+      )
 
     val customRequirement = Requirement.newBuilder().build()
     val notification = balloonNotificationWithAllData.toBuilder().addRequirements(customRequirement).build()
@@ -196,16 +204,13 @@ class StudioServerPushNotificationServiceTest : LightIdeaTestCase() {
   @Test
   fun testShowNotifications_multipleEligibleCampaigns_showsOnlyFirst() = runTest {
     val notification1 = gotItTooltipWithAllData
-    val notification2 = gotItTooltipWithAllData.toBuilder()
-      .setGotItTooltipSpec(
-        gotItTooltipWithAllData.gotItTooltipSpec.toBuilder().setId("another_gotit_id")
-      )
-      .build()
+    val notification2 =
+      gotItTooltipWithAllData
+        .toBuilder()
+        .setGotItTooltipSpec(gotItTooltipWithAllData.gotItTooltipSpec.toBuilder().setId("another_gotit_id"))
+        .build()
 
-    val notificationList = StudioPushNotificationList.newBuilder()
-      .addNotifications("campaign_one")
-      .addNotifications("campaign_two")
-      .build()
+    val notificationList = StudioPushNotificationList.newBuilder().addNotifications("campaign_one").addNotifications("campaign_two").build()
     serverFlagService.registerFlag("studio_flags/studiobot_push_notifications/notification_flag_list", notificationList)
     serverFlagService.registerFlag("studio_flags/studiobot_push_notifications/campaign_one", notification1)
     serverFlagService.registerFlag("studio_flags/studiobot_push_notifications/campaign_two", notification2)
@@ -221,10 +226,7 @@ class StudioServerPushNotificationServiceTest : LightIdeaTestCase() {
     val campaign1 = createNotificationWithPriority("BALLOON_NOTIFICATION_ONE", StudioPushNotification.Priority.P2)
     val campaign2 = createNotificationWithPriority("BALLOON_NOTIFICATION_TWO", StudioPushNotification.Priority.P0)
 
-    val notificationList = StudioPushNotificationList.newBuilder()
-      .addNotifications("campaign_one")
-      .addNotifications("campaign_two")
-      .build()
+    val notificationList = StudioPushNotificationList.newBuilder().addNotifications("campaign_one").addNotifications("campaign_two").build()
     serverFlagService.registerFlag("studio_flags/studiobot_push_notifications/notification_flag_list", notificationList)
     serverFlagService.registerFlag("studio_flags/studiobot_push_notifications/campaign_one", campaign1)
     serverFlagService.registerFlag("studio_flags/studiobot_push_notifications/campaign_two", campaign2)
@@ -269,29 +271,20 @@ class StudioServerPushNotificationServiceTest : LightIdeaTestCase() {
 
   private val gotItTooltipWithAllData: StudioPushNotification =
     StudioPushNotification.newBuilder()
-      .setGotItTooltipSpec(
-        GotItTooltipSpec.newBuilder()
-          .setId("GOT_IT_TOOLTIP_WITH_ALL_DATA")
-          .build()
-      )
+      .setGotItTooltipSpec(GotItTooltipSpec.newBuilder().setId("GOT_IT_TOOLTIP_WITH_ALL_DATA").build())
       .build()
 
   private val balloonNotificationWithAllData: StudioPushNotification =
     StudioPushNotification.newBuilder()
       .setNotificationSpec(
-        NotificationSpec.newBuilder()
-          .setId("BALLOON_NOTIFICATION_WITH_ALL_DATA")
-          .setTitle("title")
-          .setDescription("description")
-          .build()
+        NotificationSpec.newBuilder().setId("BALLOON_NOTIFICATION_WITH_ALL_DATA").setTitle("title").setDescription("description").build()
       )
       .build()
 
   private fun createNotificationWithPriority(id: String, priority: StudioPushNotification.Priority): StudioPushNotification {
-    return balloonNotificationWithAllData.toBuilder()
-      .setNotificationSpec(
-        balloonNotificationWithAllData.notificationSpec.toBuilder().setId(id)
-      )
+    return balloonNotificationWithAllData
+      .toBuilder()
+      .setNotificationSpec(balloonNotificationWithAllData.notificationSpec.toBuilder().setId(id))
       .setPriority(priority)
       .build()
   }

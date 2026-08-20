@@ -231,8 +231,9 @@ class DeclarativeULambda(override val sourcePsi: DeclarativeBlockGroup, override
 }
 
 class DeclarativeUAction(entries: List<DeclarativeEntry>, override val uastParent: UElement?) : UBlockExpression {
-  override val expressions: List<UExpression> =
-    entries.mapNotNull { UastFacade.convertElement(it, this, DeclarativeUEntry::class.java) as? DeclarativeUEntry }
+  override val expressions: List<UExpression> = entries.mapNotNull {
+    UastFacade.convertElement(it, this, DeclarativeUEntry::class.java) as? DeclarativeUEntry
+  }
   override val psi: PsiElement? = null
   override val uAnnotations: List<UAnnotation> = listOf()
 }

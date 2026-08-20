@@ -16,7 +16,6 @@
 package com.android.tools.tests
 
 import org.junit.Assume
-import org.junit.Ignore
 import org.junit.Test
 
 /** This test is added to all IDE test suites. */

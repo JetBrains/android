@@ -65,11 +65,10 @@ internal class MessageBacklog(private var maxSize: Int) {
       if (addedSize >= maxSize) {
         _messages.clear()
         size = addedSize
-        val i =
-          collection.indexOfFirst {
-            size -= it.message.length
-            size <= maxSize
-          }
+        val i = collection.indexOfFirst {
+          size -= it.message.length
+          size <= maxSize
+        }
         _messages.addAll(collection.subList(i + 1, collection.size))
       } else {
         size += addedSize

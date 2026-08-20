@@ -47,16 +47,15 @@ class TranslatingNotificationSink(
   }
 
   override fun notifyMapping(mapping: Collection<IJPair<String, String>>) {
-    val translatedMapping =
-      mapping.mapNotNull { pair ->
-        val translatedFirst = translatePath(pair.first)
-        val translatedSecond = translatePath(pair.second)
-        if (translatedFirst != null && translatedSecond != null) {
-          IJPair.create(translatedFirst, translatedSecond)
-        } else {
-          null
-        }
+    val translatedMapping = mapping.mapNotNull { pair ->
+      val translatedFirst = translatePath(pair.first)
+      val translatedSecond = translatePath(pair.second)
+      if (translatedFirst != null && translatedSecond != null) {
+        IJPair.create(translatedFirst, translatedSecond)
+      } else {
+        null
       }
+    }
     if (translatedMapping.isNotEmpty()) {
       delegate.notifyMapping(translatedMapping)
     }

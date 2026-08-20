@@ -25,6 +25,7 @@ import com.intellij.psi.PsiFile
 class CodeEditedCopyPastePreProcessor : CopyPastePreProcessor {
   override fun preprocessOnCopy(file: PsiFile, startOffsets: IntArray, endOffsets: IntArray, text: String): String? = null
 
-  override fun preprocessOnPaste(project: Project, file: PsiFile, editor: Editor, text: String, rawText: RawText?) =
-    text.also { CodeEditedMetricsService.getInstance().setCodeEditingAction(CodeEditingAction.UserPaste) }
+  override fun preprocessOnPaste(project: Project, file: PsiFile, editor: Editor, text: String, rawText: RawText?) = text.also {
+    CodeEditedMetricsService.getInstance().setCodeEditingAction(CodeEditingAction.UserPaste)
+  }
 }

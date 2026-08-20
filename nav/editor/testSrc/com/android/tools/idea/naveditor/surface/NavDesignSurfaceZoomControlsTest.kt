@@ -152,9 +152,9 @@ class NavDesignSurfaceZoomControlsTest {
     )
 
     executeOnPooledThread {
-        runReadAction { NavigationSchema.createIfNecessary(androidProjectRule.module) }
-        IndexingTestUtil.waitUntilIndexesAreReadyInAllOpenedProjects()
-      }
+      runReadAction { NavigationSchema.createIfNecessary(androidProjectRule.module) }
+      IndexingTestUtil.waitUntilIndexesAreReadyInAllOpenedProjects()
+    }
       .get()
   }
 

@@ -68,11 +68,10 @@ class LibraryDeclarationSpecImpl(private var name: String, private var group: St
   override fun toString(): String = compactNotation()
 
   override fun compactNotation(): String {
-    val versionString =
-      version?.let {
-        val str = it.compactNotation()
-        if (str.isNullOrBlank()) null else str
-      }
+    val versionString = version?.let {
+      val str = it.compactNotation()
+      if (str.isNullOrBlank()) null else str
+    }
     return Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(Lists.newArrayList(group, name, versionString))
   }
 }

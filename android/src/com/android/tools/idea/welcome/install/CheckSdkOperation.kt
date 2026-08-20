@@ -68,19 +68,18 @@ private const val LINK_MISSING_LIBRARIES = "Show Android SDK web page"
 private const val ERROR_NO_EMULATOR_DIR = "SDK emulator directory is missing"
 
 private val unableToRunMessage: Collection<String>
-  get() =
-    sequence {
-        val isLinux64 = SystemInfo.isLinux && !CpuArch.is32Bit()
-        val missingLibrariesDescription = if (isLinux64) "32-bit compatibility" else "required"
+  get() = sequence {
+    val isLinux64 = SystemInfo.isLinux && !CpuArch.is32Bit()
+    val missingLibrariesDescription = if (isLinux64) "32-bit compatibility" else "required"
 
-        yield("Unable to run <strong>$TOOL_NAME</strong> SDK tool.")
-        yield("One common reason for this failure is missing $missingLibrariesDescription libraries.")
-        yield("Please fix the underlying issue and retry.")
-        if (isLinux64) {
-          yield("<a href=\"$URL_MISSING_LIBRARIES\">$LINK_MISSING_LIBRARIES</a>")
-        }
-      }
-      .toList()
+    yield("Unable to run <strong>$TOOL_NAME</strong> SDK tool.")
+    yield("One common reason for this failure is missing $missingLibrariesDescription libraries.")
+    yield("Please fix the underlying issue and retry.")
+    if (isLinux64) {
+      yield("<a href=\"$URL_MISSING_LIBRARIES\">$LINK_MISSING_LIBRARIES</a>")
+    }
+  }
+    .toList()
 
 private fun checkCanRunSdkTool(executable: File): Boolean {
   val commandLine = GeneralCommandLine(executable.absolutePath)

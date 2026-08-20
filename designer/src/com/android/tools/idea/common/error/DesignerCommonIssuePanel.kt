@@ -267,14 +267,13 @@ class DesignerCommonIssuePanel(
     val hiddenSeverities = ProblemsViewState.getInstance(project).hideBySeverity
     val showVisualLint = VisualLintSettings.getInstance(project).isVisualLintFilterSelected
 
-    val filter =
-      DesignerCommonIssueProvider.Filter { issue ->
-        when {
-          issue is VisualLintRenderIssue -> showVisualLint
-          hiddenSeverities.contains(issue.severity.myVal) -> false
-          else -> true
-        }
+    val filter = DesignerCommonIssueProvider.Filter { issue ->
+      when {
+        issue is VisualLintRenderIssue -> showVisualLint
+        hiddenSeverities.contains(issue.severity.myVal) -> false
+        else -> true
       }
+    }
     setViewOptionFilter(filter)
   }
 

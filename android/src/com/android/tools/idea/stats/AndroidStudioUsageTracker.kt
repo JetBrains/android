@@ -129,15 +129,14 @@ object AndroidStudioUsageTracker {
         .build()
     }
 
-  private fun buildActiveExperimentsFromServerFlags(map: Map<String, Int>) =
-    map.map {
-      ProductDetails.ActiveExperiment.newBuilder()
-        .apply {
-          experimentId = it.key
-          valueIndex = it.value
-        }
-        .build()
-    }
+  private fun buildActiveExperimentsFromServerFlags(map: Map<String, Int>) = map.map {
+    ProductDetails.ActiveExperiment.newBuilder()
+      .apply {
+        experimentId = it.key
+        valueIndex = it.value
+      }
+      .build()
+  }
 
   /** Gets list of active experiments. */
   @JvmStatic

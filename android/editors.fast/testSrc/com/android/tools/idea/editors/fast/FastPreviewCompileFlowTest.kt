@@ -54,13 +54,12 @@ class FastPreviewCompileFlowTest {
       }
     val results = mutableListOf<Boolean>()
     val flowIsReady = CompletableDeferred<Unit>()
-    val flow =
-      scope.launch {
-        // We take 9 elements. 2 per compilation + the initial false (not compiling) state that is triggered when we subscribe to the flow.
-        fastPreviewCompileFlow(project, projectRule.testRootDisposable, manager) { flowIsReady.complete(Unit) }
-          .take(9)
-          .collect { results.add(it) }
-      }
+    val flow = scope.launch {
+      // We take 9 elements. 2 per compilation + the initial false (not compiling) state that is triggered when we subscribe to the flow.
+      fastPreviewCompileFlow(project, projectRule.testRootDisposable, manager) { flowIsReady.complete(Unit) }
+        .take(9)
+        .collect { results.add(it) }
+    }
 
     runBlocking {
       flowIsReady.await() // Wait for the flow to be listening

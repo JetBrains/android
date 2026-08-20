@@ -42,24 +42,22 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    lightClassesCache =
-      cachedValuesManager.createCachedValue {
-        val lightClasses =
-          enabledFacetsProvider.modulesUsingSafeArgs
-            .asSequence()
-            .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).directions.asSequence() }
-            .groupBy { lightClass -> lightClass.name }
-        CachedValueProvider.Result.create(
-          lightClasses,
-          ProjectNavigationResourceModificationTracker.getInstance(project),
-          project.safeArgsModeTracker,
-        )
-      }
+    lightClassesCache = cachedValuesManager.createCachedValue {
+      val lightClasses =
+        enabledFacetsProvider.modulesUsingSafeArgs
+          .asSequence()
+          .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).directions.asSequence() }
+          .groupBy { lightClass -> lightClass.name }
+      CachedValueProvider.Result.create(
+        lightClasses,
+        ProjectNavigationResourceModificationTracker.getInstance(project),
+        project.safeArgsModeTracker,
+      )
+    }
 
-    allClassNamesCache =
-      cachedValuesManager.createCachedValue {
-        CachedValueProvider.Result.create(lightClassesCache.value.keys.toTypedArray(), lightClassesCache)
-      }
+    allClassNamesCache = cachedValuesManager.createCachedValue {
+      CachedValueProvider.Result.create(lightClassesCache.value.keys.toTypedArray(), lightClassesCache)
+    }
   }
 
   override fun getAllClassNames(): Array<String> = allClassNamesCache.value

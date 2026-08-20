@@ -113,50 +113,49 @@ class LeakInsightModel(
     _isInsightVisible.value = true
 
     insightJob?.cancel()
-    insightJob =
-      scope.launch {
-        try {
-          val flow = ideServices.fetchLeakInsight(leak.toString())
-          val result = StringBuilder()
-          flow.collect { chunk -> result.append(chunk) }
-          val finalResult = result.toString()
-          if (finalResult.isEmpty()) {
-            trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_FAILED)
-            val emptyState = LoadingState.Failure("AI Assistant returned an empty response.")
-            if (selectedLeak == leak) {
-              _currentInsight.value = emptyState
-            }
-            insightCache[leak.signature] = emptyState
-          } else {
-            trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_SUCCEEDED)
-            val readyState = LoadingState.Ready(AiInsight(finalResult))
-            if (selectedLeak == leak) {
-              _currentInsight.value = readyState
-            }
-            insightCache[leak.signature] = readyState
-          }
-        } catch (e: Exception) {
-          if (e is CancellationException) {
-            trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_CANCELLED)
-            if (insightCache[leak.signature] === loadingState) {
-              insightCache.remove(leak.signature)
-            }
-            throw e
-          }
+    insightJob = scope.launch {
+      try {
+        val flow = ideServices.fetchLeakInsight(leak.toString())
+        val result = StringBuilder()
+        flow.collect { chunk -> result.append(chunk) }
+        val finalResult = result.toString()
+        if (finalResult.isEmpty()) {
           trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_FAILED)
-          val errorMessage =
-            if (isNetworkError(e)) {
-              NETWORK_ERROR_MESSAGE
-            } else {
-              e.message ?: "Unknown error"
-            }
-          val failureState = LoadingState.Failure(errorMessage)
+          val emptyState = LoadingState.Failure("AI Assistant returned an empty response.")
           if (selectedLeak == leak) {
-            _currentInsight.value = failureState
+            _currentInsight.value = emptyState
           }
-          insightCache[leak.signature] = failureState
+          insightCache[leak.signature] = emptyState
+        } else {
+          trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_SUCCEEDED)
+          val readyState = LoadingState.Ready(AiInsight(finalResult))
+          if (selectedLeak == leak) {
+            _currentInsight.value = readyState
+          }
+          insightCache[leak.signature] = readyState
         }
+      } catch (e: Exception) {
+        if (e is CancellationException) {
+          trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_CANCELLED)
+          if (insightCache[leak.signature] === loadingState) {
+            insightCache.remove(leak.signature)
+          }
+          throw e
+        }
+        trackUiAction(LeakCanaryUiAction.INSIGHT_FETCH_FAILED)
+        val errorMessage =
+          if (isNetworkError(e)) {
+            NETWORK_ERROR_MESSAGE
+          } else {
+            e.message ?: "Unknown error"
+          }
+        val failureState = LoadingState.Failure(errorMessage)
+        if (selectedLeak == leak) {
+          _currentInsight.value = failureState
+        }
+        insightCache[leak.signature] = failureState
       }
+    }
   }
 
   fun submitInsightFeedback(feedback: InsightFeedback?) {

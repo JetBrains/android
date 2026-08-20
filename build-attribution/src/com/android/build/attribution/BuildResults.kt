@@ -127,17 +127,16 @@ data class BuildAnalysisResults(
     return criticalPathAnalyzerResult.pluginsDeterminingBuildDuration
   }
 
-  override fun getTotalConfigurationData(): ProjectConfigurationData =
-    projectConfigurationAnalyzerResult.run {
-      val totalConfigurationTime = projectsConfigurationData.sumOf { it.totalConfigurationTimeMs }
-      val totalPluginConfiguration = pluginsConfigurationDataMap.map { entry -> PluginConfigurationData(entry.key, entry.value) }
-      val totalConfigurationSteps =
-        projectsConfigurationData
-          .flatMap { it.configurationSteps }
-          .groupBy { it.type }
-          .map { entry -> ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumOf { it.configurationTimeMs }) }
-      return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
-    }
+  override fun getTotalConfigurationData(): ProjectConfigurationData = projectConfigurationAnalyzerResult.run {
+    val totalConfigurationTime = projectsConfigurationData.sumOf { it.totalConfigurationTimeMs }
+    val totalPluginConfiguration = pluginsConfigurationDataMap.map { entry -> PluginConfigurationData(entry.key, entry.value) }
+    val totalConfigurationSteps =
+      projectsConfigurationData
+        .flatMap { it.configurationSteps }
+        .groupBy { it.type }
+        .map { entry -> ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumOf { it.configurationTimeMs }) }
+    return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
+  }
 
   override fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
     return projectConfigurationAnalyzerResult.projectsConfigurationData
@@ -179,10 +178,9 @@ data class BuildAnalysisResults(
     return garbageCollectionAnalyzerResult.isSettingSet
   }
 
-  override fun buildUsesConfigurationCache(): Boolean =
-    configurationCachingCompatibilityAnalyzerResult.let {
-      it == ConfigurationCachingTurnedOn || it is ConfigurationCacheCompatibilityTestFlow
-    }
+  override fun buildUsesConfigurationCache(): Boolean = configurationCachingCompatibilityAnalyzerResult.let {
+    it == ConfigurationCachingTurnedOn || it is ConfigurationCacheCompatibilityTestFlow
+  }
 
   override fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {
     return downloadsAnalyzerResult

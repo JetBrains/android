@@ -52,9 +52,11 @@ constructor() : ModuleModelDataService<GradleModuleModel>() {
       // In the case of duplicated module names, the final module name may have been updated.
       // Make sure to update the data node with the new name.
       // The lookup map above is built after such renames occur, so it should be fine to use it.
-      dataNode.visitData(Function<GradleModuleModel, GradleModuleModel> {
-        it.copy(moduleNameField = module.name)
-      })
+      dataNode.visitData(
+        Function<GradleModuleModel, GradleModuleModel> {
+          it.copy(moduleNameField = module.name)
+        }
+      )
       val model = dataNode.data
 
       val facet =

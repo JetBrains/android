@@ -122,12 +122,10 @@ abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspectio
                         (it as? KtNullableType)?.innerType?.takeIf {
                             callInfo.returnTypeNullability == ReturnTypeNullability.NOT_NULL
                             // We only do this for vals, because vars may be assigned to null elsewhere.
-                            &&
-                                !assignmentDeclaration.isVar
+                            && !assignmentDeclaration.isVar
                                 // We also can't do this tightening if findViewById was invoked with a safe-call
                                 // (foo?.findViewById(...)), because that expression always has type T?.
-                                &&
-                                newCall.parent !is KtSafeQualifiedExpression
+                                && newCall.parent !is KtSafeQualifiedExpression
                         } ?: it
                     } ?: return
 

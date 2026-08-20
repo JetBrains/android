@@ -183,19 +183,18 @@ constructor(
     @UiThread get() = controller.component
 
   @AnyThread
-  override fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<Unit> =
-    scope.future {
-      val databaseId =
-        try {
-          val databaseConnection = openJdbcDatabaseConnection(parentDisposable, databaseFileData.mainFile, taskExecutor, workerDispatcher)
-          SqliteDatabaseId.fromFileDatabase(databaseFileData).also { databaseRepository.addDatabaseConnection(it, databaseConnection) }
-        } catch (e: Exception) {
-          handleError("Error opening database from '${databaseFileData.mainFile.path}'", e)
-          throw e
-        }
+  override fun openSqliteDatabase(databaseFileData: DatabaseFileData): ListenableFuture<Unit> = scope.future {
+    val databaseId =
+      try {
+        val databaseConnection = openJdbcDatabaseConnection(parentDisposable, databaseFileData.mainFile, taskExecutor, workerDispatcher)
+        SqliteDatabaseId.fromFileDatabase(databaseFileData).also { databaseRepository.addDatabaseConnection(it, databaseConnection) }
+      } catch (e: Exception) {
+        handleError("Error opening database from '${databaseFileData.mainFile.path}'", e)
+        throw e
+      }
 
-      controller.addSqliteDatabase(databaseId)
-    }
+    controller.addSqliteDatabase(databaseId)
+  }
 
   @AnyThread
   override fun openSqliteDatabase(databaseId: SqliteDatabaseId, databaseConnection: LiveDatabaseConnection): ListenableFuture<Unit> =

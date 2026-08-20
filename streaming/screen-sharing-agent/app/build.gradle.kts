@@ -1,48 +1,48 @@
 plugins {
-    alias(libs.plugins.android.application)
+  alias(libs.plugins.android.application)
 }
 
 android {
-    namespace = "com.android.tools.screensharing"
-    compileSdk = 36
+  namespace = "com.android.tools.screensharing"
+  compileSdk = 36
 
-    defaultConfig {
-        applicationId = "com.android.tools.screensharing"
-        minSdk = 26
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+  defaultConfig {
+    applicationId = "com.android.tools.screensharing"
+    minSdk = 26
+    targetSdk = 36
+    versionCode = 1
+    versionName = "1.0"
 
-        externalNativeBuild {
-            cmake {
-                cppFlags += "-std=c++20"
-            }
-        }
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
     externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
-        }
+      cmake {
+        cppFlags += "-std=c++20"
+      }
     }
-    lint {
-        checkReleaseBuilds = false
+  }
+
+  buildTypes {
+    release {
+      isMinifyEnabled = false
+      proguardFiles(
+        getDefaultProguardFile("proguard-android-optimize.txt"),
+        "proguard-rules.pro",
+      )
     }
-    buildFeatures {
-        aidl = true
+  }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+  }
+  externalNativeBuild {
+    cmake {
+      path = file("src/main/cpp/CMakeLists.txt")
+      version = "3.22.1"
     }
+  }
+  lint {
+    checkReleaseBuilds = false
+  }
+  buildFeatures {
+    aidl = true
+  }
 }

@@ -47,8 +47,8 @@ private fun NotificationSpec.getNotificationType(): NotificationType =
   NOTIFICATION_TYPE_MAP[pushNotificationType] ?: NotificationType.INFORMATION
 
 /**
- * A default implementation of [ServerPushNotificationBridge].
- * Natively handles standard Balloon notifications alongside other custom bridge implementations.
+ * A default implementation of [ServerPushNotificationBridge]. Natively handles standard Balloon notifications alongside other custom bridge
+ * implementations.
  */
 internal class DefaultServerPushNotificationBridge(
   private val project: Project,
@@ -57,7 +57,7 @@ internal class DefaultServerPushNotificationBridge(
 
   @Suppress("Unused")
   constructor(
-    project: Project,
+    project: Project
   ) : this(
     project = project,
     serverNotificationStoreProvider = { ServerNotificationStore.getInstance() },

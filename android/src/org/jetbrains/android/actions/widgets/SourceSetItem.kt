@@ -43,11 +43,10 @@ class SourceSetItem(val sourceSetName: String, val resDirUrl: String, val displa
         return null
       }
       val resDirPath = FileUtil.toSystemIndependentName(PathUtil.toPresentableUrl(resDirUrl))
-      val relativeResourceUrl =
-        modulePath?.let {
-          val modulePathSystemIndependent = FileUtil.toSystemIndependentName(it)
-          FileUtil.getRelativePath(modulePathSystemIndependent, resDirPath, '/')?.replaceFirst("(\\.\\./)+".toRegex(), "")
-        }
+      val relativeResourceUrl = modulePath?.let {
+        val modulePathSystemIndependent = FileUtil.toSystemIndependentName(it)
+        FileUtil.getRelativePath(modulePathSystemIndependent, resDirPath, '/')?.replaceFirst("(\\.\\./)+".toRegex(), "")
+      }
       val displayableResDir = StringUtil.last(relativeResourceUrl ?: resDirPath, 30, true).toString()
       return SourceSetItem(sourceSetName = name, resDirUrl = resDirUrl, displayableResDir = displayableResDir)
     }

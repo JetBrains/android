@@ -26,19 +26,21 @@ import org.jetbrains.annotations.VisibleForTesting
 fun List<IdeVariantCore>.getDefaultVariantFromIdeModels(
   buildTypes: Collection<IdeBuildTypeContainerImpl>,
   productFlavors: Collection<IdeProductFlavorContainerImpl>,
-): String? =
-  map { VariantDef(it.name, it.buildType, it.productFlavors) }
-    .getDefaultVariantInternal(
-      buildTypes.map { BuildTypeDef(it.buildType.name, it.buildType.isDefault) },
-      productFlavors.map { ProductFlavorDef(it.productFlavor.name, it.productFlavor.isDefault) },
-    )
+): String? = map {
+  VariantDef(it.name, it.buildType, it.productFlavors)
+}
+  .getDefaultVariantInternal(
+    buildTypes.map { BuildTypeDef(it.buildType.name, it.buildType.isDefault) },
+    productFlavors.map { ProductFlavorDef(it.productFlavor.name, it.productFlavor.isDefault) },
+  )
 
-fun List<BasicVariant>.getDefaultVariant(buildTypes: List<BuildType>, productFlavors: List<ProductFlavor>): String? =
-  map { VariantDef(it.name, it.buildType, it.productFlavors) }
-    .getDefaultVariantInternal(
-      buildTypes.map { BuildTypeDef(it.name, it.isDefault) },
-      productFlavors.map { ProductFlavorDef(it.name, it.isDefault) },
-    )
+fun List<BasicVariant>.getDefaultVariant(buildTypes: List<BuildType>, productFlavors: List<ProductFlavor>): String? = map {
+  VariantDef(it.name, it.buildType, it.productFlavors)
+}
+  .getDefaultVariantInternal(
+    buildTypes.map { BuildTypeDef(it.name, it.isDefault) },
+    productFlavors.map { ProductFlavorDef(it.name, it.isDefault) },
+  )
 
 private fun List<VariantDef>.getDefaultVariantInternal(buildTypes: List<BuildTypeDef>, productFlavors: List<ProductFlavorDef>): String? {
   return getDefaultVariant(

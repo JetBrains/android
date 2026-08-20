@@ -22,9 +22,7 @@ import com.android.tools.rendering.security.RenderSandbox
 import com.android.tools.rendering.security.RenderSecurity
 import com.android.tools.rendering.security.RenderSecurityManager
 
-/**
- * Android Studio specific implementation of [RenderSecurity] that supports [RenderSandbox].
- */
+/** Android Studio specific implementation of [RenderSecurity] that supports [RenderSandbox]. */
 @Suppress("VisibleForTests")
 class StudioRenderSecurity(val sdkPath: String?, val projectPath: String?, val appTempDir: String?) : RenderSecurity {
 

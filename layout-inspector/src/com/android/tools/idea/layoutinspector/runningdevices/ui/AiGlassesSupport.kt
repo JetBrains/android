@@ -100,18 +100,17 @@ fun aiGlassesDataFlow(project: Project, model: InspectorModel): Flow<AiGlassesSt
 /** A flow that emits the secondary displays detected by the app, each time they change */
 private fun appSecondaryDisplayIdsFlow(model: InspectorModel): Flow<List<Int>> {
   return callbackFlow {
-      // Use display id instead of full Display object to avoid emitting again on configuration changes
-      val getSecondaryDisplayIds = { model.resourceLookup.displays.filter { it.id != Display.MAIN_DISPLAY_ID }.map { it.id } }
-      val listener =
-        InspectorModel.ModificationListener { _, _, _ ->
-          val virtualDisplayIds = getSecondaryDisplayIds()
-          this@callbackFlow.trySend(virtualDisplayIds)
-        }
-
-      model.addModificationListener(listener)
-      this@callbackFlow.trySend(getSecondaryDisplayIds())
-      awaitClose { model.removeModificationListener(listener) }
+    // Use display id instead of full Display object to avoid emitting again on configuration changes
+    val getSecondaryDisplayIds = { model.resourceLookup.displays.filter { it.id != Display.MAIN_DISPLAY_ID }.map { it.id } }
+    val listener = InspectorModel.ModificationListener { _, _, _ ->
+      val virtualDisplayIds = getSecondaryDisplayIds()
+      this@callbackFlow.trySend(virtualDisplayIds)
     }
+
+    model.addModificationListener(listener)
+    this@callbackFlow.trySend(getSecondaryDisplayIds())
+    awaitClose { model.removeModificationListener(listener) }
+  }
     .distinctUntilChanged()
 }
 
@@ -159,28 +158,28 @@ private fun Flow<List<TabComponents>>.mapToMainDisplayState(): Flow<GlassesTabsS
  */
 private fun visibleAiGlassesDeviceIdsFlow(project: Project): Flow<List<StreamingDeviceId>> {
   return callbackFlow {
-      val observer = RunningDevicesStateObserver.getInstance(project)
+    val observer = RunningDevicesStateObserver.getInstance(project)
 
-      val listener =
-        object : RunningDevicesStateObserver.Listener {
-          override fun onSelectedTabsChanged(selectedTabs: List<StreamingDeviceId>) {
-            val aiGlassesStreamingDeviceIds = mutableListOf<StreamingDeviceId>()
-            selectedTabs.forEach { deviceId ->
-              val content = observer.getTabContent(deviceId) ?: return@forEach
-              val dataProvider = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, content.component)
-              val deviceType = DEVICE_TYPE_KEY.getData(dataProvider)
-              if (deviceType == DeviceType.AI_GLASSES) {
-                aiGlassesStreamingDeviceIds.add(deviceId)
-              }
+    val listener =
+      object : RunningDevicesStateObserver.Listener {
+        override fun onSelectedTabsChanged(selectedTabs: List<StreamingDeviceId>) {
+          val aiGlassesStreamingDeviceIds = mutableListOf<StreamingDeviceId>()
+          selectedTabs.forEach { deviceId ->
+            val content = observer.getTabContent(deviceId) ?: return@forEach
+            val dataProvider = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, content.component)
+            val deviceType = DEVICE_TYPE_KEY.getData(dataProvider)
+            if (deviceType == DeviceType.AI_GLASSES) {
+              aiGlassesStreamingDeviceIds.add(deviceId)
             }
-            this@callbackFlow.trySend(aiGlassesStreamingDeviceIds)
           }
-
-          override fun onExistingTabsChanged(existingTabs: List<StreamingDeviceId>) {}
+          this@callbackFlow.trySend(aiGlassesStreamingDeviceIds)
         }
-      observer.addListener(listener)
-      awaitClose { invokeLater { observer.removeListener(listener) } }
-    }
+
+        override fun onExistingTabsChanged(existingTabs: List<StreamingDeviceId>) {}
+      }
+    observer.addListener(listener)
+    awaitClose { invokeLater { observer.removeListener(listener) } }
+  }
     // Avoid emitting again just because a tab changed, but the glasses tabs haven't changed
     .distinctUntilChanged()
 }

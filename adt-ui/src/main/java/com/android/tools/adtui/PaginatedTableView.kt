@@ -88,20 +88,19 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel, pageSizeVa
       }
   }
 
-  private fun updateColumnComparators(sortKeys: List<RowSorter.SortKey>, rowSorter: DefaultRowSorter<*, *>) =
-    sortKeys.forEach {
-      rowSorter.setComparator(it.column) { o1, o2 ->
-        when (tableModel.getColumnClass(it.column)) {
-          Long::class.java -> (o1 as Long).compareTo(o2 as Long)
-          Integer::class.java -> (o1 as Int).compareTo(o2 as Int)
-          Double::class.java -> (o1 as Double).compareTo(o2 as Double)
-          Float::class.java -> (o1 as Float).compareTo(o2 as Float)
-          Boolean::class.java -> (o1 as Boolean).compareTo(o2 as Boolean)
-          String::class.java -> (o1 as String).compareTo(o2 as String)
-          else -> o1.toString().compareTo(o2.toString())
-        }
+  private fun updateColumnComparators(sortKeys: List<RowSorter.SortKey>, rowSorter: DefaultRowSorter<*, *>) = sortKeys.forEach {
+    rowSorter.setComparator(it.column) { o1, o2 ->
+      when (tableModel.getColumnClass(it.column)) {
+        Long::class.java -> (o1 as Long).compareTo(o2 as Long)
+        Integer::class.java -> (o1 as Int).compareTo(o2 as Int)
+        Double::class.java -> (o1 as Double).compareTo(o2 as Double)
+        Float::class.java -> (o1 as Float).compareTo(o2 as Float)
+        Boolean::class.java -> (o1 as Boolean).compareTo(o2 as Boolean)
+        String::class.java -> (o1 as String).compareTo(o2 as String)
+        else -> o1.toString().compareTo(o2.toString())
       }
     }
+  }
 
   private fun updateToolbar() {
     // Labels

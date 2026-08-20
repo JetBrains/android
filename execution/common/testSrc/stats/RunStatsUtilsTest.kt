@@ -51,13 +51,12 @@ class RunStatsUtilsTest {
   private val mockIDevice: IDevice = mock()
   private val deviceProvisionerService: DeviceProvisionerService = mock()
   private val deviceProvisioner: DeviceProvisioner = mock()
-  private val properties =
-    DeviceProperties.build {
-      isRemote = true
-      isVirtual = false
-      icon = StudioDefaultDeviceIcons.handheld
-      populateDeviceInfoProto("TestPlugin", "localhost:12345", emptyMap(), "connectionId")
-    }
+  private val properties = DeviceProperties.build {
+    isRemote = true
+    isVirtual = false
+    icon = StudioDefaultDeviceIcons.handheld
+    populateDeviceInfoProto("TestPlugin", "localhost:12345", emptyMap(), "connectionId")
+  }
   private val deviceHandle =
     object : DeviceHandle {
       override val id = DeviceId("", false, "")

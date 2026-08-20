@@ -197,8 +197,9 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
   }
 
   companion object {
-    fun DeclarativeIdentifier.getVersionCatalogFile(): PsiFile? =
-      module?.let { getVersionCatalogFiles(it)[name]?.let { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) } }
+    fun DeclarativeIdentifier.getVersionCatalogFile(): PsiFile? = module?.let {
+      getVersionCatalogFiles(it)[name]?.let { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) }
+    }
 
     private val PsiElement.module
       get() = ModuleUtilCore.findModuleForPsiElement(this)

@@ -53,11 +53,10 @@ internal class AppInspectionTargetManager internal constructor(private val trans
   ): AppInspectionTarget {
     val targetInfo =
       targets.computeIfAbsent(processDescriptor) {
-        val targetDeferred =
-          scope.async {
-            val transport = AppInspectionTransport(transportClient, processDescriptor, streamChannel)
-            attachAppInspectionTarget(transport, jarCopier, scope)
-          }
+        val targetDeferred = scope.async {
+          val transport = AppInspectionTransport(transportClient, processDescriptor, streamChannel)
+          attachAppInspectionTarget(transport, jarCopier, scope)
+        }
         TargetInfo(targetDeferred, projectName)
       }
     try {

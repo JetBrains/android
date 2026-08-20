@@ -836,15 +836,17 @@ class AnnotationFileComposePreviewElementFinderTest {
 
     val result =
       DumbModeTestUtils.computeInDumbModeSynchronously(project) {
-        val hasPreviewElements =
-          GlobalScope.async { AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile) }
+        val hasPreviewElements = GlobalScope.async {
+          AnnotationFilePreviewElementFinder.hasPreviewElements(project, composeTest.virtualFile)
+        }
         try {
           runBlocking { withTimeout(2500) { hasPreviewElements.await() } }
           fail("The result should not have been returned in non-smart mode")
         } catch (_: TimeoutCancellationException) {}
 
-        val previewElementsOnNonSmartMode =
-          GlobalScope.async { AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile) }
+        val previewElementsOnNonSmartMode = GlobalScope.async {
+          AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
+        }
         try {
           runBlocking { withTimeout(2500) { previewElementsOnNonSmartMode.await() } }
           fail("The result should not have been returned in non-smart mode")

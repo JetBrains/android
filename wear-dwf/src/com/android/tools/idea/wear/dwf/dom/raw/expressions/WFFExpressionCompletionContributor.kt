@@ -52,8 +52,9 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
     object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
         val module = parameters.position.getModuleSystem()?.module
-        val wffVersion =
-          module?.let { runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }?.wffVersion }
+        val wffVersion = module?.let {
+          runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }?.wffVersion
+        }
         val availableFunctions =
           if (wffVersion == null) Functions.ALL else Functions.ALL_AVAILABLE_FUNCTIONS_BY_VERSION.getValue(wffVersion)
 
@@ -67,8 +68,9 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
     object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
         val module = parameters.position.getModuleSystem()?.module
-        val wffVersion =
-          module?.let { runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }?.wffVersion }
+        val wffVersion = module?.let {
+          runBlockingMaybeCancellable { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) }?.wffVersion
+        }
 
         val availablePatternedDataSource =
           if (wffVersion == null) DataSources.ALL_PATTERNS else DataSources.ALL_AVAILABLE_PATTERNS_BY_VERSION.getValue(wffVersion)

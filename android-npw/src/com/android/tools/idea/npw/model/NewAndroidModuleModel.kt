@@ -189,47 +189,49 @@ class NewAndroidModuleModel(
         val generateStandardFiles = customStrategy?.generateStandardAndroidModuleFiles ?: true
         return when (formFactor.get()) {
           FormFactor.Mobile -> { data: TemplateData ->
-              generateAndroidModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                hasCustomRenderer = hasCustomRenderer,
-                generateStandardFiles = generateStandardFiles,
-              )
-            }
+            generateAndroidModule(
+              data = data as ModuleTemplateData,
+              appTitle = applicationName.get(),
+              hasCustomRenderer = hasCustomRenderer,
+              generateStandardFiles = generateStandardFiles,
+            )
+          }
           FormFactor.Wear -> { data: TemplateData ->
-              generateWearModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                hasCustomRenderer = hasCustomRenderer,
-                generateStandardFiles = generateStandardFiles,
-              )
-            }
+            generateWearModule(
+              data = data as ModuleTemplateData,
+              appTitle = applicationName.get(),
+              hasCustomRenderer = hasCustomRenderer,
+              generateStandardFiles = generateStandardFiles,
+            )
+          }
           FormFactor.Car -> { data: TemplateData ->
-              generateAutomotiveModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                hasCustomRenderer = hasCustomRenderer,
-                generateStandardFiles = generateStandardFiles,
-              )
-            }
+            generateAutomotiveModule(
+              data = data as ModuleTemplateData,
+              appTitle = applicationName.get(),
+              hasCustomRenderer = hasCustomRenderer,
+              generateStandardFiles = generateStandardFiles,
+            )
+          }
           FormFactor.Tv -> { data: TemplateData ->
-              generateTvModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                hasCustomRenderer = hasCustomRenderer,
-                generateStandardFiles = generateStandardFiles,
-              )
-            }
+            generateTvModule(
+              data = data as ModuleTemplateData,
+              appTitle = applicationName.get(),
+              hasCustomRenderer = hasCustomRenderer,
+              generateStandardFiles = generateStandardFiles,
+            )
+          }
           FormFactor.XR,
           FormFactor.AiGlasses -> { data: TemplateData ->
-              generateXRModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                hasCustomRenderer = hasCustomRenderer,
-                generateStandardFiles = generateStandardFiles,
-              )
-            }
-          FormFactor.Generic -> { data: TemplateData -> generateGenericModule(data as ModuleTemplateData) }
+            generateXRModule(
+              data = data as ModuleTemplateData,
+              appTitle = applicationName.get(),
+              hasCustomRenderer = hasCustomRenderer,
+              generateStandardFiles = generateStandardFiles,
+            )
+          }
+          FormFactor.Generic -> { data: TemplateData ->
+            generateGenericModule(data as ModuleTemplateData)
+          }
         }
       }
 

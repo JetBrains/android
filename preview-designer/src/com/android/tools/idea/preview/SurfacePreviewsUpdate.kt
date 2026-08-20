@@ -130,12 +130,11 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
   // First, remove and dispose pre-existing models that won't be reused.
   // This will happen for example if the user removes one or more previews.
-  val elementsToReusableModels =
-    previewElementsList.mapIndexed { idx, previewElement ->
-      // If model index for this preview element >= 0 then an existing model that can be reused
-      // is found. See matchElementsToModels for more details.
-      previewElement to if (modelIndices[idx] == -1) null else existingModels[modelIndices[idx]]
-    }
+  val elementsToReusableModels = previewElementsList.mapIndexed { idx, previewElement ->
+    // If model index for this preview element >= 0 then an existing model that can be reused
+    // is found. See matchElementsToModels for more details.
+    previewElement to if (modelIndices[idx] == -1) null else existingModels[modelIndices[idx]]
+  }
 
   val notReusedModels = existingModels - elementsToReusableModels.mapNotNull { it.second }.toSet()
   debugLogger?.log("Removing ${notReusedModels.size} model(s)")

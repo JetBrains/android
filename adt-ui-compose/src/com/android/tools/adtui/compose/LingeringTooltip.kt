@@ -173,11 +173,10 @@ fun LingeringTooltipArea(
     }
     job?.cancel()
     jobIsShowing = show
-    job =
-      scope.launch {
-        delay((if (show) delayMillis else lingerMillis).toLong())
-        isVisible = show
-      }
+    job = scope.launch {
+      delay((if (show) delayMillis else lingerMillis).toLong())
+      isVisible = show
+    }
   }
 
   fun hide() {

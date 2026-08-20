@@ -62,8 +62,9 @@ private fun Project.findCatalog(prefix: String): VirtualFile? =
 
 private fun Project.defaultCatalog(): VirtualFile? = findCatalog("libs")
 
-internal fun TomlInlineTable.findKeyValue(key: String, value: String): Boolean =
-  entries.any { it.key.text == key && it.value?.text == "\"$value\"" }
+internal fun TomlInlineTable.findKeyValue(key: String, value: String): Boolean = entries.any {
+  it.key.text == key && it.value?.text == "\"$value\""
+}
 
 internal enum class ReferenceSource {
   LIBRARY,

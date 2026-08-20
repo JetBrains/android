@@ -50,14 +50,13 @@ internal fun <T> openProjectAndRunTestWithTestFixturesAvailable(
 
         override fun tearDown() = Unit // Invoked by JavaCodeInsightTestFixtureImpl.tearDown()
 
-        override fun getProject(): Project? =
-          currentProject.let { currentProject ->
-            when {
-              currentProject == null -> error("Unexpected: project must have been initialized by now")
-              currentProject.isDisposed -> null
-              else -> currentProject
-            }
+        override fun getProject(): Project? = currentProject.let { currentProject ->
+          when {
+            currentProject == null -> error("Unexpected: project must have been initialized by now")
+            currentProject.isDisposed -> null
+            else -> currentProject
           }
+        }
 
         override fun getModule(): Module? = currentModule ?: project?.gradleModule(":app")?.getMainModule()
 

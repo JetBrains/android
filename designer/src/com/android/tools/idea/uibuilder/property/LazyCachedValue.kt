@@ -50,16 +50,15 @@ internal class LazyCachedValue<T>(
     }
   }
 
-  private suspend fun loadAndCacheValue(): T =
-    loading.withLock {
-      if (loaded.get()) return@withLock beforeLoadValue
-      val newValue = loader()
-      if (!loaded.getAndSet(true)) {
-        cachedValueLock.withLock { cachedValue = newValue }
-        onValueLoaded(newValue)
-      }
-      return@withLock newValue
+  private suspend fun loadAndCacheValue(): T = loading.withLock {
+    if (loaded.get()) return@withLock beforeLoadValue
+    val newValue = loader()
+    if (!loaded.getAndSet(true)) {
+      cachedValueLock.withLock { cachedValue = newValue }
+      onValueLoaded(newValue)
     }
+    return@withLock newValue
+  }
 
   /**
    * Returns the current cached value. If there is no value loaded, this method will return [beforeLoadValue] and will try to retrieve a new

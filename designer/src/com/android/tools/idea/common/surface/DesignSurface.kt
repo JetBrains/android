@@ -1092,15 +1092,14 @@ abstract class DesignSurface<T : SceneManager>(
 
     /** Replaces all models on the surface with the given new set of models and their associated managers. */
     fun replaceAllModels(newModelsAndManagers: List<Pair<NlModel, T>>) {
-      val changes =
-        modelsLock.write {
-          // Remove and add models under the same lock to provide an atomic replacement logic and
-          // avoid race conditions
-          val newModelsSet = newModelsAndManagers.map { it.first }.toSet()
-          val removals = modelToSceneManagers.keys.filter { it !in newModelsSet }.mapNotNull { removeModel(it) }
-          val additionsAndReplacements = newModelsAndManagers.map { (model, manager) -> addModel(model, manager) }
-          removals + additionsAndReplacements
-        }
+      val changes = modelsLock.write {
+        // Remove and add models under the same lock to provide an atomic replacement logic and
+        // avoid race conditions
+        val newModelsSet = newModelsAndManagers.map { it.first }.toSet()
+        val removals = modelToSceneManagers.keys.filter { it !in newModelsSet }.mapNotNull { removeModel(it) }
+        val additionsAndReplacements = newModelsAndManagers.map { (model, manager) -> addModel(model, manager) }
+        removals + additionsAndReplacements
+      }
       onModelsChanged(changes)
     }
 

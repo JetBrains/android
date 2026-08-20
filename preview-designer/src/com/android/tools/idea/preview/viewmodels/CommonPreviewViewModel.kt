@@ -124,19 +124,17 @@ open class CommonPreviewViewModel(
     updateViewAndNotifications()
   }
 
-  private fun updateNotifications() =
-    UIUtil.invokeLaterIfNeeded {
-      previewView.updateToolbar()
-      if (!project.isDisposed) {
-        EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
-      }
+  private fun updateNotifications() = UIUtil.invokeLaterIfNeeded {
+    previewView.updateToolbar()
+    if (!project.isDisposed) {
+      EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
     }
+  }
 
-  private fun updateViewAndNotifications() =
-    UIUtil.invokeLaterIfNeeded {
-      updateView()
-      updateNotifications()
-    }
+  private fun updateViewAndNotifications() = UIUtil.invokeLaterIfNeeded {
+    updateView()
+    updateNotifications()
+  }
 
   private val buildAndRefreshAction: ActionData
     get() {

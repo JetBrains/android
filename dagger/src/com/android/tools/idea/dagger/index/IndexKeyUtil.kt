@@ -89,17 +89,17 @@ internal fun getIndexKeys(psiType: PsiType, project: Project, scope: GlobalSearc
   val aliasSimpleNames = simpleNamesCanHaveAlias.flatMap { getAliasSimpleNames(it, project, scope) }
 
   return buildList {
-      // Fully-qualified name should go first, since it's most specific.
-      if (includeFqName) add(fqName)
+    // Fully-qualified name should go first, since it's most specific.
+    if (includeFqName) add(fqName)
 
-      // All simple names next.
-      addAll(simpleNamesCanHaveAlias)
-      addAll(simpleNamesCannotHaveAlias)
-      addAll(aliasSimpleNames)
+    // All simple names next.
+    addAll(simpleNamesCanHaveAlias)
+    addAll(simpleNamesCannotHaveAlias)
+    addAll(aliasSimpleNames)
 
-      // The unknown type last, since it's most generic.
-      add("")
-    }
+    // The unknown type last, since it's most generic.
+    add("")
+  }
     .distinct()
 }
 

@@ -610,8 +610,9 @@ class ExportToFileDialogTest {
   }
 }
 
-private fun UsageTrackerRule.events(): List<DatabaseInspectorEvent> =
-  usages.mapNotNull { it.studioEvent.appInspectionEvent?.databaseInspectorEvent }
+private fun UsageTrackerRule.events(): List<DatabaseInspectorEvent> = usages.mapNotNull {
+  it.studioEvent.appInspectionEvent?.databaseInspectorEvent
+}
 
 @Suppress("SameParameterValue")
 private fun exportDialogOpenedEvent(origin: Origin) =

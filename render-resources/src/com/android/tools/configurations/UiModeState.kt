@@ -19,9 +19,7 @@ import com.android.resources.NightMode
 import com.android.resources.UiMode
 import com.google.common.annotations.VisibleForTesting
 
-/**
- * Encapsulates the logic for Android UI Mode and Night Mode state.
- */
+/** Encapsulates the logic for Android UI Mode and Night Mode state. */
 class UiModeState {
   var uiMode: UiMode = UiMode.NORMAL
     private set

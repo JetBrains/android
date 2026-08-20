@@ -52,8 +52,9 @@ internal class SyncProjectActionWorker(
     val androidModules = modules.filterIsInstance<AndroidModule>()
     androidModules.forEach { androidModulesById[it.id] = it }
 
-    val androidModulesByProjectPath =
-      androidModules.associateBy { (BuildId(it.gradleProject.projectIdentifier.buildIdentifier.rootDir) to it.gradleProject.path) }
+    val androidModulesByProjectPath = androidModules.associateBy {
+      (BuildId(it.gradleProject.projectIdentifier.buildIdentifier.rootDir) to it.gradleProject.path)
+    }
 
     fun resolveAndroidProjectPath(buildId: BuildId, projectPath: String): AndroidModule? =
       androidModulesByProjectPath[buildId to projectPath]

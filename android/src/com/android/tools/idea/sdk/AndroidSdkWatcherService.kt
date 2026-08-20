@@ -112,33 +112,32 @@ private class AndroidSdkWatcher(coroutineScope: CoroutineScope, val sdkHandler: 
   private val progress = StudioLoggerProgressIndicator(AndroidSdkWatcher::class.java)
   val watcher = LocalRepoFileWatcher.create(location, progress)
 
-  private val job =
-    coroutineScope.launch {
-      // Interruption is not always sufficient to get out of the blocking read, we need to close the watcher explicitly
-      currentCoroutineContext().job.invokeOnCompletion { watcher.close() }
-      val repoManager = sdkHandler.getRepoManager(progress)
-      flow {
-          while (isActive) {
-            if (runInterruptible { watcher.consumeWatchEvents(progress, blocking = true) }) {
-              emit(Unit)
-            }
+  private val job = coroutineScope.launch {
+    // Interruption is not always sufficient to get out of the blocking read, we need to close the watcher explicitly
+    currentCoroutineContext().job.invokeOnCompletion { watcher.close() }
+    val repoManager = sdkHandler.getRepoManager(progress)
+    flow {
+        while (isActive) {
+          if (runInterruptible { watcher.consumeWatchEvents(progress, blocking = true) }) {
+            emit(Unit)
           }
         }
-        .retry { e ->
-          when (e) {
-            is ClosedWatchServiceException -> false
-            else -> {
-              logger.warn("Error consuming SDK watch events for $location", e)
-              true
-            }
+      }
+      .retry { e ->
+        when (e) {
+          is ClosedWatchServiceException -> false
+          else -> {
+            logger.warn("Error consuming SDK watch events for $location", e)
+            true
           }
         }
-        .debounce(100.milliseconds)
-        .collect {
-          logger.debug("Reloading local SDK packages due to filesystem changes")
-          repoManager.loadLocalPackages(progress, cacheExpiration = Duration.ZERO)
-        }
-    }
+      }
+      .debounce(100.milliseconds)
+      .collect {
+        logger.debug("Reloading local SDK packages due to filesystem changes")
+        repoManager.loadLocalPackages(progress, cacheExpiration = Duration.ZERO)
+      }
+  }
 
   override fun dispose() {
     job.cancel()

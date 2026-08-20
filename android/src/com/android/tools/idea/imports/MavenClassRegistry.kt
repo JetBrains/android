@@ -90,30 +90,29 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     val shouldMap =
       module.project.getProjectSystem().getTokenOrNull(AndroidMavenImportToken.EP_NAME)?.shouldMapKmpArtifacts(module) ?: false
 
-    val foundArtifacts =
-      buildList {
-          if (anyReceiver || receiverType == null) lookup.classNameMap[shortName]?.let { addAll(it) }
-          // Only suggest top-level Kotlin functions when completing in a Kotlin file.
-          if (completionFileType == KotlinFileType.INSTANCE) {
-            if (anyReceiver) {
-              lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
-            } else {
-              val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
-              lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
-            }
-          }
+    val foundArtifacts = buildList {
+      if (anyReceiver || receiverType == null) lookup.classNameMap[shortName]?.let { addAll(it) }
+      // Only suggest top-level Kotlin functions when completing in a Kotlin file.
+      if (completionFileType == KotlinFileType.INSTANCE) {
+        if (anyReceiver) {
+          lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
+        } else {
+          val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
+          lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
         }
-        .mapNotNull { data ->
-          if (shouldMap && data.artifact in lookup.kmpArtifactMap) {
-            // If the artifact is in the map, then we either replace it or drop it.
-            val baseArtifact = lookup.kmpArtifactMap[data.artifact]
-            baseArtifact?.let { data.copy(artifact = it) }
-          } else {
-            // For artifacts not in the map, just use the existing data.
-            data
-          }
+      }
+    }
+      .mapNotNull { data ->
+        if (shouldMap && data.artifact in lookup.kmpArtifactMap) {
+          // If the artifact is in the map, then we either replace it or drop it.
+          val baseArtifact = lookup.kmpArtifactMap[data.artifact]
+          baseArtifact?.let { data.copy(artifact = it) }
+        } else {
+          // For artifacts not in the map, just use the existing data.
+          data
         }
-        .distinct()
+      }
+      .distinct()
 
     if (packageName.isEmpty()) return foundArtifacts
 

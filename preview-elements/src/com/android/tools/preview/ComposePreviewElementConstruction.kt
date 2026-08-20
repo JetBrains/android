@@ -108,9 +108,8 @@ fun <T : Any> previewAnnotationToPreviewElement(
  */
 private fun getPreviewParameters(
   attributesProviders: Collection<Pair<String, AnnotationAttributesProvider>>
-): Collection<PreviewParameter> =
-  attributesProviders.mapIndexedNotNull { index, (name, attributesProvider) ->
-    val providerClassFqn = (attributesProvider.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
-    val limit = attributesProvider.getIntAttribute("limit") ?: Int.MAX_VALUE
-    PreviewParameter(name, index, providerClassFqn, limit)
-  }
+): Collection<PreviewParameter> = attributesProviders.mapIndexedNotNull { index, (name, attributesProvider) ->
+  val providerClassFqn = (attributesProvider.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
+  val limit = attributesProvider.getIntAttribute("limit") ?: Int.MAX_VALUE
+  PreviewParameter(name, index, providerClassFqn, limit)
+}

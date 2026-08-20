@@ -134,8 +134,9 @@ class ResourceLookupResolver(
   private val resolver: ResourceResolver,
 ) {
   private val projectResources = StudioResourceRepositoryManager.getProjectResources(appFacet)
-  private val androidResourceNamespaceResolver =
-    ResourceNamespace.Resolver { namespacePrefix -> if (namespacePrefix == ANDROID_NS_NAME) ANDROID_URI else null }
+  private val androidResourceNamespaceResolver = ResourceNamespace.Resolver { namespacePrefix ->
+    if (namespacePrefix == ANDROID_NS_NAME) ANDROID_URI else null
+  }
   private val androidNamespaceContext = ResourceNamespaceContext(ResourceNamespace.ANDROID, androidResourceNamespaceResolver)
   private val localAttrDefs: AttributeDefinitions
   private val systemAttrDefs: AttributeDefinitions?

@@ -108,73 +108,73 @@ class AppInspectionInspectorClient(
 
   override suspend fun doConnect() {
     runCatching {
-        logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+      logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
-        // Create the app inspection connection now, so we can log that it happened.
-        apiServices.attachToProcess(process, model.project.name)
-        launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
+      // Create the app inspection connection now, so we can log that it happened.
+      apiServices.attachToProcess(process, model.project.name)
+      launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
 
-        composeInspector =
-          ComposeLayoutInspectorClient.launch(
-            apiServices,
-            process,
-            model,
-            coroutineScope,
-            notificationModel,
-            treeSettings,
-            capabilities,
-            launchMonitor,
-            ::logComposeAttachError,
-          )
-        val viewIns =
-          ViewLayoutInspectorClient.launch(
-            apiServices,
-            process,
-            model,
-            stats,
-            coroutineScope,
-            composeInspector,
-            this::notifyError,
-            ::fireRootsEvent,
-            ::fireTreeEvent,
-            launchMonitor,
-          )
-        propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
-        viewInspector = viewIns
+      composeInspector =
+        ComposeLayoutInspectorClient.launch(
+          apiServices,
+          process,
+          model,
+          coroutineScope,
+          notificationModel,
+          treeSettings,
+          capabilities,
+          launchMonitor,
+          ::logComposeAttachError,
+        )
+      val viewIns =
+        ViewLayoutInspectorClient.launch(
+          apiServices,
+          process,
+          model,
+          stats,
+          coroutineScope,
+          composeInspector,
+          this::notifyError,
+          ::fireRootsEvent,
+          ::fireTreeEvent,
+          launchMonitor,
+        )
+      propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
+      viewInspector = viewIns
 
-        logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
+      logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-        val debugViewAttributesDeferred = coroutineScope.async { enableDebugViewAttributes() }
-        val enableBitmapScreenshotsDeferred = coroutineScope.async { enableBitmapScreenshots() }
-        val enableXrInspectionDeferred = coroutineScope.async { enableXrInspection() }
+      val debugViewAttributesDeferred = coroutineScope.async { enableDebugViewAttributes() }
+      val enableBitmapScreenshotsDeferred = coroutineScope.async { enableBitmapScreenshots() }
+      val enableXrInspectionDeferred = coroutineScope.async { enableXrInspection() }
 
-        // Perform setup operations in parallel.
-        debugViewAttributesDeferred.await()
-        enableBitmapScreenshotsDeferred.await()
-        enableXrInspectionDeferred.await()
+      // Perform setup operations in parallel.
+      debugViewAttributesDeferred.await()
+      enableBitmapScreenshotsDeferred.await()
+      enableXrInspectionDeferred.await()
 
-        val viewUpdateDeferred = CompletableDeferred<Unit>()
-        val updateListener = ModificationListener { _, _, _ -> viewUpdateDeferred.complete(Unit) }
+      val viewUpdateDeferred = CompletableDeferred<Unit>()
+      val updateListener = ModificationListener { _, _, _ -> viewUpdateDeferred.complete(Unit) }
 
-        model.addModificationListener(updateListener)
+      model.addModificationListener(updateListener)
 
-        if (inLiveMode) {
-          startFetchingInternal()
-        } else {
-          refreshInternal()
-        }
-
-        // wait until we start receiving updates
-        viewUpdateDeferred.await()
-        model.removeModificationListener(updateListener)
-
-        if (model.isXr) {
-          // It's important to do this check after the model is loaded, otherwise isXr is false by
-          // default.
-          stats.isXr(true)
-          checkRequiredVersionsForXr()
-        }
+      if (inLiveMode) {
+        startFetchingInternal()
+      } else {
+        refreshInternal()
       }
+
+      // wait until we start receiving updates
+      viewUpdateDeferred.await()
+      model.removeModificationListener(updateListener)
+
+      if (model.isXr) {
+        // It's important to do this check after the model is loaded, otherwise isXr is false by
+        // default.
+        stats.isXr(true)
+        checkRequiredVersionsForXr()
+      }
+    }
       .recover { t ->
         val error = getOriginalError(t)
         notifyError(error)

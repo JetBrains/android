@@ -271,14 +271,13 @@ class RenderExecutorTest {
     assertEquals(3, executor.accumulatedTimeouts)
     timeoutExecutorProvider.advanceBy(2, TimeUnit.SECONDS)
 
-    val job =
-      GlobalScope.launch {
-        // Keep advancing the timeout timer
-        while (!timeoutExecutorProvider.isShutdown) {
-          timeoutExecutorProvider.advanceBy(10, TimeUnit.SECONDS)
-          delay(500L)
-        }
+    val job = GlobalScope.launch {
+      // Keep advancing the timeout timer
+      while (!timeoutExecutorProvider.isShutdown) {
+        timeoutExecutorProvider.advanceBy(10, TimeUnit.SECONDS)
+        delay(500L)
       }
+    }
 
     try {
       executor.runAction(Callable<Void> { null })

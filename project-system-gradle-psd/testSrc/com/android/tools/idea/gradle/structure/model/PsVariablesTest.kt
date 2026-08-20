@@ -360,7 +360,9 @@ class PsVariablesTest {
 
       assumeThat(
         otherVariables.entries.keys,
-        equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")),
+        equalTo(
+          setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")
+        ),
       )
 
       val someVar = variables.getVariable("someVar")
@@ -376,7 +378,9 @@ class PsVariablesTest {
 
       assumeThat(
         otherVariables.entries.keys,
-        equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")),
+        equalTo(
+          setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")
+        ),
       )
       otherVariables.refresh()
       assertThat(

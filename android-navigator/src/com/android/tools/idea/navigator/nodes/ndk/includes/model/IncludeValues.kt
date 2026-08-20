@@ -31,20 +31,21 @@ object IncludeValues {
     // will be presented to the user.
     val groupedByPackageKey = simpleIncludes.groupBy { PackageKey(it.packageType, it.simplePackageName, it.packageFamilyBaseFolder) }
     val convertedToPackage = groupedByPackageKey.map { (key, value) -> PackageValue(key, value.first().packageDescription, value) }
-    val simplifiedPackages =
-      convertedToPackage.map { expression -> if (expression.includes.size == 1) expression.includes[0] else expression }
+    val simplifiedPackages = convertedToPackage.map { expression ->
+      if (expression.includes.size == 1) expression.includes[0] else expression
+    }
     Collections.sort(simplifiedPackages, COMPARE_NATIVE_DEPENDENCY)
 
     // The second phase groups again. This time, packages are grouped into package families with packages nested underneath.
     // So for example, "NDK Components" is a package family and "CPU Features" is one of the packages nested beneath.
     // Again, not all include folders can be classified into packages. These folders are left at the top level for now.
-    val groupByPackageFamilyKey =
-      simplifiedPackages.groupBy { PackageFamilyKey(it.packageType, it.packageDescription, it.packageFamilyBaseFolder) }
+    val groupByPackageFamilyKey = simplifiedPackages.groupBy {
+      PackageFamilyKey(it.packageType, it.packageDescription, it.packageFamilyBaseFolder)
+    }
     val convertGroupsToPackageFamily = groupByPackageFamilyKey.map { (key, value) -> PackageFamilyValue(key, value) }
-    val simplifiedFamilies =
-      convertGroupsToPackageFamily.map { family ->
-        if (family.myIncludes.size == 1 && family.myKey.packageType.myIsCollapsibleFamily) family.myIncludes[0] else family
-      }
+    val simplifiedFamilies = convertGroupsToPackageFamily.map { family ->
+      if (family.myIncludes.size == 1 && family.myKey.packageType.myIsCollapsibleFamily) family.myIncludes[0] else family
+    }
     Collections.sort(simplifiedFamilies, COMPARE_NATIVE_DEPENDENCY)
 
     // Lastly, all the include folders that weren't captured in packages are now grouped into a single shadowing folder. Shadowing just

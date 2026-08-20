@@ -87,22 +87,22 @@ fun <T : PreviewElement<SmartPsiElementPointer<PsiElement>>> previewElementsOnFi
   previewElementProvider: () -> PreviewElementProvider<T>,
 ): Flow<FlowableCollection<T>> {
   return channelFlow {
-      coroutineScope {
-        // We are tracking the language change flow instead of file change flow because
-        // filePreviewElementProvider relies not only on files themselves but also on indexes
-        // [KotlinAnnotationsIndex] in particular. If we only track file changes we lose the time
-        // when the indexes are updated (they are not immediately ready after e.g. a project is
-        // created) and we do not receive the required preview elements.
-        val languageChangeFlow =
-          languageModificationFlow(project, setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE))
-            // debounce to avoid many equality comparisons of the set
-            .debounce(250)
-        languageChangeFlow.collectLatest {
-          val previews = previewElementProvider().previewElements().toSet()
-          send(FlowableCollection.Present(previews))
-        }
+    coroutineScope {
+      // We are tracking the language change flow instead of file change flow because
+      // filePreviewElementProvider relies not only on files themselves but also on indexes
+      // [KotlinAnnotationsIndex] in particular. If we only track file changes we lose the time
+      // when the indexes are updated (they are not immediately ready after e.g. a project is
+      // created) and we do not receive the required preview elements.
+      val languageChangeFlow =
+        languageModificationFlow(project, setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE))
+          // debounce to avoid many equality comparisons of the set
+          .debounce(250)
+      languageChangeFlow.collectLatest {
+        val previews = previewElementProvider().previewElements().toSet()
+        send(FlowableCollection.Present(previews))
       }
     }
+  }
     .distinctUntilChanged()
 }
 

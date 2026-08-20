@@ -35,10 +35,9 @@ class CachingLoader constructor(private val delegate: DelegatingClassLoader.Load
     maxSizeInBytes: Long = DEFAULT_MAX_SIZE_BYTES,
   ) : this(delegate, createCacheBuilder(expireAfterWriteMs, maxSizeInBytes))
 
-  private val cacheLoader: CacheLoader<String, ByteArray> =
-    CacheLoader.from { fqcn ->
-      return@from delegate.loadClass(fqcn ?: return@from NULL_VALUE) ?: NULL_VALUE
-    }
+  private val cacheLoader: CacheLoader<String, ByteArray> = CacheLoader.from { fqcn ->
+    return@from delegate.loadClass(fqcn ?: return@from NULL_VALUE) ?: NULL_VALUE
+  }
   private val cache: LoadingCache<String, ByteArray> = cacheBuilder.build(cacheLoader)
 
   @Suppress("ReplaceArrayEqualityOpWithArraysEquals") // it == NULL_VALUE, we want to compare reference, not content.

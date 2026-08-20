@@ -97,19 +97,18 @@ class MavenClassRegistryManagerTest {
   }
 
   @Test
-  fun suspendingRead() =
-    testScope.runTest {
-      verify(mockGMavenIndexRepository, never()).loadIndexFromDisk()
+  fun suspendingRead() = testScope.runTest {
+    verify(mockGMavenIndexRepository, never()).loadIndexFromDisk()
 
-      val registry1 = mavenClassRegistryManager.getMavenClassRegistry()
-      verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
+    val registry1 = mavenClassRegistryManager.getMavenClassRegistry()
+    verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
 
-      // Second call should not trigger a new load.
-      val registry2 = mavenClassRegistryManager.getMavenClassRegistry()
-      verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
+    // Second call should not trigger a new load.
+    val registry2 = mavenClassRegistryManager.getMavenClassRegistry()
+    verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
 
-      assertThat(registry2).isSameAs(registry1)
-    }
+    assertThat(registry2).isSameAs(registry1)
+  }
 
   @Test
   fun indexUpdated() {

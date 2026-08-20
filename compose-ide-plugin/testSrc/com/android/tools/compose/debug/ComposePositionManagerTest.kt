@@ -70,11 +70,10 @@ class ComposePositionManagerTest {
     val composePositionManager = ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
     val position = SourcePosition.createFromLine(file, 5)
 
-    val refs =
-      debugProcess.invokeOnDebuggerManagerThread {
-        composePositionManager.createPrepareRequests(mock(), position)
-        composePositionManager.getRefs(position) - debugProcess.kotlinPositionManagerRefs(position)
-      }
+    val refs = debugProcess.invokeOnDebuggerManagerThread {
+      composePositionManager.createPrepareRequests(mock(), position)
+      composePositionManager.getRefs(position) - debugProcess.kotlinPositionManagerRefs(position)
+    }
 
     assertThat(debugProcess.prepareRequestPatterns).contains("a.ComposableSingletons\$TestKt$*")
     assertThat(refs).containsExactly("a.ComposableSingletons\$TestKt\$lambda-1")
@@ -113,11 +112,10 @@ class ComposePositionManagerTest {
     val composePositionManager = ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
     val sourcePosition = SourcePosition.createFromLine(file, 5)
 
-    val refs =
-      debugProcess.invokeOnDebuggerManagerThread {
-        composePositionManager.createPrepareRequests(mock(), sourcePosition)
-        composePositionManager.getRefs(sourcePosition) - debugProcess.kotlinPositionManagerRefs(sourcePosition)
-      }
+    val refs = debugProcess.invokeOnDebuggerManagerThread {
+      composePositionManager.createPrepareRequests(mock(), sourcePosition)
+      composePositionManager.getRefs(sourcePosition) - debugProcess.kotlinPositionManagerRefs(sourcePosition)
+    }
     assertThat(debugProcess.prepareRequestPatterns).contains("a.ComposableSingletons\$Test2Kt$*")
     assertThat(refs).containsExactly("a.ComposableSingletons\$Test2Kt\$lambda-1")
   }

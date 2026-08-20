@@ -71,20 +71,20 @@ class GradleUsageTypeProviderTest : AndroidTestCase() {
 
   private fun getUsageType(element: PsiElement): UsageType? {
     return executeOnPooledThread {
-        runReadAction {
-          val dataContext = (myFixture.editor as EditorEx).dataContext
-          val editor = CommonDataKeys.EDITOR.getData(dataContext)
-          val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
-          val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
-          UsageTypeProvider.EP_NAME.extensionList.firstNotNullOfOrNull {
-            when (it) {
-              is UsageTypeProviderEx ->
-                it.getUsageType(element, UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement) ?: emptyArray())
-              else -> it.getUsageType(element)
-            }
+      runReadAction {
+        val dataContext = (myFixture.editor as EditorEx).dataContext
+        val editor = CommonDataKeys.EDITOR.getData(dataContext)
+        val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
+        val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
+        UsageTypeProvider.EP_NAME.extensionList.firstNotNullOfOrNull {
+          when (it) {
+            is UsageTypeProviderEx ->
+              it.getUsageType(element, UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement) ?: emptyArray())
+            else -> it.getUsageType(element)
           }
         }
       }
+    }
       .get()
   }
 }

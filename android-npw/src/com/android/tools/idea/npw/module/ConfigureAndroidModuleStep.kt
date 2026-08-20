@@ -48,23 +48,22 @@ class ConfigureAndroidModuleStep(model: NewAndroidModuleModel, minSdkLevel: Int,
   private val appName: JTextField = JBTextField(model.applicationName.get())
   private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
 
-  override fun createMainPanel(): DialogPanel =
-    panel {
-        if (!model.isLibrary) {
-          row("Application name") { cell(appName).align(AlignX.FILL) }
-        }
+  override fun createMainPanel(): DialogPanel = panel {
+    if (!model.isLibrary) {
+      row("Application name") { cell(appName).align(AlignX.FILL) }
+    }
 
-        row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
+    row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
-        row("Package name") { cell(packageName).align(AlignX.FILL) }
+    row("Package name") { cell(packageName).align(AlignX.FILL) }
 
-        row("Language") { cell(languageCombo).align(AlignX.FILL) }
+    row("Language") { cell(languageCombo).align(AlignX.FILL) }
 
-        row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
+    row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-      }
-      .withBorder(empty(6))
+    generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+  }
+    .withBorder(empty(6))
 
   init {
     bindings.bindTwoWay(TextProperty(appName), model.applicationName)

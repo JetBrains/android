@@ -73,27 +73,25 @@ class MaterialVdIconsImpl : MaterialVdIcons {
   override val styles: Set<String>
     get() = modelLock.read { _styles.toSet() }
 
-  override fun getCategories(style: String): List<String> =
-    modelLock.read { loadedIcons.keys.filter { it.style == style }.mapNotNull { it.category }.distinct().sorted() }
+  override fun getCategories(style: String): List<String> = modelLock.read {
+    loadedIcons.keys.filter { it.style == style }.mapNotNull { it.category }.distinct().sorted()
+  }
 
-  override fun getIcons(style: String, category: String): List<VdIcon> =
-    modelLock.read {
-      if (!_styles.contains(style)) return emptyList()
+  override fun getIcons(style: String, category: String): List<VdIcon> = modelLock.read {
+    if (!_styles.contains(style)) return emptyList()
 
-      loadedIcons.filter { it.key.style == style && it.key.category == category }.map { it.value }.distinct()
-    }
+    loadedIcons.filter { it.key.style == style && it.key.category == category }.map { it.value }.distinct()
+  }
 
-  override fun getAllIcons(style: String): List<VdIcon> =
-    modelLock.read {
-      if (!_styles.contains(style)) return emptyList()
-      loadedIcons.filter { it.key.style == style }.map { it.value }.distinct()
-    }
+  override fun getAllIcons(style: String): List<VdIcon> = modelLock.read {
+    if (!_styles.contains(style)) return emptyList()
+    loadedIcons.filter { it.key.style == style }.map { it.value }.distinct()
+  }
 
-  fun addStyle(style: String) =
-    modelLock.read {
-      if (_styles.contains(style)) return@read
-      modelLock.write { _styles.add(style) }
-    }
+  fun addStyle(style: String) = modelLock.read {
+    if (_styles.contains(style)) return@read
+    modelLock.write { _styles.add(style) }
+  }
 
   fun addIcons(icons: List<Pair<IconCoordinates, VdIcon>>) {
     modelLock.write {

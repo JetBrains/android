@@ -369,84 +369,82 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
     val gradleAndroidModelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl,
   )
 
-  val moduleSetupData: Collection<ModuleSetupData> =
-    projectDataNodes.flatMap { projectData ->
-      val libraries = ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data
-      val kmpLibraries = ExternalSystemApiUtil.find(projectData, KMP_ANDROID_LIBRARY_TABLE)?.data
-      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(libraries, kmpLibraries)
-      val modelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl = { data -> GradleAndroidModelImpl(data) }
-      projectData.modules().flatMap inner@{ node ->
-        val sourceSets = ExternalSystemApiUtil.findAll(node, GradleSourceSetData.KEY)
+  val moduleSetupData: Collection<ModuleSetupData> = projectDataNodes.flatMap { projectData ->
+    val libraries = ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data
+    val kmpLibraries = ExternalSystemApiUtil.find(projectData, KMP_ANDROID_LIBRARY_TABLE)?.data
+    val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(libraries, kmpLibraries)
+    val modelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl = { data -> GradleAndroidModelImpl(data) }
+    projectData.modules().flatMap inner@{ node ->
+      val sourceSets = ExternalSystemApiUtil.findAll(node, GradleSourceSetData.KEY)
 
-        val externalId = node.data.id
-        val module = modulesById[externalId] ?: requestSync("Module $externalId not found")
+      val externalId = node.data.id
+      val module = modulesById[externalId] ?: requestSync("Module $externalId not found")
 
-        if (sourceSets.isEmpty()) {
-          listOf(ModuleSetupData(module, node, libraryResolver, modelFactory))
-        } else {
-          sourceSets.mapNotNull { sourceSet ->
-            val moduleId = modulesById[sourceSet.data.id] ?: requestSync("Module ${sourceSet.data.id} not found")
-            if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, libraryResolver, modelFactory) else null
-          } + ModuleSetupData(module, node, libraryResolver, modelFactory)
-        }
+      if (sourceSets.isEmpty()) {
+        listOf(ModuleSetupData(module, node, libraryResolver, modelFactory))
+      } else {
+        sourceSets.mapNotNull { sourceSet ->
+          val moduleId = modulesById[sourceSet.data.id] ?: requestSync("Module ${sourceSet.data.id} not found")
+          if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, libraryResolver, modelFactory) else null
+        } + ModuleSetupData(module, node, libraryResolver, modelFactory)
       }
     }
+  }
 
-  val attachModelActions =
-    moduleSetupData.flatMap { data ->
-      fun GradleAndroidModelData.validate() =
-        shouldDisableForceUpgrades() ||
-          !ApplicationManager.getApplication()
-            .getService(AgpVersionChecker::class.java)
-            .versionsAreIncompatible(agpVersion, AgpVersions.latestKnown)
+  val attachModelActions = moduleSetupData.flatMap { data ->
+    fun GradleAndroidModelData.validate() =
+      shouldDisableForceUpgrades() ||
+        !ApplicationManager.getApplication()
+          .getService(AgpVersionChecker::class.java)
+          .versionsAreIncompatible(agpVersion, AgpVersions.latestKnown)
 
-      /** Returns an action that attaches a model from the data node to the appropriate place. */
-      fun <T, V : Facet<*>> prepare(
-        dataKey: Key<T>,
-        getModel: (DataNode<*>, Key<T>) -> T?,
-        getFacet: (Module) -> V?,
-        attach: V.(T, MutableEntityStorage) -> Unit,
-        validate: T.() -> Boolean = { true },
-      ): ((MutableEntityStorage) -> Unit) {
-        val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
-        if (!model.validate()) {
-          requestSync("invalid model found for $dataKey in ${data.module.name}")
-        }
-        val facet = getFacet(data.module) ?: requestSync("no facet found for $dataKey in ${data.module.name} module")
-        facets.remove(facet)
-        return { storage -> facet.attach(model, storage) }
+    /** Returns an action that attaches a model from the data node to the appropriate place. */
+    fun <T, V : Facet<*>> prepare(
+      dataKey: Key<T>,
+      getModel: (DataNode<*>, Key<T>) -> T?,
+      getFacet: (Module) -> V?,
+      attach: V.(T, MutableEntityStorage) -> Unit,
+      validate: T.() -> Boolean = { true },
+    ): ((MutableEntityStorage) -> Unit) {
+      val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
+      if (!model.validate()) {
+        requestSync("invalid model found for $dataKey in ${data.module.name}")
       }
-
-      // For models that can be broken into source sets we need to check the parent datanode for the model
-      // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
-      // module per source set we should replace this code with were we know the model will be living.
-      fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? {
-        return { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
-      }
-      // In some cases when phased sync aborts early, the data nodes will have the final say on what should be on the model, so setting the
-      // workspace model entities below for compatibility with data services on startup.
-      listOf(
-        prepare(
-          ANDROID_MODEL,
-          getModelForMaybeSourceSetDataNode(),
-          AndroidFacet::getInstance,
-          { model, storage ->
-            if (module.isHolderModule()) {
-              val coreModel = data.gradleAndroidModelFactory(model)
-              setGradleAndroidModelFromDataNode(storage, module, coreModel, data.libraryResolver)
-            }
-          },
-          validate = GradleAndroidModelData::validate,
-        ),
-        prepare(
-          GRADLE_MODULE_MODEL,
-          ::getModelFromDataNode,
-          GradleFacet::getInstance,
-          { model, storage -> setGradleModuleModelFromDataNode(storage, module, model) },
-        ),
-        prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, { model, _ -> setNdkModuleModel(model) }),
-      )
+      val facet = getFacet(data.module) ?: requestSync("no facet found for $dataKey in ${data.module.name} module")
+      facets.remove(facet)
+      return { storage -> facet.attach(model, storage) }
     }
+
+    // For models that can be broken into source sets we need to check the parent datanode for the model
+    // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
+    // module per source set we should replace this code with were we know the model will be living.
+    fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? {
+      return { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
+    }
+    // In some cases when phased sync aborts early, the data nodes will have the final say on what should be on the model, so setting the
+    // workspace model entities below for compatibility with data services on startup.
+    listOf(
+      prepare(
+        ANDROID_MODEL,
+        getModelForMaybeSourceSetDataNode(),
+        AndroidFacet::getInstance,
+        { model, storage ->
+          if (module.isHolderModule()) {
+            val coreModel = data.gradleAndroidModelFactory(model)
+            setGradleAndroidModelFromDataNode(storage, module, coreModel, data.libraryResolver)
+          }
+        },
+        validate = GradleAndroidModelData::validate,
+      ),
+      prepare(
+        GRADLE_MODULE_MODEL,
+        ::getModelFromDataNode,
+        GradleFacet::getInstance,
+        { model, storage -> setGradleModuleModelFromDataNode(storage, module, model) },
+      ),
+      prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, { model, _ -> setNdkModuleModel(model) }),
+    )
+  }
 
   if (facets.isNotEmpty()) {
     requestSync("Cached models not available for:\n" + facets.joinToString(separator = ",\n") { "${it.module.name} : ${it.typeId}" })
@@ -474,12 +472,11 @@ private fun getFacetsFromModules(
   existingGradleModules: List<Module>,
   updateExternalSource: Boolean = isPhasedSyncWithDataServiceDisabled,
 ): List<Facet<out FacetConfiguration>> {
-  val facets =
-    existingGradleModules.flatMap { module ->
-      FacetManager.getInstance(module).let {
-        it.getFacetsByType(GradleFacet.getFacetTypeId()) + it.getFacetsByType(AndroidFacet.ID) + it.getFacetsByType(NdkFacet.facetTypeId)
-      }
+  val facets = existingGradleModules.flatMap { module ->
+    FacetManager.getInstance(module).let {
+      it.getFacetsByType(GradleFacet.getFacetTypeId()) + it.getFacetsByType(AndroidFacet.ID) + it.getFacetsByType(NdkFacet.facetTypeId)
     }
+  }
   if (updateExternalSource) {
     val source = ExternalProjectSystemRegistry.getInstance().getSourceById(GradleConstants.SYSTEM_ID.getId())
     facets.forEach { it.externalSource = source }
@@ -518,8 +515,7 @@ private fun Module.isEmptyModule() =
   moduleFile == null &&
     rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
 
-private fun Module.hasOnlyNativeRoots() =
-  rootManager.let { roots ->
-    roots.sourceRoots.isNotEmpty() &&
-      roots.getSourceRoots(NativeSourceRootType).size + roots.getSourceRoots(NativeHeaderRootType).size == roots.sourceRoots.size
-  }
+private fun Module.hasOnlyNativeRoots() = rootManager.let { roots ->
+  roots.sourceRoots.isNotEmpty() &&
+    roots.getSourceRoots(NativeSourceRootType).size + roots.getSourceRoots(NativeHeaderRootType).size == roots.sourceRoots.size
+}

@@ -61,8 +61,9 @@ private constructor(
       boxedLabels.forEach { it.timelineUnit = value }
     }
 
-  private val boxedLabels: List<BoxedLabel> =
-    componentCurves.mapIndexed { index, curve -> BoxedLabel(index, property.grouped) { curve.boxedLabelPosition } }
+  private val boxedLabels: List<BoxedLabel> = componentCurves.mapIndexed { index, curve ->
+    BoxedLabel(index, property.grouped) { curve.boxedLabelPosition }
+  }
 
   override fun paint(g: Graphics2D) {
     componentCurves.forEach { it.paint(g) }

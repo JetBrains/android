@@ -68,10 +68,11 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
     panel.add(messageLabel, BorderLayout.NORTH)
 
     val warningBanner = RebootWarningPanel("Changes will not take effect until after a system restart")
-    val warningWrapper = JPanel(FlowLayout(FlowLayout.CENTER, 0, 0)).apply {
-      isOpaque = false
-      add(warningBanner)
-    }
+    val warningWrapper =
+      JPanel(FlowLayout(FlowLayout.CENTER, 0, 0)).apply {
+        isOpaque = false
+        add(warningBanner)
+      }
     panel.add(warningWrapper, BorderLayout.SOUTH)
 
     panel.preferredSize = JBUI.size(490, 100)
@@ -101,14 +102,14 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
             is WhpxResult.AuthorizationRequired -> {
               Messages.showErrorDialog(
                 "Enabling WHPX requires authorization. " +
-                "Please retry the operation and click \"Yes\" to allow emulator-check.exe to make changes.",
+                  "Please retry the operation and click \"Yes\" to allow emulator-check.exe to make changes.",
                 "Authorization Needed",
               )
             }
             is WhpxResult.EmulatorUpdateNeeded -> {
               Messages.showErrorDialog(
                 "Enabling WHPX requires a newer version of the Android Emulator. " +
-                "Please update the Android Emulator to version 36.5.7 or higher and retry the operation.",
+                  "Please update the Android Emulator to version 36.5.7 or higher and retry the operation.",
                 "Emulator Update Needed",
               )
             }
@@ -163,10 +164,11 @@ class WhpxUpdateDialog(private val project: Project?, private val fromAehd: Bool
       icon(StudioIcons.Common.WARNING)
       text = warningText
       myLabel.border = JBUI.Borders.empty()
-      border = JBUI.Borders.compound(
-        JBUI.Borders.customLine(WARNING_BORDER_COLOR, 1),
-        JBUI.Borders.empty(12, 16, 12, 16)
-      )
+      border =
+        JBUI.Borders.compound(
+          JBUI.Borders.customLine(WARNING_BORDER_COLOR, 1),
+          JBUI.Borders.empty(12, 16, 12, 16),
+        )
     }
   }
 

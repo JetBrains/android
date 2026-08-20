@@ -49,11 +49,10 @@ open class AndroidSourceTypeNode(
   private val sourceType: AndroidSourceType,
   sourceRoots: Set<VirtualFile>,
 ) : ProjectViewNode<AndroidFacet?>(project, androidFacet, settings), FolderGroupNode {
-  private val sortedSourceRoots: List<VirtualFile> =
-    sourceRoots.sortedBy {
-      val (name) = findSourceProvider(it)
-      AndroidPsiDirectoryNode.getSourceProviderSortKeyPart(name)
-    }
+  private val sortedSourceRoots: List<VirtualFile> = sourceRoots.sortedBy {
+    val (name) = findSourceProvider(it)
+    AndroidPsiDirectoryNode.getSourceProviderSortKeyPart(name)
+  }
 
   override fun getChildren(): Collection<AbstractTreeNode<*>> {
     val projectViewDirectoryHelper = ProjectViewDirectoryHelper.getInstance(myProject)

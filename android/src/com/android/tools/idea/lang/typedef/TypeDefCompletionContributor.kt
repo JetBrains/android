@@ -241,8 +241,9 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
   }
 
   /** Handles the case where varargs are passed instead of a named `value` attribute. */
-  private fun KtAnnotationEntry.getImplicitValueAttributeValues(): List<PsiElement> =
-    valueArguments.mapNotNull { it.getArgumentExpression()?.resolveMainReference() }
+  private fun KtAnnotationEntry.getImplicitValueAttributeValues(): List<PsiElement> = valueArguments.mapNotNull {
+    it.getArgumentExpression()?.resolveMainReference()
+  }
 
   private fun KtExpression.resolveMainReference(): PsiElement? = unqualified()?.mainReference?.resolve()
 

@@ -69,24 +69,23 @@ class NewConnectionAlertStep(model: WearDevicePairingModel) : ModelWizardStep<We
 
   override fun getComponent(): JComponent = mainPanel
 
-  private fun showUi(header: String, description: String) =
-    mainPanel.apply {
-      removeAll()
+  private fun showUi(header: String, description: String) = mainPanel.apply {
+    removeAll()
 
-      layout = GridBagLayout()
-      border = empty(24)
+    layout = GridBagLayout()
+    border = empty(24)
 
-      add(
-        JBLabel(header, LARGE).withFont(JBFont.label().asBold()).withBorder(empty(0, 0, 24, 0)),
-        gridConstraint(x = 0, y = 0, fill = HORIZONTAL, gridwidth = REMAINDER),
-      )
-      add(JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)), gridConstraint(x = 0, y = 1))
-      add(JBLabel(description), gridConstraint(x = 1, y = 1, weightx = 1.0, fill = HORIZONTAL))
-      add(JPanel(), gridConstraint(x = 0, y = 3, weighty = 1.0)) // Bottom padding
+    add(
+      JBLabel(header, LARGE).withFont(JBFont.label().asBold()).withBorder(empty(0, 0, 24, 0)),
+      gridConstraint(x = 0, y = 0, fill = HORIZONTAL, gridwidth = REMAINDER),
+    )
+    add(JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)), gridConstraint(x = 0, y = 1))
+    add(JBLabel(description), gridConstraint(x = 1, y = 1, weightx = 1.0, fill = HORIZONTAL))
+    add(JPanel(), gridConstraint(x = 0, y = 3, weighty = 1.0)) // Bottom padding
 
-      revalidate()
-      repaint()
-    }
+    revalidate()
+    repaint()
+  }
 }
 
 internal fun gridConstraint(

@@ -129,26 +129,23 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
       }
     }
 
-    val roots =
-      sourcesMap.map { (includeRoot, packageMap) ->
-        val buildPackages =
-          packageMap.mapValues { (buildPackage, packageMap) ->
-            val sourceSets =
-              packageMap.map { (javaPackage, packageContent) ->
-                SourceSet(
-                  rootPath = buildPackage,
-                  javaSourceFiles = packageContent.javaSources.sorted().map { buildPackage.relativize(it) },
-                  nonJavaSourceFiles = packageContent.nonJavaSources.sorted().map { buildPackage.relativize(it) },
-                  javaPackage = javaPackage,
-                )
-              }
-            val timestamp = packageTimestamps[buildPackage] ?: 0L
-            val directSubpackages = directSubpackagesMap[buildPackage]?.toList() ?: emptyList()
-            val stamp = computePackageStamp(buildFileTimestamp = timestamp, sourceSets = sourceSets, directSubpackages = directSubpackages)
-            BuildPackage(path = buildPackage, sourceSets = sourceSets, stamp = stamp)
-          }
-        ProjectStructureRoot(projectStructureRootPath = includeRoot, buildPackages = buildPackages)
+    val roots = sourcesMap.map { (includeRoot, packageMap) ->
+      val buildPackages = packageMap.mapValues { (buildPackage, packageMap) ->
+        val sourceSets = packageMap.map { (javaPackage, packageContent) ->
+          SourceSet(
+            rootPath = buildPackage,
+            javaSourceFiles = packageContent.javaSources.sorted().map { buildPackage.relativize(it) },
+            nonJavaSourceFiles = packageContent.nonJavaSources.sorted().map { buildPackage.relativize(it) },
+            javaPackage = javaPackage,
+          )
+        }
+        val timestamp = packageTimestamps[buildPackage] ?: 0L
+        val directSubpackages = directSubpackagesMap[buildPackage]?.toList() ?: emptyList()
+        val stamp = computePackageStamp(buildFileTimestamp = timestamp, sourceSets = sourceSets, directSubpackages = directSubpackages)
+        BuildPackage(path = buildPackage, sourceSets = sourceSets, stamp = stamp)
       }
+      ProjectStructureRoot(projectStructureRootPath = includeRoot, buildPackages = buildPackages)
+    }
 
     val result = ProjectStructureData.create(roots = roots, activeLanguages = languages)
 

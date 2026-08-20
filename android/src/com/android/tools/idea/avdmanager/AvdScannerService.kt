@@ -34,11 +34,10 @@ import kotlinx.coroutines.launch
 
 @Service(Service.Level.APP)
 class AvdScannerService(coroutineScope: CoroutineScope) : AbstractAvdScanner(coroutineScope), Disposable {
-  private val localChangeListener =
-    RepoManager.RepoLoadedListener {
-      thisLogger().debug("SDK packages changed, rescanning AVDs")
-      rescanAsync()
-    }
+  private val localChangeListener = RepoManager.RepoLoadedListener {
+    thisLogger().debug("SDK packages changed, rescanning AVDs")
+    rescanAsync()
+  }
   @Volatile private var currentRepoManager: RepoManager? = null
   private val sdkPathFlow = MutableSharedFlow<Path>(1)
 

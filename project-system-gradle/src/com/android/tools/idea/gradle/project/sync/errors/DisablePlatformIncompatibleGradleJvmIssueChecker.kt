@@ -19,9 +19,8 @@ import com.intellij.ide.ApplicationInitializedListener
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 
 /**
- * Disables [org.jetbrains.plugins.gradle.issue.IncompatibleGradleJvmAndGradleIssueChecker] since Android Studio
- * has its own implementation [IncompatibleGradleJvmAndGradleIssueChecker] providing tailored error descriptions
- * and Android Studio quick-fixes.
+ * Disables [org.jetbrains.plugins.gradle.issue.IncompatibleGradleJvmAndGradleIssueChecker] since Android Studio has its own implementation
+ * [IncompatibleGradleJvmAndGradleIssueChecker] providing tailored error descriptions and Android Studio quick-fixes.
  */
 class DisablePlatformIncompatibleGradleJvmIssueChecker : ApplicationInitializedListener {
   override suspend fun execute() {

@@ -107,8 +107,7 @@ private fun String.isNextMessage(): Boolean {
     val colonIndex1 = indexOf(COLON)
     return colonIndex1 == 0 ||
         (colonIndex1 >= 0 && substring(0, colonIndex1).startsWithSeverityPrefix()) // Next Kotlin message
-        ||
-        StringUtil.containsIgnoreCase(this, "FAILURE") ||
+        || StringUtil.containsIgnoreCase(this, "FAILURE") ||
         StringUtil.containsIgnoreCase(this, "FAILED")
 }
 

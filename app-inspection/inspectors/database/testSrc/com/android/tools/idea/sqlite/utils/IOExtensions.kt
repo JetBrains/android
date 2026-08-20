@@ -26,21 +26,21 @@ fun Path.toLines() = sequence { Scanner(toFile(), Charsets.UTF_8.name()).use { w
 /** @return list of unzipped files */
 fun Path.unzipTo(dstDirectory: Path): List<Path> = let { source ->
   sequence {
-      FileInputStream(source.toFile()).use { fileInputStream ->
-        ZipInputStream(fileInputStream).use { zipInputStream ->
-          var current = zipInputStream.nextEntry
-          while (current != null) {
-            if (current.isDirectory) throw IllegalStateException("Not implemented")
-            val outPath = dstDirectory.resolve(current.name)
-            FileOutputStream(outPath.toFile()).use { outStream ->
-              // convert to a buffered approach for larger files
-              outStream.write(zipInputStream.readAllBytes())
-            }
-            yield(outPath)
-            current = zipInputStream.nextEntry
+    FileInputStream(source.toFile()).use { fileInputStream ->
+      ZipInputStream(fileInputStream).use { zipInputStream ->
+        var current = zipInputStream.nextEntry
+        while (current != null) {
+          if (current.isDirectory) throw IllegalStateException("Not implemented")
+          val outPath = dstDirectory.resolve(current.name)
+          FileOutputStream(outPath.toFile()).use { outStream ->
+            // convert to a buffered approach for larger files
+            outStream.write(zipInputStream.readAllBytes())
           }
+          yield(outPath)
+          current = zipInputStream.nextEntry
         }
       }
     }
+  }
     .toList()
 }

@@ -212,8 +212,9 @@ class TreeTableModelImpl(
     modelListeners.forEach { (it as? TreeTableModelImplListener)?.treeChanged(event) }
   }
 
-  private fun toPath(node: Any?): TreePath? =
-    node?.let { TreePath(generateSequence(node) { parent(it) }.toList().asReversed().toTypedArray()) }
+  private fun toPath(node: Any?): TreePath? = node?.let {
+    TreePath(generateSequence(node) { parent(it) }.toList().asReversed().toTypedArray())
+  }
 
   private fun fireColumnDataChanged() = modelListeners.forEach { (it as? TreeTableModelImplListener)?.columnDataChanged() }
 

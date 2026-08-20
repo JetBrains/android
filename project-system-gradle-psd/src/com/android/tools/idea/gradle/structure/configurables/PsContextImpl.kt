@@ -267,4 +267,6 @@ class PsPathRendererImpl : PsPathRenderer {
 }
 
 private fun analyzersMapOf(vararg analyzers: PsModelAnalyzer<out PsModule>): Map<Class<*>, PsModelAnalyzer<out PsModule>> =
-  analyzers.associateBy { it.supportedModelType }
+  analyzers.associateBy {
+    it.supportedModelType
+  }

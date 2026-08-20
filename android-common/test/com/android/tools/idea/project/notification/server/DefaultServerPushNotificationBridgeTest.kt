@@ -68,17 +68,19 @@ class DefaultServerPushNotificationBridgeTest : LightIdeaTestCase() {
 
   @Test
   fun testShowNotification_rendersBalloonWithBrowseAction() {
-    val browseAction = Actions.newBuilder().setTitle("Browse").setBrowseAction(BrowseAction.newBuilder().setUrl("https://google.com")).build()
-    val notification = StudioPushNotification.newBuilder()
-      .setNotificationSpec(
-        NotificationSpec.newBuilder()
-          .setId("BALLOON_WITH_BROWSE")
-          .setTitle("Title")
-          .setDescription("Description")
-          .addActions(browseAction)
-          .build()
-      )
-      .build()
+    val browseAction =
+      Actions.newBuilder().setTitle("Browse").setBrowseAction(BrowseAction.newBuilder().setUrl("https://google.com")).build()
+    val notification =
+      StudioPushNotification.newBuilder()
+        .setNotificationSpec(
+          NotificationSpec.newBuilder()
+            .setId("BALLOON_WITH_BROWSE")
+            .setTitle("Title")
+            .setDescription("Description")
+            .addActions(browseAction)
+            .build()
+        )
+        .build()
 
     val handled = bridge.showNotification(notification, mockListener)
     UIUtil.dispatchAllInvocationEvents()
@@ -98,21 +100,23 @@ class DefaultServerPushNotificationBridgeTest : LightIdeaTestCase() {
 
   @Test
   fun testShowNotification_rendersBalloonWithUiScreenId() {
-    val uiAction = Actions.newBuilder()
-      .setTitle("New Project")
-      .setUiScreenId("NewProject")
-      .putDataContextParams("NPW_INITIAL_TARGET_KEY", "Wear")
-      .build()
-    val notification = StudioPushNotification.newBuilder()
-      .setNotificationSpec(
-        NotificationSpec.newBuilder()
-          .setId("BALLOON_WITH_UI_ACTION")
-          .setTitle("Title")
-          .setDescription("Description")
-          .addActions(uiAction)
-          .build()
-      )
-      .build()
+    val uiAction =
+      Actions.newBuilder()
+        .setTitle("New Project")
+        .setUiScreenId("NewProject")
+        .putDataContextParams("NPW_INITIAL_TARGET_KEY", "Wear")
+        .build()
+    val notification =
+      StudioPushNotification.newBuilder()
+        .setNotificationSpec(
+          NotificationSpec.newBuilder()
+            .setId("BALLOON_WITH_UI_ACTION")
+            .setTitle("Title")
+            .setDescription("Description")
+            .addActions(uiAction)
+            .build()
+        )
+        .build()
 
     val handled = bridge.showNotification(notification, mockListener)
     UIUtil.dispatchAllInvocationEvents()
@@ -130,18 +134,15 @@ class DefaultServerPushNotificationBridgeTest : LightIdeaTestCase() {
 
   @Test
   fun testShowNotification_gotItTooltipSpec_returnsFalse() {
-    val notification = StudioPushNotification.newBuilder()
-      .setGotItTooltipSpec(
-        GotItTooltipSpec.newBuilder()
-          .setId("GOT_IT_TOOLTIP_SPEC")
-          .setPlacementDetails(
-            PlacementDetails.newBuilder()
-              .setPosition(Position.MODEL_PICKER)
-              .build()
-          )
-          .build()
-      )
-      .build()
+    val notification =
+      StudioPushNotification.newBuilder()
+        .setGotItTooltipSpec(
+          GotItTooltipSpec.newBuilder()
+            .setId("GOT_IT_TOOLTIP_SPEC")
+            .setPlacementDetails(PlacementDetails.newBuilder().setPosition(Position.MODEL_PICKER).build())
+            .build()
+        )
+        .build()
 
     val handled = bridge.showNotification(notification, mockListener)
     assertThat(handled).isFalse()
@@ -155,13 +156,8 @@ class DefaultServerPushNotificationBridgeTest : LightIdeaTestCase() {
 
   @Test
   fun testCheckRequirement_daysSinceLastUse() {
-    val requirement = Requirement.newBuilder()
-      .setFeatureUsage(
-        FeatureUsage.newBuilder()
-          .setFeature(Feature.AGENT_WINDOW)
-          .setDaysSinceLastUse(5)
-      )
-      .build()
+    val requirement =
+      Requirement.newBuilder().setFeatureUsage(FeatureUsage.newBuilder().setFeature(Feature.AGENT_WINDOW).setDaysSinceLastUse(5)).build()
 
     // Feature was never used -> satisfied
     assertThat(bridge.checkRequirement(requirement)).isTrue()
@@ -175,21 +171,20 @@ class DefaultServerPushNotificationBridgeTest : LightIdeaTestCase() {
   fun testCheckRequirement_dateCondition() {
     val nowSeconds = Clock.System.now().epochSeconds
 
-    val validRequirement = Requirement.newBuilder()
-      .setDateCondition(
-        DateCondition.newBuilder()
-          .setShownAfter(Timestamp.newBuilder().setSeconds(nowSeconds - 100))
-          .setShownBefore(Timestamp.newBuilder().setSeconds(nowSeconds + 100))
-      )
-      .build()
+    val validRequirement =
+      Requirement.newBuilder()
+        .setDateCondition(
+          DateCondition.newBuilder()
+            .setShownAfter(Timestamp.newBuilder().setSeconds(nowSeconds - 100))
+            .setShownBefore(Timestamp.newBuilder().setSeconds(nowSeconds + 100))
+        )
+        .build()
     assertThat(bridge.checkRequirement(validRequirement)).isTrue()
 
-    val expiredRequirement = Requirement.newBuilder()
-      .setDateCondition(
-        DateCondition.newBuilder()
-          .setShownBefore(Timestamp.newBuilder().setSeconds(nowSeconds - 100))
-      )
-      .build()
+    val expiredRequirement =
+      Requirement.newBuilder()
+        .setDateCondition(DateCondition.newBuilder().setShownBefore(Timestamp.newBuilder().setSeconds(nowSeconds - 100)))
+        .build()
     assertThat(bridge.checkRequirement(expiredRequirement)).isFalse()
   }
 }

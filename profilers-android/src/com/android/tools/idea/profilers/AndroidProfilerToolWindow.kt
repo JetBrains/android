@@ -184,17 +184,16 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   private fun getToolbarDeviceSelections(project: Project): List<ToolbarDeviceSelection> {
     val devices = DeviceAndSnapshotComboBoxTargetProvider.getInstance().getDeployTarget(project).getAndroidDevices(project)
     try {
-      val selections =
-        devices.map {
-          ToolbarDeviceSelection(
-            it.name,
-            it.version.featureLevel,
-            it.isRunning,
-            it.isDebuggable,
-            it.ddmlibDevice?.serialNumber ?: "",
-            it.icon,
-          )
-        }
+      val selections = devices.map {
+        ToolbarDeviceSelection(
+          it.name,
+          it.version.featureLevel,
+          it.isRunning,
+          it.isDebuggable,
+          it.ddmlibDevice?.serialNumber ?: "",
+          it.icon,
+        )
+      }
       return selections
     } catch (e: Exception) {
       return listOf()

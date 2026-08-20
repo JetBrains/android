@@ -100,11 +100,10 @@ object JfrManifestMergerReports {
 
     @WorkerThread
     private fun handleSnapshotCreationStarted(token: Any) {
-      startReportTimeouts[token] =
-        coroutineScope.launch {
-          delay(REPORTING_THRESHOLD)
-          handleSnapshotReportingTimeout(token)
-        }
+      startReportTimeouts[token] = coroutineScope.launch {
+        delay(REPORTING_THRESHOLD)
+        handleSnapshotReportingTimeout(token)
+      }
     }
 
     @WorkerThread

@@ -147,14 +147,14 @@ class TransportServiceTest : LightPlatformTestCase() {
   private fun waitForQueueDrained(deque: BlockingDeque<Common.Event>) {
     val doneLatch = CountDownLatch(1)
     Thread {
-        while (!deque.isEmpty()) {
-          try {
-            Thread.sleep(100)
-          } catch (ignored: InterruptedException) {}
-        }
-
-        doneLatch.countDown()
+      while (!deque.isEmpty()) {
+        try {
+          Thread.sleep(100)
+        } catch (ignored: InterruptedException) {}
       }
+
+      doneLatch.countDown()
+    }
       .start()
 
     try {
