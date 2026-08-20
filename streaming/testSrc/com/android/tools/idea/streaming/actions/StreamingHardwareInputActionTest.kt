@@ -44,7 +44,9 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -58,13 +60,14 @@ import org.junit.runners.JUnit4
 
 /** Tests for [StreamingHardwareInputAction]. */
 @RunWith(JUnit4::class)
+@RunsInEdt
 class StreamingHardwareInputActionTest {
 
   private val emulatorViewRule = EmulatorViewRule()
   private val agentRule = FakeScreenSharingAgentRule()
   private val popupRule = JBPopupRule()
 
-  @get:Rule val rule = RuleChain(emulatorViewRule, agentRule, popupRule)
+  @get:Rule val rule = RuleChain(emulatorViewRule, agentRule, popupRule, EdtRule())
 
   private val project
     get() = agentRule.project
