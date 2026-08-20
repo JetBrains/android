@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.capture.unified
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.profilers.IntellijProfilerServices
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource
@@ -28,10 +29,12 @@ import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerContext
 import com.android.tools.profilers.ProfilerFormat
+import com.android.tools.profilers.ProfilerLayout
 import com.android.tools.profilers.StageView
 import com.android.tools.profilers.StageWithToolbarView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.TimelineZoomToolbar
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuCaptureStageView
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration
@@ -51,7 +54,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.ui.JBEmptyBorder
 import java.awt.BorderLayout
+import java.awt.Dimension
 import java.io.File
 import java.util.function.Supplier
 import javax.swing.JComponent
@@ -134,9 +139,8 @@ object OfflineProfilerSessionFactory {
         val context = OfflineProfilerContext(ideServices, profilers, parentComponent, offlineMetadata)
         val configuration = UnspecifiedConfiguration("")
 
-        val view = createPlaceholderProfilersView(profilers, componentsProvider(ideServices))
-
         var stageView: StageView<*>? = null
+        val view = createPlaceholderProfilersView(profilers, componentsProvider(ideServices)) { stageView }
 
         if (!localFileExists || localFileEmpty) {
           val errorMessage = if (!localFileExists) "The trace file could not be found." else "The trace file is empty."
@@ -150,6 +154,7 @@ object OfflineProfilerSessionFactory {
               CpuCaptureStage(profilers, context, configuration, localFile, traceId, null, 0)
             }
           Disposer.register(parentDisposable) { stage.exit() }
+          profilers.stage = stage
 
           stageView =
             if (stage is MemoryCaptureStage) {
@@ -157,6 +162,22 @@ object OfflineProfilerSessionFactory {
             } else {
               CpuCaptureStageView(view, stage as CpuCaptureStage)
             }
+
+          if (stageView.isToolbarVisible) {
+            val toolbar =
+              JPanel(BorderLayout()).apply {
+                border = AdtUiUtils.DEFAULT_BOTTOM_BORDER
+                preferredSize = Dimension(0, ProfilerLayout.TOOLBAR_HEIGHT)
+                add(stageView.toolbar, BorderLayout.CENTER)
+                if (stage.isInteractingWithTimeline) {
+                  val zoomToolbar =
+                    TimelineZoomToolbar({ stage.timeline }, ideServices.featureTracker, view.stageComponent, parentDisposable)
+                  zoomToolbar.component.border = JBEmptyBorder(0, 0, 0, 2)
+                  add(zoomToolbar.component, BorderLayout.EAST)
+                }
+              }
+            view.stageComponent.add(toolbar, BorderLayout.NORTH)
+          }
           view.stageComponent.add(stageView.component, BorderLayout.CENTER)
           stage.enter()
         }
@@ -200,7 +221,11 @@ object OfflineProfilerSessionFactory {
     return MemoryCaptureStage(profilers, context, loader, durationData, ideServices.mainExecutor)
   }
 
-  private fun createPlaceholderProfilersView(profilers: StudioProfilers, components: IdeProfilerComponents): StudioProfilersView {
+  private fun createPlaceholderProfilersView(
+    profilers: StudioProfilers,
+    components: IdeProfilerComponents,
+    stageViewSupplier: () -> StageView<*>?,
+  ): StudioProfilersView {
     val stageComponent = JPanel(BorderLayout())
     val layeredPane = TooltipLayeredPane(stageComponent)
     return object : StudioProfilersView {
@@ -211,7 +236,8 @@ object OfflineProfilerSessionFactory {
         get() = throw UnsupportedOperationException("Not implemented for placeholder view")
 
       override val stageComponent: JPanel = stageComponent
-      override val stageView: StageView<*>? = null
+      override val stageView: StageView<*>?
+        get() = stageViewSupplier()
 
       override fun installCommonMenuItems(component: JComponent) {}
 

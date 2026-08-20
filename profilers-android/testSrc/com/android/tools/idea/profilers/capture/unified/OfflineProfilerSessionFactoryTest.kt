@@ -138,6 +138,16 @@ class OfflineProfilerSessionFactoryTest {
     assertThat(layeredPane.getLayer(session.profilersView.stageComponent)).isEqualTo(JLayeredPane.DEFAULT_LAYER)
     val stageLayout = session.profilersView.stageComponent.layout as BorderLayout
     assertThat(stageLayout.getConstraints(session.stageView!!.component)).isEqualTo(BorderLayout.CENTER)
+
+    val northComponent = session.profilersView.stageComponent.components.find { stageLayout.getConstraints(it) == BorderLayout.NORTH }
+    assertThat(northComponent).isNotNull()
+    assertThat(northComponent).isInstanceOf(JPanel::class.java)
+    val toolbarPanel = northComponent as JPanel
+    val toolbarLayout = toolbarPanel.layout as BorderLayout
+    val centerComponent = toolbarPanel.components.find { toolbarLayout.getConstraints(it) == BorderLayout.CENTER }
+    assertThat(centerComponent).isNotNull()
+    val eastComponent = toolbarPanel.components.find { toolbarLayout.getConstraints(it) == BorderLayout.EAST }
+    assertThat(eastComponent).isNotNull()
   }
 
   @Test
