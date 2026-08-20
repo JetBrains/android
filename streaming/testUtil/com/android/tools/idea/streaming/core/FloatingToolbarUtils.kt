@@ -25,7 +25,11 @@ fun FakeUi.expandFloatingToolbar() {
   val toolbar = getComponent<FloatingToolbarContainer>()
   if (toolbar.activationFactor != 1.0) {
     // Trigger expansion of the floating toolbar.
-    mouse.click(toolbar.locationOnScreen.x + toolbar.width - toolbar.height / 2, toolbar.locationOnScreen.y + toolbar.height / 2)
+    if (toolbar.width > toolbar.height) {
+      mouse.click(toolbar.locationOnScreen.x + toolbar.width - toolbar.height / 2, toolbar.locationOnScreen.y + toolbar.height / 2)
+    } else {
+      mouse.click(toolbar.locationOnScreen.x + toolbar.width / 2, toolbar.locationOnScreen.y + toolbar.height - toolbar.width / 2)
+    }
     layoutAndDispatchEvents()
     waitForCondition(1.seconds) { toolbar.activationFactor == 1.0 }
     layoutAndDispatchEvents()
