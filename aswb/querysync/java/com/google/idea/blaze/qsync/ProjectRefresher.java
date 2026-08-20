@@ -20,6 +20,7 @@ import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.query.QuerySpec;
+import com.google.idea.blaze.qsync.project.ProjectStructureData;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -46,14 +47,15 @@ public class ProjectRefresher {
     this.latestProjectSnapshotSupplier = latestProjectSnapshotSupplier;
   }
 
-  public RefreshOperation startFullUpdate(Context<?> context, ProjectDefinition spec) {
-    return new FullProjectUpdate(context, workspaceRoot, spec, queryStrategy);
+  public RefreshOperation startFullUpdate(
+      Context<?> context, ProjectDefinition spec, ProjectStructureData projectStructureData) {
+    return new FullProjectUpdate(context, workspaceRoot, spec, queryStrategy, projectStructureData);
   }
 
   public RefreshOperation startPartialRefresh(RefreshParameters params, Context<?> context)
       throws BuildException {
     if (params.requireFullSync.invoke(context)) {
-      return startFullUpdate(context, params.latestProjectDefinition);
+      return startFullUpdate(context, params.latestProjectDefinition, params.projectStructureData);
     }
     AffectedPackages affected = params.calculateAffectedPackages(context, vcsDiffer);
 
@@ -73,6 +75,7 @@ public class ProjectRefresher {
         workspaceRoot,
         params.currentProject,
         affected.getModifiedPackages(),
-        affected.getDeletedPackages());
+        affected.getDeletedPackages(),
+        params.projectStructureData);
   }
 }

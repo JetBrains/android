@@ -15,13 +15,13 @@
  */
 package com.google.idea.blaze.qsync
 
-import com.google.common.collect.Sets
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import java.util.Optional
 
 /** Input parameters to a project refresh, and logic to determine what sort of refresh is required. */
@@ -31,6 +31,7 @@ class RefreshParameters(
   @JvmField val snapshotVcsState: Optional<VcsState>,
   @JvmField val latestVcsState: Optional<VcsState>,
   @JvmField val latestProjectDefinition: ProjectDefinition,
+  @JvmField val projectStructureData: ProjectStructureData,
   @JvmField val requireFullSync: (Context<*>) -> Boolean = { false },
 ) {
 

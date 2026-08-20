@@ -19,7 +19,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.idea.blaze.qsync.project.BuildPackage;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
+import com.google.idea.blaze.qsync.project.ProjectStructureData;
+import com.google.idea.blaze.qsync.project.ProjectStructureDataKt;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
@@ -41,16 +44,19 @@ class PartialProjectRefresh implements RefreshOperation {
   private final PostQuerySyncData previousState;
   @VisibleForTesting final ImmutableSet<Path> modifiedPackages;
   @VisibleForTesting final ImmutableSet<Path> deletedPackages;
+  private final ProjectStructureData projectStructureData;
 
   PartialProjectRefresh(
       Path workspaceRoot,
       PostQuerySyncData previousState,
       Set<Path> modifiedPackages,
-      Set<Path> deletedPackages) {
+      Set<Path> deletedPackages,
+      ProjectStructureData projectStructureData) {
     this.workspaceRoot = workspaceRoot;
     this.previousState = previousState;
     this.modifiedPackages = ImmutableSet.copyOf(modifiedPackages);
     this.deletedPackages = ImmutableSet.copyOf(deletedPackages);
+    this.projectStructureData = projectStructureData;
   }
 
   private Optional<QuerySpec> createQuerySpec() {
@@ -99,9 +105,19 @@ class PartialProjectRefresh implements RefreshOperation {
     mergedPackages.addAll(partialQuery.getBuildPackages());
 
     // 3. Build the merged summary package-by-package, preserving queryStrategy:
-    return QuerySummaryImpl.newBuilder()
-        .putAllPackages(mergedPackages)
-        .setQueryStrategy(previousState.querySummary().getQueryStrategy())
-        .build();
+    QuerySummaryImpl.Builder builder =
+        QuerySummaryImpl.newBuilder()
+            .putAllPackages(mergedPackages)
+            .setQueryStrategy(previousState.querySummary().getQueryStrategy());
+
+    for (QuerySummary.BuildPackage pkg : partialQuery.getBuildPackages()) {
+      Path pkgPath = pkg.getPackageLabel().getBuildPackagePath();
+      BuildPackage structPkg = ProjectStructureDataKt.getBuildPackage(projectStructureData, pkgPath);
+      if (structPkg != null) {
+        builder.putPackageStamp(pkg.getPackageLabel(), structPkg.getStamp());
+      }
+    }
+
+    return builder.build();
   }
 }

@@ -572,15 +572,16 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       val vcsState = loadedProject.getVcsState(context)
       val bazelVersion = loadedProject.getBazelVersion(context)
 
+      val projectStructureDataToUse = readProjectStructureData(context, lastProjectStructureData)
       val postQuerySyncData =
         runQueryAndComputePostQuerySyncData(
           context,
           lastQuery,
           vcsState,
           bazelVersion,
+          projectStructureDataToUse,
         )
       val coreSyncResult = loadedProject.syncQueryCore(context, postQuerySyncData)
-      val projectStructureDataToUse = readProjectStructureData(context, lastProjectStructureData)
       updateCurrentSnapshot(context) {
         applySyncResult(
           coreSyncResult,
@@ -602,10 +603,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     lastQuery: PostQuerySyncData?,
     vcsState: VcsState?,
     bazelVersion: String?,
+    projectStructureData: ProjectStructureData,
   ): PostQuerySyncData {
     SaveUtil.saveAllFiles()
     lastQueryInstant = Clock.System.now()
-    return assertProjectLoaded().runQueryAndComputePostQuerySyncData(context, lastQuery, vcsState, bazelVersion)
+    return assertProjectLoaded().runQueryAndComputePostQuerySyncData(context, lastQuery, vcsState, bazelVersion, projectStructureData)
   }
 
   private fun autoEnableCodeAnalysis(context: BlazeContext, startup: Boolean = false): Boolean {

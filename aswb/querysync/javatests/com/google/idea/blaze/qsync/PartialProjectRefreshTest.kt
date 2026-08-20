@@ -20,7 +20,11 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth8
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.qsync.project.BuildPackage
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
+import com.google.idea.blaze.qsync.project.ProjectStructureData
+import com.google.idea.blaze.qsync.project.ProjectStructureRoot
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.google.idea.blaze.qsync.query.Query
 import com.google.idea.blaze.qsync.query.QueryData
 import com.google.idea.blaze.qsync.query.QuerySummary
@@ -70,6 +74,7 @@ class PartialProjectRefreshTest {
         baseProject,
         /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
         ImmutableSet.of(),
+        ProjectStructureData.EMPTY,
       )
     val applied = refresh.applyDelta(delta)
     Truth.assertThat(applied.rulesMapForTests.keys)
@@ -109,6 +114,7 @@ class PartialProjectRefreshTest {
         baseProject,
         ImmutableSet.of(),
         /* deletedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
+        ProjectStructureData.EMPTY,
       )
     Truth8.assertThat(queryStrategy.getQuerySpec()).isEmpty()
     val applied = queryStrategy.applyDelta(QuerySummary.EMPTY)
@@ -145,6 +151,7 @@ class PartialProjectRefreshTest {
         baseProject,
         /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package2")),
         ImmutableSet.of(),
+        ProjectStructureData.EMPTY,
       )
     val applied = queryStrategy.applyDelta(delta)
     Truth.assertThat(applied.rulesMapForTests.keys)
@@ -188,9 +195,58 @@ class PartialProjectRefreshTest {
         baseProject,
         /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package2")),
         ImmutableSet.of(),
+        ProjectStructureData.EMPTY,
       )
     val applied = queryStrategy.applyDelta(delta)
     Truth.assertThat(applied.packagesWithErrors).containsExactly(Path.of("my/build/package1"), Path.of("my/build/package2"))
+  }
+
+  @Test
+  fun testDelta_preservesAndUpdatesPackageStamps() {
+    val base =
+      QuerySummaryImpl.create(
+        Query.Summary.newBuilder()
+          .addBuildPackages(Query.StoredBuildPackage.newBuilder().setWorkspace(0).setBuildPackage(1).setStamp(100L))
+          .setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(listOf("", "my/build/package1")).build())
+          .build()
+      )
+    val baseProject = PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
+
+    val delta =
+      QuerySummaryImpl.create(
+        Query.Summary.newBuilder()
+          .addBuildPackages(
+            Query.StoredBuildPackage.newBuilder().setWorkspace(0).setBuildPackage(1).setStamp(0L) // Newly queried, stamp not yet set
+          )
+          .setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(listOf("", "my/build/package2")).build())
+          .build()
+      )
+
+    val projectStructureData =
+      ProjectStructureData.create(
+        listOf(
+          ProjectStructureRoot(
+            Path.of("my"),
+            mapOf(
+              Path.of("my/build/package1") to BuildPackage(Path.of("my/build/package1"), emptyList(), stamp = 100L),
+              Path.of("my/build/package2") to BuildPackage(Path.of("my/build/package2"), emptyList(), stamp = 200L),
+            ),
+          )
+        ),
+        setOf(QuerySyncLanguage.JVM),
+      )
+
+    val queryStrategy =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package2")),
+        ImmutableSet.of(),
+        projectStructureData,
+      )
+    val applied = queryStrategy.applyDelta(delta)
+    Truth.assertThat(applied.getBuildPackage(Label.of("//my/build/package1:package1"))?.stamp).isEqualTo(100L)
+    Truth.assertThat(applied.getBuildPackage(Label.of("//my/build/package2:package2"))?.stamp).isEqualTo(200L)
   }
 
   private fun <T : Any> listOf(vararg list: T): ImmutableList<T> = ImmutableList.copyOf(list)

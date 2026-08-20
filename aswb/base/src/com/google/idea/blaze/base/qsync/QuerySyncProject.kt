@@ -159,6 +159,7 @@ class QuerySyncProject(
     lastQuery: PostQuerySyncData?,
     vcsState: VcsState?,
     bazelVersion: String?,
+    projectStructureData: ProjectStructureData,
   ): PostQuerySyncData {
     val refreshParameters =
       RefreshParameters(
@@ -167,6 +168,7 @@ class QuerySyncProject(
         Optional.ofNullable(snapshotHolder.current.getOrNull()?.vcsState),
         Optional.ofNullable(vcsState),
         projectDefinition,
+        projectStructureData = projectStructureData,
         requireFullSync = { ctx -> requireFullSync(ctx, lastQuery, vcsState, bazelVersion) },
       )
     val postQuerySyncData = projectQuerier.update(refreshParameters, context)

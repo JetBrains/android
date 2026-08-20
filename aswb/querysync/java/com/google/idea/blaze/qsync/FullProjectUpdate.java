@@ -16,10 +16,14 @@
 package com.google.idea.blaze.qsync;
 
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.qsync.project.BuildPackage;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
+import com.google.idea.blaze.qsync.project.ProjectStructureData;
+import com.google.idea.blaze.qsync.project.ProjectStructureDataKt;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -35,16 +39,19 @@ public class FullProjectUpdate implements RefreshOperation {
   private final Path workspaceRoot;
   private final ProjectDefinition projectDefinition;
   private final QuerySpec.QueryStrategy queryStrategy;
+  private final ProjectStructureData projectStructureData;
 
   public FullProjectUpdate(
       Context<?> context,
       Path workspaceRoot,
       ProjectDefinition definition,
-      QuerySpec.QueryStrategy queryStrategy) {
+      QuerySpec.QueryStrategy queryStrategy,
+      ProjectStructureData projectStructureData) {
     this.context = context;
     this.workspaceRoot = workspaceRoot;
     this.projectDefinition = definition;
     this.queryStrategy = queryStrategy;
+    this.projectStructureData = projectStructureData;
   }
 
   @Override
@@ -58,6 +65,17 @@ public class FullProjectUpdate implements RefreshOperation {
 
   @Override
   public PostQuerySyncData createPostQuerySyncData(QuerySummary output) {
-    return PostQuerySyncData.builder().setQuerySummary(output).build();
+    QuerySummaryImpl.Builder builder =
+        QuerySummaryImpl.newBuilder()
+            .putAllPackages(output.getBuildPackages())
+            .setQueryStrategy(output.getQueryStrategy());
+    for (QuerySummary.BuildPackage pkg : output.getBuildPackages()) {
+      Path pkgPath = pkg.getPackageLabel().getBuildPackagePath();
+      BuildPackage structPkg = ProjectStructureDataKt.getBuildPackage(projectStructureData, pkgPath);
+      if (structPkg != null) {
+        builder.putPackageStamp(pkg.getPackageLabel(), structPkg.getStamp());
+      }
+    }
+    return PostQuerySyncData.builder().setQuerySummary(builder.build()).build();
   }
 }
