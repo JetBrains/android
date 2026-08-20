@@ -233,9 +233,10 @@ internal constructor(
       if (presentationTimestampUs < 0 || packetSize < 0 || packetSize > MAX_VIDEO_PACKET_SIZE) {
         throw VideoDecoderException("Invalid packet header: ${toHexString(headerBuffer.rewind().toByteArray())}")
       }
+      val decodingContext = if (header.isCameraFrame) null else decodingContexts[header.displayId]
       if (packetSize == 0) {
         // Zero size packet is interpreted as a black screen.
-        decodingContexts[header.displayId]?.processEmptyPacket(header)
+        decodingContext?.processEmptyPacket(header)
       } else {
         try {
           if (av_new_packet(packet, packetSize) != 0) {
@@ -245,7 +246,7 @@ internal constructor(
           videoChannel.readFully(packet.data().asByteBufferOfSize(packetSize))
 
           packet.pts(if (presentationTimestampUs == 0L) AV_NOPTS_VALUE else presentationTimestampUs)
-          decodingContexts[header.displayId]?.processPacket(packet, header)
+          decodingContext?.processPacket(packet, header)
         } finally {
           av_packet_unref(packet)
         }
@@ -599,12 +600,17 @@ internal constructor(
     val isBitRateReduced: Boolean
       get() = (flags and FLAG_BIT_RATE_REDUCED) != 0
 
+    val isCameraFrame: Boolean
+      get() = (flags and FLAG_CAMERA) != 0
+
     companion object {
       // Flag definitions from video_packet_header.h.
       /** Device display is round. */
       private const val FLAG_DISPLAY_ROUND = 0x01
       /** Bit rate reduced compared to the previous frame or, for the very first flame, to the initial value. */
       private const val FLAG_BIT_RATE_REDUCED = 0x02
+      /** Video frame originated from camera. */
+      private const val FLAG_CAMERA = 0x04
 
       private const val WIRE_SIZE =
         4 + // displayId
