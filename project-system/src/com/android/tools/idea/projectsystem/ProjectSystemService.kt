@@ -91,7 +91,7 @@ class ProjectSystemService(val project: Project) : PersistentStateComponent<Proj
     ): OpenProjectTask = OpenProjectTask {
       this.forceOpenInNewFrame = forceOpenInNewFrame
       this.projectToClose = projectToClose
-      this.beforeOpen = { project ->
+      this.beforeOpenTasks += { project ->
         project.service<ProjectSystemService>().setProviderId(id)
         beforeOpen(project)
       }
