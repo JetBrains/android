@@ -45,6 +45,9 @@
     <module name="intellij.libraries.ffmpeg" loading="embedded"/>
   </content>
   <content>
+    <module name="intellij.libraries.kxml2" loading="embedded"/>
+  </content>
+  <content>
     <module name="intellij.libraries.zxing.core" loading="embedded"/>
   </content>
 

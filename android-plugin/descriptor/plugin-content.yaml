@@ -179,6 +179,12 @@
 - name: lib/intellij.libraries.ffmpeg.jar
   contentModules:
   - name: intellij.libraries.ffmpeg
+- name: lib/intellij.libraries.kxml2.jar
+  contentModules:
+  - name: intellij.libraries.kxml2
+    libraries:
+      kxml2:
+      - name: $MAVEN_REPOSITORY$/net/sf/kxml/kxml2/2/kxml2-2.jar
 - name: lib/intellij.libraries.zxing.core.jar
   contentModules:
   - name: intellij.libraries.zxing.core
@@ -209,11 +215,6 @@
   library: kotlinx-coroutines-guava
   files:
   - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/kotlinx/kotlinx-coroutines-guava/1/kotlinx-coroutines-guava-1.jar
-  reason: withProjectLibrary
-- name: lib/kxml2.jar
-  library: kxml2
-  files:
-  - name: $MAVEN_REPOSITORY$/net/sf/kxml/kxml2/2/kxml2-2.jar
   reason: withProjectLibrary
 - name: lib/layoutlib-loader.jar
   modules:
