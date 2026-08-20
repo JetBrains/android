@@ -87,7 +87,7 @@ private:
   bool IsCodecRunning();
   // Returns true if the bit rate was deduced, false if it already reached allowed minimum.
   bool ReduceBitRate();
-  // Deletes the underlying OS display if the virtual_display_ or display_token_ refer to it.
+  // Deletes the underlying OS display if the virtual_display_ or display_token_ refers to it.
   // Safe to call multiple times.
   void ReleaseVirtualDisplay(Jni jni);
 
