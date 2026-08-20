@@ -20,6 +20,13 @@
   <description>Plugin that is used for E2E integration testing of Android Studio</description>
   <vendor url="http://www.google.com">Google, Inc.</vendor>
 
+  <!--
+  b/549945584: we currently need to declare this plugin in the jetbrains namespace because we depend on
+  v2 module intellij.performanceTesting.remoteDriver which is marked internal. The problematic dependency
+  was originally added in Change I021be26d4 to use XpathDataModelCreator.
+  -->
+  <content namespace="jetbrains"/>
+
   <dependencies>
     <plugin id="com.intellij.modules.lang"/>
     <plugin id="com.jetbrains.performancePlugin"/>
