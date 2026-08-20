@@ -55,7 +55,20 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
     when (property.name) {
       PARAMETER_UI_MODE ->
         EnumSupportWithConstantData(enumSupportValuesProvider, property.name) uiMode@{ stringValue ->
-          val initialResolvedValue = stringValue.toIntOrNull() ?: return@uiMode EnumValue.item(stringValue) // Not an int value
+          val initialResolvedValue = stringValue.toIntOrNull()
+          // stringValue is a raw PSI expression (e.g. "Configuration.UI_MODE_TYPE_CAR") rather than an evaluated integer bitmask before
+          // constant analysis completes or when selecting a value.
+          if (initialResolvedValue == null) {
+            val isNight = stringValue.contains("NIGHT_YES")
+            val uiMode = UiMode.entries.firstOrNull { stringValue.contains(it.classConstant) || stringValue.contains(it.name) }
+            return@uiMode if (uiMode == null) {
+              EnumValue.item(stringValue)
+            } else {
+              UiModeWithNightMaskEnumValue(isNight, uiMode.classConstant, uiMode.display, uiMode.resolvedValue)
+            }
+          }
+
+          // Case when initialResolvedValue is not null.
           if (initialResolvedValue.shr(6) != 0) {
             // Goes beyond the supported UiModes
             return@uiMode EnumValue.item(stringValue, "Unknown")
@@ -64,7 +77,7 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
           val uiMode =
             initialResolvedValue.let { numberValue ->
               // Identify which UiModeType this is, and get the base EnumValue for it
-              UiMode.values().firstOrNull { it.resolvedValue.toIntOrNull() == UI_MODE_TYPE_MASK and numberValue }
+              UiMode.entries.firstOrNull { it.resolvedValue.toIntOrNull() == UI_MODE_TYPE_MASK and numberValue }
             } ?: return@uiMode EnumValue.item(stringValue, "Unknown") // Unknown uiMode type
 
           val supportsNightMode = initialResolvedValue and UI_MODE_NIGHT_MASK != 0
@@ -84,7 +97,7 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
       PARAMETER_API_LEVEL -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name)
       PARAMETER_FONT_SCALE ->
         object : EnumSupport {
-          override val values: List<EnumValue> = FontScale.values().toList()
+          override val values: List<EnumValue> = FontScale.entries
         }
       PARAMETER_DEVICE,
       PARAMETER_HARDWARE_DEVICE -> createDeviceEnumSupport(enumSupportValuesProvider, property)
@@ -94,7 +107,21 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
       PARAMETER_HARDWARE_CUTOUT -> CutoutEnumSupport
       PARAMETER_HARDWARE_NAVIGATION -> NavigationEnumSupport
       PARAMETER_WALLPAPER ->
-        EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { Wallpaper.values()[Integer.parseInt(it) + 1] }
+        EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
+          // Safely attempt to parse stringValue as an integer, preventing NumberFormatException for non-numeric class references
+          val intValue = stringValue.toIntOrNull()
+          if (intValue != null) {
+            // Look up Wallpaper entry by resolved integer string value, preventing ArrayIndexOutOfBoundsException from direct indexing
+            Wallpaper.entries.firstOrNull { it.resolvedValue == stringValue } ?: EnumValue.item(stringValue)
+          } else {
+            // Extract class constant name from qualified reference string (e.g., "Wallpapers.RED_DOMINATED_EXAMPLE" ->
+            // "RED_DOMINATED_EXAMPLE")
+            val classConstant = stringValue.substringAfterLast('.', stringValue)
+            // Look up Wallpaper entry by class constant name or return fallback item, preventing NoSuchElementException for unrecognized
+            // constants
+            Wallpaper.entries.firstOrNull { it.classConstant == classConstant } ?: EnumValue.item(stringValue)
+          }
+        }
       else -> EnumSupport.simple(emptyList())
     }
 }

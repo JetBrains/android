@@ -70,7 +70,7 @@ internal open class UiModeWithNightMaskEnumValue(
 
   override val fqFallbackValue: String =
     if (isNight) {
-      "${SdkConstants.CLASS_CONFIGURATION}.$nightModeString or ${SdkConstants.CLASS_CONFIGURATION}.$uiModeType}"
+      "${SdkConstants.CLASS_CONFIGURATION}.$nightModeString or ${SdkConstants.CLASS_CONFIGURATION}.$uiModeType"
     } else {
       "${SdkConstants.CLASS_CONFIGURATION}.$uiModeType"
     }
@@ -127,9 +127,6 @@ internal open class UiModeWithNightMaskEnumValue(
 /** A set of pre-defined [EnumValue]s for the `uiMode` parameter. Should only be used for reference/comparison or as fallback. */
 internal enum class UiMode(override val classConstant: String, override val display: String, override val resolvedValue: String) :
   ClassConstantEnumValue {
-  // TODO(154503873): Add proper support to display values as enums, currently, selecting one of
-  // these values, will leave the dropwdown
-  //  empty, even though the value is properly set in the code.
   UNDEFINED("UI_MODE_TYPE_UNDEFINED", "Undefined", "0"),
   NORMAL("UI_MODE_TYPE_NORMAL", "Normal", "1"),
   DESK("UI_MODE_TYPE_DESK", "Desk", "2"),

@@ -41,6 +41,14 @@ class PsiEnumProviderTest {
     checkDefaultEnumValue("6", "Watch", getUiModeDefaultEnumValue("6"))
     checkDefaultEnumValue("7", "Vr", getUiModeDefaultEnumValue("7"))
 
+    // Class constant references and bitwise expressions
+    checkDefaultEnumValue(0x12.toString(), "Desk", getUiModeDefaultEnumValue("Configuration.UI_MODE_TYPE_DESK"))
+    checkDefaultEnumValue(
+      0x22.toString(),
+      "Desk (night)",
+      getUiModeDefaultEnumValue("Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_DESK"),
+    )
+
     // Unsupported, value is kept to avoid unintended modifications
     checkDefaultEnumValue("", "", getUiModeDefaultEnumValue(""))
     checkDefaultEnumValue("hello", "hello", getUiModeDefaultEnumValue("hello"))

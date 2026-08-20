@@ -27,10 +27,11 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerActio
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.text.nullize
@@ -75,7 +76,12 @@ internal open class PsiCallParameterPropertyItem(
   initialValue: String? = null,
 ) : PsiPropertyItem {
 
-  protected var argumentExpression: KtExpression? = argumentExpression
+  /**
+   * Smart pointer to the [KtExpression] representing the parameter argument. Using a [SmartPsiElementPointer] prevents holding stale
+   * references to PSI elements when the PSI tree is modified, reformatted, or when references are shortened.
+   */
+  protected var argumentExpression: SmartPsiElementPointer<KtExpression>? =
+    argumentExpression?.let { SmartPointerManager.getInstance(project).createSmartPsiElementPointer(it) }
     set(value) {
       if (field != value) {
         field = value
@@ -97,19 +103,30 @@ internal open class PsiCallParameterPropertyItem(
   override var value: String?
     get() {
       if (!isCachedValueValid) {
-        val expression = argumentExpression
-        val literalValue = ReadAction.compute<String?, Throwable> { expression?.tryEvaluateLiteralAsText() }
-        if (literalValue != null || expression == null) {
+        val expression = argumentExpression?.element
+        // Parameter is not present in the call, so value is implicitly null.
+        if (expression == null) {
+          cachedValue = null
+          isCachedValueValid = true
+          return null
+        }
+
+        val literalValue = ReadAction.compute<String?, Throwable> { expression.tryEvaluateLiteralAsText().takeIf { expression.isValid } }
+        if (literalValue != null) {
           cachedValue = literalValue
           isCachedValueValid = true
+        } else if (ApplicationManager.getApplication().isDispatchThread) {
+          // Trigger background non-blocking analysis to evaluate non-literal constants (e.g. Enum values).
+          // Note: If cachedValue is not set synchronously upon writing, reading `value` on the UI thread before
+          // async analysis completes causes temporary null/stale values and UI flickering (b/538471520).
+          triggerAsyncValueUpdate()
         } else {
-          if (ApplicationManager.getApplication().isDispatchThread) {
-            triggerAsyncValueUpdate()
-          } else {
-            // If called from a background thread, we can perform the analysis synchronously
-            cachedValue = ReadAction.compute<String?, Throwable> { analyze(expression) { expression.tryEvaluateConstantAsText(this) } }
-            isCachedValueValid = true
-          }
+          // If called from a background thread, we can perform the analysis synchronously
+          cachedValue =
+            ReadAction.compute<String?, Throwable> {
+              analyze(expression) { expression.tryEvaluateConstantAsText(this) }.takeIf { expression.isValid }
+            }
+          isCachedValueValid = true
         }
       }
       return cachedValue
@@ -124,10 +141,10 @@ internal open class PsiCallParameterPropertyItem(
     }
 
   private fun triggerAsyncValueUpdate() {
-    val expression = argumentExpression ?: return
-    ReadAction.nonBlocking(Callable { analyze(expression) { expression.tryEvaluateConstantAsText(this) } })
+    val pointer = argumentExpression ?: return
+    ReadAction.nonBlocking(Callable { pointer.element?.takeIf { it.isValid }?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } } })
       .finishOnUiThread(ModalityState.any()) { newValue ->
-        if (argumentExpression == expression) {
+        if (argumentExpression === pointer) {
           cachedValue = newValue
           isCachedValueValid = true
           model.firePropertyValuesChanged()
@@ -154,12 +171,24 @@ internal open class PsiCallParameterPropertyItem(
    *
    * [trackableValue] should be an option that bests represents [newValue]. Use [PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED] if none of
    * the options matches the meaning of the value, or [PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE] if the assigned value is unexpected.
+   *
+   * @param expectedValue The value expected to be cached synchronously after writing (e.g., shortened reference string). If null, defaults
+   *   to [newValue]. Setting this synchronously prevents cache invalidation and async PSI re-evaluation that causes UI flickering
+   *   (b/538471520).
+   * @param postWrite An optional callback executed after updating the PSI argument (such as reference shortening) before finalizing
+   *   [cachedValue].
    */
   @UiThread
-  fun writeNewValue(newValue: String?, writeAsIs: Boolean, trackableValue: PreviewPickerValue) {
+  fun writeNewValue(
+    newValue: String?,
+    writeAsIs: Boolean,
+    trackableValue: PreviewPickerValue,
+    expectedValue: String? = null,
+    postWrite: (() -> Unit)? = null,
+  ) {
     model.tracker.registerModification(name, trackableValue, CurrentDeviceKey.getData(model))
     if (newValue == null) {
-      deleteParameter()
+      deleteParameter(postWrite)
     } else {
       val parameterString =
         if (!writeAsIs && parameterTypeNameIfStandard == Name.identifier("String")) {
@@ -167,14 +196,14 @@ internal open class PsiCallParameterPropertyItem(
         } else {
           "${parameterName.asString()} = $newValue"
         }
-      writeParameter(parameterString)
+      writeParameter(parameterString, expectedValue ?: newValue, postWrite)
     }
   }
 
   @UiThread
-  fun deleteParameter() {
+  fun deleteParameter(postWrite: (() -> Unit)? = null) {
     runModification(DELETE_COMMAND) {
-      val arg = argumentExpression?.parent
+      val arg = argumentExpression?.element?.parent
       if (arg is KtValueArgument) {
         val argList = arg.parent
         if (argList is KtValueArgumentList) {
@@ -186,6 +215,10 @@ internal open class PsiCallParameterPropertyItem(
         }
       }
       argumentExpression = null
+      postWrite?.invoke()
+
+      cachedValue = null
+      isCachedValueValid = true
     }
   }
 
@@ -227,28 +260,37 @@ internal open class PsiCallParameterPropertyItem(
   }
 
   @UiThread
-  private fun writeParameter(parameterString: String) {
+  private fun writeParameter(parameterString: String, expectedValue: String?, postWrite: (() -> Unit)? = null) {
     runModification(WRITE_COMMAND(parameterString)) {
       var newValueArgument = model.psiFactory.createArgument(parameterString)
-      val currentArgumentExpression = argumentExpression
+      val currentArgumentExpression = argumentExpression?.element
 
       if (currentArgumentExpression != null) {
         newValueArgument = currentArgumentExpression.parent.replace(newValueArgument) as KtValueArgument
       } else {
         addNewArgumentToResolvedCall(newValueArgument, model.psiFactory)?.let { newValueArgument = it }
       }
-      argumentExpression = newValueArgument.getArgumentExpression()
-      argumentExpression?.parent?.let { CodeStyleManager.getInstance(it.project).reformat(it) }
+      val newExpression = newValueArgument.getArgumentExpression()
+      argumentExpression = newExpression?.let { SmartPointerManager.getInstance(project).createSmartPsiElementPointer(it) }
+      argumentExpression?.element?.parent?.let { CodeStyleManager.getInstance(it.project).reformat(it) }
+
+      // Execute post-write actions (such as reference shortening) before finalizing cachedValue.
+      postWrite?.invoke()
+
+      // Set cachedValue = expectedValue and mark isCachedValueValid = true synchronously AFTER postWrite and
+      // argumentExpression assignment (which resets cachedValue). This ensures that when model.firePropertyValuesChanged()
+      // notifies UI controls (like combo boxes), they immediately read the valid expected value synchronously, avoiding
+      // async analysis and UI flickering (b/538471520).
+      cachedValue = expectedValue
+      isCachedValueValid = true
     }
   }
 
   @UiThread
   private fun runModification(commandName: String, modification: () -> Unit) {
-    WriteAction.run<Throwable> {
-      // We must not change PSI outside command or undo-transparent action in a PSI file and we want the change to be editable via Undo/Redo
-      // operations.
-      WriteCommandAction.runWriteCommandAction(project, commandName, null, modification, model.ktFile)
-    }
+    // We must not change PSI outside command or undo-transparent action in a PSI file and we want the change to be editable via Undo/Redo
+    // operations.
+    WriteCommandAction.runWriteCommandAction(project, commandName, null, modification, model.ktFile)
     model.firePropertyValuesChanged()
   }
 }
