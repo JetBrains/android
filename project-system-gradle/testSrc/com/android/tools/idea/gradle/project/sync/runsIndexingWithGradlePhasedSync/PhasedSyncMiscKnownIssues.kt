@@ -48,13 +48,6 @@ internal object MiscConsistencyIssues {
 }
 
 internal object MiscResyncIssues {
-  val filteredProjects =
-    setOf(
-      // TODO(b/384022658): There is an issue regarding the full sync regarding this project, it seems to create duplicate
-      //  library dependencies for some modules. Probably has to do with module libraries.
-      TestProject.KOTLIN_MULTIPLATFORM_WITHJS
-    )
-
   internal fun projectStructure(testProject: TestProject) =
     when (testProject) {
       TestProject.TEST_SUITES ->

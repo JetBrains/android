@@ -93,8 +93,6 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
   }
 
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun testParameters(): Collection<*> = phasedSyncTestProjects.filterNot { MiscResyncIssues.filteredProjects.contains(it) }
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun testParameters(): Collection<*> = phasedSyncTestProjects
   }
 }
