@@ -249,5 +249,134 @@ class PartialProjectRefreshTest {
     Truth.assertThat(applied.getBuildPackage(Label.of("//my/build/package2:package2"))?.stamp).isEqualTo(200L)
   }
 
+  @Test
+  fun testDelta_modifiedPackageUpdatesExistingStamp() {
+    val base =
+      QuerySummaryImpl.create(
+        Query.Summary.newBuilder()
+          .addBuildPackages(Query.StoredBuildPackage.newBuilder().setWorkspace(0).setBuildPackage(1).setStamp(100L))
+          .setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(listOf("", "my/build/package1")).build())
+          .build()
+      )
+    val baseProject = PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
+
+    val delta =
+      QuerySummaryImpl.create(
+        Query.Summary.newBuilder()
+          .addBuildPackages(Query.StoredBuildPackage.newBuilder().setWorkspace(0).setBuildPackage(1).setStamp(0L))
+          .setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(listOf("", "my/build/package1")).build())
+          .build()
+      )
+
+    val projectStructureData =
+      ProjectStructureData.create(
+        listOf(
+          ProjectStructureRoot(
+            Path.of("my"),
+            mapOf(Path.of("my/build/package1") to BuildPackage(Path.of("my/build/package1"), emptyList(), stamp = 300L)),
+          )
+        ),
+        setOf(QuerySyncLanguage.JVM),
+      )
+
+    val refresh =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
+        ImmutableSet.of(),
+        projectStructureData,
+      )
+    val applied = refresh.applyDelta(delta)
+    Truth.assertThat(applied.getBuildPackage(Label.of("//my/build/package1:package1"))?.stamp).isEqualTo(300L)
+  }
+
+  @Test
+  fun testDelta_deletePackageRemovesPackageStamp() {
+    val base =
+      QuerySummaryImpl.create(
+        Query.Summary.newBuilder()
+          .addBuildPackages(Query.StoredBuildPackage.newBuilder().setWorkspace(0).setBuildPackage(1).setStamp(100L))
+          .addBuildPackages(Query.StoredBuildPackage.newBuilder().setWorkspace(0).setBuildPackage(2).setStamp(200L))
+          .setStringStorage(
+            Query.StringStorage.newBuilder().addAllIndexedStrings(listOf("", "my/build/package1", "my/build/package2")).build()
+          )
+          .build()
+      )
+    val baseProject = PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
+
+    val projectStructureData =
+      ProjectStructureData.create(
+        listOf(
+          ProjectStructureRoot(
+            Path.of("my"),
+            mapOf(Path.of("my/build/package2") to BuildPackage(Path.of("my/build/package2"), emptyList(), stamp = 200L)),
+          )
+        ),
+        setOf(QuerySyncLanguage.JVM),
+      )
+
+    val refresh =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        /* modifiedPackages= */ ImmutableSet.of(),
+        /* deletedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
+        projectStructureData,
+      )
+    val applied = refresh.applyDelta(QuerySummary.EMPTY)
+    Truth.assertThat(applied.getBuildPackage(Label.of("//my/build/package1:package1"))).isNull()
+    Truth.assertThat(applied.getBuildPackage(Label.of("//my/build/package2:package2"))?.stamp).isEqualTo(200L)
+  }
+
+  @Test
+  fun testQuerySpec_withModifiedPackages() {
+    val baseProject = PostQuerySyncData.EMPTY
+    val refresh =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
+        ImmutableSet.of(),
+        ProjectStructureData.EMPTY,
+      )
+    val querySpec = refresh.getQuerySpec()
+    Truth8.assertThat(querySpec).isPresent()
+    Truth.assertThat(querySpec.get().getQueryExpression().orElse("")).isEqualTo("(//my/build/package1:*)")
+  }
+
+  @Test
+  fun testCreatePostQuerySyncData() {
+    val baseProject = PostQuerySyncData.EMPTY
+    val delta =
+      QuerySummaryImpl.create(
+        Query.Summary.newBuilder()
+          .addBuildPackages(Query.StoredBuildPackage.newBuilder().setWorkspace(0).setBuildPackage(1).setStamp(0L))
+          .setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(listOf("", "my/build/package1")).build())
+          .build()
+      )
+    val projectStructureData =
+      ProjectStructureData.create(
+        listOf(
+          ProjectStructureRoot(
+            Path.of("my"),
+            mapOf(Path.of("my/build/package1") to BuildPackage(Path.of("my/build/package1"), emptyList(), stamp = 500L)),
+          )
+        ),
+        setOf(QuerySyncLanguage.JVM),
+      )
+
+    val refresh =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
+        ImmutableSet.of(),
+        projectStructureData,
+      )
+    val postQuerySyncData = refresh.createPostQuerySyncData(delta)
+    Truth.assertThat(postQuerySyncData.querySummary().getBuildPackage(Label.of("//my/build/package1:package1"))?.stamp).isEqualTo(500L)
+  }
+
   private fun <T : Any> listOf(vararg list: T): ImmutableList<T> = ImmutableList.copyOf(list)
 }

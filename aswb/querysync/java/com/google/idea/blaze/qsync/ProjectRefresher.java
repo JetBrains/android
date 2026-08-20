@@ -21,27 +21,25 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.project.ProjectStructureData;
+import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
  * Project refresher creates an appropriate {@link RefreshOperation} based on the project and
- * current VCS state.
+ * stamp from {@link ProjectStructureData} and {@link QuerySummary}.
  */
 public class ProjectRefresher {
 
-  private final VcsStateDiffer vcsDiffer;
   private final Path workspaceRoot;
   private final QuerySpec.QueryStrategy queryStrategy;
   private final Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier;
 
   public ProjectRefresher(
-      VcsStateDiffer vcsDiffer,
       Path workspaceRoot,
       QuerySpec.QueryStrategy queryStrategy,
       Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier) {
-    this.vcsDiffer = vcsDiffer;
     this.workspaceRoot = workspaceRoot;
     this.queryStrategy = queryStrategy;
     this.latestProjectSnapshotSupplier = latestProjectSnapshotSupplier;
@@ -52,12 +50,11 @@ public class ProjectRefresher {
     return new FullProjectUpdate(context, workspaceRoot, spec, queryStrategy, projectStructureData);
   }
 
-  public RefreshOperation startPartialRefresh(RefreshParameters params, Context<?> context)
-      throws BuildException {
+  public RefreshOperation startPartialRefresh(RefreshParameters params, Context<?> context) {
     if (params.requireFullSync.invoke(context)) {
-      return startFullUpdate(context, params.latestProjectDefinition, params.projectStructureData);
+      return startFullUpdate(context, params.projectDefinition, params.projectStructureData);
     }
-    AffectedPackages affected = params.calculateAffectedPackages(context, vcsDiffer);
+    AffectedPackages affected = params.calculateAffectedPackages();
 
     if (affected.isEmpty()) {
       // No consequential changes since last sync
@@ -73,7 +70,7 @@ public class ProjectRefresher {
 
     return new PartialProjectRefresh(
         workspaceRoot,
-        params.currentProject,
+        params.lastQuery,
         affected.getModifiedPackages(),
         affected.getDeletedPackages(),
         params.projectStructureData);

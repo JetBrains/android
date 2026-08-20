@@ -54,7 +54,6 @@ import com.google.idea.blaze.qsync.DependenciesProjectProtoUpdater;
 import com.google.idea.blaze.qsync.ProjectBuilder;
 import com.google.idea.blaze.qsync.ProjectRefresher;
 import com.google.idea.blaze.qsync.ProjectStructureReader;
-import com.google.idea.blaze.qsync.VcsStateDiffer;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
@@ -308,11 +307,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
     DependencyTracker dependencyTracker =
         new DependencyTrackerImpl(
             snapshotHolder, dependencyBuilder, artifactTracker, querySyncUserPreferences);
-    VcsStateDiffer vcsDiffer =
-        vcsHandler.map(it -> (VcsStateDiffer) it::diffVcsState).orElse(VcsStateDiffer.NONE);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
-            vcsDiffer,
             workspaceRoot.path(),
             enableExperimentalQuery.getValue(),
             snapshotHolder::getCurrent);
