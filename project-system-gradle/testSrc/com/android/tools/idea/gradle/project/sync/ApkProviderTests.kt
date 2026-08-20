@@ -48,6 +48,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_11
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_9_0
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
@@ -437,7 +438,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       // Do not run with the current version of the AGP.
       expectApks =
         mapOf(
-          AGP_CURRENT to
+          *arrayOf(AGP_9_0, AGP_CURRENT) eachTo
             """
               ApplicationId: google.simpleapplication
               Files:
@@ -476,7 +477,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """),
-          *(arrayOf(AGP_42, AGP_70, AGP_71, AGP_72, AGP_73, AGP_74, AGP_80, AGP_81, AGP_82) eachTo
+          *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73, AGP_74, AGP_80, AGP_81, AGP_82) eachTo
             """
               ApplicationId: google.simpleapplication
               Files:
