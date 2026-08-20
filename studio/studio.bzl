@@ -1348,7 +1348,6 @@ def android_studio_configuration(
         properties = [],
         **kwargs):
     _vm_options = vm_options + [
-        "-Dintellij.platform.plugin.modules.check.visibility=warning",  # TODO(b/526687561): fix our usages of private platform modules.
         "-Dflags.configuration.level=" + flag_level,
         "-Dflags.debug.enabled=" + ("true" if enable_debug_flags else "false"),
     ]
