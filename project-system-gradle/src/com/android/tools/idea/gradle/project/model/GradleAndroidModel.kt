@@ -334,9 +334,11 @@ data class GradleAndroidModelImpl(val data: GradleAndroidModelData) : GradleAndr
           IdeTestOptions.Execution.HOST -> TestExecutionOption.HOST
         }
       val animationsDisabled = testOptions != null && testOptions.animationsDisabled
+      val instrumentInPrivateComputeCore = testOptions != null && testOptions.instrumentInPrivateComputeCore
       return TestOptions(
         executionOption,
         animationsDisabled,
+        instrumentInPrivateComputeCore,
         selectedVariant.testInstrumentationRunner,
         selectedVariant.testInstrumentationRunnerArguments,
       )

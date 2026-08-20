@@ -1147,7 +1147,12 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(variant: String, appl
       ),
     additionalRuntimeApks = listOf(),
     testOptions =
-      IdeTestOptionsImpl(animationsDisabled = false, execution = IdeTestOptions.Execution.HOST, instrumentedTestTaskName = testTaskName),
+      IdeTestOptionsImpl(
+        animationsDisabled = false,
+        instrumentInPrivateComputeCore = false,
+        execution = IdeTestOptions.Execution.HOST,
+        instrumentedTestTaskName = testTaskName,
+      ),
     abiFilters = setOf(),
     buildInformation =
       IdeBuildTasksAndOutputInformationImpl(

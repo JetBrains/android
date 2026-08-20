@@ -858,6 +858,7 @@ fun modelCacheV2Impl(
   fun testOptionsFrom(testOptions: TestInfo): IdeTestOptionsImpl {
     return IdeTestOptionsImpl(
       animationsDisabled = testOptions.animationsDisabled,
+      instrumentInPrivateComputeCore = safeGet({ testOptions.instrumentInPrivateComputeCore }, false),
       execution = convertV2Execution(testOptions.execution),
       instrumentedTestTaskName = testOptions.instrumentedTestTaskName,
     )

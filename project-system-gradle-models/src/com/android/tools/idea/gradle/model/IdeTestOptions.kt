@@ -30,6 +30,8 @@ interface IdeTestOptions {
 
   val animationsDisabled: Boolean
 
+  val instrumentInPrivateComputeCore: Boolean
+
   val execution: Execution?
 
   /** The name of the task running instrumentation tests. */

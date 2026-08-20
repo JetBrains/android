@@ -29,6 +29,7 @@ enum class TestExecutionOption {
 data class TestOptions(
   val executionOption: TestExecutionOption?,
   val animationsDisabled: Boolean,
+  val instrumentInPrivateComputeCore: Boolean,
   val instrumentationRunner: String?,
   val instrumentationRunnerArguments: Map<String, String>,
 ) {
@@ -38,6 +39,7 @@ data class TestOptions(
       TestOptions(
         executionOption = null,
         animationsDisabled = false,
+        instrumentInPrivateComputeCore = false,
         instrumentationRunner = null,
         instrumentationRunnerArguments = emptyMap(),
       )

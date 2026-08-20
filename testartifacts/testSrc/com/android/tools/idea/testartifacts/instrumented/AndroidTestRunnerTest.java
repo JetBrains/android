@@ -31,6 +31,8 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DefaultStudioProgramRunner;
 import com.android.tools.idea.run.FakeAndroidDevice;
+import com.android.tools.idea.model.TestOptions;
+import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.EdtAndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestProjectPaths;
@@ -95,6 +97,27 @@ public class AndroidTestRunnerTest {
     AndroidFacet facet = projectRule.androidTestAndroidFacet(":app");
     RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner(config, facet);
     assertThat(runner.getRunnerName()).isEqualTo("my.awesome.CustomTestRunner");
+  }
+
+  @Test
+  public void testTestOptionsProperty() {
+    TestOptions testOptions = new TestOptions(
+      TestExecutionOption.ANDROID_TEST_ORCHESTRATOR,
+      true,
+      true,
+      "runner",
+      java.util.Collections.emptyMap()
+    );
+    assertThat(testOptions.getInstrumentInPrivateComputeCore()).isTrue();
+
+    TestOptions testOptionsDefault = new TestOptions(
+      TestExecutionOption.ANDROID_TEST_ORCHESTRATOR,
+      true,
+      false,
+      "runner",
+      java.util.Collections.emptyMap()
+    );
+    assertThat(testOptionsDefault.getInstrumentInPrivateComputeCore()).isFalse();
   }
 
   @Test

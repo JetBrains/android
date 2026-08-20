@@ -199,6 +199,9 @@ constructor(
     if (isAnimationDisabled) {
       builder.add("--no-window-animation")
     }
+    if (testOptions?.instrumentInPrivateComputeCore == true) {
+      builder.add("--instrument-in-pcc")
+    }
     return Joiner.on(" ").join(builder.build())
   }
 
