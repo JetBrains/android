@@ -52,7 +52,7 @@ public class ProjectRefresher {
 
   public RefreshOperation startPartialRefresh(RefreshParameters params, Context<?> context)
       throws BuildException {
-    if (params.requiresFullUpdate(context)) {
+    if (params.requireFullSync.invoke(context)) {
       return startFullUpdate(context, params.latestProjectDefinition);
     }
     AffectedPackages affected = params.calculateAffectedPackages(context, vcsDiffer);

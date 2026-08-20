@@ -166,12 +166,61 @@ class QuerySyncProject(
         snapshotHolder.current.getOrNull()?.projectDefinition ?: projectDefinition,
         Optional.ofNullable(snapshotHolder.current.getOrNull()?.vcsState),
         Optional.ofNullable(vcsState),
-        Optional.ofNullable(snapshotHolder.current.getOrNull()?.bazelVersion),
-        Optional.ofNullable(bazelVersion),
         projectDefinition,
+        requireFullSync = { ctx -> requireFullSync(ctx, lastQuery, vcsState, bazelVersion) },
       )
     val postQuerySyncData = projectQuerier.update(refreshParameters, context)
     return postQuerySyncData
+  }
+
+  fun requireFullSync(context: Context<*>, lastQuery: PostQuerySyncData?, latestVcsState: VcsState?, latestBazelVersion: String?): Boolean {
+    val currentProject = lastQuery ?: PostQuerySyncData.EMPTY
+    val currentSnapshot = snapshotHolder.current.getOrNull()
+    val currentProjectDefinition = currentSnapshot?.projectDefinition ?: projectDefinition
+    val snapshotVcsState = currentSnapshot?.vcsState
+    val snapshotBazelVersion = currentSnapshot?.bazelVersion
+
+    if (!currentProject.querySummary().isCompatibleWithCurrentPluginVersion) {
+      context.output(PrintOutput.output("IDE has updated since last sync; performing full query"))
+      return true
+    }
+    if (currentProjectDefinition != projectDefinition) {
+      context.output(PrintOutput.output("Project definition has changed; performing full query"))
+      return true
+    }
+    if (snapshotVcsState == null) {
+      context.output(PrintOutput.output("No VCS state from last sync: performing full query"))
+      return true
+    }
+    if (latestVcsState == null) {
+      context.output(PrintOutput.output("VCS doesn't support delta updates: performing full query"))
+      return true
+    }
+    if (snapshotVcsState.workspaceId != latestVcsState.workspaceId) {
+      context.output(
+        PrintOutput.output(
+          "Workspace has changed %s -> %s: performing full query",
+          snapshotVcsState.workspaceId,
+          latestVcsState.workspaceId,
+        )
+      )
+      return true
+    }
+    if (snapshotVcsState.upstreamRevision != latestVcsState.upstreamRevision) {
+      context.output(
+        PrintOutput.output(
+          "Upstream revision has changed %s -> %s: performing full query",
+          snapshotVcsState.upstreamRevision,
+          latestVcsState.upstreamRevision,
+        )
+      )
+      return true
+    }
+    if (snapshotBazelVersion != latestBazelVersion) {
+      context.output(PrintOutput.output("Bazel version has changed %s -> %s", snapshotBazelVersion, latestBazelVersion))
+      return true
+    }
+    return false
   }
 
   fun computeProjectStructureData(context: BlazeContext, lastProjectStructureData: ProjectStructureData?): ProjectStructureData {
