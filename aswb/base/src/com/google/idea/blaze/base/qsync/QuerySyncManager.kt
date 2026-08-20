@@ -90,6 +90,7 @@ import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.Volatile
 import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
@@ -290,27 +291,25 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   private fun startupOperation(): QuerySyncOperation =
     operation(title = "Loading project", subTitle = "Initializing project structure", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
+      val lastProjectStructureData = scanDirectoryStructure(context)
       if (result == null || userPreferences.refreshQueryDataOnStartup) {
-        val lastProjectStructureData = scanDirectoryAndConfigureModule(context)
         if (userPreferences.commitProjectStructureAfterInitialScan) {
           updateProjectStructureAndSnapshot(context, lastProjectStructureData)
         }
-        val duration = measureTime {
-          syncStatsScope(context) { context ->
-            runQueryAndReadProjectStructureAndApply(
-              context,
-              lastQuery = result?.existingPostQuerySyncData,
-              lastProjectStructureData = lastProjectStructureData,
-            )
-          }
+        syncStatsScope(context) { context ->
+          runQueryAndReadProjectStructureAndApply(
+            context,
+            lastQuery = result?.existingPostQuerySyncData,
+            lastProjectStructureData = lastProjectStructureData,
+            onQueryDuration = ::setStartupBazelQueryTime,
+          )
         }
-        QuerySyncActionStatsScope.fromContext(context).ifPresent { it.setStartupBazelQueryTime(ofMillis(duration.inWholeMilliseconds)) }
       } else {
         updateCurrentSnapshot(context) {
           val coreSyncResult = assertProjectLoaded().syncQueryCore(context, result.existingPostQuerySyncData)
           applySyncResult(
             coreSyncResult,
-            result.existingProjectStructureData,
+            lastProjectStructureData,
             result.existingProjectDefinition,
             result.existingVcsState,
             result.existingBazelVersion,
@@ -323,19 +322,26 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       }
     }
 
-  private fun scanDirectoryAndConfigureModule(context: BlazeContext): ProjectStructureData? =
-    userPreferences
-      .takeIf { it.commitProjectStructureAfterInitialScan }
-      ?.let {
-        val loadedProject = assertProjectLoaded()
-        context.output(StatusOutput("Scanning directory structure..."))
-        val (data, duration) = measureTimedValue { loadedProject.readProjectStructureFromDirectory(context) }
-        data?.also {
-          QuerySyncActionStatsScope.fromContext(context).ifPresent {
-            it.setStartupDirectoryScanTime(ofMillis(duration.inWholeMilliseconds))
-          }
-        }
+  private fun setStartupBazelQueryTime(
+    context: BlazeContext,
+    duration: Duration,
+  ) {
+    QuerySyncActionStatsScope.fromContext(context).ifPresent {
+      it.setStartupBazelQueryTime(ofMillis(duration.inWholeMilliseconds))
+    }
+  }
+
+  private fun scanDirectoryStructure(context: BlazeContext): ProjectStructureData {
+    context.output(StatusOutput("Scanning directory structure..."))
+    val (data, duration) =
+      measureTimedValue {
+        assertProjectLoaded().readProjectStructureFromDirectory(context)
       }
+    QuerySyncActionStatsScope.fromContext(context).ifPresent {
+      it.setStartupDirectoryScanTime(ofMillis(duration.inWholeMilliseconds))
+    }
+    return data
+  }
 
   private fun autoEnableComposeBasicDependenciesIfNeeded(context: BlazeContext) {
     val snapshot = currentSnapshot.getOrNull()
@@ -559,17 +565,33 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     context: BlazeContext,
     lastQuery: PostQuerySyncData?,
     lastProjectStructureData: ProjectStructureData?,
+    onQueryDuration: (BlazeContext, Duration) -> Unit = { _, _ -> },
   ) {
-    val loadedProject = assertProjectLoaded()
-    val vcsState = loadedProject.getVcsState(context)
-    val bazelVersion = loadedProject.getBazelVersion(context)
+    val duration = measureTime {
+      val loadedProject = assertProjectLoaded()
+      val vcsState = loadedProject.getVcsState(context)
+      val bazelVersion = loadedProject.getBazelVersion(context)
 
-    val postQuerySyncData = runQueryAndComputePostQuerySyncData(context, lastQuery, vcsState, bazelVersion)
-    val coreSyncResult = loadedProject.syncQueryCore(context, postQuerySyncData)
-    val projectStructureDataToUse = readProjectStructureData(context, lastProjectStructureData)
-    updateCurrentSnapshot(context) {
-      applySyncResult(coreSyncResult, projectStructureDataToUse, loadedProject.projectDefinition, vcsState, bazelVersion)
+      val postQuerySyncData =
+        runQueryAndComputePostQuerySyncData(
+          context,
+          lastQuery,
+          vcsState,
+          bazelVersion,
+        )
+      val coreSyncResult = loadedProject.syncQueryCore(context, postQuerySyncData)
+      val projectStructureDataToUse = readProjectStructureData(context, lastProjectStructureData)
+      updateCurrentSnapshot(context) {
+        applySyncResult(
+          coreSyncResult,
+          projectStructureDataToUse,
+          loadedProject.projectDefinition,
+          vcsState,
+          bazelVersion,
+        )
+      }
     }
+    onQueryDuration(context, duration)
   }
 
   private fun readProjectStructureData(context: BlazeContext, lastProjectStructureData: ProjectStructureData?): ProjectStructureData =
