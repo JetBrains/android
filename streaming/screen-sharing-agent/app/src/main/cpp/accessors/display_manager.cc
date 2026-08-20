@@ -37,6 +37,11 @@ constexpr int64_t EVENT_FLAG_DISPLAY_ADDED = 1L << 0;
 constexpr int64_t EVENT_FLAG_DISPLAY_REMOVED = 1L << 1;
 constexpr int64_t EVENT_FLAG_DISPLAY_CHANGED = 1L << 2;
 
+// Constants copied from the android.hardware.display.DisplayManagerGlobal class.
+constexpr int64_t INTERNAL_EVENT_FLAG_DISPLAY_ADDED = 1L << 2;
+constexpr int64_t INTERNAL_EVENT_FLAG_DISPLAY_BASIC_CHANGED = 1L << 3;
+constexpr int64_t INTERNAL_EVENT_FLAG_DISPLAY_REMOVED = 1L << 9;
+
 mutex static_initialization_mutex;  // Protects initialization of static fields.
 
 }
@@ -75,9 +80,13 @@ void DisplayManager::InitializeStatics(Jni jni) {
         jmethodID register_display_listener_method = display_manager_global_class_.GetMethod(
             jni, "registerDisplayListener",
             "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;JLjava/lang/String;)V");
+        int64_t flag_mask =
+            Agent::feature_level() >= 36 ?
+                INTERNAL_EVENT_FLAG_DISPLAY_ADDED | INTERNAL_EVENT_FLAG_DISPLAY_BASIC_CHANGED | INTERNAL_EVENT_FLAG_DISPLAY_REMOVED :
+                EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED;
         display_manager_global_.CallVoidMethod(
-            jni, register_display_listener_method, listener.ref(), handler.ref(),
-            EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED, JString(jni, ATTRIBUTION_TAG).ref());
+            jni, register_display_listener_method, listener.ref(), handler.ref(), flag_mask,
+            JString(jni, ATTRIBUTION_TAG).ref());
       } else if (Agent::feature_level() == 34) {
         jmethodID register_display_listener_method = display_manager_global_class_.FindMethod(
             jni, "registerDisplayListener",
