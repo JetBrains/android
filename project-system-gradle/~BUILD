@@ -2,7 +2,7 @@ load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_
 load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_4")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "BUILT_IN_KOTLIN_VERSION", "KGP_VERSION_FOR_TESTS")
 
 # managed by go/iml_to_build
 iml_module(
@@ -799,10 +799,22 @@ maven_repository(
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-common_2.3.0-rc01",
+        "@maven//:androidx.lifecycle.lifecycle-common_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-livedata-core_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-livedata_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-service_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.3.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.2",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.6.2",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-fragment_2.3.5",
@@ -861,7 +873,8 @@ maven_repository(
         "@maven//:org.gradle.toolchains.foojay-resolver-convention.org.gradle.toolchains.foojay-resolver-convention.gradle.plugin_1.0.0",
         "@maven//:org.jacoco.org.jacoco.ant_0.8.13",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
-        "@maven//:org.jetbrains.kotlin.compose-compiler-gradle-plugin_2.2.10",
+        "@maven//:org.jetbrains.kotlin.compose-compiler-gradle-plugin_" + BUILT_IN_KOTLIN_VERSION,
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_" + BUILT_IN_KOTLIN_VERSION,
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.22",
@@ -877,6 +890,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.22",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_2.2.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-test-junit_" + BUILT_IN_KOTLIN_VERSION,
         "@maven//:org.jetbrains.kotlin.kotlin-test-junit_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.4",

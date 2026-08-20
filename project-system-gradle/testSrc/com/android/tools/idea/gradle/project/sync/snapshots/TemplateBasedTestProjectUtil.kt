@@ -117,6 +117,11 @@ internal fun patchMppProject(
       .resolve("build.gradle")
       .replaceInContent("androidTarget()", "androidTarget()\niosX64()\niosSimulatorArm64()\niosArm64()")
   }
+  if (addIosTo.isNotEmpty()) {
+    val konanDir = File(FileUtil.getTempDirectory(), ".konan")
+    konanDir.mkdirs()
+    projectRoot.resolve("gradle.properties").appendText("\nkonan.data.dir=${konanDir.path}\n")
+  }
   for (module in addIntermediateTo) {
     projectRoot
       .resolve(module)

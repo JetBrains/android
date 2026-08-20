@@ -60,7 +60,7 @@ class CompileSdkVersionTooHighReporterTest {
 
   @Test
   fun `test suppress quick fix message extracted from sync data`() {
-    val preparedProject = projectRule.prepareTestProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val syncMessage = "Some random text"
     val syncData = "android.suppressUnsupportedCompileSdk=UpsideDownCake"
 
@@ -96,7 +96,7 @@ class CompileSdkVersionTooHighReporterTest {
 
   @Test
   fun `test suppress quick fix message when extracted from sync message`() {
-    val preparedProject = projectRule.prepareTestProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val syncMessage = "Some random text android.suppressUnsupportedCompileSdk=UpsideDownCake with some more text here"
     val syncData = null
 
@@ -138,7 +138,7 @@ class CompileSdkVersionTooHighReporterTest {
 
   @Test
   fun `test suppress quick fix message when extracting from sync message fails`() {
-    val preparedProject = projectRule.prepareTestProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val syncMessage = "Some random text only and nothing to extract"
     val syncData = null
 

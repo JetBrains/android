@@ -4761,6 +4761,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xexport-kdoc
+                        - unknownExtraFlags           : -Xkonan-data-dir=<KONAN>
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -4899,6 +4900,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xexport-kdoc
+                        - unknownExtraFlags           : -Xkonan-data-dir=<KONAN>
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -4976,6 +4978,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xexport-kdoc
+                        - unknownExtraFlags           : -Xkonan-data-dir=<KONAN>
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -5048,6 +5051,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xexport-kdoc
+                        - unknownExtraFlags           : -Xkonan-data-dir=<KONAN>
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -5125,6 +5129,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xexport-kdoc
+                        - unknownExtraFlags           : -Xkonan-data-dir=<KONAN>
                         - unknownExtraFlags           : -Xshort-module-name=module2
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
@@ -5197,6 +5202,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -p
                         - unknownArgs                 : -target
                         - unknownExtraFlags           : -Xexport-kdoc
+                        - unknownExtraFlags           : -Xkonan-data-dir=<KONAN>
                         - unknownExtraFlags           : -Xshort-module-name=module2_test
                     explicitApi                   : disable
                     explicitReturnTypes           : disable

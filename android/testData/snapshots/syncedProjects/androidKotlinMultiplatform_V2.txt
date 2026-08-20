@@ -102,6 +102,27 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:androidLib:main]
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/androidTestDebug [-]
@@ -158,6 +179,10 @@ PROJECT                       : Kotlin Multiplatform
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
             Scope                         : Test
         BUILD_TASKS
@@ -199,6 +224,26 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/main
@@ -255,9 +300,12 @@ PROJECT                       : Kotlin Multiplatform
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/compileTypeoneModetwoDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebug/generateTypeoneModetwoDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/androidLib/build/intermediates/built_in_kotlinc/typeoneModetwoDebug/compileTypeoneModetwoDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :androidLib:generateTypeoneModetwoDebugSources
                 ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug
@@ -299,6 +347,27 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:androidLib:main]
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/androidLib/src/testDebug [-]
@@ -354,6 +423,10 @@ PROJECT                       : Kotlin Multiplatform
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
             Scope                         : Test
         BUILD_TASKS
@@ -449,6 +522,27 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
@@ -524,6 +618,26 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
@@ -556,6 +670,7 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -599,6 +714,27 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
@@ -663,6 +799,7 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
@@ -1320,7 +1457,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/kmpJvmOnly/src/commonMain
@@ -1378,7 +1515,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmpJvmOnly:commonMain, :kmpJvmOnly:jvmMain]
@@ -1437,7 +1574,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             - SourceSetName               : Kotlin_Multiplatform.kmpJvmOnly.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -1499,7 +1636,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             - SourceSetName               : Kotlin_Multiplatform.kmpJvmOnly.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -2036,7 +2173,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]
@@ -2125,7 +2262,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             - SourceSetName               : build-logic.lib-foo.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -2217,7 +2354,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             - SourceSetName               : build-logic.lib-foo.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -2283,7 +2420,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/build-logic/lib-foo/src/commonMain [-]
@@ -2338,7 +2475,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:build-logic:lib-foo:androidMain, :build-logic:lib-foo:commonMain]

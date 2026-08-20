@@ -219,9 +219,7 @@ enum class TestProject(
         truncateForV2(projectRoot.resolve("settings.gradle"))
 
         // Synchronize the file modification with VFS
-        projectRoot.toVirtualFile()?.let {
-          VfsUtilCore.processFilesRecursively(it) { true }
-        }
+        projectRoot.toVirtualFile()?.let { VfsUtilCore.processFilesRecursively(it) { true } }
       }
     },
   ),
@@ -427,7 +425,10 @@ enum class TestProject(
   MIGRATE_TO_NON_TRANSITIVE_R_CLASSES(TestProjectToSnapshotPaths.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES),
   PURE_JAVA_PROJECT(TestProjectToSnapshotPaths.PURE_JAVA_PROJECT),
   BUILDSRC_WITH_COMPOSITE(TestProjectToSnapshotPaths.BUILDSRC_WITH_COMPOSITE),
-  APP_WITH_BUILD_FEATURES_ENABLED(TestProjectToSnapshotPaths.APP_WITH_BUILD_FEATURES_ENABLED),
+  APP_WITH_BUILD_FEATURES_ENABLED(
+    TestProjectToSnapshotPaths.APP_WITH_BUILD_FEATURES_ENABLED,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+  ),
   DEPENDENT_MODULES_ONLY_APP_RUNTIME(
     TestProjectToSnapshotPaths.DEPENDENT_MODULES,
     testName = "noLibraryRuntime",

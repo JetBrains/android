@@ -1504,7 +1504,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -Xkonan-data-dir=<KONAN> -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -1734,7 +1734,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -Xkonan-data-dir=<KONAN> -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -2389,7 +2389,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -Xkonan-data-dir=<KONAN> -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -2619,7 +2619,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -Xkonan-data-dir=<KONAN> -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -3466,7 +3466,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -Xkonan-data-dir=<KONAN> -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -3696,7 +3696,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -Xexport-kdoc -nopack -nostdlib
+                additionalArguments           : -Xexport-kdoc -Xkonan-data-dir=<KONAN> -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
