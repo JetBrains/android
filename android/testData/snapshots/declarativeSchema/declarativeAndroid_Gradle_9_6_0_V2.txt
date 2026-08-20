@@ -1934,6 +1934,25 @@ Projects:
                     - PropertyName                  : versionNameSuffix
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.VariantDimension,kotlin.Any
+            com.android.build.api.dsl.BackupTestSuite
+                Name                          : com.android.build.api.dsl.BackupTestSuite
+                MemberFunctions
+                    - MemberFunctionName            : hostJar
+                      Receiver ReferenceType        : com.android.build.api.dsl.BackupTestSuite
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.TestSuiteHostJarSpec
+                    - MemberFunctionName            : testApk
+                      Receiver ReferenceType        : com.android.build.api.dsl.BackupTestSuite
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.TestSuiteTestApkSpec
+                Properties
+                    - PropertyName                  : backupTestLibraryVersion
+                      Property SimpleType           : STRING
+                    - PropertyName                  : targetVariants
+                      Property DataClassWithType    : kotlin.collections.List
+                      GenericTypes
+                          - ConcreteGeneric SimpleType    : STRING
+                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.BaseFlavor
                 Name                          : com.android.build.api.dsl.BaseFlavor
                 MemberFunctions
@@ -7894,6 +7913,10 @@ Projects:
             com.android.build.api.dsl.TestOptions
                 Name                          : com.android.build.api.dsl.TestOptions
                 MemberFunctions
+                    - MemberFunctionName            : backupTests
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_BackupTestSuite
                     - MemberFunctionName            : emulatorControl
                       Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
                       Parameters
@@ -7947,6 +7970,38 @@ Projects:
                       Property SimpleType           : STRING
                     - PropertyName                  : unitTests
                       Property ReferenceType        : com.android.build.api.dsl.UnitTestOptions
+                Supertypes                    : kotlin.Any
+            com.android.build.api.dsl.TestSuiteHostJarSpec
+                Name                          : com.android.build.api.dsl.TestSuiteHostJarSpec
+                MemberFunctions
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestSuiteHostJarSpec
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestSuiteHostJarSpec
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                Properties
+                    - PropertyName                  : dependencies
+                      Property ReferenceType        : com.android.build.api.dsl.AgpTestSuiteDependencies
+                    - PropertyName                  : enableAndroidResources
+                      Property SimpleType           : BOOLEAN
+                Supertypes                    : kotlin.Any
+            com.android.build.api.dsl.TestSuiteTestApkSpec
+                Name                          : com.android.build.api.dsl.TestSuiteTestApkSpec
+                MemberFunctions
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestSuiteTestApkSpec
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestSuiteTestApkSpec
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                Properties
+                    - PropertyName                  : dependencies
+                      Property ReferenceType        : com.android.build.api.dsl.AgpTestSuiteDependencies
                 Supertypes                    : kotlin.Any
             com.android.build.api.dsl.TestedDeclarativeDefinition
                 Name                          : com.android.build.api.dsl.TestedDeclarativeDefinition
@@ -8263,6 +8318,17 @@ Projects:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.ApkSigningConfig
+                Properties
+                Supertypes                    :
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_BackupTestSuite
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_BackupTestSuite
+                MemberFunctions
+                    - MemberFunctionName            : backupTestSuite
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_BackupTestSuite
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Block ReferenceType           : com.android.build.api.dsl.BackupTestSuite
                 Properties
                 Supertypes                    :
             org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
@@ -12131,6 +12197,25 @@ Settings:
                     - PropertyName                  : versionNameSuffix
                       Property SimpleType           : STRING
                 Supertypes                    : com.android.build.api.dsl.VariantDimension,kotlin.Any
+            com.android.build.api.dsl.BackupTestSuite
+                Name                          : com.android.build.api.dsl.BackupTestSuite
+                MemberFunctions
+                    - MemberFunctionName            : hostJar
+                      Receiver ReferenceType        : com.android.build.api.dsl.BackupTestSuite
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.TestSuiteHostJarSpec
+                    - MemberFunctionName            : testApk
+                      Receiver ReferenceType        : com.android.build.api.dsl.BackupTestSuite
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.TestSuiteTestApkSpec
+                Properties
+                    - PropertyName                  : backupTestLibraryVersion
+                      Property SimpleType           : STRING
+                    - PropertyName                  : targetVariants
+                      Property DataClassWithType    : kotlin.collections.List
+                      GenericTypes
+                          - ConcreteGeneric SimpleType    : STRING
+                Supertypes                    : kotlin.Any
             com.android.build.api.dsl.BaseFlavor
                 Name                          : com.android.build.api.dsl.BaseFlavor
                 MemberFunctions
@@ -18091,6 +18176,10 @@ Settings:
             com.android.build.api.dsl.TestOptions
                 Name                          : com.android.build.api.dsl.TestOptions
                 MemberFunctions
+                    - MemberFunctionName            : backupTests
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
+                      Parameters
+                      Block ReferenceType           : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_BackupTestSuite
                     - MemberFunctionName            : emulatorControl
                       Receiver ReferenceType        : com.android.build.api.dsl.TestOptions
                       Parameters
@@ -18144,6 +18233,38 @@ Settings:
                       Property SimpleType           : STRING
                     - PropertyName                  : unitTests
                       Property ReferenceType        : com.android.build.api.dsl.UnitTestOptions
+                Supertypes                    : kotlin.Any
+            com.android.build.api.dsl.TestSuiteHostJarSpec
+                Name                          : com.android.build.api.dsl.TestSuiteHostJarSpec
+                MemberFunctions
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestSuiteHostJarSpec
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestSuiteHostJarSpec
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                Properties
+                    - PropertyName                  : dependencies
+                      Property ReferenceType        : com.android.build.api.dsl.AgpTestSuiteDependencies
+                    - PropertyName                  : enableAndroidResources
+                      Property SimpleType           : BOOLEAN
+                Supertypes                    : kotlin.Any
+            com.android.build.api.dsl.TestSuiteTestApkSpec
+                Name                          : com.android.build.api.dsl.TestSuiteTestApkSpec
+                MemberFunctions
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestSuiteTestApkSpec
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                    - MemberFunctionName            : dependencies
+                      Receiver ReferenceType        : com.android.build.api.dsl.TestSuiteTestApkSpec
+                      Parameters
+                      Block ReferenceType           : com.android.build.api.dsl.AgpTestSuiteDependencies
+                Properties
+                    - PropertyName                  : dependencies
+                      Property ReferenceType        : com.android.build.api.dsl.AgpTestSuiteDependencies
                 Supertypes                    : kotlin.Any
             com.android.build.api.dsl.TestedDeclarativeDefinition
                 Name                          : com.android.build.api.dsl.TestedDeclarativeDefinition
@@ -18460,6 +18581,17 @@ Settings:
                           - Name                          : name
                             Value SimpleType              : STRING
                       Block ReferenceType           : com.android.build.api.dsl.ApkSigningConfig
+                Properties
+                Supertypes                    :
+            org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_BackupTestSuite
+                Name                          : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_BackupTestSuite
+                MemberFunctions
+                    - MemberFunctionName            : backupTestSuite
+                      Receiver ReferenceType        : org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_BackupTestSuite
+                      Parameters
+                          - Name                          : name
+                            Value SimpleType              : STRING
+                      Block ReferenceType           : com.android.build.api.dsl.BackupTestSuite
                 Properties
                 Supertypes                    :
             org.gradle.api.NamedDomainObjectContainer$of$com_android_build_api_dsl_DeclarativeApplicationBuildType
