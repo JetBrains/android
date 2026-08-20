@@ -14,16 +14,17 @@ add_library(
 
         SHARED
 
+        accessors/agent_context.cc
         accessors/audio_record.cc
         accessors/clipboard_manager.cc
         accessors/device_state_manager.cc
         accessors/display_control.cc
         accessors/display_info.cc
-        accessors/display_listener_dispatcher.cc
         accessors/display_manager.cc
         accessors/input_manager.cc
         accessors/key_character_map.cc
         accessors/key_event.cc
+        accessors/looper.cc
         accessors/motion_event.cc
         accessors/pointer_helper.cc
         accessors/service_manager.cc

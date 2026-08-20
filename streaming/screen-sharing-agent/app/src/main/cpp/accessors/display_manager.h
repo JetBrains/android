@@ -25,8 +25,6 @@
 
 namespace screensharing {
 
-class DisplayListenerDispatcher;
-
 // Provides access to the android.hardware.display.IDisplayManager.getDisplayInfo method.
 class DisplayManager {
 public:
@@ -61,8 +59,6 @@ public:
   DisplayManager() = delete;
 
 private:
-  friend class DisplayListenerDispatcher;
-
   static void InitializeStatics(Jni jni);
 
   // DisplayManagerGlobal class.
@@ -86,8 +82,6 @@ private:
 
   // List of display listeners.
   static ConcurrentList<DisplayListener> display_listeners_;
-
-  static DisplayListenerDispatcher* display_listener_dispatcher_;
 
   DISALLOW_COPY_AND_ASSIGN(DisplayManager);
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,32 +17,27 @@
 #pragma once
 
 #include <future>
-#include <mutex>
-#include <thread>
 
-#include "accessors/display_manager.h"
 #include "jvm.h"
+#include "thread_handle.h"
 
 namespace screensharing {
 
-// Provides access to the android.hardware.display.IDisplayListener.getDisplayInfo method.
-class DisplayListenerDispatcher {
+// Provides access to com.android.tools.screensharing.AgentContext.
+class AgentContext {
 public:
-  DisplayListenerDispatcher();
-  ~DisplayListenerDispatcher();
-  void Start();
-  void Stop();
+  static void Initialize(Jni jni);
+
+  static const JObject& context() { return context_; }
+  // Stops the main looper asynchronously.
+  static void StopMainLooper();
+
+  AgentContext() = delete;
 
 private:
-  friend class DisplayManager;
-
-  void Run();
-
-  std::mutex mutex_;
-  std::thread thread_;  // GUARDED_BY(mutex_)
-  std::promise<JObject> looper_promise_; // GUARDED_BY(mutex_)
-
-  DISALLOW_COPY_AND_ASSIGN(DisplayListenerDispatcher);
+  static void CreateContext(std::promise<JObject>* context_promise);
+  static ThreadHandle main_looper_thread_;
+  static JObject context_;
 };
 
 }  // namespace screensharing
