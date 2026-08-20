@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17
-import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 
 // This Gradle version is exclusively used for the Sync Comparison Benchmarks and gets updated
@@ -59,70 +58,6 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   /** Builder model version to query. */
   override val modelVersion: ModelVersion = ModelVersion.V2,
 ) : AgpVersionSoftwareEnvironment {
-  AGP_31(
-    agpVersion = "3.1.4",
-    gradleVersion = "5.3.1",
-    jdkVersion = JDK_11,
-    kotlinVersion = "1.4.32",
-    modelVersion = ModelVersion.V1,
-    compileSdk = "32",
-  ),
-  AGP_33_WITH_5_3_1(
-    agpVersion = "3.3.2",
-    gradleVersion = "5.3.1",
-    jdkVersion = JDK_11,
-    kotlinVersion = "1.4.32",
-    modelVersion = ModelVersion.V1,
-    compileSdk = "32",
-  ),
-  AGP_33(
-    agpVersion = "3.3.2",
-    gradleVersion = "5.5",
-    jdkVersion = JDK_11,
-    kotlinVersion = "1.4.32",
-    modelVersion = ModelVersion.V1,
-    compileSdk = "32",
-  ),
-  AGP_35_JDK_8(
-    agpVersion = "3.5.0",
-    gradleVersion = "5.5",
-    jdkVersion = JDK_1_8,
-    kotlinVersion = "1.4.32",
-    modelVersion = ModelVersion.V1,
-    compileSdk = "32",
-  ),
-  AGP_35(
-    agpVersion = "3.5.0",
-    gradleVersion = "5.5",
-    jdkVersion = JDK_11,
-    kotlinVersion = "1.4.32",
-    modelVersion = ModelVersion.V1,
-    compileSdk = "32",
-  ),
-  AGP_40(
-    agpVersion = "4.0.0",
-    gradleVersion = "6.1.1",
-    jdkVersion = JDK_11,
-    kotlinVersion = "1.5.21",
-    modelVersion = ModelVersion.V1,
-    compileSdk = "32",
-  ),
-  AGP_41(
-    agpVersion = "4.1.0",
-    gradleVersion = "6.7.1",
-    jdkVersion = JDK_11,
-    kotlinVersion = "1.7.20",
-    modelVersion = ModelVersion.V1,
-    compileSdk = "32",
-  ),
-  AGP_42(
-    agpVersion = "4.2.2",
-    gradleVersion = "6.7.1",
-    jdkVersion = JDK_11,
-    kotlinVersion = "1.7.20",
-    modelVersion = ModelVersion.V1,
-    compileSdk = "32",
-  ),
 
   // Version constraints set by KGP:
   //   - KGP 1.8 requires Gradle 6.8.3+
@@ -274,7 +209,7 @@ interface AgpIntegrationTestDefinition {
 
   fun displayName(): String = "$name${if (agpVersion != AGP_CURRENT) "-${agpVersion}" else ""}"
 
-  fun isCompatible(): Boolean = agpVersion > AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 /* Not supported special cases */
+  fun isCompatible(): Boolean = true
 }
 
 /** Applies AGP versions selected for testing in the current test target to the list of test definitions. */
@@ -319,14 +254,6 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String =
     AgpVersionSoftwareEnvironmentDescriptor.AGP_82 -> "_Agp_8.2_"
     AgpVersionSoftwareEnvironmentDescriptor.AGP_81 -> "_Agp_8.1_"
     AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_Agp_8.0_"
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_31 -> "_Agp_3.1_"
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 -> "_Agp_3.3_"
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_33 -> "_Agp_3.3_"
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8 -> "_Agp_3.5_"
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_40 -> "_Agp_4.0_"
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_41 -> "_Agp_4.1_"
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_42 -> "_Agp_4.2_"
     AgpVersionSoftwareEnvironmentDescriptor.AGP_70 -> "_Agp_7.0_"
     AgpVersionSoftwareEnvironmentDescriptor.AGP_71 -> "_Agp_7.1_"
     AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1 -> "_Agp_7.2_"

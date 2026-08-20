@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.project.Project
@@ -137,7 +137,7 @@ enum class AndroidCoreTestProject(
   UNUSED_RESOURCES_GROOVY(TestProjectPaths.UNUSED_RESOURCES_GROOVY),
   UNUSED_RESOURCES_KTS(TestProjectPaths.UNUSED_RESOURCES_KTS),
   UNUSED_RESOURCES_MULTI_MODULE(TestProjectPaths.UNUSED_RESOURCES_MULTI_MODULE),
-  WEAR_WATCHFACE(TestProjectPaths.WEAR_WATCHFACE, isCompatibleWith = { it >= AGP_40 }),
+  WEAR_WATCHFACE(TestProjectPaths.WEAR_WATCHFACE, isCompatibleWith = { it >= AGP_70 }),
   WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT(TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT),
   WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS(TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS),
   WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE(TestProjectPaths.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE),

@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
@@ -48,7 +47,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
   override val testProject: TestProject,
   val skipV1toV2Comparison: Boolean = false,
   val v1toV2PropertiesToSkip: Set<String> = emptySet(),
-  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { it >= AGP_41 },
+  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { it >= AGP_70 },
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
 ) : SyncedProjectTestDef {
 
@@ -69,7 +68,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
         IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR, skipV1toV2Comparison = true),
         IdeModelSnapshotComparisonTestDefinition(
           TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS,
-          isCompatibleWith = { it >= AGP_35 },
+          isCompatibleWith = { it >= AGP_70 },
         ),
         IdeModelSnapshotComparisonTestDefinition(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST, skipV1toV2Comparison = true),
         IdeModelSnapshotComparisonTestDefinition(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
@@ -157,7 +156,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
           kaptModels = { CapturePlatformModelsProjectResolverExtension.getKaptModel(it) },
           mppModels = { CapturePlatformModelsProjectResolverExtension.getMppModel(it) },
           externalProjects = {
-            if (agpVersion >= AGP_41) CapturePlatformModelsProjectResolverExtension.getExternalProjectModel(it) else null
+            if (agpVersion >= AGP_70) CapturePlatformModelsProjectResolverExtension.getExternalProjectModel(it) else null
           },
         )
       }

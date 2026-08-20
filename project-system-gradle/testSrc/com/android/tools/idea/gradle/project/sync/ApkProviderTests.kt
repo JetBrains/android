@@ -28,7 +28,6 @@ import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVarian
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
@@ -75,7 +74,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """
@@ -103,7 +101,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """
@@ -134,10 +131,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """
               ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
             """,
-          AGP_42 to
-            """
-              ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
-            """,
         ),
     ),
     def(
@@ -153,7 +146,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """
@@ -196,7 +188,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-mdpi.apk
               RequiredInstallationOptions: []
             """),
-          *(arrayOf(AGP_42, AGP_70, AGP_71, AGP_72, AGP_73, AGP_80, AGP_81, AGP_82) eachTo
+          *(arrayOf(AGP_70, AGP_71, AGP_72, AGP_73, AGP_80, AGP_81, AGP_82) eachTo
             """
               ApplicationId: one.name.defaultConfig.debug
               Files:
@@ -248,7 +240,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """
@@ -314,7 +305,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """
@@ -346,7 +336,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """
@@ -384,7 +373,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       expectApks =
         mapOf(
-          *(arrayOf(AGP_42, AGP_70) eachTo
+          *(arrayOf(AGP_70) eachTo
             """
               ApplicationId: google.simpleapplication
               Files:
@@ -477,7 +466,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """),
-          *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73, AGP_74, AGP_80, AGP_81, AGP_82) eachTo
+          *(arrayOf(AGP_70, AGP_72, AGP_73, AGP_74, AGP_80, AGP_81, AGP_82) eachTo
             """
               ApplicationId: google.simpleapplication
               Files:
@@ -530,7 +519,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """
@@ -571,7 +559,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """
@@ -599,7 +586,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """
           .let {
             listOf(
-              AGP_42 to it,
               AGP_70 to it,
               AGP_CURRENT to
                 """

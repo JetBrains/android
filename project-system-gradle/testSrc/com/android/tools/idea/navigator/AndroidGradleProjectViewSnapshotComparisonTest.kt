@@ -20,7 +20,6 @@ package com.android.tools.idea.navigator
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.ProjectViewSettings
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -83,7 +82,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPOSITE_BUILD),
-        AndroidProjectViewSnapshotComparisonTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
+        AndroidProjectViewSnapshotComparisonTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_CURRENT)),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_BUILDSRC),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.TEST_FIXTURES),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_VERSION_CATALOG),
@@ -110,7 +109,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.GRADLE_DECLARATIVE),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.TEST_SUITES),
-        AndroidProjectViewSnapshotComparisonTestDef(TestProject.TEST_ONLY_MODULE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
+        AndroidProjectViewSnapshotComparisonTestDef(TestProject.TEST_ONLY_MODULE, compatibleWith = setOf(AGP_CURRENT)),
         AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_WITH_BACKUPS),
       )
   }
