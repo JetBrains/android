@@ -751,6 +751,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testFloatingToolbarOrientation() {
+    StudioFlags.RUNNING_DEVICES_VERTICAL_FLOATING_TOOLBARS.overrideForTest(false, testRootDisposable)
     device = agentRule.connectDevice("Pixel 4", 31, Dimension(1080, 2280))
     panel.createContent(false)
     fakeUi.layoutAndDispatchEvents()
