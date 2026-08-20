@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="studio-plugin-intellij.libraries.objenesis">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/cidr-base/lib/modules/intellij.libraries.objenesis.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/c/lib/modules/intellij.libraries.objenesis.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
