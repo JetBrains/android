@@ -17,6 +17,7 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/ide-core"],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -37,6 +38,7 @@ jvm_library(
         # do not sort,
         ":gradle-declarative-lang-flags",
         "//platform/util:util_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.flags` end
