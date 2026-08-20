@@ -179,6 +179,12 @@
 - name: lib/intellij.libraries.ffmpeg.jar
   contentModules:
   - name: intellij.libraries.ffmpeg
+- name: lib/intellij.libraries.zxing.core.jar
+  contentModules:
+  - name: intellij.libraries.zxing.core
+    libraries:
+      zxing-core:
+      - name: $MAVEN_REPOSITORY$/com/google/zxing/core/3/core-3.jar
 - name: lib/javacpp-1.5.9.jar
   library: ffmpeg-javacpp
   module: intellij.libraries.ffmpeg
@@ -231,11 +237,6 @@
 - name: lib/utp.jar
   modules:
   - name: intellij.android.utp
-- name: lib/zxing-core.jar
-  library: zxing-core
-  files:
-  - name: $MAVEN_REPOSITORY$/com/google/zxing/core/3/core-3.jar
-  reason: <- intellij.android.adb
 - name: lib/ffmpeg-macos-x64-6.0-1.5.9.jar
   library: ffmpeg-macos-x64
   module: intellij.libraries.ffmpeg

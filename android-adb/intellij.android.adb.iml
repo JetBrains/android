@@ -37,7 +37,7 @@
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.guava" />
-    <orderEntry type="library" name="zxing-core" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.zxing.core" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
