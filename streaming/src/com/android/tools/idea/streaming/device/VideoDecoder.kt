@@ -120,7 +120,7 @@ internal constructor(
     var decodingContextAdded = false
     decodingContexts.computeIfAbsent(displayId) {
       decodingContextAdded = true
-      DecodingContext(PRIMARY_DISPLAY_ID)
+      DecodingContext(displayId)
     }
     if (decodingContextAdded && endOfVideoStream) {
       disableDecodingForDisplay(displayId)
