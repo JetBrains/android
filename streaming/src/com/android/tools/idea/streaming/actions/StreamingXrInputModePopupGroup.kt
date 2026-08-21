@@ -65,22 +65,26 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable
       return
     }
 
-    getXrInputController(event)?.apply { inputMode = lastAppInteractionMode }
+    val controller = getXrInputController(event) ?: return
+    val previousInputMode = controller.inputMode
+    controller.apply { inputMode = lastAppInteractionMode }
 
-    // Manually show the popup since isPerformGroup = true might bypass the default toolbar behavior
-    val popup =
-      JBPopupFactory.getInstance()
-        .createActionGroupPopup(
-          null,
-          this,
-          event.dataContext,
-          JBPopupFactory.ActionSelectionAid.MNEMONICS,
-          true,
-          null,
-          -1,
-          null,
-          event.place,
-        )
-    event.inputEvent?.component?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
+    if (!previousInputMode.isNavigation) {
+      // Manually show the popup since isPerformGroup = true might bypass the default toolbar behavior
+      val popup =
+        JBPopupFactory.getInstance()
+          .createActionGroupPopup(
+            null,
+            this,
+            event.dataContext,
+            JBPopupFactory.ActionSelectionAid.MNEMONICS,
+            true,
+            null,
+            -1,
+            null,
+            event.place,
+          )
+      event.inputEvent?.component?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
+    }
   }
 }

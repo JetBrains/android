@@ -457,6 +457,7 @@ class EmulatorToolWindowPanelTest {
     for ((actionText, mode, expectedIcon) in actionTextsModesAndIcons) {
       fakeUi.mouseClickOn(interactButton)
       assertThat(xrInputController.inputMode).isEqualTo(previousAppInteractionMode)
+      fakeUi.mouseClickOn(interactButton)
       val popup = popupFactory.getNextListPopup<Any>(2.seconds)
       val index = popup.actions.indexOfFirst { it.templateText == actionText }
       assertThat(index).isAtLeast(0)
