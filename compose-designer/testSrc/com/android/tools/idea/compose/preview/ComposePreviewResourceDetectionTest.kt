@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.ComposeProjectRule
@@ -34,17 +35,19 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
 import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -109,7 +112,7 @@ class ComposePreviewResourceDetectionTest {
     }
 
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    logger.info("Resource folders: ${org.jetbrains.android.facet.ResourceFolderManager.getInstance(facet).folders}")
+    logger.info("Resource folders: ${ResourceFolderManager.getInstance(facet).folders}")
 
     // Create a dummy strings.xml
     val stringsXml = runWriteActionAndWait {
@@ -134,7 +137,7 @@ class ComposePreviewResourceDetectionTest {
 
     // Wait for resource repository to detect the new strings.xml
     waitForResourceRepositoryUpdates(facet)
-    org.jetbrains.android.facet.ResourceFolderManager.getInstance(facet).checkForChanges()
+    ResourceFolderManager.getInstance(facet).checkForChanges()
     StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
     val moduleResources = StudioResourceRepositoryManager.getInstance(facet).moduleResources
 
@@ -222,7 +225,7 @@ class ComposePreviewResourceDetectionTest {
 
     // Flush EDT events and save documents to propagate VFS changes from quickfix
     withContext(Dispatchers.EDT) {
-      com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().saveAllDocuments()
+      FileDocumentManager.getInstance().saveAllDocuments()
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     }
 
@@ -230,21 +233,23 @@ class ComposePreviewResourceDetectionTest {
     waitForResourceRepositoryUpdates(facet)
 
     // 4. Verify Resource Creation in strings.xml
-    val updatedStringsXml = PsiManager.getInstance(project).findFile(stringsXml.virtualFile)!!
-    val updatedText = updatedStringsXml.text
+    val updatedText =
+      withContext(Dispatchers.EDT) {
+        val updatedStringsXml = PsiManager.getInstance(project).findFile(stringsXml.virtualFile)!!
+        updatedStringsXml.text
+      }
     assertTrue(
       "Resource 'new_string' was not created in strings.xml. Current text:\n$updatedText",
       updatedText.contains("name=\"new_string\""),
     )
 
     // 5. Verify Resource is in ResourceRepository
-    val resources =
-      moduleResources.getResources(com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO, ResourceType.STRING, "new_string")
+    val resources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.STRING, "new_string")
     assertThat(resources).isNotEmpty()
 
     // 6. Wait for the automatic refresh triggered by resource change to complete
     withContext(Dispatchers.Default) {
-      kotlinx.coroutines.delay(500)
+      delay(500)
       delayWhileRefreshingOrDumb()
     }
 
@@ -252,11 +257,10 @@ class ComposePreviewResourceDetectionTest {
     withContext(Dispatchers.EDT) {
       PsiManager.getInstance(project).dropResolveCaches()
       val highlights = fixture.doHighlighting()
-      val hasUnresolvedNewString =
-        highlights.any {
-          it.description?.contains("Unresolved reference 'new_string'") == true ||
-            it.description?.contains("Unresolved reference 'string'") == true
-        }
+      val hasUnresolvedNewString = highlights.any {
+        it.description?.contains("Unresolved reference 'new_string'") == true ||
+          it.description?.contains("Unresolved reference 'string'") == true
+      }
       assertFalse("R.string.new_string should be resolved now. Highlights: ${highlights.map { it.description }}", hasUnresolvedNewString)
     }
 
