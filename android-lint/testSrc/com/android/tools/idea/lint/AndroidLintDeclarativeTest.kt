@@ -84,9 +84,8 @@ class AndroidLintDeclarativeTest {
   private fun checkLint(psiFile: PsiFile, inspection: AndroidLintInspectionBase, caret: String, expected: String) {
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     fixture.enableInspections(inspection)
-    val fileText = psiFile.text
+    val (fileText, target) = runReadAction { psiFile.text to psiFile.findCaretOffset(caret) }
     val sb = StringBuilder()
-    val target = psiFile.findCaretOffset(caret)
     WriteCommandAction.runWriteCommandAction(project) { fixture.editor.caretModel.moveToOffset(target) }
     val highlights = fixture.doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
     for (highlight in highlights) {
