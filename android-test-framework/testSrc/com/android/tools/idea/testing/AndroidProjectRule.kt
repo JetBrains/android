@@ -719,6 +719,9 @@ class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) : TestRule by R
   val project: Project
     get() = projectRule.project
 
+  val module: Module
+    get() = projectRule.module
+
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 

@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
+import com.android.tools.idea.testing.onEdt
 import com.intellij.execution.Location
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -38,6 +39,7 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -47,6 +49,7 @@ import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
+@RunsInEdt
 class TestSuiteRunConfigurationProducerTest {
 
   val projectRule =
@@ -84,7 +87,7 @@ class TestSuiteRunConfigurationProducerTest {
             },
           ),
       ),
-    )
+    ).onEdt()
 
   @get:Rule val ruleChain = RuleChain(projectRule, FlagRule(StudioFlags.AGP_TEST_SUITES_ENABLED, true))
 

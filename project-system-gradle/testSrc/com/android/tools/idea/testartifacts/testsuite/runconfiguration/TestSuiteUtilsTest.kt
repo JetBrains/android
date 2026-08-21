@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
@@ -39,6 +40,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.resolveFromRootOrRelative
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.testFramework.RunsInEdt
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -47,6 +49,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class TestSuiteUtilsTest {
 
   @get:Rule
@@ -149,7 +152,7 @@ class TestSuiteUtilsTest {
             },
           ),
       ),
-    )
+    ).onEdt()
 
   lateinit var testFile: PsiFile
   lateinit var testSuiteModule: Module
