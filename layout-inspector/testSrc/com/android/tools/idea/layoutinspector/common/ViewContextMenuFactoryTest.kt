@@ -61,7 +61,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Condition
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
@@ -76,12 +78,13 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.whenever
 
+@RunsInEdt
 class ViewContextMenuFactoryTest {
   private val disposableRule = DisposableRule()
   private val flagRule1 = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
   private val flagRule2 = FlagRule(StudioFlags.DYNAMIC_LAYOUT_CHROME_DEVTOOLS_MENU, true)
 
-  @get:Rule val rule = RuleChain(TestScopeRule(), ApplicationRule(), disposableRule, flagRule1, flagRule2)
+  @get:Rule val rule = RuleChain(TestScopeRule(), ApplicationRule(), disposableRule, flagRule1, flagRule2, EdtRule())
 
   private var source: JComponent? = mock()
   private var popupMenuComponent: JPopupMenu? = mock()
@@ -350,10 +353,11 @@ class ViewContextMenuFactoryTest {
   }
 }
 
+@RunsInEdt
 class ViewContextMenuFactoryLegacyTest {
-  @get:Rule val applicationRule = ApplicationRule()
+  private val disposableRule = DisposableRule()
 
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, EdtRule())
 
   private var source: JComponent? = mock()
   private var popupMenuComponent: JPopupMenu? = mock()
