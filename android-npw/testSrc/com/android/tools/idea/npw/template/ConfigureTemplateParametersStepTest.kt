@@ -56,6 +56,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
+@RunsInEdt
 class ConfigureTemplateParametersStepTest {
   private lateinit var step: ConfigureTemplateParametersStep
 
