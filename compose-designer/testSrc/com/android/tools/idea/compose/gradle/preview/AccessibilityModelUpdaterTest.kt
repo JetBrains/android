@@ -57,12 +57,13 @@ import org.junit.Test
  * Returns a string with the form "file line:column" for the given [RangeMarker]. This is easier to maintain in tests that using the
  * absolute offset.
  */
-private fun OpenFileDescriptor.toFileLineAndColumn(): String {
-  val line = rangeMarker.document.getLineNumber(this.offset)
-  val column = this.offset - rangeMarker.document.getLineStartOffset(line)
+private fun OpenFileDescriptor.toFileLineAndColumn(): String =
+  runBlocking(Dispatchers.EDT) {
+    val line = rangeMarker.document.getLineNumber(this@toFileLineAndColumn.offset)
+    val column = this@toFileLineAndColumn.offset - rangeMarker.document.getLineStartOffset(line)
 
-  return "${file.name} $line:$column"
-}
+    "${file.name} $line:$column"
+  }
 
 class AccessibilityModelUpdaterTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
@@ -155,7 +156,6 @@ class AccessibilityModelUpdaterTest {
     assertEquals(139, textViewComponent.w)
     assertEquals(0, textViewComponent.y)
     val textViewNavigatable = textViewComponent.navigatable as OpenFileDescriptor
-    textViewNavigatable.rangeMarker.document.getLineNumber(textViewNavigatable.offset)
     assertEquals("MainActivity.kt 49:12", textViewNavigatable.toFileLineAndColumn())
 
     children = children[1].children
