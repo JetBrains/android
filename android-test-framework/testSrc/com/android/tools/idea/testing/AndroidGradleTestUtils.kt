@@ -168,6 +168,7 @@ import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -960,35 +961,34 @@ fun AndroidProjectStubBuilder.buildDefaultConfigStub() =
     extraSourceProviders = listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer),
   )
 
-fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerImpl? =
-  debugSourceProvider?.let { debugSourceProvider ->
-    IdeBuildTypeContainerImpl(
-      IdeBuildTypeImpl(
-        name = debugSourceProvider.name,
-        resValues = mapOf(),
-        proguardFiles = listOf(),
-        consumerProguardFiles = listOf(),
-        manifestPlaceholders = mapOf(),
-        applicationIdSuffix = null,
-        versionNameSuffix = null,
-        multiDexEnabled = null,
-        isDebuggable = true,
-        isJniDebuggable = true,
-        isPseudoLocalesEnabled = false,
-        isRenderscriptDebuggable = true,
-        renderscriptOptimLevel = 1,
-        isMinifyEnabled = false,
-        isZipAlignEnabled = true,
-        isDefault = null,
-        matchingFallbacks = emptyList(),
-      ),
-      debugSourceProvider,
-      listOfNotNull(
-        androidTestDebugSourceProvider?.let { IdeExtraSourceProviderImpl(ARTIFACT_NAME_ANDROID_TEST, it) },
-        testDebugSourceProvider?.let { IdeExtraSourceProviderImpl(ARTIFACT_NAME_UNIT_TEST, it) },
-      ),
-    )
-  }
+fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerImpl? = debugSourceProvider?.let { debugSourceProvider ->
+  IdeBuildTypeContainerImpl(
+    IdeBuildTypeImpl(
+      name = debugSourceProvider.name,
+      resValues = mapOf(),
+      proguardFiles = listOf(),
+      consumerProguardFiles = listOf(),
+      manifestPlaceholders = mapOf(),
+      applicationIdSuffix = null,
+      versionNameSuffix = null,
+      multiDexEnabled = null,
+      isDebuggable = true,
+      isJniDebuggable = true,
+      isPseudoLocalesEnabled = false,
+      isRenderscriptDebuggable = true,
+      renderscriptOptimLevel = 1,
+      isMinifyEnabled = false,
+      isZipAlignEnabled = true,
+      isDefault = null,
+      matchingFallbacks = emptyList(),
+    ),
+    debugSourceProvider,
+    listOfNotNull(
+      androidTestDebugSourceProvider?.let { IdeExtraSourceProviderImpl(ARTIFACT_NAME_ANDROID_TEST, it) },
+      testDebugSourceProvider?.let { IdeExtraSourceProviderImpl(ARTIFACT_NAME_UNIT_TEST, it) },
+    ),
+  )
+}
 
 fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub(): IdeBuildTypeContainerImpl? =
   releaseSourceProvider?.let { releaseSourceProvider ->
@@ -2305,14 +2305,12 @@ fun Project.gradleModule(gradlePath: String, sourceSet: IdeModuleSourceSet? = nu
 
 /** Gets the text content of a PSI file specificed by [relativeFile]. */
 fun Project.getTextForFile(relativePath: String): String {
-  val file = VfsUtil.findFile(Paths.get(basePath, relativePath), false)
-  if (file != null) {
+  val basePath = basePath ?: return ""
+  val file = VfsUtil.findFile(Paths.get(basePath, relativePath), false) ?: return ""
+  return runReadActionBlocking {
     val psiFile = PsiManager.getInstance(this).findFile(file)
-    if (psiFile != null) {
-      return psiFile.text
-    }
+    psiFile?.text.orEmpty()
   }
-  return ""
 }
 
 /** Finds a file by the [path] relative to the corresponding Gradle project root. */
