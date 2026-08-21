@@ -94,6 +94,7 @@ fun NavigationControlsContent(
         interactivePreviewNavigationController.trackEdgeDropdownPress()
         interactivePreviewNavigationController.backPressCancelled()
       },
+      backToState = { navigationState -> interactivePreviewNavigationController.backToState(navigationState) },
       fpsUpdater = fpsUpdater,
       backPressCompletedFlow = interactivePreviewNavigationController.backPressCompletedFlow,
     )
@@ -132,6 +133,7 @@ fun NavigationControlsPanel(
   onBackPressProgress: (Float, BackNavigationEdge) -> Unit,
   onBackPressTrackProgress: () -> Unit,
   onEdgeDropdownPress: () -> Unit,
+  backToState: (Any) -> Unit = {},
   fpsUpdater: SharedFlow<Unit>,
   backPressCompletedFlow: SharedFlow<Unit> = remember { MutableSharedFlow() },
 ) {
@@ -235,13 +237,13 @@ fun NavigationControlsPanel(
       }
     }
     if (StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.get()) {
-      BackStack(navigationHistory)
+      BackStack(navigationHistory, backToState)
     }
   }
 }
 
 @Composable
-private fun BackStack(navigationHistory: List<Any>) {
+private fun BackStack(navigationHistory: List<Any>, onBackToState: (Any) -> Unit) {
   Column(
     modifier = Modifier.padding(vertical = DEFAULT_SPACING).fillMaxWidth().testTag(NavigationControlsPanelTestTags.visualStack),
     horizontalAlignment = Alignment.CenterHorizontally,
@@ -265,9 +267,11 @@ private fun BackStack(navigationHistory: List<Any>) {
       ) {
         // Display in reverse order so the newest/active item is on top of the stack.
         navigationHistory.asReversed().forEachIndexed { index, navigationInfoItem ->
+          val isCurrentActiveNavigationItem = index == 0
           BackStackItem(
             navigationInfoItem = navigationInfoItem,
-            isCurrentActiveNavigationItem = index == 0,
+            isCurrentActiveNavigationItem = isCurrentActiveNavigationItem,
+            onItemClick = onBackToState,
           )
         }
       }
@@ -279,6 +283,7 @@ private fun BackStack(navigationHistory: List<Any>) {
 private fun BackStackItem(
   navigationInfoItem: Any,
   isCurrentActiveNavigationItem: Boolean,
+  onItemClick: (Any) -> Unit,
 ) {
   val activeAccent = JewelTheme.globalColors.outlines.focused
   val borderColors = if (isCurrentActiveNavigationItem) activeAccent else JewelTheme.globalColors.borders.normal
@@ -288,31 +293,20 @@ private fun BackStackItem(
   val navKeys = parseNavigationItems(navigationInfoItem)
   Row(
     modifier =
-      Modifier.border(
-          width = 1.dp,
-          color = borderColors,
-          shape = RoundedCornerShape(8.dp),
-        )
-        .background(
-          color = backGroundColor,
-          shape = RoundedCornerShape(8.dp),
-        )
+      Modifier.border(width = 1.dp, color = borderColors, shape = RoundedCornerShape(8.dp))
+        .background(color = backGroundColor, shape = RoundedCornerShape(8.dp))
         .padding(12.dp)
         .fillMaxWidth()
         .widthIn(max = 500.dp),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(modifier = Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(2.dp)) {
       // In adaptive layouts on larger screens (such as foldables, tablets, or desktop displaying two-pane or list-detail
       // scenes), a single back stack entry can contain multiple active navigation keys displayed side by side.
       // We render each navigation key on its own line for clarity.
       navKeys.forEach { navKey ->
-        Text(
-          text = message("action.navigate.back.stack.navkey", navKey),
-          fontWeight = FontWeight.Bold,
-          color = textColor,
-        )
+        Text(text = message("action.navigate.back.stack.navkey", navKey), fontWeight = FontWeight.Bold, color = textColor)
       }
     }
     if (isCurrentActiveNavigationItem) {
@@ -325,6 +319,14 @@ private fun BackStackItem(
           fontWeight = FontWeight.Bold,
           color = activeAccent,
         )
+      }
+    } else {
+      // If the item is not currently shown in the Preview, clicking it navigates back to this state.
+      OutlinedButton(
+        onClick = { onItemClick(navigationInfoItem) },
+        modifier = Modifier.padding(start = 8.dp),
+      ) {
+        Text(message("action.navigate.back.stack.navigate"))
       }
     }
   }

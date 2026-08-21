@@ -180,6 +180,26 @@ class InteractivePreviewNavigationControllerTest {
   }
 
   @Test
+  fun testBackToStateFromViewAdapterObj() {
+    val composeViewAdapterObjFake =
+      TestComposeViewAdapterViewObj(backStack = listOf("Preview Three", "Preview Two", "Preview One", "Preview Zero"))
+    val controller = InteractivePreviewNavigationController({ InteractiveNopTracker() }, fpsUpdater = MutableSharedFlow())
+    controller.updateObjects(null, composeViewAdapterObjFake, hasNavDisplay = false)
+
+    // Verify navigating back to an existing state succeeds and pops the back stack down to and including that state.
+    val state = "Preview One"
+    val result = controller.backToState(state)
+    assertThat(result).isTrue()
+    assertThat(composeViewAdapterObjFake.backStack).containsExactly("Preview Zero")
+
+    // Verify back navigation to a non-existing state fails and leaves the back stack unchanged.
+    val nonExistingState = "Non Existing Preview"
+    val resultWithNonExistingState = controller.backToState(nonExistingState)
+    assertThat(resultWithNonExistingState).isFalse()
+    assertThat(composeViewAdapterObjFake.backStack).containsExactly("Preview Zero")
+  }
+
+  @Test
   fun testShowAndHideNavigationControls() {
     var panelUpdated = false
     val controller =

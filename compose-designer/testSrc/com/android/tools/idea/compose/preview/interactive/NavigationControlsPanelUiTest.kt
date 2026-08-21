@@ -402,6 +402,36 @@ class NavigationControlsPanelUiTest {
   }
 
   @Test
+  fun testVisualStackNavigateButtonClick() {
+    StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.overrideForTest(true, projectRule.project)
+    val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val historyList = listOf("Screen1", "Screen2")
+    var backToStateTarget: Any? = null
+
+    composeTestRule.setContent {
+      NavigationControlsPanel(
+        isEdgeNavigationImplemented = { true },
+        getNavigationHistory = { historyList },
+        canBackPress = { true },
+        onBackPress = {},
+        onBackPressStart = {},
+        onBackPressProgress = { _, _ -> },
+        onBackPressTrackProgress = {},
+        onEdgeDropdownPress = {},
+        backToState = { backToStateTarget = it },
+        fpsUpdater = fpsUpdater,
+      )
+    }
+
+    // Top item (Screen2) is the current active item
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.current")).assertIsDisplayed()
+
+    // Previous item (Screen1) displays Navigate button
+    composeTestRule.onNodeWithText(message("action.navigate.back.stack.navigate")).assertIsDisplayed().performClick()
+    assertEquals("Screen1", backToStateTarget)
+  }
+
+  @Test
   fun testVisualStackNotRenderedWhenFlagDisabled() {
     StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK_STACK_VISUAL.overrideForTest(false, projectRule.project)
     val fpsUpdater = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
