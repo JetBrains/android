@@ -1,6 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "BUILT_IN_KOTLIN_VERSION", "KGP_VERSION_FOR_TESTS")
 
 # managed by go/iml_to_build
 iml_module(
@@ -202,6 +202,7 @@ maven_repository(
         "@maven//:androidx.activity.activity-ktx_1.8.0",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.4",
+        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.5.0-beta01",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.6.0",
@@ -228,6 +229,8 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.guava.guava_19.0",
+        "@maven//:com.google.protobuf.protobuf-java_3.25.5",
+        "@maven//:com.google.testing.platform.core-proto_0.0.8-alpha08",
         "@maven//:org.gradle.toolchains.foojay-resolver-convention.org.gradle.toolchains.foojay-resolver-convention.gradle.plugin_1.0.0",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.9.23",
         "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.21",  # AddNewModulesToAppTest
@@ -242,6 +245,9 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.2.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.9.23",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_2.2.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + BUILT_IN_KOTLIN_VERSION,
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib_" + BUILT_IN_KOTLIN_VERSION,
+        "@maven//:org.jetbrains.kotlin.kotlin-test-junit_" + BUILT_IN_KOTLIN_VERSION,
         "@maven//:org.jetbrains.kotlin.kotlin-test-junit_" + KGP_VERSION_FOR_TESTS,  # Used by AddKotlinMultiplatformLibraryModuleTest
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.4.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",

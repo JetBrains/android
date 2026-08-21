@@ -2,20 +2,20 @@ plugins {
     id("com.android.application")
 }
 
-val myVariable by extra("26.1.0")
-val variable1 by extra("1.3")
-val anotherVariable by extra("3.0.1")
-val varInt by extra(1)
-val varBool by extra(true)
-val varRefString by extra(variable1)
-val varProGuardFiles by extra(listOf("proguard-rules.txt", "proguard-rules2.txt"))
-val localList by extra(listOf("26.1.1", "56.2.0"))
-val localMap by extra(mapOf("KTSApp" to "com.example.text.KTSApp", "LocalApp" to "com.android.localApp"))
+extra["myVariable"] = "26.1.0"
+extra["variable1"] = "1.3"
+extra["anotherVariable"] = "3.0.1"
+extra["varInt"] = 1
+extra["varBool"] = true
+extra["varRefString"] = extra["variable1"]
+extra["varProGuardFiles"] = listOf("proguard-rules.txt", "proguard-rules2.txt")
+extra["localList"] = listOf("26.1.1", "56.2.0")
+extra["localMap"] = mapOf("KTSApp" to "com.example.text.KTSApp", "LocalApp" to "com.android.localApp")
 extra["valVersion"] = 15
 extra["versionVal"] = "28.0.0"
 
 android {
-    compileSdkVersion(19)
+    compileSdk = 19
 
     dynamicFeatures += setOf(":dyn_feature")
 
@@ -32,14 +32,14 @@ android {
         applicationId = "com.example.psd.sample.app.default"
         applicationIdSuffix = "defaultSuffix"
         testApplicationId = "com.example.psd.sample.app.default.test"
-        maxSdkVersion(26)
-        minSdkVersion(9)
-        targetSdkVersion(19)
+        maxSdk = 26
+        minSdk = 9
+        targetSdk = 19
         versionCode = 1
         versionName = "1.0"
         versionNameSuffix = "vns"
-        setManifestPlaceholders(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to true))
-        setTestFunctionalTest(false)
+        manifestPlaceholders += mapOf("aa" to "aaa", "bb" to "bbb", "cc" to true)
+        testFunctionalTest = false
     }
     buildTypes {
         getByName("release") {
@@ -53,14 +53,14 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.txt", "proguard-rules2.txt")
         }
         create("specialRelease") {
-            setMatchingFallbacks(listOf("release", "debug"))
+            matchingFallbacks += listOf("release", "debug")
             versionNameSuffix = "vnsSpecial"
         }
         debug {
             isPseudoLocalesEnabled = true
         }
     }
-    flavorDimensions("foo", "bar")
+    flavorDimensions += listOf("foo", "bar")
     productFlavors {
         create("basic") {
             dimension = "foo"
@@ -70,15 +70,15 @@ android {
             dimension = "foo"
             applicationId = "com.example.psd.sample.app.paid"
             testApplicationId = "com.example.psd.sample.app.paid.test"
-            maxSdkVersion(25)
-            minSdkVersion(10)
-            targetSdkVersion(20)
+            maxSdk = 25
+            minSdk = 10
+            targetSdk = 20
             versionCode = 2
             versionName = "2.0"
             versionNameSuffix = "vnsFoo"
             testInstrumentationRunnerArguments(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC"))
-            setTestHandleProfiling(varBool)
-            setTestFunctionalTest(rootProject.extra["rootBool"] as Boolean)
+            testHandleProfiling = project.extra["varBool"] as Boolean
+            testFunctionalTest = rootProject.extra["rootBool"] as Boolean
         }
         create("bar") {
             dimension = "bar"
@@ -86,15 +86,14 @@ android {
         }
         create("otherBar") {
             dimension = "bar"
-            setMatchingFallbacks(listOf("bar"))
-            resConfig("en")
-            resConfigs("hdpi", "xhdpi")
+            matchingFallbacks += listOf("bar")
+            resourceConfigurations += listOf("en", "hdpi", "xhdpi")
         }
     }
 }
 
-val moreVariable by extra("1234")
-val mapVariable by extra(mapOf("a" to "\"double\" quotes", "b" to "'single' quotes"))
+extra["moreVariable"] = "1234"
+extra["mapVariable"] = mapOf("a" to "\"double\" quotes", "b" to "'single' quotes")
 
 dependencies {
     api("com.android.support:appcompat-v7:+")

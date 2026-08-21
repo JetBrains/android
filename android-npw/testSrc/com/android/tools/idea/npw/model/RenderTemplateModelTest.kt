@@ -87,7 +87,7 @@ class RenderTemplateModelTest {
     renderTemplateModel.handleFinished()
 
     val moduleTemplateData = captureTemplateData as ModuleTemplateData
-    assertThat(moduleTemplateData.projectTemplateData.kotlinVersion).isEqualTo("2.2.0")
+    assertThat(moduleTemplateData.projectTemplateData.kotlinVersion).isEqualTo(AGP_BUILT_IN_KOTLIN_VERSION)
   }
 
   @Test
@@ -104,7 +104,7 @@ class RenderTemplateModelTest {
     renderTemplateModel.handleFinished()
 
     val moduleTemplateData = captureTemplateData as ModuleTemplateData
-    assertThat(moduleTemplateData.projectTemplateData.kotlinVersion).isEqualTo("1.9.23")
+    assertThat(moduleTemplateData.projectTemplateData.kotlinVersion).isEqualTo(AGP_BUILT_IN_KOTLIN_VERSION)
   }
 
   @Test

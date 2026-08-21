@@ -7,9 +7,9 @@ extra["rootBool"] = extra["scriptBool"]
 
 buildscript {
     extra["scriptVar1"] = 1
-    var scriptVar2 by extra("2")
-    var scriptBool by extra(true)
-    var agpVersionX by extra("3.4.x")
+    extra["scriptVar2"] = "2"
+    extra["scriptBool"] = true
+    extra["agpVersionX"] = "3.4.x"
     repositories {
         // This will be populated by AndroidGradleTestCase
     }
@@ -24,10 +24,10 @@ allprojects {
     }
 }
 
-var rootBool3 by extra(extra["rootBool"])
-var rootBool2 by extra(rootBool3)
-var rootFloat by extra(3.14)
-val listProp by extra(listOf(15,16,45))
-val mapProp by extra(mapOf("key1" to "val1", "key2" to "val2"))
-val boolRoot by extra(true)
-val dependencyVersion by extra("28.0.0")
+extra["rootBool3"] = extra["rootBool"]
+extra["rootBool2"] = extra["rootBool3"]
+extra["rootFloat"] = 3.14
+extra["listProp"] = listOf(15, 16, 45)
+extra["mapProp"] = mapOf("key1" to "val1", "key2" to "val2")
+extra["boolRoot"] = true
+extra["dependencyVersion"] = "28.0.0"

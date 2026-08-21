@@ -21,6 +21,9 @@ buildscript {
         classpath 'com.android.tools.build:gradle:0.14.+'
     }
 }
+repositories {
+    // This will be populated by AndroidGradleTestCase
+}
 apply plugin: 'com.android.application'
 
 android {

@@ -502,7 +502,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
           "localMap[\"KTSApp\"]",
           "(rootProject.extra[\"mapProp\"] as Map<*, *>)[\"key1\"] as String",
           "project.extra[\"valVersion\"] as Int",
-          "variable1",
+          "project.extra[\"variable1\"] as String",
           "rootProject.extra[\"boolRoot\"] as Boolean",
         )
       doTestSetReferences(expectedValues)

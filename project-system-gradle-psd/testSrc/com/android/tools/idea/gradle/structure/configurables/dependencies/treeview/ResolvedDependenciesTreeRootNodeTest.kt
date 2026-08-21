@@ -87,6 +87,8 @@ open class ResolvedDependenciesTreeRootNodeTest {
       app
           freeDebug
               mainModule
+                  kotlin-stdlib:2.2.10 (org.jetbrains.kotlin)
+                      annotations:13.0 (org.jetbrains)
                   lib1:1.0 (com.example.libs)
                       lib2:1.0 (com.example.libs)
                           lib3:1.0 (com.example.jlib)
@@ -96,6 +98,8 @@ open class ResolvedDependenciesTreeRootNodeTest {
           freeDebugAndroidTest
               freeDebug
                   mainModule
+                      kotlin-stdlib:2.2.10 (org.jetbrains.kotlin)
+                          annotations:13.0 (org.jetbrains)
                       lib1:1.0 (com.example.libs)
                           lib2:1.0 (com.example.libs)
                               lib3:1.0 (com.example.jlib)
@@ -105,6 +109,8 @@ open class ResolvedDependenciesTreeRootNodeTest {
           freeDebugUnitTest
               freeDebug
                   mainModule
+                      kotlin-stdlib:2.2.10 (org.jetbrains.kotlin)
+                          annotations:13.0 (org.jetbrains)
                       lib1:1.0 (com.example.libs)
                           lib2:1.0 (com.example.libs)
                               lib3:1.0 (com.example.jlib)
@@ -113,6 +119,8 @@ open class ResolvedDependenciesTreeRootNodeTest {
                           lib4:1.0 (com.example.jlib)
           freeRelease
               mainModule
+                  kotlin-stdlib:2.2.10 (org.jetbrains.kotlin)
+                      annotations:13.0 (org.jetbrains)
                   lib1:1.0,0.9.1→1.0 (com.example.libs)
                       lib2:1.0 (com.example.libs)
                           lib3:1.0 (com.example.jlib)
@@ -121,6 +129,8 @@ open class ResolvedDependenciesTreeRootNodeTest {
                       lib4:1.0 (com.example.jlib)
           paidDebug
               mainModule
+                  kotlin-stdlib:2.2.10 (org.jetbrains.kotlin)
+                      annotations:13.0 (org.jetbrains)
                   lib1:1.0 (com.example.libs)
                       lib2:1.0 (com.example.libs)
                           lib3:1.0 (com.example.jlib)
@@ -128,6 +138,8 @@ open class ResolvedDependenciesTreeRootNodeTest {
           paidDebugAndroidTest
               paidDebug
                   mainModule
+                      kotlin-stdlib:2.2.10 (org.jetbrains.kotlin)
+                          annotations:13.0 (org.jetbrains)
                       lib1:1.0 (com.example.libs)
                           lib2:1.0 (com.example.libs)
                               lib3:1.0 (com.example.jlib)
@@ -135,12 +147,16 @@ open class ResolvedDependenciesTreeRootNodeTest {
           paidDebugUnitTest
               paidDebug
                   mainModule
+                      kotlin-stdlib:2.2.10 (org.jetbrains.kotlin)
+                          annotations:13.0 (org.jetbrains)
                       lib1:1.0 (com.example.libs)
                           lib2:1.0 (com.example.libs)
                               lib3:1.0 (com.example.jlib)
                                   lib4:1.0 (com.example.jlib)
           paidRelease
               mainModule
+                  kotlin-stdlib:2.2.10 (org.jetbrains.kotlin)
+                      annotations:13.0 (org.jetbrains)
                   lib1:1.0,0.9.1→1.0 (com.example.libs)
                       lib2:1.0 (com.example.libs)
                           lib3:1.0 (com.example.jlib)

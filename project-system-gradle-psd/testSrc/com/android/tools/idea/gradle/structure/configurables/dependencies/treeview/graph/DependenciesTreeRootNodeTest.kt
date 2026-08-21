@@ -92,6 +92,8 @@ class DependenciesTreeRootNodeTest {
             com.example.libs:lib2
                 lib2:0.9.1
                 lib2:1.0
+            org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+            org.jetbrains:annotations:13.0
             lib (..)
             libsam1-1.1.jar (../lib)
             libs
