@@ -172,7 +172,6 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
   fun testSetStateCommitsDocument() = runTest {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
-    val document = PsiDocumentManager.getInstance(projectRule.project).getDocument(file)
     val psiDocumentManager = PsiDocumentManager.getInstance(projectRule.project)
     withContext(Dispatchers.EDT) {
       fixture.openFileInEditor(file.virtualFile)
