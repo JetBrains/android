@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.model
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.sdklib.AndroidMajorVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
@@ -44,37 +45,79 @@ import com.intellij.openapi.command.UndoConfirmationPolicy
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.source.PostprocessReformattingAspect
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
 import org.jetbrains.android.util.AndroidBundle.message
 
 private val log: Logger
   get() = logger<Template>()
 
+@AnyThread
 fun Template.render(c: RenderingContext, e: RecipeExecutor, metrics: TemplateMetrics? = null) =
   recipe.render(c, e, titleToTemplateRenderer(name, formFactor), metrics)
 
-fun Recipe.findReferences(c: RenderingContext) = render(c, FindReferencesRecipeExecutor(c))
+@AnyThread fun Recipe.findReferences(c: RenderingContext) = render(c, FindReferencesRecipeExecutor(c))
 
-fun Recipe.actuallyRender(c: RenderingContext) = render(c, DefaultRecipeExecutor(c))
+@AnyThread fun Recipe.actuallyRender(c: RenderingContext) = render(c, DefaultRecipeExecutor(c))
 
+@AnyThread
+@Suppress("WrongThread") // This method explicitly handles the thread (dispatch thread via modal progress or background worker)
 fun Recipe.render(c: RenderingContext, e: RecipeExecutor): Boolean {
-  val success =
-    if (c.project.isInitialized) doRender(c, e)
-    else PostprocessReformattingAspect.getInstance(c.project).disablePostprocessFormattingInside<Boolean> { doRender(c, e) }
+  // Encapsulates the complete rendering unit (recipe execution, document commit, and reformatting)
+  fun execute(): Boolean {
+    val success =
+      if (c.project.isInitialized) doRender(c, e)
+      else PostprocessReformattingAspect.getInstance(c.project).disablePostprocessFormattingInside<Boolean> { doRender(c, e) }
 
-  if (!c.dryRun) {
-    ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
-    ReformatUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
+    if (!c.dryRun && success) {
+      // Commit documents on EDT before formatting to ensure PSI is synchronized with latest document changes
+      ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
+      ReformatUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
+    }
+
+    return success
   }
 
-  return success
+  val app = ApplicationManager.getApplication()
+  // When called on the EDT (outside a pre-existing write action), shift execution to a background
+  // worker thread with modal progress to avoid freezing the UI thread.
+  // Note: If a write action is already held (e.g. in test harnesses), runWithModalProgressBlocking is
+  // prohibited by the platform and throws an IllegalStateException, so we execute directly.
+  return if (app.isDispatchThread && !app.isWriteAccessAllowed) {
+    val title = if (c.commandName.isNotBlank()) c.commandName else "Generating Template"
+    try {
+      runWithModalProgressBlocking(
+        owner = ModalTaskOwner.project(c.project),
+        title = title,
+        cancellation = TaskCancellation.cancellable(),
+      ) {
+        execute()
+      }
+    } catch (e: Exception) {
+      // Gracefully handle user cancellation from the modal progress dialog
+      if (e is ProcessCanceledException || e is CancellationException) {
+        log.info("Template rendering cancelled by user: ${c.commandName}")
+        false
+      } else {
+        throw e
+      }
+    }
+  } else {
+    // Already running on a background thread or inside a pre-existing write action
+    execute()
+  }
 }
 
+@AnyThread
 fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer, metrics: TemplateMetrics? = null): Boolean {
   return render(c, e).also {
     if (!c.dryRun) {

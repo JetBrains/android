@@ -149,7 +149,8 @@ abstract class ModuleModel(
 
     @WorkerThread
     override fun render() {
-      success = WriteCommandAction.writeCommandAction(project).withName(commandName).compute<Boolean, Exception> { renderTemplate(false) }
+      // Delegate directly to renderTemplate; Recipe.render manages modal progress and Recipe.doRender provides the WriteCommandAction
+      success = renderTemplate(false)
 
       if (!success) {
         log.warn("A problem occurred while creating a new Module. Please check the log file for possible errors.")
