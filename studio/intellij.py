@@ -107,7 +107,8 @@ def _read_plugin_jars(ide_home: Path, product_info, platform_jars: set[str]):
   # See b/349849955 and go/studio-v2-modules for details.
   plugins = {}
   for entry in product_info["layout"]:
-    if entry.get("kind") in ["plugin", "moduleV2", "productModuleV2"]:
+    kind = entry.get("kind")
+    if kind in ["plugin", "moduleV2", "productModuleV2"]:
       id = entry["name"]
       if id == "com.intellij":
         continue  # IntelliJ core is not a true plugin.
@@ -120,13 +121,14 @@ def _read_plugin_jars(ide_home: Path, product_info, platform_jars: set[str]):
         continue  # All jars are in the core classloader => no need for a separate target.
       for jar in jars:
         assert jar not in platform_jars, f"Plugin {id} somehow has a subset of its jars inside core, including {jar}"
-      if id == "intellij.libraries.objenesis" and id in plugins:
-        # The objenesis module is duplicated in two different CIDR plugins, which is technically allowed
-        # for private/internal modules. For now we just add one copy to the flat runtime classpath of dev builds.
-        # TODO(b/526687561): avoid generating Bazel targets for private modules.
-        continue
-      assert id not in plugins, f"Duplicated plugin ID: {id}"
-      plugins[id] = set(jars)
+      if id not in plugins:
+        plugins[id] = set(jars)
+      else:
+        # Assert no duplicated plugin IDs or product module IDs.
+        # Plugin modules are allowed to be duplicated across plugins if they are declared with visibility="private",
+        # so we just permit duplicate plugin modules in general for now.
+        if kind != "moduleV2":
+          raise Exception(f"Duplicated {kind} ID: {id}")
   return plugins
 
 
