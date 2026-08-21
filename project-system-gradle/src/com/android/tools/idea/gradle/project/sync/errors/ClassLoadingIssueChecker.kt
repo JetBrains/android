@@ -129,7 +129,7 @@ class ClassLoadingIssueChecker : GradleIssueChecker {
   private fun getExceptionMessage(exceptionClassName: String?, message: String, projectPath: String): String? {
     if (exceptionClassName.isNullOrEmpty()) return null
     when {
-      exceptionClassName.contains("java.lang.ClassNotFoundException") -> {
+      exceptionClassName.contains(ClassNotFoundException::class.java.name) -> {
         var className = message
         val matcher = CLASS_NOT_FOUND_PATTERN.matcher(className)
         if (matcher.matches()) {
@@ -139,7 +139,7 @@ class ClassLoadingIssueChecker : GradleIssueChecker {
         SyncFailureUsageReporter.getInstance().collectFailure(projectPath, CLASS_NOT_FOUND)
         return "Unable to load class '${className}'"
       }
-      exceptionClassName.contains("java.lang.NoSuchMethodError") -> {
+      exceptionClassName.contains(NoSuchMethodError::class.java.name) -> {
         // Log metrics.
         SyncFailureUsageReporter.getInstance().collectFailure(projectPath, METHOD_NOT_FOUND)
         return "Unable to find method '$message'"

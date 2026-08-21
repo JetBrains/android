@@ -24,6 +24,8 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.util.io.toCanonicalPath
+import java.net.ConnectException
+import java.net.UnknownHostException
 import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -47,7 +49,9 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
     if (issueData.error != rootCause) {
       buildIssueComposer.addDescriptionOnNewLine("Reason: ${rootCause.className}: ${rootCause.message}")
       buildIssueComposer.startNewParagraph()
-      if (rootCauseClassName.contains("java.net.UnknownHostException") || rootCauseClassName.contains("java.net.ConnectException")) {
+      if (
+        rootCauseClassName.contains(UnknownHostException::class.java.name) || rootCauseClassName.contains(ConnectException::class.java.name)
+      ) {
         buildIssueComposer.addQuickFix(
           "Please ensure ",
           "gradle distribution url",
@@ -62,7 +66,7 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
         )
       }
       if (
-        rootCauseClassName.contains("java.lang.RuntimeException") &&
+        rootCauseClassName.contains(RuntimeException::class.java.name) &&
           rootCause.message?.startsWith("Could not create parent directory for lock file") == true
       ) {
         buildIssueComposer.addDescriptionOnNewLine(

@@ -49,7 +49,7 @@ class DexDisabledIssueChecker : GradleIssueChecker {
     // Confirm rootCause is one of the expected causes.
     val rootCause = issueData.failure.rootCause
     val rootCauseClassName = rootCause.className ?: return null
-    if (!rootCauseClassName.contains("java.lang.RuntimeException")) {
+    if (!rootCauseClassName.contains(RuntimeException::class.java.name)) {
       return null
     }
     var rootMessage = rootCause.message ?: return null

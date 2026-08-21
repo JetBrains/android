@@ -39,7 +39,7 @@ class AarDependencyCompatibilityIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     // Confirm rootCause is one of the expected causes.
     val rootCause = issueData.failure.rootCause
-    if (rootCause.className?.contains("java.lang.RuntimeException") == false) {
+    if (rootCause.className?.contains(RuntimeException::class.java.name) == false) {
       return null
     }
     val rootMessage = rootCause.message ?: return null

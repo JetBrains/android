@@ -49,7 +49,8 @@ open class FailedToParseSdkIssueChecker : GradleIssueChecker {
     val rootCause = issueData.failure.rootCause
     val rootCauseClassName = rootCause.className ?: return null
     val message = rootCause.message ?: return null
-    if (!rootCauseClassName.contains("java.lang.RuntimeException") || message.isBlank() || !message.contains(FAILED_TO_PARSE)) return null
+    if (!rootCauseClassName.contains(RuntimeException::class.java.name) || message.isBlank() || !message.contains(FAILED_TO_PARSE))
+      return null
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), GradleSyncFailure.FAILED_TO_PARSE_SDK)

@@ -23,6 +23,7 @@ import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import java.util.function.Consumer
+import org.gradle.tooling.BuildException
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
@@ -34,12 +35,12 @@ class DuplicateClassIssueChecker : GradleIssueChecker {
   private val DUPLICATE_CLASS = "Duplicate class "
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    if (issueData.failure.className?.contains("org.gradle.tooling.BuildException") == false) {
+    if (issueData.failure.className?.contains(BuildException::class.java.name) == false) {
       return null
     }
     val rootCause = issueData.failure.rootCause
     val rootCauseClassName = rootCause.className ?: return null
-    if (!rootCauseClassName.contains("java.lang.RuntimeException")) {
+    if (!rootCauseClassName.contains(RuntimeException::class.java.name)) {
       return null
     }
     var message = rootCause.message ?: return null

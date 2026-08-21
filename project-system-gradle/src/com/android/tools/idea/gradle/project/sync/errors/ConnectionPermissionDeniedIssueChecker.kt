@@ -23,6 +23,7 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.util.io.toCanonicalPath
+import java.net.SocketException
 import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
@@ -36,7 +37,8 @@ class ConnectionPermissionDeniedIssueChecker : GradleIssueChecker {
     val rootCause = issueData.failure.rootCause
     val rootCauseClassName = rootCause.className ?: return null
     val message = rootCause.message ?: return null
-    if (!rootCauseClassName.contains("java.net.SocketException") || message.isBlank() || !message.contains(PERMISSION_DENIED)) return null
+    if (!rootCauseClassName.contains(SocketException::class.java.name) || message.isBlank() || !message.contains(PERMISSION_DENIED))
+      return null
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectRoot.toCanonicalPath(), CONNECTION_DENIED)

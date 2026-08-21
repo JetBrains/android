@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
@@ -46,7 +47,7 @@ class AgpVersionNotSupportedIssueChecker : GradleIssueChecker {
     val message = rootCause.message ?: ""
     val rootCauseClassName = rootCause.className ?: return null
     if (message.isBlank()) return null
-    if (!rootCauseClassName.contains("com.android.tools.idea.gradle.project.sync.AndroidSyncException")) return null
+    if (!rootCauseClassName.contains(AndroidSyncException::class.java.name)) return null
     // Note: no need to report failure to SyncFailureUsageReporter as for AndroidSyncException
     // instances it is reported in AndroidGradleProjectResolver.
 

@@ -22,6 +22,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.util.io.toCanonicalPath
 import java.util.function.Consumer
 import java.util.regex.Pattern
@@ -44,8 +45,8 @@ class MissingBuildToolsIssueChecker : GradleIssueChecker {
     val message = rootCause.message ?: return null
     if (
       message.isBlank() ||
-        !rootCauseClassName.contains("java.lang.IllegalStateException") &&
-          !rootCauseClassName.contains("com.intellij.openapi.externalSystem.model.ExternalSystemException")
+        !rootCauseClassName.contains(IllegalStateException::class.java.name) &&
+          !rootCauseClassName.contains(ExternalSystemException::class.java.name)
     )
       return null
     val matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(message.lines()[0])

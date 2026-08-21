@@ -36,6 +36,7 @@ import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -68,8 +69,8 @@ class MissingPlatformIssueChecker : GradleIssueChecker {
     if (
       message.isBlank() ||
         missingPlatform == null ||
-        !rootCauseClassName.contains("java.lang.IllegalStateException") &&
-          !rootCauseClassName.contains("com.intellij.openapi.externalSystem.model.ExternalSystemException")
+        !rootCauseClassName.contains(IllegalStateException::class.java.name) &&
+          !rootCauseClassName.contains(ExternalSystemException::class.java.name)
     )
       return null
 

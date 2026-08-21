@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.AgpVersionsMismatch
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
@@ -29,7 +30,7 @@ class IncompatibleAgpVersionsIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCauseClassName = issueData.failure.rootCause.className ?: return null
     val message = issueData.failure.message ?: return null
-    if (!rootCauseClassName.contains("com.android.tools.idea.gradle.project.sync.AndroidSyncException")) return null
+    if (!rootCauseClassName.contains(AndroidSyncException::class.java.name)) return null
     if (!AgpVersionsMismatch.MULTIPLE_AGP_VERSIONS.matcher(message).find()) return null
     // Note: no need to report failure to SyncFailureUsageReporter as for AndroidSyncException
     // instances it is reported in AndroidGradleProjectResolver.
