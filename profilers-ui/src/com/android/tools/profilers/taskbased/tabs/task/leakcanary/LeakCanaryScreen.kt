@@ -139,10 +139,10 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
     // Use a Row to place the main resizable workspace area and the vertical tab sidebar next to each other.
     Row(modifier = Modifier.fillMaxSize()) {
       BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxHeight()) {
-        val horizontalInnerSplitState = rememberSplitLayoutState(0.3f)
-        val horizontalOuterSplitState = rememberSplitLayoutState(0.7f)
+        val horizontalInnerSplitState = rememberSplitLayoutState(0.4f)
+        val horizontalOuterSplitState = rememberSplitLayoutState(0.75f)
         val verticalListSplitState = rememberSplitLayoutState(0.3f)
-        val bottomDetailsInsightSplitState = rememberSplitLayoutState(0.7f)
+        val bottomDetailsInsightSplitState = rememberSplitLayoutState(0.65f)
 
         val isRecording by leakCanaryModel.isRecording.collectAsState()
 

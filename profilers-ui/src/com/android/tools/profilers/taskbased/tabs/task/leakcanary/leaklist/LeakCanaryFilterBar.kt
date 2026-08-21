@@ -17,6 +17,7 @@ package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leaklist
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
@@ -79,7 +81,12 @@ fun LeakCanaryFilterBar(leakCanaryModel: LeakCanaryModel, modifier: Modifier = M
   }
 
   Row(
-    modifier = modifier.fillMaxWidth().height(TaskBasedUxDimensions.LEAKCANARY_PANE_HEADER_HEIGHT_DP).padding(horizontal = 8.dp),
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .height(TaskBasedUxDimensions.LEAKCANARY_PANE_HEADER_HEIGHT_DP)
+        .horizontalScroll(rememberScrollState())
+        .padding(horizontal = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.Start,
   ) {
