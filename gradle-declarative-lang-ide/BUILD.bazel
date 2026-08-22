@@ -129,9 +129,9 @@ dev_dist_plugin_content(
     ],
     descriptor_module = ":gradle-declarative-lang-ide",
     libraries = [
-        "@lib//:org.jetbrains.intellij.deps/studio-platform-2025.3.2-389.jar",
-        "@lib//:org.jetbrains.intellij.deps/studio-test-platform-2025.3.2-389.jar",
-        "@lib//:org.jetbrains.kotlin/kotlin-stdlib-2.4.10-RC2.jar",
+        "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform",
+        "@lib//:studio-test-platform",
     ],
     visibility = ["//visibility:public"],
 )

@@ -110,10 +110,9 @@ dev_dist_plugin_content(
     name = "smali_dev_content",
     descriptor_module = ":smali",
     libraries = [
-        "@lib//:com.google.truth/truth-0.42.jar",
-        "@lib//:com.googlecode.java-diff-utils/diffutils-1.3.0.jar",
-        "@lib//:org.jetbrains.intellij.deps/studio-platform-2025.3.2-389.jar",
-        "@lib//:org.jetbrains.intellij.deps/studio-test-platform-2025.3.2-389.jar",
+        "@lib//:studio-platform",
+        "@lib//:studio-test-platform",
+        "@lib//:truth",
     ],
     visibility = ["//visibility:public"],
 )
