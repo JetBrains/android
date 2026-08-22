@@ -1,4 +1,5 @@
 load("@community//build:tests-options.bzl", "jps_test")
+load("@community//platform/build-scripts/bazel-rules:dev_dist_content.bzl", "dev_dist_plugin_content")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl` start
@@ -99,10 +100,45 @@ exports_files(
         "intellij.android.gradle.dsl.iml",
         "resources/META-INF/gradle-dsl.xml",
         "resources/META-INF/plugin.xml",
+        "plugin-content.yaml",
     ],
     visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.gradle.dsl` end
+
+### auto-generated section `dev content intellij.android.gradle.dsl` start
+dev_dist_plugin_content(
+    name = "gradle-dsl_dev_content",
+    content_modules = [
+        "//android/gradle-dsl-android",
+        "//android/gradle-dsl-declarative",
+        "//android/gradle-dsl-flags",
+        "//android/gradle-dsl-groovy",
+        "//android/gradle-dsl-kotlin",
+        "//android/gradle-dsl-toml",
+    ],
+    descriptor_module = ":gradle-dsl",
+    libraries = [
+        "@lib//:com.google.guava/failureaccess-1.0.3.jar",
+        "@lib//:com.google.guava/guava-33.5.0-jre.jar",
+        "@lib//:com.google.truth/truth-0.42.jar",
+        "@lib//:com.googlecode.java-diff-utils/diffutils-1.3.0.jar",
+        "@lib//:org.apache.commons/commons-lang3-3.20.0.jar",
+        "@lib//:org.jetbrains.intellij.deps/studio-platform-2025.3.2-389.jar",
+        "@lib//:org.jetbrains.intellij.deps/studio-test-platform-2025.3.2-389.jar",
+        "@lib//:org.jetbrains.kotlin/kotlin-compiler-common-for-ide-2.5.0-dev-4715.jar",
+        "@lib//:org.jetbrains.kotlin/kotlin-jps-common-for-ide-2.5.0-dev-4715.jar",
+        "@lib//:org.jetbrains.kotlin/kotlin-stdlib-2.4.10-RC2.jar",
+        "@lib//:org.jetbrains.kotlinx/kotlinx-collections-immutable-jvm-0.5.0.jar",
+        "@lib//:org.jetbrains/annotations-26.0.2.jar",
+        "@lib//:org.jmock/jmock-2.5.1.jar",
+        "@lib//:org.slf4j/log4j-over-slf4j-1.7.36.jar",
+        "@lib//:org.slf4j/slf4j-api-2.0.13.jar",
+        "@lib//:org.slf4j/slf4j-jdk14-2.0.13.jar",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `dev content intellij.android.gradle.dsl` end
 
 ### auto-generated section `build intellij.android.gradle.dsl.tests` start
 jvm_library(
