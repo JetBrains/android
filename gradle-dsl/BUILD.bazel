@@ -112,7 +112,6 @@ dev_dist_plugin_content(
     content_modules = [
         "//android/gradle-dsl-android",
         "//android/gradle-dsl-declarative",
-        "//android/gradle-dsl-flags",
         "//android/gradle-dsl-groovy",
         "//android/gradle-dsl-kotlin",
         "//android/gradle-dsl-toml",
@@ -136,6 +135,9 @@ dev_dist_plugin_content(
         "@lib//:org.slf4j/slf4j-api-2.0.13.jar",
         "@lib//:org.slf4j/slf4j-jdk14-2.0.13.jar",
     ],
+    prepacked_content_modules = {
+        "//android/gradle-dsl-flags": "modules/intellij.android.gradle.dsl.flags.jar",
+    },
     visibility = ["//visibility:public"],
 )
 ### auto-generated section `dev content intellij.android.gradle.dsl` end
