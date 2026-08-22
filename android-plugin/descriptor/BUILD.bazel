@@ -47,7 +47,6 @@ exports_files(
 
 ### auto-generated section `dev content intellij.android.plugin.descriptor` start
 dev_dist_plugin_content(
-    name = "descriptor_dev_content",
     content_modules = [
         "//android/adt-ui",
         "//android/adt-ui-compose",
@@ -186,7 +185,6 @@ dev_dist_plugin_content(
         "@lib//:google-protobuf-java-util",
         "@lib//:javax-inject",
         "@lib//:jaxb-api",
-        "@lib//:kotlin-stdlib",
         "@lib//:kotlin-test",
         "@lib//:kotlinc-kotlin-compiler-cli",
         "@lib//:kotlinc-kotlin-compiler-fe10",
@@ -215,6 +213,5 @@ dev_dist_plugin_content(
         "@lib//:studio-test-platform",
         "@lib//:truth",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `dev content intellij.android.plugin.descriptor` end

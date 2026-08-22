@@ -244,10 +244,8 @@ exports_files(
 
 ### auto-generated section `dev content intellij.android.compose-ide-plugin` start
 dev_dist_plugin_content(
-    name = "compose-ide-plugin_dev_content",
     descriptor_module = ":compose-ide-plugin",
     libraries = [
-        "@lib//:kotlin-stdlib",
         "@lib//:kotlinc-compose-compiler-plugin",
         "@lib//:kotlinc-kotlin-compiler-cli",
         "@lib//:kotlinc-kotlin-compiler-fe10",
@@ -255,7 +253,6 @@ dev_dist_plugin_content(
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `dev content intellij.android.compose-ide-plugin` end
 

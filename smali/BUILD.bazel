@@ -107,14 +107,12 @@ exports_files(
 
 ### auto-generated section `dev content intellij.android.smali` start
 dev_dist_plugin_content(
-    name = "smali_dev_content",
     descriptor_module = ":smali",
     libraries = [
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:truth",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `dev content intellij.android.smali` end
 

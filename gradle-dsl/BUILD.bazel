@@ -108,7 +108,6 @@ exports_files(
 
 ### auto-generated section `dev content intellij.android.gradle.dsl` start
 dev_dist_plugin_content(
-    name = "gradle-dsl_dev_content",
     content_modules = [
         "//android/gradle-dsl-android",
         "//android/gradle-dsl-declarative",
@@ -118,15 +117,11 @@ dev_dist_plugin_content(
     ],
     descriptor_module = ":gradle-dsl",
     libraries = [
-        "@lib//:kotlin-stdlib",
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:truth",
     ],
-    prepacked_content_modules = {
-        "//android/gradle-dsl-flags": "modules/intellij.android.gradle.dsl.flags.jar",
-    },
-    visibility = ["//visibility:public"],
+    prepacked_content_modules = ["//android/gradle-dsl-flags"],
 )
 ### auto-generated section `dev content intellij.android.gradle.dsl` end
 

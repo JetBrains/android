@@ -121,7 +121,6 @@ exports_files(
 
 ### auto-generated section `dev content intellij.android.gradle.declarative.lang.ide` start
 dev_dist_plugin_content(
-    name = "gradle-declarative-lang-ide_dev_content",
     content_modules = [
         "//android/gradle-declarative-lang",
         "//android/gradle-declarative-lang-flags",
@@ -129,11 +128,9 @@ dev_dist_plugin_content(
     ],
     descriptor_module = ":gradle-declarative-lang-ide",
     libraries = [
-        "@lib//:kotlin-stdlib",
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `dev content intellij.android.gradle.declarative.lang.ide` end
 
