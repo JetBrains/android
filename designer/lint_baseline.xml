@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.4.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.4.0-dev">
+<issues format="6" by="lint 9.5.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.5.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -455,11 +455,22 @@
     <issue
         id="WrongThread"
         message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="    updateActions(e.dataContext)"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/actions/DeviceMenuAction.kt"
+            line="158"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
         errorLine1="      updateActions(event.getDataContext());"
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/actions/LocaleMenuAction.java"
-            line="234"
+            line="251"
             column="7"/>
     </issue>
 
