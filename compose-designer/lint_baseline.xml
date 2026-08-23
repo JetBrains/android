@@ -7,9 +7,53 @@
         errorLine1="    if (bounds.isEmpty() || boundsSet.contains(bounds)) {"
         errorLine2="               ~~~~~~~">
         <location
-            file="src/com/android/tools/idea/compose/preview/scene/ComposeSceneComponentProvider.kt"
+            file="tools/adt/idea/compose-designer/src/com/android/tools/idea/compose/preview/scene/ComposeSceneComponentProvider.kt"
             line="49"
             column="16"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="            createAndShowColorPickerPopup("
+        errorLine2="            ^">
+        <location
+            file="tools/adt/idea/compose-designer/src/com/android/tools/idea/compose/pickers/common/property/ColorPsiCallParameter.kt"
+            line="78"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="    val device = modelDataContext.getData(SCENE_VIEW)?.configuration?.device"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="tools/adt/idea/compose-designer/src/com/android/tools/idea/compose/preview/actions/EnableUiCheckAction.kt"
+            line="47"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Argument at `x₀` must allow calling `run()` from `@UiThread`, but that call is requiring `@{Slow,WorkerThread}`."
+        errorLine1="    invokeLaterIfNeeded {"
+        errorLine2="    ^">
+        <location
+            file="tools/adt/idea/compose-designer/src/com/android/tools/idea/compose/preview/resize/ResizePanel.kt"
+            line="283"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="    logResizeSaved(e, previewElement, configuration)"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="tools/adt/idea/compose-designer/src/com/android/tools/idea/compose/preview/actions/SavePreviewInNewSizeAction.kt"
+            line="78"
+            column="5"/>
     </issue>
 
     <issue
@@ -18,9 +62,20 @@
         errorLine1="    val nameForNewPreview = createNewName(configuration)"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/compose/preview/actions/SavePreviewInNewSizeAction.kt"
+            file="tools/adt/idea/compose-designer/src/com/android/tools/idea/compose/preview/actions/SavePreviewInNewSizeAction.kt"
             line="80"
             column="29"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="    navigateBack(e)"
+        errorLine2="    ~~~~~~~~~~~~~~~">
+        <location
+            file="tools/adt/idea/compose-designer/src/com/android/tools/idea/compose/preview/actions/StopUiCheckPreviewAction.kt"
+            line="43"
+            column="5"/>
     </issue>
 
 </issues>

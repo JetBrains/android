@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.5.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.5.0-dev">
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@{Slow,WorkerThread}`, incompatible with earlier code that must run from `@UiThread`"
+        errorLine1="                               @NotNull SdkUpdaterConfigurable configurable) {"
+        errorLine2="                                                                             ^">
+        <location
+            file="tools/adt/idea/sdk-updates/src/com/android/tools/idea/updater/configure/SdkUpdaterConfigPanel.java"
+            line="233"
+            column="78"/>
+    </issue>
+
+</issues>

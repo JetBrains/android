@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.5.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.5.0-dev">
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Call results in an unsatisfiable thread requirement"
+        errorLine1="    onClick = { AccelerationErrorSolution.getActionForFix(accelerationError, project, refresh, null).run() },"
+        errorLine2="                                                                                                     ~~~~~">
+        <location
+            file="tools/adt/idea/avd/src/com/android/tools/idea/avd/AccelerationErrorBanner.kt"
+            line="51"
+            column="102"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Call results in an unsatisfiable thread requirement"
+        errorLine1="        AccelerationErrorSolution.getActionForFix(accelError, project, { refreshAccelerationCheck() }, null).run()"
+        errorLine2="                                                                                                             ~~~~~">
+        <location
+            file="tools/adt/idea/avd/src/com/android/tools/idea/avd/StudioLocalEmulatorProvisionerPlugin.kt"
+            line="190"
+            column="110"/>
+    </issue>
+
+</issues>

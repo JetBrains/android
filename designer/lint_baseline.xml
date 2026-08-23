@@ -7,7 +7,7 @@
         errorLine1="      connect = connect.substring(&quot;layout_constraint&quot;.length(), connect.length() - 2).replace(&quot;_to&quot;, &quot; to &quot;).toLowerCase();"
         errorLine2="                                                                                                             ~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/common/scene/Scene.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/common/scene/Scene.java"
             line="655"
             column="110"/>
     </issue>
@@ -18,7 +18,7 @@
         errorLine1="  @SwingCoordinate public static final int ANCHOR_SIZE = scale(6);"
         errorLine2="                                                         ~~~~~">
         <location
-            file="src/com/android/tools/idea/common/scene/target/AnchorTarget.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/common/scene/target/AnchorTarget.java"
             line="48"
             column="58"/>
     </issue>
@@ -29,7 +29,7 @@
         errorLine1="  @SwingCoordinate public static final int EXPANDED_SIZE = scale(400);"
         errorLine2="                                                           ~~~~~">
         <location
-            file="src/com/android/tools/idea/common/scene/target/AnchorTarget.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/common/scene/target/AnchorTarget.java"
             line="49"
             column="60"/>
     </issue>
@@ -40,7 +40,7 @@
         errorLine1="  private int myThumbTipSize = JBUI.scale(THUMB_TIP_SIZE);"
         errorLine2="                                    ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/editor/AnimationToolbarSliderUI.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/editor/AnimationToolbarSliderUI.java"
             line="38"
             column="37"/>
     </issue>
@@ -51,7 +51,7 @@
         errorLine1="    myThumbTipSize = JBUI.scale(THUMB_TIP_SIZE);"
         errorLine2="                          ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/editor/AnimationToolbarSliderUI.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/editor/AnimationToolbarSliderUI.java"
             line="151"
             column="27"/>
     </issue>
@@ -62,7 +62,7 @@
         errorLine1="  private final int myResizeTriggerThreshold = JBUI.scale(200);"
         errorLine2="                                                    ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/surface/interaction/CanvasResizeInteraction.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/surface/interaction/CanvasResizeInteraction.java"
             line="96"
             column="53"/>
     </issue>
@@ -73,7 +73,7 @@
         errorLine1="  public static final int GAP = scale(10);"
         errorLine2="                                ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnection.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnection.java"
             line="73"
             column="33"/>
     </issue>
@@ -84,7 +84,7 @@
         errorLine1="  static final int ZIGZAG = scale(2);"
         errorLine2="                            ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
             line="42"
             column="29"/>
     </issue>
@@ -95,7 +95,7 @@
         errorLine1="  static final int CENTER_ZIGZAG = scale(3);"
         errorLine2="                                   ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
             line="43"
             column="36"/>
     </issue>
@@ -106,7 +106,7 @@
         errorLine1="  public static final int MARGIN_SPACING = scale(3);"
         errorLine2="                                           ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
             line="44"
             column="44"/>
     </issue>
@@ -117,7 +117,7 @@
         errorLine1="  public static final int ARROW_SIDE = scale(6);"
         errorLine2="                                       ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
             line="56"
             column="40"/>
     </issue>
@@ -128,7 +128,7 @@
         errorLine1="  public static final int CONNECTION_ARROW_SIZE = scale(5);"
         errorLine2="                                                  ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
             line="57"
             column="51"/>
     </issue>
@@ -139,7 +139,7 @@
         errorLine1="  public static final int SMALL_ARROW_SIDE = scale(4);"
         errorLine2="                                             ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
             line="58"
             column="46"/>
     </issue>
@@ -150,7 +150,7 @@
         errorLine1="  public static final int SMALL_ARROW_SIZE = scale(3);"
         errorLine2="                                             ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
             line="59"
             column="46"/>
     </issue>
@@ -161,7 +161,7 @@
         errorLine1="  public static final int SIZE = JBUI.scale(8);"
         errorLine2="                                      ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/scene/draw/DrawResize.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/scene/draw/DrawResize.java"
             line="34"
             column="39"/>
     </issue>
@@ -172,7 +172,7 @@
         errorLine1="private val IMAGE_SIZE = scale(48)"
         errorLine2="                         ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/assistant/ImageViewAssistant.kt"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/assistant/ImageViewAssistant.kt"
             line="50"
             column="26"/>
     </issue>
@@ -183,7 +183,7 @@
         errorLine1="    gc.insets.bottom = JBUI.scale(0);"
         errorLine2="                            ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="210"
             column="29"/>
     </issue>
@@ -194,7 +194,7 @@
         errorLine1="    gc.insets.left = JBUI.scale(2);"
         errorLine2="                          ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="211"
             column="27"/>
     </issue>
@@ -205,7 +205,7 @@
         errorLine1="    gc.insets.right = JBUI.scale(5);"
         errorLine2="                           ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="212"
             column="28"/>
     </issue>
@@ -216,7 +216,7 @@
         errorLine1="    gc.insets.top = JBUI.scale(2);"
         errorLine2="                         ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="213"
             column="26"/>
     </issue>
@@ -227,7 +227,7 @@
         errorLine1="    gc.insets.bottom = JBUI.scale(0);"
         errorLine2="                            ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="219"
             column="29"/>
     </issue>
@@ -238,7 +238,7 @@
         errorLine1="    gc.insets.left = JBUI.scale(0);"
         errorLine2="                          ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="220"
             column="27"/>
     </issue>
@@ -249,7 +249,7 @@
         errorLine1="    gc.insets.right = JBUI.scale(0);"
         errorLine2="                           ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="221"
             column="28"/>
     </issue>
@@ -260,7 +260,7 @@
         errorLine1="    gc.insets.top = JBUI.scale(0);"
         errorLine2="                         ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="222"
             column="26"/>
     </issue>
@@ -271,7 +271,7 @@
         errorLine1="      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);"
         errorLine2="                            ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="243"
             column="29"/>
     </issue>
@@ -282,7 +282,7 @@
         errorLine1="      gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);"
         errorLine2="                             ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="244"
             column="30"/>
     </issue>
@@ -293,7 +293,7 @@
         errorLine1="    gc.insets.bottom = JBUI.scale(7);"
         errorLine2="                            ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="248"
             column="29"/>
     </issue>
@@ -304,7 +304,7 @@
         errorLine1="      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);"
         errorLine2="                            ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="262"
             column="29"/>
     </issue>
@@ -315,7 +315,7 @@
         errorLine1="      gc.insets.right = JBUI.scale((i == myHistoryButtons.length - 1) ? 5 : 0);"
         errorLine2="                             ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="263"
             column="30"/>
     </issue>
@@ -326,7 +326,7 @@
         errorLine1="    gc.insets.left = JBUI.scale(0);"
         errorLine2="                          ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="269"
             column="27"/>
     </issue>
@@ -337,7 +337,7 @@
         errorLine1="    gc.insets.right = JBUI.scale(5);"
         errorLine2="                           ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
             line="270"
             column="28"/>
     </issue>
@@ -348,7 +348,7 @@
         errorLine1="private val DEFAULT_PROPERTY_SIDE_WIDTH = JBUI.scale(280)"
         errorLine2="                                               ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/property/NlPropertiesPanelDefinition.kt"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property/NlPropertiesPanelDefinition.kt"
             line="27"
             column="48"/>
     </issue>
@@ -359,7 +359,7 @@
         errorLine1="  private static final int DRAG_THRESHOLD = JBUI.scale(10);"
         errorLine2="                                                 ~~~~~">
         <location
-            file="src/com/android/tools/idea/common/scene/Scene.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/common/scene/Scene.java"
             line="98"
             column="50"/>
     </issue>
@@ -370,7 +370,7 @@
         errorLine1="    private final int TRACK_THICKNESS = JBUI.scale(5);"
         errorLine2="                                             ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
             line="298"
             column="46"/>
     </issue>
@@ -381,7 +381,7 @@
         errorLine1="    private final int ARC_SIZE = JBUI.scale(2);"
         errorLine2="                                      ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
             line="299"
             column="39"/>
     </issue>
@@ -392,7 +392,7 @@
         errorLine1="    private final int SLIDER_LENGTH = JBUI.scale(120);"
         errorLine2="                                           ~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
             line="300"
             column="44"/>
     </issue>
@@ -403,7 +403,7 @@
         errorLine1="    val NOP_TRACKER = CommonNopTracker()"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/common/analytics/CommonUsageTracker.kt"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/common/analytics/CommonUsageTracker.kt"
             line="72"
             column="5"/>
     </issue>
@@ -414,7 +414,7 @@
         errorLine1="        screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE"
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
             line="73"
             column="52"/>
     </issue>
@@ -425,7 +425,7 @@
         errorLine1="        screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE"
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
             line="73"
             column="52"/>
     </issue>
@@ -436,20 +436,75 @@
         errorLine1="            updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/actions/ConfigurationAction.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/actions/ConfigurationAction.java"
             line="107"
             column="13"/>
     </issue>
 
     <issue
-        id="DiscouragedApi"
-        message="Use of `scheduleAtFixedRate` is strongly discouraged because it can lead to unexpected behavior when Android processes become cached (tasks may unexpectedly execute hundreds or thousands of times in quick succession when a process changes from cached to uncached); prefer using `scheduleWithFixedDelay`"
-        errorLine1="    executor?.scheduleAtFixedRate(onTick, 0, period.toNanos(), TimeUnit.NANOSECONDS)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
+        errorLine1="      if (leafHandler != null) {"
+        errorLine2="      ^">
         <location
-            file="src/com/android/tools/idea/common/util/ControllableTicker.kt"
-            line="41"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/editor/NlActionManager.java"
+            line="309"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
+        errorLine1="      if (handler != null &amp;&amp; leafHandler != handler) {"
+        errorLine2="      ^">
+        <location
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/editor/NlActionManager.java"
+            line="315"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
+        errorLine1="    if (childHandler != null) {"
+        errorLine2="    ^">
+        <location
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/model/NlComponentHelper.kt"
+            line="575"
             column="5"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@{Slow,WorkerThread}`, incompatible with earlier code that must run from `@UiThread`"
+        errorLine1="      if (configInLayoutEditor != null) {"
+        errorLine2="      ^">
+        <location
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
+            line="92"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="UnsatisfiableThreadConstraint"
+        message="Statement must run from `@{Slow,WorkerThread}`, incompatible with earlier code that must run from `@UiThread`"
+        errorLine1="        val surfaceInDestinationEditor = (newEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface"
+        errorLine2="        ^">
+        <location
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
+            line="99"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="      val picker = createPopupPanel(popupMenu)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property/inspector/ConstraintLayoutHelperInspectorBuilder.kt"
+            line="90"
+            column="20"/>
     </issue>
 
     <issue
@@ -458,9 +513,20 @@
         errorLine1="    updateActions(e.dataContext)"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/actions/DeviceMenuAction.kt"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/actions/DeviceMenuAction.kt"
             line="158"
             column="5"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="      val dialog = MoreFontsDialog(facet, property.resolvedValue, true)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/property/support/FontEnumSupport.kt"
+            line="76"
+            column="20"/>
     </issue>
 
     <issue
@@ -469,8 +535,19 @@
         errorLine1="      updateActions(event.getDataContext());"
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/actions/LocaleMenuAction.java"
+            file="tools/adt/idea/designer/src/com/android/tools/idea/actions/LocaleMenuAction.java"
             line="251"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
+        errorLine1="      setSelected(!isSelected());"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="tools/adt/idea/designer/src/com/android/tools/idea/actions/TargetMenuAction.java"
+            line="288"
             column="7"/>
     </issue>
 
