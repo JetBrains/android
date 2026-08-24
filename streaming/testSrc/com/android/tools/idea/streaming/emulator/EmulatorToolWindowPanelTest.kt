@@ -1227,7 +1227,7 @@ class EmulatorToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     val call1 = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(call1.request)).isEqualTo("format: RGB888 width: 168 height: 287")
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(168)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(168)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isFalse()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -1239,7 +1239,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call2.request)).isEqualTo("format: RGB888 width: 320 height: 320")
     assertThat(call1.completion.isCancelled).isTrue() // The previous call has been canceled.
     assertThat(call1.completion.isDone).isTrue() // The previous call is no longer active.
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(320)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(320)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isFalse()
@@ -1250,7 +1250,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(640)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(640)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -1261,7 +1261,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(640)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(640)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -1272,7 +1272,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(674)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(674)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -1283,7 +1283,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(716)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(716)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -1294,7 +1294,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(960)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(960)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -1305,7 +1305,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(640)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(640)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isTrue()
@@ -1316,7 +1316,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been canceled.
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     fakeUi.render() // Trigger displayRectangle update.
-    assertThat(emulatorView.projectionRectangle!!.width).isEqualTo(320)
+    assertThat(emulatorView.projectionRectangle?.width).isEqualTo(320)
     assertThat(emulatorView.canZoom(ZoomType.IN)).isTrue()
     assertThat(emulatorView.canZoom(ZoomType.OUT)).isFalse()
     assertThat(emulatorView.canZoom(ZoomType.ACTUAL)).isFalse()
@@ -1549,7 +1549,7 @@ class EmulatorToolWindowPanelTest {
       .syncPublisher(EmulatorLogListener.TOPIC)
       .messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.WARNING, true, "Attention!")
     waitForCondition(2.seconds) { fakeUi.findComponent<EditorNotificationPanel>() != null }
-    var notificationPanel = fakeUi.findComponent<EditorNotificationPanel>()!!
+    var notificationPanel = fakeUi.getComponent<EditorNotificationPanel>()
     assertThat(notificationPanel.text).isEqualTo("Attention!")
     assertThat(notificationPanel.background).isEqualTo(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND)
 
@@ -1560,7 +1560,7 @@ class EmulatorToolWindowPanelTest {
       val p = fakeUi.findComponent<EditorNotificationPanel>()
       p != null && p.text == "Crashed!"
     }
-    notificationPanel = fakeUi.findComponent<EditorNotificationPanel>()!!
+    notificationPanel = fakeUi.getComponent<EditorNotificationPanel>()
     assertThat(notificationPanel.text).isEqualTo("Crashed!")
     assertThat(notificationPanel.background).isEqualTo(JBUI.CurrentTheme.Banner.ERROR_BACKGROUND)
   }
