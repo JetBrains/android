@@ -111,7 +111,7 @@ class VisualizationInteractionHandler(
   private fun applyConfiguration(destination: Configuration, source: Configuration) {
     with(destination) {
       startBulkEditing()
-      val sourceDevice = source.device
+      val sourceDevice = source.cachedDevice
       if (cachedDevice != sourceDevice) {
         setDevice(sourceDevice, true)
       }
