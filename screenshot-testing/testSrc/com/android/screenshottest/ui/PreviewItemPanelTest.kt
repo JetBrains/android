@@ -291,10 +291,22 @@ class PreviewItemPanelTest {
     var callbackCount = 0
     val executor = MoreExecutors.newDirectExecutorService()
     val path = temporaryFolder.newFile("image.png").absolutePath
-    val details = PreviewDetails(testId = "id", className = "Class", methodName = "m", previewName = "p", srcImagePath = path)
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "Class",
+        methodName = "m",
+        previewName = "p",
+        srcImagePath = path,
+      )
 
     val panel =
-      PreviewItemPanel(previewData = details, project = projectRule.project, appExecutorService = executor, createImageIcon = { mock() })
+      PreviewItemPanel(
+        previewData = details,
+        project = projectRule.project,
+        appExecutorService = executor,
+        createImageIcon = { mock() },
+      )
 
     panel.updateData(details, ScreenshotViewType.NEW) { callbackCount++ }
 
@@ -334,7 +346,10 @@ class PreviewItemPanelTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     assertEquals("Should load image the first time", 1, imageCreationCount)
     assertTrue("Flag should be true after successful load", panel.isLoadedSuccessfully)
-    assertNull("The placeholder label should be removed when an image is displayed", findLabel(panel))
+    assertNull(
+      "The placeholder label should be removed when an image is displayed",
+      findLabel(panel),
+    )
 
     // 2. Switch to Diff (which shows a placeholder for PASSED tests)
     panel.showImageForView(ScreenshotViewType.DIFF)

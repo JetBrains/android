@@ -180,12 +180,10 @@ class UpdateReferenceImagesDialogTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val usages = metricsTrackerRule.testTracker.usages
-    val emptyResultEvent =
-      usages.find {
-        it.studioEvent.kind == AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW &&
-          it.studioEvent.screenshotTestComposePreviewEvent.type ==
-            ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY
-      }
+    val emptyResultEvent = usages.find {
+      it.studioEvent.kind == AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW &&
+        it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY
+    }
 
     // Verify the logger was called with expected message
     verify(mockLogger).error(contains("No tests were discovered"))
@@ -302,7 +300,10 @@ class UpdateReferenceImagesDialogTest {
     val usages = metricsTrackerRule.testTracker.usages
     // Check that we have at least one event and the last one matches
     assertTrue("Should have logged at least one event", usages.isNotEmpty())
-    assertEquals(AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW, usages.last().studioEvent.kind)
+    assertEquals(
+      AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW,
+      usages.last().studioEvent.kind,
+    )
     assertEquals(
       ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_CLOSE,
       usages.last().studioEvent.screenshotTestComposePreviewEvent.type,
@@ -315,11 +316,10 @@ class UpdateReferenceImagesDialogTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val usages = metricsTrackerRule.testTracker.usages
-    val failureEvent =
-      usages.find {
-        it.studioEvent.kind == AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW &&
-          it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_BUILD_FAILURE
-      }
+    val failureEvent = usages.find {
+      it.studioEvent.kind == AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW &&
+        it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_BUILD_FAILURE
+    }
 
     assertTrue("Should have logged build failure metric", failureEvent != null)
     assertEquals(DialogWrapper.CANCEL_EXIT_CODE, dialog.exitCode)
@@ -351,11 +351,16 @@ class UpdateReferenceImagesDialogTest {
     callDoOKAction(dialog)
 
     // Wait for the background copy task and subsequent UI update
-    PlatformTestUtil.waitWithEventsDispatching("Dialog did not close", { dialog.exitCode == DialogWrapper.OK_EXIT_CODE }, 10)
+    PlatformTestUtil.waitWithEventsDispatching(
+      "Dialog did not close",
+      { dialog.exitCode == DialogWrapper.OK_EXIT_CODE },
+      10,
+    )
 
     val usages = metricsTrackerRule.testTracker.usages
-    val updateEvent =
-      usages.find { it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED }
+    val updateEvent = usages.find {
+      it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED
+    }
     assertNotNull("Should have logged UPDATE_CLICKED metric", updateEvent)
 
     TestDialogManager.setTestDialog(TestDialog.DEFAULT)

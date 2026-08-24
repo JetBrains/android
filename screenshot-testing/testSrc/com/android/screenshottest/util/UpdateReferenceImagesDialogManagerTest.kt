@@ -136,7 +136,10 @@ class UpdateReferenceImagesDialogManagerTest {
 
       var usages = metricsTrackerRule.testTracker.usages
       assertTrue(usages.isNotEmpty())
-      assertEquals(AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW, usages.last().studioEvent.kind)
+      assertEquals(
+        AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW,
+        usages.last().studioEvent.kind,
+      )
       assertEquals(
         ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_OPEN,
         usages.last().studioEvent.screenshotTestComposePreviewEvent.type,

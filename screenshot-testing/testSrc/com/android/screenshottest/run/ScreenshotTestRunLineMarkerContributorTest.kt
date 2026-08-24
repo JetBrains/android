@@ -400,12 +400,16 @@ class ScreenshotTestRunLineMarkerContributorTest {
 
   private fun PsiFile.findFunctionIdentifier(name: String): PsiElement {
     val function = PsiTreeUtil.findChildrenOfType(this, KtNamedFunction::class.java).first { it.name == name }
-    return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first { it.node.elementType == KtTokens.IDENTIFIER }!!
+    return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first {
+      it.node.elementType == KtTokens.IDENTIFIER
+    }!!
   }
 
   private fun PsiFile.findClassdentifier(name: String): PsiElement {
     val function = PsiTreeUtil.findChildrenOfType(this, KtClass::class.java).first { it.name == name }
-    return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first { it.node.elementType == KtTokens.IDENTIFIER }!!
+    return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first {
+      it.node.elementType == KtTokens.IDENTIFIER
+    }!!
   }
 
   private fun stubPreviewTestAnnotation() {

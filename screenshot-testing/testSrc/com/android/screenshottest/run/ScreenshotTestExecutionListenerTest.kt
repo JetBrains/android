@@ -62,7 +62,11 @@ class ScreenshotTestExecutionListenerTest {
       )
       .thenReturn(true)
 
-    listener.processStarted("executor", env, Mockito.mock(com.intellij.execution.process.ProcessHandler::class.java))
+    listener.processStarted(
+      "executor",
+      env,
+      Mockito.mock(com.intellij.execution.process.ProcessHandler::class.java),
+    )
 
     val usages = metricsTrackerRule.testTracker.usages
     assertThat(usages).isNotEmpty()
@@ -81,11 +85,16 @@ class ScreenshotTestExecutionListenerTest {
       )
       .thenReturn(true)
 
-    listener.processStarted("executor", env, Mockito.mock(com.intellij.execution.process.ProcessHandler::class.java))
+    listener.processStarted(
+      "executor",
+      env,
+      Mockito.mock(com.intellij.execution.process.ProcessHandler::class.java),
+    )
 
     val usages = metricsTrackerRule.testTracker.usages
-    val validateEvents =
-      usages.filter { it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.VALIDATE_CLICKED }
+    val validateEvents = usages.filter {
+      it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.VALIDATE_CLICKED
+    }
     assertThat(validateEvents).isEmpty()
   }
 }

@@ -253,7 +253,8 @@ class PreviewDetailsPanelTest {
     assertTrue("Toolbar should contain actions", actions.isNotEmpty())
 
     // Verify expected actions are present (by checking some names or types if possible,
-    // or just count. The standard actions are: Chessboard, Grid, Separator, ZoomOut, ZoomIn, 1:1, Fit)
+    // or just count. The standard actions are: Chessboard, Grid, Separator, ZoomOut, ZoomIn, 1:1,
+    // Fit)
     // We expect at least 6 items (including separator).
     assertTrue("Toolbar should have multiple actions", actions.size >= 6)
   }
@@ -401,7 +402,10 @@ class PreviewDetailsPanelTest {
       return false
     }
 
-    assertTrue("Single preview panel should contain a JSeparator divider", containsSeparator(topContainer))
+    assertTrue(
+      "Single preview panel should contain a JSeparator divider",
+      containsSeparator(topContainer),
+    )
   }
 
   private fun findLabelsInScrollPaneContent(container: Container): List<String> {
@@ -426,7 +430,10 @@ class PreviewDetailsPanelTest {
     return contentPanel.components.filterIsInstance<JBLabel>().map { it.text }
   }
 
-  private fun findImagePanel(container: Container, type: ScreenshotViewType): ImageWithToolbarPanel? {
+  private fun findImagePanel(
+    container: Container,
+    type: ScreenshotViewType,
+  ): ImageWithToolbarPanel? {
     if (container is ImageWithToolbarPanel && container.title == type) {
       return container
     }

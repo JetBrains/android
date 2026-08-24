@@ -184,7 +184,11 @@ class UpdateScreenshotTestResultsListenerTest {
     val refPath = File(projectRule.project.basePath, "ref.png").canonicalPath
 
     // Only method name and one image path are present
-    val artifacts = mutableMapOf("PreviewScreenshot.methodName" to "partialMethod", "PreviewScreenshot.refImagePath" to refPath)
+    val artifacts =
+      mutableMapOf(
+        "PreviewScreenshot.methodName" to "partialMethod",
+        "PreviewScreenshot.refImagePath" to refPath,
+      )
 
     val testCase =
       AndroidTestCase(

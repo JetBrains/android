@@ -51,8 +51,17 @@ class ReferenceImageManagerTest {
   fun copyReferenceImages_success() {
     // 1. Arrange
     val sourceImage = File(tempOutputDir, "image.png").canonicalFile.apply { writeText("image content") }
-    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/image.png").canonicalFile
-    val imageData = createImageData(mapOf(sourceImage.canonicalPath to "MyTestClass"), expectedDestFile.canonicalPath)
+    val expectedDestFile =
+      File(
+          projectRule.project.basePath,
+          "app/src/screenshotTestDebug/reference/MyTestClass/image.png",
+        )
+        .canonicalFile
+    val imageData =
+      createImageData(
+        mapOf(sourceImage.canonicalPath to "MyTestClass"),
+        expectedDestFile.canonicalPath,
+      )
 
     // 2. Act
     val failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
@@ -69,11 +78,27 @@ class ReferenceImageManagerTest {
     val sourceImage1 = File(tempOutputDir, "image1.png").canonicalFile.apply { writeText("content1") }
     val sourceImage2 = File(tempOutputDir, "image2.png").canonicalFile.apply { writeText("content2") }
     val expectedDestFile1 =
-      File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass1/image1.png").canonicalFile
+      File(
+          projectRule.project.basePath,
+          "app/src/screenshotTestDebug/reference/MyTestClass1/image1.png",
+        )
+        .canonicalFile
     val expectedDestFile2 =
-      File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass2/image2.png").canonicalFile
-    val imageData1 = createImageData(mapOf(sourceImage1.canonicalPath to "MyTestClass1"), expectedDestFile1.canonicalPath)
-    val imageData2 = createImageData(mapOf(sourceImage2.canonicalPath to "MyTestClass2"), expectedDestFile2.canonicalPath)
+      File(
+          projectRule.project.basePath,
+          "app/src/screenshotTestDebug/reference/MyTestClass2/image2.png",
+        )
+        .canonicalFile
+    val imageData1 =
+      createImageData(
+        mapOf(sourceImage1.canonicalPath to "MyTestClass1"),
+        expectedDestFile1.canonicalPath,
+      )
+    val imageData2 =
+      createImageData(
+        mapOf(sourceImage2.canonicalPath to "MyTestClass2"),
+        expectedDestFile2.canonicalPath,
+      )
 
     // 2. Act
     val failures = copyReferenceImages(listOf(imageData1, imageData2), projectRule.project.basePath!!)
@@ -89,12 +114,21 @@ class ReferenceImageManagerTest {
   @Test
   fun copyReferenceImages_overwriteExistingFile() {
     // 1. Arrange
-    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/image.png").canonicalFile
+    val expectedDestFile =
+      File(
+          projectRule.project.basePath,
+          "app/src/screenshotTestDebug/reference/MyTestClass/image.png",
+        )
+        .canonicalFile
     expectedDestFile.parentFile.mkdirs()
     expectedDestFile.writeText("old content")
 
     val sourceImage = File(tempOutputDir, "image.png").canonicalFile.apply { writeText("new content") }
-    val imageData = createImageData(mapOf(sourceImage.canonicalPath to "MyTestClass"), expectedDestFile.canonicalPath)
+    val imageData =
+      createImageData(
+        mapOf(sourceImage.canonicalPath to "MyTestClass"),
+        expectedDestFile.canonicalPath,
+      )
 
     // 2. Act
     val failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
@@ -110,12 +144,18 @@ class ReferenceImageManagerTest {
     // 1. Arrange
     val missingImagePath = File(tempOutputDir, "missing_image.png").canonicalPath
     val expectedDestFile =
-      File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/missing_image.png").canonicalFile
+      File(
+          projectRule.project.basePath,
+          "app/src/screenshotTestDebug/reference/MyTestClass/missing_image.png",
+        )
+        .canonicalFile
     val imageData = createImageData(mapOf(missingImagePath to "MyTestClass"), expectedDestFile.canonicalPath)
 
     // 2. Act
     var failures: List<ImageData> = emptyList()
-    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+    LoggedErrorProcessor.executeAndReturnLoggedError {
+      failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
+    }
 
     // 3. Assert
     assertEquals("There should be one failure", 1, failures.size)
@@ -133,7 +173,9 @@ class ReferenceImageManagerTest {
 
     // 2. Act
     var failures: List<ImageData> = emptyList()
-    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+    LoggedErrorProcessor.executeAndReturnLoggedError {
+      failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
+    }
 
     // 3. Assert
     assertEquals("There should be one failure", 1, failures.size)
@@ -144,12 +186,18 @@ class ReferenceImageManagerTest {
   fun copyReferenceImages_rejectInvalidImageExtension() {
     // 1. Arrange
     val sourceImage = File(tempOutputDir, "image.png").apply { writeText("payload") }
-    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/unauthorized.sh")
+    val expectedDestFile =
+      File(
+        projectRule.project.basePath,
+        "app/src/screenshotTestDebug/reference/MyTestClass/unauthorized.sh",
+      )
     val imageData = createImageData(mapOf(sourceImage.path to "MyTestClass"), expectedDestFile.path)
 
     // 2. Act
     var failures: List<ImageData> = emptyList()
-    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+    LoggedErrorProcessor.executeAndReturnLoggedError {
+      failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
+    }
 
     // 3. Assert
     assertEquals("There should be one failure", 1, failures.size)
@@ -160,7 +208,11 @@ class ReferenceImageManagerTest {
   fun copyReferenceImages_success_jpgImage() {
     // 1. Arrange
     val sourceImage = File(tempOutputDir, "test_image.jpg").apply { writeText("jpg content") }
-    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/test_image.jpg")
+    val expectedDestFile =
+      File(
+        projectRule.project.basePath,
+        "app/src/screenshotTestDebug/reference/MyTestClass/test_image.jpg",
+      )
     val imageData = createImageData(mapOf(sourceImage.path to "MyTestClass"), expectedDestFile.path)
 
     // 2. Act
@@ -176,12 +228,18 @@ class ReferenceImageManagerTest {
   fun copyReferenceImages_rejectNetworkSourceAndDestination() {
     // 1. Arrange
     val networkSource = "\\\\attacker\\share\\payload.png"
-    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/image.png")
+    val expectedDestFile =
+      File(
+        projectRule.project.basePath,
+        "app/src/screenshotTestDebug/reference/MyTestClass/image.png",
+      )
     val imageData = createImageData(mapOf(networkSource to "MyTestClass"), expectedDestFile.path)
 
     // 2. Act
     var failures: List<ImageData> = emptyList()
-    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+    LoggedErrorProcessor.executeAndReturnLoggedError {
+      failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
+    }
 
     // 3. Assert
     assertEquals("There should be one failure", 1, failures.size)
@@ -194,11 +252,17 @@ class ReferenceImageManagerTest {
     val sourceImage = File(tempOutputDir, "image.png").canonicalFile.apply { writeText("content") }
     // Destination is inside the project, but not in the screenshotTest/reference path
     val expectedDestFile = File(projectRule.project.basePath, "app/src/main/java/com/example/test/DummyFile.kt").canonicalFile
-    val imageData = createImageData(mapOf(sourceImage.canonicalPath to "MyTestClass"), expectedDestFile.canonicalPath)
+    val imageData =
+      createImageData(
+        mapOf(sourceImage.canonicalPath to "MyTestClass"),
+        expectedDestFile.canonicalPath,
+      )
 
     // 2. Act
     var failures: List<ImageData> = emptyList()
-    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+    LoggedErrorProcessor.executeAndReturnLoggedError {
+      failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
+    }
 
     // 3. Assert
     assertEquals("Should be considered a failure due to security check", 1, failures.size)
@@ -210,12 +274,19 @@ class ReferenceImageManagerTest {
     // Source file is outside both project base path and system temp dir on any OS
     val isWindows = System.getProperty("os.name").lowercase().contains("win")
     val sourceImage = File(if (isWindows) "Z:\\unauthorized_outside\\outside_source.png" else "/unauthorized_outside/outside_source.png")
-    val expectedDestFile = File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/image.png").canonicalFile
+    val expectedDestFile =
+      File(
+          projectRule.project.basePath,
+          "app/src/screenshotTestDebug/reference/MyTestClass/image.png",
+        )
+        .canonicalFile
     val imageData = createImageData(mapOf(sourceImage.path to "MyTestClass"), expectedDestFile.canonicalPath)
 
     // 2. Act
     var failures: List<ImageData> = emptyList()
-    LoggedErrorProcessor.executeAndReturnLoggedError { failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!) }
+    LoggedErrorProcessor.executeAndReturnLoggedError {
+      failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
+    }
 
     // 3. Assert
     assertEquals("Should fail because source is outside project and system temp", 1, failures.size)
@@ -229,8 +300,16 @@ class ReferenceImageManagerTest {
     sourceImage.writeText("temp image content")
 
     val expectedDestFile =
-      File(projectRule.project.basePath, "app/src/screenshotTestDebug/reference/MyTestClass/temp_source_image.png").canonicalFile
-    val imageData = createImageData(mapOf(sourceImage.canonicalPath to "MyTestClass"), expectedDestFile.canonicalPath)
+      File(
+          projectRule.project.basePath,
+          "app/src/screenshotTestDebug/reference/MyTestClass/temp_source_image.png",
+        )
+        .canonicalFile
+    val imageData =
+      createImageData(
+        mapOf(sourceImage.canonicalPath to "MyTestClass"),
+        expectedDestFile.canonicalPath,
+      )
 
     try {
       // 2. Act
@@ -251,11 +330,23 @@ class ReferenceImageManagerTest {
     // Source is under "Build" instead of "build"
     val sourceBuildDir = File(projectRule.project.basePath, "app/Build").canonicalFile
     sourceBuildDir.mkdirs()
-    val sourceImage = File(sourceBuildDir, "image.png").canonicalFile.apply { writeText("mixed case build source content") }
+    val sourceImage =
+      File(sourceBuildDir, "image.png").canonicalFile.apply {
+        writeText("mixed case build source content")
+      }
 
     // Destination uses "ScreenshotTestDebug" and "Reference"
-    val expectedDestFile = File(projectRule.project.basePath, "app/src/ScreenshotTestDebug/Reference/MyTestClass/image.png").canonicalFile
-    val imageData = createImageData(mapOf(sourceImage.canonicalPath to "MyTestClass"), expectedDestFile.canonicalPath)
+    val expectedDestFile =
+      File(
+          projectRule.project.basePath,
+          "app/src/ScreenshotTestDebug/Reference/MyTestClass/image.png",
+        )
+        .canonicalFile
+    val imageData =
+      createImageData(
+        mapOf(sourceImage.canonicalPath to "MyTestClass"),
+        expectedDestFile.canonicalPath,
+      )
 
     // 2. Act
     val failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
@@ -263,23 +354,39 @@ class ReferenceImageManagerTest {
     // 3. Assert
     assertTrue("Should succeed on case-insensitive filesystems", failures.isEmpty())
     assertTrue("Destination file should exist", expectedDestFile.exists())
-    assertEquals("Content should match", "mixed case build source content", expectedDestFile.readText())
+    assertEquals(
+      "Content should match",
+      "mixed case build source content",
+      expectedDestFile.readText(),
+    )
   }
 
   @Test
   fun copyReferenceImages_classnameStartsWithScreenshotTest_success() {
     // 1. Arrange
     val sourceImage = File(tempOutputDir, "image.png").canonicalFile.apply { writeText("content") }
-    // Destination path contains a test class name starting with "ScreenshotTest" (e.g. ScreenshotTestClass)
+    // Destination path contains a test class name starting with "ScreenshotTest" (e.g.
+    // ScreenshotTestClass)
     val expectedDestFile =
-      File(projectRule.project.basePath, "app/src/screenshotTest/reference/com/example/ScreenshotTestClass/image.png").canonicalFile
-    val imageData = createImageData(mapOf(sourceImage.canonicalPath to "ScreenshotTestClass"), expectedDestFile.canonicalPath)
+      File(
+          projectRule.project.basePath,
+          "app/src/screenshotTest/reference/com/example/ScreenshotTestClass/image.png",
+        )
+        .canonicalFile
+    val imageData =
+      createImageData(
+        mapOf(sourceImage.canonicalPath to "ScreenshotTestClass"),
+        expectedDestFile.canonicalPath,
+      )
 
     // 2. Act
     val failures = copyReferenceImages(listOf(imageData), projectRule.project.basePath!!)
 
     // 3. Assert
-    assertTrue("Should succeed even if test class name starts with ScreenshotTest", failures.isEmpty())
+    assertTrue(
+      "Should succeed even if test class name starts with ScreenshotTest",
+      failures.isEmpty(),
+    )
     assertTrue("Destination file should exist", expectedDestFile.exists())
     assertEquals("content", expectedDestFile.readText())
   }
