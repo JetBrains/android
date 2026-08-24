@@ -208,7 +208,6 @@ dev_dist_plugin_content(
         "@lib//:libraries-ffmpeg-javacpp-windows-x64",
         "@lib//:libraries-kxml2-kxml2",
         "@lib//:libraries-zxing-core-zxing-core",
-        "@lib//:sqlite",
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:truth",

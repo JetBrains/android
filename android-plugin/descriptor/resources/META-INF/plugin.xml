@@ -50,6 +50,12 @@
   <content>
     <module name="intellij.libraries.zxing.core" loading="embedded"/>
   </content>
+  <!-- Same reasoning as above: loading="embedded" is required because intellij.android.transportDatabase is packed into
+       lib/android-profilers.jar as a plain module and DataStoreDatabase resolves the driver reflectively
+       (Class.forName("org.sqlite.JDBC")), so the classes must be on the plugin's main classloader. -->
+  <content>
+    <module name="intellij.libraries.sqlite" loading="embedded"/>
+  </content>
 
   <xi:include href="/META-INF/android-plugin.xml"/>
   <xi:include href="/META-INF/android-kotlin.xml"/>

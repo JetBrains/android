@@ -154,7 +154,7 @@ jvm_library(
         # do not sort,
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/guava",
-        "@lib//:sqlite",
+        "//libraries/sqlite",
         "//android/app-inspection/inspector/api",
         "//android/app-inspection/inspector/ide",
         "//android/artwork",
@@ -179,6 +179,7 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":android-app-inspection-inspectors-database-tests",
+        "//libraries/sqlite:sqlite_test_lib",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
     ],

@@ -29,10 +29,6 @@
   - name: intellij.android.profilers.ui
   - name: intellij.android.profilers
   - name: intellij.android.transportDatabase
-  library: sqlite
-  files:
-  - name: $MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3/sqlite-jdbc-3.jar
-  reason: <- intellij.android.transportDatabase
 - name: lib/android-project-system-gradle-models.jar
   modules:
   - name: intellij.android.projectSystem.gradle.models
@@ -185,6 +181,12 @@
     libraries:
       kxml2:
       - name: $MAVEN_REPOSITORY$/net/sf/kxml/kxml2/2/kxml2-2.jar
+- name: lib/intellij.libraries.sqlite.jar
+  contentModules:
+  - name: intellij.libraries.sqlite
+    libraries:
+      sqlite:
+      - name: $MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3/sqlite-jdbc-3.jar
 - name: lib/intellij.libraries.zxing.core.jar
   contentModules:
   - name: intellij.libraries.zxing.core
