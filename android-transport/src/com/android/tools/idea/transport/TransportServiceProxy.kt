@@ -54,13 +54,11 @@ import com.android.tools.profiler.proto.Transport.VersionRequest
 import com.android.tools.profiler.proto.Transport.VersionResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.security.MessageDigest
@@ -190,28 +188,30 @@ class TransportServiceProxy(
       val startTimeNs = System.nanoTime()
       val cachedPath = proxyFilePathCache.remove(request.id)
       val cachedFile = cachedPath?.let { File(it) }?.takeIf { it.exists() }
+      val tempFilePrefix = "transport-bytes-${request.streamId}-${request.id}"
 
       val file: File?
       if (dataPreprocessors.none { it.shouldPreprocess(request) }) {
         file =
           cachedFile
-            ?: FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).also { tempFile ->
-              FileOutputStream(tempFile).use { stream ->
-                serviceStub.getBytesInChunks(request).forEach { response -> response.chunk?.writeTo(stream) }
-              }
+            ?: TransportServiceUtils.streamChunksToTempFile(
+              tempFilePrefix,
+              ".tmp",
+            ) {
+              serviceStub.getBytesInChunks(request)
             }
       } else {
         // Step 1: Get the initial content, either from the device or the cache.
         var content =
           if (cachedFile != null) {
             try {
-              ByteString.readFrom(FileInputStream(cachedFile))
+              FileInputStream(cachedFile).use { stream -> ByteString.readFrom(stream) }
             } catch (e: IOException) {
               log.warn("Failed to read from cached file: ${cachedFile.absolutePath}", e)
               ByteString.EMPTY
             }
           } else {
-            TransportServiceUtils.aggregateByteChunks(serviceStub.getBytesInChunks(request))
+            TransportServiceUtils.aggregateByteChunks { serviceStub.getBytesInChunks(request) }
           }
 
         // Step 2: Run registered preprocessors on the content.
@@ -225,10 +225,7 @@ class TransportServiceProxy(
           log.warn("Content for stream ${request.streamId}, id ${request.id} is empty after fetch/preprocessing. Not saving to file.")
           file = null
         } else {
-          file =
-            FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).also {
-              FileOutputStream(it).use { stream -> content.writeTo(stream) }
-            }
+          file = TransportServiceUtils.createTempFileFromBytes(tempFilePrefix, ".tmp", content)
         }
       }
 

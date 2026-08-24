@@ -19,6 +19,7 @@ import static com.android.tools.idea.transport.TransportServiceProxy.PRE_LOLLIPO
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.BEGIN_SESSION;
 import static com.android.tools.profiler.proto.Commands.Command.CommandType.ECHO;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -376,6 +377,99 @@ public class TransportServiceProxyTest {
     assertThat(content1).isEqualTo(FakeTransportService.TEST_BYTES);
     ByteString content2 = ByteString.copyFrom(Files.readAllBytes(new File(receivedData.get(1)).toPath()));
     assertThat(content2).isEqualTo(preprocessor.preprocessBytes("1", FakeTransportService.TEST_BYTES));
+  }
+
+  @Test
+  public void testProxyDataPreprocessor_emptyFileErrorFromDevice() throws Exception {
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    FakeTransportService thruService = new FakeTransportService() {
+      @Override
+      public void getBytesInChunks(Transport.BytesRequest request, StreamObserver<Transport.BytesInChunksResponse> responseObserver) {
+        responseObserver.onError(com.android.tools.idea.io.grpc.Status.NOT_FOUND.withDescription("File is empty").asRuntimeException());
+      }
+    };
+    ManagedChannel thruChannel = startNamedChannel("testProxyDataPreprocessor_emptyFileErrorFromDevice", thruService);
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new LinkedBlockingDeque<>(), new HashMap<>());
+    TransportBytesPreprocessor preprocessor = new TransportBytesPreprocessor() {
+      @Override
+      public boolean shouldPreprocess(Transport.BytesRequest request) {
+        return true;
+      }
+
+      @NotNull
+      @Override
+      public ByteString preprocessBytes(String id, ByteString event) {
+        return event;
+      }
+    };
+    proxy.registerDataPreprocessor(preprocessor);
+
+    Transport.BytesRequest.Builder request = Transport.BytesRequest.newBuilder().setId("1");
+    List<String> receivedData = new ArrayList<>();
+    StreamObserver<Transport.FileResponse> validation = new StreamObserver<Transport.FileResponse>() {
+      @Override
+      public void onNext(Transport.FileResponse response) {
+        receivedData.add(response.getFilePath());
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        fail("Should not throw on empty file error: " + throwable);
+      }
+
+      @Override
+      public void onCompleted() { }
+    };
+
+    proxy.getFile(request.build(), validation);
+    thruService.stopEventThread();
+    thruChannel.shutdownNow();
+    proxy.disconnect();
+
+    assertThat(receivedData).hasSize(1);
+    assertThat(receivedData.get(0)).isEmpty();
+  }
+
+  @Test
+  public void testProxyNoPreprocessor_emptyFileErrorFromDevice() throws Exception {
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    FakeTransportService thruService = new FakeTransportService() {
+      @Override
+      public void getBytesInChunks(Transport.BytesRequest request, StreamObserver<Transport.BytesInChunksResponse> responseObserver) {
+        responseObserver.onError(com.android.tools.idea.io.grpc.Status.NOT_FOUND.withDescription("File is empty").asRuntimeException());
+      }
+    };
+    ManagedChannel thruChannel = startNamedChannel("testProxyNoPreprocessor_emptyFileErrorFromDevice", thruService);
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new LinkedBlockingDeque<>(), new HashMap<>());
+
+    Transport.BytesRequest.Builder request = Transport.BytesRequest.newBuilder().setId("1");
+    List<String> receivedData = new ArrayList<>();
+    StreamObserver<Transport.FileResponse> validation = new StreamObserver<Transport.FileResponse>() {
+      @Override
+      public void onNext(Transport.FileResponse response) {
+        receivedData.add(response.getFilePath());
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        fail("Should not throw on empty file error: " + throwable);
+      }
+
+      @Override
+      public void onCompleted() { }
+    };
+
+    proxy.getFile(request.build(), validation);
+    thruService.stopEventThread();
+    thruChannel.shutdownNow();
+    proxy.disconnect();
+
+    assertThat(receivedData).hasSize(1);
+    assertThat(receivedData.get(0)).isEmpty();
   }
 
   @Test
