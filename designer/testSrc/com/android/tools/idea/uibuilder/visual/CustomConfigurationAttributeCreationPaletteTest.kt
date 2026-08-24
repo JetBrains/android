@@ -39,6 +39,7 @@ class CustomConfigurationAttributeCreationPaletteTest : LayoutTestCase() {
 
   fun testCreateConfiguration() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    val data = CustomConfigurationAttributeCreationData.load(file.virtualFile, myModule)
 
     // Temp class for Mockito to verify callback.
     open class MyConsumer : Consumer<String> {
@@ -46,7 +47,23 @@ class CustomConfigurationAttributeCreationPaletteTest : LayoutTestCase() {
     }
     val mockedConsumer = Mockito.mock(MyConsumer::class.java)
 
-    val palette = CustomConfigurationAttributeCreationPalette(file.virtualFile, myModule) { mockedConsumer.accept(it.name) }
+    val palette = CustomConfigurationAttributeCreationPalette(data) { mockedConsumer.accept(it.name) }
+
+    val addButton = (palette.components[2] as JPanel).components.filterIsInstance<JButton>().first { it.text == "Add" }
+    addButton.action.actionPerformed(Mockito.mock(ActionEvent::class.java))
+    Mockito.verify(mockedConsumer).accept("Preview")
+  }
+
+  fun testCreateConfigurationWithPreloadedData() {
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    val data = CustomConfigurationAttributeCreationData.load(file.virtualFile, myModule)
+
+    open class MyConsumer : Consumer<String> {
+      override fun accept(t: String) = Unit
+    }
+    val mockedConsumer = Mockito.mock(MyConsumer::class.java)
+
+    val palette = CustomConfigurationAttributeCreationPalette(data) { mockedConsumer.accept(it.name) }
 
     val addButton = (palette.components[2] as JPanel).components.filterIsInstance<JButton>().first { it.text == "Add" }
     addButton.action.actionPerformed(Mockito.mock(ActionEvent::class.java))

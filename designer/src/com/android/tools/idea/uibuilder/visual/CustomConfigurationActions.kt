@@ -22,8 +22,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.MODULE
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import icons.StudioIcons
 import java.util.UUID
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val MAX_CUSTOM_CONFIGURATION_NUMBER = 12
 private const val ENABLED_TEXT = "Add configuration"
@@ -104,20 +109,28 @@ class AddCustomConfigurationAction(private val provider: CustomModelsProvider) :
   private fun isEnabled() = provider.customConfigSet.customConfigAttributes.size < MAX_CUSTOM_CONFIGURATION_NUMBER
 
   override fun actionPerformed(e: AnActionEvent) {
-    val dialog = LightCalloutPopup()
-
     val file = e.getData(VIRTUAL_FILE) ?: return
     val module = e.getData(MODULE) ?: return
-    val content =
-      CustomConfigurationAttributeCreationPalette(file, module) { attributes ->
-        provider.addCustomConfigurationAttributes(attributes)
-        dialog.close()
+    val owner = e.inputEvent?.component ?: return
+    e.coroutineScope.launch {
+      val data =
+        readAction {
+          if (module.isDisposed || !file.isValid) return@readAction null
+          CustomConfigurationAttributeCreationData.load(file, module)
+        } ?: return@launch
+      withContext(Dispatchers.EDT) {
+        if (!owner.isShowing) return@withContext
+        val location = owner.locationOnScreen
+        location.translate(owner.width / 2, owner.height)
+        val dialog = LightCalloutPopup()
+        val content =
+          CustomConfigurationAttributeCreationPalette(data) { attributes ->
+            provider.addCustomConfigurationAttributes(attributes)
+            dialog.close()
+          }
+        dialog.show(content, null, location)
       }
-    val owner = e.inputEvent!!.component
-    val location = owner.locationOnScreen
-    location.translate(owner.width / 2, owner.height)
-
-    dialog.show(content, null, location)
+    }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.Locale
 import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
@@ -61,13 +62,51 @@ private const val DEFAULT_CUSTOM_PREVIEW_NAME = "Preview"
 private const val HORIZONTAL_BORDER = 12
 private const val FIELD_VERTICAL_BORDER = 3
 
+data class CustomConfigurationAttributeCreationData(
+  val devices: List<Device>,
+  val apiLevels: List<IAndroidTarget>,
+  val locales: List<Locale?>,
+  val themes: List<String>,
+) {
+  companion object {
+    @Slow
+    fun load(file: VirtualFile, module: Module): CustomConfigurationAttributeCreationData {
+      val configurationManager = ConfigurationManager.getOrCreateInstance(module)
+      val groupedDevices = groupDevices(configurationManager.devices.filter { !it.isDeprecated })
+      val devices = getDeviceGroupsSortedAsMap(groupedDevices).flatMap { it.value }
+
+      val targets = configurationManager.targets
+      val levelToTargetMap = mutableMapOf<String, IAndroidTarget>()
+      targets.forEach { target ->
+        val name = getRenderingTargetLabel(target, true)
+        val existingTarget = levelToTargetMap[name]
+        if (existingTarget == null || existingTarget.revision < target.revision) {
+          levelToTargetMap[name] = target
+        }
+      }
+      val apiLevels = levelToTargetMap.values.reversed()
+
+      val locales = listOf(null) + configurationManager.localesInProject
+
+      val themeResolver = ThemeResolver(configurationManager.getConfiguration(file))
+      val filter = createFilter(themeResolver, emptySet())
+
+      val projectTheme = getProjectThemeNames(themeResolver, filter)
+      val recommendedThemes = getRecommendedThemeNames(themeResolver, filter)
+      val frameworkTheme = getFrameworkThemeNames(themeResolver, filter)
+      val allThemes = projectTheme + recommendedThemes + frameworkTheme
+
+      return CustomConfigurationAttributeCreationData(devices, apiLevels, locales, allThemes)
+    }
+  }
+}
+
 /**
  * The panel for creating a [CustomConfigurationAttribute]. When a [CustomConfigurationAttribute] is created the [createdCallback] is
  * triggered.
  */
 class CustomConfigurationAttributeCreationPalette(
-  private val file: VirtualFile,
-  private val module: Module,
+  private val data: CustomConfigurationAttributeCreationData,
   private val createdCallback: (CustomConfigurationAttribute) -> Unit,
 ) : AdtPrimaryPanel(BorderLayout()) {
 
@@ -172,9 +211,7 @@ class CustomConfigurationAttributeCreationPalette(
   private fun createDeviceOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(module).devices.filter { !it.isDeprecated })
-
-    val devices = getDeviceGroupsSortedAsMap(groupedDevices).flatMap { it.value }
+    val devices = data.devices
     val boxModel = MyComboBoxModel(devices, { it.displayName })
     val box = CommonComboBox(boxModel)
     box.addActionListener { selectedDevice = boxModel.selectedValue }
@@ -188,16 +225,7 @@ class CustomConfigurationAttributeCreationPalette(
 
   private fun createApiOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    val targets = ConfigurationManager.getOrCreateInstance(module).targets
-    val levelToTargetMap = mutableMapOf<String, IAndroidTarget>()
-    targets.forEach { target ->
-      val name = getRenderingTargetLabel(target, true)
-      val existingTarget = levelToTargetMap[name]
-      if (existingTarget == null || existingTarget.revision < target.revision) {
-        levelToTargetMap[name] = target
-      }
-    }
-    val apiLevels = levelToTargetMap.values.reversed()
+    val apiLevels = data.apiLevels
     if (apiLevels.isEmpty()) {
       val noApiLevelLabel = JBLabel("No available API Level")
       panel.add(noApiLevelLabel, BorderLayout.CENTER)
@@ -231,7 +259,7 @@ class CustomConfigurationAttributeCreationPalette(
   private fun createLocaleOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val locales = listOf(null) + ConfigurationManager.getOrCreateInstance(module).localesInProject
+    val locales = data.locales
     val boxModel =
       MyComboBoxModel(locales, { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) }, { Locale.getLocaleLabel(it, false)!! })
     val box = CommonComboBox(boxModel)
@@ -247,13 +275,7 @@ class CustomConfigurationAttributeCreationPalette(
   private fun createThemeOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val themeResolver = ThemeResolver(ConfigurationManager.getOrCreateInstance(module).getConfiguration(file))
-    val filter = createFilter(themeResolver, emptySet())
-
-    val projectTheme = getProjectThemeNames(themeResolver, filter)
-    val recommendedThemes = getRecommendedThemeNames(themeResolver, filter)
-    val frameworkTheme = getFrameworkThemeNames(themeResolver, filter)
-    val allThemes = projectTheme + recommendedThemes + frameworkTheme
+    val allThemes = data.themes
 
     val boxModel = MyComboBoxModel(allThemes, { it })
     val box = CommonComboBox(boxModel)
