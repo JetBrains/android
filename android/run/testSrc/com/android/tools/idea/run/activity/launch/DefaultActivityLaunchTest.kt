@@ -46,7 +46,7 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
     state = DefaultActivityLaunch.State()
     device = mock<IDevice>()
     whenever(device.serialNumber).thenReturn("1234")
-    app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
+    app = createApp("com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
     stats = RunStats(myFixture.project)
   }
 

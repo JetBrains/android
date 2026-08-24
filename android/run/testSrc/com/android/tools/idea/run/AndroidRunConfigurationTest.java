@@ -144,7 +144,7 @@ public class AndroidRunConfigurationTest {
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
 
     final App app =
-      createApp(device, "com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
+      createApp("com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
     myRunConfiguration.launch(app,
                               device,
                               null,
@@ -168,7 +168,7 @@ public class AndroidRunConfigurationTest {
     when(device.getSerialNumber()).thenReturn("1234");
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
     final App app =
-      createApp(device, "com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
+      createApp("com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
     myRunConfiguration.launch(app,
                               device,
                               null,
@@ -248,7 +248,7 @@ public class AndroidRunConfigurationTest {
     when(device.getSerialNumber()).thenReturn("1234");
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
     final App app =
-      createApp(device, "com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
+      createApp("com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
 
     myRunConfiguration.setLaunchUrl(link);
 

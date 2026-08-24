@@ -668,8 +668,7 @@ class AndroidRunConfigurationExecutorTest {
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
 
-    val result =
-      Deployer.Result(false, /*needsRestart */ true, false, createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
+    val result = Deployer.Result(false, /*needsRestart */ true, false, createApp(APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
     val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyChangesDeploy.name, result)
 
     val runner =
@@ -723,8 +722,7 @@ class AndroidRunConfigurationExecutorTest {
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
 
-    val result =
-      Deployer.Result(false, /*needsRestart */ true, false, createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
+    val result = Deployer.Result(false, /*needsRestart */ true, false, createApp(APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
     val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyCodeChangesDeploy.name, result)
 
     val runner =
@@ -783,8 +781,7 @@ class AndroidRunConfigurationExecutorTest {
   private fun testApplicationDeployer(
     device: IDevice,
     expectedMethod: String,
-    result: Deployer.Result =
-      Deployer.Result(false, false, false, createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME))),
+    result: Deployer.Result = Deployer.Result(false, false, false, createApp(APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME))),
   ) =
     object : ApplicationDeployer {
       override fun fullDeploy(

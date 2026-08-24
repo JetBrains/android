@@ -297,7 +297,7 @@ class AndroidWearWidgetConfigurationExecutorTest : AndroidConfigurationExecutorB
           WearWidgetLaunchOptions().apply { componentName = this@AndroidWearWidgetConfigurationExecutorTest.componentName }
       }
 
-    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val app = createApp(appId, servicesName = listOf(componentName), activitiesName = emptyList())
     return AndroidWearWidgetConfigurationExecutor(
       ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), DefaultStudioProgramRunner(), configSettings, project),
       FakeAndroidDevice.forDevices(listOf(device)),

@@ -116,7 +116,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
           TileLaunchOptions().apply { componentName = this@AndroidTileConfigurationExecutorTest.componentName }
       }
 
-    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val app = createApp(appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor =
       AndroidTileConfigurationExecutor(
@@ -188,7 +188,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
           TileLaunchOptions().apply { componentName = this@AndroidTileConfigurationExecutorTest.componentName }
       }
 
-    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val app = createApp(appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor =
       AndroidTileConfigurationExecutor(
@@ -311,7 +311,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
           TileLaunchOptions().apply { componentName = this@AndroidTileConfigurationExecutorTest.componentName }
       }
 
-    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val app = createApp(appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor =
       AndroidTileConfigurationExecutor(

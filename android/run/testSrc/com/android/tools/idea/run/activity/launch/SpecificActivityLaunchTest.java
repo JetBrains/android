@@ -86,7 +86,7 @@ public class SpecificActivityLaunchTest {
     IDevice device = mock(IDevice.class);
     Mockito.when(device.getSerialNumber()).thenReturn("1234");
     App app =
-      createApp(device, "com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
+      createApp("com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
 
     state.launch(device, null, app, new NoApksProvider(), false, "", new EmptyTestConsoleView(), new RunStats(myProjectRule.getProject()));
     Mockito.verify(device).executeShellCommand(
