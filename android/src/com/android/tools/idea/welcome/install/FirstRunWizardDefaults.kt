@@ -19,6 +19,7 @@
 
 package com.android.tools.idea.welcome.install
 
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
@@ -27,9 +28,10 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
 
 object FirstRunWizardDefaults {
   /**
-   * Returns initial SDK location. That will be the SDK location from the installer handoff file in the handoff case, SDK location location
-   * from the preference if set or platform-dependant default path.
+   * Returns initial SDK location. That will be the SDK location from the installer handoff file in the handoff case, SDK location from the
+   * preference if set or platform-dependant default path.
    */
+  @Slow
   @JvmStatic
   fun getInitialSdkLocation(mode: FirstRunWizardMode): File =
     mode.sdkLocation

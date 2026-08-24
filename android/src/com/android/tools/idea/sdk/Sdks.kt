@@ -41,7 +41,7 @@ suspend fun getOrSetupValidSdk(project: Project?, missingSdkMessage: String): An
       var sdkPath: File? = null
       if (MessageDialogBuilder.yesNo("Missing SDK", missingSdkMessage).yesText("Configure SDK").noText("Cancel").ask(project)) {
         SetupSdkApplicationService.instance.showSdkSetupWizard(
-          "",
+          null,
           { sdkPath = it },
           SdkComponentInstaller(),
           FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.MISSING_SDK, false),

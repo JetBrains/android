@@ -30,11 +30,13 @@ import com.android.tools.idea.wizard.model.ModelWizard.WizardResult
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
 import com.intellij.openapi.wm.WelcomeScreen
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.util.ui.JBUI
 import java.util.function.BooleanSupplier
 import javax.swing.JComponent
@@ -120,9 +122,8 @@ class StudioFirstRunWelcomeScreen(
     }
   }
 
-  private fun setupWizard() {
-    val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
-    val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), installUpdates = true, sdkComponentInstaller, tracker)
+  @UiThread
+  private fun setupWizard(model: FirstRunWizardModel) {
     modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel, tracker)
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel
@@ -156,13 +157,21 @@ class StudioFirstRunWelcomeScreen(
     )
   }
 
+  @UiThread
   override fun getWelcomePanel(): JComponent {
     tracker.trackWizardStarted()
 
-    // TODO(qumeric): I am not sure at which point getWelcomePanel runs.
-    //  Maybe it is worth to run setupWizard earlier and wait here for finish.
     if (mainPanel == null) {
-      ApplicationManager.getApplication().invokeAndWait { setupWizard() }
+      val initialSdkLocation =
+        runWithModalProgressBlocking(
+          owner = ModalTaskOwner.guess(),
+          title = "Finding Android SDK location",
+          cancellation = TaskCancellation.nonCancellable(),
+        ) {
+          FirstRunWizardDefaults.getInitialSdkLocation(mode)
+        }
+      val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), installUpdates = true, sdkComponentInstaller, tracker)
+      setupWizard(model)
     }
 
     return mainPanel!!

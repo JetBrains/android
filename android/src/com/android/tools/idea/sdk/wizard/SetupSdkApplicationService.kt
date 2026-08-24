@@ -33,10 +33,13 @@ import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Callback invoked upon SDK update completion. Provides the selected SDK path. */
 typealias SdkUpdatedCallback = (sdkPath: File) -> Unit
@@ -51,22 +54,25 @@ class SetupSdkApplicationService : Disposable {
   /**
    * Displays the SDK setup wizard.
    *
-   * @param sdkPathString The initial SDK path to use. If empty, a default location is used.
+   * @param sdkPathString The initial SDK path to use. If null or empty, a default location is used.
    * @param sdkUpdatedCallback A callback invoked when the SDK setup is complete, providing the final SDK path.
    */
   @UiThread
   fun showSdkSetupWizard(
-    sdkPathString: String,
+    sdkPathString: String? = null,
     sdkUpdatedCallback: SdkUpdatedCallback?,
     sdkComponentInstaller: SdkComponentInstaller = SdkComponentInstaller(),
     tracker: FirstRunWizardTracker,
   ) {
     val sdkPath: File =
-      if (StringUtil.isEmpty(sdkPathString)) {
-        // getInitialSdkLocation creates a non-blocking read action
-        // (in AndroidSdksImpl.getAllAndroidSdks()), which is not allowed on the EDT, so wrap it in
-        // a blocking read action.
-        ReadAction.compute<File, Throwable> { getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK) }
+      if (sdkPathString.isNullOrEmpty()) {
+        runWithModalProgressBlocking(
+          owner = ModalTaskOwner.guess(),
+          title = "Finding Android SDK location",
+          cancellation = TaskCancellation.nonCancellable(),
+        ) {
+          withContext(Dispatchers.IO) { getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK) }
+        }
       } else {
         File(sdkPathString)
       }

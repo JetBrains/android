@@ -167,22 +167,22 @@ class AndroidStudioWelcomeScreenServiceTest {
 
   @Test
   fun checkInternetConnection_showsIdeaMessageDialog_whenThereAreNetworkIssues() {
-    mockStatic(HttpConnectionUtils::class.java) {
-      whenever(HttpConnectionUtils.openHttpConnection(any())).thenThrow(IOException::class.java)
-
-      mockStatic(Messages::class.java).use { mockMessages ->
-        whenever(Messages.showIdeaMessageDialog(anyOrNull(), any(), any(), any(), any(), anyOrNull(), anyOrNull<DoNotAskOption>()))
-          .thenReturn(1)
-        val checkComplete = CompletableFuture<Boolean>()
-        executeOnPooledThread {
+    mockStatic(Messages::class.java).use { mockMessages ->
+      whenever(Messages.showIdeaMessageDialog(anyOrNull(), any(), any(), any(), any(), anyOrNull(), anyOrNull<DoNotAskOption>()))
+        .thenReturn(1)
+      val checkComplete = CompletableFuture<Boolean>()
+      executeOnPooledThread {
+        // JetBrains: a static mock is thread-local, so the connection is mocked on the thread that opens it; mocked on the test thread, a build agent with network access connects and no dialog is shown
+        mockStatic(HttpConnectionUtils::class.java).use {
+          whenever(HttpConnectionUtils.openHttpConnection(any())).thenThrow(IOException::class.java)
           AndroidStudioWelcomeScreenService.instance.checkInternetConnection()
-          checkComplete.complete(true)
         }
-        pumpEventsAndWaitForFuture(checkComplete, 5, TimeUnit.SECONDS)
+        checkComplete.complete(true)
+      }
+      pumpEventsAndWaitForFuture(checkComplete, 5, TimeUnit.SECONDS)
 
-        mockMessages.verify {
-          Messages.showIdeaMessageDialog(anyOrNull(), any(), any(), any(), any(), anyOrNull(), anyOrNull<DoNotAskOption>())
-        }
+      mockMessages.verify {
+        Messages.showIdeaMessageDialog(anyOrNull(), any(), any(), any(), any(), anyOrNull(), anyOrNull<DoNotAskOption>())
       }
     }
   }
@@ -191,7 +191,7 @@ class AndroidStudioWelcomeScreenServiceTest {
   fun checkInternetConnection_doesNotCrash_whenUnknownErrorThrown() {
     val checkComplete = CompletableFuture<Boolean>()
     executeOnPooledThread {
-      mockStatic(HttpConnectionUtils::class.java) {
+      mockStatic(HttpConnectionUtils::class.java).use {
         whenever(HttpConnectionUtils.openHttpConnection(any())).thenThrow(NoClassDefFoundError::class.java)
 
         AndroidStudioWelcomeScreenService.instance.checkInternetConnection()

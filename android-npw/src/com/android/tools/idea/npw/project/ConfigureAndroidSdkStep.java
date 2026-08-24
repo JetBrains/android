@@ -4,8 +4,6 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SetupSdkApplicationService;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.install.SdkComponentInstaller;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -15,7 +13,6 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import java.awt.Insets;
-import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,9 +28,8 @@ public class ConfigureAndroidSdkStep extends ModelWizardStep.WithoutModel {
     super("Configure Android SDK");
     setupUI();
     myInstallSDKButton.addActionListener(e -> {
-      File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
       SetupSdkApplicationService.getInstance().showSdkSetupWizard(
-        initialSdkLocation.getPath(),
+        null,
         null,
         new SdkComponentInstaller(),
         new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP, false)

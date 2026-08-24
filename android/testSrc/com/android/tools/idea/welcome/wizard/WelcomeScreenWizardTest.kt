@@ -34,6 +34,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.HeadlessTaskSupportRule
 import com.android.tools.idea.testing.TestMessagesDialog
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
@@ -114,6 +115,7 @@ class WelcomeScreenWizardTest {
       sdkHandlerRule,
       projectRule,
       HeadlessDialogRule(),
+      HeadlessTaskSupportRule(),
       EdtRule(),
     ) // AndroidProjectRule must get initialized off the EDT thread
 
@@ -145,10 +147,9 @@ class WelcomeScreenWizardTest {
         )
       )
     val sdkHandler = AndroidSdkHandler(sdkPath.toPath(), null, fakeRepoManager)
-    sdkHandlerRule.instanceProvider =
-      AndroidSdkHandler.InstanceProvider { locationProvider, path ->
-        if (path == sdkPath.toPath()) sdkHandler else AndroidSdkHandler.DefaultInstanceProvider.getInstance(locationProvider, path)
-      }
+    sdkHandlerRule.instanceProvider = AndroidSdkHandler.InstanceProvider { locationProvider, path ->
+      if (path == sdkPath.toPath()) sdkHandler else AndroidSdkHandler.DefaultInstanceProvider.getInstance(locationProvider, path)
+    }
 
     IdeSdks.removeJdksOn(projectRule.testRootDisposable)
   }
