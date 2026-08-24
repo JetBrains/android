@@ -58,6 +58,7 @@ public class IdeaTestSuiteBase {
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.force.use.core.classloader", "true");
+    System.setProperty("idea.platform.prefix", "AndroidStudio");
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
 
