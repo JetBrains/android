@@ -239,6 +239,7 @@ studiobot.regenerate.chat.request.button.enabled=PREVIEW
 studiobot.replace.text.tool.enabled=COMPLETE:2026
 studiobot.show.shimmer.placeholder=PREVIEW
 studiobot.skills.enabled=COMPLETE:2026
+studiobot.skills.management.ux.enabled=INTERNAL
 studiobot.skills.v2.enabled=COMPLETE:2026
 studiobot.studiobot.apply.changes.action=INTERNAL
 studiobot.symbol.linkification=COMPLETE:2026
