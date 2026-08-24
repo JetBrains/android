@@ -24,5 +24,5 @@ class StudioFlagsAboutProvider : AboutPopupDescriptionProvider {
   override fun getDescription(): @NlsContexts.DetailedDescription String? = null
 
   // Shown in the copied text if not null.
-  override fun getExtendedDescription(): @NlsContexts.DetailedDescription String = StudioFlags.FLAGS.toString("StudioFlags")
+  override fun getExtendedDescription(): String = StudioFlags.FLAGS.toString("StudioFlags")
 }
