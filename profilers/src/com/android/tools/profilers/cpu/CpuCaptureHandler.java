@@ -150,7 +150,7 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   public String getErrorMessage() {
     return switch (myStatus) {
       case USER_ABORTED_PARSING -> "Parsing trace file aborted. Please record another trace.";
-      case PREPROCESS_FAILURE -> "The profiler was unable to pre-process the method trace data.";
+      case PREPROCESS_FAILURE -> "The profiler was unable to pre-process trace data.";
       default -> "The profiler was unable to parse the trace file. Please make sure the file selected is a valid trace.";
     };
   }

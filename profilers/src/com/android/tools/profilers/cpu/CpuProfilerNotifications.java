@@ -48,8 +48,8 @@ public final class CpuProfilerNotifications {
   @NotNull
   public static final Notification PREPROCESS_FAILURE = createError(
     "Trace data was not recorded",
-    "The profiler was unable to pre-process the method trace data. " +
-    "Try recording another method trace, or "
+    "The profiler was unable to pre-process trace data. " +
+    "Try recording another trace, or "
   );
 
   @NotNull
