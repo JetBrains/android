@@ -15,22 +15,27 @@
  */
 package com.android.tools.idea.run.activity.launch
 
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.DeviceSelector
+import com.android.adblib.serialNumber
+import com.android.adblib.testing.FakeAdbSession
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.IShellOutputReceiver
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.configuration.execution.createApp
+import com.android.tools.idea.run.configuration.execution.createConnectedDevice
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import java.io.File
-import java.util.concurrent.TimeUnit
+import kotlin.test.assertContentEquals
 import kotlin.test.assertFailsWith
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 class DefaultActivityLaunchTest : AndroidTestCase() {
   lateinit var apk: String
@@ -38,33 +43,49 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
   lateinit var device: IDevice
   lateinit var app: App
   lateinit var stats: RunStats
+  lateinit var fakeSession: FakeAdbSession
+  lateinit var connectedDevice: ConnectedDevice
 
   override fun setUp() {
     super.setUp()
+    StudioFlags.DEPLOYER_USE_CONNECTED_DEVICE.overrideForTest(true, testRootDisposable)
+    fakeSession = FakeAdbSession()
+    connectedDevice = fakeSession.createConnectedDevice("1234", 31)
     // apkWithDefaultActivity.apk contains simple project with basic activity `com.example.myapplication.MainActivity`.
     apk = "${myFixture.testDataPath}/configurations/activity/apkWithDefaultActivity.apk"
     state = DefaultActivityLaunch.State()
     device = mock<IDevice>()
-    whenever(device.serialNumber).thenReturn("1234")
     app = createApp("com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
     stats = RunStats(myFixture.project)
   }
 
-  fun testLaunch() {
-    state.launch(device, null, app, TestApksProvider(apk, "com.example.myapplication"), false, "", EmptyTestConsoleView(), stats)
+  override fun tearDown() {
+    try {
+      runBlocking { fakeSession.closeAndJoin() }
+    } finally {
+      super.tearDown()
+    }
+  }
 
-    Mockito.verify(device)
-      .executeShellCommand(
-        Mockito.eq(
-          "am start -n com.example.myapplication/com.example.myapplication.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"
-        ),
-        Mockito.any(IShellOutputReceiver::class.java),
-        Mockito.eq(15L),
-        Mockito.eq(TimeUnit.SECONDS),
-      )
+  fun testLaunch() {
+    // Prepare
+    val command =
+      "am start -n com.example.myapplication/com.example.myapplication.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"
+    fakeSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(connectedDevice.serialNumber), command, "")
+
+    // Act
+    state.launch(device, connectedDevice, app, TestApksProvider(apk, "com.example.myapplication"), false, "", EmptyTestConsoleView(), stats)
+
+    // Assert
+    assertContentEquals(listOf(command), fakeSession.deviceServices.shellRequests.map { it.command })
   }
 
   fun testLaunchWithMultipleApks() {
+    // Prepare
+    val command =
+      "am start -n com.example.myapplication/com.example.myapplication.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"
+    fakeSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(connectedDevice.serialNumber), command, "")
+
     val multiApkProvider =
       TestApksProvider(
         listOf(
@@ -73,20 +94,15 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
         )
       )
 
-    state.launch(device, null, app, multiApkProvider, false, "", EmptyTestConsoleView(), stats)
+    // Act
+    state.launch(device, connectedDevice, app, multiApkProvider, false, "", EmptyTestConsoleView(), stats)
 
-    Mockito.verify(device)
-      .executeShellCommand(
-        Mockito.eq(
-          "am start -n com.example.myapplication/com.example.myapplication.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"
-        ),
-        Mockito.any(IShellOutputReceiver::class.java),
-        Mockito.eq(15L),
-        Mockito.eq(TimeUnit.SECONDS),
-      )
+    // Assert
+    assertContentEquals(listOf(command), fakeSession.deviceServices.shellRequests.map { it.command })
   }
 
   fun testLaunchWithNoMatchingApks() {
+    // Prepare
     val multiApkProvider =
       TestApksProvider(
         listOf(
@@ -95,13 +111,18 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
         )
       )
 
+    // Act
     val exception =
-      assertFailsWith<IllegalStateException> { state.launch(device, null, app, multiApkProvider, false, "", EmptyTestConsoleView(), stats) }
+      assertFailsWith<IllegalStateException> {
+        state.launch(device, connectedDevice, app, multiApkProvider, false, "", EmptyTestConsoleView(), stats)
+      }
 
+    // Assert
     assertThat(exception.message).isEqualTo("No matching APK for application: com.example.myapplication\n")
   }
 
   fun testLaunchWithMultipleMatchingApks() {
+    // Prepare
     val multiApkProvider =
       TestApksProvider(
         listOf(
@@ -110,9 +131,13 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
         )
       )
 
+    // Act
     val exception =
-      assertFailsWith<IllegalStateException> { state.launch(device, null, app, multiApkProvider, false, "", EmptyTestConsoleView(), stats) }
+      assertFailsWith<IllegalStateException> {
+        state.launch(device, connectedDevice, app, multiApkProvider, false, "", EmptyTestConsoleView(), stats)
+      }
 
+    // Assert
     assertThat(exception.message)
       .isEqualTo(
         """Multiple APKs present for application: com.example.myapplication
@@ -126,13 +151,16 @@ Projects:
   }
 
   fun testLaunchWithNoApks() {
+    // Prepare
     val emptyApkProvider = TestApksProvider(emptyList())
 
+    // Act
     val exception =
       assertFailsWith<AndroidExecutionException> {
-        state.launch(device, null, app, emptyApkProvider, false, "", EmptyTestConsoleView(), stats)
+        state.launch(device, connectedDevice, app, emptyApkProvider, false, "", EmptyTestConsoleView(), stats)
       }
 
+    // Assert
     assertThat(exception.message).isEqualTo("No APKs provided. Unable to extract default activity")
   }
 

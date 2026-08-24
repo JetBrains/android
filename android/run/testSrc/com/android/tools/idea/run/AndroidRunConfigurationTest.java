@@ -17,19 +17,26 @@ package com.android.tools.idea.run;
 
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
+import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createConnectedDevice;
 import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
 import static java.lang.reflect.Modifier.isStatic;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.adblib.ConnectedDevice;
+import com.android.adblib.DeviceSelector;
+import com.android.adblib.testing.FakeAdbSession;
 import com.android.ddmlib.IDevice;
+import com.android.flags.junit.FlagRule;
 import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.deployer.model.App;
 import com.android.tools.idea.execution.common.stats.RunStats;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.LaunchOptionState;
 import com.android.tools.idea.run.editor.NoApksProvider;
@@ -43,9 +50,11 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,7 +64,12 @@ import org.mockito.Mockito;
 public class AndroidRunConfigurationTest {
   @Rule
   public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+
+  @Rule
+  public FlagRule<Boolean> flagRule = new FlagRule<>(StudioFlags.DEPLOYER_USE_CONNECTED_DEVICE, true);
+
   private AndroidRunConfiguration myRunConfiguration;
+  private final FakeAdbSession fakeSession = new FakeAdbSession();
 
   private Path dataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/runConfiguration/");
 
@@ -100,6 +114,11 @@ public class AndroidRunConfigurationTest {
     myRunConfiguration = new AndroidRunConfiguration(myProjectRule.getProject(), configurationFactory);
   }
 
+  @After
+  public void tearDown() {
+    fakeSession.close();
+  }
+
   /**
    * Verifies that public fields, which are saved in configuration files (workspace.xml) are
    * not accidentally renamed or changed type.
@@ -136,65 +155,73 @@ public class AndroidRunConfigurationTest {
 
   @Test
   public void testContributorsAmStartOptionsIsInlinedWithAmStartCommand() throws Exception {
+    String deviceSerial = "1234";
+    ConnectedDevice connectedDevice = createConnectedDevice(fakeSession, deviceSerial, AndroidVersion.VersionCodes.S_V2);
+    DeviceSelector deviceSelector = DeviceSelector.Companion.fromSerialNumber(deviceSerial);
+    String command = "am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
+        "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --start-profiler file";
+    fakeSession.getDeviceServices().configureShellCommand(deviceSelector, command, "", "", 0);
+
     myRunConfiguration.setLaunchActivity("com.example.mypackage.MyActivity");
 
     ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
-    when(device.getSerialNumber()).thenReturn("1234");
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
 
     final App app =
       createApp("com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
     myRunConfiguration.launch(app,
                               device,
-                              null,
+                              connectedDevice,
                               getAndroidFacet(myProjectRule.getModule()),
                               "--start-profiler file",
                               false,
                               new NoApksProvider(),
                               consolePrinter,
                               new RunStats(myProjectRule.getProject()));
-    verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
-                                          "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --start-profiler file"),
-                                       any(), anyLong(), any());
+    assertEquals(List.of(command), fakeSession.getDeviceServices().getShellRequests().stream().map(r -> r.getCommand()).toList());
   }
 
   @Test
   public void testEmptyContributorsAmStartOptions() throws Exception {
+    String deviceSerial = "1234";
+    ConnectedDevice connectedDevice = createConnectedDevice(fakeSession, deviceSerial, AndroidVersion.VersionCodes.S_V2);
+    DeviceSelector deviceSelector = DeviceSelector.Companion.fromSerialNumber(deviceSerial);
+    String command1 = "am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
+        "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER";
+    String command2 = "am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
+        "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon";
+    fakeSession.getDeviceServices().configureShellCommand(deviceSelector, command1, "", "", 0);
+    fakeSession.getDeviceServices().configureShellCommand(deviceSelector, command2, "", "", 0);
+
     myRunConfiguration.setLaunchActivity("com.example.mypackage.MyActivity");
 
     ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
-    when(device.getSerialNumber()).thenReturn("1234");
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
     final App app =
       createApp("com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
     myRunConfiguration.launch(app,
                               device,
-                              null,
+                              connectedDevice,
                               getAndroidFacet(myProjectRule.getModule()),
                               "",
                               false,
                               new NoApksProvider(),
                               consolePrinter,
                               new RunStats(myProjectRule.getProject()));
-    verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
-                                          "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
-                                       any(), anyLong(), any());
 
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU));
     myRunConfiguration.launch(app,
                               device,
-                              null,
+                              connectedDevice,
                               getAndroidFacet(myProjectRule.getModule()),
                               "",
                               false,
                               new NoApksProvider(),
                               consolePrinter,
                               new RunStats(myProjectRule.getProject()));
-    verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
-                                          "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon"),
-                                       any(), anyLong(), any());
+    assertEquals(List.of(command1, command2), fakeSession.getDeviceServices().getShellRequests().stream().map(r -> r.getCommand()).toList());
   }
 
 
@@ -245,16 +272,16 @@ public class AndroidRunConfigurationTest {
   private void testDeepLink(String link, String extraFlags, String expectedCommand) throws Exception {
     ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
-    when(device.getSerialNumber()).thenReturn("1234");
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
     final App app =
       createApp("com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
 
     myRunConfiguration.setLaunchUrl(link);
 
+    // Note that connectedDevice below is null because `DeepLinkLaunch.State` doesn't use ConnectedDevice.
     myRunConfiguration.launch(app,
                               device,
-                              null,
+                              /* connectedDevice=*/ null,
                               getAndroidFacet(myProjectRule.getModule()),
                               extraFlags,
                               false,
