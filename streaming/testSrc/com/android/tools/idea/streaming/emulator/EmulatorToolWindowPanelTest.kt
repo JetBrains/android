@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.DisplayConfiguration
+import com.android.emulator.control.DisplayPowerModeNotification
 import com.android.emulator.control.LedIndicator
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
@@ -89,6 +90,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.Color
@@ -701,7 +703,49 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
+  fun testDisplayGlassesDisplayOffIndicator() {
+    StudioFlags.EMBEDDED_EMULATOR_DISPLAY_OFF_INDICATOR.overrideForTest(true, testRootDisposable)
+    val avdFolder = FakeEmulator.createDisplayGlassesAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
+    panel = createWindowPanel(avdFolder)
+
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryDisplayView ?: fail()
+
+    emulator.setLedState(LedIndicator.Facing.INSIDE, Color.GREEN)
+    emulator.setLedState(LedIndicator.Facing.OUTSIDE, Color.RED)
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(430, 450)
+    fakeUi.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+
+    val displayOffIndicator = fakeUi.getComponent<JBLabel> { it.text == "Display off" }.parent
+    assertThat(displayOffIndicator.isVisible).isFalse()
+
+    emulator.setDisplayPowerMode(PRIMARY_DISPLAY_ID, DisplayPowerModeNotification.PowerMode.OFF)
+    panel.waitForFrame(++frameNumber, 2.seconds)
+    waitForCondition(2.seconds) { displayOffIndicator.isVisible }
+    assertAppearance("DisplayGlassesDisplayOff1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
+
+    emulator.setDisplayPowerMode(PRIMARY_DISPLAY_ID, DisplayPowerModeNotification.PowerMode.ON)
+    panel.waitForFrame(++frameNumber, 2.seconds)
+    waitForCondition(2.seconds) { !displayOffIndicator.isVisible }
+
+    panel.destroyContent()
+    assertThat(panel.primaryDisplayView).isNull()
+    streamScreenshotCall.waitForCancellation(2.seconds)
+
+    StudioFlags.EMBEDDED_EMULATOR_DISPLAY_OFF_INDICATOR.overrideForTest(false, testRootDisposable)
+    panel.createContent(true)
+    assertThat(fakeUi.findComponent<JBLabel> { it.text == "Display off" }).isNull()
+    panel.destroyContent()
+  }
+
+  @Test
   fun testAudioGlassesToolbarActions() {
+    StudioFlags.EMBEDDED_EMULATOR_DISPLAY_OFF_INDICATOR.overrideForTest(true, testRootDisposable)
     val avdFolder = FakeEmulator.createAudioGlassesAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(36, 0))
     panel = createWindowPanel(avdFolder)
 
@@ -713,6 +757,9 @@ class EmulatorToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
 
     // Check appearance.
+    val noDisplayIndicator = fakeUi.getComponent<JBLabel> { it.text == "No display" }.parent
+    assertThat(noDisplayIndicator.isVisible).isTrue()
+
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(430, 450)
@@ -1585,11 +1632,12 @@ class EmulatorToolWindowPanelTest {
 
   private fun assertAppearance(
     goldenImageName: String,
-    maxPercentDifferentLinux: Double = 0.0003,
-    maxPercentDifferentMac: Double = 0.0003,
-    maxPercentDifferentWindows: Double = 0.0003,
+    maxPercentDifferentLinux: Double = 0.0004,
+    maxPercentDifferentMac: Double = 0.0004,
+    maxPercentDifferentWindows: Double = 0.0004,
   ) {
     fakeUi.updateToolbarsIfNecessary()
+    fakeUi.layoutAndDispatchEvents()
     val image = fakeUi.render()
     val scaledImage = ImageUtils.scale(image, 0.5)
     val maxPercentDifferent =

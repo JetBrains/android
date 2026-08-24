@@ -42,6 +42,7 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.Insets
 import java.awt.LayoutManager
 import javax.swing.JComponent
@@ -62,6 +63,7 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
 
   private val scrollPane: JScrollPane
   private val floatingToolbarLayerPane: JComponent
+  protected val notificationLayerPane: JComponent
   private var zoomToolbar: JComponent? = null
   private var xrNavigationToolbar: JComponent? = null
   protected val loadingPanel: StreamingLoadingPanel
@@ -103,6 +105,20 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
 
     scrollPane = MyScrollPane()
 
+    notificationLayerPane =
+      object : JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)) {
+          override fun contains(x: Int, y: Int): Boolean {
+            return components.any { it.isVisible && it.bounds.contains(x, y) }
+          }
+        }
+        .apply {
+          val scrollBarWidth = scrollPane.verticalScrollBar.preferredWidth + 1
+          @Suppress("UseDPIAwareBorders") // scrollBarWidth is scaled already.
+          border = EmptyBorder(scrollBarWidth, scrollBarWidth, scrollBarWidth, scrollBarWidth)
+          isOpaque = false
+          isFocusable = false
+        }
+
     floatingToolbarLayerPane =
       JPanel().apply {
         val layoutDirection =
@@ -123,9 +139,11 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
       JLayeredPane().apply {
         layout = LayeredPaneLayoutManager()
         isFocusable = true
+        setLayer(notificationLayerPane, JLayeredPane.PALETTE_LAYER)
         setLayer(floatingToolbarLayerPane, JLayeredPane.PALETTE_LAYER)
         setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
 
+        add(notificationLayerPane, BorderLayout.CENTER)
         add(floatingToolbarLayerPane, BorderLayout.CENTER)
         add(scrollPane, BorderLayout.CENTER)
       }

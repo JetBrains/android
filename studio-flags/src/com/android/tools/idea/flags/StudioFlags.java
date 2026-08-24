@@ -1313,6 +1313,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_VIDEO_ENVIRONMENT = new BooleanFlag(
     EMBEDDED_EMULATOR, "video.environment", "Enable Video Environment",
     "Enables video (.mp4, .webm) support for AI Glasses environments");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_DISPLAY_OFF_INDICATOR = new BooleanFlag(
+    EMBEDDED_EMULATOR, "display.off.indicator", "Enable Display Off Indicator",
+    "Enables displaying \"Display off\" indicator for AI Glasses when display is turned off");
   public static final Flag<Boolean> RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME = new BooleanFlag(
     EMBEDDED_EMULATOR, "hide.tool.window.name", "Hide Tool Window Name",
     "Hides the name of the Running Devices window when it contains any device tabs");
