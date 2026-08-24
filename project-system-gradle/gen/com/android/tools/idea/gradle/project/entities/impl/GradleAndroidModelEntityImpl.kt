@@ -105,7 +105,7 @@ internal class GradleAndroidModelEntityImpl(private val dataSource: GradleAndroi
       dataSource as GradleAndroidModelEntity
       if (this.entitySource != dataSource.entitySource) this.entitySource = dataSource.entitySource
       if (this.gradleAndroidModel != dataSource.gradleAndroidModel) this.gradleAndroidModel = dataSource.gradleAndroidModel
-      if (this.resolvedVariant != dataSource?.resolvedVariant) this.resolvedVariant = dataSource.resolvedVariant
+      if (this.resolvedVariant != dataSource.resolvedVariant) this.resolvedVariant = dataSource.resolvedVariant
       updateChildToParentReferences(parents)
     }
 
