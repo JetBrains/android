@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -61,7 +62,7 @@ class CreateTypedResourceFileActionTest {
     }
 
     val resDir = ReadAction.compute<VirtualFile, Throwable> { fixture.findFileInTempDir("res") }
-    val psiResDir = fixture.psiManager.findDirectory(resDir)
+    val psiResDir = runReadActionBlocking { fixture.psiManager.findDirectory(resDir) }
     dataContext.add(CommonDataKeys.PSI_ELEMENT, psiResDir)
     // Should fail when the directory is not a type specific resource directory (e.g: res/drawable).
     assertThat(doIsAvailable(dataContext.build(), ResourceFolderType.DRAWABLE)).isFalse()
