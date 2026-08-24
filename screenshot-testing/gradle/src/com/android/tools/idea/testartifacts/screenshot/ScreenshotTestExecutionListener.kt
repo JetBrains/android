@@ -26,7 +26,11 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
 class ScreenshotTestExecutionListener : ExecutionListener {
-  override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
+  override fun processStarted(
+    executorId: String,
+    env: ExecutionEnvironment,
+    handler: ProcessHandler,
+  ) {
     val runProfile = env.runProfile
     if (
       runProfile is GradleRunConfiguration &&

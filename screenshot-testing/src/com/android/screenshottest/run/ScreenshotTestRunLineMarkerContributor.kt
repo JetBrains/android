@@ -73,7 +73,9 @@ class ScreenshotTestRunLineMarkerContributor : RunLineMarkerContributor() {
 
   private fun isPreviewTestMethod(declaration: KtNamedFunction): Boolean {
     return declaration.annotationEntries.any { annotation ->
-      (annotation.toUElement() as? UAnnotation)?.javaPsi?.let { it.qualifiedName == "com.android.tools.screenshot.PreviewTest" } ?: false
+      (annotation.toUElement() as? UAnnotation)?.javaPsi?.let {
+        it.qualifiedName == "com.android.tools.screenshot.PreviewTest"
+      } ?: false
     }
   }
 }

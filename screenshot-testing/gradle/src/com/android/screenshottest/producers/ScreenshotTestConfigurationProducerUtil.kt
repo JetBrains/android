@@ -52,7 +52,9 @@ fun IdeTestSuite.isScreenshotTestSuite(): Boolean {
   return junitEngineInfo.includedEngines.contains(SCREENSHOT_TEST_ENGINE_ID)
 }
 
-private fun String.capitalize(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() }
+private fun String.capitalize(): String = replaceFirstChar {
+  if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString()
+}
 
 /**
  * Checks if the given location belongs to screenshot test source set. It verifies if the virtual file associated with the location either
@@ -131,10 +133,14 @@ fun getScreenshotTestTaskNames(context: ConfigurationContext): List<String>? {
         listOf("screenshotTest")
       }
 
-    // TODO(b/530362351): The target name is currently hardcoded to "Default" to ensure we only execute
-    // verification tasks and never accidentally trigger companion recording/update targets (e.g. "defaultUpdate",
-    // which overwrites reference screenshots). Once the AGP test suite model exposes whether a target is a
-    // recording vs. verification target, dynamically resolve the target name from IdeTestSuiteVariantTarget
+    // TODO(b/530362351): The target name is currently hardcoded to "Default" to ensure we only
+    // execute
+    // verification tasks and never accidentally trigger companion recording/update targets (e.g.
+    // "defaultUpdate",
+    // which overwrites reference screenshots). Once the AGP test suite model exposes whether a
+    // target is a
+    // recording vs. verification target, dynamically resolve the target name from
+    // IdeTestSuiteVariantTarget
     // while filtering out recording targets.
     return suiteNames.map { suiteName ->
       val capitalizedSuiteName = suiteName.capitalize()
@@ -173,8 +179,12 @@ fun isMethodDeclarationPreviewTestAnnotated(
 }
 
 private fun IdeaSourceProvider.containedIn(targetFolder: VirtualFile): Boolean {
-  return manifestFileUrls.any { manifestFileUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, manifestFileUrl) } ||
-    allSourceFolderUrls().any { sourceFolderUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, sourceFolderUrl) }
+  return manifestFileUrls.any { manifestFileUrl ->
+    VfsUtilCore.isEqualOrAncestor(targetFolder.url, manifestFileUrl)
+  } ||
+    allSourceFolderUrls().any { sourceFolderUrl ->
+      VfsUtilCore.isEqualOrAncestor(targetFolder.url, sourceFolderUrl)
+    }
 }
 
 private fun IdeaSourceProvider.allSourceFolderUrls(): Sequence<String> {

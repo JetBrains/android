@@ -39,7 +39,11 @@ import javax.swing.Icon
  * Base action for adding or updating reference images for screenshot tests. This action is responsible for creating and running the
  * appropriate Gradle configuration.
  */
-abstract class UpdateReferenceImagesBaseAction(text: String, description: String, icon: Icon? = null) : AnAction(text, description, icon) {
+abstract class UpdateReferenceImagesBaseAction(
+  text: String,
+  description: String,
+  icon: Icon? = null,
+) : AnAction(text, description, icon) {
 
   private val LOG = Logger.getInstance(this.javaClass)
 
@@ -60,7 +64,10 @@ abstract class UpdateReferenceImagesBaseAction(text: String, description: String
         ?.configurationSettings ?: return
     val updateRunconfigSettings =
       RunManagerImpl.getInstanceImpl(project)
-        .createConfiguration(validateRunconfigSettings.configuration, validateRunconfigSettings.factory)
+        .createConfiguration(
+          validateRunconfigSettings.configuration,
+          validateRunconfigSettings.factory,
+        )
     val runConfiguration = updateRunconfigSettings.configuration
     (runConfiguration as? UserDataHolder)?.putUserData(IS_SCREENSHOT_UPDATE_CONFIGURATION, true)
 
@@ -70,18 +77,30 @@ abstract class UpdateReferenceImagesBaseAction(text: String, description: String
     val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return
 
     val connection = project.messageBus.connect(dialog.disposable)
-    connection.subscribe(AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC, UpdateScreenshotTestResultsListener(dialog))
+    connection.subscribe(
+      AndroidTestSuiteView.ANDROID_TEST_SUITE_TOPIC,
+      UpdateScreenshotTestResultsListener(dialog),
+    )
 
     connection.subscribe(
       ExecutionManager.EXECUTION_TOPIC,
       object : ExecutionListener {
-        override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
+        override fun processStarted(
+          executorId: String,
+          env: ExecutionEnvironment,
+          handler: ProcessHandler,
+        ) {
           if (env.runnerAndConfigurationSettings == updateRunconfigSettings) {
             dialog.setBuildProcessHandler(handler)
           }
         }
 
-        override fun processTerminated(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler, exitCode: Int) {
+        override fun processTerminated(
+          executorId: String,
+          env: ExecutionEnvironment,
+          handler: ProcessHandler,
+          exitCode: Int,
+        ) {
           // Check if this termination corresponds to our run configuration
           if (env.runnerAndConfigurationSettings == updateRunconfigSettings && exitCode != 0) {
             dialog.onBuildFailed()
@@ -92,7 +111,13 @@ abstract class UpdateReferenceImagesBaseAction(text: String, description: String
 
     LOG.debug("Executing gradle task for project: $project, configuration: ${updateRunconfigSettings.name}")
     ExecutionManager.getInstance(project)
-      .restartRunProfile(project, executor, DefaultExecutionTarget.INSTANCE, updateRunconfigSettings, null)
+      .restartRunProfile(
+        project,
+        executor,
+        DefaultExecutionTarget.INSTANCE,
+        updateRunconfigSettings,
+        null,
+      )
     dialog.show()
   }
 }

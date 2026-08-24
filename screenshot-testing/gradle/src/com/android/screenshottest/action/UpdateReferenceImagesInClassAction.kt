@@ -40,7 +40,11 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 
 class UpdateReferenceImagesInClassAction :
-  UpdateReferenceImagesBaseAction(UPDATE_ACTION_TEXT, UPDATE_ACTION_DESCRIPTION, AllIcons.FileTypes.Image) {
+  UpdateReferenceImagesBaseAction(
+    UPDATE_ACTION_TEXT,
+    UPDATE_ACTION_DESCRIPTION,
+    AllIcons.FileTypes.Image,
+  ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

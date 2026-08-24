@@ -108,7 +108,11 @@ class PreviewItemPanel(
     }
   }
 
-  fun updateData(newData: PreviewDetails, viewType: ScreenshotViewType, onImageLoaded: (() -> Unit)? = null) {
+  fun updateData(
+    newData: PreviewDetails,
+    viewType: ScreenshotViewType,
+    onImageLoaded: (() -> Unit)? = null,
+  ) {
     this.previewData = newData
     if (showDetails) {
       updateDetails(newData)
@@ -169,7 +173,10 @@ class PreviewItemPanel(
         previewData.srcImagePath?.let { loadImage(it, previewData.testId, onImageLoaded) }
           ?: run {
             // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event
-            logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
+            logScreenshotTestEvent(
+              ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE,
+              project,
+            )
             showError(NO_NEW_IMAGE_TEXT)
           }
       }
@@ -205,7 +212,8 @@ class PreviewItemPanel(
       }
       return
     }
-    // Update tracking fields immediately to ensure subsequent calls can detect if this request becomes stale.
+    // Update tracking fields immediately to ensure subsequent calls can detect if this request
+    // becomes stale.
     currentImagePath = newPath
     currentTestId = testId
 
@@ -229,7 +237,8 @@ class PreviewItemPanel(
       }
 
       ApplicationManager.getApplication().invokeLater {
-        // Double-check if the request is still relevant to this panel instance before updating the UI.
+        // Double-check if the request is still relevant to this panel instance before updating the
+        // UI.
         if (currentImagePath == newPath && currentTestId == testId) {
           if (image != null) {
             imagePanel.setImage(image)
@@ -243,7 +252,10 @@ class PreviewItemPanel(
           } else {
             logger.error("Couldn't load image from path: $newPath")
             // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event
-            logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
+            logScreenshotTestEvent(
+              ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE,
+              project,
+            )
             showError(COULD_NOT_LOAD_IMAGE_TEXT)
             onImageLoaded?.invoke() // To trigger a list repaint
           }

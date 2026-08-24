@@ -29,7 +29,11 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
 class UpdateReferenceImagesInDirectoryAction :
-  UpdateReferenceImagesBaseAction(UPDATE_ACTION_TEXT, UPDATE_ACTION_DESCRIPTION, AllIcons.FileTypes.Image) {
+  UpdateReferenceImagesBaseAction(
+    UPDATE_ACTION_TEXT,
+    UPDATE_ACTION_DESCRIPTION,
+    AllIcons.FileTypes.Image,
+  ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

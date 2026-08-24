@@ -41,11 +41,18 @@ import org.jetbrains.plugins.gradle.util.TasksToRun
 class ScreenshotTestMethodGradleConfigurationProducer : TestMethodGradleConfigurationProducer() {
   private val visitedAnnotations = mutableMapOf<String, Boolean>()
 
-  override fun suggestConfigurationName(context: ConfigurationContext, element: PsiMethod, chosenElements: List<PsiClass>): String {
+  override fun suggestConfigurationName(
+    context: ConfigurationContext,
+    element: PsiMethod,
+    chosenElements: List<PsiClass>,
+  ): String {
     return "Screenshot Tests in ${element.name}"
   }
 
-  override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
+  override fun doIsConfigurationFromContext(
+    configuration: GradleRunConfiguration,
+    context: ConfigurationContext,
+  ): Boolean {
     if (configuration.getUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION) != true) {
       return false
     }
@@ -89,12 +96,19 @@ class ScreenshotTestMethodGradleConfigurationProducer : TestMethodGradleConfigur
     if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
     }
-    configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
+    configuration.putUserData<Boolean>(
+      SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey,
+      true,
+    )
     configuration.putUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION, true)
     return configure(configuration, sourceElement, context)
   }
 
-  private fun configure(configuration: GradleRunConfiguration, sourceElementRef: Ref<PsiElement>, context: ConfigurationContext): Boolean {
+  private fun configure(
+    configuration: GradleRunConfiguration,
+    sourceElementRef: Ref<PsiElement>,
+    context: ConfigurationContext,
+  ): Boolean {
     val location = context.location ?: return false
 
     val myModule = AndroidUtils.getAndroidModule(context) ?: return false
@@ -125,7 +139,10 @@ class ScreenshotTestMethodGradleConfigurationProducer : TestMethodGradleConfigur
     return false
   }
 
-  private fun taskNamesWithFilter(context: ConfigurationContext, psiMethod: PsiMethod): List<String> {
+  private fun taskNamesWithFilter(
+    context: ConfigurationContext,
+    psiMethod: PsiMethod,
+  ): List<String> {
     val className = psiMethod.containingClass?.qualifiedName ?: return emptyList()
     val methodName = psiMethod.name
     return getScreenshotTestTaskNames(context)!! + "--tests" + "\"$className.$methodName\""

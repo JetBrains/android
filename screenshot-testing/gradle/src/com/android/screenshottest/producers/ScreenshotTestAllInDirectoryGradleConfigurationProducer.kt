@@ -34,11 +34,18 @@ import org.jetbrains.plugins.gradle.util.TasksToRun
  * produced as long as there is a screenshot test source set present in the directory
  */
 class ScreenshotTestAllInDirectoryGradleConfigurationProducer : AllInDirectoryGradleConfigurationProducer() {
-  override fun suggestConfigurationName(context: ConfigurationContext, element: PsiElement, chosenElements: List<PsiElement>): String {
+  override fun suggestConfigurationName(
+    context: ConfigurationContext,
+    element: PsiElement,
+    chosenElements: List<PsiElement>,
+  ): String {
     return "Screenshot Tests in ${context.module!!.name}"
   }
 
-  override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
+  override fun doIsConfigurationFromContext(
+    configuration: GradleRunConfiguration,
+    context: ConfigurationContext,
+  ): Boolean {
     if (configuration.getUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION) != true) {
       return false
     }
@@ -77,13 +84,20 @@ class ScreenshotTestAllInDirectoryGradleConfigurationProducer : AllInDirectoryGr
     }
     val configured = configure(configuration, sourceElement, context)
     if (configured) {
-      configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
+      configuration.putUserData<Boolean>(
+        SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey,
+        true,
+      )
       configuration.putUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION, true)
     }
     return configured
   }
 
-  private fun configure(configuration: GradleRunConfiguration, sourceElementRef: Ref<PsiElement>, context: ConfigurationContext): Boolean {
+  private fun configure(
+    configuration: GradleRunConfiguration,
+    sourceElementRef: Ref<PsiElement>,
+    context: ConfigurationContext,
+  ): Boolean {
     val location = context.location ?: return false
     if (location.psiElement !is PsiDirectory) return false
 

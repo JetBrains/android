@@ -188,10 +188,17 @@ class UpdateReferenceImagesDialog(
     ApplicationManager.getApplication().invokeLater {
       if (!isFirstTestDiscovered) {
         // Log the SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY event
-        logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY, project)
+        logScreenshotTestEvent(
+          ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_TEST_RESULTS_EMPTY,
+          project,
+        )
         logger.error("No tests were discovered in the test suite")
         close(CANCEL_EXIT_CODE)
-        Messages.showErrorDialog(project, "Error while generating screenshots", "Failed to generate screenshots")
+        Messages.showErrorDialog(
+          project,
+          "Error while generating screenshots",
+          "Failed to generate screenshots",
+        )
       } else {
         isTestSuiteFinished = true
         logger.debug("TestSuite finished. Enabling the 'Add' button.")
@@ -205,17 +212,23 @@ class UpdateReferenceImagesDialog(
    */
   fun onBuildFailed() {
     ApplicationManager.getApplication().invokeLater {
-      // Only act if we haven't discovered any tests yet (meaning the failure happened during build or startup)
+      // Only act if we haven't discovered any tests yet (meaning the failure happened during build
+      // or startup)
       if (!isFirstTestDiscovered && !isCancelled) {
         logger.warn("Build or execution failed. Closing dialog.")
 
         // Log the SCREENSHOT_DIALOG_BUILD_FAILURE event when build fails
-        logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_BUILD_FAILURE, project)
+        logScreenshotTestEvent(
+          ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_BUILD_FAILURE,
+          project,
+        )
 
         close(CANCEL_EXIT_CODE)
 
         // Open the Run window so the user can see the build error
-        project?.let { ToolWindowManager.getInstance(it).getToolWindow(ToolWindowId.RUN)?.activate(null) }
+        project?.let {
+          ToolWindowManager.getInstance(it).getToolWindow(ToolWindowId.RUN)?.activate(null)
+        }
       }
     }
   }
@@ -449,7 +462,11 @@ class UpdateReferenceImagesDialog(
     val projectBasePath = project?.basePath
     if (projectBasePath.isNullOrBlank()) {
       logger.error("Project base path is missing. Reference image copy aborted for safety.")
-      Messages.showErrorDialog(project, "Project base path is missing. Cannot add reference images.", "Error")
+      Messages.showErrorDialog(
+        project,
+        "Project base path is missing. Cannot add reference images.",
+        "Error",
+      )
       return
     }
 
@@ -459,17 +476,21 @@ class UpdateReferenceImagesDialog(
       return
     }
 
-    val imagesToCopy =
-      checkedPreviews.map { previewDetails ->
-        val sourceImageMap = mutableMapOf<String, String>()
-        val simpleClassName = previewDetails.testId.split('.', limit = 2).first()
-        previewDetails.srcImagePath?.let { sourceImageMap[it] = simpleClassName }
-        ImageData(previewDetails, sourceImageMap)
-      }
+    val imagesToCopy = checkedPreviews.map { previewDetails ->
+      val sourceImageMap = mutableMapOf<String, String>()
+      val simpleClassName = previewDetails.testId.split('.', limit = 2).first()
+      previewDetails.srcImagePath?.let { sourceImageMap[it] = simpleClassName }
+      ImageData(previewDetails, sourceImageMap)
+    }
 
-    val missingFiles = imagesToCopy.filter { it.previewData.srcImagePath == null || !File(it.previewData.srcImagePath).exists() }
+    val missingFiles = imagesToCopy.filter {
+      it.previewData.srcImagePath == null || !File(it.previewData.srcImagePath).exists()
+    }
     if (missingFiles.isNotEmpty()) {
-      val failedNames = missingFiles.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
+      val failedNames =
+        missingFiles.joinToString(separator = "\n") {
+          "- ${it.previewData.methodName}.${it.previewData.previewName}"
+        }
       logger.error("The following selected previews have no source image: $failedNames")
       Messages.showErrorDialog(
         project,
@@ -498,14 +519,28 @@ class UpdateReferenceImagesDialog(
           logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED, project)
           close(OK_EXIT_CODE)
           logger.info("Reference images were updated successfully")
-          Messages.showInfoMessage(project, "Reference images were updated successfully.", "Update Successful")
+          Messages.showInfoMessage(
+            project,
+            "Reference images were updated successfully.",
+            "Update Successful",
+          )
         } else {
           // Log the SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE event for analytics
           // on failure to copy reference images
-          logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE, project)
-          val failedNames = failures.joinToString(separator = "\n") { "- ${it.previewData.methodName}.${it.previewData.previewName}" }
+          logScreenshotTestEvent(
+            ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_UPDATE_ACTION_FAILURE,
+            project,
+          )
+          val failedNames =
+            failures.joinToString(separator = "\n") {
+              "- ${it.previewData.methodName}.${it.previewData.previewName}"
+            }
           logger.error("Failed to copy the following previews: $failedNames")
-          Messages.showErrorDialog(project, "Failed to copy the following previews:\n\n$failedNames", "Copy Failed")
+          Messages.showErrorDialog(
+            project,
+            "Failed to copy the following previews:\n\n$failedNames",
+            "Copy Failed",
+          )
           okButton?.text = originalText
           okButton?.icon = null
           okButton?.isEnabled = true
@@ -530,4 +565,9 @@ data class PreviewDetails(
   val sizeMismatchMessage: String? = null,
 )
 
-data class MethodGroup(val className: String, val methodName: String, val labelText: String, val previews: List<PreviewDetails>)
+data class MethodGroup(
+  val className: String,
+  val methodName: String,
+  val labelText: String,
+  val previews: List<PreviewDetails>,
+)

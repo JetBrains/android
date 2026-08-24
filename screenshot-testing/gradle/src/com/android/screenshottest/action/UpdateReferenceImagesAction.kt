@@ -22,4 +22,9 @@ import com.intellij.icons.AllIcons
 /**
  * Action to add or update the reference images for screenshot tests. This action must be stateless, as the IDE creates a single instance.
  */
-class UpdateReferenceImagesAction : UpdateReferenceImagesBaseAction(UPDATE_ACTION_TEXT, UPDATE_ACTION_DESCRIPTION, AllIcons.FileTypes.Image)
+class UpdateReferenceImagesAction :
+  UpdateReferenceImagesBaseAction(
+    UPDATE_ACTION_TEXT,
+    UPDATE_ACTION_DESCRIPTION,
+    AllIcons.FileTypes.Image,
+  )

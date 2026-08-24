@@ -40,7 +40,10 @@ class UpdateReferenceImagesDialogManager(private val project: Project) : Disposa
     if (existingDialog != null && existingDialog.isVisible) {
       existingDialog.toFront()
       // Log that the user tried to open the dialog but it was already open
-      logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_ALREADY_OPEN, project)
+      logScreenshotTestEvent(
+        ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_ALREADY_OPEN,
+        project,
+      )
       return null
     }
 

@@ -45,11 +45,18 @@ import org.jetbrains.plugins.gradle.util.TasksToRun
 class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurationProducer() {
   private val visitedAnnotation = mutableMapOf<String, Boolean>()
 
-  override fun suggestConfigurationName(context: ConfigurationContext, element: PsiClass, chosenElements: List<PsiClass>): String {
+  override fun suggestConfigurationName(
+    context: ConfigurationContext,
+    element: PsiClass,
+    chosenElements: List<PsiClass>,
+  ): String {
     return "Screenshot Tests in ${element.qualifiedName}"
   }
 
-  override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
+  override fun doIsConfigurationFromContext(
+    configuration: GradleRunConfiguration,
+    context: ConfigurationContext,
+  ): Boolean {
     if (configuration.getUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION) != true) {
       return false
     }
@@ -124,13 +131,20 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
     }
     val configured = configure(configuration, sourceElement, context)
     if (configured) {
-      configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
+      configuration.putUserData<Boolean>(
+        SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey,
+        true,
+      )
       configuration.putUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION, true)
     }
     return configured
   }
 
-  private fun configure(configuration: GradleRunConfiguration, sourceElementRef: Ref<PsiElement>, context: ConfigurationContext): Boolean {
+  private fun configure(
+    configuration: GradleRunConfiguration,
+    sourceElementRef: Ref<PsiElement>,
+    context: ConfigurationContext,
+  ): Boolean {
     val location = context.location ?: return false
 
     val myModule = AndroidUtils.getAndroidModule(context) ?: return false
@@ -143,7 +157,8 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
 
     val project = context.project ?: return false
 
-    // Try to resolve the context to an enclosing class (e.g., when right-clicking inside a class in the editor)
+    // Try to resolve the context to an enclosing class (e.g., when right-clicking inside a class in
+    // the editor)
     val psiClass =
       getPsiParentsOfType(location.psiElement, PsiClass::class.java, false).firstOrNull()
         ?: getPsiParentsOfType(location.psiElement, KtClassOrObject::class.java, false).firstOrNull()?.toLightClass()
@@ -155,7 +170,8 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
       return true
     }
 
-    // Fallback to file level if no enclosing class is found (e.g., right-clicking outside any class in the editor, or on a file in the
+    // Fallback to file level if no enclosing class is found (e.g., right-clicking outside any class
+    // in the editor, or on a file in the
     // Project view)
     val containingFile = location.psiElement as? PsiClassOwner ?: location.psiElement.containingFile as? PsiClassOwner
     if (containingFile != null) {
@@ -198,7 +214,10 @@ class ScreenshotTestClassGradleConfigurationProducer : TestClassGradleConfigurat
     return false
   }
 
-  private fun taskNamesWithFilter(context: ConfigurationContext, qualifiedNames: List<String>): List<String> {
+  private fun taskNamesWithFilter(
+    context: ConfigurationContext,
+    qualifiedNames: List<String>,
+  ): List<String> {
     val baseTasks = getScreenshotTestTaskNames(context) ?: return emptyList()
     val testFilters = qualifiedNames.flatMap { listOf("--tests", "\"$it\"") }
     return baseTasks + testFilters

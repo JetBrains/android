@@ -34,11 +34,18 @@ import org.jetbrains.plugins.gradle.util.TasksToRun
  * set. This class extends {@link AllInPackageGradleConfigurationProducer} to provide specialized configuration for screenshot testing.
  */
 class ScreenshotTestAllInPackageGradleConfigurationProducer : AllInPackageGradleConfigurationProducer() {
-  override fun suggestConfigurationName(context: ConfigurationContext, element: PsiPackage, chosenElements: List<PsiPackage>): String {
+  override fun suggestConfigurationName(
+    context: ConfigurationContext,
+    element: PsiPackage,
+    chosenElements: List<PsiPackage>,
+  ): String {
     return "Screenshot Tests in ${element.qualifiedName}"
   }
 
-  override fun doIsConfigurationFromContext(configuration: GradleRunConfiguration, context: ConfigurationContext): Boolean {
+  override fun doIsConfigurationFromContext(
+    configuration: GradleRunConfiguration,
+    context: ConfigurationContext,
+  ): Boolean {
     if (configuration.getUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION) != true) {
       return false
     }
@@ -77,13 +84,20 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer : AllInPackageGradle
     }
     val configured = configure(configuration, sourceElement, context)
     if (configured) {
-      configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
+      configuration.putUserData<Boolean>(
+        SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey,
+        true,
+      )
       configuration.putUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION, true)
     }
     return configured
   }
 
-  private fun configure(configuration: GradleRunConfiguration, sourceElementRef: Ref<PsiElement>, context: ConfigurationContext): Boolean {
+  private fun configure(
+    configuration: GradleRunConfiguration,
+    sourceElementRef: Ref<PsiElement>,
+    context: ConfigurationContext,
+  ): Boolean {
     val location = context.location ?: return false
     val psiPackage = AbstractJavaTestConfigurationProducer.checkPackage(location.psiElement) ?: return false
 
@@ -105,7 +119,10 @@ class ScreenshotTestAllInPackageGradleConfigurationProducer : AllInPackageGradle
     return true
   }
 
-  private fun taskNamesWithFilter(context: ConfigurationContext, psiPackage: PsiPackage): List<String> {
+  private fun taskNamesWithFilter(
+    context: ConfigurationContext,
+    psiPackage: PsiPackage,
+  ): List<String> {
     return getScreenshotTestTaskNames(context)!! + "--tests" + "\"${psiPackage.qualifiedName}.*\""
   }
 }

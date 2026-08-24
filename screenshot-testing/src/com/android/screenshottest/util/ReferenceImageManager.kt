@@ -52,7 +52,12 @@ private fun File.toCanonicalPathOrNull(): Path? =
  * @param tmpPath The canonical Path of the system temporary directory.
  * @return True if both paths satisfy all security and structural constraints; false otherwise.
  */
-private fun isValidSourceAndDestination(sourceFile: File, destinationFile: File, basePath: Path, tmpPath: Path?): Boolean {
+private fun isValidSourceAndDestination(
+  sourceFile: File,
+  destinationFile: File,
+  basePath: Path,
+  tmpPath: Path?,
+): Boolean {
   val sourcePath = sourceFile.toCanonicalPathOrNull() ?: return false
   val destPath = destinationFile.toCanonicalPathOrNull() ?: return false
 
@@ -71,7 +76,8 @@ private fun isValidSourceAndDestination(sourceFile: File, destinationFile: File,
     return false
   }
 
-  // 3. Source must live canonically inside the project's base directory OR under system temporary directory
+  // 3. Source must live canonically inside the project's base directory OR under system temporary
+  // directory
   val isUnderProjectBase = sourcePath.startsWith(basePath)
   val isUnderSystemTemp = tmpPath?.let { sourcePath.startsWith(it) } ?: false
 
@@ -136,7 +142,10 @@ fun copyReferenceImages(imagesToCopy: List<ImageData>, projectBasePath: String):
           refreshTarget?.let { refreshRoots.add(it) }
         }
       } catch (e: IOException) {
-        LOG.error("Failed to copy screenshot reference image due to an I/O error for: ${imageData.previewData}", e)
+        LOG.error(
+          "Failed to copy screenshot reference image due to an I/O error for: ${imageData.previewData}",
+          e,
+        )
         failures.add(imageData)
       }
     }
@@ -145,7 +154,10 @@ fun copyReferenceImages(imagesToCopy: List<ImageData>, projectBasePath: String):
       RefreshQueue.getInstance().refreshPaths(true, true, null, refreshRoots.map { it.toPath() })
     }
   } catch (e: IllegalStateException) {
-    LOG.error("Failed to copy screenshot reference images during setup due to invalid project state or configuration.", e)
+    LOG.error(
+      "Failed to copy screenshot reference images during setup due to invalid project state or configuration.",
+      e,
+    )
     // If setup fails, all items are considered failures.
     return imagesToCopy
   }
