@@ -77,13 +77,15 @@ object JdkDownloadUtils {
   }
 
   private suspend fun downloadSdk(project: Project, sdk: Sdk, indicator: ProgressIndicator): Boolean {
-    return Disposer.newDisposable("The JdkDownloader#downloadSdk lifecycle").use { disposable ->
-      val tracker = SdkDownloadTracker.getInstance()
-      tracker.startSdkDownloadIfNeeded(project, sdk)
-      suspendCancellableCoroutine { continuation ->
-        val registered = tracker.tryRegisterDownloadingListener(sdk, disposable, indicator) { continuation.resume(it) }
-        if (!registered) {
-          continuation.resume(false)
+    return withContext(Dispatchers.EDT) {
+      Disposer.newDisposable("The JdkDownloader#downloadSdk lifecycle").use { disposable ->
+        val tracker = SdkDownloadTracker.getInstance()
+        tracker.startSdkDownloadIfNeeded(project, sdk)
+        suspendCancellableCoroutine { continuation ->
+          val registered = tracker.tryRegisterDownloadingListener(sdk, disposable, indicator) { continuation.resume(it) }
+          if (!registered) {
+            continuation.resume(false)
+          }
         }
       }
     }
