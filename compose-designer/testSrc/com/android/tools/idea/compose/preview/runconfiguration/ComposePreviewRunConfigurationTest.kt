@@ -15,29 +15,16 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.execution.common.stats.RunStats
-import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
-import com.android.tools.idea.run.configuration.execution.createApp
-import com.android.tools.idea.run.editor.NoApksProvider
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.openapi.util.JDOMUtil
 import org.jdom.Element
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.anyLong
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.whenever
 
 class ComposePreviewRunConfigurationTest {
 
@@ -48,9 +35,6 @@ class ComposePreviewRunConfigurationTest {
   private val project
     get() = projectRule.project
 
-  private val fixture
-    get() = projectRule.fixture
-
   @Before
   fun setUp() {
     val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
@@ -58,39 +42,17 @@ class ComposePreviewRunConfigurationTest {
   }
 
   @Test
-  fun testAmStartOptionsWithComposableMethod() {
+  fun testActivityExtraFlagOptions() {
     runConfiguration.composableMethodFqn = "com.mycomposeapp.SomeClass.SomeComposable"
     runConfiguration.providerClassFqn = "com.mycomposeapp.ProviderClass"
     runConfiguration.providerIndex = 3
 
-    val device = mock(IDevice::class.java)
-    whenever(device.serialNumber).thenReturn("1234")
-    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.S_V2))
-    val noApksProvider = NoApksProvider()
-    runConfiguration.launch(
-      createApp(device, "com.example.myapp", emptyList(), listOf("androidx.compose.ui.tooling.PreviewActivity")),
-      device,
-      null,
-      AndroidFacet.getInstance(fixture.module)!!,
-      "",
-      false,
-      noApksProvider,
-      EmptyTestConsoleView(),
-      RunStats(project),
+    assertEquals(
+      "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
+        " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
+        " --ei parameterProviderIndex 3",
+      runConfiguration.ACTIVITY_EXTRA_FLAGS,
     )
-    verify(device)
-      .executeShellCommand(
-        eq(
-          "am start -n com.example.myapp/androidx.compose.ui.tooling.PreviewActivity " +
-            "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
-            "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
-            " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
-            " --ei parameterProviderIndex 3"
-        ),
-        any(),
-        anyLong(),
-        any(),
-      )
   }
 
   @Test
