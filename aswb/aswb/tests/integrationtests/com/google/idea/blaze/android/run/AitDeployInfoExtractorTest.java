@@ -34,14 +34,14 @@ import com.google.common.io.Resources;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEvent;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.AndroidDeployInfo;
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.Artifact;
-import com.google.idea.blaze.android.run.runner.AitDeployInfoExtractor;
-import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
+import com.google.idea.blaze.android.run.runner.AitDeployInfoExtractor;
 import com.google.idea.blaze.android.run.runner.InstrumentationInfo;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.bazel.BepUtils.FileArtifact;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.bepparser.ParsedBepOutput;
+import com.google.idea.blaze.base.run.RuntimeArtifactCache;
 import com.google.idea.blaze.base.run.RuntimeArtifactKind;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
@@ -77,8 +77,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   private static final FileArtifact TARGET_APK_ARTIFACT_FILE =
       new FileArtifact(BIN_PREFIXES, "some/random/target.apk", new File("/some/random/target.apk"));
 
-  private static final ImmutableList<File> nativeSymbols =
-      ImmutableList.of(new File("symbols.so"));
+  private static final ImmutableList<File> nativeSymbols = ImmutableList.of(new File("symbols.so"));
 
   @Rule public TemporaryFolder folder = new TemporaryFolder();
 
@@ -92,7 +91,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
   @Test
   public void extract_testWithNoTarget_deployInfoContainsDataFromTestTarget()
-    throws BuildEventStreamException, IOException, ApkProvisionException {
+      throws BuildEventStreamException, IOException, ApkProvisionException {
 
     // Create build output that matches the output for a setup with a test target (TEST_APP)
     // that instruments itself (i.e. no target app).
@@ -104,11 +103,11 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
                 "tools/adt/idea/aswb/aswb/testres/AndroidManifest.xml",
                 ImmutableList.of(TEST_APK_ARTIFACT_FILE))
             .build();
-    BlazeBuildOutputs buildOutputs =
-        BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
+    BlazeBuildOutputs buildOutputs = BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
 
     BlazeAndroidDeployInfo deployInfo =
-        new AitDeployInfoExtractor(getProject(), instrumentationInfo, true, "android-deploy-info", "default")
+        new AitDeployInfoExtractor(
+                getProject(), instrumentationInfo, true, "android-deploy-info", "default")
             .extract(getProject(), buildOutputs, context);
 
     assertThat(deployInfo).isNotNull();
@@ -123,7 +122,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
   @Test
   public void extract_testWithApp_deployInfoContainsDataFromTestAndTargetApp()
-    throws BuildEventStreamException, IOException, ApkProvisionException {
+      throws BuildEventStreamException, IOException, ApkProvisionException {
     // Create build output that matches the output for a setup with a test target (TEST_APP)
     // that instruments TARGET_APP
     InstrumentationInfo instrumentationInfo = new InstrumentationInfo(TARGET_APP, TEST_APP);
@@ -138,11 +137,11 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
                 "tools/adt/idea/aswb/aswb/testres/testManifest.xml",
                 ImmutableList.of(TARGET_APK_ARTIFACT_FILE))
             .build();
-    BlazeBuildOutputs buildOutputs =
-        BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
+    BlazeBuildOutputs buildOutputs = BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
 
     BlazeAndroidDeployInfo deployInfo =
-        new AitDeployInfoExtractor(getProject(), instrumentationInfo, true, "android-deploy-info", "default")
+        new AitDeployInfoExtractor(
+                getProject(), instrumentationInfo, true, "android-deploy-info", "default")
             .extract(getProject(), buildOutputs, context);
 
     assertThat(deployInfo).isNotNull();
@@ -151,10 +150,10 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
     assertThat(deployInfo.getApkInfos()).hasSize(2);
     assertThat(deployInfo.getApkInfos().get(0).getFiles()).hasSize(1);
     assertThat(deployInfo.getApkInfos().get(0).getFiles().get(0).getApkFile().getPath())
-      .startsWith(TestRuntimeArtifactCache.CACHE_BASE);
+        .startsWith(TestRuntimeArtifactCache.CACHE_BASE);
     assertThat(deployInfo.getApkInfos().get(1).getFiles()).hasSize(1);
     assertThat(deployInfo.getApkInfos().get(1).getFiles().get(0).getApkFile().getPath())
-      .startsWith(TestRuntimeArtifactCache.CACHE_BASE);
+        .startsWith(TestRuntimeArtifactCache.CACHE_BASE);
     assertThat(deployInfo.getAppUnderTestMergedManifest()).isNotNull();
     assertThat(deployInfo.getAppUnderTestMergedManifest().packageName)
         .isEqualTo("com.google.android.libraries.foo");
@@ -165,10 +164,10 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
     @Override
     public ImmutableList<Path> fetchArtifacts(
-      com.google.idea.blaze.common.Label label,
-      List<? extends OutputArtifact> artifacts,
-      BlazeContext context,
-      RuntimeArtifactKind artifactKind) {
+        com.google.idea.blaze.common.Label label,
+        List<? extends OutputArtifact> artifacts,
+        BlazeContext context,
+        RuntimeArtifactKind artifactKind) {
       return artifacts.stream()
           .map(a -> Paths.get(CACHE_BASE, a.getBazelOutRelativePath()))
           .collect(toImmutableList());

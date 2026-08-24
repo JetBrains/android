@@ -61,30 +61,37 @@ public class RuntimeArtifactCacheImplTest {
 
   @Test
   public void fetchArtifacts() throws Exception {
-    final var testArtifactFetcher = new RuntimeArtifactCacheImplTest.TestArtifactFetcher(
-      RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.NO);
+    final var testArtifactFetcher =
+        new RuntimeArtifactCacheImplTest.TestArtifactFetcher(
+            RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.NO);
     final var buildArtifactCache = createBuildArtifactCache(testArtifactFetcher);
-    RuntimeArtifactCache runtimeArtifactCache = new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache);
-    TestOutputArtifact artifact1 = TestOutputArtifact.builder()
-      .setArtifactPath(Path.of("out/test1.jar"))
-      .setDigest("abc")
-      .build();
-    TestOutputArtifact artifact2 = TestOutputArtifact.builder()
-      .setArtifactPath(Path.of("out/test2.jar"))
-      .setDigest("def")
-      .build();
+    RuntimeArtifactCache runtimeArtifactCache =
+        new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache);
+    TestOutputArtifact artifact1 =
+        TestOutputArtifact.builder()
+            .setArtifactPath(Path.of("out/test1.jar"))
+            .setDigest("abc")
+            .build();
+    TestOutputArtifact artifact2 =
+        TestOutputArtifact.builder()
+            .setArtifactPath(Path.of("out/test2.jar"))
+            .setDigest("def")
+            .build();
     Label target = Label.of("//some/label:target");
     List<Path> paths =
         runtimeArtifactCache.fetchArtifacts(
-            target, ImmutableList.of(artifact1, artifact2), BlazeContext.create(), RuntimeArtifactKind.JAR);
+            target,
+            ImmutableList.of(artifact1, artifact2),
+            BlazeContext.create(),
+            RuntimeArtifactKind.JAR);
     assertThat(paths)
         .containsExactly(
             runfilesDirectory.resolve(
                 RuntimeArtifactCacheImpl.getArtifactLocalPath(
-                  target, RuntimeArtifactKind.JAR, Path.of("out/test1.jar"))),
+                    target, RuntimeArtifactKind.JAR, Path.of("out/test1.jar"))),
             runfilesDirectory.resolve(
                 RuntimeArtifactCacheImpl.getArtifactLocalPath(
-                  target, RuntimeArtifactKind.JAR, Path.of("out/test2.jar"))));
+                    target, RuntimeArtifactKind.JAR, Path.of("out/test2.jar"))));
     assertThat(Files.readAllBytes(paths.get(0))).isEqualTo("abc".getBytes());
     assertThat(Files.readAllBytes(paths.get(1))).isEqualTo("def".getBytes());
     assertThat(testArtifactFetcher.getCopiedArtifacts()).isEqualTo(List.of(artifact1, artifact2));
@@ -92,62 +99,78 @@ public class RuntimeArtifactCacheImplTest {
 
   @Test
   public void fetchArtifacts_failed() throws Exception {
-    final var buildArtifactCache = createBuildArtifactCache(new RuntimeArtifactCacheImplTest.TestArtifactFetcher(
-      RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.YES));
-    RuntimeArtifactCache runtimeArtifactCache = new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache);
-    TestOutputArtifact artifact1 = TestOutputArtifact.builder()
-      .setArtifactPath(Path.of("out/test1.jar"))
-      .setDigest("abc")
-      .build();
-    TestOutputArtifact artifact2 = TestOutputArtifact.builder()
-      .setArtifactPath(Path.of("out/test2.jar"))
-      .setDigest("def")
-      .build();
+    final var buildArtifactCache =
+        createBuildArtifactCache(
+            new RuntimeArtifactCacheImplTest.TestArtifactFetcher(
+                RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.YES));
+    RuntimeArtifactCache runtimeArtifactCache =
+        new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache);
+    TestOutputArtifact artifact1 =
+        TestOutputArtifact.builder()
+            .setArtifactPath(Path.of("out/test1.jar"))
+            .setDigest("abc")
+            .build();
+    TestOutputArtifact artifact2 =
+        TestOutputArtifact.builder()
+            .setArtifactPath(Path.of("out/test2.jar"))
+            .setDigest("def")
+            .build();
     Label target = Label.of("//some/label:target");
-    assertThrows(IllegalStateException.class, () -> runtimeArtifactCache.fetchArtifacts(
-      target, ImmutableList.of(artifact1, artifact2), BlazeContext.create(), RuntimeArtifactKind.JAR));
+    assertThrows(
+        IllegalStateException.class,
+        () ->
+            runtimeArtifactCache.fetchArtifacts(
+                target,
+                ImmutableList.of(artifact1, artifact2),
+                BlazeContext.create(),
+                RuntimeArtifactKind.JAR));
   }
 
-  private BuildArtifactCacheDirectory createBuildArtifactCache(RuntimeArtifactCacheImplTest.TestArtifactFetcher artifactFetcher) throws
-                                                                                                                                        BuildException, IOException {
+  private BuildArtifactCacheDirectory createBuildArtifactCache(
+      RuntimeArtifactCacheImplTest.TestArtifactFetcher artifactFetcher)
+      throws BuildException, IOException {
     return new BuildArtifactCacheDirectory(
-      runfilesDirectory,
-      artifactFetcher,
-      MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor()),
-      new BuildArtifactCache.CleanRequest() {
-        @Override
-        public void request() {
-        }
+        runfilesDirectory,
+        artifactFetcher,
+        MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor()),
+        new BuildArtifactCache.CleanRequest() {
+          @Override
+          public void request() {}
 
-        @Override
-        public void cancel() {
-        }
-      });
+          @Override
+          public void cancel() {}
+        });
   }
 
   private static class TestArtifactFetcher implements ArtifactFetcher<OutputArtifact> {
-    public enum ShouldFail {YES, NO}
+    public enum ShouldFail {
+      YES,
+      NO
+    }
 
     private final RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail shouldFail;
 
     private final List<OutputArtifact> copiedArtifacts = new ArrayList<>();
 
-    private TestArtifactFetcher(RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail shouldFail) { this.shouldFail = shouldFail; }
+    private TestArtifactFetcher(
+        RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail shouldFail) {
+      this.shouldFail = shouldFail;
+    }
 
     @Override
     public ListenableFuture<?> copy(
-      ImmutableMap<? extends OutputArtifact, ArtifactDestination> artifactToDest,
-      Context<?> context) {
+        ImmutableMap<? extends OutputArtifact, ArtifactDestination> artifactToDest,
+        Context<?> context) {
       if (shouldFail == RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.YES) {
         return immediateFailedFuture(new IOException());
       }
-      for (Map.Entry<? extends OutputArtifact, ArtifactDestination> entry : artifactToDest.entrySet()) {
+      for (Map.Entry<? extends OutputArtifact, ArtifactDestination> entry :
+          artifactToDest.entrySet()) {
         try {
           MoreFiles.createParentDirectories(entry.getValue().path);
           Files.writeString(entry.getValue().path, entry.getKey().getDigest());
           copiedArtifacts.add(entry.getKey());
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
           return immediateFailedFuture(e);
         }
       }

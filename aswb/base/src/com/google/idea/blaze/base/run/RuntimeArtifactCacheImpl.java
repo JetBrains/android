@@ -45,24 +45,31 @@ import java.util.concurrent.ExecutionException;
 
 public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
   private static final Logger logger = Logger.getInstance(RuntimeArtifactCacheImpl.class);
-  private final Map<Pair<Label, RuntimeArtifactKind>,  Map<Path, ProjectArtifact>> artifactCacheMap = new HashMap<>();
+  private final Map<Pair<Label, RuntimeArtifactKind>, Map<Path, ProjectArtifact>> artifactCacheMap =
+      new HashMap<>();
   private final Path runfilesDirectory;
   private static final String SEPARATOR_DIR_NAME = "_";
   private final BuildArtifactCache buildArtifactCache;
 
-  public RuntimeArtifactCacheImpl(Path runfilesDirectory, BuildArtifactCache buildArtifactCache) throws IOException {
+  public RuntimeArtifactCacheImpl(Path runfilesDirectory, BuildArtifactCache buildArtifactCache)
+      throws IOException {
     this.runfilesDirectory = runfilesDirectory;
     this.buildArtifactCache = buildArtifactCache;
   }
 
   private RuntimeArtifactCacheImpl(Project project) throws IOException {
-    this(Paths.get(checkNotNull(project.getBasePath())).resolve(ArtifactDirectories.RUNFILES.relativePath()),
-         project.getService(BuildArtifactCache.class));
+    this(
+        Paths.get(checkNotNull(project.getBasePath()))
+            .resolve(ArtifactDirectories.RUNFILES.relativePath()),
+        project.getService(BuildArtifactCache.class));
   }
 
   @Override
   public ImmutableList<Path> fetchArtifacts(
-      Label target, List<? extends OutputArtifact> artifacts, BlazeContext context, RuntimeArtifactKind artifactKind) {
+      Label target,
+      List<? extends OutputArtifact> artifacts,
+      BlazeContext context,
+      RuntimeArtifactKind artifactKind) {
     var targetKind = Pair.create(target, artifactKind);
     final var artifactsCachedFuture =
         buildArtifactCache.addAll(artifacts.stream().collect(toImmutableList()), context);
@@ -71,12 +78,16 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
     waitForArtifacts(artifactsCachedFuture);
     updateArtifactDirectory(context, artifactDirectoryContents);
 
-    return resolveArtifactLayoutPaths(target, artifactKind, artifactCacheMap.get(targetKind).keySet());
+    return resolveArtifactLayoutPaths(
+        target, artifactKind, artifactCacheMap.get(targetKind).keySet());
   }
 
-  private ImmutableList<Path> resolveArtifactLayoutPaths(Label target, RuntimeArtifactKind artifactKind, Set<Path> artifactPaths) {
+  private ImmutableList<Path> resolveArtifactLayoutPaths(
+      Label target, RuntimeArtifactKind artifactKind, Set<Path> artifactPaths) {
     return artifactPaths.stream()
-        .map(artifactPath -> runfilesDirectory.resolve(getArtifactLocalPath(target, artifactKind, artifactPath)))
+        .map(
+            artifactPath ->
+                runfilesDirectory.resolve(getArtifactLocalPath(target, artifactKind, artifactPath)))
         .collect(toImmutableList());
   }
 
@@ -99,23 +110,21 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
       resultBuilder.put(
           artifact.getArtifactPath(),
           new ProjectProto.ProjectArtifact(
-            target,
-            new ProjectProto.BuildArtifact(artifact.getDigest()),
-            buildTimestamp,
-            ProjectProto.ProjectArtifact.ArtifactTransform.COPY
-          ));
+              target,
+              new ProjectProto.BuildArtifact(artifact.getDigest()),
+              buildTimestamp,
+              ProjectProto.ProjectArtifact.ArtifactTransform.COPY));
     }
     return resultBuilder.build();
   }
 
   private void updateArtifactDirectory(
-      Context<?> context,
-      ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) {
+      Context<?> context, ProjectProto.ArtifactDirectoryContents artifactDirectoryContents) {
     try {
       new ArtifactDirectoryUpdate(
-        runfilesDirectory.getFileName().toString(),
-        buildArtifactCache,
-          runfilesDirectory,
+              runfilesDirectory.getFileName().toString(),
+              buildArtifactCache,
+              runfilesDirectory,
               artifactDirectoryContents)
           .update(context);
     } catch (IOException e) {
@@ -124,8 +133,8 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
   }
 
   /**
-   * Builds {@link ProjectProto.ArtifactDirectoryContents} from a map from artifact label -> artifact
-   * path -> project artifact.
+   * Builds {@link ProjectProto.ArtifactDirectoryContents} from a map from artifact label ->
+   * artifact path -> project artifact.
    */
   private static ProjectProto.ArtifactDirectoryContents buildArtifactDirectoryContents(
       Map<Pair<Label, RuntimeArtifactKind>, Map<Path, ProjectProto.ProjectArtifact>> artifacts) {
@@ -135,7 +144,8 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
       for (final var artifactPathAndDigest : entry.getValue().entrySet()) {
         final var artifactPath = artifactPathAndDigest.getKey();
         final var artifact = artifactPathAndDigest.getValue();
-        contents.put(getArtifactLocalPath(key.first, key.second, artifactPath).toString(), artifact);
+        contents.put(
+            getArtifactLocalPath(key.first, key.second, artifactPath).toString(), artifact);
       }
     }
     return new ProjectProto.ArtifactDirectoryContents(contents);
@@ -145,7 +155,12 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
    * Generates the local artifact path from the target and artifact path. Local Artifact path ->
    * Target + SEPARATOR_DIR_NAME + artifactPath.
    */
-  public static Path getArtifactLocalPath(Label target, RuntimeArtifactKind artifactKind, Path artifactPath) {
-    return target.toFilePath().resolve(Path.of(artifactKind.name())).resolve(Path.of(SEPARATOR_DIR_NAME)).resolve(artifactPath);
+  public static Path getArtifactLocalPath(
+      Label target, RuntimeArtifactKind artifactKind, Path artifactPath) {
+    return target
+        .toFilePath()
+        .resolve(Path.of(artifactKind.name()))
+        .resolve(Path.of(SEPARATOR_DIR_NAME))
+        .resolve(artifactPath);
   }
 }

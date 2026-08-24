@@ -68,8 +68,7 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   private static final String MNEMONIC = "k9-opt";
   private static final ImmutableList<String> BIN_PREFIXES =
       ImmutableList.of("blaze-out", MNEMONIC, "bin");
-  private static final ImmutableList<File> nativeSymbols =
-      ImmutableList.of(new File("symbols.so"));
+  private static final ImmutableList<File> nativeSymbols = ImmutableList.of(new File("symbols.so"));
 
   private BlazeContext context;
 
@@ -80,21 +79,24 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   }
 
   @Test
-  public void parse_nominalOutput() throws BuildEventStreamException, IOException, ApkProvisionException {
+  public void parse_nominalOutput()
+      throws BuildEventStreamException, IOException, ApkProvisionException {
     NativeSymbolFinder mockSymbolFinder = mock(NativeSymbolFinder.class);
     registerExtension(NativeSymbolFinder.EP_NAME, mockSymbolFinder);
-    when(mockSymbolFinder.getNativeSymbolsForBuild(any(), any(), any(), any())).thenReturn(nativeSymbols);
-    BlazeBuildOutputs buildOutputs =
-        BlazeBuildOutputs.fromParsedBepOutput(nominalApkBuildOutput());
+    when(mockSymbolFinder.getNativeSymbolsForBuild(any(), any(), any(), any()))
+        .thenReturn(nativeSymbols);
+    BlazeBuildOutputs buildOutputs = BlazeBuildOutputs.fromParsedBepOutput(nominalApkBuildOutput());
     BlazeAndroidDeployInfo deployInfo =
-        new BinaryDeployInfoExtractor(Label.of("//some:target"), true, true, "android-deploy-info", "default")
+        new BinaryDeployInfoExtractor(
+                Label.of("//some:target"), true, true, "android-deploy-info", "default")
             .extract(getProject(), buildOutputs, context);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMainAppMergedManifest().packageName)
         .isEqualTo("com.google.android.buildsteptester");
     assertThat(deployInfo.getApkInfos()).hasSize(1); // Check for one APK
-    assertThat(deployInfo.getApkInfos().get(0).getFiles().get(0).getApkFile().getName()).isEqualTo("foo.apk"); // Check APK name
+    assertThat(deployInfo.getApkInfos().get(0).getFiles().get(0).getApkFile().getName())
+        .isEqualTo("foo.apk"); // Check APK name
     assertThat(deployInfo.getSymbolFiles()).isEqualTo(nativeSymbols);
     assertThat(deployInfo.getAppUnderTestMergedManifest()).isNull();
   }
@@ -126,10 +128,8 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
     }
 
     // Split files into their respective output groups.
-    ImmutableList<FileArtifact> deployInfoFiles =
-        ImmutableList.of(deployInfoPb, mergedManifestXml);
-    ImmutableList<FileArtifact> apkFiles =
-        ImmutableList.of(apkFileArtifact);
+    ImmutableList<FileArtifact> deployInfoFiles = ImmutableList.of(deployInfoPb, mergedManifestXml);
+    ImmutableList<FileArtifact> apkFiles = ImmutableList.of(apkFileArtifact);
 
     List<BuildEvent> events =
         ImmutableList.of(
@@ -149,8 +149,7 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   private File newMergedManifestXml() throws IOException {
     File file = folder.newFile("merged_manifest.xml");
     Resources.asByteSource(
-            Resources.getResource(
-              "tools/adt/idea/aswb/aswb/testres/AndroidManifest.xml"))
+            Resources.getResource("tools/adt/idea/aswb/aswb/testres/AndroidManifest.xml"))
         .copyTo(com.google.common.io.Files.asByteSink(file));
     return file;
   }
@@ -158,7 +157,10 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   private static class TestRuntimeArtifactCache implements RuntimeArtifactCache {
     @Override
     public ImmutableList<Path> fetchArtifacts(
-      Label label, List<? extends OutputArtifact> artifacts, BlazeContext context, RuntimeArtifactKind artifactKind) {
+        Label label,
+        List<? extends OutputArtifact> artifacts,
+        BlazeContext context,
+        RuntimeArtifactKind artifactKind) {
       return artifacts.stream()
           .map(a -> Paths.get(a.getBazelOutRelativePath()))
           .collect(toImmutableList());
