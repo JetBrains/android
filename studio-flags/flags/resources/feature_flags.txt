@@ -178,6 +178,7 @@ rundebug.compose.class.name.calculator.canonical.file.cache=COMPLETE:2025
 rundebug.ddmlib.abb.exec.install.enable=COMPLETE:2022
 rundebug.debug.app.auto.attach.wait.for.debugger=COMPLETE:2023
 rundebug.debug.app.suspend.upon.start.enable=COMPLETE:2023
+rundebug.deployer.use.connected.device=INTERNAL
 rundebug.device.connect.detect.speed=COMPLETE:2024
 rundebug.emit.console.output.to.logcat=COMPLETE:2023
 rundebug.install.with.assume.verified=PREVIEW
