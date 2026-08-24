@@ -104,9 +104,7 @@ internal class NotificationReceiver private constructor(private val emulator: Em
   private fun updateCurrentPosture(posture: PostureValue) {
     val descriptor = emulatorConfig.postures.find { it.posture == posture }
     if (descriptor != null) {
-      if (_currentPosture.value != descriptor) {
-        _currentPosture.value = descriptor
-      }
+      _currentPosture.value = descriptor
     } else {
       log.error("Unexpected posture: $posture")
     }
@@ -119,8 +117,8 @@ internal class NotificationReceiver private constructor(private val emulator: Em
         LedIndicator.State.ON -> Color(indicator.color)
         else -> null
       }
-    if (_ledStates.value[indicator.facing] != color) {
-      _ledStates.value += (indicator.facing to color)
+    _ledStates.update { map ->
+      if (map[indicator.facing] == color) map else map + (indicator.facing to color)
     }
   }
 
