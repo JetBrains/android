@@ -43,9 +43,9 @@ internal class LedIndicatorPanel(emulator: EmulatorController, parentDisposable:
   init {
     setToolTipText(HtmlChunk.empty())
     val coroutineScope = parentDisposable.createCoroutineScope()
-    val notificationReceiver = NotificationReceiver.forEmulator(emulator)
+    val notificationTracker = NotificationTracker.forEmulator(emulator)
     coroutineScope.launch(Dispatchers.EDT) {
-      notificationReceiver.ledStates.collect { states ->
+      notificationTracker.ledStates.collect { states ->
         ledStates = states
         repaint()
       }

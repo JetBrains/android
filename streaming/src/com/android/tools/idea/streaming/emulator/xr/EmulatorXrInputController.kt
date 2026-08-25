@@ -30,7 +30,7 @@ import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.NotificationReceiver
+import com.android.tools.idea.streaming.emulator.NotificationTracker
 import com.android.tools.idea.streaming.xr.AbstractXrInputController
 import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
@@ -68,7 +68,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
   init {
     Disposer.register(emulator, this)
     coroutineScope.launch {
-      NotificationReceiver.forEmulator(emulator).xrOptions.collect { xrOptions ->
+      NotificationTracker.forEmulator(emulator).xrOptions.collect { xrOptions ->
         if (xrOptions != null) {
           environment = xrOptions.environment?.let { XrEnvironment.entries[it.number] }
           passthroughCoefficient = xrOptions.passthroughCoefficient

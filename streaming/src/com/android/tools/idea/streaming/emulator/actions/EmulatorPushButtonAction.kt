@@ -19,7 +19,7 @@ import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.tools.idea.streaming.core.PushButtonAction
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
-import com.android.tools.idea.streaming.emulator.NotificationReceiver
+import com.android.tools.idea.streaming.emulator.NotificationTracker
 import com.android.tools.idea.streaming.emulator.sendKeyEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -81,8 +81,7 @@ open class EmulatorPushButtonAction(
         val emulatorView = getEmulatorView(event) ?: return
         val emulatorController = emulatorView.emulator
         if (emulatorController.connectionState == ConnectionState.CONNECTED) {
-          val skin =
-            emulatorController.getSkin(NotificationReceiver.forEmulator(emulatorController).currentPosture.value?.posture) ?: return
+          val skin = emulatorController.getSkin(NotificationTracker.forEmulator(emulatorController).currentPosture.value?.posture) ?: return
           if (skin.layout.buttons.find { it.keyName == keyName } != null) {
             presentation.isEnabledAndVisible = true
           }

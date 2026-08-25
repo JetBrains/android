@@ -68,9 +68,9 @@ internal class EmulatorDisplayPanel(
         val popup = DisplayIndicatorPopup("Display off").apply { isVisible = false }
         notificationLayerPane.add(popup)
         val coroutineScope = createCoroutineScope()
-        val notificationReceiver = NotificationReceiver.forEmulator(emulator)
+        val notificationTracker = NotificationTracker.forEmulator(emulator)
         coroutineScope.launch(Dispatchers.EDT) {
-          notificationReceiver.displayPowerModes.collect { modes ->
+          notificationTracker.displayPowerModes.collect { modes ->
             popup.isVisible = modes[displayId] == DisplayPowerModeNotification.PowerMode.OFF
           }
         }

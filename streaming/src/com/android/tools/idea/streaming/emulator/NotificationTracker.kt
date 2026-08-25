@@ -41,7 +41,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /** Receives notifications from the emulator and updates relevant properties. */
-internal class NotificationReceiver private constructor(private val emulator: EmulatorController) : Disposable, ConnectionStateListener {
+internal class NotificationTracker private constructor(private val emulator: EmulatorController) : Disposable, ConnectionStateListener {
 
   private val _currentPosture = MutableStateFlow<EmulatorConfiguration.PostureDescriptor?>(null)
   val currentPosture: StateFlow<EmulatorConfiguration.PostureDescriptor?> = _currentPosture.asStateFlow()
@@ -64,7 +64,7 @@ internal class NotificationReceiver private constructor(private val emulator: Em
   private val _displayPowerModes = MutableStateFlow<Map<Int, DisplayPowerModeNotification.PowerMode>>(emptyMap())
   val displayPowerModes: StateFlow<Map<Int, DisplayPowerModeNotification.PowerMode>> = _displayPowerModes.asStateFlow()
 
-  private val log = Logger.getInstance(NotificationReceiver::class.java)
+  private val log = Logger.getInstance(NotificationTracker::class.java)
   private val emulatorConfig
     get() = emulator.emulatorConfig
 
@@ -156,13 +156,13 @@ internal class NotificationReceiver private constructor(private val emulator: Em
   }
 
   companion object {
-    private val key = Key<NotificationReceiver>(NotificationReceiver::class.java.simpleName)
+    private val key = Key<NotificationTracker>(NotificationTracker::class.java.simpleName)
 
-    fun forEmulator(emulator: EmulatorController): NotificationReceiver {
+    fun forEmulator(emulator: EmulatorController): NotificationTracker {
       return emulator.computeUserDataIfAbsent(key) {
-        val receiver = NotificationReceiver(emulator)
-        Disposer.register(emulator, receiver)
-        receiver
+        val tracker = NotificationTracker(emulator)
+        Disposer.register(emulator, tracker)
+        tracker
       }
     }
   }

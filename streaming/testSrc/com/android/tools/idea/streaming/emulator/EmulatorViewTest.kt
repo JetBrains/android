@@ -533,7 +533,7 @@ class EmulatorViewTest {
 
     fakeEmulator.setPosture(PostureValue.POSTURE_CLOSED)
     waitForCondition(1.seconds) {
-      NotificationReceiver.forEmulator(view.emulator).currentPosture.value?.posture == PostureValue.POSTURE_CLOSED
+      NotificationTracker.forEmulator(view.emulator).currentPosture.value?.posture == PostureValue.POSTURE_CLOSED
     }
     getStreamScreenshotCallAndWaitForFrame()
     assertAppearance("FoldingClosed")
@@ -1337,7 +1337,7 @@ class EmulatorViewTest {
     waitForCondition(2.seconds) {
       view.emulator.connectionState == ConnectionState.CONNECTED &&
         view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
-        NotificationReceiver.forEmulator(view.emulator).currentPosture.value?.posture == fakeEmulator.devicePosture
+        NotificationTracker.forEmulator(view.emulator).currentPosture.value?.posture == fakeEmulator.devicePosture
       fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber() == fakeEmulator.frameNumber
     }
   }

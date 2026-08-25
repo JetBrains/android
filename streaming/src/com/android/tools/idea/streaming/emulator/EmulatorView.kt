@@ -252,7 +252,7 @@ internal class EmulatorView(
   private var screenshotFeed: Cancelable? = null
   @Volatile private var screenshotReceiver: ScreenshotReceiver? = null
 
-  private val notificationReceiver = NotificationReceiver.forEmulator(emulator)
+  private val notificationTracker = NotificationTracker.forEmulator(emulator)
 
   private val coroutineScope = createCoroutineScope()
   private var notificationCollectionJob: Job? = null
@@ -262,7 +262,7 @@ internal class EmulatorView(
 
   private val sourceFrameListeners = DisposableWrapperList<SourceFrameListener>()
   private val currentPosture: PostureValue?
-    get() = notificationReceiver.currentPosture.value?.posture
+    get() = notificationTracker.currentPosture.value?.posture
 
   var deviceFrameVisible: Boolean = deviceFrameVisible
     set(value) {
@@ -417,7 +417,7 @@ internal class EmulatorView(
   }
 
   private val virtualSceneCameraActive: Boolean
-    get() = notificationReceiver.virtualSceneCameraActive.value
+    get() = notificationTracker.virtualSceneCameraActive.value
 
   private var virtualSceneCameraController: VirtualSceneCameraController? = null
   override var xrInputController: EmulatorXrInputController? = null
@@ -757,13 +757,13 @@ internal class EmulatorView(
     notificationCollectionJob =
       coroutineScope.launch(Dispatchers.EDT) {
         launch {
-          notificationReceiver.currentPosture.collect { posture ->
+          notificationTracker.currentPosture.collect { posture ->
             if (posture != null && deviceFrameVisible) {
               requestScreenshotFeed()
             }
           }
         }
-        launch { notificationReceiver.virtualSceneCameraActive.collect { updateCameraPromptAndMultiTouchFeedback() } }
+        launch { notificationTracker.virtualSceneCameraActive.collect { updateCameraPromptAndMultiTouchFeedback() } }
       }
   }
 

@@ -183,11 +183,11 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
     primaryDisplayView = emulatorView
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
     val coroutineScope = disposable.createCoroutineScope()
-    val notificationReceiver = NotificationReceiver.forEmulator(emulator)
-    coroutineScope.launch(Dispatchers.EDT) { notificationReceiver.currentPosture.collect { ActivityTracker.getInstance().inc() } }
-    coroutineScope.launch(Dispatchers.EDT) { notificationReceiver.currentPosture.collect { ActivityTracker.getInstance().inc() } }
+    val notificationTracker = NotificationTracker.forEmulator(emulator)
+    coroutineScope.launch(Dispatchers.EDT) { notificationTracker.currentPosture.collect { ActivityTracker.getInstance().inc() } }
+    coroutineScope.launch(Dispatchers.EDT) { notificationTracker.currentPosture.collect { ActivityTracker.getInstance().inc() } }
     coroutineScope.launch(Dispatchers.EDT) {
-      notificationReceiver.displayConfigurations.collect { displayConfigs ->
+      notificationTracker.displayConfigurations.collect { displayConfigs ->
         if (displayConfigs != null) {
           displayConfigurator.displayConfigurationReceived(displayConfigs)
         }

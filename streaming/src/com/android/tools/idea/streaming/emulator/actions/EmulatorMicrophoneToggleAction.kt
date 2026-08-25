@@ -20,7 +20,7 @@ import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.NotificationReceiver
+import com.android.tools.idea.streaming.emulator.NotificationTracker
 import com.android.tools.idea.streaming.emulator.getEmptyObserver
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -69,4 +69,4 @@ internal class EmulatorMicrophoneToggleAction : AbstractEmulatorAction(configFil
 }
 
 private val EmulatorController.microphoneInput: Boolean?
-  get() = NotificationReceiver.forEmulator(this).microphoneInput.value
+  get() = NotificationTracker.forEmulator(this).microphoneInput.value
