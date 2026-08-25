@@ -741,7 +741,7 @@ public:
   explicit DisplayAddedOrChangedNotification(int32_t display_id, Size logical_size, int32_t rotation, int32_t display_type)
       : ControlMessage(TYPE),
         display_id_(display_id),
-        logical_size_(std::move(logical_size)),
+        logical_size_(logical_size),
         rotation_(rotation),
         display_type_(display_type) {
   }
