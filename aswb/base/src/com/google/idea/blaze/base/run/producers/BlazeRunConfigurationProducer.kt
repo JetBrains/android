@@ -112,11 +112,13 @@ abstract class BlazeRunConfigurationProducer<C : RunConfigurationContext>(config
     return resolvedContext.setupRunConfiguration(config)
   }
 
-  private fun getPopupPosition(dataContext: DataContext): RelativePoint? =
-    if (PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) != null || CommonDataKeys.EDITOR.getData(dataContext) != null) {
-      getBestPopupPosition(dataContext)
-    } else {
-      null
+  private suspend fun getPopupPosition(dataContext: DataContext): RelativePoint? =
+    withContext(Dispatchers.EDT) {
+      if (PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) != null || CommonDataKeys.EDITOR.getData(dataContext) != null) {
+        getBestPopupPosition(dataContext)
+      } else {
+        null
+      }
     }
 
   final override fun onFirstRun(configuration: ConfigurationFromContext, context: ConfigurationContext, startRunnable: Runnable) {

@@ -38,14 +38,18 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileSystemItem;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.icons.CoreIconManager;
@@ -160,28 +164,46 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
   }
 
   protected ConfigurationContext createContextFromPsi(PsiElement element) {
-    return runReadAction(
-        () ->
-            ConfigurationContext.getFromContext(
-                SimpleDataContext.builder()
-                    .add(CommonDataKeys.PROJECT, getProject())
-                    .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(element))
-                    .add(Location.DATA_KEY, PsiLocation.fromPsiElement(element))
-                    .build()));
+    return EdtTestUtil.runInEdtAndGet(
+        () -> {
+          Editor editor = null;
+          // Only open an editor for elements inside a file (e.g., classes, methods, or BUILD
+          // targets),
+          // rather than the file itself or a directory (which represent Project View interactions).
+          if (!(element instanceof PsiFileSystemItem)) {
+            PsiFile containingFile = runReadAction(element::getContainingFile);
+            if (containingFile != null && containingFile.getVirtualFile() != null) {
+              try {
+                editor = editorTest.openFileInEditor(containingFile);
+              } catch (Throwable e) {
+                throw new RuntimeException(e);
+              }
+            }
+          }
+          Editor finalEditor = editor;
+          return runReadAction(
+              () -> {
+                SimpleDataContext.Builder builder =
+                    SimpleDataContext.builder()
+                        .add(CommonDataKeys.PROJECT, getProject())
+                        .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(element))
+                        .add(Location.DATA_KEY, PsiLocation.fromPsiElement(element));
+                if (finalEditor != null) {
+                  builder.add(CommonDataKeys.EDITOR, finalEditor);
+                  builder.add(
+                      PlatformCoreDataKeys.CONTEXT_COMPONENT, finalEditor.getContentComponent());
+                }
+                return ConfigurationContext.getFromContext(builder.build());
+              });
+        });
   }
 
   @Nullable
   protected RunConfiguration createConfigurationFromLocation(PsiFile psiFile) {
+    ConfigurationContext context = createContextFromPsi(psiFile);
     return runReadAction(
         () -> {
-          RunnerAndConfigurationSettings settings =
-              ConfigurationContext.getFromContext(
-                      SimpleDataContext.builder()
-                          .add(CommonDataKeys.PROJECT, getProject())
-                          .add(LangDataKeys.MODULE, ModuleUtil.findModuleForPsiElement(psiFile))
-                          .add(Location.DATA_KEY, PsiLocation.fromPsiElement(psiFile))
-                          .build())
-                  .getConfiguration();
+          RunnerAndConfigurationSettings settings = context.getConfiguration();
           return settings != null ? settings.getConfiguration() : null;
         });
   }

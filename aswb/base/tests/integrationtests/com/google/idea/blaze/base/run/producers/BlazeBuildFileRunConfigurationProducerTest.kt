@@ -26,6 +26,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspacePath
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState
 import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.junit.Test
@@ -103,6 +104,22 @@ class BlazeBuildFileRunConfigurationProducerTest : BlazeRunConfigurationProducer
 
     val isConfigFromContext = runReadAction { BlazeBuildFileRunConfigurationProducer().isConfigurationFromContext(config, context) }
     assertThat(isConfigFromContext).isFalse()
+  }
+
+  @Test
+  fun testPerformFirstRunWithEditorInContext() {
+    val buildFile = workspace.createPsiFile(WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests')")
+    val element = findChild<StringLiteral>(buildFile)
+    val context = createContextFromPsi(element)
+    assertThat(context.dataContext.getData(CommonDataKeys.EDITOR)).isNotNull()
+    val configurations = getConfigurationsFromContext(context)
+    assertThat(configurations).hasSize(1)
+
+    val fromContext = configurations.first()
+    val config = fromContext.configuration as BlazeCommandRunConfiguration
+    performFirstRun(BlazeBuildFileRunConfigurationProducer.getInstance(), config, context)
+    assertThat(config.targetPatterns).containsExactly("//java/com/google/test:unit_tests")
+    assertThat(getCommandType(config)).isEqualTo(BlazeCommandName.TEST)
   }
 
   private inline fun <reified T : PsiElement> createConfiguration(file: PsiFile): Pair<BlazeCommandRunConfiguration, ConfigurationContext> {
