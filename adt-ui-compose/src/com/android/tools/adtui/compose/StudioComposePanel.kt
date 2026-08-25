@@ -16,14 +16,20 @@
 package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.JewelComposeNoThemePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
 @Suppress("FunctionName", "UnstableApiUsage")
-@OptIn(ExperimentalJewelApi::class)
+@OptIn(ExperimentalJewelApi::class, ExperimentalComposeUiApi::class)
 fun StudioComposePanel(content: @Composable () -> Unit): JComponent {
   enableNewSwingCompositing()
-  return JewelComposeNoThemePanel(focusOnClickInside = true) { StudioTheme(content) }
+  return JewelComposeNoThemePanel(
+    focusOnClickInside = true,
+    config = { redispatchUnconsumedMouseWheelEvents = false },
+  ) {
+    StudioTheme(content)
+  }
 }

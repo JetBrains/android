@@ -500,6 +500,7 @@ studio_plugin(
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
         "@intellij//:intellij.libraries.skiko",
+        "@intellij//:intellij.platform.compose",
         "@intellij//:intellij.platform.diagnostic.freezeAnalyzer",
         "@intellij//:intellij.platform.jewel.foundation",
         "@intellij//:intellij.platform.jewel.ideLafBridge",
