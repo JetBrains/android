@@ -349,10 +349,8 @@ public class AndroidGradleTests {
         contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", agpEnvironment.getAgpVersion());
         contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", agpEnvironment.getAgpVersion());
         contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", BuildEnvironment.getInstance().getBuildToolsVersion());
-        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", agpEnvironment.getCompileSdk());
-        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", agpEnvironment.getCompileSdk());
-        contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", agpEnvironment.getTargetSdk());
-        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", agpEnvironment.getTargetSdk());
+        contents = updateCompileSdkVersion(contents, agpEnvironment.getCompileSdk());
+        contents = updateTargetSdkVersion(contents, agpEnvironment.getTargetSdk());
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
@@ -373,10 +371,8 @@ public class AndroidGradleTests {
 
         final var buildEnvironment = BuildEnvironment.getInstance();
         contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
-        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", agpEnvironment.getCompileSdk());
-        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", agpEnvironment.getCompileSdk());
-        contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", agpEnvironment.getTargetSdk());
-        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", agpEnvironment.getTargetSdk());
+        contents = updateCompileSdkVersion(contents, agpEnvironment.getCompileSdk());
+        contents = updateTargetSdkVersion(contents, agpEnvironment.getTargetSdk());
         contents = replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\"org.jetbrains.kotlin:kotlin-stdlib:(.+)\"\\)", agpEnvironment.getKotlinVersion());
 
         contents = updateLocalRepositories(contents, localRepositories);
@@ -422,17 +418,63 @@ public class AndroidGradleTests {
     return replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", BuildEnvironment.getInstance().getBuildToolsVersion());
   }
 
+  // Matches compileSdk { ... } blocks, including single-level nested blocks like release(36) { minorApiLevel = 1 }
+  private static final Pattern COMPILE_SDK_BLOCK_PATTERN =
+      Pattern.compile("\\bcompileSdk\\s*\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)?\\}");
+
+  // Matches compileSdkVersion or compileSdk declarations, including optional @Suppress("DEPRECATION")
+  private static final Pattern COMPILE_SDK_LEGACY_PATTERN =
+      Pattern.compile(
+          "(?:@Suppress\\([\"']DEPRECATION[\"']\\)\\s*[\r\n]+\\s*)?\\bcompileSdk(?:Version)?\\b(?:\\s*\\([^)]*\\)|\\s*=\\s*['\"]?[0-9a-zA-Z._-]+['\"]?|\\s+['\"]?[0-9a-zA-Z._-]+['\"]?)");
+
+  @Nullable
+  private static String buildCompileSdkDsl(@NotNull AndroidVersion version) {
+    if (version.getCodename() != null) {
+      return String.format("compileSdk {\n        version = preview(\"%s\")\n    }", version.getCodename());
+    }
+    if (version.getApiMinorLevel() > 0) {
+      return String.format(
+          "compileSdk {\n        version = release(%d) {\n            minorApiLevel = %d\n        }\n    }",
+          version.getApiLevel(), version.getApiMinorLevel());
+    }
+    if (version.getApiLevel() >= 36) {
+      return String.format("compileSdk {\n        version = release(%d)\n    }", version.getApiLevel());
+    }
+    return null;
+  }
+
   @NotNull
   public static String updateCompileSdkVersion(@NotNull String contents, @NotNull String compileSdkVersion) {
-    contents = replaceRegexGroup(contents, "compileSdkVersion *[(=]? *([0-9]+)", compileSdkVersion);
-    contents = replaceRegexGroup(contents, "compileSdk *[(=]? *([0-9]+)", compileSdkVersion);
+    try {
+      AndroidVersion version = AndroidVersion.fromString(compileSdkVersion);
+      String dsl = buildCompileSdkDsl(version);
+      if (dsl != null) {
+        Matcher blockMatcher = COMPILE_SDK_BLOCK_PATTERN.matcher(contents);
+        if (blockMatcher.find()) {
+          return blockMatcher.replaceAll(Matcher.quoteReplacement(dsl));
+        }
+        Matcher legacyMatcher = COMPILE_SDK_LEGACY_PATTERN.matcher(contents);
+        if (legacyMatcher.find()) {
+          return legacyMatcher.replaceAll(Matcher.quoteReplacement(dsl));
+        }
+      } else {
+        // When downgrading to < 36, convert any existing block DSL to legacy syntax
+        Matcher blockMatcher = COMPILE_SDK_BLOCK_PATTERN.matcher(contents);
+        if (blockMatcher.find()) {
+          contents = blockMatcher.replaceAll("compileSdk = " + compileSdkVersion);
+        }
+      }
+    } catch (IllegalArgumentException ignored) {
+    }
+    contents = replaceRegexGroup(contents, "\\bcompileSdkVersion\\b *[(=]? *([0-9]+(?:\\.[0-9]+)?)", compileSdkVersion);
+    contents = replaceRegexGroup(contents, "\\bcompileSdk\\b *[(=]? *([0-9]+(?:\\.[0-9]+)?)", compileSdkVersion);
     return contents;
   }
 
   @NotNull
   public static String updateTargetSdkVersion(@NotNull String contents, @NotNull String targetSdkVersion) {
-    contents = replaceRegexGroup(contents, "targetSdkVersion *[(=]? *([0-9]+)", targetSdkVersion);
-    contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", targetSdkVersion);
+    contents = replaceRegexGroup(contents, "\\btargetSdkVersion\\b *[(=]? *([0-9]+(?:\\.[0-9]+)?)", targetSdkVersion);
+    contents = replaceRegexGroup(contents, "\\btargetSdk\\b *[(=]? *([0-9]+(?:\\.[0-9]+)?)", targetSdkVersion);
     return contents;
   }
 

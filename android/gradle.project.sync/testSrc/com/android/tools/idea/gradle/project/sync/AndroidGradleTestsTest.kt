@@ -73,6 +73,70 @@ class AndroidGradleTestsTest {
   }
 
   @Test
+  fun testUpdateCompileSdkVersion36() {
+    val contents = "android {\n    compileSdkVersion 34\n}"
+    val result = AndroidGradleTests.updateCompileSdkVersion(contents, "36")
+    assertThat(result).isEqualTo("android {\n    compileSdk {\n        version = release(36)\n    }\n}")
+  }
+
+  @Test
+  fun testUpdateCompileSdkVersion36_1() {
+    val contents = "android {\n    compileSdk = 34\n}"
+    val result = AndroidGradleTests.updateCompileSdkVersion(contents, "36.1")
+    assertThat(result)
+      .isEqualTo("android {\n    compileSdk {\n        version = release(36) {\n            minorApiLevel = 1\n        }\n    }\n}")
+  }
+
+  @Test
+  fun testUpdateCompileSdkVersionLegacy() {
+    val contents = "android {\n    compileSdk = 33\n}"
+    val result = AndroidGradleTests.updateCompileSdkVersion(contents, "34")
+    assertThat(result).isEqualTo("android {\n    compileSdk = 34\n}")
+  }
+
+  @Test
+  fun testUpdateTargetSdkVersion36() {
+    val contents = "defaultConfig {\n    targetSdkVersion 34\n}"
+    val result = AndroidGradleTests.updateTargetSdkVersion(contents, "36")
+    assertThat(result).isEqualTo("defaultConfig {\n    targetSdkVersion 36\n}")
+  }
+
+  @Test
+  fun testUpdateCompileSdkVersionFromExistingMinorBlock() {
+    val contents = "android {\n    compileSdk {\n        version = release(36) {\n            minorApiLevel = 1\n        }\n    }\n}"
+    val result = AndroidGradleTests.updateCompileSdkVersion(contents, "36")
+    assertThat(result).isEqualTo("android {\n    compileSdk {\n        version = release(36)\n    }\n}")
+  }
+
+  @Test
+  fun testUpdateCompileSdkVersionPreservesExtension() {
+    val contents = "android {\n    compileSdk = 34\n    compileSdkExtension = 13\n}"
+    val result = AndroidGradleTests.updateCompileSdkVersion(contents, "36")
+    assertThat(result).isEqualTo("android {\n    compileSdk {\n        version = release(36)\n    }\n    compileSdkExtension = 13\n}")
+  }
+
+  @Test
+  fun testUpdateCompileSdkVersionWithDeprecationAnnotation() {
+    val contents = "android {\n    @Suppress(\"DEPRECATION\")\n    compileSdkVersion(34)\n}"
+    val result = AndroidGradleTests.updateCompileSdkVersion(contents, "36")
+    assertThat(result).isEqualTo("android {\n    compileSdk {\n        version = release(36)\n    }\n}")
+  }
+
+  @Test
+  fun testUpdateCompileSdkVersionDowngradeFromBlock() {
+    val contents = "android {\n    compileSdk {\n        version = release(36)\n    }\n}"
+    val result = AndroidGradleTests.updateCompileSdkVersion(contents, "34")
+    assertThat(result).isEqualTo("android {\n    compileSdk = 34\n}")
+  }
+
+  @Test
+  fun testUpdateTargetSdkVersionDecimalRoundtrip() {
+    val contents = "defaultConfig {\n    targetSdk = 36.1\n}"
+    val result = AndroidGradleTests.updateTargetSdkVersion(contents, "37")
+    assertThat(result).isEqualTo("defaultConfig {\n    targetSdk = 37\n}")
+  }
+
+  @Test
   fun testEmptyNotInEdt() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open {}

@@ -111,16 +111,24 @@ fun AgpVersionSoftwareEnvironment.withGradle(gradleVersion: String?): CustomAgpV
 fun AgpVersionSoftwareEnvironment.withKotlin(kotlinVersion: String?): CustomAgpVersionSoftwareEnvironment =
   CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, jdkVersion, kotlinVersion, compileSdk, targetSdk, modelVersion)
 
-fun AgpVersionSoftwareEnvironment.withCompileSdk(compileSdk: AndroidVersion): CustomAgpVersionSoftwareEnvironment =
-  CustomAgpVersionSoftwareEnvironment(
+fun AgpVersionSoftwareEnvironment.withCompileSdk(compileSdk: AndroidVersion): CustomAgpVersionSoftwareEnvironment {
+  val sdkString =
+    when {
+      compileSdk.codename != null -> compileSdk.codename!!
+      compileSdk.extensionLevel != null && !compileSdk.isBaseExtension ->
+        "${compileSdk.androidApiLevel.toShortString()}-ext${compileSdk.extensionLevel}"
+      else -> compileSdk.androidApiLevel.toShortString()
+    }
+  return CustomAgpVersionSoftwareEnvironment(
     agpVersion,
     gradleVersion,
     jdkVersion,
     kotlinVersion,
-    compileSdk.apiStringWithExtension,
+    sdkString,
     targetSdk,
     modelVersion,
   )
+}
 
 fun AgpVersionSoftwareEnvironment.withCompileSdk(compileSdk: AndroidApiLevel): CustomAgpVersionSoftwareEnvironment =
   withCompileSdk(AndroidVersion(compileSdk))

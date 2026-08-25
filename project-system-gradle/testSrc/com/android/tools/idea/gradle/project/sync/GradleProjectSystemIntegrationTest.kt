@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GoogleMavenArtifactId.ESPRESSO_CORE
 import com.android.ide.common.repository.WellKnownMavenArtifactId.Companion.GUAVA_GUAVA
 import com.android.ide.common.repository.WellKnownMavenArtifactId.Companion.JUNIT_JUNIT
 import com.android.manifmerger.ManifestSystemProperty
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.model.AndroidModel
@@ -61,7 +62,9 @@ data class GradleProjectSystemIntegrationTest(
           expect.that(overrides[ManifestSystemProperty.Instrumentation.NAME]).isNull()
           expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("com.example.multiflavor.firstAbc.secondAbc.debug")
           expect.that(overrides[ManifestSystemProperty.Instrumentation.TARGET_PACKAGE]).isNull()
-          expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION]).isEqualTo(agpVersion.targetSdk)
+          expect
+            .that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION])
+            .isEqualTo(AndroidVersion.fromString(agpVersion.targetSdk).apiString)
           expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_CODE]).isEqualTo("20")
           expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_NAME]).isEqualTo("1.secondAbc-firstAbc-secondAbc-debug")
           expect.that(overrides[ManifestSystemProperty.Profileable.SHELL]).isNull()
@@ -82,7 +85,9 @@ data class GradleProjectSystemIntegrationTest(
           expect.that(overrides[ManifestSystemProperty.Instrumentation.NAME]).isNull()
           expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("com.example.multiflavor.secondXyz.release")
           expect.that(overrides[ManifestSystemProperty.Instrumentation.TARGET_PACKAGE]).isNull()
-          expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION]).isEqualTo(agpVersion.targetSdk)
+          expect
+            .that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION])
+            .isEqualTo(AndroidVersion.fromString(agpVersion.targetSdk).apiString)
           expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_CODE]).isEqualTo("31")
           expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_NAME]).isEqualTo("1.0-secondXyz-release")
           expect.that(overrides[ManifestSystemProperty.Profileable.SHELL]).isNull()
@@ -100,7 +105,7 @@ data class GradleProjectSystemIntegrationTest(
               mapOf(
                 ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
                 ManifestSystemProperty.Document.PACKAGE to "com.example.lib",
-                ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to agpVersion.targetSdk,
+                ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to AndroidVersion.fromString(agpVersion.targetSdk).apiString,
                 ManifestSystemProperty.Manifest.VERSION_CODE to "1",
                 ManifestSystemProperty.Manifest.VERSION_NAME to "1.0",
               )
@@ -116,7 +121,7 @@ data class GradleProjectSystemIntegrationTest(
               mapOf(
                 ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
                 ManifestSystemProperty.Document.PACKAGE to "com.example.android.app.testmodule",
-                ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to agpVersion.targetSdk,
+                ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to AndroidVersion.fromString(agpVersion.targetSdk).apiString,
               )
             )
         },
