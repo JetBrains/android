@@ -42,6 +42,8 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.awt.image.SinglePixelPackedSampleModel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -89,19 +91,82 @@ public class ImageUtils {
 
     int w = source.getWidth();
     int h = source.getHeight();
+    int type = source.getType();
 
+    if (isStandardIntImage(source, type, w, h)) {
+      int rotatedW = (numQuadrants == 2) ? w : h;
+      int rotatedH = (numQuadrants == 2) ? h : w;
+      BufferedImage result = new BufferedImage(rotatedW, rotatedH, type);
+      DataBufferInt srcBuffer = (DataBufferInt) source.getRaster().getDataBuffer();
+      DataBufferInt dstBuffer = (DataBufferInt) result.getRaster().getDataBuffer();
+      rotateIntArray(srcBuffer.getData(), dstBuffer.getData(), w, h, numQuadrants);
+      return result;
+    }
+
+    return rotateByQuadrantsUsingJava2D(source, numQuadrants, w, h, type);
+  }
+
+  private static boolean isStandardIntImage(@NotNull BufferedImage image, int type, int w, int h) {
+    return (type == BufferedImage.TYPE_INT_ARGB
+            || type == BufferedImage.TYPE_INT_RGB
+            || type == BufferedImage.TYPE_INT_BGR
+            || type == BufferedImage.TYPE_INT_ARGB_PRE)
+        && image.getRaster().getDataBuffer() instanceof DataBufferInt dataBuffer
+        && dataBuffer.getOffset() == 0
+        && dataBuffer.getData().length == w * h
+        && image.getSampleModel() instanceof SinglePixelPackedSampleModel sampleModel
+        && sampleModel.getScanlineStride() == w;
+  }
+
+  private static void rotateIntArray(int[] src, int[] dst, int w, int h, int numQuadrants) {
+    final int TILE_SIZE = 32;
+    switch (numQuadrants) {
+      case 1: // 90 degrees CCW (270 degrees CW): dst[(w - 1 - x) * h + y] = src[y * w + x]
+        for (int tx = 0; tx < w; tx += TILE_SIZE) {
+          int xMax = min(tx + TILE_SIZE, w);
+          for (int ty = 0; ty < h; ty += TILE_SIZE) {
+            int yMax = min(ty + TILE_SIZE, h);
+            for (int x = tx; x < xMax; x++) {
+              int dstRowOffset = (w - 1 - x) * h;
+              for (int y = ty; y < yMax; y++) {
+                dst[dstRowOffset + y] = src[y * w + x];
+              }
+            }
+          }
+        }
+        break;
+
+      case 2: // 180 degrees
+        int len = w * h;
+        for (int i = 0; i < len; i++) {
+          dst[i] = src[len - 1 - i];
+        }
+        break;
+
+      case 3: // 270 degrees CCW (90 degrees CW): dst[x * h + (h - 1 - y)] = src[y * w + x]
+        for (int tx = 0; tx < w; tx += TILE_SIZE) {
+          int xMax = min(tx + TILE_SIZE, w);
+          for (int ty = 0; ty < h; ty += TILE_SIZE) {
+            int yMax = min(ty + TILE_SIZE, h);
+            for (int x = tx; x < xMax; x++) {
+              int dstRowOffset = x * h + h - 1;
+              for (int y = ty; y < yMax; y++) {
+                dst[dstRowOffset - y] = src[y * w + x];
+              }
+            }
+          }
+        }
+        break;
+    }
+  }
+
+  private static @NotNull BufferedImage rotateByQuadrantsUsingJava2D(
+      @NotNull BufferedImage source, int numQuadrants, int w, int h, int type) {
     int rotatedW;
     int rotatedH;
     int shiftX;
     int shiftY;
     switch (numQuadrants) {
-      default:
-        rotatedW = w;
-        rotatedH = h;
-        shiftX = 0;
-        shiftY = 0;
-        break;
-
       case 1:
         rotatedW = h;
         rotatedH = w;
@@ -122,9 +187,20 @@ public class ImageUtils {
         shiftX = h;
         shiftY = 0;
         break;
+
+      default:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = 0;
+        shiftY = 0;
+        break;
     }
 
-    BufferedImage result = new BufferedImage(rotatedW, rotatedH, source.getType());
+    if (type == BufferedImage.TYPE_CUSTOM) {
+      type = BufferedImage.TYPE_INT_ARGB;
+    }
+
+    BufferedImage result = new BufferedImage(rotatedW, rotatedH, type);
     Graphics2D graphics = result.createGraphics();
     graphics.setRenderingHint(KEY_RENDERING, VALUE_RENDER_SPEED);
     graphics.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);

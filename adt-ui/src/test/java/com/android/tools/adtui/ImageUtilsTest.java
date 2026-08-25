@@ -91,6 +91,51 @@ public class ImageUtilsTest extends TestCase {
       img = ImageUtils.rotateByQuadrants(img, 3);
     }
     assertEqualsImage(srcImage, img);
+
+    for (int imageType : new int[] {
+        BufferedImage.TYPE_INT_ARGB,
+        BufferedImage.TYPE_INT_RGB,
+        BufferedImage.TYPE_INT_BGR,
+        BufferedImage.TYPE_INT_ARGB_PRE}) {
+      int width = 73;
+      int height = 89;
+      BufferedImage img1 = new BufferedImage(width, height, imageType);
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          img1.setRGB(x, y, ((x * 3 + y * 7) & 0xFF) | 0xFF000000);
+        }
+      }
+
+      // Rotate 1 (90 deg CCW): dst(y, w - 1 - x) = src(x, y) -> dx = y, dy = w - 1 - x
+      BufferedImage rot1 = ImageUtils.rotateByQuadrants(img1, 1);
+      assertEquals(height, rot1.getWidth());
+      assertEquals(width, rot1.getHeight());
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          assertEquals("Mismatch at x=" + x + ", y=" + y, img1.getRGB(x, y), rot1.getRGB(y, width - 1 - x));
+        }
+      }
+
+      // Rotate 2 (180 deg): dst(w - 1 - x, h - 1 - y) = src(x, y)
+      BufferedImage rot2 = ImageUtils.rotateByQuadrants(img1, 2);
+      assertEquals(width, rot2.getWidth());
+      assertEquals(height, rot2.getHeight());
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          assertEquals("Mismatch at x=" + x + ", y=" + y, img1.getRGB(x, y), rot2.getRGB(width - 1 - x, height - 1 - y));
+        }
+      }
+
+      // Rotate 3 (270 deg CCW): dst(h - 1 - y, x) = src(x, y) -> dx = h - 1 - y, dy = x
+      BufferedImage rot3 = ImageUtils.rotateByQuadrants(img1, 3);
+      assertEquals(height, rot3.getWidth());
+      assertEquals(width, rot3.getHeight());
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          assertEquals("Mismatch at x=" + x + ", y=" + y, img1.getRGB(x, y), rot3.getRGB(height - 1 - y, x));
+        }
+      }
+    }
   }
 
   public void testRotateByQuadrantsAndScale() throws Exception {
