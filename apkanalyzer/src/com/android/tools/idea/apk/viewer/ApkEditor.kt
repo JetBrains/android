@@ -41,7 +41,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooser
@@ -165,15 +165,14 @@ internal class ApkEditor(
               archiveContext = context
               proguardMapping = loadProguardMapping(context.getArchive(), apkVirtualFile.toNioPath())
               // TODO(b/244771241) ApkViewPanel should be created on the UI thread
-              val panel =
-                ThreadingCheckerUtil.withChecksDisabledForSupplier {
-                  ApkViewPanel(
-                    ApkParser(context, ApkSizeCalculator.getDefault()),
-                    apkVirtualFile.name,
-                    applicationInfoProvider,
-                    isPageAlignFeatureEnabled,
-                  )
-                }
+              val panel = ThreadingCheckerUtil.withChecksDisabledForSupplier {
+                ApkViewPanel(
+                  ApkParser(context, ApkSizeCalculator.getDefault()),
+                  apkVirtualFile.name,
+                  applicationInfoProvider,
+                  isPageAlignFeatureEnabled,
+                )
+              }
               apkViewPanel = panel
               panel.setListener(this@ApkEditor)
               ApplicationManager.getApplication().invokeLater {
@@ -545,11 +544,9 @@ internal class ApkEditor(
 
     private fun AsyncFileEditorProvider.createEditor(project: Project, disposable: Disposable, file: VirtualFile): FileEditor {
       val scope = disposable.createCoroutineScope()
+      val document = runReadActionBlocking { file.findDocument() }
       @Suppress("UnstableApiUsage")
-      return runWithModalProgressBlocking(project, "Creating editor...") {
-        // findDocument() requires a read lock in this platform (IJPL-244698), so it cannot be called directly on the worker thread.
-        createFileEditor(project, file, readAction { file.findDocument() }, scope)
-      }
+      return runWithModalProgressBlocking(project, "Creating editor...") { createFileEditor(project, file, document, scope) }
     }
   }
 }
