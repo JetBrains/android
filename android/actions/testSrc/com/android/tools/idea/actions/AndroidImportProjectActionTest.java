@@ -19,20 +19,35 @@ import com.android.SdkConstants;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.google.common.base.Joiner;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDialog;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.testFramework.ServiceContainerUtil;
+import com.intellij.testFramework.TestActionEvent;
+import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link AndroidImportProjectAction}.
  */
+@SuppressWarnings("UnstableApiUsage")
 public class AndroidImportProjectActionTest extends HeavyPlatformTestCase {
+  private static final String LAST_IMPORTED_LOCATION = "last.imported.location";
+
   private VirtualFile myProjectRootDir;
 
   @Override
@@ -62,6 +77,71 @@ public class AndroidImportProjectActionTest extends HeavyPlatformTestCase {
   public void testFindImportTargetWithDirectoryAndGradleSettingsFile() throws IOException {
     VirtualFile file = createChildFile(SdkConstants.FN_SETTINGS_GRADLE);
     assertEquals(file, AndroidImportProjectAction.findImportTarget(myProjectRootDir));
+  }
+
+  public void testActionPerformed_withLastImportedLocation() throws IOException {
+    createChildFile(SdkConstants.FN_BUILD_GRADLE);
+    VirtualFile[] toSelectCaptured = new VirtualFile[1];
+    mockFileChooserFactory(toSelectCaptured);
+
+    PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, myProjectRootDir.getPath());
+
+    AndroidImportProjectAction action = new AndroidImportProjectAction("Import Project...", null, null);
+    AnActionEvent event = TestActionEvent.createTestEvent(action, SimpleDataContext.getProjectContext(myProject));
+    action.actionPerformed(event);
+
+    assertEquals(myProjectRootDir, toSelectCaptured[0]);
+    assertEquals(myProjectRootDir.getPath(), PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION));
+  }
+
+  public void testActionPerformed_withoutLastImportedLocation() throws IOException {
+    createChildFile(SdkConstants.FN_BUILD_GRADLE);
+    VirtualFile[] toSelectCaptured = new VirtualFile[1];
+    mockFileChooserFactory(toSelectCaptured);
+
+    PropertiesComponent.getInstance().unsetValue(LAST_IMPORTED_LOCATION);
+
+    AndroidImportProjectAction action = new AndroidImportProjectAction("Import Project...", null, null);
+    AnActionEvent event = TestActionEvent.createTestEvent(action, SimpleDataContext.getProjectContext(myProject));
+    action.actionPerformed(event);
+
+    assertNull(toSelectCaptured[0]);
+    assertEquals(myProjectRootDir.getPath(), PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION));
+  }
+
+  public void testActionPerformed_withInvalidLastImportedLocation() throws IOException {
+    createChildFile(SdkConstants.FN_BUILD_GRADLE);
+    VirtualFile[] toSelectCaptured = new VirtualFile[1];
+    mockFileChooserFactory(toSelectCaptured);
+
+    PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, "/non/existent/path/that/does/not/exist");
+
+    AndroidImportProjectAction action = new AndroidImportProjectAction("Import Project...", null, null);
+    AnActionEvent event = TestActionEvent.createTestEvent(action, SimpleDataContext.getProjectContext(myProject));
+    action.actionPerformed(event);
+
+    assertNull(toSelectCaptured[0]);
+    assertEquals(myProjectRootDir.getPath(), PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION));
+  }
+
+  private void mockFileChooserFactory(VirtualFile[] toSelectCaptured) {
+    ServiceContainerUtil.replaceService(
+      ApplicationManager.getApplication(),
+      FileChooserFactory.class,
+      new FileChooserFactoryImpl() {
+        @NotNull
+        @Override
+        public FileChooserDialog createFileChooser(@NotNull FileChooserDescriptor descriptor,
+                                                   @Nullable Project project,
+                                                   @Nullable Component parent) {
+          return (proj, toSelect) -> {
+            toSelectCaptured[0] = toSelect.length > 0 ? toSelect[0] : null;
+            return new VirtualFile[]{myProjectRootDir};
+          };
+        }
+      },
+      getTestRootDisposable()
+    );
   }
 
   @NotNull
