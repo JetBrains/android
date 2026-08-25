@@ -23,46 +23,43 @@ import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.project.Project;
 
-/**
- * Deploy Info extractor for {@code android_binary} targets.
- */
+/** Deploy Info extractor for {@code android_binary} targets. */
 public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
   private final boolean useMobileInstall;
   private final Label targetLabel;
-  private final boolean nativeDebuggingEnabled;
+  private final boolean fetchNativeSymbols;
   private final String deployInfoOutputGroup;
   private final String apkOutputGroup;
 
   public BinaryDeployInfoExtractor(
       Label targetLabel,
       boolean useMobileInstall,
-      boolean nativeDebuggingEnabled,
+      boolean fetchNativeSymbols,
       String deployInfoOutputGroup,
       String apkOutputGroup) {
     this.targetLabel = targetLabel;
     this.useMobileInstall = useMobileInstall;
-    this.nativeDebuggingEnabled = nativeDebuggingEnabled;
+    this.fetchNativeSymbols = fetchNativeSymbols;
     this.deployInfoOutputGroup = deployInfoOutputGroup;
     this.apkOutputGroup = apkOutputGroup;
   }
 
   @Override
   public BlazeAndroidDeployInfo extract(
-    Project project,
-    BlazeBuildOutputs buildOutputs,
-    BlazeContext context)
-    throws ApkProvisionException {
+      Project project, BlazeBuildOutputs buildOutputs, BlazeContext context)
+      throws ApkProvisionException {
 
     String suffix = useMobileInstall ? "_mi.deployinfo.pb" : ".deployinfo.pb";
 
     DeployData deployData =
-      DeployDataExtractor.extract(
-        targetLabel,
-        buildOutputs.getOutputGroupArtifacts(deployInfoOutputGroup),
-        buildOutputs.getOutputGroupArtifacts(apkOutputGroup),
-        suffix,
-        context,
-        project);
-    return BlazeAndroidDeployInfo.fetchDeployArtifacts(project, buildOutputs, deployData, null, nativeDebuggingEnabled, context);
+        DeployDataExtractor.extract(
+            targetLabel,
+            buildOutputs.getOutputGroupArtifacts(deployInfoOutputGroup),
+            buildOutputs.getOutputGroupArtifacts(apkOutputGroup),
+            suffix,
+            context,
+            project);
+    return BlazeAndroidDeployInfo.fetchDeployArtifacts(
+        project, buildOutputs, deployData, null, fetchNativeSymbols, context);
   }
 }

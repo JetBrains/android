@@ -33,6 +33,7 @@ object BazelApkBuildStepProvider {
   fun getBinaryBuildStep(
     project: Project,
     useMobileInstall: Boolean,
+    isDebug: Boolean,
     nativeDebuggingEnabled: Boolean,
     liveEditDataExtractor: LiveEditDataExtractor?,
     label: Label,
@@ -44,6 +45,7 @@ object BazelApkBuildStepProvider {
 
     val deployInfoOutputGroup = if (useMobileInstall) "mobile_install_INTERNAL_" else "android_deploy_info"
     val apkOutputGroup = if (useMobileInstall) "mobile_install_INTERNAL_" else "default"
+    val fetchNativeSymbols = nativeDebuggingEnabled
 
     return BlazeApkBuildStep(
       project = project,
@@ -51,15 +53,15 @@ object BazelApkBuildStepProvider {
       blazeFlags = blazeFlags,
       exeFlags = exeFlags,
       useMobileInstall = useMobileInstall,
-      nativeDebuggingEnabled = nativeDebuggingEnabled,
+      fetchNativeSymbols = fetchNativeSymbols,
       liveEditDataExtractor = liveEditDataExtractor,
       launchId = launchId,
       buildInvoker = buildInvoker,
       deployInfoExtractor =
         BinaryDeployInfoExtractor(
-          com.google.idea.blaze.common.Label.of(label.toString()),
+          label,
           useMobileInstall,
-          nativeDebuggingEnabled,
+          fetchNativeSymbols,
           deployInfoOutputGroup,
           apkOutputGroup,
         ),
@@ -71,6 +73,7 @@ object BazelApkBuildStepProvider {
   fun getAitBuildStep(
     project: Project,
     useMobileInstall: Boolean,
+    isDebug: Boolean,
     nativeDebuggingEnabled: Boolean,
     label: Label,
     blazeFlags: List<String>,
@@ -87,6 +90,7 @@ object BazelApkBuildStepProvider {
 
     val targets = listOfNotNull(info.targetApp, info.testApp)
     val buildInvoker = Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project)
+    val fetchNativeSymbols = nativeDebuggingEnabled
 
     return BlazeApkBuildStep(
       project = project,
@@ -94,11 +98,11 @@ object BazelApkBuildStepProvider {
       blazeFlags = blazeFlags,
       exeFlags = exeFlags,
       useMobileInstall = useMobileInstall,
-      nativeDebuggingEnabled = nativeDebuggingEnabled,
+      fetchNativeSymbols = fetchNativeSymbols,
       liveEditDataExtractor = null,
       launchId = launchId,
       buildInvoker = buildInvoker,
-      deployInfoExtractor = AitDeployInfoExtractor(project, info, nativeDebuggingEnabled, "android_deploy_info", "default"),
+      deployInfoExtractor = AitDeployInfoExtractor(project, info, fetchNativeSymbols, "android_deploy_info", "default"),
     )
   }
 

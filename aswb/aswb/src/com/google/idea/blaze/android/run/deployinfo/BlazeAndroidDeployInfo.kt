@@ -93,14 +93,14 @@ private constructor(
       buildOutputs: BlazeBuildOutputs,
       mainApp: DeployData,
       appUnderTest: DeployData?,
-      nativeDebuggingEnabled: Boolean,
+      fetchNativeSymbols: Boolean,
       context: BlazeContext,
       cacheLocally: CacheLocallyFunction = ::cacheLocally,
     ): BlazeAndroidDeployInfo {
       val mainAppPackage = mainApp.fetchApks(project, context, cacheLocally)
       val testTargetAppPackage = appUnderTest?.fetchApks(project, context, cacheLocally)
 
-      val nativeSymbolTargets = if (nativeDebuggingEnabled) listOfNotNull(mainApp.targetLabel, appUnderTest?.targetLabel) else emptyList()
+      val nativeSymbolTargets = if (fetchNativeSymbols) listOfNotNull(mainApp.targetLabel, appUnderTest?.targetLabel) else emptyList()
       val nativeSymbols = nativeSymbolTargets.flatMap { fetchNativeSymbols(project, context, it, buildOutputs) }
 
       val targetStore = DeployedApplicationTargetStore.getInstance(project)

@@ -74,7 +74,7 @@ class BlazeAndroidDeployInfoTest : BlazeTestCase() {
         dummyBuildOutputs,
         mainApp = mainAppDeployData,
         appUnderTest = null,
-        nativeDebuggingEnabled = false,
+        fetchNativeSymbols = false,
         context = BlazeContext.create(),
         cacheLocally = mockCacheLocally,
       )
@@ -120,7 +120,7 @@ class BlazeAndroidDeployInfoTest : BlazeTestCase() {
         dummyBuildOutputs,
         mainApp = mainAppDeployData,
         appUnderTest = appUnderTestDeployData,
-        nativeDebuggingEnabled = false,
+        fetchNativeSymbols = false,
         context = BlazeContext.create(),
         cacheLocally = mockCacheLocally,
       )
@@ -163,7 +163,7 @@ class BlazeAndroidDeployInfoTest : BlazeTestCase() {
           dummyBuildOutputs,
           mainApp = mainAppDeployData,
           appUnderTest = null,
-          nativeDebuggingEnabled = false,
+          fetchNativeSymbols = false,
           context = BlazeContext.create(),
           cacheLocally = mockCacheLocally,
         )

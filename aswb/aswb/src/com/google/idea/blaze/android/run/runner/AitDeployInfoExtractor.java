@@ -29,29 +29,27 @@ import com.intellij.openapi.project.Project;
 public final class AitDeployInfoExtractor implements DeployInfoExtractor {
   private final Project project;
   private final InstrumentationInfo instrumentationInfo;
-  private final boolean nativeDebuggingEnabled;
+  private final boolean fetchNativeSymbols;
   private final String deployInfoOutputGroup;
   private final String apkOutputGroup;
 
   public AitDeployInfoExtractor(
       Project project,
       InstrumentationInfo instrumentationInfo,
-      boolean nativeDebuggingEnabled,
+      boolean fetchNativeSymbols,
       String deployInfoOutputGroup,
       String apkOutputGroup) {
     this.project = project;
     this.instrumentationInfo = instrumentationInfo;
-    this.nativeDebuggingEnabled = nativeDebuggingEnabled;
+    this.fetchNativeSymbols = fetchNativeSymbols;
     this.deployInfoOutputGroup = deployInfoOutputGroup;
     this.apkOutputGroup = apkOutputGroup;
   }
 
   @Override
   public BlazeAndroidDeployInfo extract(
-      Project project,
-      BlazeBuildOutputs buildOutputs,
-      BlazeContext context)
-    throws ApkProvisionException {
+      Project project, BlazeBuildOutputs buildOutputs, BlazeContext context)
+      throws ApkProvisionException {
     DeployData testData =
         deployDataForTarget(
             instrumentationInfo.testApp,
@@ -69,7 +67,8 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
               apkOutputGroup,
               context);
     }
-    return BlazeAndroidDeployInfo.fetchDeployArtifacts(this.project, buildOutputs, testData, targetData, nativeDebuggingEnabled, context);
+    return BlazeAndroidDeployInfo.fetchDeployArtifacts(
+        this.project, buildOutputs, testData, targetData, fetchNativeSymbols, context);
   }
 
   private DeployData deployDataForTarget(
@@ -77,12 +76,13 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
       BlazeBuildOutputs buildOutputs,
       String deployInfoOutputGroups,
       String apkOutputGroup,
-      BlazeContext context) throws ApkProvisionException {
+      BlazeContext context)
+      throws ApkProvisionException {
     ImmutableList<OutputArtifact> infoArtifacts =
         buildOutputs.getOutputGroupTargetArtifacts(deployInfoOutputGroups, label.toString());
     ImmutableList<OutputArtifact> apkArtifacts =
         buildOutputs.getOutputGroupTargetArtifacts(apkOutputGroup, label.toString());
     return DeployDataExtractor.extract(
-      label, infoArtifacts.asList(), apkArtifacts.asList(), "deployinfo.pb", context, project);
+        label, infoArtifacts.asList(), apkArtifacts.asList(), "deployinfo.pb", context, project);
   }
 }

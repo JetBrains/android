@@ -40,7 +40,7 @@ class BlazeApkBuildStep(
   private val blazeFlags: List<String>,
   private val exeFlags: List<String>,
   val useMobileInstall: Boolean,
-  val nativeDebuggingEnabled: Boolean,
+  val fetchNativeSymbols: Boolean,
   val liveEditDataExtractor: LiveEditDataExtractor?,
   private val launchId: String,
   private val buildInvoker: BuildInvoker,
@@ -64,7 +64,7 @@ class BlazeApkBuildStep(
       // standard build needs this to ensure deploy info is generated.
       command.addBlazeFlags("--output_groups=+android_deploy_info")
     }
-    if (nativeDebuggingEnabled) {
+    if (fetchNativeSymbols) {
       command.addBlazeFlags(NativeSymbolFinder.getInstances().map { it.additionalBuildFlags })
     }
 

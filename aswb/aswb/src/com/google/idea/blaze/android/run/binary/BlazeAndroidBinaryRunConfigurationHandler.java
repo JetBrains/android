@@ -133,10 +133,12 @@ public class BlazeAndroidBinaryRunConfigurationHandler
         configuration.getSingleTargetPattern() != null
             ? Label.of(configuration.getSingleTargetPattern())
             : Label.of("//");
+    boolean isDebug = ExecutorType.fromExecutor(executor).isDebugType();
     BlazeApkBuildStep buildStep =
         BazelApkBuildStepProvider.getBinaryBuildStep(
             project,
             AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
+            isDebug,
             configState.getCommonState().isNativeDebuggingEnabled(),
             QuerySyncUserPreferencesProvider.getInstance(project)
                     .getUserPreferences()
