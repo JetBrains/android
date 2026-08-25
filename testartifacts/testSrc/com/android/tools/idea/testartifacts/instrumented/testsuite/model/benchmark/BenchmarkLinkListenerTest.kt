@@ -23,6 +23,8 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorNavigatable
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.replaceService
 import java.io.File
@@ -41,11 +43,12 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 
+@RunsInEdt
 class BenchmarkLinkListenerTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val temporaryDirectoryRule = TemporaryDirectory()
 
-  @get:Rule val rules = checkNotNull(RuleChain.outerRule(projectRule).around(temporaryDirectoryRule))
+  @get:Rule val rules = checkNotNull(RuleChain.outerRule(projectRule).around(EdtRule()).around(temporaryDirectoryRule))
   private val mockEditorService = mock<FileEditorManager>()
   private val mockBrowserService = mock<BrowserLauncher>()
   private val fileCapture = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
