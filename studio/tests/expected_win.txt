@@ -543,7 +543,6 @@ android-studio/lib/module-intellij.libraries.guava.jar
 android-studio/lib/module-intellij.libraries.hash4j.jar
 android-studio/lib/module-intellij.libraries.hdr.histogram.jar
 android-studio/lib/module-intellij.libraries.http.client.jar
-android-studio/lib/module-intellij.libraries.icu4j.jar
 android-studio/lib/module-intellij.libraries.imgscalr.jar
 android-studio/lib/module-intellij.libraries.ini4j.jar
 android-studio/lib/module-intellij.libraries.ion.jar

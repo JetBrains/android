@@ -469,8 +469,6 @@ jvm_library(
         "//libraries/junit4:junit4_test_lib",
         "//libraries/assertj-core",
         "//libraries/assertj-core:assertj-core_test_lib",
-        "//libraries/icu4j",
-        "//libraries/icu4j:icu4j_test_lib",
         "//libraries/rd/core",
         "//libraries/rd/core:core_test_lib",
         "//platform/credential-store",

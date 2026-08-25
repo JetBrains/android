@@ -29,7 +29,6 @@ jvm_library(
     deps = [
         # do not sort,
         "//libraries/guava",
-        "//libraries/icu4j",
         "@lib//:kotlin-stdlib",
         "//android/adt-ui",
         "//android/android:core",
@@ -88,8 +87,6 @@ jvm_library(
         # do not sort,
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
-        "//libraries/icu4j",
-        "//libraries/icu4j:icu4j_test_lib",
         "@lib//:kotlin-stdlib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
