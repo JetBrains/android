@@ -61,6 +61,13 @@ class TwoLineLabelTest {
     assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF).isEqualTo(0x6F737A)
     assertThat(panel.background).isEqualTo(JBColor.WHITE)
   }
+
+  @Test
+  fun htmlDisabled() {
+    val panel = TwoLineLabel()
+    assertThat(panel.line1Label.getClientProperty("html.disable")).isEqualTo(true)
+    assertThat(panel.line2Label.getClientProperty("html.disable")).isEqualTo(true)
+  }
 }
 
 /**

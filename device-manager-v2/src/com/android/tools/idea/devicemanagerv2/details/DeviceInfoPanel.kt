@@ -217,8 +217,8 @@ class LabeledValue(label: String) {
     this.value.text = value
   }
 
-  val label = JBLabel(label)
-  val value = JBLabel()
+  val label = JBLabel(label).apply { putClientProperty("html.disable", true) }
+  val value = JBLabel().apply { putClientProperty("html.disable", true) }
 
   var isVisible: Boolean
     get() = label.isVisible
@@ -369,6 +369,10 @@ private suspend fun ConnectedDevice.shellStdoutLines(command: String): List<Stri
     }
     .toList()
 
-internal fun headingLabel(heading: String) = JBLabel(heading).apply { font = font.deriveFont(Font.BOLD) }
+internal fun headingLabel(heading: String) =
+  JBLabel(heading).apply {
+    font = font.deriveFont(Font.BOLD)
+    putClientProperty("html.disable", true)
+  }
 
 private val DF_OUTPUT_REGEX = Regex(""".+\s+\d+\s+\d+\s+(\d+)\s+.+\s+.+""")

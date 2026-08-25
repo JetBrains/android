@@ -122,18 +122,17 @@ class DeviceInfoPanelTest {
 
   @Test
   fun testPopulateDeviceInfo() {
-    fun makeProps(abi: Abi?) =
-      DeviceProperties.buildForTest {
-        manufacturer = "Google"
-        model = "Pixel 6"
-        androidVersion = AndroidVersion(30, null, 0, true)
-        androidRelease = "11"
-        abiList = listOfNotNull(abi)
-        isVirtual = false
-        resolution = Resolution(1080, 2280)
-        density = 440
-        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }
+    fun makeProps(abi: Abi?) = DeviceProperties.buildForTest {
+      manufacturer = "Google"
+      model = "Pixel 6"
+      androidVersion = AndroidVersion(30, null, 0, true)
+      androidRelease = "11"
+      abiList = listOfNotNull(abi)
+      isVirtual = false
+      resolution = Resolution(1080, 2280)
+      density = 440
+      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+    }
 
     val handle = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice("1", makeProps(null))
 
@@ -198,6 +197,18 @@ class DeviceInfoPanelTest {
         .writeTo(buffer)
       assertThat(buffer.toString())
         .isEqualTo(String.format("Properties%n" + "Type         Phone%n" + "System image /tmp/foo/system.img%n" + "API          33%n"))
+    }
+  }
+
+  @Test
+  fun htmlDisabled() = runBlocking {
+    withContext(Dispatchers.EDT) {
+      val labeledValue = LabeledValue("Label", "Value")
+      assertThat(labeledValue.label.getClientProperty("html.disable")).isEqualTo(true)
+      assertThat(labeledValue.value.getClientProperty("html.disable")).isEqualTo(true)
+
+      val heading = headingLabel("Heading")
+      assertThat(heading.getClientProperty("html.disable")).isEqualTo(true)
     }
   }
 }

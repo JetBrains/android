@@ -27,8 +27,8 @@ import javax.swing.GroupLayout
 
 /** A pair of labels arranged vertically, with the bottom one in a smaller, lighter font. */
 class TwoLineLabel : JBPanel<TwoLineLabel>(null), TableComponent {
-  internal val line1Label = JBLabel()
-  internal val line2Label = JBLabel()
+  internal val line1Label = JBLabel().apply { putClientProperty("html.disable", true) }
+  internal val line2Label = JBLabel().apply { putClientProperty("html.disable", true) }
 
   init {
     isOpaque = false
