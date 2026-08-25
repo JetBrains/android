@@ -294,4 +294,18 @@ class DeviceSkinUpdaterTest {
     // Assert
     assertThat(deviceSkin).isEqualTo(skin)
   }
+
+  @Test
+  fun updateSkinOutsideSdkSkinsFolderRefused() {
+    // Arrange
+    val skin = sdkLocation.fileSystem.getPath("../pixel_4")
+    val destinationOutsideSkins = sdkLocation.resolve("pixel_4")
+
+    // Act
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), studioSkins, sdkLocation)
+
+    // Assert
+    assertThat(deviceSkin).isEqualTo(skin)
+    assertThat(destinationOutsideSkins).doesNotExist()
+  }
 }

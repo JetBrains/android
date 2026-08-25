@@ -125,7 +125,12 @@ object DeviceSkinUpdater {
 
   private fun updateSkinImpl(skin: Path, studioSkins: Path, skinFolder: Path): Path {
     assert(skin.toString().isNotEmpty() && skin.toString() != "_no_skin")
-    val sdkDeviceSkin = skinFolder.resolve(skin)
+    val sdkDeviceSkin = skinFolder.resolve(skin).normalize()
+    if (!sdkDeviceSkin.startsWith(skinFolder)) {
+      // <d:skin> may originate from a third-party devices.xml; refuse to delete/copy outside <sdk>/skins.
+      thisLogger().warn("Skipping device skin outside $skinFolder: $skin")
+      return skin
+    }
     val studioDeviceSkin = getStudioDeviceSkin(skin.fileName.toString(), studioSkins) ?: return skin
 
     try {
