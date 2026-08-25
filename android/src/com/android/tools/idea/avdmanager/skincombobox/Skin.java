@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.avdmanager.skincombobox;
 
-import com.ibm.icu.text.Collator;
-import com.ibm.icu.util.ULocale;
 import java.nio.file.Path;
+import java.text.Collator;
 import java.util.Comparator;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 public interface Skin extends Comparable<Skin> {
   @NotNull
   Comparator<Skin> ourComparator = Comparator.<Skin, Boolean>comparing(skin -> skin.equals(NoSkin.INSTANCE), Comparator.reverseOrder())
-    .thenComparing(Object::toString, Collator.getInstance(ULocale.ROOT));
+    .thenComparing(Object::toString, Collator.getInstance(Locale.ROOT));
 
   @NotNull
   Skin merge(@NotNull Skin skin);

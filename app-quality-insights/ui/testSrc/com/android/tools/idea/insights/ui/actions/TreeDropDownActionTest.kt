@@ -28,7 +28,6 @@ import com.android.tools.idea.insights.ui.TreeDropDownPopup
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestLoggerRule
 import com.google.common.truth.Truth.assertThat
-import com.ibm.icu.impl.Assert.fail
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -45,6 +44,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
+import kotlin.test.fail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow

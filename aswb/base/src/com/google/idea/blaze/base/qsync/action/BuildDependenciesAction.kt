@@ -23,12 +23,11 @@ import com.google.idea.blaze.base.qsync.QuerySync
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt
-import com.ibm.icu.lang.UCharacter
-import com.ibm.icu.text.BreakIterator
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
+import java.text.BreakIterator
 import java.util.Locale
 import kotlinx.coroutines.guava.asDeferred
 
@@ -80,6 +79,21 @@ class BuildDependenciesAction : BlazeProjectAction() {
   }
 
   companion object {
-    val NAME: String = UCharacter.toTitleCase(Locale.US, QuerySync.BUILD_DEPENDENCIES_ACTION_NAME, BreakIterator.getWordInstance())
+    val NAME: String = toTitleCase(QuerySync.BUILD_DEPENDENCIES_ACTION_NAME)
+
+    private fun toTitleCase(text: String): String {
+      val words = BreakIterator.getWordInstance(Locale.US)
+      words.setText(text)
+      val result = StringBuilder(text.length)
+      var start = words.first()
+      var end = words.next()
+      while (end != BreakIterator.DONE) {
+        result.append(text[start].titlecaseChar())
+        (start + 1 until end).forEach { result.append(text[it].lowercaseChar()) }
+        start = end
+        end = words.next()
+      }
+      return result.toString()
+    }
   }
 }

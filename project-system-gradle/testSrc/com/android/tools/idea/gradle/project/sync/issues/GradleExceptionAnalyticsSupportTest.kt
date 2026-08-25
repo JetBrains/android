@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalytic
 import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
 import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.google.common.truth.Truth
-import com.ibm.icu.impl.Assert
 import java.lang.reflect.InvocationTargetException
+import java.util.Objects
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.serialize.PlaceholderException
@@ -118,7 +118,8 @@ class GradleExceptionAnalyticsSupportTest {
   @Test
   fun testAllowListFiltersFirstStackFrame() {
     try {
-      Assert.fail("message")
+      // throws from a java.util frame that the "com.android." allow-list must filter out
+      Objects.requireNonNull<Any>(null, "message")
     } catch (exception: Throwable) {
       val gradleFailureDetails = GradleExceptionAnalyticsSupport(listOf("com.android.")).extractFailureDetails(exception)
       // This also tests file name and line number. It will fail with changes to this file as line numbers would change.
@@ -128,7 +129,7 @@ class GradleExceptionAnalyticsSupportTest {
           className = GradleExceptionAnalyticsSupportTest::class.java.name,
           methodName = testNameRule.methodName,
           fileName = "GradleExceptionAnalyticsSupportTest.kt",
-          lineNumber = 121,
+          lineNumber = 122,
           frameIndex = 1,
         )
       Truth.assertThat(gradleFailureDetails)

@@ -18,9 +18,9 @@ package com.android.tools.idea.avdmanager.ui;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
-import com.ibm.icu.text.Collator;
-import com.ibm.icu.util.ULocale;
+import java.text.Collator;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +44,7 @@ public final class NameComparator implements Comparator<Device> {
 
   public NameComparator() {
     myComparator = Comparator.<Device, SortKey>comparing(device -> SortKey.valueOfDevice(device))
-      .thenComparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT).reversed())
+      .thenComparing(Device::getDisplayName, Collator.getInstance(Locale.ROOT).reversed())
       .thenComparing(Device::getId);
   }
 

@@ -33,8 +33,6 @@ import com.android.tools.adtui.device.ScreenDiagram
 import com.android.tools.adtui.util.getHumanizedSize
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.ibm.icu.number.NumberFormatter
-import com.ibm.icu.util.MeasureUnit
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.ui.components.JBLabel
@@ -46,6 +44,7 @@ import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.io.IOException
 import java.text.Collator
+import java.text.NumberFormat
 import java.time.Duration
 import java.util.Formatter
 import java.util.Locale
@@ -344,7 +343,7 @@ private suspend fun LabeledValue.update(updater: suspend () -> String) {
 private suspend fun readDeviceStorage(device: ConnectedDevice): String {
   val output = device.shellStdoutLines("df /data")
   val kilobytes = DF_OUTPUT_REGEX.matchEntire(output[1])?.groupValues?.get(1)?.toIntOrNull() ?: return "Unknown"
-  return MB_FORMATTER.format(kilobytes / 1024).toString()
+  return "${NumberFormat.getIntegerInstance(Locale.US).format(kilobytes / 1024)} MB"
 }
 
 private suspend fun readDevicePower(device: ConnectedDevice): String {
@@ -373,4 +372,3 @@ private suspend fun ConnectedDevice.shellStdoutLines(command: String): List<Stri
 internal fun headingLabel(heading: String) = JBLabel(heading).apply { font = font.deriveFont(Font.BOLD) }
 
 private val DF_OUTPUT_REGEX = Regex(""".+\s+\d+\s+\d+\s+(\d+)\s+.+\s+.+""")
-private val MB_FORMATTER = NumberFormatter.withLocale(Locale.US).unit(MeasureUnit.MEGABYTE)
