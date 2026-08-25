@@ -37,8 +37,10 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
@@ -47,6 +49,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@RunsInEdt
 @RunWith(JUnit4::class)
 class RestoreFileActionTest {
 
@@ -68,6 +71,7 @@ class RestoreFileActionTest {
       FlagRule(StudioFlags.BACKUP_ENABLED, true),
       ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
       temporaryFolder,
+      EdtRule(),
     )
 
   @Test
