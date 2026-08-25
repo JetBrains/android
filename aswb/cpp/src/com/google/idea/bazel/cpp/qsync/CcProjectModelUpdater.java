@@ -22,6 +22,7 @@ import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.project.ProjectProto;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -32,6 +33,8 @@ import com.jetbrains.cidr.lang.workspace.OCWorkspace;
  * compilation information from the project proto.
  */
 public class CcProjectModelUpdater implements QuerySyncProjectListener {
+  public static final BoolExperiment USE_LSP4IJ =
+    new BoolExperiment("blaze.cpp.use.lsp4ij", false);
 
   /** Provides instances of {@link CcProjectModelUpdater}. Instantiated as an extension by IJ. */
   public static class Provider implements QuerySyncProjectListenerProvider {
@@ -65,6 +68,9 @@ public class CcProjectModelUpdater implements QuerySyncProjectListener {
 
   public void updateProjectModel(
       ReadonlyQuerySyncProject querySyncProject, ProjectProto.Project spec, Context<?> context) {
+    if (USE_LSP4IJ.getValue()) {
+      return;
+    }
     if (spec.getCcWorkspace().isEmpty()) {
       return;
     }
