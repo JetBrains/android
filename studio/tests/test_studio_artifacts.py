@@ -112,13 +112,16 @@ class StudioTests(unittest.TestCase):
 
     archive_files_required = {
         "linux": [
-            "plugins/android/resources/trace_processor_daemon/trace_processor_daemon"
+            "plugins/android/resources/trace_processor_daemon/trace_processor_daemon",
+            "plugins/android/resources/traceconv/traceconv",
         ],
         "mac": [
-            "plugins/android/resources/trace_processor_daemon/trace_processor_daemon"
+            "plugins/android/resources/trace_processor_daemon/trace_processor_daemon",
+            "plugins/android/resources/traceconv/traceconv",
         ],
         "win": [
-            "plugins/android/resources/trace_processor_daemon/trace_processor_daemon.exe"
+            "plugins/android/resources/trace_processor_daemon/trace_processor_daemon.exe",
+            "plugins/android/resources/traceconv/traceconv.exe",
         ],
     }
 

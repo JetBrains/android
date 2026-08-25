@@ -73,8 +73,9 @@ object TraceconvBundler {
     var success = false
     return try {
       val execPath = TraceconvManager.getExecutablePath()
-      if (!File(execPath).exists()) {
-        LOGGER.warn("traceconv executable not found at $execPath")
+      val execFile = File(execPath)
+      if (!execFile.exists() || (!execFile.canExecute() && !execFile.setExecutable(true))) {
+        LOGGER.warn("traceconv executable not found or cannot be executed at $execPath")
         return null
       }
 

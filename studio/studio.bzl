@@ -836,6 +836,7 @@ def _get_external_attributes(all_files):
         "plugins/android/resources/perfetto/*/traced_probes",
         "plugins/android/resources/perfetto/*/libperfetto.so",
         "plugins/android/resources/trace_processor_daemon/trace_processor_daemon",
+        "plugins/android/resources/traceconv/traceconv",
         "plugins/android/resources/trace_processor_server/trace-processor",
         "plugins/gemini/resources/llamacpp/llama-server",
         "plugins/gemini/resources/llamacpp/libggml*",
