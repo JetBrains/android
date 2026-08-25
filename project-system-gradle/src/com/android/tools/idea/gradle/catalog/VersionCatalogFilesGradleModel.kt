@@ -43,6 +43,6 @@ class VersionCatalogFilesGradleModel : VersionCatalogFilesModel {
     val versionCatalogsModel = projectInfo?.externalProjectStructure ?: return mapOf()
     val model = ExternalSystemApiUtil.find(versionCatalogsModel, BuildScriptClasspathData.VERSION_CATALOGS)
 
-    return model?.data?.catalogsLocations ?: mapOf()
+    return model?.data?.catalogsLocations?.mapValues { it.value.toPath().toString() }?: mapOf()
   }
 }
