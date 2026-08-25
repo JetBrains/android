@@ -1129,7 +1129,7 @@ void Controller::PollDisplays() {
       DisplayManager::OnDisplayAdded(jni_, d1->first);
       DisplayManager::OnDisplayChanged(jni_, d1->first);
       d1++;
-    } else if (d1 == current_displays_.end()) {
+    } else if (d1 == current_displays_.end() || d1->first > d2->first) {
       DisplayManager::OnDisplayRemoved(jni_, d2->first);
       d2++;
     } else if (d1->first < d2->first) {
@@ -1137,9 +1137,6 @@ void Controller::PollDisplays() {
       DisplayManager::OnDisplayAdded(jni_, d1->first);
       DisplayManager::OnDisplayChanged(jni_, d1->first);
       d1++;
-    } else if (d1->first > d2->first) {
-      DisplayManager::OnDisplayRemoved(jni_, d2->first);
-      d2++;
     } else {
       if (d1->second != d2->second) {
         DisplayManager::OnDisplayChanged(jni_, d1->first);
