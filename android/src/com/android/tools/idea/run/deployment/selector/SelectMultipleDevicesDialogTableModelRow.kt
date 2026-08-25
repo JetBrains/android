@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.SimpleTextAttributes
 
@@ -25,8 +26,8 @@ internal class SelectMultipleDevicesDialogTableModelRow(val target: DeploymentTa
     get() {
       val greyColor = ColorUtil.toHtmlColor(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor)
       return target.device.launchCompatibility.reason?.let { reason ->
-        "<html>${target.device.name}<br><font size=-2 color=$greyColor>$reason</font></html>"
-      } ?: target.device.name
+        "<html>${escapeXmlEntities(target.device.name)}<br><font size=-2 color=$greyColor>${escapeXmlEntities(reason)}</font></html>"
+      } ?: escapeXmlEntities(target.device.name)
     }
 
   val bootOption: String
