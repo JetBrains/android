@@ -37,7 +37,7 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message =
-      issueData.error.findCauseMessage { message?.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX) == true } ?: return null
+      issueData.failure.findCauseMessage { message?.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX) == true } ?: return null
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance()
@@ -46,7 +46,7 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
     val buildIssueComposer = BuildIssueComposer(message)
     val rootCause = issueData.failure.rootCause
     val rootCauseClassName = rootCause.className ?: return null
-    if (issueData.error != rootCause) {
+    if (issueData.failure != rootCause) {
       buildIssueComposer.addDescriptionOnNewLine("Reason: ${rootCause.className}: ${rootCause.message}")
       buildIssueComposer.startNewParagraph()
       if (

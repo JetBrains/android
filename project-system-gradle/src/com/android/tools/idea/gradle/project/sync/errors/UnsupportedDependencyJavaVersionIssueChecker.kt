@@ -26,6 +26,7 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.util.lang.JavaVersion
 import java.nio.file.Path
 import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.issue.GradleIssueFailure
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 
 private val DEPENDENCY_NAME_REGEX = Regex("Could not resolve\\s+(.*)\\.")
@@ -55,9 +56,9 @@ class UnsupportedDependencyJavaVersionIssueChecker : RuntimeJavaCompiledVersionI
     gradleJdkVersion: String,
     projectPath: Path,
     gradleVersion: GradleVersion,
-    exception: Throwable,
+    cause: GradleIssueFailure,
   ): BuildIssue {
-    val dependencyName = getDependencyNameFromException(exception)
+    val dependencyName = getDependencyNameFromException(cause)
     return BuildIssueComposer("Gradle JVM version incompatible.")
       .apply {
         addDescriptionOnNewLine(
@@ -81,9 +82,10 @@ class UnsupportedDependencyJavaVersionIssueChecker : RuntimeJavaCompiledVersionI
       .composeBuildIssue()
   }
 
-  private fun getDependencyNameFromException(exception: Throwable): String {
+  private fun getDependencyNameFromException(exception: GradleIssueFailure): String {
     val exceptionWrapper = exception.findWrapperOf { message != null && expectedErrorRegex.containsMatchIn(message!!) } ?: return "Unknown"
-    val dependencyName = DEPENDENCY_NAME_REGEX.find(exceptionWrapper.toString())?.destructured?.component1() ?: return "Unknown"
+    val dependencyName =
+      exceptionWrapper.description?.let { DEPENDENCY_NAME_REGEX.find(it) }?.destructured?.component1() ?: return "Unknown"
     return dependencyName
   }
 }

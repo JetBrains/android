@@ -25,6 +25,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.issue.BuildIssue
 import java.nio.file.Path
 import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.issue.GradleIssueFailure
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 
 /**
@@ -47,7 +48,7 @@ abstract class AgpRuntimeJavaCompiledVersionIssueChecker : RuntimeJavaCompiledVe
     gradleJdkVersion: String,
     projectPath: Path,
     gradleVersion: GradleVersion,
-    exception: Throwable,
+    cause: GradleIssueFailure,
   ): BuildIssue {
     return BuildIssueComposer("Gradle JVM version incompatible.")
       .apply {

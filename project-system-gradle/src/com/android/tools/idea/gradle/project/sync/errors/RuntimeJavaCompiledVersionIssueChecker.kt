@@ -29,6 +29,7 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.issue.GradleIssueFailure
 
 /**
  * A [GradleIssueChecker] class used as base for related errors regarding runtime Java compiled version, parsing different expected
@@ -59,7 +60,7 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
     gradleJdkVersion: String,
     projectPath: Path,
     gradleVersion: GradleVersion,
-    exception: Throwable,
+    cause: GradleIssueFailure,
   ): BuildIssue
 
   override fun consumeBuildOutputFailureMessage(
@@ -78,7 +79,13 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
     return parseErrorRegexMatch(match)?.let { (pluginMinCompatibleJdkVersion, gradleJdkVersion) ->
       val projectPath = Path(issueData.projectRoot.toCanonicalPath())
       val gradleVersion = issueData.getGradleVersion() ?: return null
-      createJdkVersionIncompatibleBuildIssue(pluginMinCompatibleJdkVersion, gradleJdkVersion, projectPath, gradleVersion, issueData.error)
+      createJdkVersionIncompatibleBuildIssue(
+        pluginMinCompatibleJdkVersion,
+        gradleJdkVersion,
+        projectPath,
+        gradleVersion,
+        issueData.failure,
+      )
     }
   }
 }

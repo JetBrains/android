@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.extensions
 
-fun Throwable.findCauseMessage(predicate: Throwable.() -> Boolean): String? {
-  var current: Throwable? = this
+import org.jetbrains.plugins.gradle.issue.GradleIssueFailure
+
+fun GradleIssueFailure.findCauseMessage(predicate: GradleIssueFailure.() -> Boolean): String? {
+  var current: GradleIssueFailure? = this
   while (current != null) {
     if (predicate(current)) return current.message
-    current = current.cause
+    current = current.causes.singleOrNull() ?: current.rootCause.takeIf { it != current }
   }
 
   return null
 }
 
-fun Throwable.findWrapperOf(predicate: Throwable.() -> Boolean): Throwable? {
-  var current: Throwable? = this
+fun GradleIssueFailure.findWrapperOf(predicate: GradleIssueFailure.() -> Boolean): GradleIssueFailure? {
+  var current: GradleIssueFailure? = this
   while (current != null) {
-    val child = current.cause
+    val child = current.causes.singleOrNull() ?: current.rootCause.takeIf { it != current }
     if (child != null && child.predicate()) {
       return current
     }

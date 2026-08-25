@@ -28,11 +28,10 @@ import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.Navigatable
 import java.io.File
-import java.util.Collections
-import java.util.IdentityHashMap
 import java.util.concurrent.CompletableFuture
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.issue.GradleIssueFailure
 
 class DataBindingIssueChecker : GradleIssueChecker {
   private val SEPARATOR = "=".repeat(50)
@@ -51,7 +50,7 @@ class DataBindingIssueChecker : GradleIssueChecker {
    * We traverse the cause chain to find any exception containing data binding error messages prefixed with [ERROR_LOG_PREFIX].
    */
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val errors = findDataBindingErrors(issueData.error) ?: return null
+    val errors = findDataBindingErrors(issueData.failure) ?: return null
 
     val buildIssues = errors.mapIndexedNotNull { index, errorJson ->
       convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX), issueData.projectRoot.toCanonicalPath())
@@ -74,18 +73,17 @@ class DataBindingIssueChecker : GradleIssueChecker {
     }
   }
 
-  private fun findDataBindingErrors(throwable: Throwable?): List<String>? {
-    val visited = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>())
-    var current = throwable
-    while (current != null && visited.add(current)) {
-      val message = current.message
+  private fun findDataBindingErrors(cause: GradleIssueFailure?): List<String>? {
+    var currentCause = cause
+    while (currentCause != null) {
+      val message = currentCause.message
       if (message != null && message.contains(ERROR_LOG_PREFIX)) {
         val errors = message.lineSequence().filter { line -> line.startsWith(ERROR_LOG_PREFIX) }.toList()
         if (errors.isNotEmpty()) {
           return errors
         }
       }
-      current = current.cause
+      currentCause = currentCause.causes.singleOrNull() ?: currentCause.rootCause.takeIf { it != currentCause }
     }
     return null
   }

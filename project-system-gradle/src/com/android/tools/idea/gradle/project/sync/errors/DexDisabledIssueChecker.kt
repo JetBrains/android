@@ -28,6 +28,7 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.issue.GradleIssueFailure
 
 private const val INVOKE_CUSTOM = "Invoke-customs are only supported starting with Android O"
 private const val DEFAULT_INTERFACE_METHOD = "Default interface methods are only supported starting with Android N (--min-api 24)"
@@ -63,14 +64,14 @@ class DexDisabledIssueChecker : GradleIssueChecker {
     }
 
     // Confirm that there is a DexArchiveBuilderException
-    val builderException = extractDexArchiveBuilderException(issueData.error) ?: return null
+    val builderException = extractDexArchiveBuilderException(issueData.failure) ?: return null
     val issueComposer = BuildIssueComposer(rootMessage, issueTitle = "Desugaring disabled")
     val buildMessage = builderException.message
     if (buildMessage != null) {
       issueComposer.addDescriptionOnNewLine(buildMessage)
       issueComposer.startNewParagraph()
     }
-    val modulePath = extractModulePathFromError(issueData.error)
+    val modulePath = extractModulePathFromError(issueData.failure)
     if (modulePath != null) {
       issueComposer.addQuickFix(SetJavaLanguageLevelModuleQuickFix(modulePath, LanguageLevel.JDK_1_8, setJvmTarget = false))
     }
@@ -102,34 +103,28 @@ class DexDisabledIssue(private val buildIssue: BuildIssue) : BuildIssue {
   override fun getNavigatable(project: Project) = buildIssue.getNavigatable(project)
 }
 
-private fun extractDexArchiveBuilderException(error: Throwable): Throwable? {
-  var cause: Throwable? = error
-  while (cause != null) {
-    if (cause.javaClass.name.endsWith(".DexArchiveBuilderException")) {
-      return cause
+private fun extractDexArchiveBuilderException(cause: GradleIssueFailure?): GradleIssueFailure? {
+  var currentCause = cause
+  while (currentCause != null) {
+    if (currentCause.className?.endsWith(".DexArchiveBuilderException") == true) {
+      return currentCause
     }
-    if (cause.cause == cause) {
-      break
-    }
-    cause = cause.cause
+    currentCause = currentCause.causes.singleOrNull() ?: currentCause.rootCause.takeIf { it != currentCause }
   }
   return null
 }
 
-private fun extractModulePathFromError(error: Throwable): String? {
-  var cause: Throwable? = error
-  while (cause != null) {
-    val message = cause.message
+private fun extractModulePathFromError(cause: GradleIssueFailure?): String? {
+  var currentCause = cause
+  while (currentCause != null) {
+    val message = currentCause.message
     if (message != null) {
       val matcher = FAILED_TASK_PATTERN.matcher(message)
       if (matcher.matches()) {
         return getParentModulePath(matcher.group(1)!!)
       }
     }
-    if (cause.cause == cause) {
-      break
-    }
-    cause = cause.cause
+    currentCause = currentCause.causes.singleOrNull() ?: currentCause.rootCause.takeIf { it != currentCause }
   }
   return null
 }
