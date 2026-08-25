@@ -117,10 +117,7 @@ public class ManifestConflictTest {
     String[] errors = new String[records.size()];
     for (int c = 0; c < records.size(); c++) {
       MergingReport.Record record = records.get(c);
-      errors[c] = ReadAction.compute(() -> {
-        return ManifestPanel.getErrorHtml(AndroidFacet.getInstance(module), record.getMessage(), record.getSourceLocation(),
-                                          myHtmlLinkManager, token, null, true);
-      });
+      errors[c] = ReadAction.computeBlocking(() -> ManifestPanel.getErrorHtml(AndroidFacet.getInstance(module), record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, token, null, true));
     }
     return errors;
   }
