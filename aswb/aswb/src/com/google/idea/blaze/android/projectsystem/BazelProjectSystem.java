@@ -20,7 +20,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.idea.blaze.base.sync.data.BlazeDataStorage.WORKSPACE_MODULE_NAME;
 import static org.jetbrains.android.facet.SourceProviderUtil.createSourceProvidersForLegacyModule;
 
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.CommonTestType;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
@@ -39,6 +38,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
 import com.google.idea.blaze.android.run.BazelApplicationIdProvider;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
+import com.google.idea.blaze.base.run.DeployedApplicationTargetStore;
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.ProjectFacetManager;
@@ -55,7 +55,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -224,16 +223,12 @@ public class BazelProjectSystem implements AndroidProjectSystem {
   @NotNull
   @Override
   public Set<String> getKnownApplicationIds() {
-    List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-    Set<String> applicationIds = new HashSet<>(facets.size());
-    for (AndroidFacet facet : facets) {
-      AndroidModel model = AndroidModel.get(facet);
-      if (model == null) {
-        continue;
-      }
-      applicationIds.addAll(model.getAllApplicationIds());
+    DeployedApplicationTargetStore targetStore =
+        DeployedApplicationTargetStore.getInstance(project);
+    if (targetStore != null) {
+      return targetStore.getAllApplicationIds();
     }
-    return Collections.unmodifiableSet(applicationIds);
+    return Collections.emptySet();
   }
 
   @Override

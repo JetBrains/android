@@ -62,6 +62,10 @@ public class ArtifactDirectories {
   public static final ProjectRelativeProjectPath RUNFILES =
       ProjectPath.projectRelative(Path.of(".")).resolveChild(Path.of(".runfiles"));
 
+  /** Application IDs to target mapping storage. */
+  public static final ProjectRelativeProjectPath APPLICATION_IDS =
+      ProjectPath.projectRelative(Path.of(".")).resolveChild(Path.of(".application-ids"));
+
   private ArtifactDirectories() {}
 
   /**

@@ -19,13 +19,13 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest
+import com.google.idea.blaze.base.BlazeTestCase
 import com.google.idea.blaze.base.command.buildresult.BuildResult
+import com.google.idea.blaze.base.run.DeployedApplicationTargetStore
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
-import com.intellij.mock.MockProject
-import com.intellij.openapi.util.Disposer
 import java.nio.file.Path
 import org.junit.Assert.assertThrows
 import org.junit.Rule
@@ -34,8 +34,15 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class BlazeAndroidDeployInfoTest {
+class BlazeAndroidDeployInfoTest : BlazeTestCase() {
   @get:Rule var expect: Expect = Expect.create()
+
+  private val mockTargetStore = MockDeployedApplicationTargetStore()
+
+  override fun initTest(applicationServices: Container, projectServices: Container) {
+    super.initTest(applicationServices, projectServices)
+    projectServices.register(DeployedApplicationTargetStore::class.java, mockTargetStore)
+  }
 
   private fun stubManifest(packageName: String?): ParsedManifest = ParsedManifest(packageName, emptyList(), null)
 
@@ -47,7 +54,6 @@ class BlazeAndroidDeployInfoTest {
   private val appPackageName = "app.package.name"
   private val testPackageName = "test.package.name"
 
-  private val dummyProject = MockProject(null, Disposer.newDisposable())
   private val dummyApkPath = Path.of("/local/cache/app.apk")
   private val dummyApkArtifact = stubOutputArtifact("app/app.apk")
   private val dummyBuildOutputs = BlazeBuildOutputs.noOutputs(BuildResult.SUCCESS)
@@ -64,7 +70,7 @@ class BlazeAndroidDeployInfoTest {
 
     val deployInfo =
       BlazeAndroidDeployInfo.fetchDeployArtifacts(
-        dummyProject,
+        project,
         dummyBuildOutputs,
         mainApp = mainAppDeployData,
         appUnderTest = null,
@@ -74,6 +80,7 @@ class BlazeAndroidDeployInfoTest {
       )
 
     expect.withMessage("mainAppPackageName").that(deployInfo.mainAppPackageName).isEqualTo(mainAppPackageName)
+    expect.withMessage("main app tracked target").that(mockTargetStore.trackedTargets).containsEntry(mainAppPackageName, mainAppLabel)
 
     val apkInfos = deployInfo.apkInfos
     expect.withMessage("apkInfos size").that(apkInfos).hasSize(1)
@@ -109,7 +116,7 @@ class BlazeAndroidDeployInfoTest {
 
     val deployInfo =
       BlazeAndroidDeployInfo.fetchDeployArtifacts(
-        dummyProject,
+        project,
         dummyBuildOutputs,
         mainApp = mainAppDeployData,
         appUnderTest = appUnderTestDeployData,
@@ -120,6 +127,8 @@ class BlazeAndroidDeployInfoTest {
 
     expect.withMessage("mainAppPackageName").that(deployInfo.mainAppPackageName).isEqualTo(testPackageName)
     expect.withMessage("appUnderTestPackageName").that(deployInfo.appUnderTestPackageName).isEqualTo(appPackageName)
+    expect.withMessage("main app tracked target").that(mockTargetStore.trackedTargets).containsEntry(testPackageName, testAppLabel)
+    expect.withMessage("app under test tracked target").that(mockTargetStore.trackedTargets).containsEntry(appPackageName, mainAppLabel)
 
     val apkInfos = deployInfo.apkInfos
     expect.withMessage("apkInfos size").that(apkInfos).hasSize(2)
@@ -150,7 +159,7 @@ class BlazeAndroidDeployInfoTest {
     val exception =
       assertThrows(ApkProvisionException::class.java) {
         BlazeAndroidDeployInfo.fetchDeployArtifacts(
-          dummyProject,
+          project,
           dummyBuildOutputs,
           mainApp = mainAppDeployData,
           appUnderTest = null,
@@ -162,6 +171,18 @@ class BlazeAndroidDeployInfoTest {
 
     assertThat(exception).hasMessageThat().contains("Valid manifest must have a package name")
   }
+}
+
+private class MockDeployedApplicationTargetStore : DeployedApplicationTargetStore {
+  val trackedTargets = mutableMapOf<String, Label>()
+
+  override fun trackTargetForApplication(applicationId: String, target: Label) {
+    trackedTargets[applicationId] = target
+  }
+
+  override fun getTargetForApplication(applicationId: String): Label? = trackedTargets[applicationId]
+
+  override fun getAllApplicationIds(): Set<String> = trackedTargets.keys
 }
 
 private class TestOutputArtifact(val artifact: String) : OutputArtifact {

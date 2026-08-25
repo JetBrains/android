@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.android.qsync
 
-import com.google.common.util.concurrent.Futures
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService
 import com.google.idea.blaze.android.sdk.BlazeSdkProvider
@@ -61,9 +60,6 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
     val androidModel =
       BlazeAndroidModel(
         project,
-        workspaceRoot.directory(),
-        null,
-        Futures.immediateFuture<String>(":workspace"),
         androidSdkPlatform?.androidMinSdkLevel ?: 1,
       )
     workspaceModule.service<BazelModuleSystem>().setAndroidModel(androidModel)

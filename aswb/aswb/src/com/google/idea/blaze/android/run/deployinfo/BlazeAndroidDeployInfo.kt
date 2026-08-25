@@ -24,6 +24,7 @@ import com.google.idea.blaze.android.run.BazelApkProvider
 import com.google.idea.blaze.android.run.BazelApplicationIdProvider
 import com.google.idea.blaze.android.run.NativeSymbolFinder.Companion.fetchNativeSymbols
 import com.google.idea.blaze.android.run.deployinfo.DeployData.Companion.fetchApks
+import com.google.idea.blaze.base.run.DeployedApplicationTargetStore
 import com.google.idea.blaze.base.run.RuntimeArtifactCache
 import com.google.idea.blaze.base.run.RuntimeArtifactKind
 import com.google.idea.blaze.base.scope.BlazeContext
@@ -101,6 +102,13 @@ private constructor(
 
       val nativeSymbolTargets = if (nativeDebuggingEnabled) listOfNotNull(mainApp.targetLabel, appUnderTest?.targetLabel) else emptyList()
       val nativeSymbols = nativeSymbolTargets.flatMap { fetchNativeSymbols(project, context, it, buildOutputs) }
+
+      val targetStore = DeployedApplicationTargetStore.getInstance(project)
+      targetStore.trackTargetForApplication(mainAppPackage.applicationId, mainApp.targetLabel)
+      if (testTargetAppPackage != null) {
+        targetStore.trackTargetForApplication(testTargetAppPackage.applicationId, appUnderTest.targetLabel)
+      }
+
       return BlazeAndroidDeployInfo(
         mainAppMergedManifest = mainApp.mergedManifest,
         appUnderTestMergedManifest = appUnderTest?.mergedManifest,

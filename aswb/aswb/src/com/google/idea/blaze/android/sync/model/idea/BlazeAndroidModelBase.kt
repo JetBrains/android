@@ -18,40 +18,24 @@ package com.google.idea.blaze.android.sync.model.idea
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.lint.detector.api.Desugaring
-import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.diagnostic.Logger
+import com.google.idea.blaze.base.run.DeployedApplicationTargetStore
 import com.intellij.openapi.project.Project
 import java.io.File
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 /** Contains Android-Blaze related state necessary for configuring an IDEA project based on a user-selected build variant. */
 abstract class BlazeAndroidModelBase
 protected constructor(
   protected val project: Project,
-  rootDirPath: File,
-  private val applicationIdFuture: ListenableFuture<String>,
   private val minSdkVersionInt: Int,
 ) : AndroidModel {
+  // ASwB does not have modules hence no module-to-application-id mapping.
   override val applicationId: String
-    get() {
-      try {
-        return applicationIdFuture.get(1, TimeUnit.SECONDS)
-      } catch (e: InterruptedException) {
-        Thread.currentThread().interrupt()
-      } catch (e: TimeoutException) {
-        Logger.getInstance(BlazeAndroidModelBase::class.java).warn("Application Id not initialized yet", e)
-      } catch (e: ExecutionException) {
-        Logger.getInstance(BlazeAndroidModelBase::class.java).warn("Application Id not initialized yet", e)
-      }
-      return uninitializedApplicationId()
-    }
+    get() = "aswb.workspace"
 
   protected abstract fun uninitializedApplicationId(): String
 
   override val allApplicationIds: Set<String>
-    get() = setOf<String>(applicationId)
+    get() = project.getService(DeployedApplicationTargetStore::class.java)?.getAllApplicationIds() ?: emptySet()
 
   override fun overridesManifestPackage() = false
 

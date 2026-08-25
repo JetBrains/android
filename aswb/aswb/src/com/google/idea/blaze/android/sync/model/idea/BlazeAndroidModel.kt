@@ -17,20 +17,13 @@ package com.google.idea.blaze.android.sync.model.idea
 
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
-import java.io.File
 
 /** Blaze model for an android project */
 class BlazeAndroidModel(
   project: Project,
-  rootDirPath: File,
-  /** Note: this is unused and supposed to be `null` in query sync. */
-  val defaultSourceProviderLegacySyncOnly: NamedIdeaSourceProvider?,
-  applicationId: ListenableFuture<String>,
   minSdkVersion: Int,
-) : BlazeAndroidModelBase(project, rootDirPath, applicationId, minSdkVersion) {
+) : BlazeAndroidModelBase(project, minSdkVersion) {
   override val namespacing: Namespacing
     get() = Namespacing.DISABLED
 
