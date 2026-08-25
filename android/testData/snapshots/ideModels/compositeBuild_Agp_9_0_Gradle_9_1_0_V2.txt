@@ -957,14 +957,14 @@ MODULE                        : project.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -1016,7 +1016,7 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : com.test.compositeapp
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1033,8 +1033,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1182,8 +1182,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -2062,14 +2062,14 @@ MODULE                        : project.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2119,7 +2119,7 @@ MODULE                        : project.lib
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2132,8 +2132,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2271,8 +2271,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -3157,14 +3157,14 @@ MODULE                        : includedLib1.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :app
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -3216,7 +3216,7 @@ MODULE                        : includedLib1.app
     - basicVariant:               : release
         applicationId                 : com.test.composite1
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -3233,8 +3233,8 @@ MODULE                        : includedLib1.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3382,8 +3382,8 @@ MODULE                        : includedLib1.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -4258,14 +4258,14 @@ MODULE                        : includedLib1.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :lib
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4315,7 +4315,7 @@ MODULE                        : includedLib1.lib
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4328,8 +4328,8 @@ MODULE                        : includedLib1.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -4467,8 +4467,8 @@ MODULE                        : includedLib1.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -5482,14 +5482,14 @@ MODULE                        : TestCompositeLib3.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :app
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -5541,7 +5541,7 @@ MODULE                        : TestCompositeLib3.app
     - basicVariant:               : release
         applicationId                 : com.test.composite3
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -5558,8 +5558,8 @@ MODULE                        : TestCompositeLib3.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -5707,8 +5707,8 @@ MODULE                        : TestCompositeLib3.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -6558,14 +6558,14 @@ MODULE                        : TestCompositeLib3.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :lib
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -6615,7 +6615,7 @@ MODULE                        : TestCompositeLib3.lib
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -6628,8 +6628,8 @@ MODULE                        : TestCompositeLib3.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -6767,8 +6767,8 @@ MODULE                        : TestCompositeLib3.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner

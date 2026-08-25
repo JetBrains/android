@@ -1394,14 +1394,14 @@ MODULE                        : NonStandardSourceSetDependencies.app
             ApiLevel                      : 21
             ApiString                     : 21
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -1452,7 +1452,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     - basicVariant:               : release
         applicationId                 : me.monori.gradleprojectpathissue
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1469,8 +1469,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1618,8 +1618,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -2492,7 +2492,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     ProjectPath                   : :feature-a
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/feature-a/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2541,7 +2541,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -3557,7 +3557,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     ProjectPath                   : :feature-b
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/feature-b/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -3606,7 +3606,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4529,7 +4529,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     ProjectPath                   : :kmp-java:sample-test
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/kmp-java/sample-test/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4578,7 +4578,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4813,14 +4813,14 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
     ModelVersion                  : 9.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36
     BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4869,7 +4869,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4883,8 +4883,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -5022,8 +5022,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             ConsumerProguardFiles         : <ROOT>/lib/consumer-rules.pro
