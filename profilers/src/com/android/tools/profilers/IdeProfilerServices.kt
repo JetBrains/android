@@ -43,6 +43,14 @@ interface IdeProfilerServices {
   /** Executor to run the tasks that should run in a thread from the pool. */
   val poolExecutor: Executor
 
+  /** Gets the number of profiler tabs currently open in the IDE. */
+  val profilerTabsCount: Int
+    get() = 0
+
+  /** Returns true if there is at least one Live Profiler tab open. */
+  val hasLiveProfilerTab: Boolean
+    get() = false
+
   /** Compute expensive intermediate value on "pool", then resume it on "main" */
   fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>, timeoutMs: Long) {
     CompletableFuture.supplyAsync(supplier, poolExecutor).orTimeout(timeoutMs, TimeUnit.MILLISECONDS).whenComplete { result: R, action ->

@@ -50,8 +50,8 @@ import com.android.tools.profilers.tasks.analytics.TaskTracker.Companion.createT
 open class TaskTracker private constructor(private val profilers: StudioProfilers, val taskMetadata: TaskMetadata) {
 
   /** Tracks the event where the user enters a task. */
-  open fun trackTaskEntered() {
-    profilers.ideServices.featureTracker.trackTaskEntered(taskMetadata)
+  open fun trackTaskEntered(profilerTabsCount: Int = 0) {
+    profilers.ideServices.featureTracker.trackTaskEntered(taskMetadata, profilerTabsCount)
   }
 
   /**
@@ -109,7 +109,7 @@ open class TaskTracker private constructor(private val profilers: StudioProfiler
         null,
       ),
     ) {
-    override fun trackTaskEntered() {}
+    override fun trackTaskEntered(profilerTabsCount: Int) {}
 
     override fun trackTaskFinished(taskFinishedState: TaskFinishedState) {}
 

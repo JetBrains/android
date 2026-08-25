@@ -574,12 +574,12 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTaskEntered(@NotNull com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata) {
+  public void trackTaskEntered(@NotNull TaskMetadata taskMetadata, int profilerTabsCount) {
     myLastTaskMetadata = taskMetadata;
   }
 
   @Override
-  public void trackTaskFinished(@NotNull com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata,
+  public void trackTaskFinished(@NotNull TaskMetadata taskMetadata,
                                 @NotNull TaskFinishedState taskFinishedState) {
     myLastTaskMetadata = taskMetadata;
     myLastTaskFinishedState = taskFinishedState;
@@ -607,14 +607,14 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackLeakCanaryEvent(@NotNull com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata,
+  public void trackLeakCanaryEvent(@NotNull TaskMetadata taskMetadata,
                                    @NotNull LeakCanaryUiAction uiAction) {
     myLastTaskMetadata = taskMetadata;
     myLastLeakCanaryUiAction = uiAction;
   }
 
   @Override
-  public void trackLeakCanaryEvent(@NotNull com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata,
+  public void trackLeakCanaryEvent(@NotNull TaskMetadata taskMetadata,
                                    @NotNull LeakCanaryLeakAnalysis leakAnalysis) {
     myLastTaskMetadata = taskMetadata;
     myLastLeakCanaryLeakAnalysis = leakAnalysis;

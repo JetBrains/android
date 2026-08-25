@@ -29,7 +29,7 @@ object ProfilerInEditorUtils {
    */
   @JvmStatic
   @JvmOverloads
-  fun isEditorEnabled(featureConfig: FeatureConfig, taskType: ProfilerTaskType, isLegacyAllocations: Boolean = false): Boolean {
+  fun isEditorEnabled(featureConfig: FeatureConfig, taskType: ProfilerTaskType?, isLegacyAllocations: Boolean = false): Boolean {
     // Check if the editor feature is enabled for the current task type.
     return when (taskType) {
       ProfilerTaskType.SYSTEM_TRACE -> featureConfig.isSystemTraceInEditorEnabled
@@ -49,7 +49,7 @@ object ProfilerInEditorUtils {
   /** Returns whether the given [taskType] is a live, streaming task that should open in the editor via `ProfilerVirtualFile`. */
   @JvmStatic
   @JvmOverloads
-  fun isLiveTaskInEditorEnabled(featureConfig: FeatureConfig, taskType: ProfilerTaskType, isLegacyAllocations: Boolean = false): Boolean {
+  fun isLiveTaskInEditorEnabled(featureConfig: FeatureConfig, taskType: ProfilerTaskType?, isLegacyAllocations: Boolean = false): Boolean {
     return when (taskType) {
       ProfilerTaskType.LIVE_VIEW -> featureConfig.isLiveTelemetryInEditorEnabled
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> if (!isLegacyAllocations) featureConfig.isJavaKotlinAllocationsInEditorEnabled else false

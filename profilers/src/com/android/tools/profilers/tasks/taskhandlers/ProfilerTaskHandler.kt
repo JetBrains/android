@@ -16,12 +16,14 @@
 package com.android.tools.profilers.tasks.taskhandlers
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.cpu.ProfilerInEditorUtils
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.android.tools.profilers.tasks.args.TaskArgs
+import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
 import com.intellij.openapi.diagnostic.Logger
 
 /**
@@ -52,7 +54,19 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
   open fun enter(args: TaskArgs): Boolean {
     myTaskTracker = TaskTracker.createTaskTracker(sessionsManager.studioProfilers)
 
-    myTaskTracker.trackTaskEntered()
+    val isLegacyAllocations = args is LegacyJavaKotlinAllocationsTaskArgs
+    val isLiveTaskInEditor =
+      ProfilerInEditorUtils.isLiveTaskInEditorEnabled(
+        sessionsManager.studioProfilers.ideServices.featureConfig,
+        sessionsManager.currentTaskType,
+        isLegacyAllocations,
+      )
+    // If entering a new live task in the editor, anticipate the tab that is about to be opened unless one already exists.
+    val profilerTabsCount =
+      sessionsManager.studioProfilers.ideServices.profilerTabsCount +
+        if (isLiveTaskInEditor && !sessionsManager.studioProfilers.ideServices.hasLiveProfilerTab) 1 else 0
+
+    myTaskTracker.trackTaskEntered(profilerTabsCount)
 
     if (sessionsManager.isSessionAlive) {
       startTask(args)

@@ -358,7 +358,7 @@ interface FeatureTracker {
 
   fun trackTaskSettingsOpened(isSettingsChanged: Boolean)
 
-  fun trackTaskEntered(taskMetadata: TaskMetadata)
+  fun trackTaskEntered(taskMetadata: TaskMetadata, profilerTabsCount: Int = 0)
 
   fun trackTaskFinished(taskMetadata: TaskMetadata, taskFinishedState: TaskFinishedState)
 

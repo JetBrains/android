@@ -27,6 +27,8 @@ import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.capture.unified.ProfilerVirtualFile;
+import com.android.tools.idea.profilers.capture.unified.UnifiedProfilerFileEditor;
 import com.android.tools.idea.profilers.leakcanary.LeakCanaryAiHandler;
 import com.android.tools.idea.profilers.perfetto.traceconv.TraceconvBundler;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
@@ -75,6 +77,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -940,5 +943,46 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     public boolean isDeobfuscationForNativeAllocationsEnabled() {
       return StudioFlags.PROFILER_DEOBFUSCATION_FOR_NATIVE_ALLOCATIONS.get();
     }
+  }
+
+  /**
+   * Returns the count of all active profiler file editor tabs currently open across all editor windows.
+   */
+  @Override
+  public int getProfilerTabsCount() {
+    if (myProject == null || myProject.isDisposed()) {
+      return 0;
+    }
+    FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
+    if (fileEditorManager == null) {
+      return 0;
+    }
+    int profilerTabsCount = 0;
+    for (FileEditor editor : fileEditorManager.getAllEditors()) {
+      if (editor instanceof UnifiedProfilerFileEditor) {
+        profilerTabsCount++;
+      }
+    }
+    return profilerTabsCount;
+  }
+
+  /**
+   * Returns true if there is an active editor tab open for a live profiling session.
+   */
+  @Override
+  public boolean getHasLiveProfilerTab() {
+    if (myProject == null || myProject.isDisposed()) {
+      return false;
+    }
+    FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
+    if (fileEditorManager == null) {
+      return false;
+    }
+    for (FileEditor editor : fileEditorManager.getAllEditors()) {
+      if (editor.getFile() instanceof ProfilerVirtualFile) {
+        return true;
+      }
+    }
+    return false;
   }
 }

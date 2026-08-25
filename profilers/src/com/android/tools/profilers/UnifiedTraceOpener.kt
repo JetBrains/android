@@ -57,7 +57,7 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
         // Traces opened directly in the Editor bypass the legacy capture parsers where task metrics
         // are normally fired. We fire trackTaskEntered and trackTaskFinished here to ensure parity.
         val tracker = TaskTracker.createTaskTracker(profilers)
-        tracker.trackTaskEntered()
+        tracker.trackTaskEntered(profilerTabsCount = profilers.ideServices.profilerTabsCount)
         tracker.trackTaskFinished(TaskFinishedState.COMPLETED)
 
         if (tracker.taskMetadata.taskDataOrigin == TaskDataOrigin.IMPORTED) {
@@ -87,7 +87,7 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
           // Traces opened directly in the Editor bypass the legacy capture parsers where task metrics
           // are normally fired. We fire trackTaskEntered and trackTaskFinished here to ensure parity.
           val tracker = TaskTracker.createTaskTracker(profilers)
-          tracker.trackTaskEntered()
+          tracker.trackTaskEntered(profilerTabsCount = profilers.ideServices.profilerTabsCount)
           tracker.trackTaskFinished(TaskFinishedState.COMPLETED)
         }
         opened

@@ -844,9 +844,15 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTaskEntered(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata) {
-    newTracker(AndroidProfilerEvent.Type.TASK_ENTERED).setTaskEnteredMetadata(TaskEnteredMetadata.newBuilder().setTaskData(
-      buildStatsTaskMetadata(taskMetadata)).build()).track();
+  public void trackTaskEntered(com.android.tools.profilers.tasks.analytics.@NotNull TaskMetadata taskMetadata, int profilerTabsCount) {
+    TaskEnteredMetadata.Builder metadataBuilder = TaskEnteredMetadata.newBuilder()
+      .setTaskData(buildStatsTaskMetadata(taskMetadata));
+
+    if (profilerTabsCount > 0) {
+      metadataBuilder.setProfilerTabsCount(profilerTabsCount);
+    }
+
+    newTracker(AndroidProfilerEvent.Type.TASK_ENTERED).setTaskEnteredMetadata(metadataBuilder.build()).track();
   }
 
   @Override
