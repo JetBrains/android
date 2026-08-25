@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.connection.assistant.actions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
@@ -27,6 +28,7 @@ import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.utils.HtmlBuilder
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
@@ -37,6 +39,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle
 
@@ -47,14 +51,33 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
 
   private inner class State(val project: Project) :
     AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable {
+    private val scope = createCoroutineScope()
     private var adbFuture: ListenableFuture<AndroidDebugBridge>? = null
     private var loading = false
+    @Volatile private var deviceInfos: Map<IDevice, DeviceInfo> = emptyMap()
 
     init {
       AndroidDebugBridge.addDebugBridgeChangeListener(this)
       AndroidDebugBridge.addDeviceChangeListener(this)
       Disposer.register(project, this)
       initDebugBridge()
+    }
+
+    private fun requestUpdate() {
+      // Schedules a background fetch of detailed device info.
+      scope.launch(Dispatchers.Default) {
+        val adb = AndroidDebugBridge.getBridge()
+        val currentDevices = adb?.devices.orEmpty()
+        deviceInfos = currentDevices.associateWith { device ->
+          DeviceInfo(
+            name = device.name,
+            version = device.version,
+          )
+        }
+        refreshDependencyState(project)
+      }
+      // Immediately refreshes the UI, even though at this time it may not yet include enhanced info like device names and versions.
+      refreshDependencyState(project)
     }
 
     fun initDebugBridge() {
@@ -66,11 +89,11 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
         adbFutureNotNull,
         object : FutureCallback<AndroidDebugBridge> {
           override fun onSuccess(bridge: AndroidDebugBridge) {
-            refreshDependencyState(project)
+            requestUpdate()
           }
 
           override fun onFailure(t: Throwable) {
-            refreshDependencyState(project)
+            requestUpdate()
           }
         },
         EdtExecutorService.getInstance(),
@@ -79,7 +102,7 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
 
     private fun setLoading(loading: Boolean) {
       this.loading = loading
-      refreshDependencyState(project)
+      requestUpdate()
     }
 
     override fun bridgeChanged(bridge: AndroidDebugBridge?) {}
@@ -93,17 +116,17 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
     }
 
     override fun deviceConnected(device: IDevice) {
-      refreshDependencyState(project)
+      requestUpdate()
     }
 
     override fun deviceDisconnected(device: IDevice) {
-      refreshDependencyState(project)
+      requestUpdate()
     }
 
     override fun deviceChanged(device: IDevice, changeMask: Int) {
       // We are only interested in the updates to the device state, e.g. device going online/offline
       if (changeMask == IDevice.CHANGE_STATE) {
-        refreshDependencyState(project)
+        requestUpdate()
       }
     }
 
@@ -147,7 +170,7 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
             )
 
             if (adb != null) {
-              generateMessage(adb.devices)
+              generateMessage(adb.devices, deviceInfos)
             } else {
               ButtonMessage(AndroidBundle.message("connection.assistant.adb.failure"))
             }
@@ -185,7 +208,8 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
     return projectStates[project]!!.getStateDisplay()
   }
 
-  private fun generateMessage(devices: Array<IDevice>): ButtonMessage {
+  @UiThread
+  private fun generateMessage(devices: Array<IDevice>, deviceInfos: Map<IDevice, DeviceInfo>): ButtonMessage {
     return if (devices.isEmpty()) {
       ButtonMessage(
         HtmlBuilder().addHtml(AndroidBundle.message("connection.assistant.adb.no_devices.title")).newlineIfNecessary().html,
@@ -203,14 +227,22 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
 
       val htmlBodyBuilder = HtmlBuilder()
       devices.forEach { device ->
-        val deviceVersion = device.version.takeIf { it != AndroidVersion.DEFAULT }
-        htmlBodyBuilder.addHtml("<p><span>${device.name}</span>").newline().apply {
+        val deviceInfo = deviceInfos[device]
+        val deviceVersion = deviceInfo?.version?.takeIf { it != AndroidVersion.DEFAULT }
+        val deviceName = deviceInfo?.name ?: device.serialNumber
+        htmlBodyBuilder.addHtml("<p><span>$deviceName</span>").newline().apply {
           if (deviceVersion != null) {
-            addHtml("<span style=\"font-size: 80%; font-weight: lighter;\">${device.version}</span></p>").newline()
+            addHtml("<span style=\"font-size: 80%; font-weight: lighter;\">$deviceVersion</span></p>").newline()
           }
         }
       }
       ButtonMessage(title, htmlBodyBuilder.html)
     }
   }
+
+  /** Holds the raw name and version resolved from [IDevice] on a background thread. */
+  private data class DeviceInfo(
+    val name: String,
+    val version: AndroidVersion,
+  )
 }

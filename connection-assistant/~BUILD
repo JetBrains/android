@@ -33,6 +33,7 @@ iml_module(
     test_class = "com.android.tools.idea.connection.assistant.ConnectionAssistantTestSuite",
     test_data = [
         "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
+        "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
@@ -43,8 +44,10 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/base/testutils:studio.android.sdktools.testutils",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/android-adb:intellij.android.adb.testUtil",
         "//tools/adt/idea/connection-assistant",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
