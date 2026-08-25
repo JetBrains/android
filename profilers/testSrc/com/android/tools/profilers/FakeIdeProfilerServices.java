@@ -142,11 +142,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   private boolean myJavaKotlinAllocationsLegacyTraceInEditorEnabled = true;
 
-  private boolean myLiveTelemetryInEditorEnabled = false;
+  private boolean myLiveTelemetryInEditorEnabled = true;
 
-  private boolean myJavaKotlinAllocationsInEditorEnabled = false;
+  private boolean myJavaKotlinAllocationsInEditorEnabled = true;
 
-  private boolean myLeakCanaryInEditorEnabled = false;
+  private boolean myLeakCanaryInEditorEnabled = true;
 
   public void setSystemTraceInEditorEnabled(boolean enabled) {
     mySystemTraceInEditorEnabled = enabled;
