@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import org.jetbrains.org.objectweb.asm.Opcodes
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 
 /**
@@ -34,21 +34,24 @@ import org.objectweb.asm.Type
 object FakeNavigationEventDispatcherOwnerDump : Opcodes {
 
   val getClassDumpByteArray: ByteArray = run {
-    var classWriter = ClassWriter(0)
+    var classWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
     var fieldVisitor: FieldVisitor?
     var methodVisitor: MethodVisitor?
     var annotationVisitor0: AnnotationVisitor
 
     classWriter.visit(
-      org.objectweb.asm.Opcodes.V1_8,
-      org.objectweb.asm.Opcodes.ACC_PUBLIC or org.objectweb.asm.Opcodes.ACC_FINAL or org.objectweb.asm.Opcodes.ACC_SUPER,
+      Opcodes.V11,
+      Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL or Opcodes.ACC_SUPER,
       "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
       null,
       "java/lang/Object",
       arrayOf<String>("androidx/navigationevent/NavigationEventDispatcherOwner"),
     )
 
-    classWriter.visitSource("LocalNavigationEventDispatcherOwner.kt", null)
+    classWriter.visitSource(
+      "LocalNavigationEventDispatcherOwner.kt",
+      "SMAP\nLocalNavigationEventDispatcherOwner.kt\nKotlin\n*S Kotlin\n*F\n+ 1 LocalNavigationEventDispatcherOwner.kt\nandroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,281:1\n360#2,7:282\n1#3:289\n*S KotlinDebug\n*F\n+ 1 LocalNavigationEventDispatcherOwner.kt\nandroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner\n*L\n251#1:282,7\n*E\n",
+    )
 
     run {
       annotationVisitor0 = classWriter.visitAnnotation("Lkotlin/Metadata;", true)
@@ -59,7 +62,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
         val annotationVisitor1 = annotationVisitor0.visitArray("d1")
         annotationVisitor1.visit(
           null,
-          "\u0000>\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0008\u0003\n\u0002\u0018\u0002\n\u0002\u0008\u0003\n\u0002\u0018\u0002\n\u0002\u0008\u0005\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\u000e\n\u0002\u0008\u0002\n\u0002\u0010\u0007\n\u0002\u0008\u0003\n\u0002\u0010\u0008\n\u0000\u0008\u0007\u0018\u00002\u00020\u0001B\u0007\u00a2\u0006\u0004\u0008\u0002\u0010\u0003J\u0006\u0010\u000e\u001a\u00020\u000fJ\u000e\u0010\u0010\u001a\u00020\u00112\u0006\u0010\u0012\u001a\u00020\u0013J\u0016\u0010\u0014\u001a\u00020\u00112\u0006\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0012\u001a\u00020\u0013J\u0006\u0010\u0017\u001a\u00020\u0011J\u0006\u0010\u0018\u001a\u00020\u0011J\u0010\u0010\u0019\u001a\u00020\u001a2\u0006\u0010\u0012\u001a\u00020\u0013H\u0002R\u0014\u0010\u0004\u001a\u00020\u0005X\u0096\u0004\u00a2\u0006\u0008\n\u0000\u001a\u0004\u0008\u0006\u0010\u0007R\u001b\u0010\u0008\u001a\u00020\u00098BX\u0082\u0084\u0002\u00a2\u0006\u000c\n\u0004\u0008\u000c\u0010\r\u001a\u0004\u0008\n\u0010\u000b\u00a8\u0006\u001b",
+          "\u0000J\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0008\u0003\n\u0002\u0018\u0002\n\u0002\u0008\u0003\n\u0002\u0018\u0002\n\u0002\u0008\u0005\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\u000e\n\u0002\u0008\u0002\n\u0002\u0010\u0007\n\u0002\u0008\u0008\n\u0002\u0010 \n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u0008\n\u0002\u0008\u0004\u0008\u0007\u0018\u00002\u00020\u0001B\u0007\u00a2\u0006\u0004\u0008\u0002\u0010\u0003J\u0006\u0010\u000e\u001a\u00020\u000fJ\u000e\u0010\u0010\u001a\u00020\u00112\u0006\u0010\u0012\u001a\u00020\u0013J\u0016\u0010\u0014\u001a\u00020\u00112\u0006\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0012\u001a\u00020\u0013J\u0006\u0010\u0017\u001a\u00020\u0011J\u0006\u0010\u0018\u001a\u00020\u0011J\u0006\u0010\u0019\u001a\u00020\u000fJ\u000e\u0010\u001a\u001a\u00020\u00112\u0006\u0010\u0012\u001a\u00020\u0013J\u0016\u0010\u001b\u001a\u00020\u00112\u0006\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0012\u001a\u00020\u0013J\u0006\u0010\u001c\u001a\u00020\u0011J\u0006\u0010\u001d\u001a\u00020\u0011J\u000c\u0010\u001e\u001a\u0008\u0012\u0004\u0012\u00020 0\u001fJ\u0006\u0010!\u001a\u00020\"J\u000e\u0010#\u001a\u00020\u000f2\u0006\u0010$\u001a\u00020 J\u0010\u0010%\u001a\u00020\"2\u0006\u0010\u0012\u001a\u00020\u0013H\u0002R\u0014\u0010\u0004\u001a\u00020\u0005X\u0096\u0004\u00a2\u0006\u0008\n\u0000\u001a\u0004\u0008\u0006\u0010\u0007R\u001b\u0010\u0008\u001a\u00020\u00098BX\u0082\u0084\u0002\u00a2\u0006\u000c\n\u0004\u0008\u000c\u0010\r\u001a\u0004\u0008\n\u0010\u000b\u00a8\u0006&",
         )
         annotationVisitor1.visitEnd()
       }
@@ -90,8 +93,19 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
         annotationVisitor1.visit(null, "")
         annotationVisitor1.visit(null, "onBackPressCompleted")
         annotationVisitor1.visit(null, "onBackPressCancelled")
-        annotationVisitor1.visit(null, "getNavigationEdgeFromString")
+        annotationVisitor1.visit(null, "canForwardPress")
+        annotationVisitor1.visit(null, "onForwardPressStarted")
+        annotationVisitor1.visit(null, "onForwardPressProgress")
+        annotationVisitor1.visit(null, "onForwardPressCompleted")
+        annotationVisitor1.visit(null, "onForwardPressCancelled")
+        annotationVisitor1.visit(null, "getHistory")
         annotationVisitor1.visit(null, "")
+        annotationVisitor1.visit(null, "")
+        annotationVisitor1.visit(null, "getCurrentIndex")
+        annotationVisitor1.visit(null, "")
+        annotationVisitor1.visit(null, "backToState")
+        annotationVisitor1.visit(null, "navigationState")
+        annotationVisitor1.visit(null, "getNavigationEdgeFromString")
         annotationVisitor1.visit(null, "navigationevent-compose")
         annotationVisitor1.visitEnd()
       }
@@ -103,16 +117,28 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       annotationVisitor0.visitEnd()
     }
     run {
+      annotationVisitor0 = classWriter.visitAnnotation("Lkotlin/jvm/internal/SourceDebugExtension;", false)
+      run {
+        val annotationVisitor1 = annotationVisitor0.visitArray("value")
+        annotationVisitor1.visit(
+          null,
+          "SMAP\nLocalNavigationEventDispatcherOwner.kt\nKotlin\n*S Kotlin\n*F\n+ 1 LocalNavigationEventDispatcherOwner.kt\nandroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,281:1\n360#2,7:282\n1#3:289\n*S KotlinDebug\n*F\n+ 1 LocalNavigationEventDispatcherOwner.kt\nandroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner\n*L\n251#1:282,7\n*E\n",
+        )
+        annotationVisitor1.visitEnd()
+      }
+      annotationVisitor0.visitEnd()
+    }
+    run {
       fieldVisitor =
         classWriter.visitField(
-          org.objectweb.asm.Opcodes.ACC_PRIVATE or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PRIVATE or Opcodes.ACC_FINAL,
           "navigationEventDispatcher",
           "Landroidx/navigationevent/NavigationEventDispatcher;",
           null,
           null,
         )
       run {
-        annotationVisitor0 = fieldVisitor!!.visitAnnotation("Lorg/jetbrains/annotations/NotNull;", false)
+        annotationVisitor0 = fieldVisitor.visitAnnotation("Lorg/jetbrains/annotations/NotNull;", false)
         annotationVisitor0.visitEnd()
       }
       fieldVisitor.visitEnd()
@@ -120,14 +146,14 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       fieldVisitor =
         classWriter.visitField(
-          org.objectweb.asm.Opcodes.ACC_PRIVATE or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PRIVATE or Opcodes.ACC_FINAL,
           "directNavigationEventInput\$delegate",
           "Lkotlin/Lazy;",
           null,
           null,
         )
       run {
-        annotationVisitor0 = fieldVisitor!!.visitAnnotation("Lorg/jetbrains/annotations/NotNull;", false)
+        annotationVisitor0 = fieldVisitor.visitAnnotation("Lorg/jetbrains/annotations/NotNull;", false)
         annotationVisitor0.visitEnd()
       }
       fieldVisitor.visitEnd()
@@ -135,7 +161,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       fieldVisitor =
         classWriter.visitField(
-          org.objectweb.asm.Opcodes.ACC_PUBLIC or org.objectweb.asm.Opcodes.ACC_FINAL or org.objectweb.asm.Opcodes.ACC_STATIC,
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL or Opcodes.ACC_STATIC,
           "\$stable",
           "I",
           null,
@@ -144,42 +170,42 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       fieldVisitor.visitEnd()
     }
     run {
-      methodVisitor = classWriter.visitMethod(org.objectweb.asm.Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
+      methodVisitor = classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(66, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
-      methodVisitor.visitMethodInsn(org.objectweb.asm.Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
+      methodVisitor.visitLineNumber(101, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
       val label1 = Label()
       methodVisitor.visitLabel(label1)
-      methodVisitor.visitLineNumber(67, label1)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
-      methodVisitor.visitTypeInsn(org.objectweb.asm.Opcodes.NEW, "androidx/navigationevent/NavigationEventDispatcher")
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.DUP)
+      methodVisitor.visitLineNumber(103, label1)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitTypeInsn(Opcodes.NEW, "androidx/navigationevent/NavigationEventDispatcher")
+      methodVisitor.visitInsn(Opcodes.DUP)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/NavigationEventDispatcher",
         "<init>",
         "()V",
         false,
       )
       methodVisitor.visitFieldInsn(
-        org.objectweb.asm.Opcodes.PUTFIELD,
+        Opcodes.PUTFIELD,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "navigationEventDispatcher",
         "Landroidx/navigationevent/NavigationEventDispatcher;",
       )
       val label2 = Label()
       methodVisitor.visitLabel(label2)
-      methodVisitor.visitLineNumber(69, label2)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(105, label2)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitInvokeDynamicInsn(
         "invoke",
         "(Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;)Lkotlin/jvm/functions/Function0;",
         Handle(
-          org.objectweb.asm.Opcodes.H_INVOKESTATIC,
+          Opcodes.H_INVOKESTATIC,
           "java/lang/invoke/LambdaMetafactory",
           "metafactory",
           "(Ljava/lang/invoke/MethodHandles\$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;",
@@ -188,7 +214,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
         *arrayOf<Any?>(
           Type.getType("()Ljava/lang/Object;"),
           Handle(
-            org.objectweb.asm.Opcodes.H_INVOKESTATIC,
+            Opcodes.H_INVOKESTATIC,
             "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
             "directNavigationEventInput_delegate\$lambda$0",
             "(Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;)Landroidx/navigationevent/DirectNavigationEventInput;",
@@ -198,22 +224,22 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
         ),
       )
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESTATIC,
+        Opcodes.INVOKESTATIC,
         "kotlin/LazyKt",
         "lazy",
         "(Lkotlin/jvm/functions/Function0;)Lkotlin/Lazy;",
         false,
       )
       methodVisitor.visitFieldInsn(
-        org.objectweb.asm.Opcodes.PUTFIELD,
+        Opcodes.PUTFIELD,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "directNavigationEventInput\$delegate",
         "Lkotlin/Lazy;",
       )
       val label3 = Label()
       methodVisitor.visitLabel(label3)
-      methodVisitor.visitLineNumber(66, label3)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+      methodVisitor.visitLineNumber(101, label3)
+      methodVisitor.visitInsn(Opcodes.RETURN)
       val label4 = Label()
       methodVisitor.visitLabel(label4)
       methodVisitor.visitLocalVariable(
@@ -230,28 +256,28 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PUBLIC,
+          Opcodes.ACC_PUBLIC,
           "getNavigationEventDispatcher",
           "()Landroidx/navigationevent/NavigationEventDispatcher;",
           null,
           null,
         )
       run {
-        annotationVisitor0 = methodVisitor!!.visitAnnotation("Lorg/jetbrains/annotations/NotNull;", false)
+        annotationVisitor0 = methodVisitor.visitAnnotation("Lorg/jetbrains/annotations/NotNull;", false)
         annotationVisitor0.visitEnd()
       }
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(67, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(102, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitFieldInsn(
-        org.objectweb.asm.Opcodes.GETFIELD,
+        Opcodes.GETFIELD,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "navigationEventDispatcher",
         "Landroidx/navigationevent/NavigationEventDispatcher;",
       )
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ARETURN)
+      methodVisitor.visitInsn(Opcodes.ARETURN)
       val label1 = Label()
       methodVisitor.visitLabel(label1)
       methodVisitor.visitLocalVariable(
@@ -268,7 +294,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PRIVATE or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PRIVATE or Opcodes.ACC_FINAL,
           "getDirectNavigationEventInput",
           "()Landroidx/navigationevent/DirectNavigationEventInput;",
           null,
@@ -277,22 +303,22 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(69, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(105, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitFieldInsn(
-        org.objectweb.asm.Opcodes.GETFIELD,
+        Opcodes.GETFIELD,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "directNavigationEventInput\$delegate",
         "Lkotlin/Lazy;",
       )
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ASTORE, 1)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1)
-      methodVisitor.visitMethodInsn(org.objectweb.asm.Opcodes.INVOKEINTERFACE, "kotlin/Lazy", "getValue", "()Ljava/lang/Object;", true)
-      methodVisitor.visitTypeInsn(org.objectweb.asm.Opcodes.CHECKCAST, "androidx/navigationevent/DirectNavigationEventInput")
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 1)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "kotlin/Lazy", "getValue", "()Ljava/lang/Object;", true)
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/DirectNavigationEventInput")
       val label1 = Label()
       methodVisitor.visitLabel(label1)
-      methodVisitor.visitLineNumber(69, label1)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ARETURN)
+      methodVisitor.visitLineNumber(105, label1)
+      methodVisitor.visitInsn(Opcodes.ARETURN)
       val label2 = Label()
       methodVisitor.visitLabel(label2)
       methodVisitor.visitLocalVariable(
@@ -309,7 +335,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PUBLIC or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
           "canBackPress",
           "()Z",
           null,
@@ -318,68 +344,77 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(76, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(117, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "getNavigationEventDispatcher",
         "()Landroidx/navigationevent/NavigationEventDispatcher;",
         false,
       )
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/NavigationEventDispatcher",
         "getHistory",
         "()Lkotlinx/coroutines/flow/StateFlow;",
         false,
       )
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEINTERFACE,
+        Opcodes.INVOKEINTERFACE,
         "kotlinx/coroutines/flow/StateFlow",
         "getValue",
         "()Ljava/lang/Object;",
         true,
       )
-      methodVisitor.visitTypeInsn(org.objectweb.asm.Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventHistory")
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventHistory")
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 1)
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLineNumber(118, label1)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/NavigationEventHistory",
-        "getMergedHistory",
-        "()Ljava/util/List;",
+        "getCurrentIndex",
+        "()I",
         false,
       )
-      methodVisitor.visitTypeInsn(org.objectweb.asm.Opcodes.CHECKCAST, "java/util/Collection")
-      methodVisitor.visitMethodInsn(org.objectweb.asm.Opcodes.INVOKEINTERFACE, "java/util/Collection", "isEmpty", "()Z", true)
-      val label1 = Label()
-      methodVisitor.visitJumpInsn(org.objectweb.asm.Opcodes.IFNE, label1)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ICONST_1)
       val label2 = Label()
-      methodVisitor.visitJumpInsn(org.objectweb.asm.Opcodes.GOTO, label2)
-      methodVisitor.visitLabel(label1)
-      methodVisitor.visitFrame(org.objectweb.asm.Opcodes.F_SAME, 0, null, 0, null)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ICONST_0)
-      methodVisitor.visitLabel(label2)
-      methodVisitor.visitLineNumber(76, label2)
-      methodVisitor.visitFrame(org.objectweb.asm.Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(org.objectweb.asm.Opcodes.INTEGER))
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.IRETURN)
+      methodVisitor.visitJumpInsn(Opcodes.IFLE, label2)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
       val label3 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label3)
+      methodVisitor.visitLabel(label2)
+      methodVisitor.visitFrame(
+        Opcodes.F_APPEND,
+        1,
+        arrayOf<Any>("androidx/navigationevent/NavigationEventHistory"),
+        0,
+        null,
+      )
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
       methodVisitor.visitLabel(label3)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(Opcodes.INTEGER))
+      methodVisitor.visitInsn(Opcodes.IRETURN)
+      val label4 = Label()
+      methodVisitor.visitLabel(label4)
+      methodVisitor.visitLocalVariable("history", "Landroidx/navigationevent/NavigationEventHistory;", null, label1, label4, 1)
       methodVisitor.visitLocalVariable(
         "this",
         "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
         null,
         label0,
-        label3,
+        label4,
         0,
       )
-      methodVisitor.visitMaxs(1, 1)
+      methodVisitor.visitMaxs(1, 2)
       methodVisitor.visitEnd()
     }
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PUBLIC or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
           "onBackPressStarted",
           "(Ljava/lang/String;)V",
           null,
@@ -393,10 +428,10 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(80, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(134, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "getDirectNavigationEventInput",
         "()Landroidx/navigationevent/DirectNavigationEventInput;",
@@ -404,26 +439,26 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label1 = Label()
       methodVisitor.visitLabel(label1)
-      methodVisitor.visitLineNumber(81, label1)
-      methodVisitor.visitTypeInsn(org.objectweb.asm.Opcodes.NEW, "androidx/navigationevent/NavigationEvent")
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.DUP)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1)
+      methodVisitor.visitLineNumber(135, label1)
+      methodVisitor.visitTypeInsn(Opcodes.NEW, "androidx/navigationevent/NavigationEvent")
+      methodVisitor.visitInsn(Opcodes.DUP)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "getNavigationEdgeFromString",
         "(Ljava/lang/String;)I",
         false,
       )
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.FCONST_0)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.FCONST_0)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.FCONST_0)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.LCONST_0)
-      methodVisitor.visitIntInsn(org.objectweb.asm.Opcodes.BIPUSH, 30)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ACONST_NULL)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.LCONST_0)
+      methodVisitor.visitIntInsn(Opcodes.BIPUSH, 30)
+      methodVisitor.visitInsn(Opcodes.ACONST_NULL)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/NavigationEvent",
         "<init>",
         "(IFFFJILkotlin/jvm/internal/DefaultConstructorMarker;)V",
@@ -431,9 +466,9 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label2 = Label()
       methodVisitor.visitLabel(label2)
-      methodVisitor.visitLineNumber(80, label2)
+      methodVisitor.visitLineNumber(134, label2)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/DirectNavigationEventInput",
         "backStarted",
         "(Landroidx/navigationevent/NavigationEvent;)V",
@@ -441,8 +476,8 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label3 = Label()
       methodVisitor.visitLabel(label3)
-      methodVisitor.visitLineNumber(83, label3)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+      methodVisitor.visitLineNumber(137, label3)
+      methodVisitor.visitInsn(Opcodes.RETURN)
       val label4 = Label()
       methodVisitor.visitLabel(label4)
       methodVisitor.visitLocalVariable(
@@ -460,7 +495,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PUBLIC or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
           "onBackPressProgress",
           "(FLjava/lang/String;)V",
           null,
@@ -474,10 +509,10 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(98, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(153, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "getDirectNavigationEventInput",
         "()Landroidx/navigationevent/DirectNavigationEventInput;",
@@ -485,26 +520,26 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label1 = Label()
       methodVisitor.visitLabel(label1)
-      methodVisitor.visitLineNumber(99, label1)
-      methodVisitor.visitTypeInsn(org.objectweb.asm.Opcodes.NEW, "androidx/navigationevent/NavigationEvent")
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.DUP)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 2)
+      methodVisitor.visitLineNumber(154, label1)
+      methodVisitor.visitTypeInsn(Opcodes.NEW, "androidx/navigationevent/NavigationEvent")
+      methodVisitor.visitInsn(Opcodes.DUP)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "getNavigationEdgeFromString",
         "(Ljava/lang/String;)I",
         false,
       )
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.FLOAD, 1)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.FCONST_0)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.FCONST_0)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.LCONST_0)
-      methodVisitor.visitIntInsn(org.objectweb.asm.Opcodes.BIPUSH, 28)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ACONST_NULL)
+      methodVisitor.visitVarInsn(Opcodes.FLOAD, 1)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.LCONST_0)
+      methodVisitor.visitIntInsn(Opcodes.BIPUSH, 28)
+      methodVisitor.visitInsn(Opcodes.ACONST_NULL)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/NavigationEvent",
         "<init>",
         "(IFFFJILkotlin/jvm/internal/DefaultConstructorMarker;)V",
@@ -512,9 +547,9 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label2 = Label()
       methodVisitor.visitLabel(label2)
-      methodVisitor.visitLineNumber(98, label2)
+      methodVisitor.visitLineNumber(153, label2)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/DirectNavigationEventInput",
         "backProgressed",
         "(Landroidx/navigationevent/NavigationEvent;)V",
@@ -522,8 +557,8 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label3 = Label()
       methodVisitor.visitLabel(label3)
-      methodVisitor.visitLineNumber(101, label3)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+      methodVisitor.visitLineNumber(156, label3)
+      methodVisitor.visitInsn(Opcodes.RETURN)
       val label4 = Label()
       methodVisitor.visitLabel(label4)
       methodVisitor.visitLocalVariable(
@@ -542,7 +577,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PUBLIC or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
           "onBackPressCompleted",
           "()V",
           null,
@@ -551,17 +586,17 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(105, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(160, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "getDirectNavigationEventInput",
         "()Landroidx/navigationevent/DirectNavigationEventInput;",
         false,
       )
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/DirectNavigationEventInput",
         "backCompleted",
         "()V",
@@ -569,8 +604,8 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label1 = Label()
       methodVisitor.visitLabel(label1)
-      methodVisitor.visitLineNumber(106, label1)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+      methodVisitor.visitLineNumber(161, label1)
+      methodVisitor.visitInsn(Opcodes.RETURN)
       val label2 = Label()
       methodVisitor.visitLabel(label2)
       methodVisitor.visitLocalVariable(
@@ -587,7 +622,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PUBLIC or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
           "onBackPressCancelled",
           "()V",
           null,
@@ -596,17 +631,17 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(110, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(165, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "getDirectNavigationEventInput",
         "()Landroidx/navigationevent/DirectNavigationEventInput;",
         false,
       )
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/DirectNavigationEventInput",
         "backCancelled",
         "()V",
@@ -614,8 +649,8 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label1 = Label()
       methodVisitor.visitLabel(label1)
-      methodVisitor.visitLineNumber(111, label1)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+      methodVisitor.visitLineNumber(166, label1)
+      methodVisitor.visitInsn(Opcodes.RETURN)
       val label2 = Label()
       methodVisitor.visitLabel(label2)
       methodVisitor.visitLocalVariable(
@@ -632,7 +667,956 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PRIVATE or org.objectweb.asm.Opcodes.ACC_FINAL,
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
+          "canForwardPress",
+          "()Z",
+          null,
+          null,
+        )
+      methodVisitor.visitCode()
+      val label0 = Label()
+      methodVisitor.visitLabel(label0)
+      methodVisitor.visitLineNumber(174, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getNavigationEventDispatcher",
+        "()Landroidx/navigationevent/NavigationEventDispatcher;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventDispatcher",
+        "getHistory",
+        "()Lkotlinx/coroutines/flow/StateFlow;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEINTERFACE,
+        "kotlinx/coroutines/flow/StateFlow",
+        "getValue",
+        "()Ljava/lang/Object;",
+        true,
+      )
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventHistory")
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 1)
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLineNumber(175, label1)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getCurrentIndex",
+        "()I",
+        false,
+      )
+      val label2 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFLT, label2)
+      val label3 = Label()
+      methodVisitor.visitLabel(label3)
+      methodVisitor.visitLineNumber(176, label3)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getCurrentIndex",
+        "()I",
+        false,
+      )
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getMergedHistory",
+        "()Ljava/util/List;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/List", "size", "()I", true)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
+      methodVisitor.visitInsn(Opcodes.ISUB)
+      methodVisitor.visitJumpInsn(Opcodes.IF_ICMPGE, label2)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
+      val label4 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label4)
+      methodVisitor.visitLabel(label2)
+      methodVisitor.visitFrame(
+        Opcodes.F_APPEND,
+        1,
+        arrayOf<Any>("androidx/navigationevent/NavigationEventHistory"),
+        0,
+        null,
+      )
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitLabel(label4)
+      methodVisitor.visitLineNumber(175, label4)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(Opcodes.INTEGER))
+      methodVisitor.visitInsn(Opcodes.IRETURN)
+      val label5 = Label()
+      methodVisitor.visitLabel(label5)
+      methodVisitor.visitLocalVariable("history", "Landroidx/navigationevent/NavigationEventHistory;", null, label1, label5, 1)
+      methodVisitor.visitLocalVariable(
+        "this",
+        "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
+        null,
+        label0,
+        label5,
+        0,
+      )
+      methodVisitor.visitMaxs(3, 2)
+      methodVisitor.visitEnd()
+    }
+    run {
+      methodVisitor =
+        classWriter.visitMethod(
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
+          "onForwardPressStarted",
+          "(Ljava/lang/String;)V",
+          null,
+          null,
+        )
+      methodVisitor.visitAnnotableParameterCount(1, false)
+      run {
+        annotationVisitor0 = methodVisitor.visitParameterAnnotation(0, "Lorg/jetbrains/annotations/NotNull;", false)
+        annotationVisitor0.visitEnd()
+      }
+      methodVisitor.visitCode()
+      val label0 = Label()
+      methodVisitor.visitLabel(label0)
+      methodVisitor.visitLineNumber(192, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getDirectNavigationEventInput",
+        "()Landroidx/navigationevent/DirectNavigationEventInput;",
+        false,
+      )
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLineNumber(193, label1)
+      methodVisitor.visitTypeInsn(Opcodes.NEW, "androidx/navigationevent/NavigationEvent")
+      methodVisitor.visitInsn(Opcodes.DUP)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getNavigationEdgeFromString",
+        "(Ljava/lang/String;)I",
+        false,
+      )
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.LCONST_0)
+      methodVisitor.visitIntInsn(Opcodes.BIPUSH, 30)
+      methodVisitor.visitInsn(Opcodes.ACONST_NULL)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        "androidx/navigationevent/NavigationEvent",
+        "<init>",
+        "(IFFFJILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+        false,
+      )
+      val label2 = Label()
+      methodVisitor.visitLabel(label2)
+      methodVisitor.visitLineNumber(192, label2)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/DirectNavigationEventInput",
+        "forwardStarted",
+        "(Landroidx/navigationevent/NavigationEvent;)V",
+        false,
+      )
+      val label3 = Label()
+      methodVisitor.visitLabel(label3)
+      methodVisitor.visitLineNumber(195, label3)
+      methodVisitor.visitInsn(Opcodes.RETURN)
+      val label4 = Label()
+      methodVisitor.visitLabel(label4)
+      methodVisitor.visitLocalVariable(
+        "this",
+        "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
+        null,
+        label0,
+        label4,
+        0,
+      )
+      methodVisitor.visitLocalVariable("edge", "Ljava/lang/String;", null, label0, label4, 1)
+      methodVisitor.visitMaxs(11, 2)
+      methodVisitor.visitEnd()
+    }
+    run {
+      methodVisitor =
+        classWriter.visitMethod(
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
+          "onForwardPressProgress",
+          "(FLjava/lang/String;)V",
+          null,
+          null,
+        )
+      methodVisitor.visitAnnotableParameterCount(2, false)
+      run {
+        annotationVisitor0 = methodVisitor.visitParameterAnnotation(1, "Lorg/jetbrains/annotations/NotNull;", false)
+        annotationVisitor0.visitEnd()
+      }
+      methodVisitor.visitCode()
+      val label0 = Label()
+      methodVisitor.visitLabel(label0)
+      methodVisitor.visitLineNumber(211, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getDirectNavigationEventInput",
+        "()Landroidx/navigationevent/DirectNavigationEventInput;",
+        false,
+      )
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLineNumber(212, label1)
+      methodVisitor.visitTypeInsn(Opcodes.NEW, "androidx/navigationevent/NavigationEvent")
+      methodVisitor.visitInsn(Opcodes.DUP)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getNavigationEdgeFromString",
+        "(Ljava/lang/String;)I",
+        false,
+      )
+      methodVisitor.visitVarInsn(Opcodes.FLOAD, 1)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.FCONST_0)
+      methodVisitor.visitInsn(Opcodes.LCONST_0)
+      methodVisitor.visitIntInsn(Opcodes.BIPUSH, 28)
+      methodVisitor.visitInsn(Opcodes.ACONST_NULL)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        "androidx/navigationevent/NavigationEvent",
+        "<init>",
+        "(IFFFJILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+        false,
+      )
+      val label2 = Label()
+      methodVisitor.visitLabel(label2)
+      methodVisitor.visitLineNumber(211, label2)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/DirectNavigationEventInput",
+        "forwardProgressed",
+        "(Landroidx/navigationevent/NavigationEvent;)V",
+        false,
+      )
+      val label3 = Label()
+      methodVisitor.visitLabel(label3)
+      methodVisitor.visitLineNumber(214, label3)
+      methodVisitor.visitInsn(Opcodes.RETURN)
+      val label4 = Label()
+      methodVisitor.visitLabel(label4)
+      methodVisitor.visitLocalVariable(
+        "this",
+        "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
+        null,
+        label0,
+        label4,
+        0,
+      )
+      methodVisitor.visitLocalVariable("progress", "F", null, label0, label4, 1)
+      methodVisitor.visitLocalVariable("edge", "Ljava/lang/String;", null, label0, label4, 2)
+      methodVisitor.visitMaxs(11, 3)
+      methodVisitor.visitEnd()
+    }
+    run {
+      methodVisitor =
+        classWriter.visitMethod(
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
+          "onForwardPressCompleted",
+          "()V",
+          null,
+          null,
+        )
+      methodVisitor.visitCode()
+      val label0 = Label()
+      methodVisitor.visitLabel(label0)
+      methodVisitor.visitLineNumber(218, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getDirectNavigationEventInput",
+        "()Landroidx/navigationevent/DirectNavigationEventInput;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/DirectNavigationEventInput",
+        "forwardCompleted",
+        "()V",
+        false,
+      )
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLineNumber(219, label1)
+      methodVisitor.visitInsn(Opcodes.RETURN)
+      val label2 = Label()
+      methodVisitor.visitLabel(label2)
+      methodVisitor.visitLocalVariable(
+        "this",
+        "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
+        null,
+        label0,
+        label2,
+        0,
+      )
+      methodVisitor.visitMaxs(1, 1)
+      methodVisitor.visitEnd()
+    }
+    run {
+      methodVisitor =
+        classWriter.visitMethod(
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
+          "onForwardPressCancelled",
+          "()V",
+          null,
+          null,
+        )
+      methodVisitor.visitCode()
+      val label0 = Label()
+      methodVisitor.visitLabel(label0)
+      methodVisitor.visitLineNumber(223, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESPECIAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getDirectNavigationEventInput",
+        "()Landroidx/navigationevent/DirectNavigationEventInput;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/DirectNavigationEventInput",
+        "forwardCancelled",
+        "()V",
+        false,
+      )
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLineNumber(224, label1)
+      methodVisitor.visitInsn(Opcodes.RETURN)
+      val label2 = Label()
+      methodVisitor.visitLabel(label2)
+      methodVisitor.visitLocalVariable(
+        "this",
+        "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
+        null,
+        label0,
+        label2,
+        0,
+      )
+      methodVisitor.visitMaxs(1, 1)
+      methodVisitor.visitEnd()
+    }
+    run {
+      methodVisitor =
+        classWriter.visitMethod(
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
+          "getHistory",
+          "()Ljava/util/List;",
+          "()Ljava/util/List<Ljava/lang/Object;>;",
+          null,
+        )
+      run {
+        annotationVisitor0 = methodVisitor.visitAnnotation("Lorg/jetbrains/annotations/NotNull;", false)
+        annotationVisitor0.visitEnd()
+      }
+      methodVisitor.visitCode()
+      val label0 = Label()
+      methodVisitor.visitLabel(label0)
+      methodVisitor.visitLineNumber(227, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getNavigationEventDispatcher",
+        "()Landroidx/navigationevent/NavigationEventDispatcher;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventDispatcher",
+        "getHistory",
+        "()Lkotlinx/coroutines/flow/StateFlow;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEINTERFACE,
+        "kotlinx/coroutines/flow/StateFlow",
+        "getValue",
+        "()Ljava/lang/Object;",
+        true,
+      )
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventHistory")
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getMergedHistory",
+        "()Ljava/util/List;",
+        false,
+      )
+      methodVisitor.visitInsn(Opcodes.ARETURN)
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLocalVariable(
+        "this",
+        "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
+        null,
+        label0,
+        label1,
+        0,
+      )
+      methodVisitor.visitMaxs(1, 1)
+      methodVisitor.visitEnd()
+    }
+    run {
+      methodVisitor =
+        classWriter.visitMethod(
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
+          "getCurrentIndex",
+          "()I",
+          null,
+          null,
+        )
+      methodVisitor.visitCode()
+      val label0 = Label()
+      methodVisitor.visitLabel(label0)
+      methodVisitor.visitLineNumber(231, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getNavigationEventDispatcher",
+        "()Landroidx/navigationevent/NavigationEventDispatcher;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventDispatcher",
+        "getHistory",
+        "()Lkotlinx/coroutines/flow/StateFlow;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEINTERFACE,
+        "kotlinx/coroutines/flow/StateFlow",
+        "getValue",
+        "()Ljava/lang/Object;",
+        true,
+      )
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventHistory")
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getCurrentIndex",
+        "()I",
+        false,
+      )
+      methodVisitor.visitInsn(Opcodes.IRETURN)
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLocalVariable(
+        "this",
+        "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
+        null,
+        label0,
+        label1,
+        0,
+      )
+      methodVisitor.visitMaxs(1, 1)
+      methodVisitor.visitEnd()
+    }
+    run {
+      methodVisitor =
+        classWriter.visitMethod(
+          Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
+          "backToState",
+          "(Ljava/lang/Object;)Z",
+          null,
+          null,
+        )
+      methodVisitor.visitAnnotableParameterCount(1, false)
+      run {
+        annotationVisitor0 = methodVisitor.visitParameterAnnotation(0, "Lorg/jetbrains/annotations/NotNull;", false)
+        annotationVisitor0.visitEnd()
+      }
+      methodVisitor.visitCode()
+      val label0 = Label()
+      methodVisitor.visitLabel(label0)
+      methodVisitor.visitLineNumber(242, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getNavigationEventDispatcher",
+        "()Landroidx/navigationevent/NavigationEventDispatcher;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventDispatcher",
+        "getHistory",
+        "()Lkotlinx/coroutines/flow/StateFlow;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEINTERFACE,
+        "kotlinx/coroutines/flow/StateFlow",
+        "getValue",
+        "()Ljava/lang/Object;",
+        true,
+      )
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventHistory")
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 2)
+      val label1 = Label()
+      methodVisitor.visitLabel(label1)
+      methodVisitor.visitLineNumber(243, label1)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getCurrentIndex",
+        "()I",
+        false,
+      )
+      val label2 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFGT, label2)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitInsn(Opcodes.IRETURN)
+      methodVisitor.visitLabel(label2)
+      methodVisitor.visitLineNumber(249, label2)
+      methodVisitor.visitFrame(
+        Opcodes.F_APPEND,
+        1,
+        arrayOf<Any>("androidx/navigationevent/NavigationEventHistory"),
+        0,
+        null,
+      )
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getMergedHistory",
+        "()Ljava/util/List;",
+        false,
+      )
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Iterable")
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getCurrentIndex",
+        "()I",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        "kotlin/collections/CollectionsKt",
+        "take",
+        "(Ljava/lang/Iterable;I)Ljava/util/List;",
+        false,
+      )
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 3)
+      val label3 = Label()
+      methodVisitor.visitLabel(label3)
+      methodVisitor.visitLineNumber(251, label3)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 3)
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 6)
+      val label4 = Label()
+      methodVisitor.visitLabel(label4)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 7)
+      val label5 = Label()
+      methodVisitor.visitLabel(label5)
+      methodVisitor.visitLineNumber(282, label5)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 8)
+      val label6 = Label()
+      methodVisitor.visitLabel(label6)
+      methodVisitor.visitLineNumber(283, label6)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 6)
+      methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/List", "iterator", "()Ljava/util/Iterator;", true)
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 9)
+      val label7 = Label()
+      methodVisitor.visitLabel(label7)
+      methodVisitor.visitFrame(
+        Opcodes.F_FULL,
+        10,
+        arrayOf<Any?>(
+          "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+          "java/lang/Object",
+          "androidx/navigationevent/NavigationEventHistory",
+          "java/util/List",
+          Opcodes.TOP,
+          Opcodes.TOP,
+          "java/util/List",
+          Opcodes.INTEGER,
+          Opcodes.INTEGER,
+          "java/util/Iterator",
+        ),
+        0,
+        arrayOf<Any?>(),
+      )
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 9)
+      methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true)
+      val label8 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFEQ, label8)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 9)
+      methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true)
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 10)
+      val label9 = Label()
+      methodVisitor.visitLabel(label9)
+      methodVisitor.visitLineNumber(284, label9)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 10)
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventInfo")
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 11)
+      val label10 = Label()
+      methodVisitor.visitLabel(label10)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 12)
+      val label11 = Label()
+      methodVisitor.visitLabel(label11)
+      methodVisitor.visitLineNumber(251, label11)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 11)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      val label12 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IF_ACMPNE, label12)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
+      val label13 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label13)
+      methodVisitor.visitLabel(label12)
+      methodVisitor.visitFrame(
+        Opcodes.F_APPEND,
+        3,
+        arrayOf<Any?>("java/lang/Object", "androidx/navigationevent/NavigationEventInfo", Opcodes.INTEGER),
+        0,
+        null,
+      )
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitLabel(label13)
+      methodVisitor.visitLineNumber(284, label13)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(Opcodes.INTEGER))
+      val label14 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFEQ, label14)
+      val label15 = Label()
+      methodVisitor.visitLabel(label15)
+      methodVisitor.visitLineNumber(285, label15)
+      methodVisitor.visitVarInsn(Opcodes.ILOAD, 8)
+      val label16 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label16)
+      methodVisitor.visitLabel(label14)
+      methodVisitor.visitLineNumber(286, label14)
+      methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null)
+      methodVisitor.visitIincInsn(8, 1)
+      val label17 = Label()
+      methodVisitor.visitLabel(label17)
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label7)
+      methodVisitor.visitLabel(label8)
+      methodVisitor.visitLineNumber(288, label8)
+      methodVisitor.visitFrame(Opcodes.F_CHOP, 3, null, 0, null)
+      methodVisitor.visitInsn(Opcodes.ICONST_M1)
+      methodVisitor.visitLabel(label16)
+      methodVisitor.visitLineNumber(251, label16)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(Opcodes.INTEGER))
+      methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", false)
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 6)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 6)
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "java/lang/Number")
+      methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Number", "intValue", "()I", false)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 7)
+      val label18 = Label()
+      methodVisitor.visitLabel(label18)
+      methodVisitor.visitLineNumber(289, label18)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 8)
+      val label19 = Label()
+      methodVisitor.visitLabel(label19)
+      methodVisitor.visitLineNumber(251, label19)
+      methodVisitor.visitVarInsn(Opcodes.ILOAD, 7)
+      val label20 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFLT, label20)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
+      val label21 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label21)
+      methodVisitor.visitLabel(label20)
+      methodVisitor.visitFrame(
+        Opcodes.F_FULL,
+        10,
+        arrayOf<Any?>(
+          "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+          "java/lang/Object",
+          "androidx/navigationevent/NavigationEventHistory",
+          "java/util/List",
+          Opcodes.TOP,
+          Opcodes.TOP,
+          "java/lang/Integer",
+          Opcodes.INTEGER,
+          Opcodes.INTEGER,
+          "java/util/Iterator",
+        ),
+        0,
+        arrayOf<Any?>(),
+      )
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitLabel(label21)
+      methodVisitor.visitLineNumber(251, label21)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(Opcodes.INTEGER))
+      val label22 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFEQ, label22)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 6)
+      val label23 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label23)
+      methodVisitor.visitLabel(label22)
+      methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null)
+      methodVisitor.visitInsn(Opcodes.ACONST_NULL)
+      methodVisitor.visitLabel(label23)
+      methodVisitor.visitLineNumber(251, label23)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any>("java/lang/Integer"))
+      methodVisitor.visitInsn(Opcodes.DUP)
+      val label24 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFNULL, label24)
+      methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I", false)
+      val label25 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label25)
+      methodVisitor.visitLabel(label24)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any>("java/lang/Integer"))
+      methodVisitor.visitInsn(Opcodes.POP)
+      val label26 = Label()
+      methodVisitor.visitLabel(label26)
+      methodVisitor.visitLineNumber(252, label26)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 3)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        "kotlin/collections/CollectionsKt",
+        "lastIndexOf",
+        "(Ljava/util/List;Ljava/lang/Object;)I",
+        false,
+      )
+      methodVisitor.visitLabel(label25)
+      methodVisitor.visitLineNumber(251, label25)
+      methodVisitor.visitLineNumber(250, label25)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(Opcodes.INTEGER))
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 4)
+      val label27 = Label()
+      methodVisitor.visitLabel(label27)
+      methodVisitor.visitLineNumber(254, label27)
+      methodVisitor.visitVarInsn(Opcodes.ILOAD, 4)
+      val label28 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFGE, label28)
+      val label29 = Label()
+      methodVisitor.visitLabel(label29)
+      methodVisitor.visitLineNumber(255, label29)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitInsn(Opcodes.IRETURN)
+      methodVisitor.visitLabel(label28)
+      methodVisitor.visitLineNumber(258, label28)
+      methodVisitor.visitFrame(
+        Opcodes.F_FULL,
+        10,
+        arrayOf<Any?>(
+          "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+          "java/lang/Object",
+          "androidx/navigationevent/NavigationEventHistory",
+          "java/util/List",
+          Opcodes.INTEGER,
+          Opcodes.TOP,
+          "java/lang/Integer",
+          Opcodes.INTEGER,
+          Opcodes.INTEGER,
+          "java/util/Iterator",
+        ),
+        0,
+        arrayOf<Any?>(),
+      )
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getCurrentIndex",
+        "()I",
+        false,
+      )
+      methodVisitor.visitVarInsn(Opcodes.ILOAD, 4)
+      methodVisitor.visitInsn(Opcodes.ISUB)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 5)
+      val label30 = Label()
+      methodVisitor.visitLabel(label30)
+      methodVisitor.visitLineNumber(259, label30)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 6)
+      val label31 = Label()
+      methodVisitor.visitLabel(label31)
+      methodVisitor.visitFrame(
+        Opcodes.F_FULL,
+        10,
+        arrayOf<Any?>(
+          "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+          "java/lang/Object",
+          "androidx/navigationevent/NavigationEventHistory",
+          "java/util/List",
+          Opcodes.INTEGER,
+          Opcodes.INTEGER,
+          Opcodes.INTEGER,
+          Opcodes.INTEGER,
+          Opcodes.INTEGER,
+          "java/util/Iterator",
+        ),
+        0,
+        arrayOf<Any?>(),
+      )
+      methodVisitor.visitVarInsn(Opcodes.ILOAD, 6)
+      methodVisitor.visitVarInsn(Opcodes.ILOAD, 5)
+      val label32 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IF_ICMPGE, label32)
+      methodVisitor.visitVarInsn(Opcodes.ILOAD, 6)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 7)
+      val label33 = Label()
+      methodVisitor.visitLabel(label33)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 8)
+      val label34 = Label()
+      methodVisitor.visitLabel(label34)
+      methodVisitor.visitLineNumber(262, label34)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "canBackPress",
+        "()Z",
+        false,
+      )
+      val label35 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IFNE, label35)
+      val label36 = Label()
+      methodVisitor.visitLabel(label36)
+      methodVisitor.visitLineNumber(263, label36)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
+      methodVisitor.visitInsn(Opcodes.IRETURN)
+      methodVisitor.visitLabel(label35)
+      methodVisitor.visitLineNumber(265, label35)
+      methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "onBackPressCompleted",
+        "()V",
+        false,
+      )
+      val label37 = Label()
+      methodVisitor.visitLabel(label37)
+      methodVisitor.visitLineNumber(268, label37)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
+        "getNavigationEventDispatcher",
+        "()Landroidx/navigationevent/NavigationEventDispatcher;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventDispatcher",
+        "getHistory",
+        "()Lkotlinx/coroutines/flow/StateFlow;",
+        false,
+      )
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEINTERFACE,
+        "kotlinx/coroutines/flow/StateFlow",
+        "getValue",
+        "()Ljava/lang/Object;",
+        true,
+      )
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventHistory")
+      methodVisitor.visitMethodInsn(
+        Opcodes.INVOKEVIRTUAL,
+        "androidx/navigationevent/NavigationEventHistory",
+        "getCurrentIndex",
+        "()I",
+        false,
+      )
+      methodVisitor.visitVarInsn(Opcodes.ILOAD, 4)
+      val label38 = Label()
+      methodVisitor.visitJumpInsn(Opcodes.IF_ICMPGT, label38)
+      val label39 = Label()
+      methodVisitor.visitLabel(label39)
+      methodVisitor.visitLineNumber(269, label39)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
+      methodVisitor.visitInsn(Opcodes.IRETURN)
+      methodVisitor.visitLabel(label38)
+      methodVisitor.visitLineNumber(271, label38)
+      methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null)
+      methodVisitor.visitInsn(Opcodes.NOP)
+      val label40 = Label()
+      methodVisitor.visitLabel(label40)
+      methodVisitor.visitLineNumber(259, label40)
+      methodVisitor.visitIincInsn(6, 1)
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label31)
+      methodVisitor.visitLabel(label32)
+      methodVisitor.visitLineNumber(272, label32)
+      methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
+      methodVisitor.visitInsn(Opcodes.IRETURN)
+      val label41 = Label()
+      methodVisitor.visitLabel(label41)
+      methodVisitor.visitLocalVariable(
+        "\$i\$a$-indexOfFirst-FakeNavigationEventDispatcherOwner\$backToState\$targetIndex$1",
+        "I",
+        null,
+        label11,
+        label13,
+        12,
+      )
+      methodVisitor.visitLocalVariable("it", "Landroidx/navigationevent/NavigationEventInfo;", null, label10, label13, 11)
+      methodVisitor.visitLocalVariable("item\$iv", "Ljava/lang/Object;", null, label9, label17, 10)
+      methodVisitor.visitLocalVariable("\$i\$f\$indexOfFirst", "I", null, label5, label16, 7)
+      methodVisitor.visitLocalVariable("index\$iv", "I", null, label6, label16, 8)
+      methodVisitor.visitLocalVariable("\$this\$indexOfFirst\$iv", "Ljava/util/List;", null, label4, label16, 6)
+      methodVisitor.visitLocalVariable(
+        "\$i\$a$-takeIf-FakeNavigationEventDispatcherOwner\$backToState\$targetIndex$2",
+        "I",
+        null,
+        label19,
+        label21,
+        8,
+      )
+      methodVisitor.visitLocalVariable("it", "I", null, label18, label21, 7)
+      methodVisitor.visitLocalVariable("\$i\$a$-repeat-FakeNavigationEventDispatcherOwner\$backToState$1", "I", null, label34, label40, 8)
+      methodVisitor.visitLocalVariable("it", "I", null, label33, label40, 7)
+      methodVisitor.visitLocalVariable("history", "Landroidx/navigationevent/NavigationEventHistory;", null, label1, label41, 2)
+      methodVisitor.visitLocalVariable("backStack", "Ljava/util/List;", null, label3, label41, 3)
+      methodVisitor.visitLocalVariable("targetIndex", "I", null, label27, label41, 4)
+      methodVisitor.visitLocalVariable("maxSteps", "I", null, label30, label41, 5)
+      methodVisitor.visitLocalVariable(
+        "this",
+        "Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;",
+        null,
+        label0,
+        label41,
+        0,
+      )
+      methodVisitor.visitLocalVariable("navigationState", "Ljava/lang/Object;", null, label0, label41, 1)
+      methodVisitor.visitMaxs(2, 13)
+      methodVisitor.visitEnd()
+    }
+    run {
+      methodVisitor =
+        classWriter.visitMethod(
+          Opcodes.ACC_PRIVATE or Opcodes.ACC_FINAL,
           "getNavigationEdgeFromString",
           "(Ljava/lang/String;)I",
           null,
@@ -641,50 +1625,50 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(114, label0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ASTORE, 2)
+      methodVisitor.visitLineNumber(276, label0)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 2)
       val label1 = Label()
       methodVisitor.visitLabel(label1)
-      methodVisitor.visitLineNumber(115, label1)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 2)
+      methodVisitor.visitLineNumber(277, label1)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
       methodVisitor.visitLdcInsn("EDGE_LEFT")
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESTATIC,
+        Opcodes.INVOKESTATIC,
         "kotlin/jvm/internal/Intrinsics",
         "areEqual",
         "(Ljava/lang/Object;Ljava/lang/Object;)Z",
         false,
       )
       val label2 = Label()
-      methodVisitor.visitJumpInsn(org.objectweb.asm.Opcodes.IFEQ, label2)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ICONST_0)
+      methodVisitor.visitJumpInsn(Opcodes.IFEQ, label2)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
       val label3 = Label()
-      methodVisitor.visitJumpInsn(org.objectweb.asm.Opcodes.GOTO, label3)
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label3)
       methodVisitor.visitLabel(label2)
-      methodVisitor.visitLineNumber(116, label2)
-      methodVisitor.visitFrame(org.objectweb.asm.Opcodes.F_APPEND, 1, arrayOf<Any>("java/lang/String"), 0, null)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 2)
+      methodVisitor.visitLineNumber(278, label2)
+      methodVisitor.visitFrame(Opcodes.F_APPEND, 1, arrayOf<Any>("java/lang/String"), 0, null)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
       methodVisitor.visitLdcInsn("EDGE_RIGHT")
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESTATIC,
+        Opcodes.INVOKESTATIC,
         "kotlin/jvm/internal/Intrinsics",
         "areEqual",
         "(Ljava/lang/Object;Ljava/lang/Object;)Z",
         false,
       )
       val label4 = Label()
-      methodVisitor.visitJumpInsn(org.objectweb.asm.Opcodes.IFEQ, label4)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ICONST_1)
-      methodVisitor.visitJumpInsn(org.objectweb.asm.Opcodes.GOTO, label3)
+      methodVisitor.visitJumpInsn(Opcodes.IFEQ, label4)
+      methodVisitor.visitInsn(Opcodes.ICONST_1)
+      methodVisitor.visitJumpInsn(Opcodes.GOTO, label3)
       methodVisitor.visitLabel(label4)
-      methodVisitor.visitLineNumber(117, label4)
-      methodVisitor.visitFrame(org.objectweb.asm.Opcodes.F_SAME, 0, null, 0, null)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ICONST_2)
+      methodVisitor.visitLineNumber(279, label4)
+      methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null)
+      methodVisitor.visitInsn(Opcodes.ICONST_2)
       methodVisitor.visitLabel(label3)
-      methodVisitor.visitLineNumber(118, label3)
-      methodVisitor.visitFrame(org.objectweb.asm.Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(org.objectweb.asm.Opcodes.INTEGER))
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.IRETURN)
+      methodVisitor.visitLineNumber(280, label3)
+      methodVisitor.visitFrame(Opcodes.F_SAME1, 0, null, 1, arrayOf<Any?>(Opcodes.INTEGER))
+      methodVisitor.visitInsn(Opcodes.IRETURN)
       val label5 = Label()
       methodVisitor.visitLabel(label5)
       methodVisitor.visitLocalVariable(
@@ -702,7 +1686,7 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
     run {
       methodVisitor =
         classWriter.visitMethod(
-          org.objectweb.asm.Opcodes.ACC_PRIVATE or org.objectweb.asm.Opcodes.ACC_FINAL or org.objectweb.asm.Opcodes.ACC_STATIC,
+          Opcodes.ACC_PRIVATE or Opcodes.ACC_FINAL or Opcodes.ACC_STATIC,
           "directNavigationEventInput_delegate\$lambda$0",
           "(Landroidx/navigationevent/compose/FakeNavigationEventDispatcherOwner;)Landroidx/navigationevent/DirectNavigationEventInput;",
           null,
@@ -711,38 +1695,38 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitCode()
       val label0 = Label()
       methodVisitor.visitLabel(label0)
-      methodVisitor.visitLineNumber(70, label0)
-      methodVisitor.visitTypeInsn(org.objectweb.asm.Opcodes.NEW, "androidx/navigationevent/DirectNavigationEventInput")
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.DUP)
+      methodVisitor.visitLineNumber(106, label0)
+      methodVisitor.visitTypeInsn(Opcodes.NEW, "androidx/navigationevent/DirectNavigationEventInput")
+      methodVisitor.visitInsn(Opcodes.DUP)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKESPECIAL,
+        Opcodes.INVOKESPECIAL,
         "androidx/navigationevent/DirectNavigationEventInput",
         "<init>",
         "()V",
         false,
       )
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ASTORE, 1)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ASTORE, 2)
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 1)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
+      methodVisitor.visitVarInsn(Opcodes.ASTORE, 2)
       val label1 = Label()
       methodVisitor.visitLabel(label1)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ICONST_0)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ISTORE, 3)
+      methodVisitor.visitInsn(Opcodes.ICONST_0)
+      methodVisitor.visitVarInsn(Opcodes.ISTORE, 3)
       val label2 = Label()
       methodVisitor.visitLabel(label2)
-      methodVisitor.visitLineNumber(71, label2)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+      methodVisitor.visitLineNumber(107, label2)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "getNavigationEventDispatcher",
         "()Landroidx/navigationevent/NavigationEventDispatcher;",
         false,
       )
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 2)
-      methodVisitor.visitTypeInsn(org.objectweb.asm.Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventInput")
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 2)
+      methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, "androidx/navigationevent/NavigationEventInput")
       methodVisitor.visitMethodInsn(
-        org.objectweb.asm.Opcodes.INVOKEVIRTUAL,
+        Opcodes.INVOKEVIRTUAL,
         "androidx/navigationevent/NavigationEventDispatcher",
         "addInput",
         "(Landroidx/navigationevent/NavigationEventInput;)V",
@@ -750,16 +1734,16 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       )
       val label3 = Label()
       methodVisitor.visitLabel(label3)
-      methodVisitor.visitLineNumber(72, label3)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.NOP)
+      methodVisitor.visitLineNumber(108, label3)
+      methodVisitor.visitInsn(Opcodes.NOP)
       val label4 = Label()
       methodVisitor.visitLabel(label4)
-      methodVisitor.visitLineNumber(70, label4)
-      methodVisitor.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 1)
+      methodVisitor.visitLineNumber(106, label4)
+      methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
       val label5 = Label()
       methodVisitor.visitLabel(label5)
-      methodVisitor.visitLineNumber(72, label5)
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.ARETURN)
+      methodVisitor.visitLineNumber(108, label5)
+      methodVisitor.visitInsn(Opcodes.ARETURN)
       val label6 = Label()
       methodVisitor.visitLabel(label6)
       methodVisitor.visitLocalVariable(
@@ -783,16 +1767,16 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
       methodVisitor.visitEnd()
     }
     run {
-      methodVisitor = classWriter.visitMethod(org.objectweb.asm.Opcodes.ACC_STATIC, "<clinit>", "()V", null, null)
+      methodVisitor = classWriter.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null)
       methodVisitor.visitCode()
-      methodVisitor.visitIntInsn(org.objectweb.asm.Opcodes.BIPUSH, 8)
+      methodVisitor.visitIntInsn(Opcodes.BIPUSH, 8)
       methodVisitor.visitFieldInsn(
-        org.objectweb.asm.Opcodes.PUTSTATIC,
+        Opcodes.PUTSTATIC,
         "androidx/navigationevent/compose/FakeNavigationEventDispatcherOwner",
         "\$stable",
         "I",
       )
-      methodVisitor.visitInsn(org.objectweb.asm.Opcodes.RETURN)
+      methodVisitor.visitInsn(Opcodes.RETURN)
       methodVisitor.visitMaxs(1, 0)
       methodVisitor.visitEnd()
     }
@@ -804,58 +1788,185 @@ object FakeNavigationEventDispatcherOwnerDump : Opcodes {
 /*
 The dump file above represents this class:
 
-  public class FakeNavigationEventDispatcherOwner : NavigationEventDispatcherOwner {
-      public override val navigationEventDispatcher: NavigationEventDispatcher = NavigationEventDispatcher()
+  public class FakeNavigationEventDispatcherOwner  : NavigationEventDispatcherOwner {
+    public override val navigationEventDispatcher: NavigationEventDispatcher =
+        NavigationEventDispatcher()
 
-      private val directNavigationEventInput: DirectNavigationEventInput by lazy {
-          DirectNavigationEventInput().also { input ->
-              navigationEventDispatcher.addInput(input)
-          }
-      }
+    private val directNavigationEventInput: DirectNavigationEventInput by lazy {
+        DirectNavigationEventInput().also { input ->
+            navigationEventDispatcher.addInput(input)
+        }
+    }
 
-      public fun canBackPress(): Boolean {
-          return navigationEventDispatcher.history.value.mergedHistory.isNotEmpty()
-      }
+    /**
+     * Checks if back navigation is possible.
+     *
+     * @return `true` if back navigation can be performed, `false` otherwise
+     */
+    public fun canBackPress(): Boolean {
+        val history = navigationEventDispatcher.history.value
+        return history.currentIndex > 0
+    }
 
-      public fun onBackPressStarted(edge: String) {
-          directNavigationEventInput.backStarted(
-              NavigationEvent(getNavigationEdgeFromString(edge))
-          )
-      }
+    /**
+     * Starts back navigation.
+     *
+     * @param edge string describing the edge used for back navigation:
+     *     - `"EDGE_LEFT"`: indicates the navigation gesture originates from the left edge
+     *       of the screen, see [EDGE_LEFT]
+     *     - `"EDGE_RIGHT"`: indicates the navigation gesture originates from the right edge
+     *       of the screen, see [EDGE_RIGHT]
+     *     - any other value: indicates the navigation event was not caused by an edge
+     *       swipe, such as a 3-button navigation press or a hardware back button event, see
+     *       [EDGE_NONE]
+     */
+    public fun onBackPressStarted(edge: String) {
+        directNavigationEventInput.backStarted(
+            NavigationEvent(getNavigationEdgeFromString(edge))
+        )
+    }
 
-      /**
-       * Set the progress of the back navigation
-       *
-       * @param edge An Int that describes the edge used for the back navigation:
-       *     - 0: Indicates the navigation gesture originates from the left edge of the
-       *       screen, see [EDGE_LEFT].
-       *     - 1: Indicates the navigation gesture originates from the right edge of the
-       *       screen, see [EDGE_RIGHT].
-       *     - 2 or higher: Indicates the navigation event was not caused by an edge swipe.
-       *       This applies to actions like a 3-button navigation press or a hardware back
-       *       button event, see [EDGE_NONE].
-       */
-      public fun onBackPressProgress(progress: Float, edge: String) {
-          directNavigationEventInput.backProgressed(
-              NavigationEvent(getNavigationEdgeFromString(edge), progress)
-          )
-      }
+    /**
+     * Sets the progress of back navigation.
+     *
+     * @param progress progress of back navigation
+     * @param edge string describing the edge used for back navigation:
+     *     - `"EDGE_LEFT"`: indicates the navigation gesture originates from the left edge
+     *       of the screen, see [EDGE_LEFT]
+     *     - `"EDGE_RIGHT"`: indicates the navigation gesture originates from the right edge
+     *       of the screen, see [EDGE_RIGHT]
+     *     - any other value: indicates the navigation event was not caused by an edge
+     *       swipe, such as a 3-button navigation press or a hardware back button event, see
+     *       [EDGE_NONE]
+     */
+    public fun onBackPressProgress(progress: Float, edge: String) {
+        directNavigationEventInput.backProgressed(
+            NavigationEvent(getNavigationEdgeFromString(edge), progress)
+        )
+    }
 
-      /** Performs the back navigation. */
-      public fun onBackPressCompleted() {
-          directNavigationEventInput.backCompleted()
-      }
+    /** Performs back navigation. */
+    public fun onBackPressCompleted() {
+        directNavigationEventInput.backCompleted()
+    }
 
-      /** Cancel the current navigation progress and doesn't perform a back navigation. */
-      public fun onBackPressCancelled() {
-          directNavigationEventInput.backCancelled()
-      }
+    /** Cancels back navigation progress. */
+    public fun onBackPressCancelled() {
+        directNavigationEventInput.backCancelled()
+    }
 
-      private fun getNavigationEdgeFromString(edge: String): Int =
-          when (edge) {
-              "EDGE_LEFT" -> EDGE_LEFT
-              "EDGE_RIGHT" -> EDGE_RIGHT
-              else -> EDGE_NONE
-          }
-  }
+    /**
+     * Checks if forward navigation is possible.
+     *
+     * @return `true` if forward navigation can be performed, `false` otherwise
+     */
+    public fun canForwardPress(): Boolean {
+        val history = navigationEventDispatcher.history.value
+        return history.currentIndex >= 0 &&
+            history.currentIndex < history.mergedHistory.size - 1
+    }
+
+    /**
+     * Starts forward navigation.
+     *
+     * @param edge string describing the edge used for forward navigation:
+     *     - `"EDGE_LEFT"`: indicates the navigation gesture originates from the left edge
+     *       of the screen, see [EDGE_LEFT]
+     *     - `"EDGE_RIGHT"`: indicates the navigation gesture originates from the right edge
+     *       of the screen, see [EDGE_RIGHT]
+     *     - any other value: indicates the navigation event was not caused by an edge
+     *       swipe, such as a 3-button navigation press or a hardware back button event, see
+     *       [EDGE_NONE]
+     */
+    public fun onForwardPressStarted(edge: String) {
+        directNavigationEventInput.forwardStarted(
+            NavigationEvent(getNavigationEdgeFromString(edge))
+        )
+    }
+
+    /**
+     * Sets the progress of forward navigation.
+     *
+     * @param progress The progress of forward navigation
+     * @param edge string describing the edge used for forward navigation:
+     *     - `"EDGE_LEFT"`: indicates the navigation gesture originates from the left edge
+     *       of the screen, see [EDGE_LEFT]
+     *     - `"EDGE_RIGHT"`: indicates the navigation gesture originates from the right edge
+     *       of the screen, see [EDGE_RIGHT]
+     *     - any other value: indicates the navigation event was not caused by an edge
+     *       swipe, such as a 3-button navigation press or a hardware back button event, see
+     *       [EDGE_NONE]
+     */
+    public fun onForwardPressProgress(progress: Float, edge: String) {
+        directNavigationEventInput.forwardProgressed(
+            NavigationEvent(getNavigationEdgeFromString(edge), progress)
+        )
+    }
+
+    /** Performs forward navigation. */
+    public fun onForwardPressCompleted() {
+        directNavigationEventInput.forwardCompleted()
+    }
+
+    /** Cancels forward navigation progress. */
+    public fun onForwardPressCancelled() {
+        directNavigationEventInput.forwardCancelled()
+    }
+
+    public fun getHistory(): List<Any> {
+        return navigationEventDispatcher.history.value.mergedHistory
+    }
+
+    public fun getCurrentIndex(): Int {
+        return navigationEventDispatcher.history.value.currentIndex
+    }
+
+    /**
+     * Pops the back stack until reaching the specified [navigationState] in history.
+     *
+     * @param navigationState the target state in history to navigate back to
+     * @return `true` if navigation was performed to reach [navigationState], `false`
+     *   otherwise
+     */
+    public fun backToState(navigationState: Any): Boolean {
+        val history = navigationEventDispatcher.history.value
+        if (history.currentIndex <= 0) return false
+
+        // mergedHistory contains past (0 until currentIndex), current (currentIndex), and
+        // forward (currentIndex + 1 until size) states. We only search the back stack
+        // (past states) to ensure we do not match the active state or future/forward
+        // states.
+        val backStack = history.mergedHistory.take(history.currentIndex)
+        val targetIndex =
+            backStack.indexOfFirst { it === navigationState }.takeIf { it >= 0 }
+                ?: backStack.lastIndexOf(navigationState)
+
+        if (targetIndex < 0) {
+            return false
+        }
+
+        val maxSteps = history.currentIndex - targetIndex
+        repeat(maxSteps) {
+            // Stop if we have reached the root or back navigation is no longer possible
+            // to prevent popping past the root and triggering the fallback dispatcher.
+            if (!canBackPress()) {
+                return true
+            }
+            onBackPressCompleted()
+            // Stop early if a multi-pop back press already reached or passed the target
+            // index.
+            if (navigationEventDispatcher.history.value.currentIndex <= targetIndex) {
+                return true
+            }
+        }
+        return true
+    }
+
+    private fun getNavigationEdgeFromString(edge: String): Int =
+        when (edge) {
+            "EDGE_LEFT" -> EDGE_LEFT
+            "EDGE_RIGHT" -> EDGE_RIGHT
+            else -> EDGE_NONE
+        }
+}
  */
