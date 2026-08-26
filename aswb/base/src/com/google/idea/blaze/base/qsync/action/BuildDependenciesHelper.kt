@@ -75,6 +75,11 @@ class BuildDependenciesHelper(val project: Project) {
     querySyncActionStats: QuerySyncActionStatsScope,
     consumer: (Set<Label>) -> Deferred<Boolean>,
   ): Deferred<Boolean> {
+    fun displayError(title: String, content: String, items: List<String>) {
+      logger.warn("$title; $content\n${items.joinToString("\n")}") // Intentionally use warn for logger so we don't crash tests
+      getInstance(project).notifyError(title, content + "\n" + items.joinToString(prefix = "  ", separator = ", ", limit = 3))
+    }
+
     fun displayWarning(title: String, content: String, items: List<String>) {
       logger.warn("$title; $content\n${items.joinToString("\n")}")
       getInstance(project).notifyWarning(title, content + "\n" + items.joinToString(prefix = "  ", separator = ", ", limit = 3))
@@ -102,11 +107,15 @@ class BuildDependenciesHelper(val project: Project) {
       val undefinedTargets = disambiguator.undefinedTargetSets
 
       if (undefinedTargets.isNotEmpty()) {
-        displayWarning(
-          "Cannot find targets to build",
-          "Some paths requested to build cannot be mapped to project targets. Not building them:",
-          undefinedTargets.map { it.displayLabel },
-        )
+        val title = "Cannot find targets to build"
+        val content = "Some paths requested to build cannot be mapped to project targets. Not building them:"
+        val items = undefinedTargets.map { it.displayLabel }
+        if (ambiguousTargets.isEmpty() && disambiguator.unambiguousTargets.isEmpty()) {
+          displayError(title, content, items)
+          return@async false
+        } else {
+          displayWarning(title, content, items)
+        }
       }
 
       val targetsToBuild =

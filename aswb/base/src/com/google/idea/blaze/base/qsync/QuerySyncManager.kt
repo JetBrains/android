@@ -197,7 +197,12 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation(title = "Loading project", subTitle = "Re-loading project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
       syncStatsScope(context) { context ->
-        runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
+        runQueryAndReadProjectStructureAndApply(
+          context,
+          lastQuery = result?.existingPostQuerySyncData,
+          lastProjectStructureData = null,
+          paths = null,
+        )
       }
     }
 
@@ -252,32 +257,6 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   val currentBuildGraphdata: BuildGraphData?
     get() = currentSnapshot.map { it.staleGraph }.orElse(null)
 
-  @JvmOverloads
-  fun getBuildGraphDataFor(packages: Collection<Label>, context: BlazeContext): BuildGraphData? {
-    // TODO(xinruiy): implement later
-    return currentBuildGraphdata
-  }
-
-  @JvmOverloads
-  fun getBuildGraphDataForPaths(paths: Collection<Path>, context: BlazeContext): BuildGraphData? {
-    val projectStructureData = currentSnapshot.getOrNull()?.projectStructureData ?: return null
-
-    val packageLabels =
-      paths
-        .mapNotNull { path ->
-          projectStructureData.getBuildPackage(path)?.let { buildPkg ->
-            Label.fromWorkspacePackageAndName("", buildPkg.path, Label.PACKAGE_TARGET_NAME)
-          }
-        }
-        .toSet()
-
-    return if (packageLabels.isEmpty()) {
-      currentBuildGraphdata
-    } else {
-      getBuildGraphDataFor(packageLabels, context)
-    }
-  }
-
   val sourceToTargetMap: QuerySyncSourceToTargetMap
     get() = assertProjectLoaded().sourceToTargetMap
 
@@ -301,6 +280,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
             context,
             lastQuery = result?.existingPostQuerySyncData,
             lastProjectStructureData = lastProjectStructureData,
+            paths = null,
             onQueryDuration = ::setStartupBazelQueryTime,
           )
         }
@@ -363,8 +343,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   }
 
   private fun reapplyProjectStructureOperation(): QuerySyncOperation =
-    operation(title = "Updating project structure", subTitle = "Re-applying project structure", operationType = OperationType.SYNC) {
-      context ->
+    operation(
+      title = "Updating project structure",
+      subTitle = "Re-applying project structure",
+      operationType = OperationType.SYNC,
+    ) { context ->
       lastProjectUpdateFromArtifactState = ArtifactTracker.State.EMPTY
       lastProjectUpdateFromSnapshot = QuerySyncProjectSnapshot.EMPTY
       updateCurrentSnapshot(context) { copy(project = ProjectProto.Project.getDefaultInstance()) }
@@ -381,7 +364,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation(title = "Updating project structure", subTitle = "Re-importing project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context)
       syncStatsScope(context) { context ->
-        runQueryAndReadProjectStructureAndApply(context, lastQuery = null, lastProjectStructureData = null)
+        runQueryAndReadProjectStructureAndApply(context, lastQuery = null, lastProjectStructureData = null, paths = null)
       }
       if (userPreferences.commitProjectStructureAfterInitialScan) {
         updateProjectStructureAndSnapshot(context)
@@ -400,7 +383,12 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     operation(title = "Updating project structure", subTitle = "Refreshing project", operationType = OperationType.SYNC) { context ->
       val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
       syncStatsScope(context) { context ->
-        runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
+        runQueryAndReadProjectStructureAndApply(
+          context,
+          lastQuery = result?.existingPostQuerySyncData,
+          lastProjectStructureData = null,
+          paths = null,
+        )
       }
       if (userPreferences.commitProjectStructureAfterInitialScan) {
         updateProjectStructureAndSnapshot(context)
@@ -418,6 +406,45 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       .asListenableFuture()
   }
 
+  @JvmOverloads
+  fun getBuildGraphDataFor(
+    context: BlazeContext,
+    packages: Collection<Path>,
+    querySyncActionStats: QuerySyncActionStatsScope,
+    taskOrigin: TaskOrigin = TaskOrigin.UNKNOWN,
+  ): ListenableFuture<BuildGraphData?> {
+    return coroutineScope
+      .async {
+        syncStatus.operationStarted(OperationType.SYNC)
+        querySyncActionStats.builder.setTaskOrigin(taskOrigin)
+        try {
+          withSyncEventsPublished(context) {
+            context.push(querySyncActionStats)
+            assertProjectLoaded()
+            val reloadResult = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
+            runQueryAndReadProjectStructureAndApply(
+              context,
+              lastQuery = reloadResult?.existingPostQuerySyncData,
+              lastProjectStructureData = null,
+              paths = packages,
+            )
+            logSyncStats(context, loadedProject, currentSnapshot.getOrNull())
+          }
+          syncStatus.operationEnded()
+          currentBuildGraphdata
+        } catch (throwable: Throwable) {
+          if (throwable is CancellationException) {
+            syncStatus.operationCancelled()
+          } else {
+            syncStatus.operationFailed()
+            logger.error("Failed to get build graph", throwable)
+          }
+          throw throwable
+        }
+      }
+      .asListenableFuture()
+  }
+
   private fun syncQueryDataIfNeededOperation(workspaceRelativePaths: Collection<Path>): QuerySyncOperation =
     operation(
       title = "Updating build structure",
@@ -426,14 +453,13 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       applyProjectStructureChanges = false,
     ) { context ->
       assertProjectLoaded()
-      val projectTargets =
-        getBuildGraphDataForPaths(workspaceRelativePaths, context)?.let { graphData ->
-          workspaceRelativePaths.mapNotNull { path -> graphData.getProjectTargets(path) }.toSet()
-        } ?: emptySet()
-      if (fileListener.hasModifiedBuildFiles() || projectTargets.any { it.requiresQueryDataRefresh() }) {
-        val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
-        runQueryAndReadProjectStructureAndApply(context, lastQuery = result?.existingPostQuerySyncData, lastProjectStructureData = null)
-      }
+      val result = reloadProjectIfDefinitionHasChanged(context) as? ReloadProjectResult.SnapshotRetained
+      runQueryAndReadProjectStructureAndApply(
+        context,
+        lastQuery = result?.existingPostQuerySyncData,
+        lastProjectStructureData = null,
+        paths = workspaceRelativePaths,
+      )
     }
 
   suspend fun runOperation(
@@ -561,10 +587,21 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     }
   }
 
+  /**
+   * Runs the query and applies the resulting structure to the project.
+   *
+   * @param paths Evaluates the packages to update.
+   *     - If `null`: Evaluates all packages known across the workspace. Pass `null` for workspace-wide full/delta syncs so the Querier can
+   *       evaluate all changes.
+   *     - If `emptyList()`: Evaluates exactly zero packages, skipping the query phase entirely. Pass `emptyList()` when you want to avoid
+   *       running queries (e.g., during IDE startup).
+   *     - Otherwise: Evaluates strictly the packages corresponding to the specified paths.
+   */
   private fun runQueryAndReadProjectStructureAndApply(
     context: BlazeContext,
     lastQuery: PostQuerySyncData?,
     lastProjectStructureData: ProjectStructureData?,
+    paths: Collection<Path>?,
     onQueryDuration: (BlazeContext, Duration) -> Unit = { _, _ -> },
   ) {
     val duration = measureTime {
@@ -573,6 +610,10 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
       val bazelVersion = loadedProject.getBazelVersion(context)
 
       val projectStructureDataToUse = readProjectStructureData(context, lastProjectStructureData)
+      val requestedPackages =
+        paths?.mapNotNull { projectStructureDataToUse.getBuildPackage(it)?.path }?.toSet()
+          ?: projectStructureDataToUse.roots.flatMap { it.buildPackages.keys }.toSet()
+
       val postQuerySyncData =
         runQueryAndComputePostQuerySyncData(
           context,
@@ -580,6 +621,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
           vcsState,
           bazelVersion,
           projectStructureDataToUse,
+          requestedPackages,
         )
       val coreSyncResult = loadedProject.syncQueryCore(context, postQuerySyncData)
       updateCurrentSnapshot(context) {
@@ -604,10 +646,12 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
     vcsState: VcsState?,
     bazelVersion: String?,
     projectStructureData: ProjectStructureData,
+    requestedPackages: Set<Path>,
   ): PostQuerySyncData {
     SaveUtil.saveAllFiles()
     lastQueryInstant = Clock.System.now()
-    return assertProjectLoaded().runQueryAndComputePostQuerySyncData(context, lastQuery, vcsState, bazelVersion, projectStructureData)
+    return assertProjectLoaded()
+      .runQueryAndComputePostQuerySyncData(context, lastQuery, vcsState, bazelVersion, projectStructureData, requestedPackages)
   }
 
   private fun autoEnableCodeAnalysis(context: BlazeContext, startup: Boolean = false): Boolean {
@@ -775,8 +819,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   }
 
   private fun enableAnalysisForReverseDependenciesOperation(targets: Set<Label>): QuerySyncOperation =
-    operation(title = "Building dependencies for affected targets", subTitle = "Building...", operationType = OperationType.BUILD_DEPS) {
-      context ->
+    operation(
+      title = "Building dependencies for affected targets",
+      subTitle = "Building...",
+      operationType = OperationType.BUILD_DEPS,
+    ) { context ->
       val loadedProject = assertProjectLoaded()
       context.output(PrintOutput.output("Building reverse dependencies for:\n  " + Joiner.on("\n  ").join(targets)))
       if (
@@ -848,7 +895,7 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
         )
       }
       syncStatsScope(context) { context ->
-        runQueryAndReadProjectStructureAndApply(context, lastQuery = null, lastProjectStructureData = null)
+        runQueryAndReadProjectStructureAndApply(context, lastQuery = null, lastProjectStructureData = null, paths = null)
       }
       autoEnableCodeAnalysis(context)
     }
@@ -920,8 +967,11 @@ constructor(private val project: Project, private val coroutineScope: CoroutineS
   }
 
   private fun purgeBuildCacheOperation(): QuerySyncOperation =
-    operation(title = "Purging build cache", subTitle = "Deleting all cached build artifacts", operationType = OperationType.OTHER) {
-      context ->
+    operation(
+      title = "Purging build cache",
+      subTitle = "Deleting all cached build artifacts",
+      operationType = OperationType.OTHER,
+    ) { context ->
       assertProjectLoaded().buildArtifactCache.purge()
     }
 

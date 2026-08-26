@@ -160,13 +160,14 @@ class QuerySyncProject(
     vcsState: VcsState?,
     bazelVersion: String?,
     projectStructureData: ProjectStructureData,
+    requestedPackages: Set<Path>,
   ): PostQuerySyncData {
     val refreshParameters =
       RefreshParameters(
         lastQuery ?: PostQuerySyncData.EMPTY,
         projectDefinition,
         projectStructureData,
-        requestedPackages = projectStructureData.roots.flatMap { it.buildPackages.keys }.toSet(),
+        requestedPackages = requestedPackages,
         requireFullSync = { ctx -> requireFullSync(ctx, lastQuery, vcsState, bazelVersion) },
       )
     val postQuerySyncData = projectQuerier.update(refreshParameters, context)
