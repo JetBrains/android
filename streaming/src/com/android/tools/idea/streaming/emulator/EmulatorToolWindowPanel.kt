@@ -71,6 +71,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
+import java.awt.Dimension
 import java.awt.EventQueue
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -543,4 +544,4 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
   }
 }
 
-private fun DisplayConfiguration.toDisplayDescriptor(): DisplayDescriptor = DisplayDescriptor(display, width, height)
+private fun DisplayConfiguration.toDisplayDescriptor(): DisplayDescriptor = DisplayDescriptor(display, Dimension(width, height))

@@ -350,11 +350,11 @@ class FakeScreenSharingAgent(
   }
 
   /** Adds a device display. */
-  fun addDisplay(displayId: Int, width: Int, height: Int, displayType: DisplayType) {
+  fun addDisplay(displayId: Int, displaySize: Dimension, displayType: DisplayType) {
     executor.execute {
       if (displays.find { it.displayId == displayId } == null) {
-        displays = (displays + DisplayDescriptor(displayId, width, height, 0, displayType)).sortedBy { it.displayId }
-        sendNotificationOrResponse(DisplayAddedOrChangedNotification(displayId, width, height, 0, displayType.ordinal, null))
+        displays = (displays + DisplayDescriptor(displayId, displaySize, 0, displayType)).sortedBy { it.displayId }
+        sendNotificationOrResponse(DisplayAddedOrChangedNotification(displayId, displaySize, 0, displayType.ordinal))
       } else {
         thisLogger().error("Display $displayId already exists")
       }

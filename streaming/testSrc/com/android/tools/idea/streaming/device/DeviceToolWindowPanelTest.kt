@@ -590,7 +590,7 @@ class DeviceToolWindowPanelTest {
     waitForFrame()
 
     val secondaryDisplayId = 1
-    agent.addDisplay(secondaryDisplayId, 1080, 1920, DisplayType.EXTERNAL)
+    agent.addDisplay(secondaryDisplayId, Dimension(1080, 1920), DisplayType.EXTERNAL)
     waitForCondition(2.seconds) { fakeUi.findAllComponents<DeviceView>().size == 2 }
     assertThat(displayIds).containsExactly(PRIMARY_DISPLAY_ID, secondaryDisplayId)
     waitForFrame(displayId = PRIMARY_DISPLAY_ID)

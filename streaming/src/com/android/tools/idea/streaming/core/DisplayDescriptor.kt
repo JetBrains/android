@@ -15,31 +15,36 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.intellij.util.xmlb.Converter
+import com.intellij.util.xmlb.annotations.Attribute
+import com.intellij.util.xmlb.annotations.Tag
 import java.awt.Dimension
 
 /** XML-serializable descriptor of a device display. */
+@Tag("display")
 internal data class DisplayDescriptor(
-  var displayId: Int,
-  var width: Int,
-  var height: Int,
-  var orientation: Int = 0,
-  var type: DisplayType = DisplayType.UNKNOWN,
+  @Attribute var displayId: Int,
+  @Attribute(converter = DimensionConverter::class) var size: Dimension,
+  @Attribute var orientation: Int = 0,
+  @Attribute var type: DisplayType = DisplayType.UNKNOWN,
 ) : Comparable<DisplayDescriptor> {
 
-  constructor(
-    displayId: Int,
-    size: Dimension,
-    orientation: Int = 0,
-    type: DisplayType = DisplayType.UNKNOWN,
-  ) : this(displayId, size.width, size.height, orientation, type)
-
   @Suppress("unused") // Used by XML deserializer.
-  constructor() : this(0, 0, 0)
-
-  val size
-    get() = Dimension(width, height)
+  constructor() : this(0, Dimension())
 
   override fun compareTo(other: DisplayDescriptor): Int {
     return displayId - other.displayId
+  }
+
+  class DimensionConverter : Converter<Dimension>() {
+    override fun fromString(value: String): Dimension? {
+      val parts = value.split('x', 'X')
+      if (parts.size != 2) return null
+      val width = parts[0].trim().toIntOrNull() ?: return null
+      val height = parts[1].trim().toIntOrNull() ?: return null
+      return Dimension(width, height)
+    }
+
+    override fun toString(value: Dimension): String = value.toWxH()
   }
 }

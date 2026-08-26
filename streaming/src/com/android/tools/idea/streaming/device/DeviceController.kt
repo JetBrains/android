@@ -39,6 +39,7 @@ import com.intellij.openapi.util.text.StringUtil.toTitleCase
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import java.awt.Dimension
 import java.io.EOFException
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
@@ -343,7 +344,13 @@ internal class DeviceController(disposableParent: Disposable, private val contro
         } catch (_: IndexOutOfBoundsException) {
           DisplayType.UNKNOWN
         }
-      listener.onDisplayAddedOrChanged(message.displayId, message.width, message.height, message.rotation, displayType)
+      listener.onDisplayAddedOrChanged(
+        message.displayId,
+        message.displaySize,
+        message.rotation,
+        displayType,
+        message.environmentSize,
+      )
     }
   }
 
@@ -392,7 +399,13 @@ internal class DeviceController(disposableParent: Disposable, private val contro
 
   @AnyThread
   internal interface DisplayListener {
-    fun onDisplayAddedOrChanged(displayId: Int, width: Int, height: Int, rotation: Int, displayType: DisplayType)
+    fun onDisplayAddedOrChanged(
+      displayId: Int,
+      displaySize: Dimension,
+      rotation: Int,
+      displayType: DisplayType,
+      environmentSize: Dimension?,
+    )
 
     fun onDisplayRemoved(displayId: Int)
   }

@@ -51,6 +51,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
+import java.awt.Dimension
 import java.awt.EventQueue
 import java.util.concurrent.TimeoutException
 import javax.swing.Icon
@@ -273,7 +274,13 @@ internal class DeviceToolWindowPanel(
     }
 
     @AnyThread
-    override fun onDisplayAddedOrChanged(displayId: Int, width: Int, height: Int, rotation: Int, displayType: DisplayType) {
+    override fun onDisplayAddedOrChanged(
+      displayId: Int,
+      displaySize: Dimension,
+      rotation: Int,
+      displayType: DisplayType,
+      environmentSize: Dimension?,
+    ) {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (contentDisposable != null) {
           val displayDescriptors = pendingDisplayDescriptors ?: displayDescriptors
@@ -284,12 +291,11 @@ internal class DeviceToolWindowPanel(
           val newDisplays = displayDescriptors.toMutableList()
           val pos = newDisplays.binarySearch { it.displayId.compareTo(displayId) }
           if (pos >= 0) {
-            newDisplays[pos].width = width
-            newDisplays[pos].height = height
+            newDisplays[pos].size = displaySize
             newDisplays[pos].orientation = rotation
             newDisplays[pos].type = displayType
           } else {
-            newDisplays.add(pos.inv(), DisplayDescriptor(displayId, width, height, rotation, displayType))
+            newDisplays.add(pos.inv(), DisplayDescriptor(displayId, displaySize, rotation, displayType))
           }
           reconfigureDisplayPanels(newDisplays)
         }
@@ -396,8 +402,7 @@ internal class DeviceToolWindowPanel(
       for (display in displays) {
         val displayView = findDisplayPanel(display.displayId)?.displayView ?: continue
         if (displayView.deviceDisplaySize.width != 0 && displayView.deviceDisplaySize.height != 0) {
-          display.width = displayView.deviceDisplaySize.width
-          display.height = displayView.deviceDisplaySize.height
+          display.size = displayView.deviceDisplaySize
           display.orientation = displayView.displayOrientationQuadrants
         }
       }
