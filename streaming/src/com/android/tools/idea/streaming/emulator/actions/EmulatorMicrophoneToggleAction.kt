@@ -16,29 +16,18 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.MicrophoneState
-import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.NotificationTracker
 import com.android.tools.idea.streaming.emulator.getEmptyObserver
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 
 /** Toggles the microphone input for the emulator. */
 internal class EmulatorMicrophoneToggleAction : AbstractEmulatorAction(configFilter = { it.deviceType == DeviceType.AI_GLASSES }) {
 
-  // TODO: Remove emulator version check after 2026-09-01.
-  val emulatorSupported =
-    ApplicationManager.getApplication().isUnitTestMode ||
-      AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 5, 7) } ?: false
-
   override fun actionPerformed(event: AnActionEvent) {
-    if (!emulatorSupported) {
-      return
-    }
     val emulatorController = getEmulatorController(event) ?: return
     val microphoneInput = emulatorController.microphoneInput ?: return
 
@@ -48,10 +37,6 @@ internal class EmulatorMicrophoneToggleAction : AbstractEmulatorAction(configFil
   override fun update(event: AnActionEvent) {
     super.update(event)
     val presentation = event.presentation
-    if (!emulatorSupported) {
-      presentation.isEnabledAndVisible = false
-      return
-    }
     val microphoneInput = getEmulatorController(event)?.microphoneInput
     if (microphoneInput == true) {
       presentation.icon = AllIcons.CodeWithMe.CwmMicOn

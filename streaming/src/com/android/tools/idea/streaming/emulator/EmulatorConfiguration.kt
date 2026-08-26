@@ -18,7 +18,6 @@ package com.android.tools.idea.streaming.emulator
 import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
-import com.android.repository.Revision
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags.AI_GLASSES_TAG
@@ -35,12 +34,10 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.internal.avd.HardwareProperties.HW_DIMMING_LEVELS
 import com.android.sdklib.internal.avd.HardwareProperties.HW_LED_INDICATORS
-import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.utils.asSeparatedListContains
 import com.google.common.base.Splitter
 import com.google.common.collect.ImmutableMap
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.awt.Dimension
 import java.io.IOException
@@ -99,18 +96,9 @@ private constructor(
 
       val avdName = configIni["avd.ini.displayname"] ?: avdFolder.fileName.toString().removeSuffix(".avd").replace('_', ' ')
 
-      // TODO: Remove emulator version check after 2026-09-01.
-      val environmentSizeSupported =
-        ApplicationManager.getApplication()?.isUnitTestMode != false ||
-          AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 3) } == true
-      val environmentSize =
-        if (environmentSizeSupported) {
-          val w = parseInt(configIni["environment.width"], 0)
-          val h = parseInt(configIni["environment.height"], 0)
-          if (w > 0 && h > 0) Dimension(w, h) else null
-        } else {
-          null
-        }
+      val w = parseInt(configIni["environment.width"], 0)
+      val h = parseInt(configIni["environment.height"], 0)
+      val environmentSize = if (w > 0 && h > 0) Dimension(w, h) else null
 
       val displayWidth = parseInt(configIni["hw.lcd.width"], 0)
       val displayHeight = parseInt(configIni["hw.lcd.height"], 0)

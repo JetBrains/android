@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.Environment
-import com.android.repository.Revision
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avd.EnvironmentFileAnalyzer.is360Image
 import com.android.tools.idea.avd.EnvironmentFileAnalyzer.is360ImageCandidate
@@ -24,7 +23,6 @@ import com.android.tools.idea.avd.EnvironmentFileAnalyzer.is3dSceneFile
 import com.android.tools.idea.avd.EnvironmentFileAnalyzer.isVideoFile
 import com.android.tools.idea.avd.EnvironmentFileAnalyzer.isWavefrontObjFile
 import com.android.tools.idea.avd.EnvironmentsUpdater
-import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.htmlEscaped
@@ -34,7 +32,6 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Toggleable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileChooser.FileChooser.chooseFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -69,10 +66,6 @@ internal sealed class EmulatorEnvironmentAction :
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    if (!emulatorSupported) {
-      event.presentation.isEnabledAndVisible = false
-      return
-    }
     val emulator = getEmulatorController(event) ?: return
     val environment = EnvironmentTracker.forEmulator(emulator)?.environment
     val selected = environment != null && doesMatchEnvironment(environment)
@@ -264,16 +257,9 @@ internal sealed class EmulatorEnvironmentAction :
   }
 
   companion object {
-    // TODO: Remove emulator version check after 2026-09-01.
-    private val emulatorSupported
-      get() =
-        ApplicationManager.getApplication().isUnitTestMode ||
-          AvdManagerConnection.getDefaultAvdManagerConnection().emulator?.version?.let { it >= Revision(36, 6, 4) } ?: false
-
     fun isApplicable(event: AnActionEvent): Boolean = getEmulatorConfig(event)?.let { isApplicable(it) } ?: false
 
-    fun isApplicable(emulatorConfiguration: EmulatorConfiguration): Boolean =
-      emulatorSupported && emulatorConfiguration.deviceType == DeviceType.AI_GLASSES
+    fun isApplicable(emulatorConfiguration: EmulatorConfiguration): Boolean = emulatorConfiguration.deviceType == DeviceType.AI_GLASSES
 
     private const val RECENT_FILES_KEY = "EmulatorEnvironmentAction.recentFiles"
 
