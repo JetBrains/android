@@ -37,6 +37,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.lang.ASTFactory
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -238,7 +239,7 @@ fun getWrappableStatement(project: Project, sqliteStatement: String): String {
   ) {
     psiElement.node.removeChild(psiElement.lastChild.node)
   }
-  return psiElement.text
+  return runReadActionBlocking { psiElement.text }
 }
 
 /** Returns true if the parser can't parse [sqliteStatement] successfully, false otherwise. */
