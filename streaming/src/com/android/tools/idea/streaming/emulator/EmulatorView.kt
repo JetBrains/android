@@ -55,6 +55,7 @@ import com.android.tools.idea.streaming.core.isMouseInside
 import com.android.tools.idea.streaming.core.isSameAspectRatio
 import com.android.tools.idea.streaming.core.scaledDown
 import com.android.tools.idea.streaming.core.scaledUnbiased
+import com.android.tools.idea.streaming.core.toWxH
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
@@ -1398,7 +1399,7 @@ internal class EmulatorView(
           }
         log.error(
           "Inconsistent ImageMessage for display ${imageFormat.display}: the $imageDimensions display image has different aspect" +
-            " ratio than the ${displayMode.width}x${displayMode.height} display in the ${displayMode.displayModeId} mode$foldedState"
+            " ratio than the ${displayMode.displaySize.toWxH()} display in the ${displayMode.displayModeId} mode$foldedState"
         )
         return false
       }

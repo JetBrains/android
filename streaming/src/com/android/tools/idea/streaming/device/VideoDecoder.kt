@@ -25,6 +25,7 @@ import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.core.getUInt
+import com.android.tools.idea.streaming.core.toWxH
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -657,7 +658,7 @@ internal constructor(
     override fun toString(): String {
       return "PacketHeader(" +
         "displayId=$displayId, " +
-        "displaySize=${displaySize.width}x${displaySize.height}, " +
+        "displaySize=${displaySize.toWxH()}, " +
         "displayOrientation=$displayOrientation, " +
         "displayOrientationCorrection=$displayOrientationCorrection, " +
         "flags=$flags, " +
