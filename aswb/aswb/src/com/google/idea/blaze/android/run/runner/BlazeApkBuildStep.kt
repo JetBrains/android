@@ -30,6 +30,7 @@ import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.Interners
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
+import com.google.idea.common.experiments.BoolExperiment
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 
@@ -85,10 +86,12 @@ class BlazeApkBuildStep(
         context.handleException("Failed to build APK", e)
         throw e
       }
+
     return buildOutputs
   }
 
   companion object {
     private val logger = Logger.getInstance(BlazeApkBuildStep::class.java)
+    val FETCH_NATIVE_SYMBOLS_ON_DEPLOY = BoolExperiment("aswb.fetch.native.symbols.on.deploy", true)
   }
 }

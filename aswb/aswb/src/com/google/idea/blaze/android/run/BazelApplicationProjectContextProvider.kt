@@ -21,6 +21,9 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Ru
 import com.android.tools.ndk.run.SymbolDir
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
+import com.google.idea.blaze.base.run.DeployedApplicationTargetStore
+import com.google.idea.blaze.base.run.RuntimeArtifactCache
+import com.google.idea.blaze.base.run.RuntimeArtifactKind
 import com.intellij.openapi.project.Project
 
 /** An implementation of [ApplicationProjectContextProvider] for the Blaze project system. */
@@ -37,5 +40,12 @@ class BazelApplicationProjectContextProvider : ApplicationProjectContextProvider
     }
   }
 
-  private fun getSymbolDirs(project: Project, applicationId: String): List<SymbolDir> = emptyList()
+  private fun getSymbolDirs(project: Project, applicationId: String): List<SymbolDir> {
+    val target = DeployedApplicationTargetStore.getInstance(project).getTargetForApplication(applicationId) ?: return emptyList()
+    return RuntimeArtifactCache.getInstance(project)
+      .getCachedArtifacts(target, RuntimeArtifactKind.SYMBOL_FILE)
+      .mapNotNull { it.parent }
+      .distinct()
+      .map { SymbolDir.WithoutSubdirectories(it.toFile()) }
+  }
 }

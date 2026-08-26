@@ -45,7 +45,7 @@ object BazelApkBuildStepProvider {
 
     val deployInfoOutputGroup = if (useMobileInstall) "mobile_install_INTERNAL_" else "android_deploy_info"
     val apkOutputGroup = if (useMobileInstall) "mobile_install_INTERNAL_" else "default"
-    val fetchNativeSymbols = nativeDebuggingEnabled
+    val fetchNativeSymbols = shouldFetchNativeSymbols(isDebug, nativeDebuggingEnabled)
 
     return BlazeApkBuildStep(
       project = project,
@@ -90,7 +90,7 @@ object BazelApkBuildStepProvider {
 
     val targets = listOfNotNull(info.targetApp, info.testApp)
     val buildInvoker = Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project)
-    val fetchNativeSymbols = nativeDebuggingEnabled
+    val fetchNativeSymbols = shouldFetchNativeSymbols(isDebug, nativeDebuggingEnabled)
 
     return BlazeApkBuildStep(
       project = project,
@@ -105,6 +105,21 @@ object BazelApkBuildStepProvider {
       deployInfoExtractor = AitDeployInfoExtractor(project, info, fetchNativeSymbols, "android_deploy_info", "default"),
     )
   }
+
+  /**
+   * Determines whether native debug symbols should be fetched during build and deployment.
+   *
+   * Native debug symbols are fetched only when native debugging is enabled for the target run configuration, and either:
+   * 1. The application is launched in debug mode ([isDebug] is true), or
+   * 2. The [BlazeApkBuildStep.FETCH_NATIVE_SYMBOLS_ON_DEPLOY] experiment is enabled, allowing symbols to be pre-cached on deploy so that
+   *    attaching the native debugger to the running process later can resolve symbols without requiring a rebuild or refetch.
+   *
+   * When [isDebug] is false and the experiment is disabled, it is safe to skip fetching symbols because non-debug launches do not attach
+   * the debugger at startup and do not consume symbol files, avoiding unnecessary build output overhead and large artifact downloads during
+   * standard runs.
+   */
+  private fun shouldFetchNativeSymbols(isDebug: Boolean, nativeDebuggingEnabled: Boolean): Boolean =
+    nativeDebuggingEnabled && (isDebug || BlazeApkBuildStep.FETCH_NATIVE_SYMBOLS_ON_DEPLOY.getValue())
 
   private val logger = Logger.getInstance(BazelApkBuildStepProvider::class.java)
 }

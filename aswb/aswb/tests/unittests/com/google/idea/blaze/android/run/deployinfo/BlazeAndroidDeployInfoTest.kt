@@ -16,16 +16,25 @@
 package com.google.idea.blaze.android.run.deployinfo
 
 import com.android.tools.idea.run.ApkProvisionException
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest
+import com.google.idea.blaze.android.run.NativeSymbolFinder
 import com.google.idea.blaze.base.BlazeTestCase
 import com.google.idea.blaze.base.command.buildresult.BuildResult
 import com.google.idea.blaze.base.run.DeployedApplicationTargetStore
+import com.google.idea.blaze.base.run.RuntimeArtifactCache
+import com.google.idea.blaze.base.run.RuntimeArtifactKind
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.artifact.OutputArtifact
+import com.google.idea.common.experiments.ExperimentService
+import com.google.idea.common.experiments.MockExperimentService
+import com.intellij.openapi.extensions.impl.ExtensionPointImpl
+import com.intellij.openapi.project.Project
+import java.io.File
 import java.nio.file.Path
 import org.junit.Assert.assertThrows
 import org.junit.Rule
@@ -37,12 +46,8 @@ import org.junit.runners.JUnit4
 class BlazeAndroidDeployInfoTest : BlazeTestCase() {
   @get:Rule var expect: Expect = Expect.create()
 
-  private val mockTargetStore = MockDeployedApplicationTargetStore()
-
-  override fun initTest(applicationServices: Container, projectServices: Container) {
-    super.initTest(applicationServices, projectServices)
-    projectServices.register(DeployedApplicationTargetStore::class.java, mockTargetStore)
-  }
+  private val mockExperimentService = MockExperimentService()
+  private var symbolFinderEp: ExtensionPointImpl<NativeSymbolFinder>? = null
 
   private fun stubManifest(packageName: String?): ParsedManifest = ParsedManifest(packageName, emptyList(), null)
 
@@ -57,6 +62,31 @@ class BlazeAndroidDeployInfoTest : BlazeTestCase() {
   private val dummyApkPath = Path.of("/local/cache/app.apk")
   private val dummyApkArtifact = stubOutputArtifact("app/app.apk")
   private val dummyBuildOutputs = BlazeBuildOutputs.noOutputs(BuildResult.SUCCESS)
+  private val mockArtifactCache = MockRuntimeArtifactCache()
+  private val mockTargetStore = MockDeployedApplicationTargetStore()
+
+  override fun initTest(applicationServices: Container, projectServices: Container) {
+    super.initTest(applicationServices, projectServices)
+    applicationServices.register(ExperimentService::class.java, mockExperimentService)
+    projectServices.register(RuntimeArtifactCache::class.java, mockArtifactCache)
+    projectServices.register(DeployedApplicationTargetStore::class.java, mockTargetStore)
+    symbolFinderEp = registerExtensionPoint(NativeSymbolFinder.EP_NAME, NativeSymbolFinder::class.java)
+  }
+
+  private fun registerMockSymbolFinder(symbolFile: File) {
+    val mockSymbolFinder =
+      object : NativeSymbolFinder {
+        override val additionalBuildFlags: String = "--output_groups=+test_ndk_symbols"
+
+        override fun getNativeSymbolsForBuild(
+          project: Project,
+          context: BlazeContext,
+          target: Label,
+          buildOutputs: BlazeBuildOutputs,
+        ): List<File> = listOf(symbolFile)
+      }
+    symbolFinderEp!!.registerExtension(mockSymbolFinder)
+  }
 
   @Test
   fun testFetchDeployArtifacts_success_binary() {
@@ -80,7 +110,7 @@ class BlazeAndroidDeployInfoTest : BlazeTestCase() {
       )
 
     expect.withMessage("mainAppPackageName").that(deployInfo.mainAppPackageName).isEqualTo(mainAppPackageName)
-    expect.withMessage("main app tracked target").that(mockTargetStore.trackedTargets).containsEntry(mainAppPackageName, mainAppLabel)
+    expect.withMessage("trackedTargets").that(mockTargetStore.trackedTargets).containsEntry(mainAppPackageName, mainAppLabel)
 
     val apkInfos = deployInfo.apkInfos
     expect.withMessage("apkInfos size").that(apkInfos).hasSize(1)
@@ -148,6 +178,52 @@ class BlazeAndroidDeployInfoTest : BlazeTestCase() {
   }
 
   @Test
+  fun testFetchDeployArtifacts_fetchNativeSymbolsTrue_fetchesNativeSymbols() {
+    val symbolFile = File("/tmp/libnative.so")
+    registerMockSymbolFinder(symbolFile)
+
+    val mainAppManifest = stubManifest(appPackageName)
+    val mainAppDeployData = DeployData(mainAppLabel, mainAppManifest, listOf(dummyApkArtifact))
+    val mockCacheLocally: CacheLocallyFunction = { _, _, _, _ -> listOf(dummyApkPath) }
+
+    val deployInfo =
+      BlazeAndroidDeployInfo.fetchDeployArtifacts(
+        project,
+        dummyBuildOutputs,
+        mainApp = mainAppDeployData,
+        appUnderTest = null,
+        fetchNativeSymbols = true,
+        context = BlazeContext.create(),
+        cacheLocally = mockCacheLocally,
+      )
+
+    assertThat(deployInfo.symbolFiles).containsExactly(symbolFile)
+  }
+
+  @Test
+  fun testFetchDeployArtifacts_fetchNativeSymbolsFalse_omitsNativeSymbols() {
+    val symbolFile = File("/tmp/libnative.so")
+    registerMockSymbolFinder(symbolFile)
+
+    val mainAppManifest = stubManifest(appPackageName)
+    val mainAppDeployData = DeployData(mainAppLabel, mainAppManifest, listOf(dummyApkArtifact))
+    val mockCacheLocally: CacheLocallyFunction = { _, _, _, _ -> listOf(dummyApkPath) }
+
+    val deployInfo =
+      BlazeAndroidDeployInfo.fetchDeployArtifacts(
+        project,
+        dummyBuildOutputs,
+        mainApp = mainAppDeployData,
+        appUnderTest = null,
+        fetchNativeSymbols = false,
+        context = BlazeContext.create(),
+        cacheLocally = mockCacheLocally,
+      )
+
+    assertThat(deployInfo.symbolFiles).isEmpty()
+  }
+
+  @Test
   fun testFetchDeployArtifacts_noPackageName_throwsException() {
     val mainAppManifest = stubManifest(null) // Manifest with null package name
     val mainAppArtifacts = listOf(dummyApkArtifact)
@@ -183,6 +259,24 @@ private class MockDeployedApplicationTargetStore : DeployedApplicationTargetStor
   override fun getTargetForApplication(applicationId: String): Label? = trackedTargets[applicationId]
 
   override fun getAllApplicationIds(): Set<String> = trackedTargets.keys
+}
+
+private class MockRuntimeArtifactCache : RuntimeArtifactCache {
+  override fun fetchArtifacts(
+    target: Label,
+    artifacts: List<OutputArtifact>,
+    context: BlazeContext,
+    artifactKind: RuntimeArtifactKind,
+  ): ImmutableList<Path> {
+    return ImmutableList.of()
+  }
+
+  override fun getCachedArtifacts(
+    target: Label,
+    artifactKind: RuntimeArtifactKind,
+  ): ImmutableList<Path> {
+    return ImmutableList.of()
+  }
 }
 
 private class TestOutputArtifact(val artifact: String) : OutputArtifact {
