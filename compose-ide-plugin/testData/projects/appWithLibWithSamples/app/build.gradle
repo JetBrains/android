@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 30
@@ -26,6 +25,5 @@ android {
 dependencies {
     lintChecks "org.gradle.sample:checks:1.0-SNAPSHOT"
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core.haptics:haptics:1.0.0-alpha01'
 }
