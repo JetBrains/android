@@ -2,7 +2,6 @@ import org.example.buildsrc.lib2.Lib2Class
 import org.example.buildsrc.lib1.Lib1Class
 
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 
 
 String lib1 = Lib1Class.getString()
@@ -31,9 +30,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = '1.8'
     }
 }
 

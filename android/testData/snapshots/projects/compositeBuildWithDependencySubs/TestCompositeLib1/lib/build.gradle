@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 
 android {
+    namespace = "com.test.composite1"
     compileSdkVersion 27
 
     defaultConfig {

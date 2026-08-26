@@ -76,9 +76,9 @@ data class GradleSyncLoggedEventsTestDef(
           assertThat(events.dumpGradleSyncEvents())
             .isEqualTo(
               buildString {
-                  val expectedMode = if (shouldSupportParallelSync()) "PARALLEL" else "SEQUENTIAL"
-                  appendLine(
-                    """
+                val expectedMode = if (shouldSupportParallelSync()) "PARALLEL" else "SEQUENTIAL"
+                appendLine(
+                  """
               |GRADLE_SYNC_STARTED
               |  USER_REQUESTED_PARALLEL
               |GRADLE_SYNC_SETUP_STARTED
@@ -87,16 +87,16 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_PARALLEL
               |  STUDIO_REQUESTD_$expectedMode"""
-                      .trim()
-                  )
-                }
+                    .trim()
+                )
+              }
                 .trimMargin()
             )
           assertThat(events.dumpGradleDetailEvents())
             .isEqualTo(
               buildString {
-                  appendLine(
-                    """
+                appendLine(
+                  """
               |GRADLE_BUILD_DETAILS
               |INTELLIJ_PROJECT_SIZE_STATS
               |  JAVA : 3
@@ -104,9 +104,9 @@ data class GradleSyncLoggedEventsTestDef(
               |  DOT_CLASS : 0
               |  KOTLIN : 0
               |  NATIVE : 0"""
-                      .trim()
-                  )
-                }
+                    .trim()
+                )
+              }
                 .trimMargin()
             )
           assertThat(events.dumpReportedSyncPhases())
@@ -127,8 +127,8 @@ data class GradleSyncLoggedEventsTestDef(
           assertThat(events.dumpGradleSyncEvents())
             .isEqualTo(
               buildString {
-                  appendLine(
-                    """
+                appendLine(
+                  """
               |GRADLE_SYNC_STARTED
               |  USER_REQUESTED_SEQUENTIAL
               |GRADLE_SYNC_SETUP_STARTED
@@ -137,16 +137,16 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_SEQUENTIAL
               |  STUDIO_REQUESTD_SEQUENTIAL"""
-                      .trim()
-                  )
-                }
+                    .trim()
+                )
+              }
                 .trimMargin()
             )
           assertThat(events.dumpGradleDetailEvents())
             .isEqualTo(
               buildString {
-                  appendLine(
-                    """
+                appendLine(
+                  """
               |GRADLE_BUILD_DETAILS
               |INTELLIJ_PROJECT_SIZE_STATS
               |  JAVA : 3
@@ -154,9 +154,9 @@ data class GradleSyncLoggedEventsTestDef(
               |  DOT_CLASS : 0
               |  KOTLIN : 0
               |  NATIVE : 0"""
-                      .trim()
-                  )
-                }
+                    .trim()
+                )
+              }
                 .trimMargin()
             )
         },
@@ -185,7 +185,7 @@ data class GradleSyncLoggedEventsTestDef(
               // In AGP 9.0+, the Kotlin standard library is provided by the built-in Kotlin support
               // and is no longer counted as a separate library dependency.
               if (agpVersion < AgpVersionSoftwareEnvironmentDescriptor.AGP_9_0) {
-                "35"
+                "32"
               } else "34"
             }
             |total_module_count: 13
@@ -194,9 +194,10 @@ data class GradleSyncLoggedEventsTestDef(
             |dynamic_feature_module_count: 0
             |test_module_count: 0
             |kotlin_multiplatform_module_count: 0
-          """
+            """
                 .trimMargin()
             )
+
           assertThat(events.dumpReportedSyncPhases())
             .isEqualTo(
               """
@@ -293,12 +294,12 @@ data class GradleSyncLoggedEventsTestDef(
         .map { it.gradleBuildDetails }
         .let {
           buildString {
-              it.forEach { gradleBuildDetails ->
-                appendLine("Module count: ${gradleBuildDetails.getModuleCount()}")
-                appendLine("Library count: ${gradleBuildDetails.libCount}")
-                gradleBuildDetails.modulesList.forEach { gradleModule -> TextFormat.printer().print(gradleModule, this) }
-              }
+            it.forEach { gradleBuildDetails ->
+              appendLine("Module count: ${gradleBuildDetails.getModuleCount()}")
+              appendLine("Library count: ${gradleBuildDetails.libCount}")
+              gradleBuildDetails.modulesList.forEach { gradleModule -> TextFormat.printer().print(gradleModule, this) }
             }
+          }
             .trim()
         }
     }
@@ -311,14 +312,14 @@ data class GradleSyncLoggedEventsTestDef(
         .last()
         .let {
           buildString {
-              if (it.hasKotlinSupportVersion()) {
-                val versionForPrint = it.kotlinSupportVersion.takeIf { it != expectedKotlinVersion } ?: "KOTLIN_VERSION_FOR_TESTS"
-                appendLine("kotlin version: $versionForPrint")
-              }
-              if (it.hasAndroidKtxVersion()) {
-                appendLine("core-ktx version: ${it.androidKtxVersion}")
-              }
+            if (it.hasKotlinSupportVersion()) {
+              val versionForPrint = it.kotlinSupportVersion.takeIf { it != expectedKotlinVersion } ?: "KOTLIN_VERSION_FOR_TESTS"
+              appendLine("kotlin version: $versionForPrint")
             }
+            if (it.hasAndroidKtxVersion()) {
+              appendLine("core-ktx version: ${it.androidKtxVersion}")
+            }
+          }
             .trim()
         }
     }

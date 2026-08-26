@@ -523,18 +523,6 @@ LIBRARY_TABLE
         artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         artifactAddress               : com.android.support:support-annotations:28.0.0@jar
         component                     : com.android.support:support-annotations:28.0.0
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-    - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-        artifactAddress               : org.jetbrains:annotations:13.0@jar
-        component                     : org.jetbrains:annotations:13.0
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
@@ -648,22 +636,10 @@ MODULE                        : project
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             configurationArtifacts
-                                - archives                    : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
-                                - archives                    : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                                - debugApiElements-published  : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
-                                - debugArchives               : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
-                                - debugRuntimeElements-published        : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
-                                - debugSourcesElements        : <ROOT>/TestCompositeLib1/lib/build/libs/lib-debug-1.0-sources.jar [-]
-                                - debugSourcesElements-published        : <ROOT>/TestCompositeLib1/lib/build/libs/lib-debug-1.0-sources.jar [-]
                                 - debugVariantAllApiPublication         : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
                                 - debugVariantAllRuntimePublication     : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
                                 - debugVariantDebugApiPublication       : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
                                 - debugVariantDebugRuntimePublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
-                                - releaseApiElements-published          : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                                - releaseArchives             : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                                - releaseRuntimeElements-published      : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
-                                - releaseSourcesElements      : <ROOT>/TestCompositeLib1/lib/build/libs/lib-1.0-sources.jar [-]
-                                - releaseSourcesElements-published      : <ROOT>/TestCompositeLib1/lib/build/libs/lib-1.0-sources.jar [-]
                                 - releaseVariantAllApiPublication       : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
                                 - releaseVariantAllRuntimePublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
                                 - releaseVariantReleaseApiPublication   : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
@@ -979,22 +955,10 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-1.0-sources.jar [-]
-                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-1.0-sources.jar [-]
                         - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
-                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
                         - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
@@ -1115,8 +1079,8 @@ MODULE                        : project.app
             Name                          : main
             Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/app/src/main/java
-            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
@@ -1131,8 +1095,8 @@ MODULE                        : project.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
@@ -1146,8 +1110,8 @@ MODULE                        : project.app
                     Name                          : test
                     Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/test/java
-                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/test/java
+                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
@@ -1169,8 +1133,8 @@ MODULE                        : project.app
             Name                          : debug
             Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
@@ -1185,8 +1149,8 @@ MODULE                        : project.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
@@ -1201,8 +1165,8 @@ MODULE                        : project.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
@@ -1225,8 +1189,8 @@ MODULE                        : project.app
             Name                          : release
             Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
@@ -1241,8 +1205,8 @@ MODULE                        : project.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
@@ -1303,7 +1267,6 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1416,11 +1379,6 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1546,11 +1504,6 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1561,11 +1514,9 @@ MODULE                        : project.app
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib2-:-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
@@ -1598,7 +1549,6 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1711,11 +1661,6 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1765,9 +1710,6 @@ MODULE                        : project.app
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : com.test.compositeapp.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1790,7 +1732,6 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1903,11 +1844,6 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2034,11 +1970,6 @@ MODULE                        : project.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2048,7 +1979,6 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             module                        : <ROOT>-:lib-MAIN
@@ -2057,11 +1987,9 @@ MODULE                        : project.app
                             module                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1-:-MAIN
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib2-:-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
@@ -2070,87 +1998,6 @@ MODULE                        : project.app
                         module                        : <ROOT>/TestCompositeLib4-:-MAIN
                         module                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1-:-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
-        compilerArgumentsBySourceSet
-            debug
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debug
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugAndroidTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debugAndroidTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugUnitTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debugUnitTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-        gradleUserHome                : <GRADLE>
-        hasKotlinPlugin               : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : 1.9.23
-        kotlinTarget                  : kotlin-android
-        kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/app/src/debug/kotlin [-]
-                - pureKotlinSourceFolders     : <ROOT>/app/src/debug/java [-]
-            debugAndroidTest              : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/app/src/debugAndroidTest/kotlin [-]
-            debugUnitTest                 : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/app/src/debugUnitTest/kotlin [-]
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
@@ -2252,8 +2099,8 @@ MODULE                        : project.lib
             Name                          : main
             Manifest                      : <ROOT>/lib/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/lib/src/main/java
-            KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/lib/src/main/java
+            KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/main/resources [-]
             AidlDirectories               : <ROOT>/lib/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/main/rs [-]
@@ -2268,8 +2115,8 @@ MODULE                        : project.lib
                     Name                          : androidTest
                     Manifest                      : <ROOT>/lib/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTest/rs [-]
@@ -2283,8 +2130,8 @@ MODULE                        : project.lib
                     Name                          : test
                     Manifest                      : <ROOT>/lib/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/test/java
-                    KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/test/java
+                    KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/test/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/test/rs [-]
@@ -2306,8 +2153,8 @@ MODULE                        : project.lib
             Name                          : debug
             Manifest                      : <ROOT>/lib/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/debug/resources [-]
             AidlDirectories               : <ROOT>/lib/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/debug/rs [-]
@@ -2322,8 +2169,8 @@ MODULE                        : project.lib
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/lib/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTestDebug/rs [-]
@@ -2338,8 +2185,8 @@ MODULE                        : project.lib
                     Name                          : testDebug
                     Manifest                      : <ROOT>/lib/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/testDebug/rs [-]
@@ -2362,8 +2209,8 @@ MODULE                        : project.lib
             Name                          : release
             Manifest                      : <ROOT>/lib/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/release/java [-]
-            KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/release/resources [-]
             AidlDirectories               : <ROOT>/lib/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/release/rs [-]
@@ -2378,8 +2225,8 @@ MODULE                        : project.lib
                     Name                          : testRelease
                     Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/testRelease/rs [-]
@@ -2430,7 +2277,6 @@ MODULE                        : project.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
-                ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -2548,11 +2394,6 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2669,11 +2510,6 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -2692,7 +2528,6 @@ MODULE                        : project.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
-                ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -2810,11 +2645,6 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -2932,14 +2762,8 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                 ApplicationId                 : com.test.composite0.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2962,7 +2786,6 @@ MODULE                        : project.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
-                ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -3080,11 +2903,6 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -3202,96 +3020,9 @@ MODULE                        : project.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
-        compilerArgumentsBySourceSet
-            debug
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
-                    moduleName                    : lib_debug
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugAndroidTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : lib_debugAndroidTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugUnitTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : lib_debugUnitTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-        gradleUserHome                : <GRADLE>
-        hasKotlinPlugin               : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : 1.9.23
-        kotlinTarget                  : kotlin-android
-        kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/lib/src/debug/kotlin [-]
-                - pureKotlinSourceFolders     : <ROOT>/lib/src/debug/java [-]
-            debugAndroidTest              : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/lib/src/debugAndroidTest/kotlin [-]
-            debugUnitTest                 : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/lib/src/debugUnitTest/kotlin [-]
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
 MODULE                        : project.lib.main
@@ -3401,8 +3132,8 @@ MODULE                        : includedLib1.app
             Name                          : main
             Manifest                      : <ROOT>/TestCompositeLib1/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/main/java
-            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/main/java
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/main/rs [-]
@@ -3417,8 +3148,8 @@ MODULE                        : includedLib1.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/androidTest/rs [-]
@@ -3432,8 +3163,8 @@ MODULE                        : includedLib1.app
                     Name                          : test
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/test/java
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/test/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/test/rs [-]
@@ -3455,8 +3186,8 @@ MODULE                        : includedLib1.app
             Name                          : debug
             Manifest                      : <ROOT>/TestCompositeLib1/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/debug/rs [-]
@@ -3471,8 +3202,8 @@ MODULE                        : includedLib1.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/rs [-]
@@ -3487,8 +3218,8 @@ MODULE                        : includedLib1.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/testDebug/rs [-]
@@ -3511,8 +3242,8 @@ MODULE                        : includedLib1.app
             Name                          : release
             Manifest                      : <ROOT>/TestCompositeLib1/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/release/rs [-]
@@ -3527,8 +3258,8 @@ MODULE                        : includedLib1.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/testRelease/rs [-]
@@ -3589,7 +3320,6 @@ MODULE                        : includedLib1.app
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -3702,11 +3432,6 @@ MODULE                        : includedLib1.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -3840,16 +3565,10 @@ MODULE                        : includedLib1.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
                         module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib2-:-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
@@ -3882,7 +3601,6 @@ MODULE                        : includedLib1.app
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -3995,11 +3713,6 @@ MODULE                        : includedLib1.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -4050,9 +3763,6 @@ MODULE                        : includedLib1.app
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : com.test.composite1.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -4075,7 +3785,6 @@ MODULE                        : includedLib1.app
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -4188,11 +3897,6 @@ MODULE                        : includedLib1.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -4327,15 +4031,9 @@ MODULE                        : includedLib1.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
                         module                        : <ROOT>/TestCompositeLib1-:app-MAIN
                             module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
@@ -4343,7 +4041,6 @@ MODULE                        : includedLib1.app
                         module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib2-:-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
@@ -4352,87 +4049,6 @@ MODULE                        : includedLib1.app
                         module                        : <ROOT>/TestCompositeLib4-:-MAIN
                         module                        : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1-:-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
-        compilerArgumentsBySourceSet
-            debug
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debug
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugAndroidTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debugAndroidTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugUnitTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debugUnitTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-        gradleUserHome                : <GRADLE>
-        hasKotlinPlugin               : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : 1.9.23
-        kotlinTarget                  : kotlin-android
-        kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/app/src/debug/kotlin [-]
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/app/src/debug/java [-]
-            debugAndroidTest              : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/app/src/debugAndroidTest/kotlin [-]
-            debugUnitTest                 : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/app/src/debugUnitTest/kotlin [-]
     externalProject               : :includedLib1:app (DefaultExternalProject) (*seen*)
 MODULE                        : includedLib1.app.androidTest
 MODULE                        : includedLib1.app.main
@@ -4469,8 +4085,8 @@ MODULE                        : includedLib1.lib
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : com.test.composite1
-    Namespace                     : com.test.composite1
-    TestNamespace                 : com.test.composite1.test
+    Namespace                     : com.test.composite1.lib
+    TestNamespace                 : com.test.composite1.lib.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4509,7 +4125,7 @@ MODULE                        : includedLib1.lib
         DataBindingEnabled            : false
         GenerateManifestClass         : false
     - basicVariant:               : debug
-        testApplicationId             : com.test.composite1.test
+        testApplicationId             : com.test.composite1.lib.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
@@ -4534,8 +4150,8 @@ MODULE                        : includedLib1.lib
             Name                          : main
             Manifest                      : <ROOT>/TestCompositeLib1/lib/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/main/java
-            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/main/java
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/main/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/main/rs [-]
@@ -4550,8 +4166,8 @@ MODULE                        : includedLib1.lib
                     Name                          : androidTest
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/androidTest/rs [-]
@@ -4565,8 +4181,8 @@ MODULE                        : includedLib1.lib
                     Name                          : test
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/test/java
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/test/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/test/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/test/rs [-]
@@ -4588,8 +4204,8 @@ MODULE                        : includedLib1.lib
             Name                          : debug
             Manifest                      : <ROOT>/TestCompositeLib1/lib/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/debug/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/debug/rs [-]
@@ -4604,8 +4220,8 @@ MODULE                        : includedLib1.lib
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/rs [-]
@@ -4620,8 +4236,8 @@ MODULE                        : includedLib1.lib
                     Name                          : testDebug
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/testDebug/rs [-]
@@ -4644,8 +4260,8 @@ MODULE                        : includedLib1.lib
             Name                          : release
             Manifest                      : <ROOT>/TestCompositeLib1/lib/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/release/java [-]
-            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/release/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/release/rs [-]
@@ -4660,8 +4276,8 @@ MODULE                        : includedLib1.lib
                     Name                          : testRelease
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/testRelease/rs [-]
@@ -4712,7 +4328,6 @@ MODULE                        : includedLib1.lib
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -4830,11 +4445,6 @@ MODULE                        : includedLib1.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib4-:-MAIN
@@ -4955,11 +4565,6 @@ MODULE                        : includedLib1.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib4-:-MAIN
@@ -4983,7 +4588,6 @@ MODULE                        : includedLib1.lib
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -5101,11 +4705,6 @@ MODULE                        : includedLib1.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib2-:-MAIN
@@ -5228,22 +4827,16 @@ MODULE                        : includedLib1.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib2-:-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib4-:-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                         module                        : <ROOT>/TestCompositeLib4-:-MAIN
-                ApplicationId                 : com.test.composite1.test
+                ApplicationId                 : com.test.composite1.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5265,7 +4858,6 @@ MODULE                        : includedLib1.lib
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -5383,11 +4975,6 @@ MODULE                        : includedLib1.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib2-:-MAIN
@@ -5510,15 +5097,9 @@ MODULE                        : includedLib1.lib
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>/TestCompositeLib1-:lib-MAIN
                             module                        : <ROOT>/TestCompositeLib2-:-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
                         module                        : <ROOT>/TestCompositeLib2-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
@@ -5526,87 +5107,6 @@ MODULE                        : includedLib1.lib
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                         module                        : <ROOT>/TestCompositeLib4-:-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
-        compilerArgumentsBySourceSet
-            debug
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
-                    moduleName                    : lib_debug
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugAndroidTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : lib_debugAndroidTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugUnitTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : lib_debugUnitTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-        gradleUserHome                : <GRADLE>
-        hasKotlinPlugin               : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : 1.9.23
-        kotlinTarget                  : kotlin-android
-        kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/lib/src/debug/kotlin [-]
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/lib/src/debug/java [-]
-            debugAndroidTest              : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/lib/src/debugAndroidTest/kotlin [-]
-            debugUnitTest                 : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib1/lib/src/debugUnitTest/kotlin [-]
     externalProject               : :includedLib1:lib (DefaultExternalProject) (*seen*)
 MODULE                        : includedLib1.lib.androidTest
 MODULE                        : includedLib1.lib.main
@@ -5803,8 +5303,8 @@ MODULE                        : TestCompositeLib3.app
             Name                          : main
             Manifest                      : <ROOT>/TestCompositeLib3/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/main/java
-            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/main/java
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/main/rs [-]
@@ -5819,8 +5319,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTest/java
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/androidTest/rs [-]
@@ -5834,8 +5334,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : test
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/test/java
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/test/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/test/rs [-]
@@ -5857,8 +5357,8 @@ MODULE                        : TestCompositeLib3.app
             Name                          : debug
             Manifest                      : <ROOT>/TestCompositeLib3/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/debug/rs [-]
@@ -5873,8 +5373,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/rs [-]
@@ -5889,8 +5389,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/testDebug/rs [-]
@@ -5913,8 +5413,8 @@ MODULE                        : TestCompositeLib3.app
             Name                          : release
             Manifest                      : <ROOT>/TestCompositeLib3/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/release/rs [-]
@@ -5929,8 +5429,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/testRelease/rs [-]
@@ -5991,7 +5491,6 @@ MODULE                        : TestCompositeLib3.app
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -6104,11 +5603,6 @@ MODULE                        : TestCompositeLib3.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -6232,11 +5726,6 @@ MODULE                        : TestCompositeLib3.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -6275,7 +5764,6 @@ MODULE                        : TestCompositeLib3.app
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -6388,11 +5876,6 @@ MODULE                        : TestCompositeLib3.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -6440,9 +5923,6 @@ MODULE                        : TestCompositeLib3.app
                     - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
                     - provided                    : com.android.support:versionedparcelable:28.0.0@aar
                     - provided                    : com.android.support:viewpager:28.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : com.test.composite3.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -6465,7 +5945,6 @@ MODULE                        : TestCompositeLib3.app
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
-                ClassesFolder                 : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -6578,11 +6057,6 @@ MODULE                        : TestCompositeLib3.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -6707,11 +6181,6 @@ MODULE                        : TestCompositeLib3.app
                             androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support:collections:28.0.0@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -6721,7 +6190,6 @@ MODULE                        : TestCompositeLib3.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
                         module                        : <ROOT>/TestCompositeLib3-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             androidLibrary                : com.android.support.constraint:constraint-layout:1.0.2@aar
                             module                        : <ROOT>/TestCompositeLib3-:lib-MAIN
@@ -6732,87 +6200,6 @@ MODULE                        : TestCompositeLib3.app
                         module                        : <ROOT>/TestCompositeLib4-:-MAIN
                         module                        : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3-:-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
-        compilerArgumentsBySourceSet
-            debug
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debug
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugAndroidTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debugAndroidTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugUnitTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : app_debugUnitTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-        gradleUserHome                : <GRADLE>
-        hasKotlinPlugin               : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : 1.9.23
-        kotlinTarget                  : kotlin-android
-        kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib3/app/src/debug/kotlin [-]
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib3/app/src/debug/java [-]
-            debugAndroidTest              : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib3/app/src/debugAndroidTest/kotlin [-]
-            debugUnitTest                 : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-                - pureKotlinSourceFolders     : <ROOT>/TestCompositeLib3/app/src/debugUnitTest/kotlin [-]
     externalProject               : :TestCompositeLib3:app (DefaultExternalProject) (*seen*)
 MODULE                        : TestCompositeLib3.app.androidTest
 MODULE                        : TestCompositeLib3.app.main
@@ -6849,8 +6236,8 @@ MODULE                        : TestCompositeLib3.lib
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : com.test.composite3
-    Namespace                     : com.test.composite3
-    TestNamespace                 : com.test.composite3.test
+    Namespace                     : com.test.composite3.lib
+    TestNamespace                 : com.test.composite3.lib.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -6889,7 +6276,7 @@ MODULE                        : TestCompositeLib3.lib
         DataBindingEnabled            : false
         GenerateManifestClass         : false
     - basicVariant:               : debug
-        testApplicationId             : com.test.composite3.test
+        testApplicationId             : com.test.composite3.lib.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
@@ -7585,7 +6972,7 @@ MODULE                        : TestCompositeLib3.lib
                             module                        : <ROOT>/TestCompositeLib4-:-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                         module                        : <ROOT>/TestCompositeLib4-:-MAIN
-                ApplicationId                 : com.test.composite3.test
+                ApplicationId                 : com.test.composite3.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null

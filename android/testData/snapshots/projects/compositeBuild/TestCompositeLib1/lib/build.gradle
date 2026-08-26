@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 
 android {
+    namespace = "com.test.composite1.lib"
     compileSdkVersion 27
 
     defaultConfig {
@@ -30,7 +30,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation 'com.android.support:appcompat-v7:+'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     api 'com.test.composite2:composite2:1.0'
     implementation 'com.test.composite3:lib:1.0'
