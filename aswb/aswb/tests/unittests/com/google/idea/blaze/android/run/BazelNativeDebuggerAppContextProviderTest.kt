@@ -47,7 +47,7 @@ class BazelNativeDebuggerAppContextProviderTest : BlazeTestCase() {
     val workspaceRoot = WorkspaceRoot(File("/path/to/workspace"))
     val symDir = SymbolDir.WithoutSubdirectories(File("/path/to/symbols"))
     val context =
-      BazelApplicationProjectContext(
+      BazelApplicationProjectContext.forDeployedApplication(
         project = project,
         applicationId = "com.example.app",
         liveEditDataExtractor = null,
@@ -70,7 +70,7 @@ class BazelNativeDebuggerAppContextProviderTest : BlazeTestCase() {
     val symDir1 = SymbolDir.WithoutSubdirectories(File("/path/to/symbols"))
     val symDir2 = SymbolDir.WithoutSubdirectories(File("/other/path/symbols"))
     val context =
-      BazelApplicationProjectContext(
+      BazelApplicationProjectContext.forDeployedApplication(
         project = project,
         applicationId = "com.example.app",
         liveEditDataExtractor = null,

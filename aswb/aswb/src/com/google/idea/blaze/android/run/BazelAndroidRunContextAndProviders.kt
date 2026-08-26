@@ -63,9 +63,40 @@ class BazelApkProvider(val apkInfos: List<ApkInfo>) : ApkProvider {
  *
  * @property symbolDirs Directories containing native debugging symbol files.
  */
-class BazelApplicationProjectContext(
+class BazelApplicationProjectContext
+private constructor(
   val project: Project,
   override val applicationId: String,
   val liveEditDataExtractor: LiveEditDataExtractor?,
   val symbolDirs: List<SymbolDir>,
-) : ApplicationProjectContext
+) : ApplicationProjectContext {
+
+  companion object {
+    @JvmStatic
+    fun forDeployedApplication(
+      project: Project,
+      applicationId: String,
+      liveEditDataExtractor: LiveEditDataExtractor?,
+      symbolDirs: List<SymbolDir>,
+    ): BazelApplicationProjectContext =
+      BazelApplicationProjectContext(
+        project = project,
+        applicationId = applicationId,
+        liveEditDataExtractor = liveEditDataExtractor,
+        symbolDirs = symbolDirs,
+      )
+
+    @JvmStatic
+    fun forRunningApplication(
+      project: Project,
+      applicationId: String,
+    ): BazelApplicationProjectContext =
+      BazelApplicationProjectContext(
+        project = project,
+        applicationId = applicationId,
+        // Live edit is not supported for already deployed apps.
+        liveEditDataExtractor = null,
+        symbolDirs = emptyList(),
+      )
+  }
+}

@@ -20,7 +20,6 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
-import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor
 
 /** An implementation of [ApplicationProjectContextProvider] for the Blaze project system. */
 class BazelApplicationProjectContextProvider : ApplicationProjectContextProvider<BazelProjectSystem>, BazelToken {
@@ -30,13 +29,6 @@ class BazelApplicationProjectContextProvider : ApplicationProjectContextProvider
     identity: RunningApplicationIdentity,
   ): ApplicationProjectContext? {
     val applicationId = identity.heuristicApplicationId ?: return null
-    // Live edit is not supported for already deployed apps.
-    val liveEditDataExtractor: LiveEditDataExtractor? = null
-    return BazelApplicationProjectContext(
-      project = projectSystem.project,
-      applicationId = applicationId,
-      liveEditDataExtractor = liveEditDataExtractor,
-      symbolDirs = emptyList(),
-    )
+    return BazelApplicationProjectContext.forRunningApplication(projectSystem.project, applicationId)
   }
 }
