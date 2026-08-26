@@ -101,12 +101,11 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun startUpdateWorkerAndWatchService() {
     synchronized(dataLock) {
       updateWorkerJob?.cancel()
-      updateWorkerJob =
-        catalogScope.launch {
-          for (request in updateChannel) {
-            update()
-          }
+      updateWorkerJob = catalogScope.launch {
+        for (request in updateChannel) {
+          update()
         }
+      }
 
       watchJob?.cancel()
       watchJob = null
@@ -457,9 +456,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
             avdId = line.substring("add.id=".length)
           }
           line.startsWith("avd.name=") -> {
-            val name = line.substring("avd.name=".length)
-            // TODO: Remove replace('_', ' ') after January 1, 2024. It was a workaround for b/208966801.
-            avdName = if (name.contains(' ')) name else name.replace('_', ' ')
+            avdName = line.substring("avd.name=".length)
           }
           line.startsWith("avd.dir=") -> {
             // TODO: The toRealPath call is a workaround for b/280110539. Remove after January 1, 2024.
