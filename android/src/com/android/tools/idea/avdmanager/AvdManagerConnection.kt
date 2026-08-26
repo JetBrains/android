@@ -58,7 +58,6 @@ import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.platform.ide.progress.withBackgroundProgress
@@ -314,7 +313,7 @@ constructor(
     if (params.isEmpty()) {
       return null
     }
-    return writeTempFile(params)?.absoluteFile?.toPath()
+    return writeTempFile(params)?.toAbsolutePath()
   }
 
   private suspend fun handleAccelerationError(
@@ -478,27 +477,22 @@ constructor(
      * @return The temporary file. This will be null if we could not create or write the file.
      */
     @JvmStatic
-    private fun writeTempFile(fileContents: List<String>): File? {
-      var tempFile: File? = null
+    private fun writeTempFile(fileContents: List<String>): Path? {
       try {
-        tempFile = FileUtil.createTempFile("emu", ".tmp", true)
-        tempFile.deleteOnExit() // File disappears when Studio exits
-        if (
-          !tempFile.setReadable(false, false) || // Non-owner cannot read
-            !tempFile.setReadable(true, true)
-        ) { // Owner can read
-          IJ_LOG.warn("Error setting permissions for " + tempFile.absolutePath)
+        val tempPath = Files.createTempFile("emu", ".tmp")
+        try {
+          tempPath.toFile().deleteOnExit()
+          Files.write(tempPath, fileContents, StandardOpenOption.WRITE)
+          return tempPath
+        } catch (e: IOException) {
+          // Try to remove the temporary file
+          Files.deleteIfExists(tempPath)
+          throw e
         }
-
-        Files.write(tempFile.toPath(), fileContents, StandardOpenOption.WRITE)
-      } catch (_: IOException) {
-        // Try to remove the temporary file
-        if (tempFile != null) {
-          tempFile.delete()
-          tempFile = null
-        }
+      } catch (e: IOException) {
+        IJ_LOG.warn("Failed to write emulator parameters to temp file", e)
       }
-      return tempFile
+      return null
     }
 
     @JvmStatic
