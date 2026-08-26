@@ -16,6 +16,7 @@
 package com.google.idea.switcher
 
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.platform.eel.nioFs.impl.MultiRoutingFileSystemBackend
 import java.io.IOException
 import java.nio.file.FileStore
@@ -99,6 +100,7 @@ interface WorkspaceMappingManager {
 }
 
 internal object WorkspaceMappingManagerImpl : WorkspaceMappingManager {
+  private val logger = logger<WorkspaceMappingManagerImpl>()
   override val switchesRoot: Path = PathManager.getSystemDir().resolve(SWITCHES_ROOT).toAbsolutePath().normalize()
   private val systemPrefixPath: String = switchesRoot.toString()
   private val _mappingChangeEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -130,6 +132,7 @@ internal object WorkspaceMappingManagerImpl : WorkspaceMappingManager {
       }
 
     if (currentTarget?.toString() != physicalWorkspaceDir.toString()) {
+      logger.info("Configuring workspace target for '$workspaceName' -> '$physicalWorkspaceDir' (previous target: '$currentTarget')")
       val markerSelf = workspacePath.resolve(SWITCH_SELF_MARKER_NAME)
       Files.deleteIfExists(markerSelf)
       Files.createSymbolicLink(
@@ -139,6 +142,8 @@ internal object WorkspaceMappingManagerImpl : WorkspaceMappingManager {
       discoveredRootsCache[workspacePath.toString()]?.reload()
       publishMappingChangedEvent()
       WorkspaceFileWatcher.getInstance()?.handleMappingChange()
+    } else {
+      logger.info("Workspace target for '$workspaceName' unchanged ('$currentTarget'); skipping symlink update")
     }
     return workspacePath.toRealPath()
   }

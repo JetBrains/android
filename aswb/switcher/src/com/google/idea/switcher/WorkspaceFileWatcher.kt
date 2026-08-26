@@ -83,12 +83,14 @@ class WorkspaceFileWatcher : PluggableFileWatcher(), Disposable {
 
   override fun setWatchRoots(recursiveCanonicalPaths: List<String>, flatCanonicalPaths: List<String>, shuttingDown: Boolean) {
     if (shuttingDown) {
+      logger.info("WorkspaceFileWatcher shutting down; cleaning up active watchers")
       cleanupWatchers()
       return
     }
 
     synchronized(lock) {
       val switchesRoot = WorkspaceMappingManager.getInstance().switchesRoot.toString()
+      logger.info("Configuring watch roots: ${recursiveCanonicalPaths.size} recursive, ${flatCanonicalPaths.size} flat")
 
       // 1. Partition roots: find paths under virtual switchesRoot
       val recursiveByWorkspace = groupPathsByWorkspaceRoot(recursiveCanonicalPaths, switchesRoot)
@@ -114,12 +116,16 @@ class WorkspaceFileWatcher : PluggableFileWatcher(), Disposable {
       val unrecognizedRecursive = recursiveCanonicalPaths.filter { !it.startsWith(switchesRoot) }
       val unrecognizedFlat = flatCanonicalPaths.filter { !it.startsWith(switchesRoot) }
       val manualRoots = unrecognizedRecursive + unrecognizedFlat
+      logger.info(
+        "Partitioned watch roots for ${expectedConfigs.size} workspace(s): ${expectedConfigs.keys.joinToString()}; ${manualRoots.size} manual/unrecognized root(s)"
+      )
       notificationSink.notifyManualWatchRoots(this, manualRoots)
     }
   }
 
   internal fun handleMappingChange() {
     synchronized(lock) {
+      logger.info("Handling workspace mapping change for ${activeWatchers.size} active watcher(s)")
       // Build expected configurations based on current active watchers and their updated mappings
       val expectedConfigs =
         activeWatchers.values
@@ -137,13 +143,17 @@ class WorkspaceFileWatcher : PluggableFileWatcher(), Disposable {
   private fun applyConfigurationsLocked(expected: Map<String, ExpectedWatcherConfig>) {
     // 1. Remove watchers for roots that are no longer expected
     val staleRoots = activeWatchers.keys - expected.keys
-    staleRoots.forEach { staleRoot -> activeWatchers.remove(staleRoot)?.let { state -> state.watcher.shutdown() } }
+    staleRoots.forEach { staleRoot ->
+      logger.info("Removing file watcher for deactivated workspace root '$staleRoot'")
+      activeWatchers.remove(staleRoot)?.let { state -> state.watcher.shutdown() }
+    }
 
     // 2. Add or update watchers for expected configurations
     expected.forEach { (virtualRootPath, config) ->
       val state = activeWatchers[virtualRootPath]
       if (state == null) {
         // Spin up a new watcher
+        logger.info("Creating new file watcher for workspace root '$virtualRootPath' -> '${config.physicalRoot}'")
         val translatingSink = TranslatingNotificationSink(notificationSink, this, virtualRootPath, config.physicalRoot.toString())
         val watcher =
           WorkspaceWatcherProvider.EP_NAME.extensionList.firstNotNullOfOrNull { provider ->
@@ -167,10 +177,14 @@ class WorkspaceFileWatcher : PluggableFileWatcher(), Disposable {
 
         if (oldPhysicalRoot == newPhysicalRoot) {
           if (pathsChanged) {
+            logger.info(
+              "Updating watch roots for workspace '$virtualRootPath' (${config.recursivePaths.size} recursive, ${config.flatPaths.size} flat)"
+            )
             applyRootsToWatcher(state)
           }
         } else {
           // Physical root changed (e.g. target switched to a different workspace). Recreate the watcher.
+          logger.info("Workspace mapping redirected for '$virtualRootPath': '$oldPhysicalRoot' -> '$newPhysicalRoot'")
           recreateWatcherLocked(state, newPhysicalRoot)
         }
       }
@@ -190,6 +204,9 @@ class WorkspaceFileWatcher : PluggableFileWatcher(), Disposable {
   private fun applyRootsToWatcher(state: ActiveWatcherState) {
     val physicalRecursive = state.lastVirtualRecursive.map { translateVirtualToPhysical(it, state.virtualRoot, state.physicalRoot) }
     val physicalFlat = state.lastVirtualFlat.map { translateVirtualToPhysical(it, state.virtualRoot, state.physicalRoot) }
+    logger.debug(
+      "Applied watch roots to watcher for '${state.virtualRoot}': ${physicalRecursive.size} physical recursive, ${physicalFlat.size} physical flat"
+    )
     state.watcher.setWatchRoots(physicalRecursive, physicalFlat)
   }
 
@@ -205,6 +222,7 @@ class WorkspaceFileWatcher : PluggableFileWatcher(), Disposable {
     val oldPhysicalRoot = state.physicalRoot
 
     // 1. Shutdown old watcher
+    logger.info("Recreating watcher for workspace '${state.virtualRoot}': shutting down old watcher on '$oldPhysicalRoot'")
     state.watcher.shutdown()
 
     // Update state and sink early to avoid race conditions in the background coroutine
@@ -224,7 +242,9 @@ class WorkspaceFileWatcher : PluggableFileWatcher(), Disposable {
           .map { path -> translateVirtualToPhysical(path, state.virtualRoot, oldPhysicalRoot) }
           .toSet()
 
+      logger.info("Executing switch diff operation from '$oldPhysicalRoot' to '$newPhysicalRoot' on ${oldPhysicalPaths.size} path(s)")
       diffOperation(oldPhysicalPaths, newSink)
+      logger.info("Switch diff operation completed for '${state.virtualRoot}'")
     }
 
     // 3. Create new watcher
@@ -232,6 +252,7 @@ class WorkspaceFileWatcher : PluggableFileWatcher(), Disposable {
       WorkspaceWatcherProvider.EP_NAME.extensionList.firstNotNullOfOrNull { provider -> provider.createWatcher(newPhysicalRoot, newSink) }
 
     if (newWatcher != null) {
+      logger.info("Started new watcher for workspace '${state.virtualRoot}' on '$newPhysicalRoot'")
       state.watcher = newWatcher
       applyRootsToWatcher(state)
     } else {

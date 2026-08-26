@@ -95,6 +95,9 @@ class SwitchActiveWorkspaceAction : BlazeProjectAction(), DumbAware {
       coroutineScope.launch {
         withBackgroundProgress(project, "Switching Active Workspace", false) {
           try {
+            val activeTarget = project.getWorkspaceTarget()
+            LOG.info("Switching active workspace for project '${project.name}' from '$activeTarget' to '$physicalPath'")
+            LOG.info("Updating project view workspace location to '$physicalPath'")
             val edit =
               ProjectViewEdit.editLocalProjectView(project) { builder ->
                 val oldSection = builder.getLast(WorkspaceLocationSection.KEY)
@@ -104,15 +107,22 @@ class SwitchActiveWorkspaceAction : BlazeProjectAction(), DumbAware {
               } ?: error("Failed to initialize ProjectViewEdit framework editor for project ${project.name}")
             edit.apply()
 
-            project
-              .setWorkspaceTarget(physicalPath)
-              .let { LocalFileSystem.getInstance().findFileByNioFile(it) as? NewVirtualFile }
-              ?.refresh(true, true)
+            LOG.info("Configuring workspace target mapping for project '${project.name}' to '$physicalPath'")
+            val virtualRootPath = project.setWorkspaceTarget(physicalPath)
+            val virtualFile = LocalFileSystem.getInstance().findFileByNioFile(virtualRootPath) as? NewVirtualFile
+            if (virtualFile != null) {
+              LOG.info("Triggering asynchronous VFS refresh on virtual workspace root '$virtualRootPath'")
+              virtualFile.refresh(true, true) {
+                LOG.info("Asynchronous VFS refresh completed for virtual workspace root '$virtualRootPath'")
+              }
+            } else {
+              LOG.warn("Virtual workspace root '$virtualRootPath' could not be resolved in VFS for refresh")
+            }
           } catch (ex: Exception) {
             if (ex is kotlinx.coroutines.CancellationException) {
               throw ex
             }
-            LOG.error("Failed to switch workspace targets", ex)
+            LOG.error("Failed to switch workspace targets for project '${project.name}' to '$physicalPath'", ex)
             ApplicationManager.getApplication().invokeLater {
               Messages.showErrorDialog(project, "Failed to update workspace targets: ${ex.message}", "Switch Workspace Error")
             }
