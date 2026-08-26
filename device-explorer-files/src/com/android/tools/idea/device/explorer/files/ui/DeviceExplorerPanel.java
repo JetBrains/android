@@ -261,8 +261,6 @@ public class DeviceExplorerPanel {
                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
   }
 
-  public JComponent getRootComponent() { return myComponent; }
-
   private static class NameRenderer extends ColoredTreeCellRenderer {
     @NotNull private final TreeSpeedSearch mySpeedSearch;
 
