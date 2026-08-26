@@ -32,8 +32,10 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 
@@ -86,10 +88,24 @@ class RemoteDeviceManager constructor(deviceModel: String, apiLevel: String) : A
     return remoteDeviceName
   }
 
-  fun connectToDevice(deviceName: String) = runBlocking {
+  fun connectToDevice(deviceName: String, maxRetries: Int = 3) = runBlocking {
     assert(false) { "Android Studio Merge: ignore vendor dependencies" }
     // val connection = directAccessConnectionManager.create(deviceName)
-    // connection.connect()
+    // var lastException: TimeoutCancellationException? = null
+    // for (attempt in 1..maxRetries) {
+    //   try {
+    //     TestLogger.log("Connecting to device: $deviceName (attempt $attempt/$maxRetries)...")
+    //     connection.connect()
+    //     return@runBlocking
+    //   } catch (e: TimeoutCancellationException) {
+    //     lastException = e
+    //     TestLogger.log("Timed out connecting to device on attempt $attempt/$maxRetries: ${e.message}")
+    //     if (attempt < maxRetries) {
+    //       delay(2000)
+    //     }
+    //   }
+    // }
+    // throw lastException ?: IllegalStateException("Failed to connect to $deviceName after $maxRetries attempts")
   }
 
   fun setupRemoteDevice() {
