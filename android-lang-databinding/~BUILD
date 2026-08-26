@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "BUILT_IN_KOTLIN_VERSION")
 
 # managed by go/iml_to_build
 iml_module(
@@ -102,8 +103,12 @@ maven_repository(
         "@maven//:junit.junit_4.12",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.hamcrest.hamcrest-library_1.3",
+        "@maven//:org.jetbrains.annotations_13.0",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_" + BUILT_IN_KOTLIN_VERSION,
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + BUILT_IN_KOTLIN_VERSION,
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib_" + BUILT_IN_KOTLIN_VERSION,
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.4.1",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],

@@ -1,7 +1,5 @@
-rootProject.buildscript {
-  rootProject.ext.latestCompileSdk = 34
-  rootProject.ext.buildToolsVersion = "30.0.2"
-}
+ext.latestCompileSdk = 34
+ext.buildToolsVersion = "34.0.0"
 
 buildscript {
     repositories {
@@ -9,7 +7,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:+'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:+"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
