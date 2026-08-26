@@ -41,9 +41,9 @@ class AgpUpgradeAction : AnAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    val current = project.findPluginInfo()?.pluginVersion ?: return
     val latestKnown = AgpVersions.latestKnown
     ApplicationManager.getApplication().executeOnPooledThread {
+      val current = project.findPluginInfo()?.pluginVersion ?: return@executeOnPooledThread
       val published = IdeGoogleMavenRepository.getAgpVersions()
       val state = computeGradlePluginUpgradeState(current, latestKnown, published)
       invokeLater(ModalityState.nonModal()) { showAndInvokeAgpUpgradeRefactoringProcessor(project, current, state.target) }
