@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.tools.adtui.util.toWxH
 import com.intellij.util.xmlb.Converter
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag

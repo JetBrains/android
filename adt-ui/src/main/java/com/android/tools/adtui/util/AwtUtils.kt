@@ -33,6 +33,12 @@ fun Dimension.scaled(scale: Double): Dimension = if (scale == 1.0) this else Dim
 fun Dimension.scaled(scaleX: Double, scaleY: Double): Dimension =
   if (scaleX == 1.0 && scaleY == 1.0) this else Dimension(width.scaled(scaleX), height.scaled(scaleY))
 
+/** Converts [Dimension] to [String] in "${width}x${height}" format. */
+fun Dimension?.toWxH(): String {
+  this ?: return "null"
+  return "${width}x${height}"
+}
+
 /** Returns this [Rectangle] scaled independently along X and Y axes. */
 fun Rectangle.scaled(scaleX: Double, scaleY: Double): Rectangle =
   if (scaleX == 1.0 && scaleY == 1.0) this else Rectangle(x.scaled(scaleX), y.scaled(scaleY), width.scaled(scaleX), height.scaled(scaleY))

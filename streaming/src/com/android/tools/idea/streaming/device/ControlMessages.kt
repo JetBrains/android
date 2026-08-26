@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.tools.adtui.util.toWxH
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
-import com.android.tools.idea.streaming.core.toWxH
 import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException

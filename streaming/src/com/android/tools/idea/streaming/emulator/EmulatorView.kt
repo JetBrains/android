@@ -38,6 +38,7 @@ import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinLayout
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
+import com.android.tools.adtui.util.toWxH
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -55,7 +56,6 @@ import com.android.tools.idea.streaming.core.isMouseInside
 import com.android.tools.idea.streaming.core.isSameAspectRatio
 import com.android.tools.idea.streaming.core.scaledDown
 import com.android.tools.idea.streaming.core.scaledUnbiased
-import com.android.tools.idea.streaming.core.toWxH
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener

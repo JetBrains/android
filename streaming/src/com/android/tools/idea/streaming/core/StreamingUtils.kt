@@ -183,12 +183,6 @@ internal fun Point.constrainInside(d: Dimension) = if (this in d) this else Poin
 
 internal operator fun Dimension.contains(p: Point) = p.x in 0 until width && p.y in 0 until height
 
-/** Converts [Dimension] to [String] in "${width}x${height}" format. */
-internal fun Dimension?.toWxH(): String {
-  this ?: return "null"
-  return "${width}x${height}"
-}
-
 internal val Rectangle.right: Int
   get() = x + width
 

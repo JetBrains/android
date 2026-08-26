@@ -22,6 +22,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
 import com.android.tools.adtui.util.scaled
+import com.android.tools.adtui.util.toWxH
 import com.android.tools.idea.concurrency.executeAsync
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -143,8 +144,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, createFakeWindow: Bo
 
   private fun dump(component: Component, prefix: String) {
     System.err.println(
-      "$prefix${component.javaClass.simpleName}@(${component.x}, ${component.y}) " +
-        "[${component.size.getWidth()}x${component.size.getHeight()}]" +
+      "$prefix${component.javaClass.simpleName}@(${component.x}, ${component.y}) [${component.size.toWxH()}]" +
         if (isMouseTarget(component)) " {*}" else "" + if (component is JLabel) " text: " + component.text else ""
     )
     if (component is Container) {
