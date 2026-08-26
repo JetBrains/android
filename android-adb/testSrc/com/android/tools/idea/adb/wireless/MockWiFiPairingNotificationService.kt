@@ -24,11 +24,9 @@ import javax.swing.Icon
 
 @UiThread
 class MockWiFiPairingNotificationService(override val project: Project) : WiFiPairingNotificationService {
-  private val delegateService = WiFiPairingNotificationServiceImpl(project)
   val showBalloonTracker = FutureValuesTracker<ShowBalloonParams>()
 
   override fun showBalloon(title: String, content: String, type: NotificationType, icon: Icon?, actions: List<AnAction>) {
-    delegateService.showBalloon(title, content, type, icon)
     showBalloonTracker.produce(ShowBalloonParams(title, content, type, icon))
   }
 

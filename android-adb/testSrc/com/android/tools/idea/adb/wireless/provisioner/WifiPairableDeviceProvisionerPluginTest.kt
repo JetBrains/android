@@ -35,6 +35,7 @@ import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.WiFiPairingController
 import com.android.tools.idea.adb.wireless.v2.ui.WifiPairableDevicesPersistentStateComponent
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
@@ -88,6 +89,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     RuleChain(
       EdtRule(),
       ApplicationRule(),
+      AndroidExecutorsRule(),
       projectRule,
       ApplicationServiceRule(WifiPairableDevicesPersistentStateComponent::class.java, mockPersistentService),
       ProjectServiceRule(projectRule, PairDevicesUsingWiFiService::class.java, pairDevicesService),
