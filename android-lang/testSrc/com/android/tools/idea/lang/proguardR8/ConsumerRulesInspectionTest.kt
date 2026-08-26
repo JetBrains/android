@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8
+package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.lang.proguardR8.inspections.ConsumerRulesInspection
