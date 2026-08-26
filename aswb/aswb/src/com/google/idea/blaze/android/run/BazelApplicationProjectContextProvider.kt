@@ -18,8 +18,10 @@ package com.google.idea.blaze.android.run
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
+import com.android.tools.ndk.run.SymbolDir
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
+import com.intellij.openapi.project.Project
 
 /** An implementation of [ApplicationProjectContextProvider] for the Blaze project system. */
 class BazelApplicationProjectContextProvider : ApplicationProjectContextProvider<BazelProjectSystem>, BazelToken {
@@ -29,6 +31,11 @@ class BazelApplicationProjectContextProvider : ApplicationProjectContextProvider
     identity: RunningApplicationIdentity,
   ): ApplicationProjectContext? {
     val applicationId = identity.heuristicApplicationId ?: return null
-    return BazelApplicationProjectContext.forRunningApplication(projectSystem.project, applicationId)
+    val project = projectSystem.project
+    return BazelApplicationProjectContext.forRunningApplication(project, applicationId) {
+      getSymbolDirs(project, applicationId)
+    }
   }
+
+  private fun getSymbolDirs(project: Project, applicationId: String): List<SymbolDir> = emptyList()
 }

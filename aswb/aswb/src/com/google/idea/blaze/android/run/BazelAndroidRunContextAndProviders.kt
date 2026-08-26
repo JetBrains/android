@@ -68,8 +68,10 @@ private constructor(
   val project: Project,
   override val applicationId: String,
   val liveEditDataExtractor: LiveEditDataExtractor?,
-  val symbolDirs: List<SymbolDir>,
+  private val symbolDirsProvider: () -> List<SymbolDir>,
 ) : ApplicationProjectContext {
+
+  val symbolDirs: List<SymbolDir> by lazy { symbolDirsProvider() }
 
   companion object {
     @JvmStatic
@@ -83,20 +85,21 @@ private constructor(
         project = project,
         applicationId = applicationId,
         liveEditDataExtractor = liveEditDataExtractor,
-        symbolDirs = symbolDirs,
+        symbolDirsProvider = { symbolDirs },
       )
 
     @JvmStatic
     fun forRunningApplication(
       project: Project,
       applicationId: String,
+      symbolDirsProvider: () -> List<SymbolDir>,
     ): BazelApplicationProjectContext =
       BazelApplicationProjectContext(
         project = project,
         applicationId = applicationId,
         // Live edit is not supported for already deployed apps.
         liveEditDataExtractor = null,
-        symbolDirs = emptyList(),
+        symbolDirsProvider = symbolDirsProvider,
       )
   }
 }
