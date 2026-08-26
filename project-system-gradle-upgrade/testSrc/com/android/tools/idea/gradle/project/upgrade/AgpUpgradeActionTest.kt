@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.TrustedProjectsTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
@@ -65,11 +66,19 @@ class AgpUpgradeActionTest {
   @Test
   fun testAgpUpgradeActionDisabledForUntrustedProject() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
-    TrustedProjects.setProjectTrusted(project, false)
-    val action = AgpUpgradeAction()
-    val event = TestActionEvent.createTestEvent(action)
-    action.update(event)
-    assertThat(event.presentation.isEnabled).isFalse()
+    TrustedProjectsTestUtil.withTrustedProjectsCheckEnabled {
+      TrustedProjects.setProjectTrusted(project, false)
+      try {
+        val action = AgpUpgradeAction()
+        val event = TestActionEvent.createTestEvent(action)
+        action.update(event)
+        assertThat(event.presentation.isEnabled).isFalse()
+      }
+      finally {
+        // the trusted state is stored per path in an application level service, do not leave an explicit `false` behind
+        TrustedProjects.setProjectTrusted(project, true)
+      }
+    }
   }
 
   @Test
