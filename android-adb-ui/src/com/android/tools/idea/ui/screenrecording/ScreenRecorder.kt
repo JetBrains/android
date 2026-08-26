@@ -52,11 +52,7 @@ private const val SAVE_PATH_KEY = "ScreenRecorder.SavePath"
 /** Amount of time before reaching recording time limit when the recording is shown as stopping. */
 private const val ADVANCE_NOTICE_MILLIS = 100
 
-/**
- * Records the screen of a device.
- *
- * TODO(b/235094713): Add tests
- */
+/** Records the screen of a device. */
 internal class ScreenRecorder(private val project: Project, private val recordingProvider: RecordingProvider, deviceName: String) {
 
   private val settings = DeviceScreenRecordingSettings.getInstance()
