@@ -121,16 +121,16 @@ exports_files(
 
 ### auto-generated section `dev content intellij.android.gradle.declarative.lang.ide` start
 dev_dist_plugin_content(
-    content_modules = [
-        "//android/gradle-declarative-lang",
-        "//android/gradle-declarative-lang-flags",
-        "//android/gradle-declarative-lang-sync",
-    ],
     descriptor_module = ":gradle-declarative-lang-ide",
     libraries = [
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
     ],
+    prepacked_jars = {
+        "//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags_content_module_jar": "intellij.android.gradle.declarative.lang.flags.jar",
+        "//android/gradle-declarative-lang-sync:gradle-declarative-lang-sync_content_module_jar": "intellij.android.gradle.declarative.lang.sync.jar",
+        "//android/gradle-declarative-lang:gradle-declarative-lang_content_module_jar": "intellij.android.gradle.declarative.lang.jar",
+    },
 )
 ### auto-generated section `dev content intellij.android.gradle.declarative.lang.ide` end
 

@@ -1,5 +1,6 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//platform/build-scripts/bazel-rules:content_module_jar.bzl", "content_module_jar")
 
 ### auto-generated section `build intellij.android.gradle.declarative.lang` start
 jvm_library(
@@ -34,6 +35,8 @@ jvm_library(
         "//platform/util",
     ],
 )
+
+content_module_jar(module = ":gradle-declarative-lang")
 
 jvm_library(
     name = "gradle-declarative-lang_test_lib",
