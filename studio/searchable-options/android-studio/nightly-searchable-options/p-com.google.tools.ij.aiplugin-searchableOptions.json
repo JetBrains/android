@@ -117,6 +117,9 @@
       "hit": "Request delay:"
     },
     {
+      "hit": "Show reviewed diff chunks in navigation"
+    },
+    {
       "hit": "Smart Rename"
     }
   ]
