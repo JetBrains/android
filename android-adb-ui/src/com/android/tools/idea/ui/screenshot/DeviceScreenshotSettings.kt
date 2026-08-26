@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfiguration
-import com.android.tools.idea.ui.save.SaveConfigurationResolver
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -40,18 +38,6 @@ class DeviceScreenshotSettings : PersistentStateComponent<DeviceScreenshotSettin
 
   override fun getState(): DeviceScreenshotSettings = this
 
-  override fun noStateLoaded() {
-    // Migrate from ScreenshotConfiguration.
-    val screenshotConfig = service<ScreenshotConfiguration>()
-    saveConfig.saveLocation = screenshotConfig.saveLocation
-    saveConfig.filenameTemplate = screenshotConfig.filenameTemplate
-    saveConfig.postSaveAction = screenshotConfig.postSaveAction
-    scale = screenshotConfig.scale
-    frameScreenshot = screenshotConfig.frameScreenshot
-    screenshotCount = screenshotConfig.screenshotCount
-    screenshotConfig.loadState(ScreenshotConfiguration()) // Reset ScreenshotConfiguration to default.
-  }
-
   override fun loadState(state: DeviceScreenshotSettings) {
     XmlSerializerUtil.copyBean(state, this)
   }
@@ -62,46 +48,6 @@ class DeviceScreenshotSettings : PersistentStateComponent<DeviceScreenshotSettin
       return service<DeviceScreenshotSettings>()
     }
   }
-}
-
-// TODO: Remove after Narwhal.2 is released to stable.
-@Service
-@State(name = "ScreenshotConfiguration", storages = [Storage(NON_ROAMABLE_FILE)])
-internal class ScreenshotConfiguration : PersistentStateComponent<ScreenshotConfiguration> {
-
-  var frameScreenshot: Boolean = false
-  var saveLocation: String = SaveConfigurationResolver.DEFAULT_SAVE_LOCATION
-  var scale: Double = 1.0
-  var filenameTemplate: String = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>"
-  var screenshotCount: Int = 0
-  var postSaveAction: PostSaveAction = PostSaveAction.OPEN
-
-  override fun getState(): ScreenshotConfiguration {
-    return this
-  }
-
-  override fun loadState(state: ScreenshotConfiguration) {
-    XmlSerializerUtil.copyBean<ScreenshotConfiguration>(state, this)
-    filenameTemplate = convertFilenameTemplateFromOldFormat(filenameTemplate)
-  }
-}
-
-/** Converts the given filename template from the format that was used in Narwhal preview to the new format. */
-internal fun convertFilenameTemplateFromOldFormat(oldTemplate: String): String {
-  if (oldTemplate.contains('<') && oldTemplate.contains('>')) {
-    return oldTemplate // Already in the new format.
-  }
-  return oldTemplate
-    .replace("%Y", "<yyyy>")
-    .replace("%y", "<yy>")
-    .replace("%M", "<MM>")
-    .replace("%D", "<dd>")
-    .replace("%H", "<HH>")
-    .replace("%m", "<mm>")
-    .replace("%S", "<ss>")
-    .replace("%d", "<#>")
-    .replace(Regex("%(\\d+)d")) { match -> "<${"#".repeat(match.groupValues[1].toInt())}>" }
-    .replace("%p", "<project>")
 }
 
 fun getScreenshotScale() = DeviceScreenshotSettings.getInstance().scale

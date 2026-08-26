@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfiguration
-import com.android.tools.idea.ui.save.SaveConfigurationResolver
-import com.android.tools.idea.ui.screenshot.convertFilenameTemplateFromOldFormat
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -46,20 +43,6 @@ internal class DeviceScreenRecordingSettings : PersistentStateComponent<DeviceSc
 
   override fun getState(): DeviceScreenRecordingSettings = this
 
-  override fun noStateLoaded() {
-    // Migrate from ScreenshotConfiguration.
-    val screenRecordingOptions = service<ScreenRecorderPersistentOptions>()
-    saveConfig.saveLocation = screenRecordingOptions.saveLocation
-    saveConfig.filenameTemplate = screenRecordingOptions.filenameTemplate
-    saveConfig.postSaveAction = screenRecordingOptions.postSaveAction
-    scale = screenRecordingOptions.resolutionPercent / 100.0
-    bitRateMbps = screenRecordingOptions.bitRateMbps
-    showTaps = screenRecordingOptions.showTaps
-    useEmulatorRecordingWhenAvailable = screenRecordingOptions.useEmulatorRecording
-    recordingCount = screenRecordingOptions.recordingCount
-    screenRecordingOptions.loadState(ScreenRecorderPersistentOptions()) // Reset ScreenshotConfiguration to default.
-  }
-
   override fun loadState(state: DeviceScreenRecordingSettings) {
     XmlSerializerUtil.copyBean(state, this)
   }
@@ -83,28 +66,6 @@ internal class DeviceScreenRecordingSettings : PersistentStateComponent<DeviceSc
     fun getInstance(): DeviceScreenRecordingSettings {
       return service<DeviceScreenRecordingSettings>()
     }
-  }
-}
-
-// TODO: Remove after Narwhal.2 is released to stable.
-@Service
-@State(name = "ScreenRecorderOptions", storages = [Storage("screenRecorderOptions.xml")])
-internal class ScreenRecorderPersistentOptions : PersistentStateComponent<ScreenRecorderPersistentOptions> {
-
-  var bitRateMbps: Int = DEFAULT_BIT_RATE_MBPS
-  var resolutionPercent: Int = DEFAULT_RESOLUTION_PERCENT
-  var showTaps: Boolean = false
-  var useEmulatorRecording: Boolean = true
-  var saveLocation: String = SaveConfigurationResolver.DEFAULT_SAVE_LOCATION
-  var filenameTemplate: String = "Screen_recording_<yyyy><MM><dd>_<HH><mm><ss>"
-  var postSaveAction: PostSaveAction = PostSaveAction.OPEN
-  var recordingCount: Int = 0
-
-  override fun getState(): ScreenRecorderPersistentOptions = this
-
-  override fun loadState(state: ScreenRecorderPersistentOptions) {
-    XmlSerializerUtil.copyBean(state, this)
-    filenameTemplate = convertFilenameTemplateFromOldFormat(filenameTemplate)
   }
 }
 
