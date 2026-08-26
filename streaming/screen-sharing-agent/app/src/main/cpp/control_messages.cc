@@ -333,15 +333,23 @@ void DeviceStateNotification::Serialize(Base128OutputStream& stream) const {
 void DisplayAddedOrChangedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(display_id_);
-  stream.WriteInt32(logical_size_.width);
-  stream.WriteInt32(logical_size_.height);
+  stream.WriteInt32(display_size_.width);
+  stream.WriteInt32(display_size_.height);
   stream.WriteInt32(rotation_);
   stream.WriteInt32(type_);
+  stream.WriteInt32(environment_size_.width);
+  stream.WriteInt32(environment_size_.height);
 }
 
 string DisplayAddedOrChangedNotification::ToDebugString() const {
-  return StringPrintf("DisplayAddedOrChangedNotification(%d, %dx%d, %d, type=%d)",
-                      display_id_, logical_size_.width, logical_size_.height, rotation_, type_);
+  if (environment_size_.width == 0 && environment_size_.height == 0) {
+    return StringPrintf("DisplayAddedOrChangedNotification(%d, %dx%d, %d, type=%d)",
+                        display_id_, display_size_.width, display_size_.height, rotation_, type_);
+  } else {
+    return StringPrintf("DisplayAddedOrChangedNotification(%d, %dx%d, %d, type=%d, %dx%d)",
+                        display_id_, display_size_.width, display_size_.height, rotation_, type_,
+                        environment_size_.width, environment_size_.height);
+  }
 }
 
 void DisplayRemovedNotification::Serialize(Base128OutputStream& stream) const {
