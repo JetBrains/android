@@ -57,11 +57,11 @@ public:
     return *this;
   }
 
-  bool operator==(nullptr_t) {
+  bool operator==(nullptr_t) const {
     return pointer_ == nullptr;
   }
 
-  bool operator!=(nullptr_t) {
+  bool operator!=(nullptr_t) const {
     return pointer_ != nullptr;
   }
 
@@ -73,15 +73,13 @@ public:
     return pointer_ != nullptr;
   }
 
-  operator NdkType*() noexcept { return pointer_; }
-  operator const NdkType*() const noexcept { return pointer_; }
-  NdkType* operator ->() noexcept { return pointer_; }
-  const NdkType* operator->() const noexcept { return pointer_; }
+  operator NdkType*() const noexcept { return pointer_; }
+  NdkType* operator ->() const noexcept { return pointer_; }
 
   // Safe override because &pointer_ is the same address as &*this.
   NdkType** operator &() noexcept { return &pointer_; }  // NOLINT(google-runtime-operator)
   NdkType*& Get() noexcept { return pointer_; }
-  const NdkType* Get() const noexcept { return pointer_; }
+  NdkType* Get() const noexcept { return pointer_; }
 
   NdkPtr(NdkPtr const&) = delete;
   void operator=(NdkPtr const&) = delete;
