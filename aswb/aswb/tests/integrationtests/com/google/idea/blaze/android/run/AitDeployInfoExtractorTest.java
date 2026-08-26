@@ -172,6 +172,11 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
           .map(a -> Paths.get(CACHE_BASE, a.getBazelOutRelativePath()))
           .collect(toImmutableList());
     }
+
+    @Override
+    public ImmutableList<Path> getCachedArtifacts(Label target, RuntimeArtifactKind artifactKind) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   private static class AitBepBuilder {

@@ -34,6 +34,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -149,6 +150,24 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
       }
     }
     return new ProjectProto.ArtifactDirectoryContents(contents);
+  }
+
+  @Override
+  public ImmutableList<Path> getCachedArtifacts(Label target, RuntimeArtifactKind artifactKind) {
+    Path kindDir =
+        runfilesDirectory
+            .resolve(target.toFilePath())
+            .resolve(artifactKind.name())
+            .resolve(SEPARATOR_DIR_NAME);
+    if (!Files.isDirectory(kindDir)) {
+      return ImmutableList.of();
+    }
+    try (var stream = Files.walk(kindDir)) {
+      return stream.filter(Files::isRegularFile).collect(toImmutableList());
+    } catch (IOException e) {
+      logger.error("Failed to discover cached artifacts for " + target, e);
+      return ImmutableList.of();
+    }
   }
 
   /**

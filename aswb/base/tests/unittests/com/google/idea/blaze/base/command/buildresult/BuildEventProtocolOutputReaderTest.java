@@ -99,6 +99,11 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
         RuntimeArtifactKind artifactKind) {
       return artifacts.stream().map(OutputArtifact::getArtifactPath).collect(toImmutableList());
     }
+
+    @Override
+    public ImmutableList<Path> getCachedArtifacts(Label target, RuntimeArtifactKind artifactKind) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   @Override

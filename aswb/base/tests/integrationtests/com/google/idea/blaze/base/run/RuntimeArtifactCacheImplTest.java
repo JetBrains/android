@@ -56,7 +56,7 @@ public class RuntimeArtifactCacheImplTest {
 
   @Before
   public void initDirs() {
-    runfilesDirectory = tmpDir.getRoot().toPath().resolve("runfiles");
+    runfilesDirectory = tmpDir.getRoot().toPath().resolve(".runfiles");
   }
 
   @Test
@@ -126,11 +126,58 @@ public class RuntimeArtifactCacheImplTest {
                 RuntimeArtifactKind.JAR));
   }
 
+  @Test
+  public void getCachedArtifacts_returnsEmptyWhenUncached() throws Exception {
+    final var testArtifactFetcher =
+        new RuntimeArtifactCacheImplTest.TestArtifactFetcher(
+            RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.NO);
+    final var buildArtifactCache = createBuildArtifactCache(testArtifactFetcher);
+    RuntimeArtifactCache runtimeArtifactCache =
+        new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache);
+
+    assertThat(
+            runtimeArtifactCache.getCachedArtifacts(
+                Label.of("//non/existent:target"), RuntimeArtifactKind.SYMBOL_FILE))
+        .isEmpty();
+  }
+
+  @Test
+  public void getCachedArtifacts_returnsCachedArtifactPaths() throws Exception {
+    final var testArtifactFetcher =
+        new RuntimeArtifactCacheImplTest.TestArtifactFetcher(
+            RuntimeArtifactCacheImplTest.TestArtifactFetcher.ShouldFail.NO);
+    final var buildArtifactCache = createBuildArtifactCache(testArtifactFetcher);
+    RuntimeArtifactCache runtimeArtifactCache =
+        new RuntimeArtifactCacheImpl(runfilesDirectory, buildArtifactCache);
+    TestOutputArtifact artifact1 =
+        TestOutputArtifact.builder()
+            .setArtifactPath(Path.of("out/libnative1.so"))
+            .setDigest("abc")
+            .build();
+    TestOutputArtifact artifact2 =
+        TestOutputArtifact.builder()
+            .setArtifactPath(Path.of("out/libnative2.so"))
+            .setDigest("def")
+            .build();
+    Label target = Label.of("//some/label:target");
+    List<Path> fetchedPaths =
+        runtimeArtifactCache.fetchArtifacts(
+            target,
+            ImmutableList.of(artifact1, artifact2),
+            BlazeContext.create(),
+            RuntimeArtifactKind.SYMBOL_FILE);
+
+    ImmutableList<Path> cachedPaths =
+        runtimeArtifactCache.getCachedArtifacts(target, RuntimeArtifactKind.SYMBOL_FILE);
+
+    assertThat(cachedPaths).containsExactlyElementsIn(fetchedPaths);
+  }
+
   private BuildArtifactCacheDirectory createBuildArtifactCache(
       RuntimeArtifactCacheImplTest.TestArtifactFetcher artifactFetcher)
       throws BuildException, IOException {
     return new BuildArtifactCacheDirectory(
-        runfilesDirectory,
+        tmpDir.getRoot().toPath().resolve(".cache"),
         artifactFetcher,
         MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor()),
         new BuildArtifactCache.CleanRequest() {

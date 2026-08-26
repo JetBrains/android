@@ -39,4 +39,10 @@ public interface RuntimeArtifactCache {
       List<? extends OutputArtifact> artifacts,
       BlazeContext context,
       RuntimeArtifactKind artifactKind);
+
+  /**
+   * Discovers and returns all cached artifact paths for the given target and artifact kind. Returns
+   * an empty list if none are cached.
+   */
+  ImmutableList<Path> getCachedArtifacts(Label target, RuntimeArtifactKind artifactKind);
 }

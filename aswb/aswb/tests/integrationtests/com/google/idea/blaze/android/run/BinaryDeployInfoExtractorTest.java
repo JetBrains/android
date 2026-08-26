@@ -165,5 +165,10 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
           .map(a -> Paths.get(a.getBazelOutRelativePath()))
           .collect(toImmutableList());
     }
+
+    @Override
+    public ImmutableList<Path> getCachedArtifacts(Label target, RuntimeArtifactKind artifactKind) {
+      throw new UnsupportedOperationException();
+    }
   }
 }
