@@ -329,7 +329,7 @@ private fun InsightFooter(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween,
   ) {
-    Link(text = "Generate a fix", onClick = onGenerateFix, enabled = isFixEnabled)
+    Link(text = "Fix with AI", onClick = onGenerateFix, enabled = isFixEnabled)
 
     var isSettingsPopupVisible by remember { mutableStateOf(false) }
     Box {
