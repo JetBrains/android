@@ -17,16 +17,14 @@ package com.android.tools.idea.whatsnew.assistant.v2.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.repository.Revision
+import com.intellij.openapi.application.ApplicationInfo
+import java.io.InputStream
 import java.util.zip.ZipInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/**
- * @property assetId Arbitrary identifier used for fast equals/hashCode in recomposition.
- */
-data class WhatsNewAssets(
-  val assetId: String = "empty",
-) {
+/** @property assetId Arbitrary identifier used for fast equals/hashCode in recomposition. */
+data class WhatsNewAssets(val assetId: String = "empty") {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -48,12 +46,21 @@ interface WhatsNewDocumentLoader {
   suspend fun loadAssets(): WhatsNewAssets
 }
 
-class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
+class WhatsNewDocumentLoaderImpl(
+  private val currentVersionSupplier: () -> Revision = {
+    runCatching { Revision.safeParseRevision(ApplicationInfo.getInstance().strictVersion) }.getOrDefault(Revision.NOT_SPECIFIED)
+  },
+  private val zipStreamSupplier: () -> InputStream? = {
+    WhatsNewDocumentLoaderImpl::class.java.getResourceAsStream("/whats-new.zip")
+  },
+) : WhatsNewDocumentLoader {
+
   override suspend fun loadDocuments(): List<WhatsNewMarkdownDocument> {
+    val currentVersion = currentVersionSupplier()
     return withContext(Dispatchers.IO) {
       val documents = mutableListOf<Pair<Revision, String>>()
 
-      val zipStream = this@WhatsNewDocumentLoaderImpl.javaClass.getResourceAsStream("/whats-new.zip")
+      val zipStream = zipStreamSupplier()
 
       zipStream?.use { stream ->
         ZipInputStream(stream).use { zipStream ->
@@ -64,7 +71,7 @@ class WhatsNewDocumentLoaderImpl : WhatsNewDocumentLoader {
             if (fileName.endsWith(".md")) {
               val revisionStr = fileName.substringAfterLast('/').substringBeforeLast('.')
               val revision = runCatching { Revision.parseRevision(revisionStr) }.getOrNull()
-              if (revision != null) {
+              if (revision != null && (currentVersion == Revision.NOT_SPECIFIED || revision <= currentVersion)) {
                 val content = zipStream.readBytes().toString(Charsets.UTF_8)
                 documents.add(Pair(revision, content))
               }
