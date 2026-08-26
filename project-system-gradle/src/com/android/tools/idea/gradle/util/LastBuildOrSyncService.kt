@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.project.Project
@@ -67,5 +68,12 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
 }
 
 @TestOnly
-fun emulateStartupActivityForTest(project: Project) =
-  AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(LastBuildOrSyncStartupActivity::class.java)?.runActivity(project, project)
+fun emulateStartupActivityForTest(project: Project) {
+  val activity = AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(LastBuildOrSyncStartupActivity::class.java) ?: return
+  val application = ApplicationManager.getApplication()
+  if (application.isDispatchThread) {
+    activity.runActivity(project, project)
+  } else {
+    application.invokeAndWait { activity.runActivity(project, project) }
+  }
+}
