@@ -29,7 +29,6 @@ def debugger_test(
 
     runtime_deps = [
         test_dep,
-        "//tools/adt/idea/ij-debugger-tests/lib",
         "@tools_idea//:main_test_lib",
     ] + [it.replace("@community/", "@tools_idea/").replace("@lib/", "@tools_idea_lib/") for it in TEST_FRAMEWORK_DEPS]
 
@@ -44,12 +43,15 @@ def debugger_test(
     env = {
         "JB_TEST_SANDBOX": "true",
         "JB_TEST_JAR": test_jar,
-        "JB_TEST_EXCECUTION_RESULT_INTERCEPTOR": "com.google.android.tools.debugger.test.lib.ExpectedFailuresInterceptor",
     }
 
     if expected_results:
-        env = env | {"EXPECTED_RESULTS_FILE": "$(location " + expected_results + ")"}
+        env = env | {
+            "EXPECTED_RESULTS_FILE": "$(location " + expected_results + ")",
+            "JB_TEST_EXCECUTION_RESULT_INTERCEPTOR": "com.google.android.tools.debugger.test.lib.ExpectedFailuresInterceptor",
+        }
         data = data + [expected_results]
+        runtime_deps = runtime_deps + ["//tools/adt/idea/ij-debugger-tests/lib:expected-failures-interceptor"]
 
     if filter:
         env = env | {"JB_TEST_JUNIT5_FILTERS": filter}
@@ -65,6 +67,13 @@ def debugger_test(
             "//tools/adt/idea/.idea/libraries:r8",
             "//prebuilts/tools/linux-x86_64/art",
             "//prebuilts/tools/linux-x86_64/art:art_deps",
+        ]
+        jvm_flags = jvm_flags + [
+            "-Didea.platform.prefix=AndroidStudio",
+        ]
+        runtime_deps = runtime_deps + [
+            "//tools/adt/idea/ij-debugger-tests/lib:art-attacher",
+            "@tools_idea//adt-branding:android-adt-branding",
         ]
 
     java_test(
