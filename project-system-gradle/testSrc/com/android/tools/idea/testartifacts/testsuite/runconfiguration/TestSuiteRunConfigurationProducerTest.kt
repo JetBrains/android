@@ -54,40 +54,45 @@ class TestSuiteRunConfigurationProducerTest {
 
   val projectRule =
     AndroidProjectRule.withAndroidModels(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      AndroidModuleModelBuilder(
-        gradlePath = ":app",
-        selectedBuildVariant = "debug",
-        projectBuilder =
-          AndroidProjectBuilder(
-            projectType = { IdeAndroidProjectType.PROJECT_TYPE_APP },
-            namespace = { "com.example.app" },
-            mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
-            testSuites = {
-              listOf(
-                IdeTestSuiteImpl(
-                  name = "myTestSuite",
-                  sources = listOf(createAssetsTestSuiteSource(testSuitePath = moduleBasePath.resolve("src/myTestSuite"))),
-                  junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
-                  targetedVariants = listOf("debug"),
+        JavaModuleModelBuilder.rootModuleBuilder,
+        AndroidModuleModelBuilder(
+          gradlePath = ":app",
+          selectedBuildVariant = "debug",
+          projectBuilder =
+            AndroidProjectBuilder(
+              projectType = { IdeAndroidProjectType.PROJECT_TYPE_APP },
+              namespace = { "com.example.app" },
+              mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
+              testSuites = {
+                listOf(
+                  IdeTestSuiteImpl(
+                    name = "myTestSuite",
+                    sources = listOf(createAssetsTestSuiteSource(testSuitePath = moduleBasePath.resolve("src/myTestSuite"))),
+                    junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
+                    targetedVariants = listOf("debug"),
+                  )
                 )
-              )
-            },
-            testSuiteArtifactsStub = {
-              listOf(
-                IdeTestSuiteVariantTargetImpl(
-                  suiteName = "myTestSuite",
-                  targetedVariantName = "debug",
-                  targets =
-                    listOf(
-                      IdeTestSuiteTargetImpl(targetName = "connectedTest", testTaskName = "myTestSuiteTaskName", targetedDevices = listOf())
-                    ),
+              },
+              testSuiteArtifactsStub = {
+                listOf(
+                  IdeTestSuiteVariantTargetImpl(
+                    suiteName = "myTestSuite",
+                    targetedVariantName = "debug",
+                    targets =
+                      listOf(
+                        IdeTestSuiteTargetImpl(
+                          targetName = "connectedTest",
+                          testTaskName = "myTestSuiteTaskName",
+                          targetedDevices = listOf(),
+                        )
+                      ),
+                  )
                 )
-              )
-            },
-          ),
-      ),
-    ).onEdt()
+              },
+            ),
+        ),
+      )
+      .onEdt()
 
   @get:Rule val ruleChain = RuleChain(projectRule, FlagRule(StudioFlags.AGP_TEST_SUITES_ENABLED, true))
 
