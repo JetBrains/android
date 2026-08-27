@@ -27,7 +27,6 @@ debugger_test(
     name = "k2-tests-jvm",
     expected_results = "k2-expected-results-jvm.txt",
     shard_count = 50,
-    tags = ["manual"],
     test_dep = "@tools_idea//plugins/kotlin/jvm-debugger/test/k2:kotlin-jvm-debugger-test_test_lib",
 )
 
