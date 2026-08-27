@@ -18,6 +18,7 @@ package com.android.tools.idea.whatsnew.assistant.v2.model
 import com.android.annotations.concurrency.WorkerThread
 import com.android.repository.Revision
 import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.diagnostic.thisLogger
 import java.io.InputStream
 import java.util.zip.ZipInputStream
 import kotlinx.coroutines.Dispatchers
@@ -71,9 +72,16 @@ class WhatsNewDocumentLoaderImpl(
             if (fileName.endsWith(".md")) {
               val revisionStr = fileName.substringAfterLast('/').substringBeforeLast('.')
               val revision = runCatching { Revision.parseRevision(revisionStr) }.getOrNull()
-              if (revision != null && (currentVersion == Revision.NOT_SPECIFIED || revision <= currentVersion)) {
+              // Since canaries and RCs have versions like 2026.2.1rc3, the normal comparison treats 2026.2.1 as newer. But the WNA content
+              // should still be displayed up to the same micro, so we ignore preview here
+              if (
+                revision != null &&
+                  (currentVersion == Revision.NOT_SPECIFIED || revision.compareTo(currentVersion, Revision.PreviewComparison.IGNORE) <= 0)
+              ) {
                 val content = zipStream.readBytes().toString(Charsets.UTF_8)
                 documents.add(Pair(revision, content))
+              } else {
+                thisLogger().info("Skipping $fileName because revision: $revision; currentVersion: $currentVersion")
               }
             }
           }

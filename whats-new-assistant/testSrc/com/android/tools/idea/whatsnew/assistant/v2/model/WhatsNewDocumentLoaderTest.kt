@@ -64,6 +64,24 @@ class WhatsNewDocumentLoaderTest {
   }
 
   @Test
+  fun loadDocuments_showsForCurrentPreview(): Unit = runBlocking {
+    val currentVersion = Revision.parseRevision("2026.2.1 rc3")
+    val loader =
+      WhatsNewDocumentLoaderImpl(
+        currentVersionSupplier = { currentVersion },
+        zipStreamSupplier = { createFakeZip(fakeFiles) },
+      )
+
+    val documents = loader.loadDocuments()
+
+    assertEquals(4, documents.size)
+    assertEquals(Revision.parseRevision("2026.2.1"), documents[0].productVersion)
+    assertEquals(Revision.parseRevision("2026.1.2"), documents[1].productVersion)
+    assertEquals(Revision.parseRevision("2026.1.1"), documents[2].productVersion)
+    assertEquals(Revision.parseRevision("2025.3.1"), documents[3].productVersion)
+  }
+
+  @Test
   fun loadDocuments_includesAllRevisionsWhenCurrentVersionIsUnspecified(): Unit = runBlocking {
     val loader =
       WhatsNewDocumentLoaderImpl(
