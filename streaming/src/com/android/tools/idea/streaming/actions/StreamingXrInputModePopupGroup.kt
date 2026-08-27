@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -38,6 +39,8 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable
       presentation.isEnabledAndVisible = false
       return
     }
+
+    presentation.enableRichTooltip(this)
 
     // We only want to show as a group IF the floating toolbar is active (expanded). The reason for this is that
     // when collapsed, the first click will simply expand the floating toolbar first.
