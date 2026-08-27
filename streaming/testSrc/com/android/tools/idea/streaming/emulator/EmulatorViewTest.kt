@@ -967,7 +967,7 @@ class EmulatorViewTest {
   }
 
   @Test
-  fun testAiGlassesCameraRotation360() {
+  fun testAudioGlassesCameraRotation360() {
     val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
@@ -994,7 +994,7 @@ class EmulatorViewTest {
   }
 
   @Test
-  fun testAiGlassesCameraTranslation360Disabled() {
+  fun testAudioGlassesCameraTranslation360Disabled() {
     val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
@@ -1024,7 +1024,7 @@ class EmulatorViewTest {
   }
 
   @Test
-  fun testAiGlassesCameraRotationAndTranslation3d() {
+  fun testAudioGlassesCameraRotationAndTranslation3d() {
     val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
@@ -1054,7 +1054,7 @@ class EmulatorViewTest {
   }
 
   @Test
-  fun testAiGlassesCameraTranslation3dEnabled() {
+  fun testAudioGlassesCameraTranslation3dEnabled() {
     val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
