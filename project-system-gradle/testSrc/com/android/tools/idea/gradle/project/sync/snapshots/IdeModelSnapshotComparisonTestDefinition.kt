@@ -89,7 +89,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
           TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND,
           skipV1toV2Comparison = true,
         ),
-        IdeModelSnapshotComparisonTestDefinition(TestProject.LINKED),
+        IdeModelSnapshotComparisonTestDefinition(
+          TestProject.LINKED,
+          v1toV2PropertiesToSkip = setOf("RuntimeOnlyClasses", "RuntimeOnlyClasses/class"),
+        ),
         IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_KAPT),
         IdeModelSnapshotComparisonTestDefinition(TestProject.LINT_CUSTOM_CHECKS),
         IdeModelSnapshotComparisonTestDefinition(TestProject.TEST_FIXTURES, skipV1toV2Comparison = true),

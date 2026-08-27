@@ -1,17 +1,9 @@
 apply plugin: 'java-library'
-apply plugin: "kotlin"
 
 dependencies {
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testImplementation "junit:junit:4.12"
     testImplementation 'org.mockito:mockito-core:5.12.0'
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_11
 java.targetCompatibility = JavaVersion.VERSION_11
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
-    }
-}

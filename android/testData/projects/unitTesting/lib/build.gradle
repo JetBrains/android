@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 
 android {
+    namespace = "com.example.lib"
     compileSdkVersion 30
     defaultConfig {
         minSdkVersion 15
@@ -10,16 +10,11 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
-    }
 }
 
 dependencies {
     implementation project(":util-lib")
     implementation project(":javalib")
-
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:5.12.0'
