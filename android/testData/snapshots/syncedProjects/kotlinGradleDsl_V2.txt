@@ -121,7 +121,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -277,7 +277,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -341,8 +341,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.lib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -403,7 +403,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -611,7 +611,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
@@ -701,7 +701,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
@@ -732,8 +732,8 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/lib/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
@@ -792,7 +792,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]

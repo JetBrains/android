@@ -17,8 +17,8 @@ MODULE: kotlinMultiPlatform.app
             JavaDirectories:
                 file://./app/src/main/java
             KotlinDirectoryUrls:
-                file://./app/src/main/kotlin
                 file://./app/src/main/java
+                file://./app/src/main/kotlin
             KotlinDirectories:
                 file://./app/src/main/java
             JniLibsDirectoryUrls:
@@ -36,8 +36,8 @@ MODULE: kotlinMultiPlatform.app
             JavaDirectories:
                 ./app/src/main/java
             KotlinDirectories:
-                ./app/src/main/kotlin
                 ./app/src/main/java
+                ./app/src/main/kotlin
             JniLibsDirectories:
                 ./app/src/main/jniLibs
             ResDirectories:
@@ -57,8 +57,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     ./app/src/main/java
                 KotlinDirectories:
-                    ./app/src/main/kotlin
                     ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 ResDirectories:
@@ -77,8 +77,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     ./app/src/debug/java
                 KotlinDirectories:
-                    ./app/src/debug/kotlin
                     ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 ResDirectories:
@@ -98,8 +98,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     ./app/src/main/java
                 KotlinDirectories:
-                    ./app/src/main/kotlin
                     ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 ResDirectories:
@@ -118,8 +118,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     ./app/src/debug/java
                 KotlinDirectories:
-                    ./app/src/debug/kotlin
                     ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 ResDirectories:
@@ -138,8 +138,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     ./app/src/release/java
                 KotlinDirectories:
-                    ./app/src/release/kotlin
                     ./app/src/release/java
+                    ./app/src/release/kotlin
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
                 ResDirectories:
@@ -160,8 +160,8 @@ MODULE: kotlinMultiPlatform.app
                     JavaDirectories:
                         ./app/src/test/java
                     KotlinDirectories:
-                        ./app/src/test/kotlin
                         ./app/src/test/java
+                        ./app/src/test/kotlin
                     JniLibsDirectories:
                         ./app/src/test/jniLibs
                     ResDirectories:
@@ -180,8 +180,8 @@ MODULE: kotlinMultiPlatform.app
                     JavaDirectories:
                         ./app/src/testDebug/java
                     KotlinDirectories:
-                        ./app/src/testDebug/kotlin
                         ./app/src/testDebug/java
+                        ./app/src/testDebug/kotlin
                     JniLibsDirectories:
                         ./app/src/testDebug/jniLibs
                     ResDirectories:
@@ -202,8 +202,8 @@ MODULE: kotlinMultiPlatform.app
                     JavaDirectories:
                         ./app/src/androidTest/java
                     KotlinDirectories:
-                        ./app/src/androidTest/kotlin
                         ./app/src/androidTest/java
+                        ./app/src/androidTest/kotlin
                     JniLibsDirectories:
                         ./app/src/androidTest/jniLibs
                     ResDirectories:
@@ -222,8 +222,8 @@ MODULE: kotlinMultiPlatform.app
                     JavaDirectories:
                         ./app/src/androidTestDebug/java
                     KotlinDirectories:
-                        ./app/src/androidTestDebug/kotlin
                         ./app/src/androidTestDebug/java
+                        ./app/src/androidTestDebug/kotlin
                     JniLibsDirectories:
                         ./app/src/androidTestDebug/jniLibs
                     ResDirectories:
@@ -260,10 +260,10 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./app/src/main/kotlin
                     file://./app/src/main/java
-                    file://./app/src/debug/kotlin
+                    file://./app/src/main/kotlin
                     file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -295,10 +295,10 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/test/java
                 KotlinDirectoryUrls:
-                    file://./app/src/test/kotlin
                     file://./app/src/test/java
-                    file://./app/src/testDebug/kotlin
+                    file://./app/src/test/kotlin
                     file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
                 KotlinDirectories:
                     file://./app/src/test/java
                 JniLibsDirectoryUrls:
@@ -330,10 +330,10 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTest/kotlin
                     file://./app/src/androidTest/java
-                    file://./app/src/androidTestDebug/kotlin
+                    file://./app/src/androidTest/kotlin
                     file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
                 KotlinDirectories:
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -385,8 +385,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./app/src/main/kotlin
                     file://./app/src/main/java
+                    file://./app/src/main/kotlin
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -410,8 +410,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTest/kotlin
                     file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
                 KotlinDirectories:
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -431,8 +431,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTestDebug/kotlin
                     file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
                 ResDirectoryUrls:
@@ -450,8 +450,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/debug/kotlin
                     file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -469,8 +469,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/release/java
                 KotlinDirectoryUrls:
-                    file://./app/src/release/kotlin
                     file://./app/src/release/java
+                    file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
                 ResDirectoryUrls:
@@ -492,8 +492,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/test/java
                 KotlinDirectoryUrls:
-                    file://./app/src/test/kotlin
                     file://./app/src/test/java
+                    file://./app/src/test/kotlin
                 KotlinDirectories:
                     file://./app/src/test/java
                 JniLibsDirectoryUrls:
@@ -513,8 +513,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/testDebug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/testDebug/kotlin
                     file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
                 ResDirectoryUrls:
@@ -539,8 +539,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./app/src/main/kotlin
                     file://./app/src/main/java
+                    file://./app/src/main/kotlin
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -560,8 +560,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/debug/kotlin
                     file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -579,8 +579,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/release/java
                 KotlinDirectoryUrls:
-                    file://./app/src/release/kotlin
                     file://./app/src/release/java
+                    file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
                 ResDirectoryUrls:
@@ -605,8 +605,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./app/src/main/kotlin
                     file://./app/src/main/java
+                    file://./app/src/main/kotlin
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -626,8 +626,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/debug/kotlin
                     file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 ResDirectoryUrls:
@@ -650,8 +650,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/test/java
                 KotlinDirectoryUrls:
-                    file://./app/src/test/kotlin
                     file://./app/src/test/java
+                    file://./app/src/test/kotlin
                 KotlinDirectories:
                     file://./app/src/test/java
                 JniLibsDirectoryUrls:
@@ -671,8 +671,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/testDebug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/testDebug/kotlin
                     file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
                 ResDirectoryUrls:
@@ -695,8 +695,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectories:
                     file://./app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTest/kotlin
                     file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
                 KotlinDirectories:
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -716,8 +716,8 @@ MODULE: kotlinMultiPlatform.app
                 JavaDirectoryUrls:
                     file://./app/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTestDebug/kotlin
                     file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
                 ResDirectoryUrls:
@@ -728,7 +728,7 @@ MODULE: kotlinMultiPlatform.app
         CurrentTestFixturesSourceProviders:
 MODULE: kotlinMultiPlatform.module2
     by Facet:
-        main (IDEA)
+        androidMain (IDEA)
             ScopeType: MAIN
             ManifestFileUrls:
                 file://./module2/src/androidMain/AndroidManifest.xml
@@ -739,323 +739,83 @@ MODULE: kotlinMultiPlatform.module2
             ManifestDirectories:
                 file://./module2/src/androidMain
             AssetsDirectoryUrls:
-                file://./module2/src/main/assets
                 file://./module2/src/androidMain/assets
-            JavaDirectoryUrls:
-                file://./module2/src/main/java
             KotlinDirectoryUrls:
                 file://./module2/src/androidMain/kotlin
-                file://./module2/src/main/java
-                file://./module2/src/main/kotlin
             KotlinDirectories:
                 file://./module2/src/androidMain/kotlin
-            JniLibsDirectoryUrls:
-                file://./module2/src/main/jniLibs
-                file://./module2/src/androidMain/jniLibs
             ResDirectoryUrls:
-                file://./module2/src/main/res
                 file://./module2/src/androidMain/res
             ResourcesDirectoryUrls:
-                file://./module2/src/main/resources
                 file://./module2/src/androidMain/resources
     by AndroidModel:
-        main
+        androidMain
             Manifest:
                 ./module2/src/androidMain/AndroidManifest.xml
             AssetsDirectories:
-                ./module2/src/main/assets
                 ./module2/src/androidMain/assets
-            JavaDirectories:
-                ./module2/src/main/java
             KotlinDirectories:
                 ./module2/src/androidMain/kotlin
-                ./module2/src/main/java
-                ./module2/src/main/kotlin
-            JniLibsDirectories:
-                ./module2/src/main/jniLibs
-                ./module2/src/androidMain/jniLibs
             ResDirectories:
-                ./module2/src/main/res
                 ./module2/src/androidMain/res
             ResourcesDirectories:
-                ./module2/src/main/resources
                 ./module2/src/androidMain/resources
-            BaselineProfileDirectories:
-                ./module2/src/main/baselineProfiles
-            KeepRulesDirectories:
-                ./module2/src/main/keepRules
-            AarKeepRulesDirectories:
-                ./module2/src/main/aarKeepRules
         Active:
-            main
+            androidMain
                 Manifest:
                     ./module2/src/androidMain/AndroidManifest.xml
                 AssetsDirectories:
-                    ./module2/src/main/assets
                     ./module2/src/androidMain/assets
-                JavaDirectories:
-                    ./module2/src/main/java
                 KotlinDirectories:
                     ./module2/src/androidMain/kotlin
-                    ./module2/src/main/java
-                    ./module2/src/main/kotlin
-                JniLibsDirectories:
-                    ./module2/src/main/jniLibs
-                    ./module2/src/androidMain/jniLibs
                 ResDirectories:
-                    ./module2/src/main/res
                     ./module2/src/androidMain/res
                 ResourcesDirectories:
-                    ./module2/src/main/resources
                     ./module2/src/androidMain/resources
-                BaselineProfileDirectories:
-                    ./module2/src/main/baselineProfiles
-                KeepRulesDirectories:
-                    ./module2/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./module2/src/main/aarKeepRules
-            debug
-                Manifest:
-                    ./module2/src/androidDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./module2/src/debug/assets
-                    ./module2/src/androidDebug/assets
-                JavaDirectories:
-                    ./module2/src/debug/java
-                KotlinDirectories:
-                    ./module2/src/androidDebug/kotlin
-                    ./module2/src/debug/java
-                    ./module2/src/debug/kotlin
-                JniLibsDirectories:
-                    ./module2/src/debug/jniLibs
-                    ./module2/src/androidDebug/jniLibs
-                ResDirectories:
-                    ./module2/src/debug/res
-                    ./module2/src/androidDebug/res
-                ResourcesDirectories:
-                    ./module2/src/debug/resources
-                    ./module2/src/androidDebug/resources
-                BaselineProfileDirectories:
-                    ./module2/src/debug/baselineProfiles
-                KeepRulesDirectories:
-                    ./module2/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./module2/src/debug/aarKeepRules
-            debug_KotlinMPP
-                Manifest:
-                    ./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
-                JavaDirectories:
-                    ./module2/src/commonMain/kotlin
-                ResourcesDirectories:
-                    ./module2/src/commonMain/resources
         All:
-            main
+            androidMain
                 Manifest:
                     ./module2/src/androidMain/AndroidManifest.xml
                 AssetsDirectories:
-                    ./module2/src/main/assets
                     ./module2/src/androidMain/assets
-                JavaDirectories:
-                    ./module2/src/main/java
                 KotlinDirectories:
                     ./module2/src/androidMain/kotlin
-                    ./module2/src/main/java
-                    ./module2/src/main/kotlin
-                JniLibsDirectories:
-                    ./module2/src/main/jniLibs
-                    ./module2/src/androidMain/jniLibs
                 ResDirectories:
-                    ./module2/src/main/res
                     ./module2/src/androidMain/res
                 ResourcesDirectories:
-                    ./module2/src/main/resources
                     ./module2/src/androidMain/resources
-                BaselineProfileDirectories:
-                    ./module2/src/main/baselineProfiles
-                KeepRulesDirectories:
-                    ./module2/src/main/keepRules
-                AarKeepRulesDirectories:
-                    ./module2/src/main/aarKeepRules
-            debug
-                Manifest:
-                    ./module2/src/androidDebug/AndroidManifest.xml
-                AssetsDirectories:
-                    ./module2/src/debug/assets
-                    ./module2/src/androidDebug/assets
-                JavaDirectories:
-                    ./module2/src/debug/java
-                KotlinDirectories:
-                    ./module2/src/androidDebug/kotlin
-                    ./module2/src/debug/java
-                    ./module2/src/debug/kotlin
-                JniLibsDirectories:
-                    ./module2/src/debug/jniLibs
-                    ./module2/src/androidDebug/jniLibs
-                ResDirectories:
-                    ./module2/src/debug/res
-                    ./module2/src/androidDebug/res
-                ResourcesDirectories:
-                    ./module2/src/debug/resources
-                    ./module2/src/androidDebug/resources
-                BaselineProfileDirectories:
-                    ./module2/src/debug/baselineProfiles
-                KeepRulesDirectories:
-                    ./module2/src/debug/keepRules
-                AarKeepRulesDirectories:
-                    ./module2/src/debug/aarKeepRules
-            debug_KotlinMPP
-                Manifest:
-                    ./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
-                JavaDirectories:
-                    ./module2/src/commonMain/kotlin
-                ResourcesDirectories:
-                    ./module2/src/commonMain/resources
-            release
-                Manifest:
-                    ./module2/src/androidRelease/AndroidManifest.xml
-                AssetsDirectories:
-                    ./module2/src/release/assets
-                    ./module2/src/androidRelease/assets
-                JavaDirectories:
-                    ./module2/src/release/java
-                KotlinDirectories:
-                    ./module2/src/androidRelease/kotlin
-                    ./module2/src/release/java
-                    ./module2/src/release/kotlin
-                JniLibsDirectories:
-                    ./module2/src/release/jniLibs
-                    ./module2/src/androidRelease/jniLibs
-                ResDirectories:
-                    ./module2/src/release/res
-                    ./module2/src/androidRelease/res
-                ResourcesDirectories:
-                    ./module2/src/release/resources
-                    ./module2/src/androidRelease/resources
-                BaselineProfileDirectories:
-                    ./module2/src/release/baselineProfiles
-                KeepRulesDirectories:
-                    ./module2/src/release/keepRules
-                AarKeepRulesDirectories:
-                    ./module2/src/release/aarKeepRules
         HostTest:
             UnitTest
-                test
+                androidHostTest
                     Manifest:
-                        ./module2/src/androidUnitTest/AndroidManifest.xml
+                        ./module2/src/androidHostTest/AndroidManifest.xml
                     AssetsDirectories:
-                        ./module2/src/test/assets
-                        ./module2/src/androidUnitTest/assets
-                    JavaDirectories:
-                        ./module2/src/test/java
+                        ./module2/src/androidHostTest/assets
+                        ./module2/src/androidTest/assets
                     KotlinDirectories:
-                        ./module2/src/androidUnitTest/kotlin
-                        ./module2/src/test/java
-                        ./module2/src/test/kotlin
-                    JniLibsDirectories:
-                        ./module2/src/test/jniLibs
-                        ./module2/src/androidUnitTest/jniLibs
+                        ./module2/src/androidHostTest/kotlin
+                        ./module2/src/androidTest/kotlin
                     ResDirectories:
-                        ./module2/src/test/res
-                        ./module2/src/androidUnitTest/res
+                        ./module2/src/androidHostTest/res
+                        ./module2/src/androidTest/res
                     ResourcesDirectories:
-                        ./module2/src/test/resources
-                        ./module2/src/androidUnitTest/resources
-                    BaselineProfileDirectories:
-                        ./module2/src/test/baselineProfiles
-                    KeepRulesDirectories:
-                        ./module2/src/test/keepRules
-                    AarKeepRulesDirectories:
-                        ./module2/src/test/aarKeepRules
-                testDebug
-                    Manifest:
-                        ./module2/src/androidUnitTestDebug/AndroidManifest.xml
-                    AssetsDirectories:
-                        ./module2/src/testDebug/assets
-                        ./module2/src/androidUnitTestDebug/assets
-                    JavaDirectories:
-                        ./module2/src/testDebug/java
-                    KotlinDirectories:
-                        ./module2/src/androidUnitTestDebug/kotlin
-                        ./module2/src/testDebug/java
-                        ./module2/src/testDebug/kotlin
-                    JniLibsDirectories:
-                        ./module2/src/testDebug/jniLibs
-                        ./module2/src/androidUnitTestDebug/jniLibs
-                    ResDirectories:
-                        ./module2/src/testDebug/res
-                        ./module2/src/androidUnitTestDebug/res
-                    ResourcesDirectories:
-                        ./module2/src/testDebug/resources
-                        ./module2/src/androidUnitTestDebug/resources
-                    BaselineProfileDirectories:
-                        ./module2/src/testDebug/baselineProfiles
-                    KeepRulesDirectories:
-                        ./module2/src/testDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./module2/src/testDebug/aarKeepRules
-                debug_KotlinMPP
-                    Manifest:
-                        ./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
-                    JavaDirectories:
-                        ./module2/src/commonTest/kotlin
-                    ResourcesDirectories:
-                        ./module2/src/commonTest/resources
+                        ./module2/src/androidHostTest/resources
         DeviceTest:
             AndroidTest
-                androidTest
+                androidDeviceTest
                     Manifest:
-                        ./module2/src/androidInstrumentedTest/AndroidManifest.xml
+                        ./module2/src/androidDeviceTest/AndroidManifest.xml
                     AssetsDirectories:
-                        ./module2/src/androidTest/assets
-                        ./module2/src/androidInstrumentedTest/assets
-                    JavaDirectories:
-                        ./module2/src/androidTest/java
+                        ./module2/src/androidDeviceTest/assets
+                        ./module2/src/androidAndroidTest/assets
                     KotlinDirectories:
-                        ./module2/src/androidInstrumentedTest/kotlin
-                        ./module2/src/androidTest/java
-                        ./module2/src/androidTest/kotlin
-                    JniLibsDirectories:
-                        ./module2/src/androidTest/jniLibs
-                        ./module2/src/androidInstrumentedTest/jniLibs
+                        ./module2/src/androidDeviceTest/kotlin
+                        ./module2/src/androidAndroidTest/kotlin
                     ResDirectories:
-                        ./module2/src/androidTest/res
-                        ./module2/src/androidInstrumentedTest/res
+                        ./module2/src/androidDeviceTest/res
+                        ./module2/src/androidAndroidTest/res
                     ResourcesDirectories:
-                        ./module2/src/androidTest/resources
-                        ./module2/src/androidInstrumentedTest/resources
-                    BaselineProfileDirectories:
-                        ./module2/src/androidTest/baselineProfiles
-                    KeepRulesDirectories:
-                        ./module2/src/androidTest/keepRules
-                    AarKeepRulesDirectories:
-                        ./module2/src/androidTest/aarKeepRules
-                androidTestDebug
-                    Manifest:
-                        ./module2/src/androidInstrumentedTestDebug/AndroidManifest.xml
-                    AssetsDirectories:
-                        ./module2/src/androidTestDebug/assets
-                        ./module2/src/androidInstrumentedTestDebug/assets
-                    JavaDirectories:
-                        ./module2/src/androidTestDebug/java
-                    KotlinDirectories:
-                        ./module2/src/androidInstrumentedTestDebug/kotlin
-                        ./module2/src/androidTestDebug/java
-                        ./module2/src/androidTestDebug/kotlin
-                    JniLibsDirectories:
-                        ./module2/src/androidTestDebug/jniLibs
-                        ./module2/src/androidInstrumentedTestDebug/jniLibs
-                    ResDirectories:
-                        ./module2/src/androidTestDebug/res
-                        ./module2/src/androidInstrumentedTestDebug/res
-                    ResourcesDirectories:
-                        ./module2/src/androidTestDebug/resources
-                        ./module2/src/androidInstrumentedTestDebug/resources
-                    BaselineProfileDirectories:
-                        ./module2/src/androidTestDebug/baselineProfiles
-                    KeepRulesDirectories:
-                        ./module2/src/androidTestDebug/keepRules
-                    AarKeepRulesDirectories:
-                        ./module2/src/androidTestDebug/aarKeepRules
+                        ./module2/src/androidDeviceTest/resources
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -1065,134 +825,62 @@ MODULE: kotlinMultiPlatform.module2
                 ScopeType: MAIN
                 ManifestFileUrls:
                     file://./module2/src/androidMain/AndroidManifest.xml
-                    file://./module2/src/androidDebug/AndroidManifest.xml
-                    file://./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
                 ManifestFiles:
                     file://./module2/src/androidMain/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/androidMain
-                    file://./module2/src/androidDebug
-                    file://./module2/src/androidMain/__KotlinMPP__
                 ManifestDirectories:
                     file://./module2/src/androidMain
                 AssetsDirectoryUrls:
-                    file://./module2/src/main/assets
                     file://./module2/src/androidMain/assets
-                    file://./module2/src/debug/assets
-                    file://./module2/src/androidDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/main/java
-                    file://./module2/src/debug/java
-                    file://./module2/src/commonMain/kotlin
                 KotlinDirectoryUrls:
                     file://./module2/src/androidMain/kotlin
-                    file://./module2/src/main/java
-                    file://./module2/src/main/kotlin
-                    file://./module2/src/androidDebug/kotlin
-                    file://./module2/src/debug/java
-                    file://./module2/src/debug/kotlin
                 KotlinDirectories:
                     file://./module2/src/androidMain/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/main/jniLibs
-                    file://./module2/src/androidMain/jniLibs
-                    file://./module2/src/debug/jniLibs
-                    file://./module2/src/androidDebug/jniLibs
                 ResDirectoryUrls:
-                    file://./module2/src/main/res
                     file://./module2/src/androidMain/res
-                    file://./module2/src/debug/res
-                    file://./module2/src/androidDebug/res
                 ResourcesDirectoryUrls:
-                    file://./module2/src/main/resources
                     file://./module2/src/androidMain/resources
-                    file://./module2/src/debug/resources
-                    file://./module2/src/androidDebug/resources
-                    file://./module2/src/commonMain/resources
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
-                    file://./module2/src/androidUnitTest/AndroidManifest.xml
-                    file://./module2/src/androidUnitTestDebug/AndroidManifest.xml
-                    file://./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
+                    file://./module2/src/androidHostTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./module2/src/androidUnitTest
-                    file://./module2/src/androidUnitTestDebug
-                    file://./module2/src/androidUnitTest/__KotlinMPP__
+                    file://./module2/src/androidHostTest
                 AssetsDirectoryUrls:
-                    file://./module2/src/test/assets
-                    file://./module2/src/androidUnitTest/assets
-                    file://./module2/src/testDebug/assets
-                    file://./module2/src/androidUnitTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/test/java
-                    file://./module2/src/testDebug/java
-                    file://./module2/src/commonTest/kotlin
+                    file://./module2/src/androidHostTest/assets
+                    file://./module2/src/androidTest/assets
                 KotlinDirectoryUrls:
-                    file://./module2/src/androidUnitTest/kotlin
-                    file://./module2/src/test/java
-                    file://./module2/src/test/kotlin
-                    file://./module2/src/androidUnitTestDebug/kotlin
-                    file://./module2/src/testDebug/java
-                    file://./module2/src/testDebug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/test/jniLibs
-                    file://./module2/src/androidUnitTest/jniLibs
-                    file://./module2/src/testDebug/jniLibs
-                    file://./module2/src/androidUnitTestDebug/jniLibs
+                    file://./module2/src/androidHostTest/kotlin
+                    file://./module2/src/androidTest/kotlin
+                KotlinDirectories:
+                    file://./module2/src/androidTest/kotlin
                 ResDirectoryUrls:
-                    file://./module2/src/test/res
-                    file://./module2/src/androidUnitTest/res
-                    file://./module2/src/testDebug/res
-                    file://./module2/src/androidUnitTestDebug/res
+                    file://./module2/src/androidHostTest/res
+                    file://./module2/src/androidTest/res
                 ResourcesDirectoryUrls:
-                    file://./module2/src/test/resources
-                    file://./module2/src/androidUnitTest/resources
-                    file://./module2/src/testDebug/resources
-                    file://./module2/src/androidUnitTestDebug/resources
-                    file://./module2/src/commonTest/resources
+                    file://./module2/src/androidHostTest/resources
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
-                    file://./module2/src/androidInstrumentedTest/AndroidManifest.xml
-                    file://./module2/src/androidInstrumentedTestDebug/AndroidManifest.xml
+                    file://./module2/src/androidDeviceTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTest
-                    file://./module2/src/androidInstrumentedTestDebug
+                    file://./module2/src/androidDeviceTest
                 AssetsDirectoryUrls:
-                    file://./module2/src/androidTest/assets
-                    file://./module2/src/androidInstrumentedTest/assets
-                    file://./module2/src/androidTestDebug/assets
-                    file://./module2/src/androidInstrumentedTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/androidTest/java
-                    file://./module2/src/androidTestDebug/java
+                    file://./module2/src/androidDeviceTest/assets
+                    file://./module2/src/androidAndroidTest/assets
                 KotlinDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTest/kotlin
-                    file://./module2/src/androidTest/java
-                    file://./module2/src/androidTest/kotlin
-                    file://./module2/src/androidInstrumentedTestDebug/kotlin
-                    file://./module2/src/androidTestDebug/java
-                    file://./module2/src/androidTestDebug/kotlin
+                    file://./module2/src/androidDeviceTest/kotlin
+                    file://./module2/src/androidAndroidTest/kotlin
                 KotlinDirectories:
-                    file://./module2/src/androidTest/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/androidTest/jniLibs
-                    file://./module2/src/androidInstrumentedTest/jniLibs
-                    file://./module2/src/androidTestDebug/jniLibs
-                    file://./module2/src/androidInstrumentedTestDebug/jniLibs
+                    file://./module2/src/androidAndroidTest/kotlin
                 ResDirectoryUrls:
-                    file://./module2/src/androidTest/res
-                    file://./module2/src/androidInstrumentedTest/res
-                    file://./module2/src/androidTestDebug/res
-                    file://./module2/src/androidInstrumentedTestDebug/res
+                    file://./module2/src/androidDeviceTest/res
+                    file://./module2/src/androidAndroidTest/res
                 ResourcesDirectoryUrls:
-                    file://./module2/src/androidTest/resources
-                    file://./module2/src/androidInstrumentedTest/resources
-                    file://./module2/src/androidTestDebug/resources
-                    file://./module2/src/androidInstrumentedTestDebug/resources
+                    file://./module2/src/androidDeviceTest/resources
         TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
@@ -1200,25 +888,55 @@ MODULE: kotlinMultiPlatform.module2
         GeneratedSources:
             GeneratedSources (IDEA)
                 ScopeType: MAIN
-                AssetsDirectoryUrls:
-                    file://./module2/build/generated/assets/debugAssetsCopyForAGP
-                JavaDirectoryUrls:
-                    file://./module2/build/generated/ap_generated_sources/debug/out
         GeneratedHostTestSources:
             GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
-                JavaDirectoryUrls:
-                    file://./module2/build/generated/ap_generated_sources/debugUnitTest/out
         GeneratedDeviceTestSources:
             GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
-                JavaDirectoryUrls:
-                    file://./module2/build/generated/ap_generated_sources/debugAndroidTest/out
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
         AllVariantAllArtifactsSources:
-            main (IDEA)
+            androidDeviceTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./module2/src/androidDeviceTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./module2/src/androidDeviceTest
+                AssetsDirectoryUrls:
+                    file://./module2/src/androidDeviceTest/assets
+                    file://./module2/src/androidAndroidTest/assets
+                KotlinDirectoryUrls:
+                    file://./module2/src/androidDeviceTest/kotlin
+                    file://./module2/src/androidAndroidTest/kotlin
+                KotlinDirectories:
+                    file://./module2/src/androidAndroidTest/kotlin
+                ResDirectoryUrls:
+                    file://./module2/src/androidDeviceTest/res
+                    file://./module2/src/androidAndroidTest/res
+                ResourcesDirectoryUrls:
+                    file://./module2/src/androidDeviceTest/resources
+            androidHostTest (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./module2/src/androidHostTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./module2/src/androidHostTest
+                AssetsDirectoryUrls:
+                    file://./module2/src/androidHostTest/assets
+                    file://./module2/src/androidTest/assets
+                KotlinDirectoryUrls:
+                    file://./module2/src/androidHostTest/kotlin
+                    file://./module2/src/androidTest/kotlin
+                KotlinDirectories:
+                    file://./module2/src/androidTest/kotlin
+                ResDirectoryUrls:
+                    file://./module2/src/androidHostTest/res
+                    file://./module2/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./module2/src/androidHostTest/resources
+            androidMain (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
                     file://./module2/src/androidMain/AndroidManifest.xml
@@ -1229,193 +947,17 @@ MODULE: kotlinMultiPlatform.module2
                 ManifestDirectories:
                     file://./module2/src/androidMain
                 AssetsDirectoryUrls:
-                    file://./module2/src/main/assets
                     file://./module2/src/androidMain/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/main/java
                 KotlinDirectoryUrls:
                     file://./module2/src/androidMain/kotlin
-                    file://./module2/src/main/java
-                    file://./module2/src/main/kotlin
                 KotlinDirectories:
                     file://./module2/src/androidMain/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/main/jniLibs
-                    file://./module2/src/androidMain/jniLibs
                 ResDirectoryUrls:
-                    file://./module2/src/main/res
                     file://./module2/src/androidMain/res
                 ResourcesDirectoryUrls:
-                    file://./module2/src/main/resources
                     file://./module2/src/androidMain/resources
-            androidTest (IDEA)
-                ScopeType: ANDROID_TEST
-                ManifestFileUrls:
-                    file://./module2/src/androidInstrumentedTest/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTest
-                AssetsDirectoryUrls:
-                    file://./module2/src/androidTest/assets
-                    file://./module2/src/androidInstrumentedTest/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/androidTest/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTest/kotlin
-                    file://./module2/src/androidTest/java
-                    file://./module2/src/androidTest/kotlin
-                KotlinDirectories:
-                    file://./module2/src/androidTest/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/androidTest/jniLibs
-                    file://./module2/src/androidInstrumentedTest/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/androidTest/res
-                    file://./module2/src/androidInstrumentedTest/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/androidTest/resources
-                    file://./module2/src/androidInstrumentedTest/resources
-            androidTestDebug (IDEA)
-                ScopeType: ANDROID_TEST
-                ManifestFileUrls:
-                    file://./module2/src/androidInstrumentedTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTestDebug
-                AssetsDirectoryUrls:
-                    file://./module2/src/androidTestDebug/assets
-                    file://./module2/src/androidInstrumentedTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/androidTestDebug/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTestDebug/kotlin
-                    file://./module2/src/androidTestDebug/java
-                    file://./module2/src/androidTestDebug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/androidTestDebug/jniLibs
-                    file://./module2/src/androidInstrumentedTestDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/androidTestDebug/res
-                    file://./module2/src/androidInstrumentedTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/androidTestDebug/resources
-                    file://./module2/src/androidInstrumentedTestDebug/resources
-            debug (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./module2/src/androidDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidDebug
-                AssetsDirectoryUrls:
-                    file://./module2/src/debug/assets
-                    file://./module2/src/androidDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/debug/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidDebug/kotlin
-                    file://./module2/src/debug/java
-                    file://./module2/src/debug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/debug/jniLibs
-                    file://./module2/src/androidDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/debug/res
-                    file://./module2/src/androidDebug/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/debug/resources
-                    file://./module2/src/androidDebug/resources
-            debug_KotlinMPP (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidMain/__KotlinMPP__
-                JavaDirectoryUrls:
-                    file://./module2/src/commonMain/kotlin
-                ResourcesDirectoryUrls:
-                    file://./module2/src/commonMain/resources
-            debug_KotlinMPP (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidUnitTest/__KotlinMPP__
-                JavaDirectoryUrls:
-                    file://./module2/src/commonTest/kotlin
-                ResourcesDirectoryUrls:
-                    file://./module2/src/commonTest/resources
-            release (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./module2/src/androidRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidRelease
-                AssetsDirectoryUrls:
-                    file://./module2/src/release/assets
-                    file://./module2/src/androidRelease/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/release/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidRelease/kotlin
-                    file://./module2/src/release/java
-                    file://./module2/src/release/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/release/jniLibs
-                    file://./module2/src/androidRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/release/res
-                    file://./module2/src/androidRelease/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/release/resources
-                    file://./module2/src/androidRelease/resources
-            test (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./module2/src/androidUnitTest/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidUnitTest
-                AssetsDirectoryUrls:
-                    file://./module2/src/test/assets
-                    file://./module2/src/androidUnitTest/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/test/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidUnitTest/kotlin
-                    file://./module2/src/test/java
-                    file://./module2/src/test/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/test/jniLibs
-                    file://./module2/src/androidUnitTest/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/test/res
-                    file://./module2/src/androidUnitTest/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/test/resources
-                    file://./module2/src/androidUnitTest/resources
-            testDebug (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./module2/src/androidUnitTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidUnitTestDebug
-                AssetsDirectoryUrls:
-                    file://./module2/src/testDebug/assets
-                    file://./module2/src/androidUnitTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/testDebug/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidUnitTestDebug/kotlin
-                    file://./module2/src/testDebug/java
-                    file://./module2/src/testDebug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/testDebug/jniLibs
-                    file://./module2/src/androidUnitTestDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/testDebug/res
-                    file://./module2/src/androidUnitTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/testDebug/resources
-                    file://./module2/src/androidUnitTestDebug/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
-            main (IDEA)
+            androidMain (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
                     file://./module2/src/androidMain/AndroidManifest.xml
@@ -1426,85 +968,17 @@ MODULE: kotlinMultiPlatform.module2
                 ManifestDirectories:
                     file://./module2/src/androidMain
                 AssetsDirectoryUrls:
-                    file://./module2/src/main/assets
                     file://./module2/src/androidMain/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/main/java
                 KotlinDirectoryUrls:
                     file://./module2/src/androidMain/kotlin
-                    file://./module2/src/main/java
-                    file://./module2/src/main/kotlin
                 KotlinDirectories:
                     file://./module2/src/androidMain/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/main/jniLibs
-                    file://./module2/src/androidMain/jniLibs
                 ResDirectoryUrls:
-                    file://./module2/src/main/res
                     file://./module2/src/androidMain/res
                 ResourcesDirectoryUrls:
-                    file://./module2/src/main/resources
                     file://./module2/src/androidMain/resources
-            debug (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./module2/src/androidDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidDebug
-                AssetsDirectoryUrls:
-                    file://./module2/src/debug/assets
-                    file://./module2/src/androidDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/debug/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidDebug/kotlin
-                    file://./module2/src/debug/java
-                    file://./module2/src/debug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/debug/jniLibs
-                    file://./module2/src/androidDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/debug/res
-                    file://./module2/src/androidDebug/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/debug/resources
-                    file://./module2/src/androidDebug/resources
-            debug_KotlinMPP (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidMain/__KotlinMPP__
-                JavaDirectoryUrls:
-                    file://./module2/src/commonMain/kotlin
-                ResourcesDirectoryUrls:
-                    file://./module2/src/commonMain/resources
-            release (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./module2/src/androidRelease/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidRelease
-                AssetsDirectoryUrls:
-                    file://./module2/src/release/assets
-                    file://./module2/src/androidRelease/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/release/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidRelease/kotlin
-                    file://./module2/src/release/java
-                    file://./module2/src/release/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/release/jniLibs
-                    file://./module2/src/androidRelease/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/release/res
-                    file://./module2/src/androidRelease/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/release/resources
-                    file://./module2/src/androidRelease/resources
         CurrentSourceProviders:
-            main (IDEA)
+            androidMain (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
                     file://./module2/src/androidMain/AndroidManifest.xml
@@ -1515,175 +989,61 @@ MODULE: kotlinMultiPlatform.module2
                 ManifestDirectories:
                     file://./module2/src/androidMain
                 AssetsDirectoryUrls:
-                    file://./module2/src/main/assets
                     file://./module2/src/androidMain/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/main/java
                 KotlinDirectoryUrls:
                     file://./module2/src/androidMain/kotlin
-                    file://./module2/src/main/java
-                    file://./module2/src/main/kotlin
                 KotlinDirectories:
                     file://./module2/src/androidMain/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/main/jniLibs
-                    file://./module2/src/androidMain/jniLibs
                 ResDirectoryUrls:
-                    file://./module2/src/main/res
                     file://./module2/src/androidMain/res
                 ResourcesDirectoryUrls:
-                    file://./module2/src/main/resources
                     file://./module2/src/androidMain/resources
-            debug (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./module2/src/androidDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidDebug
-                AssetsDirectoryUrls:
-                    file://./module2/src/debug/assets
-                    file://./module2/src/androidDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/debug/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidDebug/kotlin
-                    file://./module2/src/debug/java
-                    file://./module2/src/debug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/debug/jniLibs
-                    file://./module2/src/androidDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/debug/res
-                    file://./module2/src/androidDebug/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/debug/resources
-                    file://./module2/src/androidDebug/resources
-            debug_KotlinMPP (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidMain/__KotlinMPP__
-                JavaDirectoryUrls:
-                    file://./module2/src/commonMain/kotlin
-                ResourcesDirectoryUrls:
-                    file://./module2/src/commonMain/resources
         CurrentHostTestSourceProviders:
-            test (IDEA)
+            androidHostTest (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
-                    file://./module2/src/androidUnitTest/AndroidManifest.xml
+                    file://./module2/src/androidHostTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./module2/src/androidUnitTest
+                    file://./module2/src/androidHostTest
                 AssetsDirectoryUrls:
-                    file://./module2/src/test/assets
-                    file://./module2/src/androidUnitTest/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/test/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidUnitTest/kotlin
-                    file://./module2/src/test/java
-                    file://./module2/src/test/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/test/jniLibs
-                    file://./module2/src/androidUnitTest/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/test/res
-                    file://./module2/src/androidUnitTest/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/test/resources
-                    file://./module2/src/androidUnitTest/resources
-            testDebug (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./module2/src/androidUnitTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidUnitTestDebug
-                AssetsDirectoryUrls:
-                    file://./module2/src/testDebug/assets
-                    file://./module2/src/androidUnitTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/testDebug/java
-                KotlinDirectoryUrls:
-                    file://./module2/src/androidUnitTestDebug/kotlin
-                    file://./module2/src/testDebug/java
-                    file://./module2/src/testDebug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/testDebug/jniLibs
-                    file://./module2/src/androidUnitTestDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./module2/src/testDebug/res
-                    file://./module2/src/androidUnitTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./module2/src/testDebug/resources
-                    file://./module2/src/androidUnitTestDebug/resources
-            debug_KotlinMPP (IDEA)
-                ScopeType: UNIT_TEST
-                ManifestFileUrls:
-                    file://./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidUnitTest/__KotlinMPP__
-                JavaDirectoryUrls:
-                    file://./module2/src/commonTest/kotlin
-                ResourcesDirectoryUrls:
-                    file://./module2/src/commonTest/resources
-        CurrentDeviceTestSourceProviders:
-            androidTest (IDEA)
-                ScopeType: ANDROID_TEST
-                ManifestFileUrls:
-                    file://./module2/src/androidInstrumentedTest/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTest
-                AssetsDirectoryUrls:
+                    file://./module2/src/androidHostTest/assets
                     file://./module2/src/androidTest/assets
-                    file://./module2/src/androidInstrumentedTest/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTest/kotlin
-                    file://./module2/src/androidTest/java
+                    file://./module2/src/androidHostTest/kotlin
                     file://./module2/src/androidTest/kotlin
                 KotlinDirectories:
                     file://./module2/src/androidTest/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/androidTest/jniLibs
-                    file://./module2/src/androidInstrumentedTest/jniLibs
                 ResDirectoryUrls:
+                    file://./module2/src/androidHostTest/res
                     file://./module2/src/androidTest/res
-                    file://./module2/src/androidInstrumentedTest/res
                 ResourcesDirectoryUrls:
-                    file://./module2/src/androidTest/resources
-                    file://./module2/src/androidInstrumentedTest/resources
-            androidTestDebug (IDEA)
+                    file://./module2/src/androidHostTest/resources
+        CurrentDeviceTestSourceProviders:
+            androidDeviceTest (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
-                    file://./module2/src/androidInstrumentedTestDebug/AndroidManifest.xml
+                    file://./module2/src/androidDeviceTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTestDebug
+                    file://./module2/src/androidDeviceTest
                 AssetsDirectoryUrls:
-                    file://./module2/src/androidTestDebug/assets
-                    file://./module2/src/androidInstrumentedTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./module2/src/androidTestDebug/java
+                    file://./module2/src/androidDeviceTest/assets
+                    file://./module2/src/androidAndroidTest/assets
                 KotlinDirectoryUrls:
-                    file://./module2/src/androidInstrumentedTestDebug/kotlin
-                    file://./module2/src/androidTestDebug/java
-                    file://./module2/src/androidTestDebug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./module2/src/androidTestDebug/jniLibs
-                    file://./module2/src/androidInstrumentedTestDebug/jniLibs
+                    file://./module2/src/androidDeviceTest/kotlin
+                    file://./module2/src/androidAndroidTest/kotlin
+                KotlinDirectories:
+                    file://./module2/src/androidAndroidTest/kotlin
                 ResDirectoryUrls:
-                    file://./module2/src/androidTestDebug/res
-                    file://./module2/src/androidInstrumentedTestDebug/res
+                    file://./module2/src/androidDeviceTest/res
+                    file://./module2/src/androidAndroidTest/res
                 ResourcesDirectoryUrls:
-                    file://./module2/src/androidTestDebug/resources
-                    file://./module2/src/androidInstrumentedTestDebug/resources
+                    file://./module2/src/androidDeviceTest/resources
         CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: kotlinMultiPlatform [0]
     file://./app/build.gradle : Module :app [2000004]
-    file://./module2/build.gradle : Module :module2 [2000008]
+    file://./module2/build.gradle : Module :module2 [2000010]
     file://./settings.gradle : Project Settings [3000000]
     file://./gradle.properties : Project Properties [3000000]
     file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]

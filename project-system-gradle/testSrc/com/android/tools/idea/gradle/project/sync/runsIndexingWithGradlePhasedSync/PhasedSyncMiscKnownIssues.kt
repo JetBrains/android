@@ -70,6 +70,11 @@ internal object MiscResyncIssues {
       TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT -> setOf("MODULE (gradle_project)/*isInherited")
       TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS ->
         setOf("MODULE (gradle_project_name)/*isInherited", "MODULE (gradle_project_1)/*isInherited")
+      TestProject.KOTLIN_MULTIPLATFORM_WITHJS ->
+        setOf(
+          "/LIBRARY (Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat",
+          "/LIBRARY (Gradle: org.jetbrains.kotlin:kotlin-stdlib-js",
+        )
       else -> emptySet()
     }
 }

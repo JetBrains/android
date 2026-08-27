@@ -35,7 +35,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.0.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
@@ -43,9 +42,4 @@ dependencies {
     implementation 'com.google.dagger:dagger:2.6'
     kapt 'com.google.dagger:dagger-compiler:2.6'
     implementation project(":javaLib")
-}
-
-kapt {
-    javacOptions {
-    }
 }

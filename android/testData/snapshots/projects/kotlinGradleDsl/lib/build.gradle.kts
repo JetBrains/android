@@ -1,9 +1,9 @@
 plugins {
-    id("org.jetbrains.kotlin.android")
     id("com.android.library")
 }
 
 android {
+    namespace = "com.example.lib"
     compileSdkVersion(27)
 
     defaultConfig {
@@ -27,5 +27,4 @@ android {
 }
 
 dependencies {
-    "implementation"(kotlin("stdlib", "1.3.31"))
 }

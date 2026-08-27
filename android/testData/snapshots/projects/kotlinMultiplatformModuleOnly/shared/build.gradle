@@ -14,38 +14,32 @@
  * limitations under the License.
  */
 plugins {
-  id 'com.android.library'
-  id 'kotlin-multiplatform'
+  id("org.jetbrains.kotlin.multiplatform")
+  id("com.android.kotlin.multiplatform.library")
 }
 
 kotlin {
-  androidTarget()
+  android {
+    namespace = "com.example.test.multiproject.module2"
+    compileSdk = 19
+    minSdk = 15
+    withHostTestBuilder {}.configure {}
+    withDeviceTestBuilder {}.configure {}
+  }
 
   sourceSets {
-    named("androidUnitTest") {
+    named("androidHostTest") {
+      kotlin.srcDir("src/androidTest/kotlin")
       dependencies {
-        implementation 'junit:junit:4.12'
+        implementation("junit:junit:4.12")
       }
     }
 
-    named("androidInstrumentedTest") {
+    named("androidDeviceTest") {
+      kotlin.srcDir("src/androidAndroidTest/kotlin")
       dependencies {
-        implementation "com.android.support.test:runner:1.0.2"
+        implementation("com.android.support.test:runner:1.0.2")
       }
     }
   }
-}
-
-
-android {
-  compileSdkVersion 19
-
-  defaultConfig {
-    minSdkVersion 15
-    targetSdkVersion 19
-  }
-}
-
-repositories {
-  mavenCentral()
 }

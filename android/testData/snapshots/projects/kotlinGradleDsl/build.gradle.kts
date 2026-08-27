@@ -5,6 +5,7 @@ buildscript {
     classpath("com.android.tools.build:gradle:+")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:+")
   }
+
 }
 
 allprojects {

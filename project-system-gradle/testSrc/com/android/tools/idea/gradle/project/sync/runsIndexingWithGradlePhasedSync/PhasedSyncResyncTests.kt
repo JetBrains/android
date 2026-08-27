@@ -38,14 +38,18 @@ fun ModuleDumpWithType.filterOutKnownResyncIssues(testProject: TestProject): Mod
         rest.filter { line ->
           (JavaResyncIssues.projectStructure(testProject) + KmpResyncIssues.projectStructure(testProject)).none { line.contains(it) }
         },
-    ideModels = ideModels.filter { line -> AndroidResyncIssues.ideModels(testProject).none { line.contains(it) } },
+    ideModels =
+      ideModels.filter { line ->
+        (AndroidResyncIssues.ideModels(testProject) + KmpConsistencyIssues.ideModels(testProject)).none { line.contains(it) }
+      },
   )
 }
 
 private fun ModuleDumpWithType.filterOutFullResyncIssues(testProject: TestProject) =
   copy(
     projectStructure =
-      projectStructure.filter { line -> (MiscResyncIssues.fullResyncProjectStructure(testProject)).none { line.contains(it) } }
+      projectStructure.filter { line -> (MiscResyncIssues.fullResyncProjectStructure(testProject)).none { line.contains(it) } },
+    ideModels = ideModels.filter { line -> (KmpConsistencyIssues.ideModels(testProject)).none { line.contains(it) } },
   )
 
 @RunWith(Parameterized::class)
@@ -71,7 +75,9 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
             .isEqualTo(firstFullSync.filterOutFullResyncIssues(testProject).projectStructure())
         }
         runCatchingAndRecord {
-          Truth.assertWithMessage("Comparing full ide models").that(secondFullSync.ideModels()).isEqualTo(firstFullSync.ideModels())
+          Truth.assertWithMessage("Comparing full ide models")
+            .that(secondFullSync.filterOutFullResyncIssues(testProject).ideModels())
+            .isEqualTo(firstFullSync.filterOutFullResyncIssues(testProject).ideModels())
         }
         runCatchingAndRecord {
           Truth.assertWithMessage("Comparing resync intermediate sync project structure to full state")

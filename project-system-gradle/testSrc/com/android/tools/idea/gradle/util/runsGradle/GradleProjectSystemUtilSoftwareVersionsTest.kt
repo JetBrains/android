@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.util.runsGradle
 
-import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtil
@@ -54,7 +53,7 @@ class GradleProjectSystemUtilSoftwareVersionsTest {
     preparedProject.open { project ->
       val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, project.basePath!!)?.firstOrNull()?.toString()
       assertThat(kotlinVersionInUse).isNotNull()
-      assertThat(kotlinVersionInUse).isEqualTo(KOTLIN_VERSION_FOR_TESTS)
+      assertThat(kotlinVersionInUse).isEqualTo(AgpVersionSoftwareEnvironmentDescriptor.selected.getBuiltInKotlinVersion())
     }
   }
 }

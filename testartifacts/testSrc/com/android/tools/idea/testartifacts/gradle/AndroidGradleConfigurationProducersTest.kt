@@ -441,7 +441,7 @@ class AndroidGradleConfigurationProducersTest {
     checkConfigurationTasksAreAsExpected(
       configurationFromContext,
       // See above comment about the changes to task names.
-      listOf(":module2:testDebugUnitTest", "--tests", "\"com.example.library.TestUnitTest\""),
+      listOf(":module2:cleanTestAndroidHostTest", ":module2:testAndroidHostTest", "--tests", "\"com.example.library.TestUnitTest\""),
     )
   }
 
@@ -457,7 +457,7 @@ class AndroidGradleConfigurationProducersTest {
       checkConfigurationTasksAreAsExpected(
         configurationFromContext,
         // See above comment about the changes to task names.
-        listOf(":module2:cleanTestDebugUnitTest", ":module2:testDebugUnitTest", "--tests", "\"com.example.library.*\""),
+        listOf(":module2:cleanTestAndroidHostTest", ":module2:testAndroidHostTest", "--tests", "\"com.example.library.*\""),
       )
     }
   }

@@ -85,62 +85,95 @@ internal fun patchMppProject(
   addJsModule: Boolean = false,
 ) {
   if (convertAppToKmp) {
-    projectRoot
-      .resolve("app")
-      .resolve("build.gradle")
-      .replaceInContent(
-        """
-        plugins {
-            id 'com.android.application'
-            id 'kotlin-android'
-        }
-        """
-          .trimIndent(),
-        """
-        plugins {
-            id 'com.android.application'
-            id 'kotlin-multiplatform'
-        }
-        kotlin {
-            androidTarget()
-        }
-        """
-          .trimIndent(),
-      )
+    projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+      """
+      plugins {
+          id("org.jetbrains.kotlin.multiplatform")
+          id("com.android.kotlin.multiplatform.library")
+      }
+
+      kotlin {
+          android {
+              namespace = "com.example.android.kotlin"
+              compileSdk = 26
+              minSdk = 15
+              withHostTestBuilder {}.configure {}
+              withDeviceTestBuilder {}.configure {}
+          }
+
+          sourceSets {
+              named("androidMain") {
+                  kotlin.srcDir("src/main/java")
+              }
+              named("androidHostTest") {
+                  kotlin.srcDir("src/test/java")
+                  dependencies {
+                      implementation("junit:junit:4.12")
+                  }
+              }
+              named("androidDeviceTest") {
+                  kotlin.srcDir("src/androidTest/java")
+                  dependencies {
+                      implementation("com.android.support.test:runner:1.0.2")
+                  }
+              }
+              named("commonMain") {
+                  dependencies {
+                      implementation(project(":module2"))
+                  }
+              }
+          }
+      }
+      """
+        .trimIndent()
+    }
   }
   for (module in addJvmTo) {
-    projectRoot.resolve(module).resolve("build.gradle").replaceInContent("androidTarget()", "androidTarget()\njvm()")
+    projectRoot.resolve(module).resolve("build.gradle").replaceContent { content ->
+      if (content.contains("androidTarget()")) {
+        content.replace("androidTarget()", "androidTarget()\njvm()")
+      } else if (content.contains("androidLibrary {")) {
+        content.replace("androidLibrary {", "jvm()\n  androidLibrary {")
+      } else if (content.contains("android {")) {
+        content.replace("android {", "jvm()\n  android {")
+      } else {
+        content
+      }
+    }
   }
   for (module in addIosTo) {
-    projectRoot
-      .resolve(module)
-      .resolve("build.gradle")
-      .replaceInContent("androidTarget()", "androidTarget()\niosX64()\niosSimulatorArm64()\niosArm64()")
+    projectRoot.resolve(module).resolve("build.gradle").replaceContent { content ->
+      if (content.contains("androidTarget()")) {
+        content.replace("androidTarget()", "androidTarget()\niosX64()\niosSimulatorArm64()\niosArm64()")
+      } else if (content.contains("androidLibrary {")) {
+        content.replace("androidLibrary {", "iosX64()\niosSimulatorArm64()\niosArm64()\n  androidLibrary {")
+      } else if (content.contains("android {")) {
+        content.replace("android {", "iosX64()\niosSimulatorArm64()\niosArm64()\n  android {")
+      } else {
+        content
+      }
+    }
   }
   if (addIosTo.isNotEmpty()) {
     val konanDir = File(FileUtil.getTempDirectory(), ".konan")
     konanDir.mkdirs()
-    projectRoot.resolve("gradle.properties").appendText("\nkonan.data.dir=${konanDir.path}\n")
+    projectRoot.resolve("gradle.properties").appendText("\nkonan.data.dir=${konanDir.path}\nkotlin.native.version=2.4.20-RC2\n")
   }
   for (module in addIntermediateTo) {
-    projectRoot
-      .resolve(module)
-      .resolve("build.gradle")
-      .replaceInContent(
+    projectRoot.resolve(module).resolve("build.gradle").replaceContent { content ->
+      content.replace(
+        "sourceSets {",
         """
-        |sourceSets {
+        sourceSets {
+          create("jvmAndAndroid") {
+            dependsOn(commonMain)
+            androidMain.dependsOn(it)
+            jvmMain.dependsOn(it)
+          }
         """
-          .trimMargin(),
-        """
-        |sourceSets {
-        |  create("jvmAndAndroid") {
-        |    dependsOn(commonMain)
-        |    androidMain.dependsOn(it)
-        |    jvmMain.dependsOn(it)
-        |  }
-        """
-          .trimMargin(),
+          .trimIndent(),
       )
+    }
   }
   if (addJsModule) {
     projectRoot.resolve("settings.gradle").replaceInContent("//include ':jsModule'", "include ':jsModule'")

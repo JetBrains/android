@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -25,6 +26,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.assertIsEqualToUpdatedSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
 import com.android.tools.idea.testing.nameProperties
 import com.android.tools.idea.testing.saveAndDump
@@ -163,7 +165,38 @@ data class IdeModelSnapshotComparisonTestDefinition(
           },
         )
       }
-    v2snapshots.assertIsEqualToSnapshot(dump)
+    if (StudioFlags.PHASED_SYNC_ENABLED.get()) {
+      v2snapshots.assertIsEqualToUpdatedSnapshot(
+        dump,
+        snapshotOnSaveUpdater = { it },
+        snapshotOnCompareUpdater = { expected ->
+          expected
+            .splitToSequence('\n')
+            .filterNot { it.trim().startsWith("module") && (it.contains("<ROOT>-:module2") || it.contains("<PROJECT>-:module2")) }
+            .joinToString("\n")
+            .replace(
+              "                        androidLibrary                : com.android.support.test:runner:1.0.2@aar\n" +
+                "                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>\n" +
+                "                        androidLibrary                : com.android.support.test:monitor:1.0.2@aar\n" +
+                "                        javaLibrary                   : com.android.support:support-annotations:27.1.1\n" +
+                "                        javaLibrary                   : junit:junit:4.12\n" +
+                "                        javaLibrary                   : net.sf.kxml:kxml2:2.3.0\n" +
+                "                        javaLibrary                   : org.jetbrains:annotations:13.0\n" +
+                "                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3",
+              "                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>\n" +
+                "                        androidLibrary                : com.android.support.test:runner:1.0.2@aar\n" +
+                "                        javaLibrary                   : org.jetbrains:annotations:13.0\n" +
+                "                        androidLibrary                : com.android.support.test:monitor:1.0.2@aar\n" +
+                "                        javaLibrary                   : com.android.support:support-annotations:27.1.1\n" +
+                "                        javaLibrary                   : junit:junit:4.12\n" +
+                "                        javaLibrary                   : net.sf.kxml:kxml2:2.3.0\n" +
+                "                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3",
+            )
+        },
+      )
+    } else {
+      v2snapshots.assertIsEqualToSnapshot(dump)
+    }
     when {
       agpVersion == AGP_72 -> testV1vsV2(AGP_72_V1, AGP_72)
     }

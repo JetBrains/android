@@ -84,7 +84,7 @@ enum class TestProject(
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),
   ANDROID_KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.ANDROID_KOTLIN_MULTIPLATFORM,
-    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12 },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { projectRoot ->
       projectRoot.resolve("gradle.properties").replaceContent { content ->
         content.plus(
@@ -257,11 +257,11 @@ enum class TestProject(
   TEST_ONLY_MODULE(TestProjectToSnapshotPaths.TEST_ONLY_MODULE),
   KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },
+    isCompatibleWith = { it == AGP_CURRENT },
   ),
   KOTLIN_MULTIPLATFORM_MODULE_ONLY(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM_MODULE_ONLY,
-    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },
+    isCompatibleWith = { it == AGP_CURRENT },
   ),
   KOTLIN_MULTIPLATFORM_WITHJS(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
@@ -329,22 +329,18 @@ enum class TestProject(
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { projectRoot ->
       patchMppProject(projectRoot, convertAppToKmp = true)
-      projectRoot
-        .resolve("app")
-        .resolve("build.gradle")
-        .replaceInContent(
-          "androidTarget()",
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+        content.replace(
+          "named(\"androidDeviceTest\") {",
           """
-          androidTarget()
-            sourceSets {
-              androidTest
-              androidAndroidTest {
-                dependsOn(androidTest)
-              }
-            }
+          create("androidDeviceTestExtra") {
+              dependsOn(getByName("androidDeviceTest"))
+          }
+          named("androidDeviceTest") {
           """
             .trimIndent(),
         )
+      }
     },
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),

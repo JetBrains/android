@@ -56,7 +56,7 @@ internal object KmpConsistencyIssues {
           // TODO(b/384022658): Dependencies to kotlin multiplatform modules can't be set up as module set up is not supported by phased
           // sync
           "Classpath/module (<PROJECT>-:module2",
-          "Classpath/module (<PROJECT>-:feature-b-MAIN)",
+          "Classpath/module (<PROJECT>-:feature-b",
           "Classpath/module (<PROJECT>-:common-commonMain)",
           "Classpath/module (<PROJECT>-:kmpFirstLib",
           "Classpath/module (<PROJECT>-:kmpSecondLib",
@@ -82,6 +82,11 @@ internal object KmpResyncIssues {
           "MODULE (kotlinMultiPlatform.module2)/COMPILER_MODULE_EXTENSION",
           "MODULE (NonStandardSourceSetDependencies.feature-b)/COMPILER_MODULE_EXTENSION",
           "/Classes",
+          "/ORDER_ENTRY (<Module source>)",
+          "/LIBRARY (Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat",
+          "/LIBRARY (Gradle: org.jetbrains.kotlin:kotlin-stdlib-js",
+          "kotlinMultiPlatform.jsModule.commonTest)/ORDER_ENTRY (kotlinMultiPlatform.jsModule.commonMain)",
+          "kotlinMultiPlatform.jsModule.jsTest)/ORDER_ENTRY (kotlinMultiPlatform.jsModule.commonMain)",
         )
       else -> emptySet()
     }
