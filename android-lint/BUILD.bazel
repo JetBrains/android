@@ -8,6 +8,11 @@ create_kotlinc_options(
     opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"],
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
+    lib = "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+)
+
 jvm_library(
     name = "lint",
     srcs = glob(
@@ -35,7 +40,6 @@ jvm_library(
         "//libraries/protobuf",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-        "@lib//:kotlinc-kotlin-jps-common-provided",
         "//platform/editor-ui-api:editor-ui",
         "//jps/model-api:model",
         "//plugins/kotlin/base/psi",
@@ -99,6 +103,7 @@ jvm_library(
         "//platform/forms_rt:java-guiForms-rt",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//platform/util/concurrency",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
     ],
 )
 
@@ -123,7 +128,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:kotlinc-kotlin-jps-common-provided",
+        "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+        "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common_test_lib",
         "//platform/editor-ui-api:editor-ui_test_lib",
         "//jps/model-api:model_test_lib",
         "//plugins/kotlin/base/psi:psi_test_lib",

@@ -25,6 +25,11 @@ kt_javac_options(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
+    lib = "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+)
+
+jvm_provided_library(
     name = "plugins_maven_artifactResolver-m31_provided",
     lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
 )
@@ -83,7 +88,6 @@ jvm_library(
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "@lib//:kotlinc-kotlin-gradle-statistics-provided",
-        "@lib//:kotlinc-kotlin-jps-common-provided",
         "//android/android-adb:adb",
         "//android/adt-ui",
         "//android/adt-ui-model",
@@ -263,6 +267,7 @@ jvm_library(
         "//xml/emmet",
         "//libraries/jspecify",
         "//plugins/gradle/java/groovy",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
         ":plugins_maven_artifactResolver-m31_provided",
     ],
 )
@@ -318,7 +323,8 @@ jvm_library(
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "@lib//:kotlinc-kotlin-gradle-statistics-provided",
-        "@lib//:kotlinc-kotlin-jps-common-provided",
+        "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+        "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common_test_lib",
         "//android/android-adb:adb_test_lib",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/adt-ui-model:adt-ui-model_test_lib",

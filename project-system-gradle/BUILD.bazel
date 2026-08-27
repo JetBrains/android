@@ -22,6 +22,11 @@ jvm_provided_library(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
+    lib = "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+)
+
+jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-scripting-compiler-impl_provided",
     lib = "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl",
 )
@@ -64,7 +69,6 @@ jvm_library(
         "//libraries/protobuf",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-        "@lib//:kotlinc-kotlin-jps-common-provided",
         "//libraries/gradle",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//android/adt-ui",
@@ -206,6 +210,7 @@ jvm_library(
         "//plugins/kotlin/references",
         ":libraries_kotlin_libraries-kotlin-gradle-plugin-idea_provided",
         ":libraries_kotlin_libraries-kotlin-tooling-core_provided",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-scripting-compiler-impl_provided",
     ],
 )
@@ -244,7 +249,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:kotlinc-kotlin-jps-common-provided",
+        "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+        "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common_test_lib",
         "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl",
         "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl_test_lib",
         "//libraries/gradle:gradle_test_lib",

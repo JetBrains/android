@@ -191,7 +191,6 @@ dev_dist_plugin_content(
         "@lib//:kotlinc-kotlin-compiler-fe10",
         "@lib//:kotlinc-kotlin-compiler-ir",
         "@lib//:kotlinc-kotlin-gradle-statistics",
-        "@lib//:kotlinc-kotlin-jps-common",
         "@lib//:kotlinc-kotlin-jps-plugin-classpath",
         "@lib//:kotlinc-lombok-compiler-plugin",
         "@lib//:kotlinx-coroutines-guava",
