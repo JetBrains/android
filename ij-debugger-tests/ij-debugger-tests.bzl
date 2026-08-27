@@ -29,6 +29,7 @@ def debugger_test(
 
     runtime_deps = [
         test_dep,
+        "//tools/adt/idea/ij-debugger-tests/lib:bazel-runner",
         "@tools_idea//:main_test_lib",
     ] + [it.replace("@community/", "@tools_idea/").replace("@lib/", "@tools_idea_lib/") for it in TEST_FRAMEWORK_DEPS]
 
@@ -81,7 +82,7 @@ def debugger_test(
         data = data,
         env = env,
         jvm_flags = jvm_flags,
-        main_class = "com.intellij.tests.JUnit5BazelRunner",
+        main_class = "com.google.android.tools.debugger.test.lib.BazelRunner",
         runtime_deps = runtime_deps,
         target_compatible_with = select({
             "@platforms//os:windows": ["@platforms//:incompatible"],

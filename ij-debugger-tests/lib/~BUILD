@@ -58,3 +58,20 @@ kotlin_library(
         "@tools_idea_lib//:libraries-junit5-launcher-_j_unit5_launcher",
     ],
 )
+
+kotlin_library(
+    name = "bazel-runner",
+    testonly = True,
+    srcs = ["BazelRunner.kt"],
+    coverage_baseline_enabled = False,
+    lint_enabled = False,
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//tools/adt/idea/ij-debugger-tests:__pkg__"],
+    deps = [
+        "@tools_idea//platform/testFramework/bootstrap:tools-testsBootstrap",
+    ],
+)
