@@ -1271,7 +1271,7 @@ class EmulatorViewTest {
   }
 
   @Test
-  fun testAiGlasses() {
+  fun testDisplayGlasses() {
     hiDpiRule.setRetinaMode()
     val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createDisplayGlassesAvd(path) }
     fakeUi = FakeUi(panel)
@@ -1280,21 +1280,21 @@ class EmulatorViewTest {
     fakeUi.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1066 height: 900")
-    assertAppearance("AiGlasses1")
+    assertAppearance("DisplayGlasses1")
     assertThat(view.displayRectangle).isEqualTo(Rectangle2D.Double(0.125, 100.0, 399.75, 400.0))
 
     executeAction("android.streaming.zoom.fit", view, project)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 400 height: 600")
-    assertAppearance("AiGlasses2")
+    assertAppearance("DisplayGlasses2")
     assertThat(view.displayRectangle).isEqualTo(Rectangle2D.Double(125.0, 225.0, 150.0, 150.0))
 
     executeAction("android.streaming.zoom.in", view, project)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 600 height: 580")
-    assertAppearance("AiGlasses3")
+    assertAppearance("DisplayGlasses3")
 
     executeAction("android.streaming.zoom.out", view, project)
     fakeUi.layoutAndDispatchEvents()
@@ -1306,11 +1306,11 @@ class EmulatorViewTest {
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1200 height: 900")
-    assertAppearance("AiGlasses4")
+    assertAppearance("DisplayGlasses4")
 
     executeAction("android.streaming.zoom.fit.inner", view, project)
     fakeUi.layoutAndDispatchEvents()
-    assertAppearance("AiGlasses5")
+    assertAppearance("DisplayGlasses5")
   }
 
   private fun createRootContainer(avdCreator: ((Path) -> Path)? = null): HeadlessRootPaneContainer =
