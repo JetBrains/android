@@ -26,6 +26,7 @@ import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileAttributeView
+import java.nio.file.attribute.FileStoreAttributeView
 import java.nio.file.attribute.FileTime
 import java.nio.file.attribute.GroupPrincipal
 import java.nio.file.attribute.PosixFileAttributes
@@ -91,7 +92,12 @@ internal constructor(val delegate: FileSystem, internal val manager: WorkspaceMa
 
   override fun getRootDirectories(): Iterable<Path> = delegate.rootDirectories
 
-  override fun getFileStores(): Iterable<FileStore> = delegate.fileStores
+  private val defaultFileStore =
+    VirtualSymlinkFileStore(this) {
+      runCatching { delegate.provider().getFileStore(dest) }.getOrNull()
+    }
+
+  override fun getFileStores(): Iterable<FileStore> = listOf(defaultFileStore)
 
   override fun supportedFileAttributeViews(): Set<String> = delegate.supportedFileAttributeViews()
 
@@ -385,7 +391,9 @@ class VirtualSymlinkFileSystemProvider(private val fileSystem: VirtualSymlinkFil
   }
 
   override fun getFileStore(path: Path): FileStore {
-    return delegate.getFileStore(unwrapPhysical(path))
+    return VirtualSymlinkFileStore(fileSystem) {
+      delegate.getFileStore(unwrapPhysical(path))
+    }
   }
 
   override fun checkAccess(path: Path, vararg modes: AccessMode) {
@@ -448,4 +456,40 @@ private fun createVirtualSymlinkPath(fileSystem: VirtualSymlinkFileSystem, path:
   val normalized = path.normalize()
   val virtualized = virtualizePath(fileSystem, normalized)
   return VirtualSymlinkPath(fileSystem, virtualized)
+}
+
+class VirtualSymlinkFileStore(
+  private val fileSystem: VirtualSymlinkFileSystem,
+  private val physicalStoreSupplier: () -> FileStore?,
+) : FileStore() {
+
+  override fun name(): String = "VirtualSymlink[${fileSystem.basePath}]"
+
+  override fun type(): String = "virtual-symlink"
+
+  override fun isReadOnly(): Boolean = fileSystem.isReadOnly || (runCatching { physicalStoreSupplier()?.isReadOnly }.getOrNull() ?: false)
+
+  override fun getTotalSpace(): Long = physicalStoreSupplier()?.totalSpace ?: 0L
+
+  override fun getUsableSpace(): Long = physicalStoreSupplier()?.usableSpace ?: 0L
+
+  override fun getUnallocatedSpace(): Long = physicalStoreSupplier()?.unallocatedSpace ?: 0L
+
+  override fun supportsFileAttributeView(type: Class<out FileAttributeView>): Boolean =
+    runCatching { physicalStoreSupplier()?.supportsFileAttributeView(type) }.getOrNull() ?: false
+
+  override fun supportsFileAttributeView(name: String): Boolean =
+    runCatching { physicalStoreSupplier()?.supportsFileAttributeView(name) }.getOrNull() ?: false
+
+  override fun <V : FileStoreAttributeView> getFileStoreAttributeView(type: Class<V>): V? = runCatching {
+    physicalStoreSupplier()?.getFileStoreAttributeView(type)
+  }.getOrNull()
+
+  override fun getAttribute(attribute: String): Any? = physicalStoreSupplier()?.getAttribute(attribute)
+
+  override fun equals(other: Any?): Boolean = other is VirtualSymlinkFileStore && fileSystem == other.fileSystem
+
+  override fun hashCode(): Int = fileSystem.hashCode()
+
+  override fun toString(): String = name()
 }
