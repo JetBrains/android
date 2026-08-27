@@ -28,12 +28,41 @@ import com.intellij.util.xmlb.Constants
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.XCollection
 import java.io.StringWriter
+import kotlin.math.floor
+import kotlin.math.log10
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
+import kotlin.time.Duration.Companion.days
 import org.jetbrains.annotations.TestOnly
 
 private const val MAX_DEVICE_TYPES = 200
 private const val PROMOTION_THRESHOLD = 1000
 private const val BIT_RATE_REACHED_SCORE = 334
 private const val BIT_RATE_NOT_REACHED_SCORE = 16
+private const val DEFAULT_BIT_RATE = 10000000 // See display_streamer.cc
+private val BIT_RATE_RECOVERY_INTERVAL_MILLIS = 1.days.inWholeMilliseconds
+private val MAX_BIT_RATE_AGE_MILLIS = 365.days.inWholeMilliseconds
+private val SQRT_2 = sqrt(2.0)
+private val SQRT_10 = sqrt(10.0)
+
+/**
+ * Rounds the given number to the closest on logarithmic scale value of the form `n * 10^k`, where `n` is one of 1, 2 or 5 and `k` is an
+ * integer number.
+ */
+private fun roundToOneTwoFiveScale(x: Double): Int {
+  val exp = floor(log10(x))
+  val u = 10.0.pow(exp)
+  val f = x / u
+  val n =
+    when {
+      f < SQRT_2 -> 1
+      f < SQRT_10 -> 2
+      f < 5 * SQRT_2 -> 5
+      else -> 10
+    }
+  return (n * u).roundToInt()
+}
 
 /**
  * Keeps track of per-device-type bit rates of video encoding.
@@ -48,12 +77,33 @@ private const val BIT_RATE_NOT_REACHED_SCORE = 16
 internal class BitRateManager : PersistentStateComponent<BitRateManager> {
 
   @GuardedBy("bitRateTrackers") var bitRateTrackers = linkedMapOf<String, BitRateTracker>() // Mutable for deserialization.
+  @GuardedBy("bitRateTrackers") @Transient private var needsPruning = true
 
   /** Returns the video encoding bit rate for the given device type. */
   fun getBitRate(deviceProperties: DeviceProperties): Int {
     synchronized(bitRateTrackers) {
+      if (needsPruning) {
+        pruneOldBitRates()
+        needsPruning = false
+      }
       val key = deviceProperties.key()
-      val tracker = bitRateTrackers.remove(key) ?: return 0
+      val tracker = bitRateTrackers[key] ?: return 0
+      val currentTime = System.currentTimeMillis()
+      if (tracker.bitRate > 0 && currentTime - tracker.lastModifiedTime > BIT_RATE_RECOVERY_INTERVAL_MILLIS) {
+        val newBitRate = roundToOneTwoFiveScale(tracker.bitRate * 2.0)
+        if (newBitRate >= DEFAULT_BIT_RATE) {
+          tracker.bitRate = 0
+          tracker.lastModifiedTime = 0L
+          if (tracker.isEmpty()) {
+            bitRateTrackers.remove(key)
+            return 0
+          }
+        } else {
+          tracker.bitRate = newBitRate
+          tracker.lastModifiedTime = currentTime
+        }
+      }
+      bitRateTrackers.remove(key)
       bitRateTrackers[key] = tracker // Add the last accessed BitRateTracker to the end of the map.
       return tracker.bitRate
     }
@@ -83,6 +133,18 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
       tracker.bitRateStable(bitRate)
       if (tracker.isEmpty()) {
         bitRateTrackers.remove(key)
+      }
+    }
+  }
+
+  @GuardedBy("bitRateTrackers")
+  private fun pruneOldBitRates() {
+    val currentTime = System.currentTimeMillis()
+    val iterator = bitRateTrackers.iterator()
+    while (iterator.hasNext()) {
+      val tracker = iterator.next().value
+      if (currentTime - tracker.lastModifiedTime > MAX_BIT_RATE_AGE_MILLIS) {
+        iterator.remove()
       }
     }
   }
@@ -125,6 +187,8 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
     return writer.toString()
   }
 
+  @TestOnly internal fun key(deviceProperties: DeviceProperties): String = deviceProperties.key()
+
   private fun DeviceProperties.key(): String =
     "${manufacturer ?: ""}|${model ?: ""}|${primaryAbi ?: ""}|${androidVersion?.featureLevel ?: 0}"
 
@@ -139,13 +203,14 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
   data class BitRateTracker
   private constructor(
     var bitRate: Int,
+    var lastModifiedTime: Long,
     @XCollection(propertyElementName = "candidates", valueAttributeName = Constants.LIST) val candidates: MutableList<CandidateBitRate>,
   ) {
 
-    constructor(candidate: CandidateBitRate) : this(0, mutableListOf(candidate))
+    constructor(candidate: CandidateBitRate) : this(0, 0L, mutableListOf(candidate))
 
     @Suppress("unused") // For deserialization
-    private constructor() : this(0, mutableListOf<CandidateBitRate>())
+    private constructor() : this(0, 0L, mutableListOf<CandidateBitRate>())
 
     fun bitRateReduced(newBitRate: Int) {
       if (bitRate > 0 && newBitRate >= bitRate) {
@@ -160,6 +225,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
         candidate.score += BIT_RATE_REACHED_SCORE
         if (candidate.score >= PROMOTION_THRESHOLD) {
           bitRate = candidate.bitRate
+          lastModifiedTime = System.currentTimeMillis()
           candidates.removeIf { it.bitRate >= bitRate }
           if (bitRate > 0 && newBitRate >= bitRate) {
             return
@@ -177,6 +243,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
           // would have already reached PROMOTION_THRESHOLD.
           assert(i == 0)
           bitRate = newBitRate
+          lastModifiedTime = System.currentTimeMillis()
         } else {
           candidates.add(i, CandidateBitRate(newBitRate, score))
         }
