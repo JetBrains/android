@@ -19,6 +19,7 @@ plugins {
 }
 
 android {
+    namespace = "com.example.lib"
     compileSdkVersion 23
     testFixtures {
         enable = true

@@ -16,6 +16,7 @@
 apply plugin: 'android'
 
 android {
+  namespace 'com.example.android.app'
   compileSdkVersion 19
 
   defaultConfig {
@@ -32,8 +33,6 @@ android {
       debuggable = false
     }
   }
-
-  publishNonDefault = true
 }
 
 repositories {

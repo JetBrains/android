@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace = "google.simpleapplication"
     compileSdkVersion 23
     useLibrary 'org.apache.http.legacy'
 

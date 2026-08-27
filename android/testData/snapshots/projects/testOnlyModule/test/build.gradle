@@ -16,6 +16,7 @@
 apply plugin: 'com.android.test'
 
 android {
+  namespace 'com.example.android.app.benchmark'
   compileSdkVersion 19
 
   defaultConfig {
@@ -25,8 +26,7 @@ android {
     testApplicationId 'com.example.android.app.testmodule'
   }
 
-  targetProjectPath ':app'
-  targetVariant 'debug'
+  targetProjectPath = ':app'
 }
 
 repositories {

@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace = 'come.example.with.gradle.metadata'
     compileSdkVersion 99
 }
 

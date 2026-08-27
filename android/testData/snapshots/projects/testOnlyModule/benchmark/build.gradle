@@ -16,6 +16,7 @@
 apply plugin: 'com.android.test'
 
 android {
+  namespace 'com.example.android.benchmark'
   compileSdkVersion 19
 
   defaultConfig {
@@ -24,8 +25,7 @@ android {
     // Do not configure testApplicationId here and instead leave it configured in the manifest.
   }
 
-  targetProjectPath ':app'
-  targetVariant 'benchmark'
+  targetProjectPath = ':app'
 
   buildTypes {
     // This benchmark buildType is used for benchmarking, and should function like your
@@ -33,7 +33,7 @@ android {
     // for easy local/CI testing.
     benchmark {
       debuggable = true
-      signingConfig = debug.signingConfig
+      signingConfig = signingConfigs.debug
       matchingFallbacks = ["release"]
     }
   }
