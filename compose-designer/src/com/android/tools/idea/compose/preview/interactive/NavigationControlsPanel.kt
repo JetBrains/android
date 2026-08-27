@@ -39,10 +39,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.android.tools.adtui.compose.IntUiPaletteDefaults
 import com.android.tools.idea.compose.preview.BackNavigationEdge
 import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.message
@@ -174,7 +172,12 @@ fun NavigationControlsPanel(
               // The contentDescription is not needed as this icon is decorative to a text label which describes already what the button
               // does.
               contentDescription = null,
-              tint = Color(IntUiPaletteDefaults.Dark.Green7),
+              tint =
+                if (backNavigationAvailable) {
+                  JewelTheme.globalColors.text.normal
+                } else {
+                  JewelTheme.globalColors.text.disabled
+                },
             )
             Text(text = message("action.navigate.back.button.text"), maxLines = 1, softWrap = false)
           }
@@ -241,7 +244,12 @@ private fun DropDownAction(
     verticalArrangement = Arrangement.spacedBy(DEFAULT_SPACING, Alignment.CenterVertically),
     horizontalArrangement = Arrangement.spacedBy(DEFAULT_SPACING),
   ) {
-    val labelColor = if (enabled) JewelTheme.globalColors.text.normal else JewelTheme.globalColors.text.disabled
+    val labelColor =
+      if (enabled) {
+        JewelTheme.globalColors.text.normal
+      } else {
+        JewelTheme.globalColors.text.disabled
+      }
     Text(text = label, modifier = Modifier.padding(vertical = DEFAULT_SPACING), color = labelColor, maxLines = 1, softWrap = false)
     Tooltip(tooltip = { Text(message("action.navigate.back.navigation.edge.disabled.tooltip")) }, enabled = !enabled) {
       Dropdown(
