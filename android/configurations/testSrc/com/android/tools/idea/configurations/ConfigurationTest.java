@@ -77,6 +77,7 @@ public class ConfigurationTest extends AndroidTestCase {
       configuration.setDevice(device, false);
       assertNotNull(deviceState);
       configuration.setDeviceState(deviceState);
+      assertSame(deviceState, configuration.getCachedDeviceState());
     }
     configuration.setLocale(Locale.create("en-rUS"));
     configuration.finishBulkEditing();

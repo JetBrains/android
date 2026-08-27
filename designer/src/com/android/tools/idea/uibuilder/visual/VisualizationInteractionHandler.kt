@@ -115,7 +115,7 @@ class VisualizationInteractionHandler(
       if (cachedDevice != sourceDevice) {
         setDevice(sourceDevice, true)
       }
-      deviceState = source.deviceState
+      deviceState = source.cachedDeviceState
       nightMode = source.nightMode
       uiMode = source.uiMode
       locale = source.locale

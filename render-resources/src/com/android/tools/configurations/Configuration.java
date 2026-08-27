@@ -244,6 +244,15 @@ public class Configuration {
   }
 
   /**
+   * Returns the current value of the effective device state. Please note this will return the cached value of the field, which is actually
+   * computed in {@link #getDeviceState()}.
+   */
+  @Nullable
+  public State getCachedDeviceState() {
+    return myDeviceStateResolver.getCachedState();
+  }
+
+  /**
    * Returns the chosen locale
    *
    * @return the locale
