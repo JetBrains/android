@@ -15,79 +15,87 @@
  */
 package com.android.tools.idea.npw.templateengine.ui
 
+import com.android.template.engine.TemplateDefinition
+import com.android.template.engine.TemplateDefinitionStorage
+import com.android.template.engine.TemplateEngineFactory
+import com.android.template.engine.TemplateFile
+import com.android.template.engine.TemplateFileEntry
+import com.android.template.engine.TemplateFileLoader
+import com.android.template.engine.TemplateMessageSink
+import com.android.template.engine.TemplateMetadata
 import com.android.tools.idea.testing.ResolvedAgpVersionSoftwareEnvironment
 import java.io.File
 
 object TemplateEngineTestUtils {
-  /**
-   * Patches generated project build files and sources so that they compile and assemble offline across different AGP (8.x and 9.0+) and
-   * Kotlin Gradle Plugin versions in tests.
-   */
-  fun patchAdditionalVersions(projectRoot: File, resolvedAgp: ResolvedAgpVersionSoftwareEnvironment) {
-    val appBuildGradle = File(projectRoot, "app/build.gradle.kts")
-    val isAgp9 = isAgp9OrHigher(resolvedAgp.agpVersion)
-    val kotlinVersion = resolvedAgp.kotlinVersion
+  fun createTestTemplateMetadata(
+    name: String = "Test Template",
+    shortName: String = "test-template",
+    tags: List<String> = emptyList(),
+  ): TemplateMetadata {
+    val json =
+      """
+      {
+        "name": "$name",
+        "short-name": "$shortName",
+        "tags": [${tags.joinToString(",") { "\"$it\"" }}]
+      }
+      """
+        .trimIndent()
+    return TemplateEngineFactory.createDefault()
+      .createTemplateListBuilder(TemplateMessageSink.createDefault(TemplateMessageSink.Severity.Error))
+      .parseTemplateMetadata("template-definition.json", json)!!
+  }
 
+  fun createTestTemplateDefinition(
+    name: String = "Test Template",
+    shortName: String = "test-template",
+    tags: List<String> = emptyList(),
+    files: List<TemplateFileEntry> = emptyList(),
+    extraFiles: List<TemplateFileEntry> = emptyList(),
+  ): TemplateDefinition {
+    val metadata = createTestTemplateMetadata(name, shortName, tags)
+    val dummyLoader =
+      object : TemplateFileLoader {
+        override val storage: TemplateDefinitionStorage =
+          object : TemplateDefinitionStorage {
+            override fun open(): TemplateDefinitionStorage.Handle =
+              object : TemplateDefinitionStorage.Handle {
+                override fun close() {}
+              }
+          }
+
+        override fun <R> withLoader(block: (TemplateFileLoader.Loader) -> R): R =
+          block(
+            object : TemplateFileLoader.Loader {
+              override fun loadFile(entry: TemplateFileEntry): TemplateFile = TemplateFile(entry.relativePath, ByteArray(0))
+            }
+          )
+      }
+    return TemplateDefinition(metadata, files, extraFiles, dummyLoader)
+  }
+
+  /** Patches generated project build files and sources so that they compile and assemble cleanly in Bazel test environment. */
+  fun patchAdditionalVersions(projectRoot: File, resolvedAgp: ResolvedAgpVersionSoftwareEnvironment? = null) {
+    val appBuildGradle = File(projectRoot, "app/build.gradle.kts")
     if (appBuildGradle.exists()) {
       var content = appBuildGradle.readText()
       content = content.replace(Regex("""alias\(libs\.plugins\.kotlin\.serialization\)"""), "")
-
-      if (isAgp9) {
-        if (content.contains("id(\"org.jetbrains.kotlin.android\")")) {
-          content = content.replace("id(\"org.jetbrains.kotlin.android\")", "id(\"org.jetbrains.kotlin.plugin.compose\")")
-        } else if (!content.contains("id(\"org.jetbrains.kotlin.plugin.compose\")")) {
-          content =
-            content.replace(
-              "id(\"com.android.application\")",
-              "id(\"com.android.application\")\n    id(\"org.jetbrains.kotlin.plugin.compose\")",
-            )
-        }
-        content = content.replace(Regex("""kotlinOptions\s*\{[\s\S]*?\}"""), "")
-        content = content.replace(Regex("""composeOptions\s*\{[\s\S]*?\}"""), "")
-      } else {
-        if (content.contains("id(\"org.jetbrains.kotlin.android\")")) {
-          content =
-            content.replace(
-              "id(\"org.jetbrains.kotlin.android\")",
-              "id(\"org.jetbrains.kotlin.android\")\n    id(\"org.jetbrains.kotlin.plugin.compose\")",
-            )
-        } else {
-          content =
-            content.replace(
-              "id(\"com.android.application\")",
-              "id(\"com.android.application\")\n    id(\"org.jetbrains.kotlin.plugin.compose\")",
-            )
-        }
-      }
-
       content = content.replace(Regex("""kotlin\s*\{\s*jvmToolchain\(\s*17\s*\)\s*\}"""), "")
       content = content.replace(Regex("""compileSdk(Version)?\s*(=\s*)?"?(android-)?\d+"?"""), "compileSdk = 36")
-
       appBuildGradle.writeText(content)
     }
+
     val rootBuildGradle = File(projectRoot, "build.gradle.kts")
     if (rootBuildGradle.exists()) {
       var content = rootBuildGradle.readText()
       content = content.replace(Regex("""alias\(libs\.plugins\.kotlin\.serialization\)\s*(apply\s+false)?"""), "")
-      if (isAgp9) {
-        content =
-          content.replace(
-            Regex("""id\("org\.jetbrains\.kotlin\.android"\)\s+version\s+"[^"]+"\s+apply\s+false"""),
-            "id(\"org.jetbrains.kotlin.plugin.compose\") version \"$kotlinVersion\" apply false",
-          )
-      } else {
-        content =
-          content.replace(
-            Regex("""id\("org\.jetbrains\.kotlin\.android"\)\s+version\s+"[^"]+"\s+apply\s+false"""),
-            "id(\"org.jetbrains.kotlin.android\") version \"$kotlinVersion\" apply false\n    id(\"org.jetbrains.kotlin.plugin.compose\") version \"$kotlinVersion\" apply false",
-          )
-      }
       rootBuildGradle.writeText(content)
     }
+
     val libsVersionsToml = File(projectRoot, "gradle/libs.versions.toml")
-    if (libsVersionsToml.exists()) {
+    if (libsVersionsToml.exists() && resolvedAgp != null) {
       var content = libsVersionsToml.readText()
-      content = content.replace(Regex("""\bkotlin\s*=\s*"[^"]+""""), "kotlin = \"$kotlinVersion\"")
+      content = content.replace(Regex("""\bkotlin\s*=\s*"[^"]+""""), "kotlin = \"${resolvedAgp.kotlinVersion}\"")
       libsVersionsToml.writeText(content)
     }
 
@@ -125,10 +133,5 @@ object TemplateEngineTestUtils {
       )
     }
     File(projectRoot, "app/src/androidTest").deleteRecursively()
-  }
-
-  fun isAgp9OrHigher(agpVersion: String): Boolean {
-    val major = agpVersion.substringBefore('.').toIntOrNull() ?: return false
-    return major >= 9
   }
 }
