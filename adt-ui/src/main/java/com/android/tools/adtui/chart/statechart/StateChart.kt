@@ -98,6 +98,17 @@ class StateChart<T : Any>(
     preferredSize = Dimension(preferredSize.width, JBUI.scale(PREFERRED_ROW_HEIGHT) * model.series.size)
   }
 
+  override fun updateUI() {
+    super.updateUI()
+    font = AdtUiUtils.DEFAULT_FONT
+    needsTransformToViewSpace = true
+    @Suppress("SENSELESS_COMPARISON")
+    if (model != null) {
+      preferredSize = Dimension(preferredSize.width, JBUI.scale(PREFERRED_ROW_HEIGHT) * model.series.size)
+    }
+    opaqueRepaint()
+  }
+
   @JvmOverloads
   constructor(
     model: StateChartModel<T>,

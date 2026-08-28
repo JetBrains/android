@@ -34,6 +34,7 @@ import java.awt.Component
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent.VK_ENTER
 import javax.swing.JCheckBox
+import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
 
@@ -323,5 +324,33 @@ class TrackGroupTest {
 
     tag1CheckBox.isSelected = false
     assertThat(trackGroupModel.size).isEqualTo(0)
+  }
+
+  @Test
+  fun trackListUpdateUIPropagatesToCachedTracks() {
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").build()
+    val trackModel = TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar")
+    trackGroupModel.addTrackModel(trackModel)
+    val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
+
+    // Trigger cell rendering to populate myTrackMap
+    val renderer = trackGroup.trackList.cellRenderer
+    val builtModel = trackGroup.getTrackModelAt(0)
+    renderer.getListCellRendererComponent(trackGroup.trackList, builtModel, 0, false, false)
+    val cachedTrack = trackGroup.trackMap[builtModel.id]
+    assertThat(cachedTrack).isNotNull()
+
+    var trackUIUpdated = false
+    val testChildComponent =
+      object : JPanel() {
+        override fun updateUI() {
+          super.updateUI()
+          trackUIUpdated = true
+        }
+      }
+    cachedTrack!!.titleFrontPanel.add(testChildComponent)
+
+    trackGroup.trackList.updateUI()
+    assertThat(trackUIUpdated).isTrue()
   }
 }

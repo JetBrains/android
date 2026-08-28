@@ -32,6 +32,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
@@ -143,7 +144,7 @@ public class Track {
   }
 
   /**
-   * Update UI states to reflect selection and theme changes.
+   * Update UI states to reflect selection state.
    *
    * @return current instance
    */
@@ -152,10 +153,14 @@ public class Track {
     myTitleFrontPanel.setBackground(selected ? StudioColorsKt.getSelectionOverlayBackground() : null);
     myTitleBackPanel.setBorder(selected ? TITLE_BORDER_SELECTED : TITLE_BORDER_DEFAULT);
     myTrackContent.setBorder(selected ? CONTENT_BORDER_SELECTED : CONTENT_BORDER_DEFAULT);
-    // Manually call updateUI to reflect potential theme changes.
-    myTitleLabel.updateUI();
-    myTrackContent.updateUI();
     return this;
+  }
+
+  /**
+   * Update the UI tree of this track to reflect Look and Feel / theme changes.
+   */
+  public void updateUI() {
+    SwingUtilities.updateComponentTreeUI(myComponent);
   }
 
   /**

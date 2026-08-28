@@ -59,6 +59,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,7 +109,17 @@ public class TrackGroup extends AspectObserver {
     myTrackMap = new HashMap<>();
 
     // Initializes UI components.
-    myTrackList = new DragAndDropList<>(groupModel);
+    myTrackList = new DragAndDropList<>(groupModel) {
+      @Override
+      public void updateUI() {
+        super.updateUI();
+        if (myTrackMap != null) {
+          for (Track track : myTrackMap.values()) {
+            track.updateUI();
+          }
+        }
+      }
+    };
     myTrackList.setCellRenderer(new ListCellRenderer<TrackModel>() {
       @Override
       public Component getListCellRendererComponent(JList<? extends TrackModel> list,

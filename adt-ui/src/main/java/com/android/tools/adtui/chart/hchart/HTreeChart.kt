@@ -119,6 +119,14 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
     rootChanged()
   }
 
+  override fun updateUI() {
+    super.updateUI()
+    font = AdtUiUtils.DEFAULT_FONT
+    canvas = null
+    dataUpdated = true
+    opaqueRepaint()
+  }
+
   private fun rangeChanged() {
     dataUpdated = true
     opaqueRepaint()

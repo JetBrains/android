@@ -352,6 +352,15 @@ class HTreeChartTest {
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(18.0)
   }
 
+  @Test
+  fun testUpdateUIResetsCanvas() {
+    // Render once to populate canvas
+    myUi.render()
+    myChart.updateUI()
+    // Verify render succeeds after updateUI without error
+    myUi.render()
+  }
+
   class FakeRenderer : DefaultHRenderer<String>() {
     override fun getFillColor(nodeData: String) = Color.white
 
