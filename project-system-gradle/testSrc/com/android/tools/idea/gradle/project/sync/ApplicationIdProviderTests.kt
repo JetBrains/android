@@ -140,7 +140,6 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX, executeMakeBeforeRun = false),
       expectPackageName = "one.name.defaultConfig.debug",
       expectTestPackageName = "(null)",
-      expectSyncIssueContent = ALL_LEGACY_WARNINGS,
     ),
     def(
       stackMarker = { it() },
@@ -151,7 +150,6 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       expectPackageName = "one.name.defaultConfig.debug",
       expectTestPackageName = "one.name.test_app",
-      expectSyncIssueContent = ALL_LEGACY_WARNINGS,
     ),
     def(
       stackMarker = { it() },
