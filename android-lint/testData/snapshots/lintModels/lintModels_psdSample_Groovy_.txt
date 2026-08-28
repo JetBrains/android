@@ -64,6 +64,8 @@ MODULE                        : project.app
                     com.example.jlib:lib3         : null => com.example.jlib:lib3:1.0
                     com.example.jlib:lib4         : null => com.example.jlib:lib4:1.0
                     com.example.libs:lib2         : null => com.example.libs:lib2:1.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -99,6 +101,9 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/basicBarDebug/compileBasicBarDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/basicBarDebug/generateBasicBarDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes [-]
         TestArtifact
@@ -139,6 +144,8 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -175,6 +182,9 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/basicBarDebugUnitTest/compileBasicBarDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.psd.sample.app.default.test
@@ -229,6 +239,8 @@ MODULE                        : project.app
                 org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::app                : null => :app@main
                 artifacts::lib                : null => :lib@main
@@ -245,6 +257,7 @@ MODULE                        : project.app
                 org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
+        - ClassOutputs                : <ROOT>/app/build/intermediates/built_in_kotlinc/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_r_class_jar/basicBarDebugAndroidTest/generateBasicBarDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
@@ -792,6 +805,14 @@ MODULE                        : project.app
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                 Identifier                    : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
@@ -853,6 +874,8 @@ MODULE                        : project.dyn_feature
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -886,6 +909,9 @@ MODULE                        : project.dyn_feature
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/built_in_kotlinc/basicBarDebug/compileBasicBarDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_r_class_jar/basicBarDebug/generateBasicBarDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes [-]
         TestArtifact
@@ -924,6 +950,8 @@ MODULE                        : project.dyn_feature
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     __non_maven__:./app/libs/lib1-1.0.aar   : null => ./app/libs/lib1-1.0.aar
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -958,6 +986,9 @@ MODULE                        : project.dyn_feature
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/built_in_kotlinc/basicBarDebugUnitTest/compileBasicBarDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
             - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.dyn_feature.test
@@ -998,9 +1029,12 @@ MODULE                        : project.dyn_feature
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::app                : null => :app@main
                 artifacts::dyn_feature        : null => :dyn_feature@main
+        - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/built_in_kotlinc/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_r_class_jar/basicBarDebugAndroidTest/generateBasicBarDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 1
@@ -1424,6 +1458,14 @@ MODULE                        : project.dyn_feature
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.dyn_feature.androidTest
 MODULE                        : project.dyn_feature.main
 MODULE                        : project.dyn_feature.unitTest
@@ -1487,6 +1529,8 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -1519,6 +1563,9 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
@@ -1556,6 +1603,8 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -1589,6 +1638,9 @@ MODULE                        : project.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.projectwithappandlib.lib.test
@@ -1628,6 +1680,8 @@ MODULE                        : project.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 android.arch.core:common      : null => android.arch.core:common:1.1.1
                 android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -1661,6 +1715,9 @@ MODULE                        : project.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/lib/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
@@ -2033,6 +2090,14 @@ MODULE                        : project.lib
                 ExternalAnnotations           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.lib.androidTest
 MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
@@ -2062,15 +2127,25 @@ MODULE                        : project.nested1
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested1/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested1/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
                     artifacts::nested1            : null => :nested1@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::nested1            : null => :nested1@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested1/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested1/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested1.test
@@ -2079,8 +2154,13 @@ MODULE                        : project.nested1
         Dependencies
             CompileDependencies
                 artifacts::nested1            : null => :nested1@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::nested1            : null => :nested1@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/nested1/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 1
@@ -2121,6 +2201,14 @@ MODULE                        : project.nested1
             LintModelLibrary              : LocalLibrary(:nested1)
                 Identifier                    : :nested1@main
                 ProjectPath                   : :nested1
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
     Dir                           : <ROOT>/nested1/deep
@@ -2148,15 +2236,25 @@ MODULE                        : project.nested1.deep
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
                     artifacts::nested1:deep       : null => :nested1:deep@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::nested1:deep       : null => :nested1:deep@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested1.deep.test
@@ -2165,8 +2263,13 @@ MODULE                        : project.nested1.deep
         Dependencies
             CompileDependencies
                 artifacts::nested1:deep       : null => :nested1:deep@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::nested1:deep       : null => :nested1:deep@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 1
@@ -2209,6 +2312,14 @@ MODULE                        : project.nested1.deep
             LintModelLibrary              : LocalLibrary(:nested1:deep)
                 Identifier                    : :nested1:deep@main
                 ProjectPath                   : :nested1:deep
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.nested1.deep.androidTest
 MODULE                        : project.nested1.deep.main
 MODULE                        : project.nested1.deep.unitTest
@@ -2240,15 +2351,25 @@ MODULE                        : project.nested2
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested2/build/intermediates/built_in_kotlinc/basicDebug/compileBasicDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested2/build/intermediates/compile_r_class_jar/basicDebug/generateBasicDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/build/intermediates/javac/basicDebug/compileBasicDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
                     artifacts::nested2            : null => :nested2@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::nested2            : null => :nested2@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested2/build/intermediates/built_in_kotlinc/basicDebugUnitTest/compileBasicDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested2/build/intermediates/compile_and_runtime_r_class_jar/basicDebugUnitTest/generateBasicDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/compileBasicDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.test
@@ -2257,8 +2378,13 @@ MODULE                        : project.nested2
         Dependencies
             CompileDependencies
                 artifacts::nested2            : null => :nested2@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::nested2            : null => :nested2@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/nested2/build/intermediates/built_in_kotlinc/basicDebugAndroidTest/compileBasicDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/nested2/build/intermediates/compile_r_class_jar/basicDebugAndroidTest/generateBasicDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/compileBasicDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 1
@@ -2319,6 +2445,14 @@ MODULE                        : project.nested2
             LintModelLibrary              : LocalLibrary(:nested2)
                 Identifier                    : :nested2@main
                 ProjectPath                   : :nested2
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
     Dir                           : <ROOT>/nested2/deep
@@ -2346,15 +2480,25 @@ MODULE                        : project.nested2.deep
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
                     artifacts::nested2:deep       : null => :nested2:deep@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::nested2:deep       : null => :nested2:deep@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.deep.test
@@ -2363,8 +2507,13 @@ MODULE                        : project.nested2.deep
         Dependencies
             CompileDependencies
                 artifacts::nested2:deep       : null => :nested2:deep@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::nested2:deep       : null => :nested2:deep@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 1
@@ -2405,6 +2554,14 @@ MODULE                        : project.nested2.deep
             LintModelLibrary              : LocalLibrary(:nested2:deep)
                 Identifier                    : :nested2:deep@main
                 ProjectPath                   : :nested2:deep
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.nested2.deep.androidTest
 MODULE                        : project.nested2.deep.main
 MODULE                        : project.nested2.deep.unitTest
@@ -2436,15 +2593,25 @@ MODULE                        : project.nested2.trans.deep2
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
                     artifacts::nested2:trans:deep2          : null => :nested2:trans:deep2@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     artifacts::nested2:trans:deep2          : null => :nested2:trans:deep2@main
+                    org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+            - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes [-]
             - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
             - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.example.nested2.trans.deep2.test
@@ -2453,8 +2620,13 @@ MODULE                        : project.nested2.trans.deep2
         Dependencies
             CompileDependencies
                 artifacts::nested2:trans:deep2          : null => :nested2:trans:deep2@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::nested2:trans:deep2          : null => :nested2:trans:deep2@main
+                org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
+        - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes [-]
         - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar [-]
         - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 1
@@ -2495,6 +2667,14 @@ MODULE                        : project.nested2.trans.deep2
             LintModelLibrary              : LocalLibrary(:nested2:trans:deep2)
                 Identifier                    : :nested2:trans:deep2@main
                 ProjectPath                   : :nested2:trans:deep2
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
+                - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                Identifier                    : org.jetbrains:annotations:13.0
+                ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : project.nested2.trans.deep2.androidTest
 MODULE                        : project.nested2.trans.deep2.main
 MODULE                        : project.nested2.trans.deep2.unitTest

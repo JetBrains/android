@@ -47,6 +47,7 @@ AgpFlags
     AndroidResourcesEnabled       : true
     DataBindingEnabled            : false
     GenerateManifestClass         : false
+    BuiltInKotlinDefaultEnabled   : true
 - basicVariant:               : basicBarDebug
     applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
     testApplicationId             : com.example.psd.sample.app.default.test
@@ -1205,6 +1206,16 @@ LIBRARY_TABLE
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
         component                     : org.hamcrest:hamcrest-library:1.3
         - srcJars                     : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3-sources.jar
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+        artifactAddress               : org.jetbrains:annotations:13.0@jar
+        component                     : org.jetbrains:annotations:13.0
+        docJar                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-javadoc.jar
+        - srcJars                     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
     - library                     : <ROOT>::app@basicBarDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
@@ -1274,6 +1285,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicBarDebug/compileBasicBarDebugKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicBarDebug/generateBasicBarDebugRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -1435,6 +1447,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1581,6 +1596,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1616,6 +1634,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicBarDebugAndroidTest/generateBasicBarDebugAndroidTestRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -1777,6 +1796,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1791,6 +1813,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 runtimeClasspath
             ProvidedDependencies
                 - provided                    : android.arch.core:common:1.1.1
@@ -1837,6 +1860,8 @@ IdeVariants
                 - provided                    : org.hamcrest:hamcrest-core:1.3
                 - provided                    : org.hamcrest:hamcrest-integration:1.3
                 - provided                    : org.hamcrest:hamcrest-library:1.3
+                - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - provided                    : org.jetbrains:annotations:13.0
             ApplicationId                 : com.example.psd.sample.app.default.test
             SigningConfigName             : debug
             IsSigned                      : true
@@ -1860,6 +1885,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicBarDebugUnitTest/compileBasicBarDebugUnitTestKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -2020,6 +2046,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -2034,6 +2063,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 runtimeClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2168,6 +2198,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -2182,6 +2215,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
                         androidLibrary                : com.android.support.test.espresso:espresso-core:3.0.2@aar
@@ -2217,6 +2251,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebug/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicOtherBarDebug/compileBasicOtherBarDebugKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicOtherBarDebug/generateBasicOtherBarDebugRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebug/compileBasicOtherBarDebugJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -2378,6 +2413,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -2524,6 +2562,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -2559,6 +2600,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateBasicOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugAndroidTest/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicOtherBarDebugAndroidTest/compileBasicOtherBarDebugAndroidTestKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicOtherBarDebugAndroidTest/generateBasicOtherBarDebugAndroidTestRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugAndroidTest/compileBasicOtherBarDebugAndroidTestJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -2720,6 +2762,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -2734,6 +2779,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 runtimeClasspath
             ProvidedDependencies
                 - provided                    : android.arch.core:common:1.1.1
@@ -2780,6 +2826,8 @@ IdeVariants
                 - provided                    : org.hamcrest:hamcrest-core:1.3
                 - provided                    : org.hamcrest:hamcrest-integration:1.3
                 - provided                    : org.hamcrest:hamcrest-library:1.3
+                - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - provided                    : org.jetbrains:annotations:13.0
             ApplicationId                 : com.example.psd.sample.app.default.test
             SigningConfigName             : debug
             IsSigned                      : true
@@ -2803,6 +2851,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugUnitTest/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicOtherBarDebugUnitTest/compileBasicOtherBarDebugUnitTestKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/basicOtherBarDebug/processBasicOtherBarDebugResources/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugUnitTest/compileBasicOtherBarDebugUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -2963,6 +3012,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -2977,6 +3029,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 runtimeClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -3111,6 +3164,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -3125,6 +3181,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
                         androidLibrary                : com.android.support.test.espresso:espresso-core:3.0.2@aar
@@ -3161,6 +3218,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebug/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidBarDebug/compilePaidBarDebugKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/paidBarDebug/generatePaidBarDebugRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebug/compilePaidBarDebugJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -3322,6 +3380,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -3468,6 +3529,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -3503,6 +3567,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generatePaidBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugAndroidTest/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidBarDebugAndroidTest/compilePaidBarDebugAndroidTestKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/paidBarDebugAndroidTest/generatePaidBarDebugAndroidTestRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugAndroidTest/compilePaidBarDebugAndroidTestJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -3664,6 +3729,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -3678,6 +3746,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 runtimeClasspath
             ProvidedDependencies
                 - provided                    : android.arch.core:common:1.1.1
@@ -3724,6 +3793,8 @@ IdeVariants
                 - provided                    : org.hamcrest:hamcrest-core:1.3
                 - provided                    : org.hamcrest:hamcrest-integration:1.3
                 - provided                    : org.hamcrest:hamcrest-library:1.3
+                - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - provided                    : org.jetbrains:annotations:13.0
             ApplicationId                 : com.example.psd.sample.app.paid.test
             SigningConfigName             : debug
             IsSigned                      : true
@@ -3747,6 +3818,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugUnitTest/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidBarDebugUnitTest/compilePaidBarDebugUnitTestKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/paidBarDebug/processPaidBarDebugResources/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugUnitTest/compilePaidBarDebugUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -3907,6 +3979,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -3921,6 +3996,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 runtimeClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -4055,6 +4131,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -4069,6 +4148,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
                         androidLibrary                : com.android.support.test.espresso:espresso-core:3.0.2@aar
@@ -4108,6 +4188,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebug/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidOtherBarDebug/compilePaidOtherBarDebugKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/paidOtherBarDebug/generatePaidOtherBarDebugRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebug/compilePaidOtherBarDebugJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -4269,6 +4350,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -4415,6 +4499,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -4450,6 +4537,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generatePaidOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugAndroidTest/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidOtherBarDebugAndroidTest/compilePaidOtherBarDebugAndroidTestKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/paidOtherBarDebugAndroidTest/generatePaidOtherBarDebugAndroidTestRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugAndroidTest/compilePaidOtherBarDebugAndroidTestJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -4611,6 +4699,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -4625,6 +4716,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 runtimeClasspath
             ProvidedDependencies
                 - provided                    : android.arch.core:common:1.1.1
@@ -4671,6 +4763,8 @@ IdeVariants
                 - provided                    : org.hamcrest:hamcrest-core:1.3
                 - provided                    : org.hamcrest:hamcrest-integration:1.3
                 - provided                    : org.hamcrest:hamcrest-library:1.3
+                - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - provided                    : org.jetbrains:annotations:13.0
             ApplicationId                 : com.example.psd.sample.app.paid.test
             SigningConfigName             : debug
             IsSigned                      : true
@@ -4694,6 +4788,7 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugUnitTest/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidOtherBarDebugUnitTest/compilePaidOtherBarDebugUnitTestKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_r_class_jar/paidOtherBarDebug/processPaidOtherBarDebugResources/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugUnitTest/compilePaidOtherBarDebugUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -4854,6 +4949,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -4868,6 +4966,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 runtimeClasspath
                     androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -5002,6 +5101,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -5016,6 +5118,7 @@ IdeVariants
                     javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
                     module                        : <ROOT>-:app-MAIN
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         androidLibrary                : com.android.support.constraint:constraint-layout:1.1.0@aar
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
                         androidLibrary                : com.android.support.test.espresso:espresso-core:3.0.2@aar
@@ -5051,6 +5154,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarRelease/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicBarRelease/compileBasicBarReleaseKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicBarRelease/generateBasicBarReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarRelease/compileBasicBarReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -5212,6 +5316,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -5358,6 +5465,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -5420,6 +5530,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarRelease/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicOtherBarRelease/compileBasicOtherBarReleaseKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicOtherBarRelease/generateBasicOtherBarReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarRelease/compileBasicOtherBarReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -5581,6 +5692,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -5727,6 +5841,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -5790,6 +5907,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarRelease/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidBarRelease/compilePaidBarReleaseKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/paidBarRelease/generatePaidBarReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarRelease/compilePaidBarReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -5951,6 +6069,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -6097,6 +6218,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -6163,6 +6287,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarRelease/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidOtherBarRelease/compilePaidOtherBarReleaseKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/paidOtherBarRelease/generatePaidOtherBarReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarRelease/compilePaidOtherBarReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -6324,6 +6449,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -6470,6 +6598,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -6526,6 +6657,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialRelease/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicBarSpecialRelease/compileBasicBarSpecialReleaseKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicBarSpecialRelease/generateBasicBarSpecialReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialRelease/compileBasicBarSpecialReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -6687,6 +6819,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -6833,6 +6968,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -6891,6 +7029,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialRelease/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/basicOtherBarSpecialRelease/compileBasicOtherBarSpecialReleaseKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/basicOtherBarSpecialRelease/generateBasicOtherBarSpecialReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialRelease/compileBasicOtherBarSpecialReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -7052,6 +7191,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -7198,6 +7340,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -7257,6 +7402,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialRelease/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidBarSpecialRelease/compilePaidBarSpecialReleaseKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/paidBarSpecialRelease/generatePaidBarSpecialReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialRelease/compilePaidBarSpecialReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -7418,6 +7564,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -7564,6 +7713,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -7626,6 +7778,7 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialRelease/out [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/built_in_kotlinc/paidOtherBarSpecialRelease/compilePaidOtherBarSpecialReleaseKotlin/classes [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/paidOtherBarSpecialRelease/generatePaidOtherBarSpecialReleaseRFile/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialRelease/compilePaidOtherBarSpecialReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
@@ -7787,6 +7940,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -7933,6 +8089,9 @@ IdeVariants
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     javaLibrary                   : android.arch.core:common:1.1.1@jar
                         javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                    javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
                     javaLibrary                   : junit:junit:4.12@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar

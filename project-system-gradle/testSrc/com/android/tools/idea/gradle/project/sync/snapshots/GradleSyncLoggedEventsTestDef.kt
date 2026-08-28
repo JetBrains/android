@@ -165,7 +165,11 @@ data class GradleSyncLoggedEventsTestDef(
             .isEqualTo(
               """
               |Module count: 11
-              |Library count: 48
+              |Library count: ${
+                if (agpVersion < AgpVersionSoftwareEnvironmentDescriptor.AGP_9_0) {
+                  "48"
+                } else "50"
+              }
               |total_module_count: 11
               |app_module_count: 1
               |lib_module_count: 6

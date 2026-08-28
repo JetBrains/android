@@ -101,7 +101,7 @@ class AndroidModuleDescriptorsTest {
       assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_11))
       assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
 
-      assertThat(kotlinJvmTarget.resolved.asTestValue(), nullValue())
+      assertThat(kotlinJvmTarget.resolved.asTestValue(), equalTo(LanguageLevel.JDK_11))
       assertThat(kotlinJvmTarget.parsedValue.asTestValue(), nullValue())
 
       assertThat(viewBindingEnabled.resolved.asTestValue(), equalTo(false))

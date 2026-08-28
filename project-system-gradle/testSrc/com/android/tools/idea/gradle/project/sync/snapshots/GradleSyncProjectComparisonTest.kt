@@ -213,10 +213,18 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
 private fun String.filterOutProperties(
   filterProperties: Set<String> = PROPERTIES_TO_SKIP_BY_PREFIXES,
   addPropertyNameToLine: Boolean = true,
-): String =
-  this.splitToSequence('\n')
+): String {
+  var inKotlinFacet = false
+  return this.splitToSequence('\n')
     .nameProperties()
-    .filter { (property, line) -> !filterProperties.any { property.startsWith(it) } }
+    .filter { (property, line) ->
+      if (property == "PROJECT/MODULE/FACET") {
+        inKotlinFacet = line.trimStart().removePrefix("- ").startsWith("FACET") && line.contains("Kotlin")
+      } else if (!property.startsWith("PROJECT/MODULE/FACET/")) {
+        inKotlinFacet = false
+      }
+      !inKotlinFacet && !filterProperties.any { property.startsWith(it) }
+    }
     .map {
       if (addPropertyNameToLine) {
         it.first + " >> " + it.second
@@ -225,6 +233,7 @@ private fun String.filterOutProperties(
       }
     }
     .joinToString(separator = "\n")
+}
 
 private fun Sequence<String>.nameProperties() = com.android.tools.idea.testing.nameProperties(this)
 

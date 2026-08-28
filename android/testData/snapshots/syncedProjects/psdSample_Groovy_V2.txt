@@ -104,6 +104,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestBar [-]
@@ -250,6 +271,10 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
@@ -293,6 +318,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/bar [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/basic [-]
@@ -385,10 +430,13 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : project.lib.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/basicBarDebug/generateBasicBarDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/basicBarDebug/compileBasicBarDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :app:generateBasicBarDebugSources
                 ASSEMBLE                      : :app:assembleBasicBarDebug
@@ -432,6 +480,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:app:main]
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/testBar [-]
@@ -553,6 +622,10 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
@@ -649,6 +722,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:dyn_feature:main]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/androidTestBar [-]
@@ -767,6 +861,10 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
         ORDER_ENTRY                   : project.dyn_feature.main
@@ -811,6 +909,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/bar [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/basic [-]
@@ -898,6 +1016,8 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : project.app.main
         BUILD_TASKS
                 CLEAN                         : :dyn_feature:generateBasicBarDebugSources
@@ -940,6 +1060,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:dyn_feature:main]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/dyn_feature/src/testBar [-]
@@ -1056,6 +1197,10 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
@@ -1221,6 +1366,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:lib:main]
         CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/lib/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/lib/src/androidTestDebug [-]
@@ -1305,6 +1471,10 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.jav.main
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.main
@@ -1348,6 +1518,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/lib/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/lib/src/main
@@ -1402,10 +1592,13 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : project.jav.main
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/lib/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
@@ -1447,6 +1640,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:lib:main]
         CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/lib/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/lib/src/testDebug [-]
@@ -1530,6 +1744,10 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : project.jav.main
             Scope                         : Test
@@ -1626,6 +1844,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested1:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/src/androidTestDebug [-]
@@ -1650,6 +1889,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested1.main
             Scope                         : Test
         BUILD_TASKS
@@ -1743,6 +1986,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested1:deep:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/src/androidTestDebug [-]
@@ -1767,6 +2031,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested1.deep.main
             Scope                         : Test
         BUILD_TASKS
@@ -1808,6 +2076,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/src/main
@@ -1832,6 +2120,8 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         BUILD_TASKS
                 CLEAN                         : :nested1:deep:generateDebugSources
                 ASSEMBLE                      : :nested1:deep:assembleDebug
@@ -1873,6 +2163,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested1:deep:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/deep/src/testDebug [-]
@@ -1897,6 +2208,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested1.deep.main
             Scope                         : Test
         BUILD_TASKS
@@ -1938,6 +2253,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/src/main
@@ -1962,6 +2297,8 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         BUILD_TASKS
                 CLEAN                         : :nested1:generateDebugSources
                 ASSEMBLE                      : :nested1:assembleDebug
@@ -2003,6 +2340,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested1:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested1/src/testDebug [-]
@@ -2027,6 +2385,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested1.main
             Scope                         : Test
         BUILD_TASKS
@@ -2120,6 +2482,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested2:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/src/androidTestBasic [-]
@@ -2160,6 +2543,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested2.main
             Scope                         : Test
         BUILD_TASKS
@@ -2253,6 +2640,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested2:deep:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/src/androidTestDebug [-]
@@ -2277,6 +2685,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested2.deep.main
             Scope                         : Test
         BUILD_TASKS
@@ -2318,6 +2730,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/src/main
@@ -2342,6 +2774,8 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         BUILD_TASKS
                 CLEAN                         : :nested2:deep:generateDebugSources
                 ASSEMBLE                      : :nested2:deep:assembleDebug
@@ -2383,6 +2817,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested2:deep:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/deep/src/testDebug [-]
@@ -2407,6 +2862,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested2.deep.main
             Scope                         : Test
         BUILD_TASKS
@@ -2448,6 +2907,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/src/basic [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/src/basicDebug [-]
@@ -2488,6 +2967,8 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         BUILD_TASKS
                 CLEAN                         : :nested2:generateBasicDebugSources
                 ASSEMBLE                      : :nested2:assembleBasicDebug
@@ -2600,6 +3081,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested2:trans:deep2:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug [-]
@@ -2624,6 +3126,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested2.trans.deep2.main
             Scope                         : Test
         BUILD_TASKS
@@ -2665,6 +3171,26 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/src/main
@@ -2689,6 +3215,8 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         BUILD_TASKS
                 CLEAN                         : :nested2:trans:deep2:generateDebugSources
                 ASSEMBLE                      : :nested2:trans:deep2:assembleDebug
@@ -2730,6 +3258,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested2:trans:deep2:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/trans/deep2/src/testDebug [-]
@@ -2754,6 +3303,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested2.trans.deep2.main
             Scope                         : Test
         BUILD_TASKS
@@ -2797,6 +3350,27 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:nested2:main]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/nested2/src/testBasic [-]
@@ -2836,6 +3410,10 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : project.nested2.main
             Scope                         : Test
         BUILD_TASKS
@@ -2993,6 +3571,10 @@ PROJECT                       : project
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+            *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateBasicBarDebugAndroidTestSources, <PROJECT>::app:generateBasicBarDebugSources, <PROJECT>::dyn_feature:createMockableJar, <PROJECT>::dyn_feature:generateBasicBarDebugAndroidTestSources, <PROJECT>::dyn_feature:generateBasicBarDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources, <PROJECT>::nested1:createMockableJar, <PROJECT>::nested1:deep:createMockableJar, <PROJECT>::nested1:deep:generateDebugAndroidTestSources, <PROJECT>::nested1:deep:generateDebugSources, <PROJECT>::nested1:generateDebugAndroidTestSources, <PROJECT>::nested1:generateDebugSources, <PROJECT>::nested2:createMockableJar, <PROJECT>::nested2:deep:createMockableJar, <PROJECT>::nested2:deep:generateDebugAndroidTestSources, <PROJECT>::nested2:deep:generateDebugSources, <PROJECT>::nested2:generateBasicDebugAndroidTestSources, <PROJECT>::nested2:generateBasicDebugSources, <PROJECT>::nested2:trans:deep2:createMockableJar, <PROJECT>::nested2:trans:deep2:generateDebugAndroidTestSources, <PROJECT>::nested2:trans:deep2:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleBasicBarDebug, <PROJECT>::app:assembleBasicBarDebugAndroidTest, <PROJECT>::app:assembleBasicBarDebugUnitTest, <PROJECT>::dyn_feature:assembleBasicBarDebug, <PROJECT>::dyn_feature:assembleBasicBarDebugAndroidTest, <PROJECT>::dyn_feature:assembleBasicBarDebugUnitTest, <PROJECT>::jav:assemble, <PROJECT>::jav:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::nested1:assembleDebug, <PROJECT>::nested1:assembleDebugAndroidTest, <PROJECT>::nested1:assembleDebugUnitTest, <PROJECT>::nested1:deep:assembleDebug, <PROJECT>::nested1:deep:assembleDebugAndroidTest, <PROJECT>::nested1:deep:assembleDebugUnitTest, <PROJECT>::nested2:assembleBasicDebug, <PROJECT>::nested2:assembleBasicDebugAndroidTest, <PROJECT>::nested2:assembleBasicDebugUnitTest, <PROJECT>::nested2:deep:assembleDebug, <PROJECT>::nested2:deep:assembleDebugAndroidTest, <PROJECT>::nested2:deep:assembleDebugUnitTest, <PROJECT>::nested2:trans:deep2:assembleDebug, <PROJECT>::nested2:trans:deep2:assembleDebugAndroidTest, <PROJECT>::nested2:trans:deep2:assembleDebugUnitTest
