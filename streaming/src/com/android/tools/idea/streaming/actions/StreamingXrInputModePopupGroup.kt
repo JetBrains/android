@@ -17,19 +17,27 @@ package com.android.tools.idea.streaming.actions
 
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
+import com.android.tools.idea.streaming.core.findComponentForAction
 import com.android.tools.idea.streaming.xr.XrInputMode
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import icons.StudioIcons
 
 /** Displays a popup menu of XR input modes. */
-internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable {
+internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable, DumbAware {
 
   init {
     templatePresentation.isPerformGroup = true
+    addSeparator("App Interaction Mode")
+    val actionManager = ActionManager.getInstance()
+    actionManager.getAction("android.streaming.xr.interaction.hand")?.let(::add) ?: add(StreamingXrInputModeAction.InteractionHand())
+    actionManager.getAction("android.streaming.xr.interaction.eye")?.let(::add) ?: add(StreamingXrInputModeAction.InteractionEye())
+    actionManager.getAction("android.streaming.xr.interaction.mouse")?.let(::add) ?: add(StreamingXrInputModeAction.InteractionMouse())
   }
 
   override fun update(event: AnActionEvent) {
@@ -38,6 +46,10 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable
     if (controller?.isXrInputAvailable != true || !isHandAndEyeTrackingEnabled(event)) {
       presentation.isEnabledAndVisible = false
       return
+    }
+
+    ActionManager.getInstance().getAction("android.streaming.xr.interaction")?.let {
+      copyShortcutFrom(it)
     }
 
     presentation.enableRichTooltip(this)
@@ -87,7 +99,7 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable
             null,
             event.place,
           )
-      event.inputEvent?.component?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
+      event.findComponentForAction(this)?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
     }
   }
 }

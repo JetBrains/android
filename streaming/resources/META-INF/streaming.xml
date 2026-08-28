@@ -172,14 +172,18 @@
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
       </action>
+      <action id="android.streaming.xr.input.mode.dropdown"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModePopupGroup"
+              text="Interact with Apps"
+              description="Select mode of interaction with running apps"/>
       <action id="android.streaming.xr.interaction"
           class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$Interaction"
           icon="StudioIcons.Emulator.XR.INTERACT"
           text="Interact with Apps"
           description="Mouse and keyboard are used to interact with running apps">
-        <keyboard-shortcut first-keystroke="control shift I" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift I" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift I" keymap="Mac OS X 10.5+"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta I" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta I" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.streaming.xr.interaction.hand"
               class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionHand"
@@ -359,13 +363,7 @@
 
     <group id="android.streaming.xr.navigation.group" class="com.android.tools.idea.streaming.actions.XrMainToolbarGroup">
       <group id="android.streaming.xr.input.mode.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
-        <group id="android.streaming.xr.input.mode.dropdown" class="com.android.tools.idea.streaming.actions.StreamingXrInputModePopupGroup"
-               text="Interact with Apps" description="Select mode of interaction with running apps" popup="true">
-          <separator text="App Interaction Mode"/>
-          <reference ref="android.streaming.xr.interaction.hand"/>
-          <reference ref="android.streaming.xr.interaction.eye"/>
-          <reference ref="android.streaming.xr.interaction.mouse"/>
-        </group>
+        <reference ref="android.streaming.xr.input.mode.dropdown"/>
         <reference ref="android.streaming.xr.interaction"/>
         <separator/>
         <reference ref="android.streaming.xr.view.direction"/>

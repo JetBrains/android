@@ -37,8 +37,9 @@ class StreamingKeymapExtension : KeymapExtension {
 
     for (action in ActionsTreeUtil.getActions(ACTION_GROUP)) {
       if (
-        (action is StreamingXrInputModeAction.InteractionHand || action is StreamingXrInputModeAction.InteractionEye) &&
-          !StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_INPUT.get()
+        (action is StreamingXrInputModeAction.InteractionHand ||
+          action is StreamingXrInputModeAction.InteractionEye ||
+          action is StreamingXrInputModePopupGroup) && !StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_INPUT.get()
       ) {
         continue
       }

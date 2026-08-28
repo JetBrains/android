@@ -19,10 +19,13 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.xr.XrInputMode
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAware
 
 /** Sets an input mode for an XR AVD. */
@@ -76,9 +79,31 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
 
   class Interaction : StreamingXrInputModeAction(XrInputMode.MOUSE) {
 
+    override fun isSelected(event: AnActionEvent): Boolean {
+      if (isHandAndEyeTrackingEnabled(event)) {
+        val controller = getXrInputController(event) ?: return false
+        return !controller.inputMode.isNavigation
+      }
+      return super.isSelected(event)
+    }
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      if (isHandAndEyeTrackingEnabled(event)) {
+        val delegate = ActionManager.getInstance().getAction("android.streaming.xr.input.mode.dropdown") ?: StreamingXrInputModePopupGroup()
+        // Provide the group's presentation with isPerformGroup = true so ActionUtil executes actionPerformed.
+        val delegateEvent =
+          AnActionEvent.createEvent(event.dataContext, delegate.templatePresentation.clone(), event.place, event.uiKind, event.inputEvent)
+        ActionUtil.performAction(delegate, delegateEvent)
+      } else {
+        super.setSelected(event, state)
+      }
+    }
+
     override fun update(event: AnActionEvent) {
       super.update(event)
-      if (isHandAndEyeTrackingEnabled(event)) {
+      if (
+        isHandAndEyeTrackingEnabled(event) && event.place != ActionPlaces.KEYBOARD_SHORTCUT && event.place != ActionPlaces.MOUSE_SHORTCUT
+      ) {
         event.presentation.isEnabledAndVisible = false
       }
     }

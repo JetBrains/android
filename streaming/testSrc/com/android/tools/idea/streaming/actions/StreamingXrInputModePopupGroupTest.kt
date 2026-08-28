@@ -77,9 +77,6 @@ class StreamingXrInputModePopupGroupTest {
   fun testCollapsibleToolbarInteraction() {
     val view = emulatorViewRule.newEmulatorView(FakeEmulator::createXrHeadsetAvd)
     val group = StreamingXrInputModePopupGroup()
-    // Add some children to the group so childrenCount > 1
-    group.add(StreamingXrInputModeAction.InteractionHand().apply { templatePresentation.text = "Hand" })
-    group.add(StreamingXrInputModeAction.InteractionEye().apply { templatePresentation.text = "Eye" })
 
     // 1. Initially inactive collapsible toolbar
     val container = FloatingToolbarContainer(horizontal = true, collapsedStateSelector = { true }, initiallyActive = false)
@@ -117,8 +114,6 @@ class StreamingXrInputModePopupGroupTest {
   fun testNonCollapsibleToolbarInteraction() {
     val view = emulatorViewRule.newEmulatorView(FakeEmulator::createXrHeadsetAvd)
     val group = StreamingXrInputModePopupGroup()
-    group.add(StreamingXrInputModeAction.InteractionHand().apply { templatePresentation.text = "Hand" })
-    group.add(StreamingXrInputModeAction.InteractionEye().apply { templatePresentation.text = "Eye" })
 
     // Non-collapsible toolbar (collapsedStateSelector = null)
     val container = FloatingToolbarContainer(horizontal = true, collapsedStateSelector = null, initiallyActive = false)
@@ -138,6 +133,36 @@ class StreamingXrInputModePopupGroupTest {
     assertThat(event.presentation.isPopupGroup).isTrue()
 
     group.actionPerformed(event)
+    assertThat(popupRule.fakePopupFactory.popupCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testInteractionActionDelegatesToDropdownGroup() {
+    val view = emulatorViewRule.newEmulatorView(FakeEmulator::createXrHeadsetAvd)
+    val action = StreamingXrInputModeAction.Interaction()
+
+    val container = FloatingToolbarContainer(horizontal = true, collapsedStateSelector = null, initiallyActive = true)
+    container.setTargetComponent(view)
+
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, project)
+        .add(DEVICE_TYPE_KEY, DeviceType.XR_HEADSET)
+        .add(EMULATOR_CONTROLLER_KEY, view.emulator)
+        .add(FLOATING_TOOLBAR_KEY, container)
+        .build()
+
+    val toolbarEvent =
+      AnActionEvent.createEvent(dataContext, action.templatePresentation.clone(), ActionPlaces.TOOLBAR, ActionUiKind.NONE, null)
+    action.update(toolbarEvent)
+    assertThat(toolbarEvent.presentation.isEnabledAndVisible).isFalse()
+
+    val shortcutEvent =
+      AnActionEvent.createEvent(dataContext, action.templatePresentation.clone(), ActionPlaces.KEYBOARD_SHORTCUT, ActionUiKind.NONE, null)
+    action.update(shortcutEvent)
+    assertThat(shortcutEvent.presentation.isEnabledAndVisible).isTrue()
+
+    action.setSelected(shortcutEvent, true)
     assertThat(popupRule.fakePopupFactory.popupCount).isEqualTo(1)
   }
 
