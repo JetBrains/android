@@ -25,7 +25,6 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.getSuccessfulResult
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.ide.common.gradle.Version
-import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
@@ -39,7 +38,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionStats
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -133,17 +131,6 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   }
 
   @Test
-  fun testNewKotlinNotDetected() {
-    projectSetup(
-      dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\"",
-      pluginsApply = "apply plugin: 'kotlin-android'",
-    )
-
-    val result = runBuildAndGetAnalyzerResult()
-    assertThat(result).isInstanceOf(NoIncompatiblePlugins::class.java)
-  }
-
-  @Test
   @OldAgpTest(agpVersions = ["7.2.0"], gradleVersions = ["7.5"])
   fun testOldKotlinDetected() {
     projectSetup(
@@ -165,39 +152,6 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
               pluginInfo = kotlinPluginInfo(),
             )
           )
-        )
-    }
-  }
-
-  @Test
-  fun testOldKotlinDetectedAppliedInPluginDsl() {
-    // In this test instead of using old version of the kotlin plugin we replace plugins data to pretend current version is not supported.
-    // Otherwise, we would need to add a plugin marker artifact for 1.3.72 which is not worth it just for this test.
-
-    projectSetup(
-      dependencies = "",
-      pluginsApply = "id 'org.jetbrains.kotlin.android'",
-      pluginsSectionInRoot = "plugins { id 'org.jetbrains.kotlin.android' version '$KOTLIN_VERSION_FOR_TESTS' apply false }",
-      useNewPluginsDsl = true,
-    )
-
-    replacePluginDataToMarkKotlinPluginAsNotSupportingCC()
-    val result = runBuildAndGetAnalyzerResult()
-
-    assertThat(result).isInstanceOf(IncompatiblePluginsDetected::class.java)
-    (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
-      assertThat(warnings)
-        .containsExactly(
-          IncompatiblePluginWarning(
-            plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-            currentVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS),
-            pluginInfo = kotlinPluginInfo(),
-          ),
-          IncompatiblePluginWarning(
-            plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.BuildMetricsPlugin"),
-            currentVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS),
-            pluginInfo = kotlinPluginInfo(),
-          ),
         )
     }
   }
@@ -342,22 +296,6 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
     return results.getConfigurationCachingCompatibility()
-  }
-
-  private fun replacePluginDataToMarkKotlinPluginAsNotSupportingCC() {
-    val originalKotlinPluginInfo = kotlinPluginInfo()
-    val nextVersion = Version.parse(KOTLIN_VERSION_FOR_TESTS).nextPrefix().prefixVersion()
-    ApplicationManager.getApplication()
-      .replaceService(
-        KnownGradlePluginsService::class.java,
-        object : KnownGradlePluginsService {
-          override val gradlePluginsData: GradlePluginsData
-            get() = GradlePluginsData(listOf(originalKotlinPluginInfo.copy(configurationCachingCompatibleFrom = nextVersion)))
-
-          override fun asyncRefresh() = Unit
-        },
-        myProjectRule.project,
-      )
   }
 
   private fun kotlinPluginInfo(): GradlePluginsData.PluginInfo =

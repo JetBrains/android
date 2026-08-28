@@ -126,16 +126,10 @@ PROJECT                       : project
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kapt/androidTest/debug [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kaptKotlin/androidTest/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/baselineProfiles [-]
@@ -235,13 +229,6 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: kaptGeneratedClasses [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            Scope                         : Test
-            LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debug/kaptDebugKotlin [-]
-                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debugAndroidTest/kaptDebugAndroidTestKotlin [-]
         LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
@@ -266,7 +253,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/generateDebugAndroidTestRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugAndroidTest/compileDebugAndroidTestKotlin/classes
-            -                             : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debugAndroidTest/kaptDebugAndroidTestKotlin
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugAndroidTestSources
                 ASSEMBLE                      : :app:assembleDebugAndroidTest
@@ -327,8 +313,6 @@ PROJECT                       : project
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kapt/debug [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
@@ -336,10 +320,6 @@ PROJECT                       : project
             JavaSource                    : file://<PROJECT>/app/src/main/myKotlin
             JavaResource                  : file://<PROJECT>/app/src/main/res
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kapt/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/baselineProfiles [-]
@@ -389,11 +369,6 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: kaptGeneratedClasses [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debug/kaptDebugKotlin [-]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             LibraryLevel                  : module
@@ -405,7 +380,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
-            -                             : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debug/kaptDebugKotlin
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -471,16 +445,10 @@ PROJECT                       : project
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kapt/test/debug [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/source/kaptKotlin/test/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/test
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
         CONTENT_ENTRY                 : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/test/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/test/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/baselineProfiles [-]
@@ -566,13 +534,6 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: kaptGeneratedClasses [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            Scope                         : Test
-            LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debug/kaptDebugKotlin [-]
-                *CLASSES                      : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debugUnitTest/kaptDebugUnitTestKotlin [-]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
@@ -591,7 +552,6 @@ PROJECT                       : project
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar!/
-            -                             : file://<PROJECT>/app/build/intermediates/built_in_kapt_classes_dir/debugUnitTest/kaptDebugUnitTestKotlin
         BUILD_TASKS
                 CLEAN                         : :app:createMockableJar
                 ASSEMBLE                      : :app:assembleDebugUnitTest
@@ -1163,6 +1123,11 @@ PROJECT                       : project
             CompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
                 additionalArguments           : -verbose
                 copyJsLibraryFiles            : true
@@ -1173,27 +1138,21 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
-        CONTENT_ENTRY                 : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main [-]
         CONTENT_ENTRY                 : file://<PROJECT>/contentLib/src/main
             JavaSource                    : file://<PROJECT>/contentLib/src/main/java
             JavaSource                    : file://<PROJECT>/contentLib/src/main/kotlin
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/contentLib/src/main/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: kaptGeneratedClasses [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/main [-]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
@@ -1201,7 +1160,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/contentLib/build/classes/java/main
             -                             : file://<PROJECT>/contentLib/build/classes/kotlin/main
-            -                             : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/main
             -                             : file://<PROJECT>/contentLib/build/resources/main
         BUILD_TASKS
                 ASSEMBLE                      : :contentLib:assemble
@@ -1227,8 +1185,13 @@ PROJECT                       : project
             CompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -verbose
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1237,29 +1200,23 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:contentLib:main]
-        CONTENT_ENTRY                 : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/contentLib/src/test
             JavaSource (test)             : file://<PROJECT>/contentLib/src/test/java
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/contentLib/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/contentLib/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
-        LIBRARY                       : Gradle: kaptGeneratedClasses [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: kaptGeneratedClasses
-                *CLASSES                      : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/test [-]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
@@ -1269,7 +1226,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/contentLib/build/classes/java/test
             -                             : file://<PROJECT>/contentLib/build/classes/kotlin/test
-            -                             : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/test
             -                             : file://<PROJECT>/contentLib/build/resources/test
         BUILD_TASKS
                 ASSEMBLE                      : :contentLib:testClasses

@@ -361,8 +361,10 @@ enum class TestProject(
       projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
         content.replace(" implementation", "// implementation").replace(" androidTestImplementation", "// androidTestImplementation") +
           """
-              android.variantFilter { variant ->
-                  variant.setIgnore(!variant.name.startsWith("firstAbcSecondAbc"))
+              androidComponents {
+                  beforeVariants(selector().all()) { variant ->
+                      variant.enable = variant.name.startsWith("firstAbcSecondAbc")
+                  }
               }
         """
       }

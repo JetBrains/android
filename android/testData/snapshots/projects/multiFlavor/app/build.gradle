@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace = 'com.example.multiflavor'
     compileSdkVersion 30
 
     defaultConfig {

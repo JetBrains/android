@@ -8,3 +8,8 @@ buildscript {
   }
 }
 
+allprojects {
+  repositories {
+  }
+}
+
