@@ -488,6 +488,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     myMinimapModel = new CpuCaptureMinimapModel(capture, getTimeline().getViewRange(), myContext.getDataSeries(capture), isEditorEnabled);
     if (!capture.getRange().isEmpty()) {
       initTrackGroupList(capture);
+      myPinnedAnalysisModels.clear();
       addPinnedCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange(), this::runInBackground));
 
       CpuAnalysisModel<?> jankModel = AndroidFrameTimelineAnalysisModel.of(capture);

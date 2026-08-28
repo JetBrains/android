@@ -179,7 +179,6 @@ object OfflineProfilerSessionFactory {
             view.stageComponent.add(toolbar, BorderLayout.NORTH)
           }
           view.stageComponent.add(stageView.component, BorderLayout.CENTER)
-          stage.enter()
         }
 
         onComplete(OfflineProfilerSession(profilers, view, stageView))
