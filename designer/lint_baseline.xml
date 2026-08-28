@@ -475,28 +475,6 @@
     </issue>
 
     <issue
-        id="UnsatisfiableThreadConstraint"
-        message="Statement must run from `@{Slow,WorkerThread}`, incompatible with earlier code that must run from `@UiThread`"
-        errorLine1="      if (configInLayoutEditor != null) {"
-        errorLine2="      ^">
-        <location
-            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="92"
-            column="7"/>
-    </issue>
-
-    <issue
-        id="UnsatisfiableThreadConstraint"
-        message="Statement must run from `@{Slow,WorkerThread}`, incompatible with earlier code that must run from `@UiThread`"
-        errorLine1="        val surfaceInDestinationEditor = (newEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface"
-        errorLine2="        ^">
-        <location
-            file="tools/adt/idea/designer/src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="99"
-            column="9"/>
-    </issue>
-
-    <issue
         id="WrongThread"
         message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
         errorLine1="      val picker = createPopupPanel(popupMenu)"
