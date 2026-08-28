@@ -158,8 +158,8 @@ public class UpdaterTreeNodeTest {
     ParentTreeNode node = new ParentTreeNode(new AndroidVersion(10, null));
     validateText(node, "Android 2.3.3 (\"Gingerbread\")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
 
-    node = new ParentTreeNode(new AndroidVersion(99, "dessert of the future"));
-    validateText(node, "Android dessert of the future Preview", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    node = new ParentTreeNode(new AndroidVersion(99, "Dessert_of_the_future"));
+    validateText(node, "Android Dessert_of_the_future Preview", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
 
     node = new ParentTreeNode("some text");
     validateText(node, "some text", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
