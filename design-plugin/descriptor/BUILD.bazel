@@ -1,4 +1,5 @@
 load("@community//platform/build-scripts/bazel-rules:dev_dist_content.bzl", "dev_dist_plugin_content")
+load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.design-plugin.descriptor` start
@@ -53,8 +54,8 @@ exports_files(
 )
 ### auto-generated section `iml intellij.android.design-plugin.descriptor` end
 
-### auto-generated section `dev content intellij.android.design-plugin.descriptor` start
-dev_dist_plugin_content(
+### auto-generated section `dev intellij.android.design-plugin.descriptor` start
+dev_dist_plugin(
     content_modules = [
         "//android/compose-designer",
         "//android/designer",
@@ -82,4 +83,4 @@ dev_dist_plugin_content(
         "@lib//:truth",
     ],
 )
-### auto-generated section `dev content intellij.android.design-plugin.descriptor` end
+### auto-generated section `dev intellij.android.design-plugin.descriptor` end

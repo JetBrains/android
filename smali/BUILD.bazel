@@ -1,5 +1,6 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@community//platform/build-scripts/bazel-rules:dev_dist_content.bzl", "dev_dist_plugin_content")
+load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.smali` start
@@ -108,8 +109,8 @@ exports_files(
 )
 ### auto-generated section `iml intellij.android.smali` end
 
-### auto-generated section `dev content intellij.android.smali` start
-dev_dist_plugin_content(
+### auto-generated section `dev intellij.android.smali` start
+dev_dist_plugin(
     descriptor_module = ":smali",
     libraries = [
         "@lib//:studio-platform",
@@ -117,7 +118,7 @@ dev_dist_plugin_content(
         "@lib//:truth",
     ],
 )
-### auto-generated section `dev content intellij.android.smali` end
+### auto-generated section `dev intellij.android.smali` end
 
 ### auto-generated section `test intellij.android.smali` start
 jps_test(
