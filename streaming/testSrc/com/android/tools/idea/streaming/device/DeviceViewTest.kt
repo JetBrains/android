@@ -195,6 +195,7 @@ internal class DeviceViewTest {
   fun setUp() {
     BitRateManager.getInstance().clear()
     device = agentRule.connectDevice("Pixel 5", 32, Dimension(1080, 2340))
+    @Suppress("UnstableApiUsage")
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
     ActionManager.getInstance() // Instantiate ActionManager to trigger loading of keyboard shortcuts.
