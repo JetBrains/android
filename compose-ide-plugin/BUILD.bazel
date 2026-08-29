@@ -237,7 +237,6 @@ exports_files(
         "resources/colorschemes/ComposeColorSchemeDefault.xml",
         "resources/templates/AndroidCompose.xml",
         "resources/templates/AndroidComposePreview.xml",
-        "plugin-content.yaml",
     ],
     visibility = ["//visibility:public"],
 )

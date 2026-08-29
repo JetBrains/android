@@ -102,7 +102,6 @@ exports_files(
         "intellij.android.gradle.dsl.iml",
         "resources/META-INF/gradle-dsl.xml",
         "resources/META-INF/plugin.xml",
-        "plugin-content.yaml",
         "dev-dist.yaml",
     ],
     visibility = ["//visibility:public"],
