@@ -1277,9 +1277,9 @@ internal class DeviceViewTest {
 
   private fun assertAppearance(goldenImageName: String) {
     // First rendering may be low quality.
-    goldenImageRule.assertImageSimilar(goldenImageName, fakeUi.render(), 0.5, ignoreMissingGoldenFile = true)
+    goldenImageRule.assertImageSimilar(goldenImageName, ImageUtils.scale(fakeUi.render(), 0.5), 0.5, ignoreMissingGoldenFile = true)
     // Second rendering is guaranteed to be high quality.
-    goldenImageRule.assertImageSimilar(goldenImageName, fakeUi.render())
+    goldenImageRule.assertImageSimilar(goldenImageName, ImageUtils.scale(fakeUi.render(), 0.5))
   }
 
   private fun getNextControlMessageAndWaitForFrame(displayId: Int = PRIMARY_DISPLAY_ID): ControlMessage {
