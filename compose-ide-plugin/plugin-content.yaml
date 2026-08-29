@@ -1,3 +1,0 @@
-- name: lib/android-compose-ide-plugin.jar
-  modules:
-  - name: intellij.android.compose-ide-plugin
