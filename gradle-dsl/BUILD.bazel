@@ -1,5 +1,6 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@community//platform/build-scripts/bazel-rules:dev_dist_content.bzl", "dev_dist_plugin_content")
+load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin_descriptor.bzl", "dev_dist_plugin_descriptor")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl` start
@@ -101,6 +102,7 @@ exports_files(
         "resources/META-INF/gradle-dsl.xml",
         "resources/META-INF/plugin.xml",
         "plugin-content.yaml",
+        "dev-dist-descriptor.yaml",
     ],
     visibility = ["//visibility:public"],
 )
@@ -124,6 +126,24 @@ dev_dist_plugin_content(
     prepacked_content_modules = ["//android/gradle-dsl-flags:gradle-dsl-flags_content_module_jar"],
 )
 ### auto-generated section `dev content intellij.android.gradle.dsl` end
+
+### auto-generated section `dev descriptor intellij.android.gradle.dsl` start
+dev_dist_plugin_descriptor(
+    descriptor = "resources/META-INF/plugin.xml",
+    descriptor_module = ":gradle-dsl",
+    descriptors = {
+        "//android/gradle-dsl:resources/META-INF/gradle-dsl.xml": "META-INF/gradle-dsl.xml",
+        "@community//android/gradle-dsl-android:resources/intellij.android.gradle.dsl.android.xml": "intellij.android.gradle.dsl.android.xml",
+        "@community//android/gradle-dsl-declarative:resources/intellij.android.gradle.dsl.declarative.xml": "intellij.android.gradle.dsl.declarative.xml",
+        "@community//android/gradle-dsl-flags:resources/intellij.android.gradle.dsl.flags.xml": "intellij.android.gradle.dsl.flags.xml",
+        "@community//android/gradle-dsl-groovy:resources/intellij.android.gradle.dsl.groovy.xml": "intellij.android.gradle.dsl.groovy.xml",
+        "@community//android/gradle-dsl-kotlin:resources/intellij.android.gradle.dsl.kotlin.xml": "intellij.android.gradle.dsl.kotlin.xml",
+        "@community//android/gradle-dsl-toml:resources/intellij.android.gradle.dsl.toml.xml": "intellij.android.gradle.dsl.toml.xml",
+    },
+    main_module = "intellij.android.gradle.dsl",
+    separate_jar = ["intellij.android.gradle.dsl.flags"],
+)
+### auto-generated section `dev descriptor intellij.android.gradle.dsl` end
 
 ### auto-generated section `build intellij.android.gradle.dsl.tests` start
 jvm_library(
