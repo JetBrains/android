@@ -17,10 +17,6 @@
 #
 # No row is a Bazel label, and no row is a path. A label carries the artifact version of a library, and a path
 # restates a rule the rule already derives.
-content:
-  # Members that get a jar of their own where the derivation packs them into the plugin's main jar.
-  separate_jars:
-  - "intellij.android.gradle.dsl.flags"
 descriptor:
   # What this plugin's patched dev-distribution descriptor needs that the convention does not give.
   #
@@ -33,12 +29,7 @@ descriptor:
   # resolves a path to a label itself, which is what lets the community half decide alone: a path outside
   # `community/` is a path a community package cannot name, and the community half then emits no section for
   # this plugin.
-  "intellij.android.gradle.dsl":
-    # Every descriptor an `xi:include` of this plugin's closure reaches, as the load path a resolver asks
-    # for and the file that answers it.
-    descriptors:
-    - load_path: "META-INF/gradle-dsl.xml"
-      path: "community/android/gradle-dsl/resources/META-INF/gradle-dsl.xml"
+  "intellij.android.gradle.declarative.lang.ide":
     # Which content module's embedded descriptor takes `separate-jar="true"`.
     separate_jar:
-    - "intellij.android.gradle.dsl.flags"
+    - "intellij.android.gradle.declarative.lang"
