@@ -183,7 +183,6 @@ dev_dist_plugin(
         "@lib//:equalsverifier",
         "@lib//:google-baksmali",
         "@lib//:google-dexlib2",
-        "@lib//:google-protobuf-java-util",
         "@lib//:javax-inject",
         "@lib//:jaxb-api",
         "@lib//:kotlin-test",
