@@ -52,7 +52,7 @@ open class WhatsNewURLProvider {
 
   /** @return path to directory where local xml config will be stored */
   private fun getConfigCacheDir(): Path {
-    val path = PathManager.getSystemDir().resolve(WNA_CACHE_DIR_KEY).toRealPath()
+    val path = PathManager.getSystemDir().resolve(WNA_CACHE_DIR_KEY)
     path.toFile().mkdirs()
     return path
   }
