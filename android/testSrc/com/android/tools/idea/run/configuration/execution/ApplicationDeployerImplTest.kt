@@ -2,6 +2,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.DeviceState
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.AssumeUtil
 import com.android.testutils.TestUtils
@@ -9,8 +10,10 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.adblib.toConnectedDevice
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.stats.RunStatsService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.TEST_DATA_PATH
@@ -20,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.common.ThreadLeakTracker
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -33,7 +37,7 @@ class ApplicationDeployerImplTest {
 
   private val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule val rule = RuleChain(projectRule, fakeAdbRule)
+  @get:Rule val rule = RuleChain(projectRule, fakeAdbRule, FlagRule(StudioFlags.DEPLOYER_USE_CONNECTED_DEVICE, true))
 
   @Before
   fun setUp() {
@@ -48,7 +52,7 @@ class ApplicationDeployerImplTest {
   }
 
   @Test
-  fun fillStats() {
+  fun fillStats() = runBlocking {
     // b/415866691
     AssumeUtil.assumeNotWindows()
 
@@ -61,6 +65,7 @@ class ApplicationDeployerImplTest {
       hostConnectionType = DeviceState.HostConnectionType.USB,
     )
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
+    val connectedDevice = device.toConnectedDevice(projectRule.project)
 
     val runStat = RunStatsService.get(projectRule.project).create()
 
@@ -72,7 +77,7 @@ class ApplicationDeployerImplTest {
     val apkInfo = ApkInfo(apk.toFile(), "com.example.myapplication")
 
     val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-    deployer.fullDeploy(device, null, apkInfo, deployOptions, true, EmptyProgressIndicator(), null)
+    deployer.fullDeploy(device, connectedDevice, apkInfo, deployOptions, true, EmptyProgressIndicator(), null)
 
     runStat.success()
 
