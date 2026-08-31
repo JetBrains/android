@@ -115,9 +115,7 @@ class FirstRunWizardModel(
         )
       }
 
-    val remotePackages = sdkManager.packages.remotePackages.values
-
-    components.add(AndroidPlatformSdkComponentTreeNode.createSubtree(remotePackages, installUpdates))
+    components.add(AndroidPlatformSdkComponentTreeNode.createSubtree(installUpdates))
 
     if (!StudioFlags.EMULATOR_AEHD_TO_WHPX_CONVERSION.get()) {
       val installationIntention =
@@ -128,7 +126,7 @@ class FirstRunWizardModel(
       }
     }
     if (createAvd) {
-      val avdSdkComponent = AndroidVirtualDeviceSdkComponentTreeNode(remotePackages, installUpdates)
+      val avdSdkComponent = AndroidVirtualDeviceSdkComponentTreeNode(installUpdates)
       if (avdSdkComponent.isAvdCreationNeeded(localHandler)) {
         components.add(avdSdkComponent)
       }

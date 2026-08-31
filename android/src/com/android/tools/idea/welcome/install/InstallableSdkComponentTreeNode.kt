@@ -92,11 +92,15 @@ abstract class InstallableSdkComponentTreeNode(
   override val childrenToInstall: Collection<InstallableSdkComponentTreeNode>
     get() = if (!willBeInstalled.get()) setOf() else setOf(this)
 
+  /** Called when [sdkHandler] is set. Subclasses may use it and [repositoryPackages] to determine the set of required packages. */
+  open fun onSdkHandlerUpdated() {}
+
   override fun updateState(handler: AndroidSdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.
     sdkHandler = handler
     // Ensure that local packages are loaded
     handler.getRepoManagerAndLoadSynchronously(PROGRESS_LOGGER)
+    onSdkHandlerUpdated()
     val nothingToInstall = !isWritable(handler.location) || packagesToInstall.isEmpty()
     isOptional = !nothingToInstall && isOptionalForSdkLocation()
     isEnabled = isOptional

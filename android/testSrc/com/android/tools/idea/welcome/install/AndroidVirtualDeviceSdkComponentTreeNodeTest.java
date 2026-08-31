@@ -29,21 +29,24 @@ import com.android.prefs.AndroidLocationsSingletonRule;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
-import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.ConfigKey;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.sdklib.repository.meta.RepoFactory;
+import com.android.sdklib.repository.meta.SysImgFactory;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeAvdManagers;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.intellij.testFramework.TemporaryDirectory;
 import com.android.tools.idea.welcome.wizard.AbstractProgressStep;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -54,6 +57,8 @@ import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RuleChain;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.ServiceContainerUtil;
+import com.intellij.testFramework.TemporaryDirectory;
+import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,13 +76,21 @@ import org.junit.Test;
 /** Tests for {@link AndroidVirtualDeviceSdkComponentTreeNode}. */
 @RunsInEdt
 public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
-  private static final String DEVICE_SKIN =  "1080x2400";
+  private static final String DEVICE_SKIN = "1080x2400";
+
+  private static boolean isArm64Host() {
+    return CpuArch.isArm64() || CommonMetricsData.getOsArchitecture() == ProductDetails.CpuArchitecture.X86_ON_ARM;
+  }
 
   private static Map<String, String> getReferenceMap() {
+    String abiType = isArm64Host() ? "arm64-v8a" : "x86_64";
+    String cpuArch = isArm64Host() ? "arm64" : "x86_64";
+    String sysdir = "system-images/android-34/google_apis_playstore/" + abiType + "/";
+
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
     builder.put("AvdId", "Medium_Phone_API_34");
     builder.put("PlayStore.enabled", "true");
-    builder.put("abi.type", "x86_64");
+    builder.put("abi.type", abiType);
     builder.put("avd.ini.displayname", "Medium Phone API 34");
     builder.put("avd.ini.encoding", "UTF-8");
     builder.put("disk.dataPartition.size", "10G");
@@ -87,7 +100,7 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
     builder.put("hw.battery", "yes");
     builder.put("hw.camera.back", "virtualscene");
     builder.put("hw.camera.front", "emulated");
-    builder.put("hw.cpu.arch", "x86_64");
+    builder.put("hw.cpu.arch", cpuArch);
     builder.put("hw.dPad", "no");
     builder.put("hw.device.hash2", "MD5:2016577e1656e8e7c2adb0fac972beea");
     builder.put("hw.device.manufacturer", "Generic");
@@ -109,7 +122,7 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
     builder.put("hw.sensors.pressure", "yes");
     builder.put("hw.sensors.proximity", "yes");
     builder.put("hw.trackBall", "no");
-    builder.put("image.sysdir.1", "system-images/android-34/google_apis_playstore/x86_64/");
+    builder.put("image.sysdir.1", sysdir);
     builder.put("runtime.network.latency", "none");
     builder.put("runtime.network.speed", "full");
     builder.put("sdcard.size", "512M");
@@ -143,6 +156,15 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
     recordGoogleApisSysImg(sdkRoot);
     sdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("android-home"));
 
+    FakePackage.FakeRemotePackage remoteX86 =
+      createRemoteSysImgPackage(34, 0, "x86_64", IdDisplay.create("google", "Google Inc."), SystemImageTags.PLAY_STORE_TAG);
+    FakePackage.FakeRemotePackage remoteArm =
+      createRemoteSysImgPackage(34, 0, "arm64-v8a", IdDisplay.create("google", "Google Inc."), SystemImageTags.PLAY_STORE_TAG);
+    sdkHandler
+      .getRepoManager(new StudioLoggerProgressIndicator(getClass()))
+      .getPackages()
+      .setRemotePkgInfos(ImmutableList.of(remoteX86, remoteArm));
+
     IdeSdks ideSdks = spy(IdeSdks.getInstance());
     when(ideSdks.getAndroidSdkPath()).thenReturn(FileOpUtils.toFile(sdkRoot));
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeSdks.class, ideSdks, disposableRule.getDisposable());
@@ -158,14 +180,7 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
 
   @Test
   public void testCreateAvd() throws Exception {
-    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-34");
-    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
-
-    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
-    platformDetailsType.setApiLevel(34);
-    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    AndroidVirtualDeviceSdkComponentTreeNode
-      avdCreator = new AndroidVirtualDeviceSdkComponentTreeNode(ImmutableList.of(remotePlatform), true);
+    AndroidVirtualDeviceSdkComponentTreeNode avdCreator = new AndroidVirtualDeviceSdkComponentTreeNode(true);
     AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNotNull();
     Map<String, String> properties = avdInfo.getProperties();
@@ -192,68 +207,79 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
   public void testNoAvdIsCreatedIfThereAreExistingOnes() throws Exception {
     createPlaceholderAvd();
 
-    AndroidVirtualDeviceSdkComponentTreeNode avdCreator = new AndroidVirtualDeviceSdkComponentTreeNode(new AndroidVersion(34), true);
+    AndroidVirtualDeviceSdkComponentTreeNode avdCreator = new AndroidVirtualDeviceSdkComponentTreeNode(true);
     AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNull();
   }
 
   @Test
-  public void testRequiredSysimgPath() {
-    AndroidVirtualDeviceSdkComponentTreeNode avd = new AndroidVirtualDeviceSdkComponentTreeNode(new AndroidVersion(34), true);
-    avd.sdkHandler = sdkHandler;
+  public void testRequiredSdkPackages() {
+    String abi = isArm64Host() ? "arm64-v8a" : "x86_64";
+    AndroidVirtualDeviceSdkComponentTreeNode avd = new AndroidVirtualDeviceSdkComponentTreeNode(true);
+    avd.updateState(sdkHandler);
 
-    assertEquals("system-images;android-34;google_apis_playstore;x86_64", avd.getRequiredSysimgPath(false));
-    assertEquals("system-images;android-34;google_apis_playstore;arm64-v8a", avd.getRequiredSysimgPath(true));
+    assertEquals(ImmutableList.of("system-images;android-34;google_apis_playstore;" + abi), avd.getRequiredSdkPackages());
   }
 
   @Test
   public void testSysimgWithExtensionLevel() {
-    // create remote packages for both a base platform and for an extension of the same platform.
-    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+    String abi = isArm64Host() ? "arm64-v8a" : "x86_64";
 
     // Base: API 33
-    FakePackage.FakeRemotePackage baseRemotePlatform = new FakePackage.FakeRemotePackage("platforms;android-33");
-    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
-    platformDetailsType.setApiLevel(33);
-    baseRemotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
+    FakePackage.FakeRemotePackage baseRemotePlatform =
+      createRemoteSysImgPackage(33, 0, abi, IdDisplay.create("google", "Google Inc."), SystemImageTags.PLAY_STORE_TAG);
 
     // Extension: API 33, extension 3.
-    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-33-ext3");
-    platformDetailsType = factory.createPlatformDetailsType();
-    platformDetailsType.setApiLevel(33);
-    platformDetailsType.setBaseExtension(false);
-    platformDetailsType.setExtensionLevel(3);
-    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
+    FakePackage.FakeRemotePackage remotePlatform =
+      createRemoteSysImgPackage(33, 3, abi, IdDisplay.create("google", "Google Inc."), SystemImageTags.PLAY_STORE_TAG);
 
-    AndroidVirtualDeviceSdkComponentTreeNode
-      avd = new AndroidVirtualDeviceSdkComponentTreeNode(ImmutableList.of(baseRemotePlatform, remotePlatform), true);
-    avd.sdkHandler = sdkHandler;
+    sdkHandler
+      .getRepoManager(new StudioLoggerProgressIndicator(getClass()))
+      .getPackages()
+      .setRemotePkgInfos(ImmutableList.of(baseRemotePlatform, remotePlatform));
+
+    AndroidVirtualDeviceSdkComponentTreeNode avd = new AndroidVirtualDeviceSdkComponentTreeNode(true);
+    avd.updateState(sdkHandler);
 
     // The selected image should be the base one.
-    assertEquals("system-images;android-33;google_apis_playstore;x86_64", avd.getRequiredSysimgPath(false));
-    assertEquals("system-images;android-33;google_apis_playstore;arm64-v8a", avd.getRequiredSysimgPath(true));
+    assertEquals(ImmutableList.of("system-images;android-33;google_apis_playstore;" + abi), avd.getRequiredSdkPackages());
   }
 
   @Test
   public void testSelectedByDefault() throws Exception {
-    AndroidVirtualDeviceSdkComponentTreeNode avd = new AndroidVirtualDeviceSdkComponentTreeNode(ImmutableList.of(), true);
+    AndroidVirtualDeviceSdkComponentTreeNode avd = new AndroidVirtualDeviceSdkComponentTreeNode(true);
 
     // No SDK installed -> Not selected by default
     assertFalse(avd.isSelectedByDefault());
 
-    // SDK installed, but no system image -> Selected by default
-    avd.sdkHandler = sdkHandler;
-    assertTrue(avd.isSelectedByDefault());
-
     // SDK installed, System image, but no AVD -> Selected by default
-    avd = new AndroidVirtualDeviceSdkComponentTreeNode(new AndroidVersion(34), true);
-    avd.sdkHandler = sdkHandler;
+    avd.updateState(sdkHandler);
     assertTrue(avd.isSelectedByDefault());
 
     // SDK installed, System image, matching AVD -> Not selected by default
     createAvdIfNeeded(avd, sdkHandler);
 
     assertFalse(avd.isSelectedByDefault());
+  }
+
+  private static FakePackage.FakeRemotePackage createRemoteSysImgPackage(
+      int apiLevel, int extensionLevel, String abi, IdDisplay vendor, IdDisplay tag) {
+    String path = "system-images;android-" + apiLevel + (extensionLevel > 0 ? "-ext" + extensionLevel : "") + ";" + tag.getId() + ";" + abi;
+    FakePackage.FakeRemotePackage pkg = new FakePackage.FakeRemotePackage(path);
+    SysImgFactory factory = AndroidSdkHandler.getSysImgModule().createLatestFactory();
+    DetailsTypes.SysImgDetailsType details = factory.createSysImgDetailsType();
+    if (extensionLevel > 0) {
+      details.setBaseExtension(false);
+      details.setExtensionLevel(extensionLevel);
+    } else {
+      details.setBaseExtension(true);
+    }
+    details.setApiLevel(apiLevel);
+    details.getAbis().add(abi);
+    details.setVendor(vendor);
+    details.getTags().add(tag);
+    pkg.setTypeDetails((TypeDetails) details);
+    return pkg;
   }
 
   private static void recordPlatform(Path sdkRoot) {
@@ -368,31 +394,37 @@ public final class AndroidVirtualDeviceSdkComponentTreeNodeTest {
   }
 
   private static void recordGoogleApisSysImg(Path sdkRoot) {
-    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("system-images/android-34/google_apis_playstore/x86_64/system.img"), "foo");
-    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("system-images/android-34/google_apis_playstore/x86_64/userdata.img"), "bar");
-    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("system-images/android-34/google_apis_playstore/x86_64/package.xml"),
-                                           "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
-                                           + "<ns3:sdk-sys-img "
-                                           + "xmlns:ns2=\"http://schemas.android.com/sdk/android/repo/repository2/01\" "
-                                           + "xmlns:ns3=\"http://schemas.android.com/sdk/android/repo/sys-img2/01\" "
-                                           + "xmlns:ns4=\"http://schemas.android.com/repository/android/common/01\" "
-                                           + "xmlns:ns5=\"http://schemas.android.com/sdk/android/repo/addon2/01\">"
-                                           + "<license id=\"license-9A5C00D5\" type=\"text\">Terms and Conditions\n"
-                                           + "</license><localPackage "
-                                           + "path=\"system-images;android-34;google_apis_playstore;x86_64\" "
-                                           + "obsolete=\"false\"><type-details "
-                                           + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-                                           + "xsi:type=\"ns3:sysImgDetailsType\"><api-level>34</api-level>"
-                                           + "<tag><id>google_apis_playstore</id><display>Google Play</display></tag>"
-                                           + "<vendor><id>google</id><display>Google Inc.</display></vendor>"
-                                           + "<abi>x86_64</abi></type-details><revision><major>9</major></revision>"
-                                           + "<display-name>Google APIs Intel x86_64 Atom_64 System Image</display-name>"
-                                           + "<uses-license ref=\"license-9A5C00D5\"/></localPackage>"
-                                           + "</ns3:sdk-sys-img>\n");
+    recordSysImgForAbi(sdkRoot, "x86_64", "Google APIs Intel x86_64 Atom_64 System Image");
+    recordSysImgForAbi(sdkRoot, "arm64-v8a", "Google APIs ARM64 v8a System Image");
+  }
+
+  private static void recordSysImgForAbi(Path sdkRoot, String abi, String displayName) {
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("system-images/android-34/google_apis_playstore/" + abi + "/system.img"), "foo");
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("system-images/android-34/google_apis_playstore/" + abi + "/userdata.img"), "bar");
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("system-images/android-34/google_apis_playstore/" + abi + "/package.xml"),
+                           "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+                           + "<ns3:sdk-sys-img "
+                           + "xmlns:ns2=\"http://schemas.android.com/sdk/android/repo/repository2/01\" "
+                           + "xmlns:ns3=\"http://schemas.android.com/sdk/android/repo/sys-img2/01\" "
+                           + "xmlns:ns4=\"http://schemas.android.com/repository/android/common/01\" "
+                           + "xmlns:ns5=\"http://schemas.android.com/sdk/android/repo/addon2/01\">"
+                           + "<license id=\"license-9A5C00D5\" type=\"text\">Terms and Conditions\n"
+                           + "</license><localPackage "
+                           + "path=\"system-images;android-34;google_apis_playstore;" + abi + "\" "
+                           + "obsolete=\"false\"><type-details "
+                           + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                           + "xsi:type=\"ns3:sysImgDetailsType\"><api-level>34</api-level>"
+                           + "<tag><id>google_apis_playstore</id><display>Google Play</display></tag>"
+                           + "<vendor><id>google</id><display>Google Inc.</display></vendor>"
+                           + "<abi>" + abi + "</abi></type-details><revision><major>9</major></revision>"
+                           + "<display-name>" + displayName + "</display-name>"
+                           + "<uses-license ref=\"license-9A5C00D5\"/></localPackage>"
+                           + "</ns3:sdk-sys-img>\n");
   }
 
   private @Nullable AvdInfo createAvdIfNeeded(
     @NotNull AndroidVirtualDeviceSdkComponentTreeNode avdCreator, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
+    avdCreator.updateState(sdkHandler);
     if (!avdCreator.isAvdCreationNeeded(sdkHandler)) {
       return null;
     }

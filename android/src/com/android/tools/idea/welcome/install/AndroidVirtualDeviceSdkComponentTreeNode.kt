@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.welcome.install
 
-import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.repository.api.RemotePackage
-import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidApiLevel
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
@@ -41,6 +41,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService
 import com.android.tools.idea.avdmanager.SystemImageDescription
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.google.wireless.android.sdk.stats.ProductDetails
@@ -55,44 +56,55 @@ import com.intellij.util.system.CpuArch
 import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.VisibleForTesting
 
 /** Logic for setting up Android virtual device */
-class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: AndroidVersion?, installUpdates: Boolean) :
+class AndroidVirtualDeviceSdkComponentTreeNode
+@JvmOverloads
+constructor(
+  installUpdates: Boolean,
+  val api: AndroidApiLevel = StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
+) :
   InstallableSdkComponentTreeNode(
     "Android Virtual Device",
     "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
     installUpdates,
   ) {
-  // This is a bit weird that we take a collection of RemotePackages just to find the latest
-  // version, but then later require an AndroidSdkHandler in a bunch of methods, which is the
-  // source of RemotePackages in the first place.
-  //
-  // Plus, there's an sdkHandler in the superclass; why aren't we using it?
-  constructor(
-    remotePackages: Collection<RemotePackage>,
-    installUpdates: Boolean,
-  ) : this(
-    findLatestPlatform(remotePackages, true)?.let { (it.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion },
-    installUpdates,
-  )
+  private val isArm64Host = CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
 
-  private val IS_ARM64_HOST_OS = CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
+  var systemImageDescription: SystemImageDescription? = null
+    private set
 
-  // After this we use x86-64 system images
-  private val MAX_X86_API_LEVEL = 30
+  override fun onSdkHandlerUpdated() {
+    val images = repositoryPackages.remotePackages.values.filter { it.isUsable() }.map { SystemImageDescription(it) }
+    // Favor newest API level (up to [api]), fewer tags, favor base extension level.
+    images
+      .sortedWith(
+        compareByDescending<SystemImageDescription> { it.version.withBaseExtensionLevel() }
+          .thenBy { it.tags.size }
+          .thenBy { it.version.extensionLevel }
+      )
+      .firstOrNull()
+      ?.let { systemImageDescription = it }
+  }
+
+  private fun RemotePackage.isUsable(): Boolean {
+    val details = typeDetails as? DetailsTypes.SysImgDetailsType ?: return false
+    val wantedAbi = if (isArm64Host) Abi.ARM64_V8A else Abi.X86_64
+    return details.abis.firstOrNull() == wantedAbi.toString() &&
+      details.vendor == ID_VENDOR_GOOGLE &&
+      details.tags.contains(SystemImageTags.PLAY_STORE_TAG) &&
+      details.androidVersion.androidApiLevel <= api &&
+      !details.androidVersion.isPreview
+  }
 
   @Throws(WizardException::class)
-  private fun getSystemImageDescription(sdkHandler: AndroidSdkHandler): SystemImageDescription {
-    val progress = StudioLoggerProgressIndicator(javaClass)
-    if (androidVersion == null) {
-      throw WizardException("Missing system image required for an AVD setup")
-    }
-    val systemImages = sdkHandler.getSystemImageManager(progress).lookup(ID_ADDON_GOOGLE_API_IMG, androidVersion, ID_VENDOR_GOOGLE)
-    if (systemImages.isEmpty()) {
-      throw WizardException("Missing system image required for an AVD setup")
-    }
-    return SystemImageDescription(systemImages.iterator().next())
+  private fun resolveSystemImage(sdkHandler: AndroidSdkHandler): SystemImageDescription {
+    val systemImageDescription = systemImageDescription ?: throw WizardException("Missing system image required for an AVD setup")
+    val systemImage =
+      sdkHandler.getSystemImageManager(StudioLoggerProgressIndicator(javaClass)).images.firstOrNull {
+        it.`package`.path == systemImageDescription.remotePackage?.path
+      } ?: throw WizardException("Missing system image required for an AVD setup")
+    return SystemImageDescription(systemImage)
   }
 
   @UiThread
@@ -123,8 +135,7 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
   fun createAvd(sdkHandler: AndroidSdkHandler): AvdInfo {
     val avdManager = IdeAvdManagers.getAvdManager(sdkHandler)
     val device = getDevice(sdkHandler.location!!)
-    val systemImageDescription = getSystemImageDescription(sdkHandler)
-
+    val systemImageDescription = resolveSystemImage(sdkHandler)
     val avdBuilder = avdManager.createAvdBuilder(device)
     with(avdBuilder) {
       displayName = avdManager.uniquifyDisplayName(AvdNames.getDefaultDeviceDisplayName(device, systemImageDescription.version))
@@ -165,24 +176,8 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
     return Runtime.getRuntime().availableProcessors() / 2
   }
 
-  @VisibleForTesting
-  fun getRequiredSysimgPath(isArm64HostOs: Boolean): String {
-    return DetailsTypes.getSysImgPath(
-      ID_VENDOR_GOOGLE,
-      androidVersion,
-      ID_ADDON_GOOGLE_API_IMG,
-      when {
-        isArm64HostOs -> SdkConstants.ABI_ARM64_V8A
-        androidVersion == null -> SdkConstants.ABI_INTEL_ATOM
-        // Note that this covers previews for MAX_X86_API_LEVEL + 1 as well.
-        androidVersion > AndroidVersion(MAX_X86_API_LEVEL) -> SdkConstants.ABI_INTEL_ATOM64
-        else -> SdkConstants.ABI_INTEL_ATOM
-      },
-    )
-  }
-
   override val requiredSdkPackages: Collection<String>
-    get() = if (androidVersion == null) emptyList() else listOf(getRequiredSysimgPath(IS_ARM64_HOST_OS))
+    get() = systemImageDescription?.let { listOfNotNull(it.remotePackage?.path) } ?: emptyList()
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     try {
@@ -201,13 +196,7 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
 
   public override fun isSelectedByDefault(): Boolean {
     val sdkHandler = sdkHandler ?: return false
-    val desired: SystemImageDescription =
-      try {
-        getSystemImageDescription(sdkHandler)
-      } catch (e: WizardException) {
-        // No System Image yet. Default is to install.
-        return true
-      }
+    val desired: SystemImageDescription = systemImageDescription ?: return true // No System Image yet. Default is to install.
     val connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
     val avds = connection.getAvds(false)
     for (avd in avds) {
@@ -224,7 +213,6 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
   companion object {
     val LOG = Logger.getInstance(AndroidVirtualDeviceSdkComponentTreeNode::class.java)
     private const val DEFAULT_DEVICE_ID = "medium_phone"
-    private val ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis_playstore", "Google Play")
     private val ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google LLC")
     private val DEFAULT_RAM_SIZE = Storage(2, Storage.Unit.GiB)
     private val DEFAULT_HEAP_SIZE = Storage(336, Storage.Unit.MiB)
@@ -235,34 +223,4 @@ class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: Andro
         ?: throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
     }
   }
-}
-
-/**
- * Returns the latest platform from a given list.
- *
- * It is possible to select whether one wants the last extension of the latest platform or whether one wants the latest base extension.
- *
- * @param remotePackages the list of packages to search for the last platform.
- * @param returnBaseExtension whether to always return the base extension of the latest platform.
- * @return
- */
-fun findLatestPlatform(remotePackages: Collection<RemotePackage>, returnBaseExtension: Boolean): RemotePackage? {
-  var max: AndroidVersion? = null
-  var latest: RemotePackage? = null
-  for (pkg in remotePackages) {
-    val details = pkg.getTypeDetails()
-    if (details !is DetailsTypes.PlatformDetailsType) {
-      continue
-    }
-    val version = details.getAndroidVersion()
-    if (version.isPreview() || (returnBaseExtension && !version.isBaseExtension())) {
-      // We only want stable platforms, and possibly only base extension if requested
-      continue
-    }
-    if (max == null || version.compareTo(max) > 0) {
-      latest = pkg
-      max = version
-    }
-  }
-  return latest
 }
