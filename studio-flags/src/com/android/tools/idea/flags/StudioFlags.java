@@ -2432,6 +2432,11 @@ public final class StudioFlags {
                     "Enable config overrides for the Codex ACP agent",
                     "Injects overrides such as disabling conflicting tools and adding developer instructions into the CODEX_CONFIG environment variable");
 
+  public static final Flag<Boolean> STUDIOBOT_ACP_PLAN_CAPABILITIES_ENABLED =
+    new BooleanFlag(STUDIOBOT, "acp.plan.capabilities.enabled",
+                    "Enable ACP Plan Capabilities",
+                    "Injects PlanCapabilities during handshaking");
+
   public static final Flag<Boolean> STUDIOBOT_CHAT_QUERY_STATUS_BANNER_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.query.status.banner.enabled",
                     "Enable thinking banner in Chat Timeline",
