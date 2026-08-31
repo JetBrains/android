@@ -26,7 +26,7 @@ class KmpPluginPlaceholderProvider : WizardPluginPromotionTemplateProvider() {
       promotionTemplate(FormFactor.Generic),
     )
 
-  private fun promotionTemplate(section: FormFactor): PluginPromotionTemplate =
+  private fun promotionTemplate(formFactor: FormFactor): PluginPromotionTemplate =
     object : PluginPromotionTemplate {
       override val name: String
         get() = message("android.wizard.project.promotion.kmp.title")
@@ -35,10 +35,10 @@ class KmpPluginPlaceholderProvider : WizardPluginPromotionTemplateProvider() {
         get() = KMP_PLUGIN_ID
 
       override fun thumb() =
-        Thumb { this@KmpPluginPlaceholderProvider.javaClass.getResource("/META-INF/kmp_required_logo.png") }
+        Thumb { this@KmpPluginPlaceholderProvider.javaClass.getResource("/icons/kmp_required_logo.png") }
 
       override val formFactor: FormFactor
-        get() = section
+        get() = formFactor
     }
 
   companion object {

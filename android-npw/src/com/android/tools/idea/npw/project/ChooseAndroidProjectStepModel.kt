@@ -110,6 +110,7 @@ class ChooseAndroidProjectStepModel(private val formFactorSupplier: Supplier<Lis
     }
     return gridItems.firstOrNull { it.title == emptyItemLabel }
       ?: gridItems.filterIsInstance<TemplateGridItem>().firstOrNull { it.template != Template.NoActivity }
+      ?: gridItems.firstOrNull()
   }
 
   private fun createFormFactorEntry(formFactor: FormFactor, promotedTemplate: PromotedTemplate?): FormFactorProjectEntry {

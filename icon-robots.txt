@@ -5,3 +5,4 @@ skip: designer/**/*
 skip: smali/**/*
 skip: artwork/compatibilityResources/**/*
 skip: whats-new-assistant/**/*
+skip: android-npw/resources/icons/*
