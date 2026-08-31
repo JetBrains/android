@@ -15,10 +15,13 @@
  */
 package com.android.tools.profilers.tasks.analytics
 
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
-import com.android.tools.profiler.proto.Common.Session
 import com.android.tools.profilers.ProfilerContext
+import com.android.tools.profilers.Stage
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.UnifiedTraceOpener
+import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
@@ -28,19 +31,18 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.android.tools.profilers.tasks.analytics.TaskTracker.Companion.createTaskTracker
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 
 /**
  * A class responsible for tracking the lifecycle events of a profiler task.
  *
- * This class serves as a wrapper around [com.android.tools.profilers.analytics.FeatureTracker] for task-specific events, gathering
- * necessary metadata about the task (e.g., origin, configuration, exposure level) and reporting events such as task entry, completion, or
- * failure.
+ * This class serves as a wrapper around [FeatureTracker] for task-specific events, gathering necessary metadata about the task (e.g.,
+ * origin, configuration, exposure level) and reporting events such as task entry, completion, or failure.
  *
  * ### Usage Restrictions
- * This class should **only be instantiated by [com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler.enter] and
- * [com.android.tools.profilers.Stage.enter]** in production. Because [TaskMetadata] is built at the moment of instantiation, calling this
- * at the wrong time (e.g., before a session is fully initialized) will result in incorrect or stale telemetry.
+ * This class should **only be instantiated by [ProfilerTaskHandler.enter], [Stage.enter], and [UnifiedTraceOpener.openUnifiedTrace]** in
+ * production. Because [TaskMetadata] is built at the moment of instantiation, calling this at the wrong time (e.g., before a session is
+ * fully initialized) will result in incorrect or stale telemetry.
  *
  * Use [createTaskTracker] to obtain an instance. If the task-based UX is disabled, a no-op [NullTaskTracker] will be returned.
  *
@@ -93,9 +95,9 @@ open class TaskTracker private constructor(private val profilers: StudioProfiler
   /**
    * A no-op implementation of [TaskTracker] used when task tracking is disabled or as a safe default value.
    *
-   * This implementation is used to initialize the `taskTracker` property in [com.android.tools.profilers.Stage] before a concrete instance
-   * is explicitly created via [TaskTracker.createTaskTracker]. It overrides all tracking methods with empty bodies, ensuring that tracking
-   * calls remain safe (avoiding NullPointerExceptions) even if triggered before full initialization or when the task-based UX is inactive.
+   * This implementation is used to initialize the `taskTracker` property in [Stage] before a concrete instance is explicitly created via
+   * [TaskTracker.createTaskTracker]. It overrides all tracking methods with empty bodies, ensuring that tracking calls remain safe
+   * (avoiding NullPointerExceptions) even if triggered before full initialization or when the task-based UX is inactive.
    */
   private class NullTaskTracker(profilers: StudioProfilers) :
     TaskTracker(
@@ -136,10 +138,23 @@ open class TaskTracker private constructor(private val profilers: StudioProfiler
     }
 
     /**
+     * Creates a [TaskTracker] for a specific session and task type.
+     *
+     * @param profilers The [StudioProfilers] instance used to retrieve state and services.
+     * @param session The [Common.Session] for which the task is being tracked.
+     * @param taskType The [ProfilerTaskType] of the task.
+     */
+    @JvmStatic
+    fun createTaskTracker(profilers: StudioProfilers, session: Common.Session, taskType: ProfilerTaskType): TaskTracker {
+      val taskMetadata = buildTaskMetadata(profilers, session, taskType)
+      return TaskTracker(profilers, taskMetadata)
+    }
+
+    /**
      * Creates a [TaskTracker] utilizing deferred offline metadata from the [context] if loaded.
      *
      * @param profilers The [StudioProfilers] instance used to retrieve state and services.
-     * @param context The [com.android.tools.profilers.ProfilerContext] to inspect for offline metadata.
+     * @param context The [ProfilerContext] to inspect for offline metadata.
      */
     @JvmStatic
     fun createTaskTracker(profilers: StudioProfilers, context: ProfilerContext): TaskTracker {
@@ -155,9 +170,8 @@ open class TaskTracker private constructor(private val profilers: StudioProfiler
      * Creates a no-op [TaskTracker] that ignores all tracking calls. This avoids NullReferenceException bugs and unnecessary checks at call
      * sites.
      *
-     * Warning: Should only be called by the `Stage` constructor (or during
-     * [com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler] initialization) in production to provide a safe default. For
-     * actual telemetry recording, use [createTaskTracker] during the task's entry phase.
+     * Warning: Should only be called by the `Stage` constructor (or during [ProfilerTaskHandler] initialization) in production to provide a
+     * safe default. For actual telemetry recording, use [createTaskTracker] during the task's entry phase.
      */
     @JvmStatic
     fun createNullTaskTracker(profilers: StudioProfilers): TaskTracker {
@@ -166,15 +180,23 @@ open class TaskTracker private constructor(private val profilers: StudioProfiler
 
     private fun buildTaskMetadata(profilers: StudioProfilers): TaskMetadata {
       val sessionsManager = profilers.sessionsManager
+      return buildTaskMetadata(profilers, sessionsManager.selectedSession, sessionsManager.currentTaskType)
+    }
+
+    /** Builds [TaskMetadata] derived from the given [session] and [taskType]. */
+    private fun buildTaskMetadata(profilers: StudioProfilers, session: Common.Session, taskType: ProfilerTaskType): TaskMetadata {
+      val sessionsManager = profilers.sessionsManager
+      val metaData = sessionsManager.getSessionMetaData(session.sessionId) ?: Common.SessionMetaData.getDefaultInstance()
+      val isAlive = SessionsManager.isSessionAlive(session)
       return TaskMetadata(
-        taskType = sessionsManager.currentTaskType,
-        taskId = sessionsManager.selectedSession.sessionId,
-        taskDataOrigin = resolveDataOrigin(sessionsManager),
-        taskAttachmentPoint = resolveAttachmentPoint(sessionsManager),
-        exposureLevel = sessionsManager.selectedSessionMetaData.exposureLevel,
+        taskType = taskType,
+        taskId = session.sessionId,
+        taskDataOrigin = resolveDataOrigin(session),
+        taskAttachmentPoint = resolveAttachmentPoint(metaData, isAlive),
+        exposureLevel = metaData.exposureLevel,
         taskConfig =
-          if (sessionsManager.isSessionAlive) {
-            resolveTaskConfig(profilers, sessionsManager.currentTaskType)
+          if (isAlive) {
+            resolveTaskConfig(profilers, taskType)
           } else {
             null
           },
@@ -182,19 +204,20 @@ open class TaskTracker private constructor(private val profilers: StudioProfiler
     }
 
     /** Derive data origin based on whether this is a new recording or a previously recorded session. */
-    private fun resolveDataOrigin(sessionsManager: SessionsManager): TaskDataOrigin {
+    private fun resolveDataOrigin(session: Common.Session): TaskDataOrigin {
       return when {
-        sessionsManager.isSessionAlive -> TaskDataOrigin.NEW
-        SessionsManager.isSessionImported(sessionsManager.selectedSession) -> TaskDataOrigin.IMPORTED
-        sessionsManager.selectedSession != Session.getDefaultInstance() -> TaskDataOrigin.PAST_RECORDING
+        SessionsManager.isSessionAlive(session) -> TaskDataOrigin.NEW
+        SessionsManager.isSessionImported(session) -> TaskDataOrigin.IMPORTED
+        session != Common.Session.getDefaultInstance() -> TaskDataOrigin.PAST_RECORDING
         else -> TaskDataOrigin.UNSPECIFIED
       }
     }
 
-    private fun resolveAttachmentPoint(sessionsManager: SessionsManager): TaskAttachmentPoint {
+    /** Derive attachment point based on process startup state and whether the session is currently alive. */
+    private fun resolveAttachmentPoint(metaData: Common.SessionMetaData, isAlive: Boolean): TaskAttachmentPoint {
       return when {
-        !sessionsManager.isSessionAlive -> TaskAttachmentPoint.UNSPECIFIED
-        sessionsManager.isCurrentTaskStartup -> TaskAttachmentPoint.NEW_PROCESS
+        !isAlive -> TaskAttachmentPoint.UNSPECIFIED
+        metaData.isStartupTask -> TaskAttachmentPoint.NEW_PROCESS
         else -> TaskAttachmentPoint.EXISTING_PROCESS
       }
     }

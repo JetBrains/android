@@ -60,10 +60,15 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
       selectedTaskTypeForEditor != null &&
         ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, selectedTaskTypeForEditor, isLegacyAllocations)
 
-    // Bypass current task checks if the past trace task opens in its own editor window
-    // so it doesn't conflict with the existing task in the Profiler window.
-    if (this is PastRecordingsTabModel && openInEditor) {
-      doEnterTaskButton()
+    val isLiveTaskInEditor =
+      selectedTaskTypeForEditor != null &&
+        ProfilerInEditorUtils.isLiveTaskInEditorEnabled(profilers.ideServices.featureConfig, selectedTaskTypeForEditor, isLegacyAllocations)
+
+    // If the past trace task opens in its own editor window (and is an offline trace capture, not a live task),
+    // open it directly without mutating the central selected session so it doesn't conflict with any active task in the Profiler window.
+    if (this is PastRecordingsTabModel && openInEditor && !isLiveTaskInEditor) {
+      val recording = selectedRecording ?: return
+      profilers.unifiedTraceOpener.openUnifiedTrace(recording, selectedTaskTypeForEditor)
       return
     }
 

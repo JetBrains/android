@@ -24,6 +24,7 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.android.tools.profilers.tasks.analytics.TaskDataOrigin
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
 import com.android.tools.profilers.tasks.analytics.TaskTracker
@@ -33,15 +34,48 @@ import java.io.File
 /** Helper class responsible for handling the opening of editor enabled tasks via the Unified Profiler. */
 class UnifiedTraceOpener(private val profilers: StudioProfilers) {
 
-  fun openUnifiedTrace(session: Common.Session, sessionItems: Map<Long, SessionItem>): Boolean {
-    val currentTaskType = profilers.sessionsManager.currentTaskType
-
-    // Try opening from a saved Artifact (Completed session)
+  /**
+   * Attempts to open the editor-supported trace associated with the given [session].
+   *
+   * @param session The [Common.Session] of the trace.
+   * @param sessionItems Map of session IDs to [SessionItem]s.
+   * @param taskTypeOverride Optional [ProfilerTaskType] to use instead of resolving from the session item.
+   * @return true if the trace was opened in the editor, false otherwise.
+   */
+  @JvmOverloads
+  fun openUnifiedTrace(
+    session: Common.Session,
+    sessionItems: Map<Long, SessionItem>,
+    taskTypeOverride: ProfilerTaskType? = null,
+  ): Boolean {
     val sessionItem = sessionItems[session.sessionId] ?: return false
+    return openUnifiedTrace(sessionItem, taskTypeOverride)
+  }
+
+  /**
+   * Attempts to open the editor-supported trace associated with the given [sessionItem].
+   *
+   * @param sessionItem The [SessionItem] containing the trace artifacts.
+   * @param taskTypeOverride Optional [ProfilerTaskType] to use instead of resolving from the session item.
+   * @return true if the trace was opened in the editor, false otherwise.
+   */
+  @JvmOverloads
+  fun openUnifiedTrace(
+    sessionItem: SessionItem,
+    taskTypeOverride: ProfilerTaskType? = null,
+  ): Boolean {
+    val session = sessionItem.session
+    val currentTaskType =
+      taskTypeOverride
+        ?: (sessionItem.getTaskType().takeIf { it != ProfilerTaskType.UNSPECIFIED }
+          ?: TaskTypeMappingUtils.convertTaskType(sessionItem.sessionMetaData.taskType))
     val artifacts = sessionItem.getChildArtifacts()
     val isLegacyAllocations = sessionItem.isLegacyAllocations
 
-    if (!ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, currentTaskType, isLegacyAllocations)) {
+    if (
+      !ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, currentTaskType, isLegacyAllocations) ||
+        ProfilerInEditorUtils.isLiveTaskInEditorEnabled(profilers.ideServices.featureConfig, currentTaskType, isLegacyAllocations)
+    ) {
       return false
     }
 
@@ -56,7 +90,7 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
       if (opened) {
         // Traces opened directly in the Editor bypass the legacy capture parsers where task metrics
         // are normally fired. We fire trackTaskEntered and trackTaskFinished here to ensure parity.
-        val tracker = TaskTracker.createTaskTracker(profilers)
+        val tracker = TaskTracker.createTaskTracker(profilers, session, currentTaskType)
         tracker.trackTaskEntered(profilerTabsCount = profilers.ideServices.profilerTabsCount)
         tracker.trackTaskFinished(TaskFinishedState.COMPLETED)
 
@@ -86,7 +120,7 @@ class UnifiedTraceOpener(private val profilers: StudioProfilers) {
         if (opened) {
           // Traces opened directly in the Editor bypass the legacy capture parsers where task metrics
           // are normally fired. We fire trackTaskEntered and trackTaskFinished here to ensure parity.
-          val tracker = TaskTracker.createTaskTracker(profilers)
+          val tracker = TaskTracker.createTaskTracker(profilers, session, currentTaskType)
           tracker.trackTaskEntered(profilerTabsCount = profilers.ideServices.profilerTabsCount)
           tracker.trackTaskFinished(TaskFinishedState.COMPLETED)
         }

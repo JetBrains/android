@@ -447,7 +447,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
-    myCurrentTaskType = TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType());
+    // Do not overwrite the current task type for imported sessions so that an active live session's task type is preserved.
+    if (!isSessionImported(session)) {
+      myCurrentTaskType = TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType());
+    }
     return sessionItem;
   }
 

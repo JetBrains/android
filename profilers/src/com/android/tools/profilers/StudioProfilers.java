@@ -1397,6 +1397,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
+   * Returns the {@link UnifiedTraceOpener} responsible for opening editor-supported trace files.
+   */
+  @NotNull
+  public UnifiedTraceOpener getUnifiedTraceOpener() {
+    return myUnifiedTraceOpener;
+  }
+
+  /**
    * Mirrors AndroidProfilerToolWindow#getDeviceDisplayName but works with a {@link Common.Device}.
    */
   @NotNull

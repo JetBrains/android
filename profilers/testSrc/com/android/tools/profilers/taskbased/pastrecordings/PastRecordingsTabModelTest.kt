@@ -252,6 +252,50 @@ class PastRecordingsTabModelTest {
     assertThat(testProfilers.session).isEqualTo(session)
   }
 
+  @Test
+  fun `test onEnterTaskButtonClick does not alter selected session when trace opens in editor`() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Common.Process.newBuilder().setDeviceId(1).setPid(10).setState(Common.Process.State.ALIVE).build()
+    myTransportService.addDevice(device)
+    myTransportService.addProcess(device, process)
+    myManager.beginSession(1, device, process, Common.ProfilerTaskType.LIVE_VIEW, false)
+    myManager.update()
+    val liveSession = myProfilers.session
+    assertThat(liveSession).isNotEqualTo(Common.Session.getDefaultInstance())
+
+    val recordingSession = Common.Session.newBuilder().setSessionId(200L).setStartTimestamp(10L).setEndTimestamp(20L).build()
+    val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
+    val artifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, recordingSession, 200L, 200L, perfettoConfig)
+    val sessionItem =
+      SessionArtifactUtils.createSessionItem(myProfilers, recordingSession, 200L, ProfilerTaskType.SYSTEM_TRACE, listOf(artifact))
+
+    myTransportService.addFile("200", "test_path")
+
+    pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
+    ideProfilerServices.enableSystemTraceInEditor(true)
+
+    pastRecordingsTabModel.onEnterTaskButtonClick()
+
+    // Assert that the central profilers' session was NOT changed to recordingSession
+    assertThat(myProfilers.session).isEqualTo(liveSession)
+    assertThat(ideProfilerServices.openedFile?.path).isEqualTo("test_path")
+  }
+
+  @Test
+  fun `test onEnterTaskButtonClick enters task via doEnterTaskButton when live task in editor enabled`() {
+    ideProfilerServices.setLiveTelemetryInEditorEnabled(true)
+    myProfilers.addTaskHandler(ProfilerTaskType.LIVE_VIEW, LiveTaskHandler(myManager))
+    SessionArtifactUtils.generateLiveTaskRecording(myManager, myTransportService)
+
+    val recording = pastRecordingsTabModel.recordingListModel.recordingList.value.first()
+    pastRecordingsTabModel.recordingListModel.onRecordingSelection(recording)
+
+    pastRecordingsTabModel.onEnterTaskButtonClick()
+
+    // Assert that the live task was entered and the session was set
+    assertThat(myProfilers.session).isEqualTo(recording.session)
+  }
+
   private fun setCurrentTaskHandler(taskType: ProfilerTaskType) {
     myProfilers.setCurrentTaskHandlerFetcher { myProfilers.taskHandlers[taskType] }
   }
