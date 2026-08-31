@@ -40,17 +40,11 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -271,29 +265,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     task.setPrepareCompleteCallback(() -> myBackgroundAction.setEnabled(false));
     myBackgroundAction.setTask(task);
 
-    ProgressIndicator indicator;
-    boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
-    if (hasOpenProjects) {
-      indicator = new BackgroundableProcessIndicator(task);
-    }
-    else {
-      // If we don't have any open projects runProcessWithProgressAsynchronously will show a modal popup no matter what.
-      // Instead use an empty progress indicator to suppress that.
-      indicator = new EmptyProgressIndicator();
-    }
-    customLogger.setIndicator(indicator);
-    if (indicator instanceof Disposable disposableIndicator) {
-      runWhenDisposed(disposableIndicator, () -> customLogger.setIndicator(null));
-    }
-    indicator.setIndeterminate(false);
-    ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
-  }
-
-  @VisibleForTesting
-  static void runWhenDisposed(@NotNull Disposable parent, @NotNull Runnable action) {
-    if (!Disposer.tryRegister(parent, action::run)) {
-      action.run();
-    }
+    task.runAsync();
   }
 
   private void setupUI() {
@@ -339,7 +311,6 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
   private final class CustomLogger implements com.android.repository.api.ProgressIndicator {
 
-    private volatile ProgressIndicator myIndicator;
     private boolean myCancelled;
     private Logger myLogger = Logger.getInstance(getClass());
     // Maintain separately since JProgressBar has low resolution
@@ -348,28 +319,16 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     @Override
     public void setText(@Nullable final String s) {
       UIUtil.invokeLaterIfNeeded(() -> myProgressOverallLabel.setText(s));
-      ProgressIndicator indicator = myIndicator;
-      if (indicator != null) {
-        indicator.setText(s);
-      }
     }
 
     @Override
     public boolean isCanceled() {
-      ProgressIndicator indicator = myIndicator;
-      if (indicator != null) {
-        myCancelled = myCancelled || indicator.isCanceled();
-      }
       return myCancelled;
     }
 
     @Override
     public void cancel() {
       myCancelled = true;
-      ProgressIndicator indicator = myIndicator;
-      if (indicator != null) {
-        indicator.cancel();
-      }
     }
 
     @Override
@@ -385,10 +344,6 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     @Override
     public void setIndeterminate(final boolean indeterminate) {
       UIUtil.invokeLaterIfNeeded(() -> myProgressBar.setIndeterminate(indeterminate));
-      ProgressIndicator indicator = myIndicator;
-      if (indicator != null) {
-        indicator.setIndeterminate(indeterminate);
-      }
     }
 
     @Override
@@ -403,10 +358,6 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
         myProgressBar.setIndeterminate(false);
         myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
       });
-      ProgressIndicator indicator = myIndicator;
-      if (indicator != null) {
-        indicator.setFraction(v);
-      }
     }
 
     @Override
@@ -417,10 +368,6 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     @Override
     public void setSecondaryText(@Nullable String label) {
       UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(label));
-      ProgressIndicator indicator = myIndicator;
-      if (indicator != null) {
-        indicator.setText2(label);
-      }
     }
 
     @Override
@@ -487,9 +434,10 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
       });
     }
 
-    public void setIndicator(ProgressIndicator indicator) {
-      myIndicator = indicator;
-    }
+  }
+
+  public boolean isBackgrounded() {
+    return myBackgroundAction.isBackgrounded();
   }
 
   /**

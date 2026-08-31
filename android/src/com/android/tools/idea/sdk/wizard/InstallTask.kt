@@ -13,352 +13,357 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk.wizard;
+package com.android.tools.idea.sdk.wizard
 
-import com.android.repository.api.Downloader;
-import com.android.repository.api.Installer;
-import com.android.repository.api.InstallerFactory;
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.PackageOperation;
-import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
-import com.android.repository.api.RepoPackage;
-import com.android.repository.api.SettingsController;
-import com.android.repository.api.Uninstaller;
-import com.android.repository.api.UpdatablePackage;
-import com.android.repository.impl.installer.AbstractPackageOperation;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationGroupManager;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.progress.impl.ProgressSuspender;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import javax.swing.event.HyperlinkEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.repository.api.DelegatingProgressIndicator
+import com.android.repository.api.Downloader
+import com.android.repository.api.Installer
+import com.android.repository.api.InstallerFactory
+import com.android.repository.api.LocalPackage
+import com.android.repository.api.PackageOperation
+import com.android.repository.api.ProgressIndicator
+import com.android.repository.api.RemotePackage
+import com.android.repository.api.RepoManager
+import com.android.repository.api.RepoPackage
+import com.android.repository.api.SettingsController
+import com.android.repository.api.Uninstaller
+import com.android.repository.api.UpdatablePackage
+import com.android.repository.impl.installer.AbstractPackageOperation
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.progress.RawProgressReporterAdapter
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.StudioDownloader
+import com.android.tools.idea.sdk.StudioSettingsController
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableSet
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationListener
+import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.platform.ide.progress.withBackgroundProgress
+import com.intellij.platform.util.progress.reportRawProgress
+import java.util.LinkedHashMap
+import java.util.function.Function
+import javax.swing.event.HyperlinkEvent
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidPluginDisposable
 
-/**
- * {@link Task} that installs SDK packages.
- */
-public class InstallTask extends Task.Backgroundable {
+private val log: Logger
+  get() = logger<InstallTask>()
 
-  private final ProgressIndicator myLogger;
-  private Collection<UpdatablePackage> myInstallRequests;
-  private Collection<LocalPackage> myUninstallRequests;
-  private final RepoManager myRepoManager;
-  private final InstallerFactory myInstallerFactory;
-  private boolean myBackgrounded;
-  @Nullable
-  private Runnable myPrepareCompleteCallback;
-  @Nullable
-  private Function<List<RepoPackage>, Void> myCompleteCallback;
-  private final SettingsController mySettingsController;
+/** Task that installs SDK packages. */
+class InstallTask
+@JvmOverloads
+constructor(
+  private val installerFactory: InstallerFactory,
+  private val sdkHandler: AndroidSdkHandler,
+  private val settingsController: SettingsController = StudioSettingsController.getInstance(),
+  private val logger: ProgressIndicator = StudioLoggerProgressIndicator(InstallTask::class.java),
+  var installRequests: Collection<UpdatablePackage> = emptyList(),
+  var uninstallRequests: Collection<LocalPackage> = emptyList(),
+  private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+) {
+  private val repoManager: RepoManager = sdkHandler.getRepoManagerAndLoadSynchronously(logger)
+  private var isBackgrounded: Boolean = false
 
-  public InstallTask(@NotNull InstallerFactory installerFactory,
-                     @NotNull AndroidSdkHandler sdkHandler,
-                     @NotNull SettingsController settings,
-                     @NotNull ProgressIndicator logger) {
-    super(null, "Installing Android SDK", true, PerformInBackgroundOption.ALWAYS_BACKGROUND);
-    myLogger = logger;
-    myRepoManager = sdkHandler.getRepoManagerAndLoadSynchronously(logger);
-    myInstallerFactory = installerFactory;
-    mySettingsController = settings;
-  }
+  var prepareCompleteCallback: Runnable? = null
+  var completeCallback: Function<List<RepoPackage>, Void>? = null
 
-  @Override
-  public void onCancel() {
-    myLogger.cancel();
+  fun onCancel() {
+    logger.cancel()
   }
 
   /**
-   * This task is always run in the background, but there's another progress indicator shown in the foreground.
-   * This should be called when the foreground progress is closed, thus making it look like we're in the background.
+   * This task is always run in the background, but there's another progress indicator shown in the foreground. This should be called when
+   * the foreground progress is closed, thus making it look like we're in the background.
    */
-  public void foregroundIndicatorClosed() {
-    myBackgrounded = true;
+  fun foregroundIndicatorClosed() {
+    isBackgrounded = true
   }
 
-  @Override
-  public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
-    final List<RepoPackage> failures = new ArrayList<>();
+  /** Runs the installation with IntelliJ's [withBackgroundProgress] if a project is available. */
+  suspend fun run(
+    project: Project? = null,
+    title: String = "Installing Android SDK",
+    cancellable: Boolean = true,
+  ): List<RepoPackage> {
+    val targetProject = (project ?: IdeFocusManager.getGlobalInstance().lastFocusedFrame?.project)
+      ?.takeUnless { it.isDisposed || it.isDefault }
+      ?: ProjectManager.getInstance().openProjects.firstOrNull { !it.isDisposed && !it.isDefault }
 
-    LinkedHashMap<RepoPackage, PackageOperation> operations = new LinkedHashMap<>();
-    if (!myInstallRequests.isEmpty()) {
-      myLogger.logInfo("Packages to install: ");
-      for (UpdatablePackage install : myInstallRequests) {
-        RepoPackage remote = install.getRemote();
-        assert remote != null;
-        myLogger.logInfo(String.format("- %1$s (%2$s)", remote.getDisplayName(), remote.getPath()));
-        operations.put(remote, getOrCreateInstaller(remote));
+    return if (targetProject != null) {
+      withBackgroundProgress(targetProject, title, cancellable) {
+        reportRawProgress { reporter ->
+          val progressAdapter = RawProgressReporterAdapter(reporter)
+          val combinedProgress =
+            DelegatingProgressIndicator(logger).apply {
+              addDelegate(progressAdapter)
+            }
+          execute(combinedProgress)
+        }
       }
-      myLogger.logInfo("\n");
+    } else {
+      withContext(ioDispatcher) {
+        execute(logger)
+      }
     }
-    if (!myUninstallRequests.isEmpty()) {
-      myLogger.logInfo("Packages to uninstall: ");
-      for (LocalPackage uninstall : myUninstallRequests) {
-        myLogger.logInfo(String.format("- %1$s (%2$s)", uninstall.getDisplayName(), uninstall.getPath()));
-        operations.put(uninstall, getOrCreateUninstaller(uninstall));
+  }
+
+  /** Asynchronous launch helper for Java / non-suspending callers. */
+  @JvmOverloads
+  fun runAsync(
+    project: Project? = null,
+    coroutineScope: CoroutineScope = AndroidPluginDisposable.getApplicationInstance().createCoroutineScope(),
+    title: String = "Installing Android SDK",
+    cancellable: Boolean = true,
+  ): Job = coroutineScope.launch {
+    run(project, title, cancellable)
+  }
+
+  /** Synchronous / non-coroutine execution entry point. */
+  fun run(indicator: ProgressIndicator): List<RepoPackage> {
+    return execute(indicator)
+  }
+
+  @VisibleForTesting
+  fun execute(progress: ProgressIndicator): List<RepoPackage> {
+    val failures = mutableListOf<RepoPackage>()
+    val operations = LinkedHashMap<RepoPackage, PackageOperation>()
+
+    if (installRequests.isNotEmpty()) {
+      logger.logInfo("Packages to install: ")
+      for (install in installRequests) {
+        val remote = install.remote
+        if (remote != null) {
+          logger.logInfo("- ${remote.displayName} (${remote.path})")
+          operations[remote] = getOrCreateInstaller(remote)
+        }
       }
-      myLogger.logInfo("\n");
+      logger.logInfo("\n")
+    }
+
+    if (uninstallRequests.isNotEmpty()) {
+      logger.logInfo("Packages to uninstall: ")
+      for (uninstall in uninstallRequests) {
+        logger.logInfo("- ${uninstall.displayName} (${uninstall.path})")
+        operations[uninstall] = getOrCreateUninstaller(uninstall)
+      }
+      logger.logInfo("\n")
     }
 
     try {
-      while (!operations.isEmpty()) {
-        // If we end up having to retry some, we'll start from 0 again.
-        myLogger.setFraction(0);
-        preparePackages(operations, failures, indicator);
-        if (myPrepareCompleteCallback != null) {
-          myPrepareCompleteCallback.run();
-        }
-        indicator.checkCanceled();
-        if (!myBackgrounded) {
-          completePackages(operations, failures, myLogger.createSubProgress(0.9), indicator);
-          myLogger.setFraction(0.9);
-        }
-        else {
-          // Otherwise show a notification that we're ready to complete.
-          myLogger.setFraction(1);
-          showPrepareCompleteNotification(operations.keySet());
-          return;
+      while (operations.isNotEmpty()) {
+        progress.fraction = 0.0
+        preparePackages(operations, failures, progress)
+        prepareCompleteCallback?.run()
+        progress.checkCanceled()
+        if (!isBackgrounded) {
+          completePackages(operations, failures, progress.createSubProgress(0.9), progress)
+          progress.fraction = 0.9
+        } else {
+          progress.fraction = 1.0
+          showPrepareCompleteNotification(operations.keys)
+          return failures
         }
       }
-    }
-    finally {
-      if (!failures.isEmpty()) {
-        myLogger.logInfo("Failed packages:");
-        for (RepoPackage p : failures) {
-          myLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
+    } finally {
+      if (failures.isNotEmpty()) {
+        logger.logInfo("Failed packages:")
+        for (p in failures) {
+          logger.logInfo("- ${p.displayName} (${p.path})")
         }
       }
     }
     // Use a simple progress indicator here so we don't pick up the log messages from the reload.
-    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    myRepoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, mySettingsController);
-    if (myCompleteCallback != null) {
-      myCompleteCallback.apply(failures);
-    }
-    myLogger.setFraction(1);
+    val reloadProgress = StudioLoggerProgressIndicator(javaClass)
+    repoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, reloadProgress, null, settingsController)
+    completeCallback?.apply(failures)
+    progress.fraction = 1.0
+    return failures
   }
 
   /**
    * Complete installation of the given packages using the given operations. If a package is completed successfully, it is removed from
    * {@code operations}. If a package fails to be installed and has a fallback operation, the fallback is added to {@code operations}, and
-   * it is the responsibility of the caller to retry. If a package fails to be installed and has no fallback, it is added to
-   * {@code failures}.
+   * it is the responsibility of the caller to retry. If a package fails to be installed and has no fallback, it is added to {@code
+   * failures}.
    */
   @VisibleForTesting
-  void completePackages(@NotNull Map<RepoPackage, PackageOperation> operations,
-                        @NotNull List<RepoPackage> failures,
-                        @NotNull ProgressIndicator progress,
-                        @NotNull com.intellij.openapi.progress.ProgressIndicator taskProgressIndicator) {
-    double progressMax = 0;
-    ImmutableSet<RepoPackage> packages = ImmutableSet.copyOf(operations.keySet());
-    double progressIncrement = 1. / packages.size();
-    for (RepoPackage p : packages) {
-      taskProgressIndicator.checkCanceled();
-      PackageOperation installer = operations.get(p);
-      // If we're not backgrounded, go on to the final part immediately.
-      progressMax += progressIncrement;
+  fun completePackages(
+    operations: MutableMap<RepoPackage, PackageOperation>,
+    failures: MutableList<RepoPackage>,
+    progress: ProgressIndicator,
+    taskProgressIndicator: ProgressIndicator,
+  ) {
+    var progressMax = 0.0
+    val packages = ImmutableSet.copyOf(operations.keys)
+    val progressIncrement = 1.0 / packages.size
+
+    for (p in packages) {
+      taskProgressIndicator.checkCanceled()
+      val installer = operations[p] ?: continue
+      progressMax += progressIncrement
+
       if (!installer.complete(progress.createSubProgress(progressMax))) {
-        taskProgressIndicator.checkCanceled();
-        progress.setFraction(progressMax);
-        PackageOperation fallback = installer.getFallbackOperation();
+        taskProgressIndicator.checkCanceled()
+        progress.fraction = progressMax
+        val fallback = installer.fallbackOperation
         if (fallback != null) {
-          // retry the whole thing with the fallback
-          progress.logWarning(String.format("Failed to complete operation using %s, retrying with %s", installer.getClass().getName(),
-                                            fallback.getClass().getName()));
-          operations.put(p, fallback);
+          progress.logWarning("Failed to complete operation using ${installer.javaClass.name}, retrying with ${fallback.javaClass.name}")
+          operations[p] = fallback
+        } else {
+          failures.add(p)
+          operations.remove(p)
         }
-        else {
-          failures.add(p);
-          operations.remove(p);
-        }
-      }
-      else {
-        operations.remove(p);
-        progress.setFraction(progressMax);
+      } else {
+        operations.remove(p)
+        progress.fraction = progressMax
       }
     }
   }
 
-  @NotNull
-  private PackageOperation getOrCreateInstaller(@NotNull RepoPackage p) {
-    // If there's already an installer in progress for this package, reuse it.
-    PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-    if (!(op instanceof Installer)) {
-      Downloader downloader = new StudioDownloader();
-      downloader.setDownloadIntermediatesLocation(
-        myRepoManager.getLocalPath().resolve(AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN));
-      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, downloader);
+  private fun getOrCreateInstaller(p: RepoPackage): PackageOperation {
+    var op = repoManager.getInProgressInstallOperation(p)
+    if (op !is Installer) {
+      val downloader: Downloader =
+        StudioDownloader().apply {
+          val localPath = repoManager.localPath
+          if (localPath != null) {
+            setDownloadIntermediatesLocation(localPath.resolve(AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN))
+          }
+        }
+      op = installerFactory.createInstaller(p as RemotePackage, repoManager, downloader)
     }
-    return op;
+    return op
   }
 
-  @NotNull
-  private PackageOperation getOrCreateUninstaller(@NotNull RepoPackage p) {
-    // If there's already an uninstaller in progress for this package, reuse it.
-    PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-    if (!(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
-      op = myInstallerFactory.createUninstaller((LocalPackage)p, myRepoManager);
+  private fun getOrCreateUninstaller(p: RepoPackage): PackageOperation {
+    val op = repoManager.getInProgressInstallOperation(p)
+    if (op !is Uninstaller || op.installStatus == PackageOperation.InstallStatus.FAILED) {
+      return installerFactory.createUninstaller(p as LocalPackage, repoManager)
     }
-    return op;
+    return op
   }
 
   /**
-   * Prepare the given packages using the given operations. If preparation for a package fails, it is retried with the
-   * {@link PackageOperation#getFallbackOperation() fallback operation}. If fallbacks also fail, the package is removed from
-   * {@code packageOperationMap} and added to {@code failures}.
+   * Prepare the given packages using the given operations. If preparation for a package fails, it is retried with the {@link
+   * PackageOperation#getFallbackOperation() fallback operation}. If fallbacks also fail, the package is removed from {@code
+   * packageOperationMap} and added to {@code failures}.
    */
   @VisibleForTesting
-  void preparePackages(@NotNull Map<RepoPackage, PackageOperation> packageOperationMap,
-                       @NotNull List<RepoPackage> failures,
-                       @NotNull com.intellij.openapi.progress.ProgressIndicator taskProgressIndicator) {
-    ImmutableSet<RepoPackage> packages = ImmutableSet.copyOf(packageOperationMap.keySet());
-    double progressIncrement = 1. / (packages.size() * 2.);
-    boolean wasBackgrounded = false;
-    for (RepoPackage pack : packages) {
-      taskProgressIndicator.checkCanceled();
-      PackageOperation op = packageOperationMap.get(pack);
-      boolean success = false;
+  fun preparePackages(
+    packageOperationMap: MutableMap<RepoPackage, PackageOperation>,
+    failures: MutableList<RepoPackage>,
+    progress: ProgressIndicator,
+  ) {
+    val packages = ImmutableSet.copyOf(packageOperationMap.keys)
+    var progressIncrement = 1.0 / (packages.size * 2.0)
+    var wasBackgrounded = false
+
+    for (pack in packages) {
+      progress.checkCanceled()
+      var op = packageOperationMap[pack]
+      var success = false
+
       while (op != null) {
-        if (myBackgrounded && !wasBackgrounded) {
-          // We're not going to try to complete, so made this progress go all the way to the end.
-          progressIncrement *= 2.;
-          myLogger.setFraction(myLogger.getFraction() * 2.);
-          wasBackgrounded = myBackgrounded;
+        if (isBackgrounded && !wasBackgrounded) {
+          progressIncrement *= 2.0
+          progress.fraction = progress.fraction * 2.0
+          wasBackgrounded = isBackgrounded
         }
-        double currentProgress = myLogger.getFraction();
+        val currentProgress = progress.fraction
         try {
-          double progressMax = currentProgress + progressIncrement;
-          // Allow pausing package preparation when installing.
-          // We probably don't want to allow pausing in other cases to minimize the risk of leaving SDK in an inconsistent
-          // state - e.g. it's way easier to pause, forget about it and turn off the machine so the cancellation handlers
-          // won't have a chance to clean up. Pausing the preparation is safe though, as it typically involves downloading
-          // and unzipping in a temp location (and it makes most sense to render downloading pausable
-          // rather than any other install phase anyway).
-          if (op instanceof Installer && taskProgressIndicator instanceof ProgressIndicatorEx) {
-            try (ProgressSuspender suspender = ProgressSuspender.markSuspendable(taskProgressIndicator,
-                                                                               "Installation paused")) {
-              success = op.prepare(myLogger.createSubProgress(progressMax));
-            }
-          }
-          else {
-            success = op.prepare(myLogger.createSubProgress(progressMax));
-          }
-          taskProgressIndicator.checkCanceled();
-          myLogger.setFraction(progressMax);
+          val progressMax = currentProgress + progressIncrement
+          success = op.prepare(progress.createSubProgress(progressMax))
+          progress.checkCanceled()
+          progress.fraction = progressMax
+        } catch (e: ProcessCanceledException) {
+          throw e
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          log.warn(e)
         }
-        catch (ProcessCanceledException e) {
-          throw e;
-        }
-        catch (Exception e) {
-          Logger.getInstance(getClass()).warn(e);
-        }
+
         if (success) {
-          packageOperationMap.put(pack, op);
-          break;
+          packageOperationMap[pack] = op
+          break
         }
-        op = op.getFallbackOperation();
+        op = op.fallbackOperation
         if (op != null) {
-          // We're going to try again, so reset the progress.
-          myLogger.setFraction(currentProgress);
+          progress.fraction = currentProgress
         }
       }
       if (!success) {
-        failures.add(pack);
-        packageOperationMap.remove(pack);
+        failures.add(pack)
+        packageOperationMap.remove(pack)
       }
     }
   }
 
-  private void showPrepareCompleteNotification(@NotNull final Collection<RepoPackage> packages) {
-    final NotificationListener notificationListener = new NotificationListener.Adapter() {
-      @Override
-      protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-        if ("install".equals(event.getDescription())) {
-          ModelWizardDialog dialogForPaths =
-            SdkQuickfixUtils.createDialogForPackages(null, myInstallRequests, myUninstallRequests, true);
-          if (dialogForPaths != null) {
-            dialogForPaths.show();
+  private fun showPrepareCompleteNotification(packages: Collection<RepoPackage>) {
+    val notificationListener =
+      object : NotificationListener.Adapter() {
+        override fun hyperlinkActivated(notification: Notification, event: HyperlinkEvent) {
+          if ("install" == event.description) {
+            val dialogForPaths = SdkQuickfixUtils.createDialogForPackages(null, installRequests, uninstallRequests, true)
+            dialogForPaths?.show()
           }
+          notification.expire()
         }
-        notification.expire();
       }
-    };
 
-    final NotificationGroup group = getNotificationGroup();
-    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-    final Project[] openProjectsOrNull = openProjects.length == 0 ? new Project[]{null} : openProjects;
-    ApplicationManager.getApplication().invokeLater(
-      () -> {
-        for (Project p : openProjectsOrNull) {
-          String message;
-          if (packages.size() == 1) {
-            RepoPackage pack = packages.iterator().next();
-            PackageOperation op = myRepoManager.getInProgressInstallOperation(pack);
-            // op shouldn't be null. But just in case, we assume it's an install.
-            String opName = op == null || op instanceof Installer ? "Install" : "Uninstall";
-            message = String.format("%1$sation of '%2$s' is ready to continue<br/><a href=\"install\">%1$s Now</a>",
-                                    opName, pack.getDisplayName());
+    val group = NotificationGroupManager.getInstance().getNotificationGroup("SDK Install")
+    val openProjects = ProjectManager.getInstance().openProjects
+    val openProjectsOrNull = if (openProjects.isEmpty()) arrayOf<Project?>(null) else openProjects
+
+    ApplicationManager.getApplication()
+      .invokeLater(
+        {
+          for (p in openProjectsOrNull) {
+            val message =
+              if (packages.size == 1) {
+                val pack = packages.first()
+                val op = repoManager.getInProgressInstallOperation(pack)
+                val opName = if (op == null || op is Installer) "Install" else "Uninstall"
+                "${opName}ation of '${pack.displayName}' is ready to continue<br/><a href=\"install\">$opName Now</a>"
+              } else {
+                "${packages.size} packages are ready to install or uninstall<br/><a href=\"install\">Continue</a>"
+              }
+            group.createNotification("SDK Install", message, NotificationType.INFORMATION).setListener(notificationListener).notify(p)
           }
-          else {
-            message = packages.size() + " packages are ready to install or uninstall<br/><a href=\"install\">Continue</a>";
+        },
+        ModalityState.nonModal(),
+        {
+          for (pack in packages) {
+            val installer = repoManager.getInProgressInstallOperation(pack)
+            if (installer != null && installer.installStatus == PackageOperation.InstallStatus.PREPARED) {
+              return@invokeLater false
+            }
           }
-          group.createNotification(
-            "SDK Install", message, NotificationType.INFORMATION).setListener(notificationListener).notify(p);
-        }
-      },
-      ModalityState.nonModal(),  // Don't show while we're in a modal context (e.g. sdk manager)
-      o -> {
-        for (RepoPackage pack : packages) {
-          PackageOperation installer = myRepoManager.getInProgressInstallOperation(pack);
-          if (installer != null && installer.getInstallStatus() == PackageOperation.InstallStatus.PREPARED) {
-            return false;
-          }
-        }
-        return true;
-      });
+          true
+        },
+      )
   }
 
-  private static NotificationGroup getNotificationGroup() {
-    return NotificationGroupManager.getInstance().getNotificationGroup("SDK Install");
-  }
-
-  public void setCompleteCallback(@Nullable Function<List<RepoPackage>, Void> completeCallback) {
-    myCompleteCallback = completeCallback;
-  }
-
-  public void setPrepareCompleteCallback(@Nullable Runnable prepareCompleteCallback) {
-    myPrepareCompleteCallback = prepareCompleteCallback;
-  }
-
-  public void setInstallRequests(List<UpdatablePackage> installRequests) {
-    myInstallRequests = installRequests;
-  }
-
-  public void setUninstallRequests(Collection<LocalPackage> uninstallRequests) {
-    myUninstallRequests = uninstallRequests;
+  private fun ProgressIndicator.checkCanceled() {
+    if (isCanceled) {
+      throw ProcessCanceledException()
+    }
   }
 }

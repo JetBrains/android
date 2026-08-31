@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.repository.api.DelegatingProgressIndicator;
-import com.android.repository.api.Downloader;
 import com.android.repository.api.Installer;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.LocalPackage;
@@ -36,8 +35,6 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.Uninstaller;
 import com.android.repository.api.UpdatablePackage;
-import com.android.repository.impl.installer.AbstractInstaller;
-import com.android.repository.impl.manager.RepoManagerImpl;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
@@ -46,17 +43,9 @@ import com.android.repository.testframework.FakeSettingsController;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressManagerListener;
-import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.LeakHunter;
 import com.intellij.util.ui.JBUI;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -65,14 +54,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.mockito.InOrder;
 
 /**
@@ -133,7 +117,7 @@ public class InstallTaskTest extends AndroidTestCase {
 
   public void testPrepare() {
     List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.preparePackages(myOperations, failures, new EmptyProgressIndicator());
+    myInstallTask.preparePackages(myOperations, failures, new FakeProgressIndicator());
 
     verify(myInstaller).prepare(any());
     verify(myInstaller2).prepare(any());
@@ -149,7 +133,7 @@ public class InstallTaskTest extends AndroidTestCase {
     when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
 
     List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.preparePackages(myOperations, failures, new EmptyProgressIndicator());
+    myInstallTask.preparePackages(myOperations, failures, new FakeProgressIndicator());
 
     verify(myInstaller).prepare(any());
     verify(myInstaller2).prepare(any());
@@ -171,7 +155,7 @@ public class InstallTaskTest extends AndroidTestCase {
     when(fallback.getFallbackOperation()).thenReturn(fallback2);
 
     List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.preparePackages(myOperations, failures, new EmptyProgressIndicator());
+    myInstallTask.preparePackages(myOperations, failures, new FakeProgressIndicator());
 
     verify(myInstaller).prepare(any());
     verify(myInstaller2).prepare(any());
@@ -187,7 +171,7 @@ public class InstallTaskTest extends AndroidTestCase {
     when(myInstaller2.prepare(any())).thenReturn(false);
 
     List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.preparePackages(myOperations, failures, new EmptyProgressIndicator());
+    myInstallTask.preparePackages(myOperations, failures, new FakeProgressIndicator());
 
     verify(myInstaller).prepare(any());
     verify(myInstaller2).prepare(any());
@@ -200,7 +184,7 @@ public class InstallTaskTest extends AndroidTestCase {
   public void testComplete() {
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true),
-                                   new EmptyProgressIndicator());
+                                   new FakeProgressIndicator());
 
     verify(myInstaller).complete(any());
     verify(myInstaller2).complete(any());
@@ -217,7 +201,7 @@ public class InstallTaskTest extends AndroidTestCase {
     when(myInstaller.complete(any())).thenReturn(false);
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true),
-                                   new EmptyProgressIndicator());
+                                   new FakeProgressIndicator());
 
     verify(myInstaller).complete(any());
     verify(myInstaller2).complete(any());
@@ -232,7 +216,7 @@ public class InstallTaskTest extends AndroidTestCase {
     when(myInstaller.complete(any())).thenReturn(false);
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true),
-                                   new EmptyProgressIndicator());
+                                   new FakeProgressIndicator());
 
     verify(myInstaller).complete(any());
     verify(myInstaller2).complete(any());
@@ -244,7 +228,7 @@ public class InstallTaskTest extends AndroidTestCase {
   }
 
   public void testRunBasic() {
-    myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator));
+    myInstallTask.run(myProgressIndicator);
     InOrder installer1Calls = inOrder(myInstaller);
     installer1Calls.verify(myInstaller).prepare(any());
     installer1Calls.verify(myInstaller).complete(any());
@@ -262,7 +246,7 @@ public class InstallTaskTest extends AndroidTestCase {
     Function<List<RepoPackage>, Void> complete = (Function<List<RepoPackage>, Void>)mock(Function.class);
     myInstallTask.setCompleteCallback(complete);
 
-    myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator));
+    myInstallTask.run(myProgressIndicator);
 
     InOrder callbackCalls = inOrder(myInstaller, prepareComplete, complete);
     callbackCalls.verify(myInstaller).prepare(any());
@@ -277,7 +261,7 @@ public class InstallTaskTest extends AndroidTestCase {
     when(myInstaller2.prepare(any())).thenReturn(false);
     when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
 
-    myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator));
+    myInstallTask.run(myProgressIndicator);
 
     verify(myInstaller).prepare(any());
     verify(myInstaller2).prepare(any());
@@ -296,7 +280,7 @@ public class InstallTaskTest extends AndroidTestCase {
     when(myInstaller2.complete(any())).thenReturn(false);
     when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
 
-    myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator));
+    myInstallTask.run(myProgressIndicator);
 
     verify(myInstaller).prepare(any());
     verify(myInstaller2).prepare(any());
@@ -429,66 +413,4 @@ public class InstallTaskTest extends AndroidTestCase {
     }
   }
 
-  public void testBackgroundedInstallDoesNotLeakTaskIndicator() throws Exception {
-    checkInstallLeftPreparedDoesNotLeakTaskIndicator((installStep, prepareProgress) -> installStep.getExtraAction().actionPerformed(null));
-  }
-
-  public void testInstallCancelledAfterPrepareDoesNotLeakTaskIndicator() throws Exception {
-    checkInstallLeftPreparedDoesNotLeakTaskIndicator((installStep, prepareProgress) -> prepareProgress.cancel());
-  }
-
-  private void checkInstallLeftPreparedDoesNotLeakTaskIndicator(
-    @NotNull BiConsumer<InstallSelectedPackagesStep, ProgressIndicator> duringPrepare) throws Exception {
-    RepoManagerImpl repoManager = new RepoManagerImpl(mySdkRoot);
-    InstallerFactory factory = mock(InstallerFactory.class);
-    InstallSelectedPackagesStep installStep =
-      new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
-                                      new ArrayList<>(), mySdkHandler, true, JBUI.emptyInsets(), factory, false);
-    AtomicReference<Consumer<ProgressIndicator>> duringPrepareOnce =
-      new AtomicReference<>(progress -> duringPrepare.accept(installStep, progress));
-    when(factory.createInstaller(eq(myAvailable1), any(), any())).thenReturn(
-      new AbstractInstaller(myAvailable1, repoManager, mock(Downloader.class)) {
-        @Override
-        protected boolean doPrepare(@NotNull Path installTempPath, @NotNull ProgressIndicator progress) {
-          duringPrepareOnce.getAndSet(null).accept(progress);
-          return true;
-        }
-
-        @Override
-        protected boolean doComplete(@Nullable Path installTemp, @NotNull ProgressIndicator progress) {
-          return true;
-        }
-      });
-    CompletableFuture<Boolean> taskFinished = new CompletableFuture<>();
-    ApplicationManager.getApplication().getMessageBus().connect(getTestRootDisposable())
-      .subscribe(ProgressManagerListener.TOPIC, new ProgressManagerListener() {
-        @Override
-        public void afterTaskFinished(@NotNull Task task) {
-          if (task instanceof InstallTask) {
-            taskFinished.complete(true);
-          }
-        }
-      });
-
-    ModelWizard wizard = new ModelWizard.Builder().addStep(installStep).build();
-    try {
-      FutureUtils.pumpEventsAndWaitForFuture(taskFinished, 5, TimeUnit.SECONDS);
-
-      assertNotNull(repoManager.getInProgressInstallOperation(myAvailable1));
-      LeakHunter.checkLeak(repoManager, BackgroundableProcessIndicator.class);
-    }
-    finally {
-      Disposer.dispose(wizard);
-    }
-  }
-
-  public void testReleaseRunsWhenIndicatorDisposedBeforeHookRegistration() {
-    Disposable indicator = () -> {};
-    Disposer.dispose(indicator);
-    AtomicBoolean released = new AtomicBoolean();
-
-    InstallSelectedPackagesStep.runWhenDisposed(indicator, () -> released.set(true));
-
-    assertTrue(released.get());
-  }
 }
