@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModelKt
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement.DEFAULTS_DSL_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -52,7 +51,7 @@ import com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement;
 import com.android.tools.idea.gradle.dsl.utils.BuildScriptUtil;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -233,7 +232,7 @@ public final class BuildModelContext {
                                         @NotNull String moduleName,
                                         boolean isApplied) {
     GradleBuildFile buildDslFile = new GradleBuildFile(file, project, moduleName, this);
-    ApplicationManager.getApplication().runReadAction(() -> {
+    ReadAction.nonBlocking(() -> {
       if (!isApplied) {
         GradleSettingsModel gradleSettingsModel = getSettingsModel(buildDslFile);
         populateWithParentModuleSubProjectsProperties(buildDslFile, gradleSettingsModel);
@@ -241,7 +240,8 @@ public final class BuildModelContext {
       }
       populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
       buildDslFile.parse();
-    });
+      return null;
+    }).executeSynchronously();
     return buildDslFile;
   }
 
@@ -270,25 +270,27 @@ public final class BuildModelContext {
     GradleBuildFile result = file != null ? new GradleBuildFile(file, project, ":", this) : null;
     if (result != null) {
       setRootProjectFile(result);
-      ApplicationManager.getApplication().runReadAction(() -> {
+      ReadAction.nonBlocking(() -> {
         GradleSettingsModel gradleSettingsModel = getSettingsModel(result);
         populateWithParentModuleSubProjectsProperties(result, gradleSettingsModel);
         populateSiblingDslFileWithGradlePropertiesFile(result);
         populateVersionCatalogFiles(gradleSettingsModel);
         populateDeclarativeSoftwareTypes(result, gradleSettingsModel);
         result.parse();
-      });
+        return null;
+      }).executeSynchronously();
       putBuildFile(file.getUrl(), result);
     }
     else {
       // in case root build file is not there, we still need to parse settings for catalogs
-      ApplicationManager.getApplication().runReadAction(() -> {
+      ReadAction.nonBlocking(() -> {
         VirtualFile maybeSettingsFile = getProjectSettingsFile();
         if (maybeSettingsFile != null) {
           GradleSettingsFile settingsFile = getOrCreateSettingsFile(maybeSettingsFile);
           populateVersionCatalogFiles(new GradleSettingsModelImpl(settingsFile));
         }
-      });
+        return null;
+      }).executeSynchronously();
     }
     return result;
   }
