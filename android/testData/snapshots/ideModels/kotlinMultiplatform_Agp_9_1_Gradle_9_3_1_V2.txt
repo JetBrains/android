@@ -670,14 +670,14 @@ MODULE                        : kotlinMultiPlatform.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -728,7 +728,7 @@ MODULE                        : kotlinMultiPlatform.app
     - basicVariant:               : release
         applicationId                 : com.example.android.kotlin
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -745,8 +745,8 @@ MODULE                        : kotlinMultiPlatform.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -899,8 +899,8 @@ MODULE                        : kotlinMultiPlatform.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -1756,14 +1756,14 @@ MODULE                        : kotlinMultiPlatform.module2
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :module2
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1812,7 +1812,7 @@ MODULE                        : kotlinMultiPlatform.module2
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1822,8 +1822,8 @@ MODULE                        : kotlinMultiPlatform.module2
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2001,8 +2001,8 @@ MODULE                        : kotlinMultiPlatform.module2
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources

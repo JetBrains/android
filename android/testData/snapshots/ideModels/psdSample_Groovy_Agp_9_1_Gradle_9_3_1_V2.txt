@@ -1037,14 +1037,14 @@ MODULE                        : project.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -1131,7 +1131,7 @@ MODULE                        : project.app
         buildType                     : specialRelease
     FlavorDimensions              : foo
     FlavorDimensions              : bar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     DynamicFeatures               : :dyn_feature
     ViewBindingOptions
         Enabled                       : false
@@ -1157,8 +1157,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1365,8 +1365,8 @@ MODULE                        : project.app
                 ApiLevel                      : 10
                 ApiString                     : 10
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             TestInstrumentationRunnerArguments
                 a                             : AAA
                 b                             : BBB
@@ -1642,8 +1642,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             MaxSdkVersion                 : 26
             VersionCode                   : 1
             VersionNameSuffix             : vns
@@ -2644,7 +2644,7 @@ MODULE                        : project.dyn_feature
     ProjectPath                   : :dyn_feature
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/dyn_feature/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2719,7 +2719,7 @@ MODULE                        : project.dyn_feature
         buildType                     : specialRelease
     FlavorDimensions              : foo
     FlavorDimensions              : bar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     BaseFeature                   : :app
     ViewBindingOptions
         Enabled                       : false
@@ -4039,14 +4039,14 @@ MODULE                        : project.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4096,7 +4096,7 @@ MODULE                        : project.lib
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4108,8 +4108,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -4255,8 +4255,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact
@@ -5155,7 +5155,7 @@ MODULE                        : project.nested1
     ProjectPath                   : :nested1
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/nested1/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -5205,7 +5205,7 @@ MODULE                        : project.nested1
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5544,7 +5544,7 @@ MODULE                        : project.nested1.deep
     ProjectPath                   : :nested1:deep
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/nested1/deep/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -5594,7 +5594,7 @@ MODULE                        : project.nested1.deep
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5945,7 +5945,7 @@ MODULE                        : project.nested2
     ProjectPath                   : :nested2
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/nested2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -6001,7 +6001,7 @@ MODULE                        : project.nested2
     - basicVariant:               : paidRelease
         buildType                     : release
     FlavorDimensions              : foo
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -6476,7 +6476,7 @@ MODULE                        : project.nested2.deep
     ProjectPath                   : :nested2:deep
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/nested2/deep/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -6526,7 +6526,7 @@ MODULE                        : project.nested2.deep
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -6878,7 +6878,7 @@ MODULE                        : project.nested2.trans.deep2
     ProjectPath                   : :nested2:trans:deep2
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -6928,7 +6928,7 @@ MODULE                        : project.nested2.trans.deep2
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig

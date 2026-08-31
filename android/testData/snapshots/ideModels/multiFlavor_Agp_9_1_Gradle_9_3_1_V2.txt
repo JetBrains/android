@@ -648,14 +648,14 @@ MODULE                        : MultiFlavor.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -730,7 +730,7 @@ MODULE                        : MultiFlavor.app
         buildType                     : release
     FlavorDimensions              : Dim1
     FlavorDimensions              : Dim2
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -752,8 +752,8 @@ MODULE                        : MultiFlavor.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1185,8 +1185,8 @@ MODULE                        : MultiFlavor.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 20
             VersionNameSuffix             : -firstAbc-secondAbc-debug
             VersionNameWithSuffix         : 1.secondAbc-firstAbc-secondAbc-debug

@@ -932,14 +932,14 @@ MODULE                        : project.app
             ApiLevel                      : 23
             ApiString                     : 23
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -991,7 +991,7 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : com.example.alruiz.transitive_dependencies
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1008,8 +1008,8 @@ MODULE                        : project.app
                 ApiLevel                      : 23
                 ApiString                     : 23
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1164,8 +1164,8 @@ MODULE                        : project.app
                 ApiLevel                      : 23
                 ApiString                     : 23
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -2139,7 +2139,7 @@ MODULE                        : project.library1
     ProjectPath                   : :library1
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/library1/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2189,7 +2189,7 @@ MODULE                        : project.library1
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -3305,7 +3305,7 @@ MODULE                        : project.library2
     ProjectPath                   : :library2
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/library2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -3355,7 +3355,7 @@ MODULE                        : project.library2
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig

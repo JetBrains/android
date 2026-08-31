@@ -736,14 +736,14 @@ MODULE                        : project.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -798,7 +798,7 @@ MODULE                        : project.app
     - basicVariant:               : benchmark
         applicationId                 : com.example.android.app
         buildType                     : benchmark
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -812,8 +812,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -997,8 +997,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1197,14 +1197,14 @@ MODULE                        : project.benchmark
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :benchmark
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_TEST
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/benchmark/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1251,7 +1251,7 @@ MODULE                        : project.benchmark
     - basicVariant:               : benchmark
         applicationId                 : com.example.android.benchmark
         buildType                     : benchmark
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1261,8 +1261,8 @@ MODULE                        : project.benchmark
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1334,8 +1334,8 @@ MODULE                        : project.benchmark
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileBenchmarkSources
@@ -1711,14 +1711,14 @@ MODULE                        : project.test
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :test
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_TEST
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/test/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1765,7 +1765,7 @@ MODULE                        : project.test
     - basicVariant:               : debug
         applicationId                 : com.example.android.app.testmodule
         buildType                     : debug
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1776,8 +1776,8 @@ MODULE                        : project.test
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1838,8 +1838,8 @@ MODULE                        : project.test
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -2215,14 +2215,14 @@ MODULE                        : project.test2
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :test2
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_TEST
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/test2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2269,7 +2269,7 @@ MODULE                        : project.test2
     - basicVariant:               : debug
         applicationId                 : com.example.android.test2
         buildType                     : debug
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2279,8 +2279,8 @@ MODULE                        : project.test2
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2341,8 +2341,8 @@ MODULE                        : project.test2
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources

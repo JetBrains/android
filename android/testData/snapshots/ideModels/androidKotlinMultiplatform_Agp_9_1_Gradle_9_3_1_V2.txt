@@ -586,7 +586,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
     ProjectPath                   : :androidLib
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/androidLib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -653,7 +653,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         buildType                     : release
     FlavorDimensions              : type
     FlavorDimensions              : mode
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1269,14 +1269,14 @@ MODULE                        : Kotlin_Multiplatform.app
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : 35
-            ApiString                     : 35
+            ApiLevel                      : 36
+            ApiString                     : 36.0
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -1328,7 +1328,7 @@ MODULE                        : Kotlin_Multiplatform.app
     - basicVariant:               : release
         applicationId                 : com.example.app
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1341,8 +1341,8 @@ MODULE                        : Kotlin_Multiplatform.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             VectorDrawables
                 UseSupportLibrary             : false
             MissingDimensionStrategy
@@ -1498,8 +1498,8 @@ MODULE                        : Kotlin_Multiplatform.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : 35
-                ApiString                     : 35
+                ApiLevel                      : 36
+                ApiString                     : 36
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1809,7 +1809,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     ProjectPath                   : :kmpFirstLib
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/kmpFirstLib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1857,7 +1857,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     - basicVariant:               : androidMain
         testApplicationId             : com.example.kmpfirstlib.test
         buildType                     :
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     DefaultConfig
         ProductFlavor
             Name                          :
@@ -2588,7 +2588,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
     ProjectPath                   : :kmpSecondLib
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/kmpSecondLib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2634,7 +2634,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         BuiltInKotlinDefaultEnabled   : true
     - basicVariant:               : androidMain
         buildType                     :
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     DefaultConfig
         ProductFlavor
             Name                          :
@@ -2990,7 +2990,7 @@ MODULE                        : build-logic.lib-foo
     ProjectPath                   : :lib-foo
     ModelVersion                  : 9.1.0
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
-    CompileTarget                 : android-35
+    CompileTarget                 : android-36.1
     BuildFolder                   : <ROOT>/build-logic/lib-foo/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -3038,7 +3038,7 @@ MODULE                        : build-logic.lib-foo
     - basicVariant:               : androidMain
         testApplicationId             : com.buildlogic.lib.foo.test
         buildType                     :
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-36.1/android.jar
     DefaultConfig
         ProductFlavor
             Name                          :

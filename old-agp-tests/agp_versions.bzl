@@ -155,7 +155,7 @@ AGP_DATA = {
     ],
     AGP_9_1: [
         "//prebuilts/studio/sdk:build-tools/36.0.0",
-        "//prebuilts/studio/sdk:platforms/android-35",
+        "//prebuilts/studio/sdk:platforms/android-36.1",
     ],
 }
 
