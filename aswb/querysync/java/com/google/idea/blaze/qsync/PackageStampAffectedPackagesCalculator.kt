@@ -21,9 +21,11 @@ import java.nio.file.Path
  * Calculates the set of affected packages by comparing timestamps (package stamps) of the active project data against the previously cached
  * graph data.
  *
- * @param latestProjectDataPackageStamp Current package stamps from project structure data.
- * @param latestBuildGraphDataPackageStamp Previous package stamps from query summary / build graph data.
- * @param packagesToUpdate The packages that need to be evaluated for updates (e.g. user-required packages).
+ * @param latestProjectDataPackageStamp Current package stamps from project structure data. The key is the workspace-relative path.
+ * @param latestBuildGraphDataPackageStamp Previous package stamps from query summary / build graph data. The key is the workspace-relative
+ *   path.
+ * @param packagesToUpdate The packages that need to be evaluated for updates (e.g. user-required packages). They should be
+ *   workspace-relative paths. We assume the path is from the latest project structure.
  * @param projectScope Predicate indicating whether a package is within the project scope.
  */
 fun calculatePackageStampAffectedPackages(
@@ -33,18 +35,22 @@ fun calculatePackageStampAffectedPackages(
   projectScope: (Path) -> Boolean,
 ): AffectedPackages {
   val modifiedPackages = buildSet {
+    fun addIfInProjectScope(pkg: Path) {
+      if (projectScope(pkg)) add(pkg)
+    }
+
     for (path in packagesToUpdate) {
       val newStamp = latestProjectDataPackageStamp[path] ?: continue
       val oldStamp = latestBuildGraphDataPackageStamp[path]
 
       if (newStamp == oldStamp) continue
-      add(path)
+      addIfInProjectScope(path)
 
       // When a new package is created, force update its enclosing parent package (if any)
       // since its file boundaries and target glob results have changed.
       if (oldStamp == null) {
         getNearestContainingPackage(path, latestProjectDataPackageStamp.keys)?.let { parentPkg ->
-          add(parentPkg)
+          addIfInProjectScope(parentPkg)
         }
       }
     }
@@ -53,7 +59,7 @@ fun calculatePackageStampAffectedPackages(
   // Always drop all deleted packages within the project scope so that removed packages are cleaned up from the graph.
   val deletedPackages = (latestBuildGraphDataPackageStamp.keys - latestProjectDataPackageStamp.keys).filter { projectScope(it) }.toSet()
 
-  // TODO: We will handle the bzl files later
+  // TODO(b/555814875): We will handle the bzl files later
   return AffectedPackages(modifiedPackages, deletedPackages)
 }
 
