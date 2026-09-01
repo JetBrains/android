@@ -7,7 +7,6 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 ### auto-generated section `dev intellij.android.compose-ide-plugin` start
 dev_dist_plugin(
     libraries = [
-        "@lib//:kotlinc-compose-compiler-plugin",
         "@lib//:kotlinc-kotlin-compiler-cli",
         "@lib//:kotlinc-kotlin-compiler-fe10",
         "@lib//:kotlinc-kotlin-compiler-ir",
@@ -32,6 +31,11 @@ create_kotlinc_options(
 jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fir_provided",
     lib = "//libraries/kotlinc/kotlin-compiler-fir:libraries-kotlinc-kotlin-compiler-fir",
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-compose-compiler-plugin_provided",
+    lib = "//libraries/kotlinc/compose-compiler-plugin:libraries-kotlinc-compose-compiler-plugin",
 )
 
 jvm_library(
@@ -130,13 +134,13 @@ jvm_library(
         "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-base",
         "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting",
         "//android/completion",
-        "@lib//:kotlinc-compose-compiler-plugin-provided",
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled",
         "//plugins/kotlin/jvm-debugger/base/util",
         "//platform/forms_rt:java-guiForms-rt",
         "//platform/xdebugger-impl/shared",
         "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fir_provided",
+        ":libraries_kotlinc_libraries-kotlinc-compose-compiler-plugin_provided",
     ],
 )
 
@@ -232,7 +236,8 @@ jvm_library(
         "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-base_test_lib",
         "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting_test_lib",
         "//android/completion:completion_test_lib",
-        "@lib//:kotlinc-compose-compiler-plugin-provided",
+        "//libraries/kotlinc/compose-compiler-plugin:libraries-kotlinc-compose-compiler-plugin",
+        "//libraries/kotlinc/compose-compiler-plugin:libraries-kotlinc-compose-compiler-plugin_test_lib",
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled_test_lib",
         "//plugins/kotlin/jvm-debugger/base/util:util_test_lib",
         "//platform/forms_rt:java-guiForms-rt_test_lib",
@@ -449,7 +454,8 @@ jvm_library(
         "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-base_test_lib",
         "//plugins/kotlin/base/psi",
         "//plugins/kotlin/base/psi:psi_test_lib",
-        "@lib//:kotlinc-compose-compiler-plugin-provided",
+        "//libraries/kotlinc/compose-compiler-plugin:libraries-kotlinc-compose-compiler-plugin",
+        "//libraries/kotlinc/compose-compiler-plugin:libraries-kotlinc-compose-compiler-plugin_test_lib",
         "//plugins/kotlin/jvm-debugger/base/util",
         "//plugins/kotlin/jvm-debugger/base/util:util_test_lib",
         "//libraries/mockito-kotlin",
