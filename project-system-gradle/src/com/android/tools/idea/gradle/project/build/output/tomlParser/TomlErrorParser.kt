@@ -39,6 +39,7 @@ class TomlErrorParser : FailureDetailsHandler {
         AliasInvalidHandler(),
         UnexpectedElementHandler(),
         WrongBundleReferenceHandler(),
+        TomlSyntaxErrorHandler(),
       )
 
     handlers.forEach { handler ->
@@ -66,7 +67,9 @@ class TomlErrorParser : FailureDetailsHandler {
     const val BUILD_ISSUE_STOP_LINE: String = "> $definition"
 
     fun Throwable.isTomlError(): Boolean {
-      return message?.let { it.startsWith(BUILD_ISSUE_TOML_START) || it.startsWith(BUILD_ISSUE_START) } ?: false
+      return message?.let {
+        it.startsWith(BUILD_ISSUE_TOML_START) || it.startsWith(BUILD_ISSUE_START) || it.contains("org.gradle.api.internal.catalog.parser")
+      } ?: false
     }
   }
 }
