@@ -24,6 +24,10 @@ import com.android.build.attribution.ui.model.BuildOverviewPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.UIUtil
@@ -31,10 +35,15 @@ import java.awt.Component
 import javax.swing.JButton
 import javax.swing.JEditorPane
 import javax.swing.JLabel
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
+@RunsInEdt
 class BuildOverviewPageViewTest {
+  @get:Rule val applicationRule: ApplicationRule = ApplicationRule()
+  @get:Rule var disposableRule = DisposableRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val warningSuppressions = BuildAttributionWarningsFilter()
   private val model = BuildOverviewPageModel(MockUiData(), warningSuppressions)

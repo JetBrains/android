@@ -21,12 +21,14 @@ import com.android.build.attribution.analyzers.url1
 import com.android.build.attribution.analyzers.url2
 import com.android.build.attribution.analyzers.url3
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTableCellRenderer
@@ -37,9 +39,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class DownloadsInfoUIModelTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var buildId: ExternalSystemTaskId
   private lateinit var dataModel: DownloadInfoDataModel

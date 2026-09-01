@@ -29,7 +29,9 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.treeStructure.Tree
 import java.awt.Dimension
+import javax.swing.JComponent
 import javax.swing.tree.DefaultTreeModel
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -52,8 +54,14 @@ class TimeDistributionTreeChartTest {
 
   private val tree = Tree(DefaultTreeModel(model.treeRoot)).apply { isRootVisible = false }
 
-  private val treeWithChart = TimeDistributionTreeChart.wrap(tree)
-  private val fakeUi = FakeUi(ScrollPaneFactory.createScrollPane(treeWithChart, SideBorder.NONE))
+  private lateinit var treeWithChart: JComponent
+  private lateinit var fakeUi: FakeUi
+
+  @Before
+  fun setUp() {
+    treeWithChart = TimeDistributionTreeChart.wrap(tree)
+    fakeUi = FakeUi(ScrollPaneFactory.createScrollPane(treeWithChart, SideBorder.NONE))
+  }
 
   @Test
   fun testClicksHandledOnStack() {
