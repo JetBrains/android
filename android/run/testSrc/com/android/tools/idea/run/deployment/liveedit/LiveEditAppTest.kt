@@ -75,4 +75,31 @@ class LiveEditAppTest {
     val liveEditApp = LiveEditApp(setOf(missingApkPath), expectedMinApi)
     Truth.assertThat(liveEditApp.minAPI).isEqualTo(expectedMinApi)
   }
+
+  @Test
+  fun testCreateRecomposeErrorStatusEscapesHtml() {
+    val status =
+      LiveEditStatus.createRecomposeErrorStatus(
+        name = "<img src='http://evil.com/x.png'>NullPointerException",
+        message = "Error in <tag>with'quotes\"&ampersand</tag>",
+        recoverable = false,
+      )
+
+    Truth.assertThat(status.description).doesNotContain("<img")
+    Truth.assertThat(status.description).doesNotContain("<tag>")
+    Truth.assertThat(status.description).contains("&lt;img src=&#39;http://evil.com/x.png&#39;&gt;NullPointerException")
+    Truth.assertThat(status.description).contains("&lt;tag&gt;with&#39;quotes&quot;&amp;ampersand&lt;/tag&gt;")
+    // Preserves the host <br> separator
+    Truth.assertThat(status.description).contains("<br>")
+  }
+
+  @Test
+  fun testCreateRecomposeRetrievalErrorStatusEscapesHtml() {
+    val exception =
+      object : Exception() {
+        override fun getLocalizedMessage() = "<img src='evil'>"
+      }
+    val status = LiveEditStatus.createRecomposeRetrievalErrorStatus(exception)
+    Truth.assertThat(status.description).doesNotContain("<img")
+  }
 }
