@@ -19,12 +19,16 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.deviceprovisioner.DEVICE_TEMPLATE_KEY
+import com.android.tools.idea.deviceprovisioner.DuplicatableDeviceHandle
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
+import java.awt.Component
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -75,6 +79,36 @@ class DeviceActionsTest {
     event.updateFromDeviceActionOrDeactivateAction(DeviceHandle::repairDeviceAction)
 
     assertThat(event.presentation.isEnabled).isTrue()
+  }
+
+  @Test
+  fun duplicateDeviceAction_disabledWhenRunning() {
+    val action = DuplicateDeviceAction()
+
+    class FakeDuplicatableDeviceHandle(val duplicateEnabled: Boolean) :
+      DeviceHandle by FakeDeviceHandle(CoroutineScope(Dispatchers.Unconfined)), DuplicatableDeviceHandle {
+      override fun isDuplicateEnabled(): Boolean = duplicateEnabled
+
+      override fun duplicate(project: Project?, parent: Component?) {}
+    }
+
+    val enabledHandle = FakeDuplicatableDeviceHandle(duplicateEnabled = true)
+    val eventEnabled = actionEvent(dataContext(device = enabledHandle))
+    action.update(eventEnabled)
+    assertThat(eventEnabled.presentation.isVisible).isTrue()
+    assertThat(eventEnabled.presentation.isEnabled).isTrue()
+
+    val disabledHandle = FakeDuplicatableDeviceHandle(duplicateEnabled = false)
+    val eventDisabled = actionEvent(dataContext(device = disabledHandle))
+    action.update(eventDisabled)
+    assertThat(eventDisabled.presentation.isVisible).isTrue()
+    assertThat(eventDisabled.presentation.isEnabled).isFalse()
+
+    val nonDuplicatableHandle = FakeDeviceHandle(CoroutineScope(Dispatchers.Unconfined))
+    val eventNonDuplicatable = actionEvent(dataContext(device = nonDuplicatableHandle))
+    action.update(eventNonDuplicatable)
+    assertThat(eventNonDuplicatable.presentation.isVisible).isFalse()
+    assertThat(eventNonDuplicatable.presentation.isEnabled).isFalse()
   }
 }
 

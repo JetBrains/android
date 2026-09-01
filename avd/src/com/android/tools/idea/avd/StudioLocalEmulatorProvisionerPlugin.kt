@@ -381,7 +381,10 @@ class StudioLocalEmulatorDeviceHandle(
     RevealFileAction.openDirectory(avdInfo.dataFolderPath)
   }
 
+  override fun isDuplicateEnabled(): Boolean = state.isStopped()
+
   override fun duplicate(project: Project?, parent: Component?) {
+    if (!isDuplicateEnabled()) return
     EditVirtualDeviceDialog.show(project, parent, onDiskAvdInfo, Mode.DUPLICATE)
     refreshDevicesAsync()
   }

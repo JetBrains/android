@@ -21,6 +21,9 @@ import java.awt.Component
 
 /** A DeviceHandle that supports a duplicate operation. */
 interface DuplicatableDeviceHandle : DeviceHandle {
+  /** Returns whether duplication is currently enabled for this device. */
+  fun isDuplicateEnabled(): Boolean = true
+
   /** Creates a new device based on this device, prompting the user for customization. */
   fun duplicate(project: Project?, parent: Component?)
 }

@@ -36,6 +36,7 @@ import com.android.sdklib.deviceprovisioner.makeAvdInfo
 import com.android.sdklib.deviceprovisioner.testContext
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
+import com.android.sdklib.internal.avd.QuickBoot
 import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
@@ -675,6 +676,25 @@ class StudioLocalEmulatorProvisionerPluginTest {
 
     // Verify wipe AVD connections were called on the glasses AVD
     verify(mockConnection).wipeUserData(glassesInfo)
+  }
+
+  @Test
+  fun studioLocalEmulatorDeviceHandle_isDuplicateEnabled(): Unit = runBlockingWithTimeout {
+    avdManager.createAvd()
+    val avdInfo = avdManager.avds[0]
+    plugin.refreshDevices()
+    yieldUntil { provisioner.devices.value.size == 1 }
+
+    val handle = provisioner.devices.value[0] as StudioLocalEmulatorDeviceHandle
+    assertThat(handle.isDuplicateEnabled()).isTrue()
+
+    avdManager.startAvd(avdInfo, QuickBoot)
+    yieldUntil { !handle.isDuplicateEnabled() }
+    assertThat(handle.isDuplicateEnabled()).isFalse()
+
+    avdManager.stopAvd(avdInfo)
+    yieldUntil { handle.isDuplicateEnabled() }
+    assertThat(handle.isDuplicateEnabled()).isTrue()
   }
 
   private fun getPairedGlassesInfos(handle: StudioLocalEmulatorDeviceHandle) =

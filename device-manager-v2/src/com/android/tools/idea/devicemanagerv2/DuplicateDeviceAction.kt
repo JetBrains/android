@@ -30,11 +30,14 @@ internal class DuplicateDeviceAction : DumbAwareAction("Duplicate", "Duplicate t
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = e.deviceHandle() is DuplicatableDeviceHandle
+    val handle = e.deviceHandle() as? DuplicatableDeviceHandle
+    e.presentation.isVisible = handle != null
+    e.presentation.isEnabled = handle?.isDuplicateEnabled() == true
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val handle = e.deviceHandle() as? DuplicatableDeviceHandle ?: return
+    if (!handle.isDuplicateEnabled()) return
 
     DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_DUPLICATE_ACTION)
 
