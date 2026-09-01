@@ -106,7 +106,7 @@ sealed interface TemplateGalleryItem : GridItem {
 class TemplateEngineTemplateGridProjectEntry(
   val formFactor: FormFactor,
   val items: List<TemplateGalleryItem>,
-  private val onTemplateDoubleClick: () -> Unit = {},
+  var onTemplateDoubleClick: () -> Unit = {},
 ) : ChooseAndroidProjectEntry {
   var selectedItem by mutableStateOf(items.firstOrNull { it is TemplateGalleryItem.Standard } ?: items.firstOrNull())
 
@@ -148,6 +148,11 @@ class TemplateEngineTemplateGridProjectEntry(
   override val canGoForward: State<Boolean> = derivedStateOf { selectedItem != null }
 
   override fun onProceeding(newProjectModuleModel: NewProjectModuleModel, model: NewProjectModel) {
-    // Satisfy ChooseAndroidProjectEntry interface contract
+    when (val item = selectedItem) {
+      is TemplateGalleryItem.Promotion -> {
+        item.spec.onClickAction(emptyMap())
+      }
+      else -> {}
+    }
   }
 }

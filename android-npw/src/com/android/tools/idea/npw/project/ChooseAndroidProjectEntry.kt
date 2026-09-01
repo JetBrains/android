@@ -23,17 +23,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
-import com.android.tools.idea.npw.startup.PromotionTemplateStateService
+import com.android.tools.idea.npw.template.installPromotedPlugin
 import com.android.tools.idea.wizard.model.ModelWizard.ActionCancellationException
-import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template.NoActivity
 import com.android.tools.idea.wizard.template.WizardUiContext
-import com.intellij.ide.plugins.InstalledPluginsState
-import com.intellij.ide.plugins.PluginManagerConfigurable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.extensions.PluginId
-import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.installAndEnable
 
 interface ChooseAndroidProjectEntry {
   val entryId: String
@@ -109,29 +104,11 @@ class FormFactorProjectEntry(
       }
       is PluginPromotionGridItem -> {
         installPromotedPlugin(gridItem.pluginId, gridItem.template.name, gridItem.formFactor)
+        // The selected entry handled the action itself and has no next page, so cancel forward
+        // navigation and remain on this step (no error is surfaced to the user).
+        throw ActionCancellationException(null, null)
       }
       null -> {}
     }
-  }
-
-  private fun installPromotedPlugin(pluginId: String, templateName: String, formFactor: FormFactor) {
-    val id = PluginId.getId(pluginId)
-    installAndEnable(
-      project = null,
-      pluginIds = setOf(id),
-      showDialog = true,
-      selectAlInDialog = true,
-      onSuccess =
-        Runnable {
-          // checks if the plugin needs a restart and shows restart dialog if it does
-          if (InstalledPluginsState.getInstance().wasInstalled(id)) {
-            PromotionTemplateStateService.getInstance().requestNpwReopenOnNextStartup(pluginId, templateName, formFactor)
-            PluginManagerConfigurable.shutdownOrRestartApp()
-          }
-        },
-    )
-    // The selected entry handled the action itself and has no next page, so cancel forward
-    // navigation and remain on this step (no error is surfaced to the user).
-    throw ActionCancellationException(null, null)
   }
 }

@@ -28,7 +28,7 @@ data class PromotedTemplate(val name: String, val formFactor: FormFactor, val pl
 
 @Service
 @State(name = "OpenAndroidProjectWizardStartupState", storages = [Storage("android.npw.startup.xml", roamingType = RoamingType.DISABLED)])
-internal class PromotionTemplateStateService : SimplePersistentStateComponent<PromotionTemplateStateService.State>(State()) {
+class PromotionTemplateStateService : SimplePersistentStateComponent<PromotionTemplateStateService.State>(State()) {
 
   @Synchronized
   fun requestNpwReopenOnNextStartup(promotedPluginId: String, promotedTemplateName: String, promotedFormFactor: FormFactor) {

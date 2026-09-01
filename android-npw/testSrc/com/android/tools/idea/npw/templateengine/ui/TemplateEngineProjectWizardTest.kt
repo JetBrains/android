@@ -23,9 +23,11 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
+import com.android.tools.idea.npw.startup.PromotionTemplateStateService
+import com.android.tools.idea.npw.template.PluginPromotionTemplate
+import com.android.tools.idea.npw.template.WizardPluginPromotionTemplateProvider
 import com.android.tools.idea.npw.templateengine.WizardConstants
 import com.android.tools.idea.npw.templateengine.api.ExternalTemplateSpec
-import com.android.tools.idea.npw.templateengine.api.PromotionCardSpec
 import com.android.tools.idea.npw.templateengine.api.TemplateEngineProjectWizardContributor
 import com.android.tools.idea.npw.templateengine.services.TemplateEngineProjectParameters
 import com.android.tools.idea.npw.templateengine.services.TemplateRegistryService
@@ -36,10 +38,14 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.resolve
+import com.android.tools.idea.wizard.template.FormFactor as TemplateFormFactor
+import com.android.tools.idea.wizard.template.Thumb
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.registerExtension
@@ -207,24 +213,10 @@ class TemplateEngineProjectWizardTest {
 
   @Test
   fun testGalleryItemsSortingAndPromotionOrdering() {
-    val mockPromotion1 =
-      PromotionCardSpec(
-        id = "promo-1",
-        title = "Promo Card 1",
-        description = "Gemini promo",
-        formFactor = FormFactor.MOBILE,
-        priority = 150,
-        onClickAction = {},
-      )
-    val mockPromotion2 =
-      PromotionCardSpec(
-        id = "gemini-ai-starter-sample",
-        title = "Gemini AI Starter",
-        description = "Gemini starter promo",
-        formFactor = FormFactor.MOBILE,
-        priority = 100,
-        onClickAction = {},
-      )
+    registerPromotionTemplates(
+      FakePluginPromotionTemplate("Promo Plugin 1", "promo-1", TemplateFormFactor.Mobile),
+      FakePluginPromotionTemplate("Gemini AI Starter", "gemini-ai-starter-sample", TemplateFormFactor.Mobile),
+    )
     val mockExternal1 =
       ExternalTemplateSpec(
         id = "ext-1",
@@ -245,8 +237,6 @@ class TemplateEngineProjectWizardTest {
         override val id = "test-contributor"
         override val priority = 1
 
-        override fun getPromotionCards() = listOf(mockPromotion1, mockPromotion2)
-
         override fun getExternalTemplates() = listOf(mockExternal1, mockExternal2)
       }
 
@@ -264,11 +254,10 @@ class TemplateEngineProjectWizardTest {
     // MOBILE must have promotions, standard templates, and external templates
     assertThat(mobileTab.items.size).isAtLeast(4)
 
-    // Verify Promotions are at the beginning, sorted by priority (150 -> 100)
+    // Verify Promotions are present
     val promotions = mobileTab.items.filterIsInstance<TemplateGalleryItem.Promotion>()
     assertThat(promotions).hasSize(2)
-    assertThat(promotions[0].spec.id).isEqualTo("promo-1")
-    assertThat(promotions[1].spec.id).isEqualTo("gemini-ai-starter-sample")
+    assertThat(promotions.map { it.spec.id }).containsExactly("promo-1", "gemini-ai-starter-sample")
 
     // Verify External templates are at the end, sorted alphabetically (ext-1 ->
     // external-sample-template)
@@ -297,7 +286,98 @@ class TemplateEngineProjectWizardTest {
     assertThat(gridEntries[0].formFactor).isEqualTo(FormFactor.TV)
   }
 
+  @Test
+  fun testPluginPromotionTemplateInGalleryGrid() {
+    registerPromotionTemplates(FakePluginPromotionTemplate(PROMOTION_NAME, PROMOTION_PLUGIN_ID, TemplateFormFactor.Mobile))
+
+    val registry = TemplateRegistryService.getInstance()
+    if (registry.getTemplateDefinitions().isEmpty()) {
+      registry.loadTemplatesAndResources()
+    }
+    val viewModel = ChooseProjectViewModel(registry)
+    val gridEntries = viewModel.categories.filterIsInstance<TemplateEngineTemplateGridProjectEntry>()
+
+    val mobileTab = gridEntries.first { it.formFactor == FormFactor.MOBILE }
+    val promoItem =
+      mobileTab.items.filterIsInstance<TemplateGalleryItem.Promotion>().firstOrNull { it.spec.pluginId == PROMOTION_PLUGIN_ID }
+
+    assertThat(promoItem).isNotNull()
+    assertThat(promoItem!!.title).contains(PROMOTION_NAME)
+    assertThat(promoItem.spec.formFactor).isEqualTo(FormFactor.MOBILE)
+  }
+
+  @Test
+  fun testPluginPromotionTemplateFormFactorFiltering() {
+    registerPromotionTemplates(FakePluginPromotionTemplate(PROMOTION_NAME, PROMOTION_PLUGIN_ID, TemplateFormFactor.Wear))
+
+    val registry = TemplateRegistryService.getInstance()
+    if (registry.getTemplateDefinitions().isEmpty()) {
+      registry.loadTemplatesAndResources()
+    }
+    val viewModel = ChooseProjectViewModel(registry)
+    val gridEntries = viewModel.categories.filterIsInstance<TemplateEngineTemplateGridProjectEntry>()
+
+    val mobileTab = gridEntries.first { it.formFactor == FormFactor.MOBILE }
+    val wearTab = gridEntries.first { it.formFactor == FormFactor.WEAR }
+
+    assertThat(mobileTab.items.filterIsInstance<TemplateGalleryItem.Promotion>().filter { it.spec.pluginId == PROMOTION_PLUGIN_ID })
+      .isEmpty()
+    val wearPromo = wearTab.items.filterIsInstance<TemplateGalleryItem.Promotion>().firstOrNull { it.spec.pluginId == PROMOTION_PLUGIN_ID }
+    assertThat(wearPromo).isNotNull()
+    assertThat(wearPromo!!.title).contains(PROMOTION_NAME)
+  }
+
+  @Test
+  fun testPromotionTemplateStateRestoresSelection() {
+    registerPromotionTemplates(FakePluginPromotionTemplate(PROMOTION_NAME, PROMOTION_PLUGIN_ID, TemplateFormFactor.Mobile))
+    PromotionTemplateStateService.getInstance()
+      .requestNpwReopenOnNextStartup(PROMOTION_PLUGIN_ID, "Empty Views Activity", TemplateFormFactor.Mobile)
+
+    val registry = TemplateRegistryService.getInstance()
+    if (registry.getTemplateDefinitions().isEmpty()) {
+      registry.loadTemplatesAndResources()
+    }
+    val viewModel = ChooseProjectViewModel(registry)
+
+    assertThat(viewModel.selectedCategory).isNotNull()
+    val selectedEntry = viewModel.selectedCategory as TemplateEngineTemplateGridProjectEntry
+    assertThat(selectedEntry.formFactor).isEqualTo(FormFactor.MOBILE)
+  }
+
+  private fun registerPromotionTemplates(vararg templates: PluginPromotionTemplate) {
+    ExtensionTestUtil.maskExtensions(
+      PROMOTION_EP_NAME,
+      listOf(FakeWizardPluginPromotionTemplateProvider(templates.toList())),
+      disposable,
+    )
+  }
+
   private fun createTemplate(name: String, tags: List<String>, shortName: String = name.lowercase().replace(" ", "-")): TemplateDefinition {
     return TemplateEngineTestUtils.createTestTemplateDefinition(name = name, shortName = shortName, tags = tags)
   }
+}
+
+private const val PROMOTION_NAME = "Test Promotion Plugin"
+private const val PROMOTION_PLUGIN_ID = "com.example.testpromotion"
+
+private val PROMOTION_EP_NAME =
+  ExtensionPointName<WizardPluginPromotionTemplateProvider>("com.android.tools.idea.npw.template.wizardPluginPromotionTemplateProvider")
+
+private val fakeThumbUrl by lazy {
+  val file = java.io.File.createTempFile("fake_thumb", ".png").apply { deleteOnExit() }
+  javax.imageio.ImageIO.write(java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_INT_ARGB), "png", file)
+  file.toURI().toURL()
+}
+
+private class FakePluginPromotionTemplate(
+  override val name: String,
+  override val pluginId: String,
+  override val formFactor: TemplateFormFactor,
+) : PluginPromotionTemplate {
+  override fun thumb(): Thumb = Thumb { fakeThumbUrl }
+}
+
+private class FakeWizardPluginPromotionTemplateProvider(private val templates: List<PluginPromotionTemplate>) :
+  WizardPluginPromotionTemplateProvider() {
+  override fun getTemplates(): List<PluginPromotionTemplate> = templates
 }

@@ -23,6 +23,8 @@ import com.android.template.engine.TemplateEngineFactory
 import com.android.template.engine.TemplateList
 import com.android.template.engine.TemplateMessageSink
 import com.android.template.engine.copyAndLoadExtraFiles
+import com.android.tools.idea.npw.template.WizardPluginPromotionTemplateProvider
+import com.android.tools.idea.npw.template.toPromotionCardSpec
 import com.android.tools.idea.npw.templateengine.WizardConstants
 import com.android.tools.idea.npw.templateengine.api.ExternalTemplateSpec
 import com.android.tools.idea.npw.templateengine.api.PromotionCardSpec
@@ -30,11 +32,13 @@ import com.android.tools.idea.npw.templateengine.api.TemplateEngineProjectWizard
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.sdk.AndroidSdkData
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.nio.file.Files
@@ -108,8 +112,10 @@ constructor(private val coroutineScope: CoroutineScope, private val zipPathProvi
 
   fun getTemplateDefinitions(): List<TemplateDefinition> = synchronized(lock) { templateList.templates }
 
-  fun getContributorPromotionCards(): List<PromotionCardSpec> =
-    TemplateEngineProjectWizardContributor.EP_NAME.extensionList.sortedByDescending { it.priority }.flatMap { it.getPromotionCards() }
+  fun getPromotionCards(): List<PromotionCardSpec> =
+    WizardPluginPromotionTemplateProvider.getAllPromotionTemplates()
+      .filterNot { PluginManagerCore.isPluginInstalled(PluginId.getId(it.pluginId)) }
+      .map { it.toPromotionCardSpec() }
 
   fun getContributorExternalTemplates(): List<ExternalTemplateSpec> =
     TemplateEngineProjectWizardContributor.EP_NAME.extensionList.sortedByDescending { it.priority }.flatMap { it.getExternalTemplates() }

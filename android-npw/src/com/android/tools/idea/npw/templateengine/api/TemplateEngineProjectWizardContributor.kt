@@ -23,13 +23,15 @@ import com.intellij.openapi.extensions.ExtensionPointName
 data class PromotionCardSpec(
   val id: String,
   val title: String,
-  val description: String,
+  val description: String = "",
   val formFactor: FormFactor = FormFactor.MOBILE,
   val subCategory: String? = null,
   val thumb: (@Composable () -> Unit)? = null,
   val badgeText: String? = null,
   val priority: Int = 0,
-  val onClickAction: (Map<String, Any>) -> Unit,
+  val pluginId: String? = null,
+  val templateName: String? = null,
+  val onClickAction: (Map<String, Any>) -> Unit = {},
 )
 
 /** Specification for an external template contributed via plugin. */
@@ -52,12 +54,9 @@ interface TemplateEngineProjectWizardContributor {
   /** Unique identifier of the contributing plugin. */
   val id: String
 
-  /** Priority ordering for templates/cards contributed by this contributor (higher = top). */
+  /** Priority ordering for templates contributed by this contributor (higher = top). */
   val priority: Int
     get() = 0
-
-  /** Promotional cards to display in the wizard gallery grid. */
-  fun getPromotionCards(): List<PromotionCardSpec> = emptyList()
 
   /** Custom external templates contributed by this plugin. */
   fun getExternalTemplates(): List<ExternalTemplateSpec> = emptyList()

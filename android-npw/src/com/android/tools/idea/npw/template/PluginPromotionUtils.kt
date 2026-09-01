@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.npw.template
 
+import com.android.tools.idea.npw.project.GridItemImage
 import com.android.tools.idea.npw.startup.PromotionTemplateStateService
+import com.android.tools.idea.npw.templateengine.api.PromotionCardSpec
+import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.wizard.template.FormFactor
 import com.intellij.ide.plugins.InstalledPluginsState
 import com.intellij.ide.plugins.PluginManagerConfigurable
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.installAndEnable
+import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Initiates the installation and enabling of a promoted plugin via the IDE plugin manager. If the plugin is successfully installed and
@@ -51,3 +55,19 @@ internal fun installPromotedPlugin(
       },
   )
 }
+
+/** Converts a [PluginPromotionTemplate] into a [PromotionCardSpec] ready for rendering in the Compose Revamp New Project Wizard gallery. */
+internal fun PluginPromotionTemplate.toPromotionCardSpec(): PromotionCardSpec =
+  PromotionCardSpec(
+    id = pluginId,
+    title = AndroidBundle.message("android.wizard.project.plugin.promotion.template.name", name),
+    description = "",
+    formFactor = formFactor.toWizardFormFactor(),
+    thumb = { GridItemImage(thumb()) },
+    pluginId = pluginId,
+    templateName = name,
+    onClickAction = { params ->
+      val project = params["project"] as? Project
+      installPromotedPlugin(pluginId = pluginId, templateName = name, formFactor = formFactor, project = project)
+    },
+  )

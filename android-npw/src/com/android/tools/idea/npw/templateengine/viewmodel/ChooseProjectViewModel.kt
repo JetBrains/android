@@ -22,8 +22,12 @@ import com.android.template.engine.TemplateDefinition
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.project.AndroidProjectEntryProvider
 import com.android.tools.idea.npw.project.ChooseAndroidProjectEntry
+import com.android.tools.idea.npw.startup.PromotedTemplate
+import com.android.tools.idea.npw.startup.PromotionTemplateStateService
 import com.android.tools.idea.npw.templateengine.services.TemplateRegistryService
 import com.android.tools.idea.npw.templateengine.ui.TemplateEngineTemplateGridProjectEntry
+import com.android.tools.idea.npw.templateengine.ui.TemplateGalleryItem
+import com.android.tools.idea.npw.toWizardFormFactor
 
 class ChooseProjectViewModel(private val registry: TemplateRegistryService) {
 
@@ -33,18 +37,44 @@ class ChooseProjectViewModel(private val registry: TemplateRegistryService) {
   val errorMessage: String?
     get() = registry.getLastErrorMessage()
 
+  val promotedTemplate: PromotedTemplate? = PromotionTemplateStateService.getInstance().consumePromotedTemplate()
+
   // Keep external plugin entries (like 'Create with AI') first, followed by standard category entries.
   val categories: List<ChooseAndroidProjectEntry> = run {
     val rawEntries = AndroidProjectEntryProvider.getAllProjectEntries()
     val standardEntries = rawEntries.filterIsInstance<TemplateEngineTemplateGridProjectEntry>()
     val externalEntries = rawEntries.filter { it !is TemplateEngineTemplateGridProjectEntry }
+
+    if (promotedTemplate != null) {
+      standardEntries.forEach { entry ->
+        if (entry.formFactor == promotedTemplate.formFactor.toWizardFormFactor()) {
+          val match =
+            entry.items.filterIsInstance<TemplateGalleryItem.Standard>().firstOrNull {
+              it.definition.name == promotedTemplate.name || it.definition.shortName == promotedTemplate.name
+            }
+              ?: entry.items.filterIsInstance<TemplateGalleryItem.Promotion>().firstOrNull {
+                it.spec.pluginId == promotedTemplate.pluginId || it.spec.id == promotedTemplate.pluginId
+              }
+          if (match != null) {
+            entry.selectedItem = match
+          }
+        }
+      }
+    }
+
     externalEntries + standardEntries
   }
 
   var selectedCategory by
     mutableStateOf<ChooseAndroidProjectEntry?>(
-      categories.filterIsInstance<TemplateEngineTemplateGridProjectEntry>().firstOrNull { it.formFactor == FormFactor.MOBILE }
-        ?: categories.firstOrNull()
+      if (promotedTemplate != null) {
+        val targetFormFactor = promotedTemplate.formFactor.toWizardFormFactor()
+        categories.filterIsInstance<TemplateEngineTemplateGridProjectEntry>().firstOrNull { it.formFactor == targetFormFactor }
+          ?: categories.firstOrNull()
+      } else {
+        categories.filterIsInstance<TemplateEngineTemplateGridProjectEntry>().firstOrNull { it.formFactor == FormFactor.MOBILE }
+          ?: categories.firstOrNull()
+      }
     )
 
   var selectedTemplate: TemplateDefinition?

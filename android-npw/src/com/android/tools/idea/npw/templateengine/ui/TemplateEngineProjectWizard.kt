@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.template.engine.TemplateDefinition
 import com.android.tools.adtui.compose.ComposeWizard
+import com.android.tools.adtui.compose.LocalWizardDialogScope
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.adtui.device.FormFactor
@@ -110,37 +111,52 @@ fun WizardPageScope.TemplateEngineChooseProjectPage(project: Project?) {
     nextActionName = "Next"
     nextAction =
       if (canProceed && selectedEntry != null) {
-        val templateToUse: TemplateDefinition?
-        val formFactor: FormFactor
-
         if (selectedEntry is TemplateEngineTemplateGridProjectEntry) {
-          templateToUse = selectedEntry.selectedTemplate
-          formFactor = selectedEntry.formFactor
-        } else {
-          val aiTemplateName = StudioFlags.NPW_AI_STARTER_TEMPLATE.get()
-          templateToUse =
-            registry.getTemplateDefinitions().firstOrNull { it.name == aiTemplateName || it.metadata.shortName == aiTemplateName }
-              ?: registry.getTemplateDefinitions().firstOrNull()
-          formFactor = FormFactor.MOBILE
-        }
-
-        if (templateToUse != null) {
-          WizardAction {
-            val defaultMinSdk = templateToUse.metadata.arguments.find { it.id == "minSdk" }?.defaultValue
-            val configureProjectViewModel = getOrCreateState {
-              ConfigureProjectViewModel(WizardUtils.getProjectLocationParent().toPath(), scope = coroutineScope)
-            }
-            configureProjectViewModel.updateTemplate(templateToUse.name, templateToUse.metadata.shortName, formFactor, defaultMinSdk)
-
-            pushPage { TemplateEngineConfigureProjectPage(project, templateToUse, selectedEntry, configureProjectViewModel) }
+          when (val selectedItem = selectedEntry.selectedItem) {
+            is TemplateGalleryItem.Standard ->
+              createConfigurePageAction(project, selectedItem.definition, selectedEntry.formFactor, selectedEntry)
+            is TemplateGalleryItem.Promotion -> WizardAction { selectedItem.spec.onClickAction(emptyMap()) }
+            else -> WizardAction.Disabled
           }
         } else {
-          WizardAction.Disabled
+          val aiTemplateName = StudioFlags.NPW_AI_STARTER_TEMPLATE.get()
+          val templateToUse =
+            registry.getTemplateDefinitions().firstOrNull { it.name == aiTemplateName || it.metadata.shortName == aiTemplateName }
+              ?: registry.getTemplateDefinitions().firstOrNull()
+          if (templateToUse != null) {
+            createConfigurePageAction(project, templateToUse, FormFactor.MOBILE, selectedEntry)
+          } else {
+            WizardAction.Disabled
+          }
         }
       } else {
         WizardAction.Disabled
       }
+
+    val dialogScope = LocalWizardDialogScope.current
+    if (selectedEntry is TemplateEngineTemplateGridProjectEntry) {
+      selectedEntry.onTemplateDoubleClick = {
+        if (nextAction.enabled) {
+          nextAction.action?.let { with(dialogScope) { it() } }
+        }
+      }
+    }
   }
+}
+
+private fun WizardPageScope.createConfigurePageAction(
+  project: Project?,
+  templateToUse: TemplateDefinition,
+  formFactor: FormFactor,
+  selectedEntry: ChooseAndroidProjectEntry,
+): WizardAction = WizardAction {
+  val defaultMinSdk = templateToUse.metadata.arguments.find { it.id == "minSdk" }?.defaultValue
+  val configureProjectViewModel = getOrCreateState {
+    ConfigureProjectViewModel(WizardUtils.getProjectLocationParent().toPath(), scope = coroutineScope)
+  }
+  configureProjectViewModel.updateTemplate(templateToUse.name, templateToUse.metadata.shortName, formFactor, defaultMinSdk)
+
+  pushPage { TemplateEngineConfigureProjectPage(project, templateToUse, selectedEntry, configureProjectViewModel) }
 }
 
 @Composable

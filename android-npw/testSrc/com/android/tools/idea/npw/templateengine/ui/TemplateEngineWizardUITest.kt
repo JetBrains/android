@@ -71,7 +71,7 @@ class TemplateEngineWizardUITest {
     StudioFlags.NPW_NEW_TEMPLATE_ENGINE.override(true)
     registry = mock<TemplateRegistryService>()
     whenever(registry.getTemplateDefinitions()).thenReturn(listOf(dummyTemplate))
-    whenever(registry.getContributorPromotionCards()).thenReturn(emptyList())
+    whenever(registry.getPromotionCards()).thenReturn(emptyList())
     whenever(registry.getContributorExternalTemplates()).thenReturn(emptyList())
     ApplicationManager.getApplication().replaceService(TemplateRegistryService::class.java, registry, disposable)
     ExtensionTestUtil.maskExtensions(AndroidProjectEntryProvider.EP_NAME, listOf(TemplateGridProjectEntryProvider()), disposable)

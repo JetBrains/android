@@ -26,6 +26,10 @@ import com.google.common.collect.ImmutableListMultimap
 class TemplateGridProjectEntryProvider : AndroidProjectEntryProvider {
 
   companion object {
+    private const val PROMOTION_BASE_PRIORITY = 1500
+    private const val EXTERNAL_BASE_PRIORITY = 2000
+    private const val STANDARD_UNORDERED_PRIORITY = 1000
+
     private val PREFERRED_TEMPLATE_ORDER_BY_CATEGORY: ImmutableListMultimap<FormFactor, String> =
       ImmutableListMultimap.builder<FormFactor, String>().putAll(FormFactor.MOBILE, WizardConstants.TemplateNames.EMPTY_ACTIVITY).build()
   }
@@ -36,7 +40,7 @@ class TemplateGridProjectEntryProvider : AndroidProjectEntryProvider {
     }
     val registry = TemplateRegistryService.getInstance()
     val templateDefinitions = registry.getTemplateDefinitions()
-    val promotionCards = registry.getContributorPromotionCards()
+    val promotionCards = registry.getPromotionCards()
     val externalTemplates = registry.getContributorExternalTemplates()
 
     val groupedItems = mutableMapOf<FormFactor, MutableList<TemplateGalleryItem>>()
@@ -54,7 +58,9 @@ class TemplateGridProjectEntryProvider : AndroidProjectEntryProvider {
     }
 
     // 2. Group promotion cards
-    promotionCards.forEach { card -> groupedItems.getOrPut(card.formFactor) { mutableListOf() }.add(TemplateGalleryItem.Promotion(card)) }
+    promotionCards.forEach { card ->
+      groupedItems.getOrPut(card.formFactor) { mutableListOf() }.add(TemplateGalleryItem.Promotion(card))
+    }
 
     // 3. Group external templates
     externalTemplates.forEach { template ->
@@ -81,12 +87,12 @@ class TemplateGridProjectEntryProvider : AndroidProjectEntryProvider {
 
   private fun getGalleryItemPriority(item: TemplateGalleryItem, categoryOrder: List<String>): Int {
     return when (item) {
-      is TemplateGalleryItem.Promotion -> -1000 - item.spec.priority
       is TemplateGalleryItem.Standard -> {
         val index = categoryOrder.indexOf(item.definition.shortName)
-        if (index >= 0) index else 1000
+        if (index >= 0) index else STANDARD_UNORDERED_PRIORITY
       }
-      is TemplateGalleryItem.External -> 2000
+      is TemplateGalleryItem.Promotion -> PROMOTION_BASE_PRIORITY - item.spec.priority
+      is TemplateGalleryItem.External -> EXTERNAL_BASE_PRIORITY
     }
   }
 }
