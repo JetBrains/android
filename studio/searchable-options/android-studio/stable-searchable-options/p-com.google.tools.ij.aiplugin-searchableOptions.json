@@ -477,11 +477,11 @@
       "path": "ActionManager"
     },
     {
-      "hit": "Start a code review of the selected commit(s) using the AI agent",
+      "hit": "Start a review of the selected commit(s) using the AI agent",
       "path": "ActionManager"
     },
     {
-      "hit": "Start a code review of your pending changes using the AI agent",
+      "hit": "Start a review of your pending changes using the AI agent",
       "path": "ActionManager"
     },
     {
