@@ -63,18 +63,23 @@ public final class VectorIconButton extends JButton
     ActionListener actionListener =
       StudioFlags.DYNAMIC_MATERIAL_SYMBOLS.get() ?
       actionEvent -> {
+        // Opens SymbolPickerDialog on the UI thread (@UiThread).
         SymbolPickerDialog iconPicker = new SymbolPickerDialog(this, null, null);
         if (iconPicker.showAndGet()) {
           VdIcon selectedIcon = iconPicker.getSelectedIcon();
-          updateIcon(selectedIcon);
+          // UpdateIcon perform a @Slow generatePreview to a background thread, so we need to execute the icon update off the UI Thread.
+          ApplicationManager.getApplication().executeOnPooledThread(() -> updateIcon(selectedIcon));
         }
       } :
     actionEvent -> {
+      // Opens SymbolPickerDialog on the UI thread (@UiThread).
       IconPickerDialog iconPicker = new IconPickerDialog(myIcon);
       if (iconPicker.showAndGet()) {
         VdIcon selectedIcon = iconPicker.getSelectedIcon();
-        assert selectedIcon != null; // Not null if user pressed OK.
-        updateIcon(selectedIcon);
+        // Not null if user pressed OK.
+        assert selectedIcon != null;
+        // UpdateIcon perform a @Slow generatePreview to a background thread, so we need to execute the icon update off the UI Thread.
+        ApplicationManager.getApplication().executeOnPooledThread(() -> updateIcon(selectedIcon));
       }
     };
 
@@ -106,9 +111,10 @@ public final class VectorIconButton extends JButton
         // The VectorAsset class works with files, but IconPicker returns resources from a jar.
         // Adapt by saving the resource into a temporary file.
         File iconFile = new File(FileUtil.getTempDirectory(), selectedIcon.getName());
-        InputStream iconStream = selectedIcon.getURL().openStream();
-        FileOutputStream outputStream = new FileOutputStream(iconFile);
-        FileUtil.copy(iconStream, outputStream);
+        try (InputStream iconStream = selectedIcon.getURL().openStream();
+             FileOutputStream outputStream = new FileOutputStream(iconFile)) {
+          FileUtil.copy(iconStream, outputStream);
+        }
         myXmlAsset.path().setValue(iconFile);
         // Our icons are always square, so although parse() expects width, we can pass in height.
         VectorAsset.Preview result = myXmlAsset.generatePreview(h);
@@ -116,10 +122,14 @@ public final class VectorIconButton extends JButton
         BufferedImage image = result.getImage();
         if (image != null) {
           // Switch foreground to white instead?
-          image = VdIcon.adjustIconColor(this, image);
-          setIcon(new ImageIcon(image));
+          BufferedImage adjustedImage = VdIcon.adjustIconColor(this, image);
+          ApplicationManager.getApplication().invokeLater(() -> {
+            if (!Disposer.isDisposed(this)) {
+              setIcon(new ImageIcon(adjustedImage));
+              myIcon = selectedIcon;
+            }
+          }, ModalityState.any());
         }
-        myIcon = selectedIcon;
       }
       catch (IOException ignored) {
       }

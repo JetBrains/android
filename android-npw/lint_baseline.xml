@@ -35,17 +35,6 @@
     </issue>
 
     <issue
-        id="UnsatisfiableThreadConstraint"
-        message="Statement must run from `@{Slow,WorkerThread}`, incompatible with earlier code that must run from `@UiThread`"
-        errorLine1="      if (iconPicker.showAndGet()) {"
-        errorLine2="      ^">
-        <location
-            file="tools/adt/idea/android-npw/src/com/android/tools/idea/npw/assetstudio/ui/VectorIconButton.java"
-            line="74"
-            column="7"/>
-    </issue>
-
-    <issue
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`."
         errorLine1="          while (f != null &amp;&amp; !Objects.equals(f, root)) {"
