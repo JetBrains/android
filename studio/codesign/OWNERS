@@ -1,5 +1,4 @@
 # Bug component: 175941
-ruiqimao@google.com
-tomrenn@google.com
+include tools/vendor/adt_infra_internal:/OWNERS
+
 vsiva@google.com
-zachyu@google.com
