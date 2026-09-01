@@ -20,6 +20,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.toClassNode
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.toIrClass
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -27,7 +28,6 @@ import kotlin.test.assertEquals
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -91,7 +91,6 @@ class IncompatibleChangeCompileTest {
   }
 
   @Test
-  @Ignore("b/537848546")
   fun `Skips compose $stable`() {
     val file =
       projectRule.createKtFile(
@@ -105,19 +104,17 @@ class IncompatibleChangeCompileTest {
 
     val cache = MutableIrClassCache()
     val apk = projectRule.directApiCompileByteArray(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
-    projectRule.modifyKtFile(
-      file,
-      """
-      class Test {
-        val x = 0
-        val ${"`\$stable`"} = 0
-      }
-    """,
-    )
+    // Strip $stable from the initial APK bytecode so the initial class does not have $stable
+    val node = apk.values.first().toClassNode()
+    Assert.assertTrue(node.fields.removeIf { it.name.startsWith("\$stable") })
+    val writer = org.jetbrains.org.objectweb.asm.ClassWriter(0)
+    node.accept(writer)
+    val apkWithoutStable = mapOf(node.name to writer.toByteArray())
 
-    // We will allow $stable or any form of getters created by it.
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apkWithoutStable)
+
+    // We will allow $stable added by Compose compiler
     compile(file, compiler)
   }
 
