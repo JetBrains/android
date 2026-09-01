@@ -557,6 +557,10 @@ class GradleSyncStateHolder constructor(private val project: Project) {
           context.project.messageBus.syncPublisher(PROJECT_SYSTEM_MODELS_UPDATED_TOPIC).androidModelsUpdated()
         }
       }
+      // Publish updates for GradleSyncListenerWithRoot listeners.
+      getInstance(context.project).publish {
+        context.project.messageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncPhaseCompleted(context.project, phase)
+      }
     }
   }
 

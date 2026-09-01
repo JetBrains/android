@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.intellij.openapi.project.Project
 import java.util.EventListener
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 
 interface GradleSyncListenerWithRoot : EventListener {
   /**
@@ -55,4 +56,7 @@ interface GradleSyncListenerWithRoot : EventListener {
 
   /** Invoked when sync was cancelled. */
   fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {}
+
+  /** Invoked when a phased sync completes a specific phase. */
+  fun syncPhaseCompleted(project: Project, phase: GradleSyncPhase) {}
 }

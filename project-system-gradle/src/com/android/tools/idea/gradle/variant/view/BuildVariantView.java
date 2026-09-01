@@ -86,6 +86,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
+import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase;
 
 /**
  * The contents of the "Build Variants" tool window.
@@ -740,6 +741,13 @@ public class BuildVariantView {
     @Override
     public void syncCancelled(@NotNull Project project, @SystemIndependent String rootProjectPath) {
       BuildVariantView.getInstance(project).getVariantsTable().updateLoadingStatus(false);
+    }
+
+    @Override
+    public void syncPhaseCompleted(@NotNull Project project, @NotNull GradleSyncPhase phase) {
+      if (phase == GradleSyncPhase.SOURCE_SET_MODEL_PHASE) {
+        BuildVariantView.getInstance(project).updateContents(ImmutableList.of());
+      }
     }
   }
 }
