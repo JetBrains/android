@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
@@ -107,7 +107,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/datamodel/aiplugin.v2.datamodel.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/datamodel/aiplugin.v2.datamodel.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/datamodel-tests/aiplugin.v2.datamodel-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/v2/datamodel-tests/aiplugin.v2.datamodel-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/core/altlang-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/core/altlang-core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/plugin/altlang-lsp4ij.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/plugin/altlang-lsp4ij.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/attach/altlang.attach.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/attach/altlang.attach.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../analytics-library/crash/analytics-crash.iml" filepath="$PROJECT_DIR$/../../analytics-library/crash/analytics-crash.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../analytics-library/inspector/analytics-inspector.iml" filepath="$PROJECT_DIR$/../../analytics-library/inspector/analytics-inspector.iml" />
@@ -617,6 +616,31 @@
       <module fileurl="file://$PROJECT_DIR$/cli-server/server/intellij.android.cli-server.server.iml" filepath="$PROJECT_DIR$/cli-server/server/intellij.android.cli-server.server.iml" />
       <module fileurl="file://$PROJECT_DIR$/cli-server/server/intellij.android.cli-server.server.tests.iml" filepath="$PROJECT_DIR$/cli-server/server/intellij.android.cli-server.server.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/emulator-snapshots/intellij.android.emulator-snapshots.iml" filepath="$PROJECT_DIR$/emulator-snapshots/intellij.android.emulator-snapshots.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/clangd/altlang.clangd.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/clangd/altlang.clangd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/compdb/altlang.compdb.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/compdb/altlang.compdb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/cxx/plugin/altlang.cxx-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/cxx/plugin/altlang.cxx-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/adapter-kit/altlang.dap.adapter-kit.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/adapter-kit/altlang.dap.adapter-kit.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/conditional-breakpoints/altlang.dap.conditional-breakpoints.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/conditional-breakpoints/altlang.dap.conditional-breakpoints.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/core/altlang.dap.core.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/core/altlang.dap.core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/core/altlang.dap.core.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/core/altlang.dap.core.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/exception-breakpoints/altlang.dap.exception-breakpoints.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/exception-breakpoints/altlang.dap.exception-breakpoints.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/inline-values/altlang.dap.inlinevalues.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/inline-values/altlang.dap.inlinevalues.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/lldb-builtin/altlang.dap.lldb-builtin.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/lldb-builtin/altlang.dap.lldb-builtin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/stepping-extra/altlang.dap.stepping-extra.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/stepping-extra/altlang.dap.stepping-extra.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/dap/value-format/altlang.dap.valueformat.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/dap/value-format/altlang.dap.valueformat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/go/altlang.go.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/go/altlang.go.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/google3/altlang.google3.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/google3/altlang.google3.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/ios-lang/ios-lang-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/ios-lang/ios-lang-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lldb/altlang.lldb.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lldb/altlang.lldb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lldb/altlang.lldb.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lldb/altlang.lldb.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/asfp-plugin/altlang-lsp4ij-asfp.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/asfp-plugin/altlang-lsp4ij-asfp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/aswb-plugin/altlang-lsp4ij-aswb.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/aswb-plugin/altlang-lsp4ij-aswb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/language/altlang.lsp4ij.language.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/language/altlang.lsp4ij.language.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/python/altlang.python.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/python/altlang.python.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/rust/altlang.rust.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/rust/altlang.rust.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/test/emulator/altlang.test.emulator.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/test/emulator/altlang.test.emulator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/test/headless-emulator/altlang.test.headless-emulator.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/test/headless-emulator/altlang.test.headless-emulator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/vsidl/altlang.vsidl.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/vsidl/altlang.vsidl.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio-flags/intellij.android.studio-flags-tests.iml" filepath="$PROJECT_DIR$/studio-flags/intellij.android.studio-flags-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio-flags/intellij.android.studio-flags.iml" filepath="$PROJECT_DIR$/studio-flags/intellij.android.studio-flags.iml" />
     </modules>
