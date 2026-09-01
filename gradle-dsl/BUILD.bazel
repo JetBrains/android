@@ -133,7 +133,6 @@ dev_dist_plugin(
     ],
     main_module = "intellij.android.gradle.dsl",
     prepacked_content_modules = ["//android/gradle-dsl-flags:gradle-dsl-flags_content_module_jar"],
-    residue_separate_jars = ["intellij.android.gradle.dsl.flags"],
     separate_jar = ["intellij.android.gradle.dsl.flags"],
 )
 ### auto-generated section `dev intellij.android.gradle.dsl` end
