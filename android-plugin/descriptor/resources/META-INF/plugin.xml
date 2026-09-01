@@ -48,6 +48,12 @@
   <content>
     <module name="intellij.libraries.kxml2" loading="embedded"/>
   </content>
+  <!-- Same reasoning as above: loading="embedded" is required because intellij.android.rendering is packed into
+       lib/android.jar as a plain module and its sources import com.android.layoutlib.bridge.* and
+       com.android.internal.widget.* directly, so the classes must be on the plugin's main classloader. -->
+  <content>
+    <module name="intellij.libraries.layoutlib" loading="embedded"/>
+  </content>
   <content>
     <module name="intellij.libraries.zxing.core" loading="embedded"/>
   </content>

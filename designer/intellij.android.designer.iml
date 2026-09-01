@@ -105,7 +105,7 @@
     <orderEntry type="module" module-name="intellij.libraries.jcip" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
-    <orderEntry type="library" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.layoutlib" />
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.lint.common" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />

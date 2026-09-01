@@ -12,7 +12,7 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
-        "@lib//:layoutlib",
+        "//libraries/layoutlib",
         "//android/compose-designer",
         "//android/designer",
         "//android/designer/gradle",
@@ -39,6 +39,7 @@ jvm_library(
         # do not sort,
         ":design-plugin",
         "@lib//:studio-test-platform",
+        "//libraries/layoutlib:layoutlib_test_lib",
         "//android/compose-designer:compose-designer_test_lib",
         "//android/designer:designer_test_lib",
         "//android/designer/gradle:gradle_test_lib",

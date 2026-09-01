@@ -70,7 +70,7 @@
     <orderEntry type="module" module-name="intellij.libraries.commons.lang3" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor.ex" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />

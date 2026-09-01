@@ -66,6 +66,7 @@ dev_dist_plugin(
         "//android/preview-designer",
         "//android/visual-lint",
         "//android/wear-designer",
+        "//libraries/layoutlib",
     ],
     descriptor_module = ":descriptor",
     libraries = [
@@ -75,7 +76,7 @@ dev_dist_plugin(
         "@lib//:kotlin-test",
         "@lib//:kotlinc-kotlin-compiler-fe10",
         "@lib//:kotlinc-kotlin-compiler-ir",
-        "@lib//:layoutlib",
+        "@lib//:libraries-layoutlib-layoutlib",
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:truth",
