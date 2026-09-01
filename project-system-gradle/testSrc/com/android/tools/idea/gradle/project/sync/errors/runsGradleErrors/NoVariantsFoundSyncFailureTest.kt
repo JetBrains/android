@@ -37,9 +37,9 @@ class NoVariantsFoundSyncFailureTest : AbstractSyncFailureIntegrationTest() {
     buildFile.appendText(
       """
 
-      android {
-          variantFilter { variant ->
-              setIgnore(true)
+      androidComponents {
+          beforeVariants(selector().all()) {
+              enable = false
           }
       }
       """

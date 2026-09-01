@@ -35,11 +35,12 @@ fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
 
 fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, targetApi: Int, noKtx: Boolean = false) {
   if (data.language == Language.Kotlin) {
-    setKotlinVersion(data.kotlinVersion)
     when (data.kotlinSupport) {
       TemplateKotlinSupport.NO_KOTLIN -> throw IllegalStateException()
-      TemplateKotlinSupport.LEGACY_KOTLIN_GRADLE_PLUGIN_BEFORE_AGP9 ->
+      TemplateKotlinSupport.LEGACY_KOTLIN_GRADLE_PLUGIN_BEFORE_AGP9 -> {
+        setKotlinVersion(data.kotlinVersion)
         addPlugin("org.jetbrains.kotlin.android", "org.jetbrains.kotlin:kotlin-gradle-plugin", data.kotlinVersion)
+      }
       TemplateKotlinSupport.EXPLICIT_BUILT_IN_KOTLIN ->
         addPlugin("com.android.built-in-kotlin", "com.android.tools.build:gradle-kotlin", data.agpVersion.toString())
       TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN -> {

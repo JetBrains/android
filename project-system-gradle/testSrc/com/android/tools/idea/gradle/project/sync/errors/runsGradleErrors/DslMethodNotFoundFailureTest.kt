@@ -218,7 +218,7 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
       expectedErrorNodeNameVerifier = {
         // Contains '[build_amf2rqavq1o9tpj2lvcymfp27$_run_closure3$_closure9@6263dc2d]' in the middle so verify before and after that.
         expect.that(it).startsWith("Could not find method abdd() for arguments [")
-        expect.that(it).endsWith("] on extension 'android' of type com.android.build.gradle.internal.dsl.BaseAppModuleExtension")
+        expect.that(it).contains("on object of type com.android.build.gradle.internal.dsl.ApplicationExtensionImpl")
       },
       expectedPhases =
         """
@@ -257,8 +257,8 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
       expectedErrorNodeNameVerifier = {
         expect
           .that(it)
-          .isEqualTo(
-            "Could not set unknown property 'abdd' for extension 'android' of type com.android.build.gradle.internal.dsl.BaseAppModuleExtension"
+          .startsWith(
+            "Could not set unknown property 'abdd' for object of type com.android.build.gradle.internal.dsl.ApplicationExtensionImpl"
           )
       },
       expectedPhases =

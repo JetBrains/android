@@ -697,11 +697,18 @@ LIBRARY_TABLE
         projectPath                   : :feature-a
         sourceSet                     : MAIN
         variant                       : debug
-    - library                     : <ROOT>::feature-b@debug (IdeModuleLibraryImpl)
+    - library                     : <ROOT>::feature-b@androidMain/androidMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :feature-b
-        sourceSet                     : MAIN
-        variant                       : debug
+        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::feature-b@androidMain/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :feature-b
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
     - library                     : <ROOT>::javaLibrary (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :javaLibrary
@@ -721,6 +728,31 @@ LIBRARY_TABLE
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug
+KMP_LIBRARY_TABLE
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+        artifactAddress               : org.jetbrains:annotations:13.0
+        component                     : org.jetbrains:annotations:13.0
+        - srcJars                     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+    - library                     : :::common/commonMain (IdeModuleLibraryImpl)
+        buildId                       : :
+        projectPath                   : :common
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+    - library                     : :::common/jvmMain (IdeModuleLibraryImpl)
+        buildId                       : :
+        projectPath                   : :common
+        sourceSet                     : jvmMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+    - library                     : :::feature-b/commonMain (IdeModuleLibraryImpl)
+        buildId                       : :
+        projectPath                   : :feature-b
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
 MODULE                        : NonStandardSourceSetDependencies
     externalProject               : NonStandardSourceSetDependencies (DefaultExternalProject)
         path                          : : [-]
@@ -950,17 +982,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    configurationArtifacts
-                        - debugApiElements-published  : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
-                        - debugArchives               : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
-                        - debugRuntimeElements-published        : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
-                        - debugSourcesElements        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
-                        - debugSourcesElements-published        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
-                        - releaseApiElements-published          : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                        - releaseArchives             : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
-                        - releaseSourcesElements      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
-                        - releaseSourcesElements-published      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
+                    configurationArtifacts        : <CONFIGURATIONS_WITH_EMPTY_ARTIFACTS>
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -983,25 +1005,13 @@ MODULE                        : NonStandardSourceSetDependencies
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                     configurationArtifacts
-                        - androidDebugArchives        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
-                        - androidReleaseArchives      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                        - debugApiElements-published  : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
-                        - debugRuntimeElements-published        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
-                        - debugSourcesElements        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
-                        - debugSourcesElements-published        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
+                        - androidApiElements-published          : <ROOT>/feature-b/build/outputs/aar/feature-b.aar [-]
+                        - androidRuntimeElements-published      : <ROOT>/feature-b/build/outputs/aar/feature-b.aar [-]
+                        - androidSourcesElements-published      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                         - metadataApiElements         : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                         - metadataSourcesElements     : <ROOT>/feature-b/build/libs/feature-b-kotlin-sources.jar [-]
-                        - releaseApiElements-published          : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                        - releaseSourcesElements      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
-                        - releaseSourcesElements-published      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                     - additionalArtifacts         : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                 taskModel                     : DefaultGradleTaskModel
-                    tasks
-                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
-                            qName                         : :feature-b:testDebugUnitTest
-                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
-                            qName                         : :feature-b:testReleaseUnitTest
             jarWrapperLib                 : :jarWrapperLib (DefaultExternalProject)
                 path                          : :jarWrapperLib [-]
                 identityPath                  : :jarWrapperLib [-]
@@ -1325,17 +1335,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     - taskArtifacts               : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                     configurationArtifacts
                         - archives                    : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
-                        - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
-                        - debugArchives               : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
-                        - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
-                        - debugSourcesElements        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
-                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
                         - manualTestFixtures          : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
-                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
-                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
-                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
-                        - releaseSourcesElements      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
-                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
                     - additionalArtifacts         : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                 taskModel                     : DefaultGradleTaskModel
                     tasks
@@ -1467,8 +1467,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
             Name                          : main
             Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/app/src/main/java
-            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
             ResDirectories                : <ROOT>/app/src/main/res [-]
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
@@ -1482,8 +1482,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTest/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
@@ -1496,8 +1496,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     Name                          : test
                     Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/test/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
@@ -1518,8 +1518,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
             Name                          : debug
             Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
@@ -1533,8 +1533,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
@@ -1548,8 +1548,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
@@ -1571,8 +1571,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
             Name                          : release
             Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/release/java [-]
-            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
@@ -1586,8 +1586,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
@@ -1644,7 +1644,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
@@ -1652,8 +1651,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:feature-b-MAIN
+                        module                        : <ROOT>-:feature-b-androidMain
+                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
                         module                        : <ROOT>-:javaLibrary-testEnv
@@ -1777,7 +1776,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -1786,7 +1784,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:feature-b-MAIN
+                        module                        : <ROOT>-:feature-b-androidMain
+                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
@@ -1849,7 +1848,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
@@ -1857,12 +1855,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:feature-b-MAIN
+                        module                        : <ROOT>-:feature-b-androidMain
+                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
                         module                        : <ROOT>-:javaLibrary-testEnv
@@ -1872,15 +1868,13 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         androidLibrary                : com.example:with-runtime:1.0@aar
                             androidLibrary                : com.example:runtime:1.0@aar
                         androidLibrary                : com.example:runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.example:with-runtime:1.0@aar
                 ProvidedDependencies
                     - provided                    : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - provided                    : __wrapped_aars__::aarWrapperLib:unspecified@aar
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains:annotations:13.0
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                     - class                       : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0/jars/classes.jar
@@ -1906,7 +1900,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
@@ -1914,17 +1907,15 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:feature-b-MAIN
+                        module                        : <ROOT>-:feature-b-androidMain
+                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
                         module                        : <ROOT>-:javaLibrary-testEnv
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -2046,9 +2037,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:feature-a-MAIN
-                            module                        : <ROOT>-:feature-b-MAIN
+                            module                        : <ROOT>-:feature-b-androidMain
+                            module                        : <ROOT>-:feature-b-commonMain
                             module                        : <ROOT>-:javaLibrary-MAIN
                             module                        : <ROOT>-:javaLibrary-testEnv
                             module                        : <ROOT>-:javaLibrary-MAIN
@@ -2056,7 +2047,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
                             javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -2065,7 +2055,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:feature-b-MAIN
+                        module                        : <ROOT>-:feature-b-androidMain
+                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
@@ -2079,7 +2070,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.example:with-runtime:1.0@aar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/jars/classes.jar
@@ -2112,85 +2102,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - class                       : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
                     - class                       : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
                 MockablePlatformJar           : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
-        compilerArgumentsBySourceSet
-            debug
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
-                    moduleName                    : NonStandardSourceSetDependencies:app_debug
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    useInlineScopesNumbers        : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugAndroidTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : NonStandardSourceSetDependencies:app_debugAndroidTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    useInlineScopesNumbers        : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugUnitTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
-                    moduleName                    : NonStandardSourceSetDependencies:app_debugUnitTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-        gradleUserHome                : <GRADLE>
-        hasKotlinPlugin               : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
-        kotlinTarget                  : kotlin-android
-        kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-            debugAndroidTest              : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-            debugUnitTest                 : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.app.androidTest
 MODULE                        : NonStandardSourceSetDependencies.app.main
@@ -2573,8 +2484,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             Name                          : main
             Manifest                      : <ROOT>/feature-a/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/feature-a/src/main/java
-            KotlinDirectories             : <ROOT>/feature-a/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/feature-a/src/main/java
+            KotlinDirectories             : <ROOT>/feature-a/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/feature-a/src/main/resources [-]
             ResDirectories                : <ROOT>/feature-a/src/main/res [-]
             AssetsDirectories             : <ROOT>/feature-a/src/main/assets [-]
@@ -2588,8 +2499,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     Name                          : androidTest
                     Manifest                      : <ROOT>/feature-a/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/feature-a/src/androidTest/java [-]
-                    KotlinDirectories             : <ROOT>/feature-a/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/feature-a/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/feature-a/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/feature-a/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>/feature-a/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/feature-a/src/androidTest/assets [-]
@@ -2602,8 +2513,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     Name                          : test
                     Manifest                      : <ROOT>/feature-a/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/feature-a/src/test/java [-]
-                    KotlinDirectories             : <ROOT>/feature-a/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/feature-a/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/feature-a/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/feature-a/src/test/resources [-]
                     ResDirectories                : <ROOT>/feature-a/src/test/res [-]
                     AssetsDirectories             : <ROOT>/feature-a/src/test/assets [-]
@@ -2624,8 +2535,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             Name                          : debug
             Manifest                      : <ROOT>/feature-a/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/feature-a/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/feature-a/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/feature-a/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/feature-a/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/feature-a/src/debug/resources [-]
             ResDirectories                : <ROOT>/feature-a/src/debug/res [-]
             AssetsDirectories             : <ROOT>/feature-a/src/debug/assets [-]
@@ -2639,8 +2550,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/feature-a/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/feature-a/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/feature-a/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/feature-a/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/feature-a/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/feature-a/src/androidTestDebug/resources [-]
                     ResDirectories                : <ROOT>/feature-a/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/feature-a/src/androidTestDebug/assets [-]
@@ -2654,8 +2565,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     Name                          : testDebug
                     Manifest                      : <ROOT>/feature-a/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/feature-a/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/feature-a/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/feature-a/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/feature-a/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/feature-a/src/testDebug/resources [-]
                     ResDirectories                : <ROOT>/feature-a/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/feature-a/src/testDebug/assets [-]
@@ -2675,8 +2586,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             Name                          : release
             Manifest                      : <ROOT>/feature-a/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/feature-a/src/release/java [-]
-            KotlinDirectories             : <ROOT>/feature-a/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/feature-a/src/release/java [-]
+            KotlinDirectories             : <ROOT>/feature-a/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/feature-a/src/release/resources [-]
             ResDirectories                : <ROOT>/feature-a/src/release/res [-]
             AssetsDirectories             : <ROOT>/feature-a/src/release/assets [-]
@@ -2690,8 +2601,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     Name                          : testRelease
                     Manifest                      : <ROOT>/feature-a/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/feature-a/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/feature-a/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/feature-a/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/feature-a/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/feature-a/src/testRelease/resources [-]
                     ResDirectories                : <ROOT>/feature-a/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/feature-a/src/testRelease/assets [-]
@@ -2732,7 +2643,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 GeneratedSourceFolders        : <ROOT>/feature-a/build/generated/ap_generated_sources/debug/out [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
@@ -2977,7 +2887,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 GeneratedSourceFolders        : <ROOT>/feature-a/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
@@ -3082,7 +2991,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
@@ -3204,7 +3112,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -3237,7 +3144,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 GeneratedSourceFolders        : <ROOT>/feature-a/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
@@ -3342,7 +3248,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
@@ -3464,7 +3369,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -3476,91 +3380,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
-        compilerArgumentsBySourceSet
-            debug
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:feature-a_debug
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugAndroidTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:feature-a_debugAndroidTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    useInlineScopesNumbers        : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugUnitTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:feature-a_debugUnitTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-        gradleUserHome                : <GRADLE>
-        hasKotlinPlugin               : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
-        kotlinTarget                  : kotlin-android
-        kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-            debugAndroidTest              : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-            debugUnitTest                 : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
     externalProject               : :feature-a (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.feature-a.androidTest
 MODULE                        : NonStandardSourceSetDependencies.feature-a.main
 MODULE                        : NonStandardSourceSetDependencies.feature-a.unitTest
 MODULE                        : NonStandardSourceSetDependencies.feature-b
     GradleModuleModel
-        agpVersion                    : 8.12.0
         gradlePath                    : :feature-b
         gradleVersion                 : 8.13
         buildFile                     : <ROOT>/feature-b/build.gradle
@@ -3568,8 +3393,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
-        - taskNames                   : testDebugUnitTest
-        - taskNames                   : testReleaseUnitTest
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 1
@@ -3584,14 +3407,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     BuildId                       : <ROOT>
     ProjectPath                   : :feature-b
     ModelVersion                  : 8.12.0
-    ProjectType                   : PROJECT_TYPE_LIBRARY
+    ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
     CompileTarget                 : android-35
     BuildFolder                   : <ROOT>/feature-b/build
     buildToolsVersion             : 35.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : me.monori.feature.b
-    TestNamespace                 : me.monori.feature.b.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -3616,8 +3438,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 1.8
-        TargetCompatibility           : 1.8
+        SourceCompatibility           : 17
+        TargetCompatibility           : 17
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -3626,381 +3448,135 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        AndroidResourcesEnabled       : true
+        AndroidResourcesEnabled       : false
         DataBindingEnabled            : false
         GenerateManifestClass         : false
-    - basicVariant:               : debug
-        testApplicationId             : me.monori.feature.b.test
-        buildType                     : debug
-    - basicVariant:               : release
-        buildType                     : release
+    - basicVariant:               : androidMain
+        buildType                     :
     BootClassPath                 : <ANDROID_SDK>/platforms/android-35/android.jar
-    ViewBindingOptions
-        Enabled                       : false
     DefaultConfig
         ProductFlavor
-            Name                          : main
-            VectorDrawables
-                UseSupportLibrary             : false
+            Name                          :
         SourceProvider
-            Name                          : main
+            Name                          : androidMain
             Manifest                      : <ROOT>/feature-b/src/androidMain/AndroidManifest.xml
-            JavaDirectories               : <ROOT>/feature-b/src/main/java [-]
             KotlinDirectories             : <ROOT>/feature-b/src/androidMain/kotlin [-]
-            KotlinDirectories             : <ROOT>/feature-b/src/main/java [-]
-            KotlinDirectories             : <ROOT>/feature-b/src/main/kotlin [-]
-            ResourcesDirectories          : <ROOT>/feature-b/src/main/resources [-]
             ResourcesDirectories          : <ROOT>/feature-b/src/androidMain/resources [-]
-            ResDirectories                : <ROOT>/feature-b/src/main/res [-]
             ResDirectories                : <ROOT>/feature-b/src/androidMain/res [-]
-            AssetsDirectories             : <ROOT>/feature-b/src/main/assets [-]
             AssetsDirectories             : <ROOT>/feature-b/src/androidMain/assets [-]
-            JniLibsDirectories            : <ROOT>/feature-b/src/main/jniLibs [-]
-            JniLibsDirectories            : <ROOT>/feature-b/src/androidMain/jniLibs [-]
-            ShadersDirectories            : <ROOT>/feature-b/src/main/shaders [-]
-            ShadersDirectories            : <ROOT>/feature-b/src/androidMain/shaders [-]
-            BaselineProfileDirectories    : <ROOT>/feature-b/src/main/baselineProfiles [-]
         ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTest
-                    Manifest                      : <ROOT>/feature-b/src/androidInstrumentedTest/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-b/src/androidTest/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidInstrumentedTest/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidTest/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidTest/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/androidTest/resources [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/androidInstrumentedTest/resources [-]
-                    ResDirectories                : <ROOT>/feature-b/src/androidTest/res [-]
-                    ResDirectories                : <ROOT>/feature-b/src/androidInstrumentedTest/res [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/androidTest/assets [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/androidInstrumentedTest/assets [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/androidTest/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/androidInstrumentedTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/androidTest/shaders [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/androidInstrumentedTest/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/feature-b/src/androidTest/baselineProfiles [-]
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : test
-                    Manifest                      : <ROOT>/feature-b/src/androidUnitTest/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-b/src/test/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidUnitTest/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/test/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/test/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/test/resources [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/androidUnitTest/resources [-]
-                    ResDirectories                : <ROOT>/feature-b/src/test/res [-]
-                    ResDirectories                : <ROOT>/feature-b/src/androidUnitTest/res [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/test/assets [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/androidUnitTest/assets [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/test/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/androidUnitTest/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/test/shaders [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/androidUnitTest/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/feature-b/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
-            Name                          : debug
+            Name                          :
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsPseudoLocalesEnabled        : false
             IsRenderscriptDebuggable      : false
-            RenderscriptOptimLevel        : 3
+            RenderscriptOptimLevel        : -1
             IsMinifyEnabled               : false
-            IsZipAlignEnabled             : true
+            IsZipAlignEnabled             : false
         SourceProvider
-            Name                          : debug
-            Manifest                      : <ROOT>/feature-b/src/androidDebug/AndroidManifest.xml [-]
-            JavaDirectories               : <ROOT>/feature-b/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/feature-b/src/androidDebug/kotlin [-]
-            KotlinDirectories             : <ROOT>/feature-b/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/feature-b/src/debug/kotlin [-]
-            ResourcesDirectories          : <ROOT>/feature-b/src/debug/resources [-]
-            ResourcesDirectories          : <ROOT>/feature-b/src/androidDebug/resources [-]
-            ResDirectories                : <ROOT>/feature-b/src/debug/res [-]
-            ResDirectories                : <ROOT>/feature-b/src/androidDebug/res [-]
-            AssetsDirectories             : <ROOT>/feature-b/src/debug/assets [-]
-            AssetsDirectories             : <ROOT>/feature-b/src/androidDebug/assets [-]
-            JniLibsDirectories            : <ROOT>/feature-b/src/debug/jniLibs [-]
-            JniLibsDirectories            : <ROOT>/feature-b/src/androidDebug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/feature-b/src/debug/shaders [-]
-            ShadersDirectories            : <ROOT>/feature-b/src/androidDebug/shaders [-]
-            BaselineProfileDirectories    : <ROOT>/feature-b/src/debug/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestDebug
-                    Manifest                      : <ROOT>/feature-b/src/androidInstrumentedTestDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-b/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidInstrumentedTestDebug/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidTestDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/androidTestDebug/resources [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/androidInstrumentedTestDebug/resources [-]
-                    ResDirectories                : <ROOT>/feature-b/src/androidTestDebug/res [-]
-                    ResDirectories                : <ROOT>/feature-b/src/androidInstrumentedTestDebug/res [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/androidTestDebug/assets [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/androidInstrumentedTestDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/androidTestDebug/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/androidInstrumentedTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/androidTestDebug/shaders [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/androidInstrumentedTestDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/feature-b/src/androidTestDebug/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testDebug
-                    Manifest                      : <ROOT>/feature-b/src/androidUnitTestDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-b/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidUnitTestDebug/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/testDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/testDebug/resources [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/androidUnitTestDebug/resources [-]
-                    ResDirectories                : <ROOT>/feature-b/src/testDebug/res [-]
-                    ResDirectories                : <ROOT>/feature-b/src/androidUnitTestDebug/res [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/testDebug/assets [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/androidUnitTestDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/testDebug/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/androidUnitTestDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/testDebug/shaders [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/androidUnitTestDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/feature-b/src/testDebug/baselineProfiles [-]
-        BuildType
-            Name                          : release
-            IsDebuggable                  : false
-            IsJniDebuggable               : false
-            IsPseudoLocalesEnabled        : false
-            IsRenderscriptDebuggable      : false
-            RenderscriptOptimLevel        : 3
-            IsMinifyEnabled               : false
-            IsZipAlignEnabled             : true
-        SourceProvider
-            Name                          : release
-            Manifest                      : <ROOT>/feature-b/src/androidRelease/AndroidManifest.xml [-]
-            JavaDirectories               : <ROOT>/feature-b/src/release/java [-]
-            KotlinDirectories             : <ROOT>/feature-b/src/androidRelease/kotlin [-]
-            KotlinDirectories             : <ROOT>/feature-b/src/release/java [-]
-            KotlinDirectories             : <ROOT>/feature-b/src/release/kotlin [-]
-            ResourcesDirectories          : <ROOT>/feature-b/src/release/resources [-]
-            ResourcesDirectories          : <ROOT>/feature-b/src/androidRelease/resources [-]
-            ResDirectories                : <ROOT>/feature-b/src/release/res [-]
-            ResDirectories                : <ROOT>/feature-b/src/androidRelease/res [-]
-            AssetsDirectories             : <ROOT>/feature-b/src/release/assets [-]
-            AssetsDirectories             : <ROOT>/feature-b/src/androidRelease/assets [-]
-            JniLibsDirectories            : <ROOT>/feature-b/src/release/jniLibs [-]
-            JniLibsDirectories            : <ROOT>/feature-b/src/androidRelease/jniLibs [-]
-            ShadersDirectories            : <ROOT>/feature-b/src/release/shaders [-]
-            ShadersDirectories            : <ROOT>/feature-b/src/androidRelease/shaders [-]
-            BaselineProfileDirectories    : <ROOT>/feature-b/src/release/baselineProfiles [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _unit_test_
-                SourceProvider
-                    Name                          : testRelease
-                    Manifest                      : <ROOT>/feature-b/src/androidUnitTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-b/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/androidUnitTestRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/feature-b/src/testRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/testRelease/resources [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/androidUnitTestRelease/resources [-]
-                    ResDirectories                : <ROOT>/feature-b/src/testRelease/res [-]
-                    ResDirectories                : <ROOT>/feature-b/src/androidUnitTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/testRelease/assets [-]
-                    AssetsDirectories             : <ROOT>/feature-b/src/androidUnitTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/testRelease/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/feature-b/src/androidUnitTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/testRelease/shaders [-]
-                    ShadersDirectories            : <ROOT>/feature-b/src/androidUnitTestRelease/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/feature-b/src/testRelease/baselineProfiles [-]
     SigningConfigs
-        SigningConfig
-            Name                          : debug
-            StoreFile                     : debug.keystore
-            StorePassword                 : android
-            KeyAlias                      : AndroidDebugKey
-            IsSigningReady                : true
     VariantBuildInformation
         VariantBuildInformation
-            VariantName                   : debug
+            VariantName                   : androidMain
             BuildTasksAndOutputInformation
-                AssembleTaskName              : assembleDebug
-        VariantBuildInformation
-            VariantName                   : release
-            BuildTasksAndOutputInformation
-                AssembleTaskName              : assembleRelease
+                AssembleTaskName              : assembleAndroidMain
     IdeVariants
         IdeVariant
-            Name                          : debug
-            BuildType                     : debug
-            DisplayName                   : debug
+            Name                          : androidMain
+            BuildType                     :
+            DisplayName                   : androidMain
             InstantAppCompatible          : false
             MinSdkVersion
                 ApiLevel                      : 1
-                ApiString                     : 1
+                CodeName                      :
+                ApiString                     :
+            MaxSdkVersion                 : 0
+            ProguardFiles                 : <ROOT>/feature-b/build/intermediates/default_proguard_files/global/proguard-android.txt-8.12.0 [-]
             MainArtifact
                 Name                          : MAIN
-                CompileTaskName               : compileDebugSources
-                AssembleTaskName              : assembleDebug
+                CompileTaskName               : compileAndroidMain
+                AssembleTaskName              : assembleAndroidMain
                 IsTestArtifact                : false
-                IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
-                VariantSourceProvider
-                    Name                          : debug_KotlinMPP
-                    Manifest                      : <ROOT>/feature-b/src/androidMain/__KotlinMPP__/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-b/src/commonMain/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/commonMain/resources [-]
+                ClassesFolder                 : <ROOT>/feature-b/build/classes/kotlin/android/main [-]
                 Dependencies
                     compileClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:common-jvmMain
-                        module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        module                        : :-:feature-b-commonMain
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                        module                        : :-:common-jvmMain
+                        module                        : :-:common-commonMain
                     runtimeClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:common-jvmMain
-                        module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        module                        : :-:feature-b-commonMain
+                        module                        : :-:common-jvmMain
+                        module                        : :-:common-commonMain
+                ProvidedDependencies
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains:annotations:13.0
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
-                    AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/feature-b/build/generated/res/resValues/debug [-]
-                GeneratedAssetFolders         : <ROOT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
+                    AssembleTaskName              : assembleAndroidMain
                 DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            AndroidTestArtifact
-                Name                          : ANDROID_TEST
-                CompileTaskName               : compileDebugAndroidTestSources
-                AssembleTaskName              : assembleDebugAndroidTest
-                IsTestArtifact                : true
-                IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest [-]
-                Dependencies
-                    compileClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:feature-b-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:common-jvmMain
-                        module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                    runtimeClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:feature-b-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            module                        : <ROOT>-:common-jvmMain
-                            module                        : <ROOT>-:common-commonMain
-                            module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-jvmMain
-                        module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                ApplicationId                 : me.monori.feature.b.test
-                SigningConfigName             : debug
-                IsSigned                      : true
-                CodeShrinker                  : null
-                BuildTasksAndOutputInformation
-                    AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/feature-b/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/feature-b/build/generated/res/resValues/androidTest/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                TestOptions
-                    AnimationsDisabled            : false
-                    Execution                     : HOST
-                    InstrumentedTestTaskName      : connectedDebugAndroidTest
-            UnitTestArtifact
-                Name                          : UNIT_TEST
-                CompileTaskName               : compileDebugUnitTestSources
-                AssembleTaskName              : assembleDebugUnitTest
-                IsTestArtifact                : true
-                IdeSetupTaskNames             : createMockableJar
-                GeneratedSourceFolders        : <ROOT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest [-]
-                VariantSourceProvider
-                    Name                          : debug_KotlinMPP
-                    Manifest                      : <ROOT>/feature-b/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/feature-b/src/commonTest/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/feature-b/src/commonTest/resources [-]
-                Dependencies
-                    compileClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:feature-b-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:common-jvmMain
-                        module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                    runtimeClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        module                        : <ROOT>-:feature-b-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            module                        : <ROOT>-:common-jvmMain
-                            module                        : <ROOT>-:common-commonMain
-                            module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-jvmMain
-                        module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                MockablePlatformJar           : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest} (KotlinMPPGradleModelImpl)
+    kotlinMppGradleModel          : {androidMain=androidMain, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
-            androidInstrumentedTest
-                - dependency                  : :feature-b::feature-b/androidDebug
-                - dependency                  : :feature-b::feature-b/androidMain
-                - dependency                  : :feature-b::feature-b/commonMain
             androidMain
+                - dependency                  : :common::common
                 - dependency                  : :feature-b::feature-b/commonMain
-            androidUnitTest
-                - dependency                  : :feature-b::feature-b/androidMain
-                - dependency                  : :feature-b::feature-b/commonMain
-                - dependency                  : :feature-b::feature-b/commonTest
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            commonMain
+                - dependency                  : :common::common
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            commonTest
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+        - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
+            kotlinSourceSet               : commonTest (KotlinSourceSetImpl)
+                actualPlatforms               : KotlinPlatformContainerImpl
+                    arePlatformsInitialized       : true
+                    - platforms                   : JVM
+                languageSettings              : KotlinLanguageSettingsImpl
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - resourceDirs                : <ROOT>/feature-b/src/commonTest/resources [-]
+                - sourceDirs                  : <ROOT>/feature-b/src/commonTest/kotlin [-]
+                platform                      : JVM
         swiftExport                   : KotlinSwiftExportModelImpl
         swiftPMImportModel            : KotlinMultiplatformLinkedPackage (KotlinSwiftPMImportModelImpl)
             integrateLinkagePackageTaskPath         : :feature-b:integrateLinkagePackage [-]
         - targets                     : android (KotlinTargetImpl)
-            - compilations                : debug (KotlinCompilationImpl)
+            - compilations                : main (KotlinCompilationImpl)
+                - allSourceSets               : commonMain (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - resourceDirs                : <ROOT>/feature-b/src/commonMain/resources [-]
+                    - sourceDirs                  : <ROOT>/feature-b/src/commonMain/kotlin [-]
+                    platform                      : JVM
                 - allSourceSets               : androidMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
-                        - platforms                   : ANDROID
-                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
-                        androidSourceSetName          : main
-                        - androidVariantNames         : debug
-                        - androidVariantNames         : release
-                        kotlinSourceSetName           : androidMain
-                    isManagedByComAndroidLibraryPlugin      : true
+                        - platforms                   : JVM
+                    - allDependsOnSourceSets      : commonMain
+                    - declaredDependsOnSourceSets : commonMain
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4010,33 +3586,24 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - resourceDirs                : <ROOT>/feature-b/src/androidMain/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/main/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/commonMain/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/androidDebug/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/debug/resources [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/androidMain/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/main/java [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/main/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/commonMain/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidDebug/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/debug/java [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/debug/kotlin [-]
-                    platform                      : ANDROID
+                    platform                      : JVM
+                archiveFile                   : <ROOT>/feature-b/build/libs/feature-b.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debug
+                    destination                   : <ROOT>/feature-b/build/classes/kotlin/android/main
                     jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:feature-b_debug
+                    moduleName                    : NonStandardSourceSetDependencies:feature-b
                     noReflect                     : true
                     noStdlib                      : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : androidDebug:commonMain
-                    - fragments                   : androidDebug
+                    - fragmentRefines             : androidMain:commonMain
+                    - fragments                   : androidMain
                     - fragments                   : commonMain
                     headerModeType                : any
                     multiPlatform                 : true
@@ -4051,182 +3618,26 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     useFirLT                      : true
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
-                isManagedByComAndroidLibraryPlugin      : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
-                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                    effectiveClassesDir           : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
-                    resourcesDir                  : <ROOT>/feature-b/build/processedResources/android/debug [-]
-                platform                      : ANDROID
-            - compilations                : debugAndroidTest (KotlinCompilationImpl)
-                - allSourceSets               : androidInstrumentedTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        arePlatformsInitialized       : true
-                        - platforms                   : ANDROID
-                    - additionalVisibleSourceSets : androidMain
-                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
-                        androidSourceSetName          : androidTest
-                        - androidVariantNames         : debugAndroidTest
-                        kotlinSourceSetName           : androidInstrumentedTest
-                    isManagedByComAndroidLibraryPlugin      : true
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - resourceDirs                : <ROOT>/feature-b/src/androidInstrumentedTest/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/androidTest/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/androidInstrumentedTestDebug/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/androidTestDebug/resources [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidInstrumentedTest/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidTest/java [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidTest/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidInstrumentedTestDebug/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidTestDebug/java [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidTestDebug/kotlin [-]
-                    platform                      : ANDROID
-                - associateCompilations       : KotlinCompilationCoordinatesImpl
-                    compilationName               : debug
-                    targetName                    : android
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:feature-b_debugAndroidTest
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    - fragments                   : androidInstrumentedTestDebug
-                    headerModeType                : any
-                    multiPlatform                 : true
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-                - declaredSourceSets          : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
-                disambiguationClassifier      : android
-                isManagedByComAndroidLibraryPlugin      : true
-                isTestComponent               : true
-                kotlinTaskProperties          : KotlinTaskPropertiesImpl
-                    incremental                   : true
-                    pluginVersion                 : <CUT>
-                output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest [-]
-                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                    effectiveClassesDir           : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest [-]
-                    resourcesDir                  : <ROOT>/feature-b/build/processedResources/android/debugAndroidTest [-]
-                platform                      : ANDROID
-            - compilations                : debugUnitTest (KotlinCompilationImpl)
-                - allSourceSets               : androidUnitTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        arePlatformsInitialized       : true
-                        - platforms                   : ANDROID
-                    - additionalVisibleSourceSets : androidMain
-                    androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
-                        androidSourceSetName          : test
-                        - androidVariantNames         : debugUnitTest
-                        - androidVariantNames         : releaseUnitTest
-                        kotlinSourceSetName           : androidUnitTest
-                    isManagedByComAndroidLibraryPlugin      : true
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - resourceDirs                : <ROOT>/feature-b/src/androidUnitTest/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/test/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/commonTest/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/androidUnitTestDebug/resources [-]
-                    - resourceDirs                : <ROOT>/feature-b/src/testDebug/resources [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidUnitTest/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/test/java [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/test/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/commonTest/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/androidUnitTestDebug/kotlin [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/testDebug/java [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/testDebug/kotlin [-]
-                    platform                      : ANDROID
-                - associateCompilations       : KotlinCompilationCoordinatesImpl
-                    compilationName               : debug
-                    targetName                    : android
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:feature-b_debugUnitTest
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    - fragmentRefines             : androidUnitTestDebug:commonTest
-                    - fragments                   : androidUnitTestDebug
-                    - fragments                   : commonTest
-                    headerModeType                : any
-                    multiPlatform                 : true
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-                - declaredSourceSets          : androidUnitTest (KotlinSourceSetImpl) (*seen*)
-                disambiguationClassifier      : android
-                isManagedByComAndroidLibraryPlugin      : true
-                isTestComponent               : true
-                kotlinTaskProperties          : KotlinTaskPropertiesImpl
-                    incremental                   : true
-                    pluginVersion                 : <CUT>
-                output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest [-]
-                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                    effectiveClassesDir           : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest [-]
-                    resourcesDir                  : <ROOT>/feature-b/build/processedResources/android/debugUnitTest [-]
-                platform                      : ANDROID
+                    - classesDirs                 : <ROOT>/feature-b/build/classes/kotlin/android/main [-]
+                    effectiveClassesDir           : <ROOT>/feature-b/build/classes/kotlin/android/main [-]
+                    resourcesDir                  : <ROOT>/feature-b/build/processedResources/android/main [-]
+                platform                      : JVM
             disambiguationClassifier      : android
-            isManagedByComAndroidLibraryPlugin      : true
-            platform                      : ANDROID
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testDebugUnitTest
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testReleaseUnitTest
+            jar                           : KotlinTargetJarImpl
+                archiveFile                   : <ROOT>/feature-b/build/libs/feature-b.jar [-]
+            platform                      : JVM
         sourceSets
-            androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
-            androidUnitTest               : androidUnitTest (KotlinSourceSetImpl) (*seen*)
+            commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
+            commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :feature-b (DefaultExternalProject) (*seen*)
-MODULE                        : NonStandardSourceSetDependencies.feature-b.androidTest
-MODULE                        : NonStandardSourceSetDependencies.feature-b.main
-MODULE                        : NonStandardSourceSetDependencies.feature-b.unitTest
+MODULE                        : NonStandardSourceSetDependencies.feature-b.androidMain
+MODULE                        : NonStandardSourceSetDependencies.feature-b.commonMain
+MODULE                        : NonStandardSourceSetDependencies.feature-b.commonTest
 MODULE                        : NonStandardSourceSetDependencies.jarWrapperLib
     GradleModuleModel
         gradlePath                    : :jarWrapperLib
@@ -4975,8 +4386,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             Name                          : main
             Manifest                      : <ROOT>/lib/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/lib/src/main/java
-            KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/lib/src/main/java
+            KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/main/resources [-]
             ResDirectories                : <ROOT>/lib/src/main/res [-]
             AssetsDirectories             : <ROOT>/lib/src/main/assets [-]
@@ -4990,8 +4401,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     Name                          : androidTest
                     Manifest                      : <ROOT>/lib/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTest/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTest/resources [-]
                     ResDirectories                : <ROOT>/lib/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/androidTest/assets [-]
@@ -5004,8 +4415,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     Name                          : test
                     Manifest                      : <ROOT>/lib/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/test/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/test/resources [-]
                     ResDirectories                : <ROOT>/lib/src/test/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
@@ -5026,8 +4437,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             Name                          : debug
             Manifest                      : <ROOT>/lib/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/debug/resources [-]
             ResDirectories                : <ROOT>/lib/src/debug/res [-]
             AssetsDirectories             : <ROOT>/lib/src/debug/assets [-]
@@ -5041,8 +4452,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/lib/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestDebug/resources [-]
                     ResDirectories                : <ROOT>/lib/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/androidTestDebug/assets [-]
@@ -5056,8 +4467,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     Name                          : testDebug
                     Manifest                      : <ROOT>/lib/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testDebug/resources [-]
                     ResDirectories                : <ROOT>/lib/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
@@ -5079,8 +4490,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             Name                          : release
             Manifest                      : <ROOT>/lib/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/release/java [-]
-            KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/release/resources [-]
             ResDirectories                : <ROOT>/lib/src/release/res [-]
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
@@ -5094,8 +4505,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     Name                          : testRelease
                     Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
                     ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
@@ -5143,20 +4554,13 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.example:with-runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                     runtimeClasspath
                         androidLibrary                : com.example:with-runtime:1.0@aar
                             androidLibrary                : com.example:runtime:1.0@aar
                         androidLibrary                : com.example:runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                 IsSigned                      : false
@@ -5174,7 +4578,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.test.ext:junit:1.1.2@aar
@@ -5217,11 +4620,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                         javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
                             javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.test.ext:junit:1.1.2@aar
                             javaLibrary                   : junit:junit:4.12@jar
@@ -5265,11 +4664,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                         javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
                             javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.example:with-runtime:1.0@aar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
@@ -5295,112 +4690,25 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-                ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.example:with-runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.example:with-runtime:1.0@aar
                             androidLibrary                : com.example:runtime:1.0@aar
                         androidLibrary                : com.example:runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.example:with-runtime:1.0@aar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinGradleModel             : KotlinGradleModelImpl
-        additionalVisibleSourceSets
-            debug                         : <empty>
-            - debugAndroidTest            : debug
-            - debugAndroidTest            : main
-            - debugUnitTest               : debug
-            - debugUnitTest               : main
-        compilerArgumentsBySourceSet
-            debug
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debug
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugAndroidTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debugAndroidTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    useInlineScopesNumbers        : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-            debugUnitTest
-                compilerArguments             : K2JVMCompilerArguments
-                    allowNoSourceFiles            : true
-                    assertionsMode                : legacy
-                    backendThreads                : 1
-                    destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 17
-                    moduleName                    : NonStandardSourceSetDependencies:manual-test-fixtures_debugUnitTest
-                    noJdk                         : true
-                    noReflect                     : true
-                    noStdlib                      : true
-                    autoAdvanceApiVersion         : true
-                    autoAdvanceLanguageVersion    : true
-                    explicitApi                   : disable
-                    explicitReturnTypes           : disable
-                    headerModeType                : any
-                    returnValueChecker            : disable
-                    useFirLT                      : true
-        gradleUserHome                : <GRADLE>
-        hasKotlinPlugin               : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
-        kotlinTarget                  : kotlin-android
-        kotlinTaskProperties
-            debug                         : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-            debugAndroidTest              : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
-            debugUnitTest                 : KotlinTaskPropertiesImpl
-                incremental                   : true
-                pluginVersion                 : <CUT>
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.lib.androidTest
 MODULE                        : NonStandardSourceSetDependencies.lib.main

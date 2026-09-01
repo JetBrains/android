@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.builder.model.v2.ide.SyncIssue
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
@@ -236,15 +237,77 @@ enum class TestProject(
   NON_STANDARD_SOURCE_SET_DEPENDENCIES(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     isCompatibleWith = { it.modelVersion == ModelVersion.V2 },
+    patch = { root ->
+      val version = agpVersion?.let { AgpVersion.parse(it) }
+      if (version != null && !version.isAtLeastIncludingPreviews(8, 12, 0)) {
+        root
+          .resolve("feature-b/build.gradle")
+          .writeText(
+            """
+          plugins {
+            id 'org.jetbrains.kotlin.multiplatform'
+            id 'com.android.library'
+          }
+
+          android {
+              namespace = "me.monori.feature.b"
+              compileSdkVersion $compileSdk
+          }
+
+          kotlin {
+            androidTarget()
+            sourceSets {
+              commonMain {
+                dependencies {
+                  implementation project(':common')
+                }
+              }
+            }
+          }
+          """
+              .trimIndent()
+          )
+      }
+    },
   ),
   NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     testName = "manualTestFixturesWorkaround",
     isCompatibleWith = { it.modelVersion == ModelVersion.V2 },
-    patch = {
-      it
+    patch = { root ->
+      root
         .resolve("app/build.gradle")
         .replaceInContent("androidTestImplementation project(':lib')", "// androidTestImplementation project(':lib')")
+      val version = agpVersion?.let { AgpVersion.parse(it) }
+      if (version != null && !version.isAtLeastIncludingPreviews(8, 12, 0)) {
+        root
+          .resolve("feature-b/build.gradle")
+          .writeText(
+            """
+          plugins {
+            id 'org.jetbrains.kotlin.multiplatform'
+            id 'com.android.library'
+          }
+
+          android {
+              namespace = "me.monori.feature.b"
+              compileSdkVersion $compileSdk
+          }
+
+          kotlin {
+            androidTarget()
+            sourceSets {
+              commonMain {
+                dependencies {
+                  implementation project(':common')
+                }
+              }
+            }
+          }
+          """
+              .trimIndent()
+          )
+      }
     },
   ),
   LINKED(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
@@ -329,7 +392,7 @@ enum class TestProject(
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { projectRoot ->
       patchMppProject(projectRoot, convertAppToKmp = true)
-      projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+      projectRoot.resolve("module2").resolve("build.gradle").replaceContent { content ->
         content.replace(
           "named(\"androidDeviceTest\") {",
           """

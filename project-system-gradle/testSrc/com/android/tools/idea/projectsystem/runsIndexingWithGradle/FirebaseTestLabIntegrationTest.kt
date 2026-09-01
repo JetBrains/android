@@ -53,7 +53,7 @@ class FirebaseTestLabIntegrationTest {
   }
 
   private fun PreparedTestProject.applyFirebaseTestLabPlugin(): PreparedTestProject {
-    val firebaseVersion = if (com.android.Version.IS_AGP_RELEASE_BRANCH) "0.0.1-alpha13" else "0.0.1-dev"
+    val firebaseVersion = "+"
     root.resolve("build.gradle").replaceContent { content ->
       content.replace(
         "classpath 'com.android.tools.build:gradle:",

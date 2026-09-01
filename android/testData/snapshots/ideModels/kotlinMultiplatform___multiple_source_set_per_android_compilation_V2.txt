@@ -164,7 +164,7 @@ MODULE                        : kotlinMultiPlatform
                 testAndroidHostTest           : testAndroidHostTest (DefaultExternalTask)
                     qName                         : :app:testAndroidHostTest
 MODULE                        : kotlinMultiPlatform.app
-    kotlinMppGradleModel          : {androidDeviceTest=androidDeviceTest, androidDeviceTestExtra=androidDeviceTestExtra, androidHostTest=androidHostTest, androidMain=androidMain, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
+    kotlinMppGradleModel          : {androidDeviceTest=androidDeviceTest, androidHostTest=androidHostTest, androidMain=androidMain, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidDeviceTest
                 - dependency                  : :app::app/androidMain
@@ -187,8 +187,6 @@ MODULE                        : kotlinMultiPlatform.app
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
                 - dependency                  : org.jetbrains:annotations:13.0
-            androidDeviceTestExtra
-                - dependency                  : :app::app/androidDeviceTest
             androidHostTest
                 - dependency                  : :app::app/androidMain
                 - dependency                  : :app::app/commonMain
@@ -235,24 +233,6 @@ MODULE                        : kotlinMultiPlatform.app
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : 2.2.10
-        - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
-            kotlinSourceSet               : androidDeviceTestExtra (KotlinSourceSetImpl)
-                actualPlatforms               : KotlinPlatformContainerImpl
-                    arePlatformsInitialized       : true
-                    - platforms                   : ANDROID
-                - allDependsOnSourceSets      : androidDeviceTest
-                - declaredDependsOnSourceSets : androidDeviceTest
-                languageSettings              : KotlinLanguageSettingsImpl
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - resourceDirs                : <ROOT>/app/src/androidDeviceTestExtra/resources [-]
-                - sourceDirs                  : <ROOT>/app/src/androidDeviceTestExtra/kotlin [-]
-                platform                      : ANDROID
         - targets                     : android (KotlinTargetImpl)
             - compilations                : deviceTest (KotlinCompilationImpl)
                 - allSourceSets               : androidDeviceTest (KotlinSourceSetImpl)
@@ -475,14 +455,12 @@ MODULE                        : kotlinMultiPlatform.app
                 taskName                      : testAndroidHostTest
         sourceSets
             androidDeviceTest             : androidDeviceTest (KotlinSourceSetImpl) (*seen*)
-            androidDeviceTestExtra        : androidDeviceTestExtra (KotlinSourceSetImpl) (*seen*)
             androidHostTest               : androidHostTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
             commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
             commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : kotlinMultiPlatform.app.androidDeviceTest
-MODULE                        : kotlinMultiPlatform.app.androidDeviceTestExtra
 MODULE                        : kotlinMultiPlatform.app.androidHostTest
 MODULE                        : kotlinMultiPlatform.app.androidMain
 MODULE                        : kotlinMultiPlatform.app.commonMain
@@ -708,7 +686,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                         javaLibrary                   : org.jetbrains:annotations:13.0
                 MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinMppGradleModel          : {androidDeviceTest=androidDeviceTest, androidHostTest=androidHostTest, androidMain=androidMain, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
+    kotlinMppGradleModel          : {androidDeviceTest=androidDeviceTest, androidDeviceTestExtra=androidDeviceTestExtra, androidHostTest=androidHostTest, androidMain=androidMain, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidDeviceTest
                 - dependency                  : :module2::module2/androidMain
@@ -729,6 +707,14 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
                 - dependency                  : org.jetbrains:annotations:13.0
+            androidDeviceTestExtra
+                - dependency                  : :module2::module2/androidDeviceTest
+                - dependency                  : com.android.support.test:monitor:1.0.2
+                - dependency                  : com.android.support.test:runner:1.0.2
+                - dependency                  : com.android.support:support-annotations:27.1.1
+                - dependency                  : junit:junit:4.12
+                - dependency                  : net.sf.kxml:kxml2:2.3.0
+                - dependency                  : org.hamcrest:hamcrest-core:1.3
             androidHostTest
                 - dependency                  : :module2::module2/androidMain
                 - dependency                  : :module2::module2/commonMain
@@ -767,6 +753,24 @@ MODULE                        : kotlinMultiPlatform.module2
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : 2.2.10
+        - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
+            kotlinSourceSet               : androidDeviceTestExtra (KotlinSourceSetImpl)
+                actualPlatforms               : KotlinPlatformContainerImpl
+                    arePlatformsInitialized       : true
+                    - platforms                   : ANDROID
+                - allDependsOnSourceSets      : androidDeviceTest
+                - declaredDependsOnSourceSets : androidDeviceTest
+                languageSettings              : KotlinLanguageSettingsImpl
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - resourceDirs                : <ROOT>/module2/src/androidDeviceTestExtra/resources [-]
+                - sourceDirs                  : <ROOT>/module2/src/androidDeviceTestExtra/kotlin [-]
+                platform                      : ANDROID
         - targets                     : android (KotlinTargetImpl)
             - compilations                : deviceTest (KotlinCompilationImpl)
                 - allSourceSets               : androidDeviceTest (KotlinSourceSetImpl)
@@ -988,12 +992,14 @@ MODULE                        : kotlinMultiPlatform.module2
                 taskName                      : testAndroidHostTest
         sourceSets
             androidDeviceTest             : androidDeviceTest (KotlinSourceSetImpl) (*seen*)
+            androidDeviceTestExtra        : androidDeviceTestExtra (KotlinSourceSetImpl) (*seen*)
             androidHostTest               : androidHostTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
             commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
             commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :module2 (DefaultExternalProject) (*seen*)
 MODULE                        : kotlinMultiPlatform.module2.androidDeviceTest
+MODULE                        : kotlinMultiPlatform.module2.androidDeviceTestExtra
 MODULE                        : kotlinMultiPlatform.module2.androidHostTest
 MODULE                        : kotlinMultiPlatform.module2.androidMain
 MODULE                        : kotlinMultiPlatform.module2.commonMain

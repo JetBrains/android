@@ -38,7 +38,9 @@ fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, versi
   val (buildApi, targetApi, minApi) = moduleData.apis
   val language = projectData.language
 
-  addClasspathDependency("androidx.benchmark:benchmark-gradle-plugin:+", minRev)
+  if (version < AgpVersion.parse("9.0.0")) {
+    addClasspathDependency("androidx.benchmark:benchmark-gradle-plugin:+", minRev)
+  }
 
   addIncludeToSettings(moduleData.name)
 
@@ -63,7 +65,9 @@ fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, versi
   save(bg, moduleOut.resolve(buildFile))
   addCompileSdk(buildApi)
   addPlugin("com.android.library", "com.android.tools.build:gradle", projectData.agpVersion.toString())
-  addPlugin("androidx.benchmark", "androidx.benchmark:benchmark-baseline-profile-gradle-plugin", minRev)
+  if (version < AgpVersion.parse("9.0.0")) {
+    addPlugin("androidx.benchmark", "androidx.benchmark:benchmark-baseline-profile-gradle-plugin", minRev)
+  }
   addDependency("androidx.test:runner:+", "androidTestImplementation")
   addDependency("androidx.test.ext:junit:+", "androidTestImplementation")
   addDependency("junit:junit:4.+", "androidTestImplementation", "4.13.2")

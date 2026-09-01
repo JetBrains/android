@@ -303,6 +303,8 @@ public class AndroidGradleTests {
         String localRepositories = getLocalRepositoriesForGroovy(localRepos);
 
         contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-kotlin:(.+)['\"]", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "classpath ['\"]com.android.legacy-kapt:com.android.legacy-kapt.gradle.plugin:(.+)['\"]", agpEnvironment.getAgpVersion());
         contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", agpEnvironment.getAgpVersion());
 
         contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", agpEnvironment.getKotlinVersion());
@@ -675,15 +677,16 @@ public class AndroidGradleTests {
     if (!builtInKotlin) return contents;
 
     // Top level gradle build file
-    if (contents.contains("classpath\\s+['\"]com.android.tools.build:gradle:.+['\"]")) {
-      // Remove old Kotlin plugin dependency application
-      contents = contents.replaceAll("classpath\\s+['\"]org.jetbrains.kotlin:kotlin-gradle-plugin:.+['\"]", "");
-    } else {
-      contents = contents.replaceAll("classpath\\s+['\"]org.jetbrains.kotlin:kotlin-gradle-plugin:.+['\"]",
-                                     "classpath 'com.android.tools.build:gradle-kotlin:" + agpVersion + "'\n");
+    if (contents.contains("org.jetbrains.kotlin:kotlin-gradle-plugin")) {
+      if (contents.contains("com.android.tools.build:gradle-kotlin")) {
+        contents = contents.replaceAll("classpath\\s+['\"]org.jetbrains.kotlin:kotlin-gradle-plugin:.+['\"]\\s*", "");
+      } else {
+        contents = contents.replaceAll("classpath\\s+['\"]org.jetbrains.kotlin:kotlin-gradle-plugin:.+['\"]",
+                                       "classpath 'com.android.tools.build:gradle-kotlin:" + agpVersion + "'\n");
+      }
     }
 
-    if (contents.contains("org.jetbrains.kotlin.android") || contents.contains("kotlin-android")) {
+    if (contents.contains("com.android.") || contents.contains("android {") || contents.contains("kotlin-android")) {
       // Remove old Kotlin plugin application
       contents = contents.replaceAll("id\\s+['\"]org.jetbrains.kotlin.android['\"].*\\s+", "");
       contents = contents.replaceAll("(?:apply\\s+plugin:|id)\\s+['\"](?:kotlin-android|kotlin-android-extensions)['\"].*\\s+", "");

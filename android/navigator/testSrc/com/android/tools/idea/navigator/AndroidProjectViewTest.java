@@ -132,16 +132,24 @@ public class AndroidProjectViewTest {
             .write(
               """
 
-                android {
-                  String resGeneratePath = "${buildDir}/generated/my_generated_resources/res"
-                    def generateResTask = tasks.create(name: 'generateMyResources').doLast {
-                        def rawDir = "${resGeneratePath}/raw"
-                        mkdir(rawDir)
-                        file("${rawDir}/sample_raw_resource").write("sample text")
+                abstract class GenerateRes extends DefaultTask {
+                    @OutputDirectory
+                    abstract DirectoryProperty getOutputFolder()
+
+                    @TaskAction
+                    void taskAction() {
+                        def rawDir = new File(getOutputFolder().get().asFile, "raw")
+                        rawDir.mkdirs()
+                        new File(rawDir, "sample_raw_resource").write("sample text")
                     }
-                    def resDir = files(resGeneratePath).builtBy(generateResTask)
-                    applicationVariants.all { variant ->
-                        variant.registerGeneratedResFolders(resDir)
+                }
+
+                androidComponents {
+                    onVariants(selector().all()) { variant ->
+                        def generateResTask = tasks.register("generateMyResources_${variant.name}", GenerateRes) {
+                            outputFolder.set(file("${buildDir}/generated/my_generated_resources/${variant.name}/res"))
+                        }
+                        variant.sources.res.addGeneratedSourceDirectory(generateResTask, { it.getOutputFolder() })
                     }
                 }""");
       }

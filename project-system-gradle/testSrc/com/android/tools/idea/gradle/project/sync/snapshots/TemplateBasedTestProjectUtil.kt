@@ -86,7 +86,7 @@ internal fun patchMppProject(
   addJsModule: Boolean = false,
 ) {
   if (convertAppToKmp) {
-    projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+    projectRoot.resolve("app").resolve("build.gradle").replaceContent {
       """
       plugins {
           id("org.jetbrains.kotlin.multiplatform")

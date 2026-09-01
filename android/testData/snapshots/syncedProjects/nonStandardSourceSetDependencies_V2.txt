@@ -182,7 +182,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
             Scope                         : Test
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.main
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.commonMain
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
             Scope                         : Test
@@ -278,13 +280,14 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.main
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.androidMain
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.testEnv
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :app:generateDebugSources
                 ASSEMBLE                      : :app:assembleDebug
@@ -385,7 +388,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
             Scope                         : Test
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.main
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.commonMain
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
             Scope                         : Test
@@ -464,7 +469,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/common/src/commonMain
@@ -522,7 +527,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:common:commonMain, :common:jvmMain]
@@ -581,7 +586,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             - SourceSetName               : NonStandardSourceSetDependencies.common.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -643,7 +648,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             - SourceSetName               : NonStandardSourceSetDependencies.common.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -728,7 +733,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/desktop/src/main
@@ -792,7 +797,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:desktop:main]
@@ -914,7 +919,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:feature-a:main]
@@ -1060,7 +1065,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debug/out [-]
@@ -1119,8 +1124,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
         Classes
             -                             : file://<PROJECT>/feature-a/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/feature-a/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/feature-a/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/feature-a/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :feature-a:generateDebugSources
                 ASSEMBLE                      : :feature-a:assembleDebug
@@ -1179,7 +1184,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:feature-a:main]
@@ -1280,27 +1285,27 @@ PROJECT                       : NonStandardSourceSetDependencies
     MODULE                        : NonStandardSourceSetDependencies.feature-b
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-b
-            main                          : NonStandardSourceSetDependencies.feature-b.main
-            unitTest                      : NonStandardSourceSetDependencies.feature-b.unitTest
-            androidTest                   : NonStandardSourceSetDependencies.feature-b.androidTest
+            main                          : NonStandardSourceSetDependencies.feature-b.androidMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :feature-b
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.feature-b [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.feature-b [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : debug
+            SelectedBuildVariant          : androidMain
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            AssetsFolderRelativePath      : /src/main/assets
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
             PackTestCode                  : false
@@ -1320,155 +1325,35 @@ PROJECT                       : NonStandardSourceSetDependencies
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                CLEAN                         : :feature-b:createMockableJar, :feature-b:generateDebugAndroidTestSources, :feature-b:generateDebugSources
-                ASSEMBLE                      : :feature-b:assembleDebug, :feature-b:assembleDebugAndroidTest, :feature-b:assembleDebugUnitTest
-                REBUILD                       : :feature-b:assembleDebug, :feature-b:assembleDebugAndroidTest, :feature-b:assembleDebugUnitTest, :feature-b:clean
-                COMPILE_JAVA                  : :feature-b:compileDebugAndroidTestSources, :feature-b:compileDebugSources, :feature-b:compileDebugUnitTestSources
-                SOURCE_GEN                    : :feature-b:createMockableJar, :feature-b:generateDebugAndroidTestSources, :feature-b:generateDebugSources
-                BASELINE_PROFILE_GEN          : :feature-b:generateDebugBaselineProfile
+                ASSEMBLE                      : :feature-b:assembleAndroidMain
+                REBUILD                       : :feature-b:assembleAndroidMain, :feature-b:clean
+                COMPILE_JAVA                  : :feature-b:compileAndroidMain
+                BASELINE_PROFILE_GEN          : :feature-b:generateAndroidMainBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature-b:generateBaselineProfile
-    MODULE                        : NonStandardSourceSetDependencies.feature-b.androidTest
+    MODULE                        : NonStandardSourceSetDependencies.feature-b.androidMain
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.feature-b
-            main                          : NonStandardSourceSetDependencies.feature-b.main
-            unitTest                      : NonStandardSourceSetDependencies.feature-b.unitTest
-            androidTest                   : NonStandardSourceSetDependencies.feature-b.androidTest
+            main                          : NonStandardSourceSetDependencies.feature-b.androidMain
+        ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : :feature-b:androidTest
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :feature-b:androidMain
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : NonStandardSourceSetDependencies.feature-b.main
-        FACET                         : Android
-            TypeId                        : android
-            ExternalSource                : GRADLE
-            SelectedBuildVariant          : debug
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            ProjectType                   : 1
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        FACET                         : Kotlin
-            TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
-            CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-                multiPlatform                 : true
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            CompilerSettings
-                additionalArguments           : -Xuse-inline-scopes-numbers
-                copyJsLibraryFiles            : true
-                outputDirectoryForJsLibraryFiles        : lib
-            ExternalProjectId             : :feature-b
-            IsTestModule                  : true
-            Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
-            MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-                multiPlatform                 : true
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
-            UseProjectSettings            : false
-            Version                       : 5
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidInstrumentedTest [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidTest [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/resources [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/resources [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/keepRules [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/resources [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/keepRules [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/resources [-]
-        JDK                           : <NAME_CUT> Android SDK
-        *isInherited                  : false
-            SdkType                       : Android SDK
-            HomePath                      : <ANDROID_SDK>
-        ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-            Scope                         : Test
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
-            Scope                         : Test
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
-            Scope                         : Test
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.main
-            Scope                         : Test
-        BUILD_TASKS
-                CLEAN                         : :feature-b:generateDebugAndroidTestSources
-                ASSEMBLE                      : :feature-b:assembleDebugAndroidTest
-                REBUILD                       : :feature-b:assembleDebugAndroidTest, :feature-b:clean
-                COMPILE_JAVA                  : :feature-b:compileDebugAndroidTestSources
-                SOURCE_GEN                    : :feature-b:generateDebugAndroidTestSources
-                BASELINE_PROFILE_GEN          : :feature-b:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature-b:generateBaselineProfile
-    MODULE                        : NonStandardSourceSetDependencies.feature-b.main
-        LINKED_ANDROID_MODULE_GROUP
-            holder                        : NonStandardSourceSetDependencies.feature-b
-            main                          : NonStandardSourceSetDependencies.feature-b.main
-            unitTest                      : NonStandardSourceSetDependencies.feature-b.unitTest
-            androidTest                   : NonStandardSourceSetDependencies.feature-b.androidTest
-        ExternalModuleType            : sourceSet
-        LinkedProjectId               : :feature-b:main
-        LinkedProjectPath             : <PROJECT>/feature-b
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/classes/kotlin/android/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : debug
+            SelectedBuildVariant          : androidMain
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            AssetsFolderRelativePath      : /src/main/assets
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
             PackTestCode                  : false
@@ -1506,44 +1391,13 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
+            - SourceSetName               : NonStandardSourceSetDependencies.feature-b.commonMain
             UseProjectSettings            : false
             Version                       : 5
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidDebug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidMain
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/commonMain [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/debug [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/main [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/build/generated/assets/debugAssetsCopyForAGP [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidDebug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/androidDebug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidDebug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidDebug/resources [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidMain/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/androidMain/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidMain/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidMain/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/commonMain/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/commonMain/resources [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/debug/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/debug/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/debug/keepRules [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/debug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/debug/resources [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/main/keepRules [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1553,47 +1407,25 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.commonMain
         BUILD_TASKS
-                CLEAN                         : :feature-b:generateDebugSources
-                ASSEMBLE                      : :feature-b:assembleDebug
-                REBUILD                       : :feature-b:assembleDebug, :feature-b:clean
-                COMPILE_JAVA                  : :feature-b:compileDebugSources
-                SOURCE_GEN                    : :feature-b:generateDebugSources
-                BASELINE_PROFILE_GEN          : :feature-b:generateDebugBaselineProfile
+                ASSEMBLE                      : :feature-b:assembleAndroidMain
+                REBUILD                       : :feature-b:assembleAndroidMain, :feature-b:clean
+                COMPILE_JAVA                  : :feature-b:compileAndroidMain
+                BASELINE_PROFILE_GEN          : :feature-b:generateAndroidMainBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature-b:generateBaselineProfile
-    MODULE                        : NonStandardSourceSetDependencies.feature-b.unitTest
-        LINKED_ANDROID_MODULE_GROUP
-            holder                        : NonStandardSourceSetDependencies.feature-b
-            main                          : NonStandardSourceSetDependencies.feature-b.main
-            unitTest                      : NonStandardSourceSetDependencies.feature-b.unitTest
-            androidTest                   : NonStandardSourceSetDependencies.feature-b.androidTest
+    MODULE                        : NonStandardSourceSetDependencies.feature-b.commonMain
+        ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : :feature-b:unitTest
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :feature-b:commonMain
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.feature-b.commonMain [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.feature-b.commonMain [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : NonStandardSourceSetDependencies.feature-b.main
-        FACET                         : Android
-            TypeId                        : android
-            ExternalSource                : GRADLE
-            SelectedBuildVariant          : debug
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            ProjectType                   : 1
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1612,8 +1444,8 @@ PROJECT                       : NonStandardSourceSetDependencies
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :feature-b
-            IsTestModule                  : true
-            Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
+            IsTestModule                  : false
+            Kind                          : SOURCE_SET_HOLDER
             LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
@@ -1624,64 +1456,70 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidUnitTest [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/androidUnitTestDebug [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/commonTest [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/test [-]
-        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/testDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/resources [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTestDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/commonTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/commonTest/resources [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/test/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/test/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/test/keepRules [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/test/resources [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/testDebug/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/testDebug/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/testDebug/keepRules [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/testDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/testDebug/resources [-]
-        JDK                           : <NAME_CUT> Android SDK
-        *isInherited                  : false
-            SdkType                       : Android SDK
-            HomePath                      : <ANDROID_SDK>
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/commonMain [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/commonMain/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
-            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
-            Scope                         : Test
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.main
-            Scope                         : Test
         BUILD_TASKS
-                CLEAN                         : :feature-b:createMockableJar
-                ASSEMBLE                      : :feature-b:assembleDebugUnitTest
-                REBUILD                       : :feature-b:assembleDebugUnitTest, :feature-b:clean
-                COMPILE_JAVA                  : :feature-b:compileDebugUnitTestSources
-                SOURCE_GEN                    : :feature-b:createMockableJar
-                BASELINE_PROFILE_GEN          : :feature-b:generateDebugBaselineProfile
-                BASELINE_PROFILE_GEN_ALL_VARIANTS       : :feature-b:generateBaselineProfile
+    MODULE                        : NonStandardSourceSetDependencies.feature-b.commonTest
+        ExternalModuleGroup           : NonStandardSourceSetDependencies
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :feature-b:commonTest
+        LinkedProjectPath             : <PROJECT>/feature-b
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.feature-b.commonTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.feature-b.commonTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :feature-b
+            IsTestModule                  : false
+            Kind                          : SOURCE_SET_HOLDER
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONTENT_ENTRY                 : file://<PROJECT>/feature-b/src/commonTest [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/commonTest/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
     MODULE                        : NonStandardSourceSetDependencies.jarWrapperLib
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -1765,7 +1603,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/javaLibrary/src/main
@@ -1836,7 +1674,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:javaLibrary:main]
@@ -1903,7 +1741,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/javaLibrary/src/testEnv
@@ -2052,6 +1890,27 @@ PROJECT                       : NonStandardSourceSetDependencies
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           : -Xuse-inline-scopes-numbers
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmp-java:sample-test:main]
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/androidTest [-]
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug [-]
@@ -2076,6 +1935,10 @@ PROJECT                       : NonStandardSourceSetDependencies
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample-test.main
             Scope                         : Test
         BUILD_TASKS
@@ -2117,6 +1980,26 @@ PROJECT                       : NonStandardSourceSetDependencies
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/debug [-]
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/main
@@ -2141,9 +2024,12 @@ PROJECT                       : NonStandardSourceSetDependencies
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : jar://<PROJECT>/kmp-java/sample-test/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/kmp-java/sample-test/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :kmp-java:sample-test:generateDebugSources
                 ASSEMBLE                      : :kmp-java:sample-test:assembleDebug
@@ -2185,6 +2071,27 @@ PROJECT                       : NonStandardSourceSetDependencies
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+            Platform                      : JVM (11)
+            UseProjectSettings            : false
+            Version                       : 5
+            AdditionalVisibleModuleNames  : [:kmp-java:sample-test:main]
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/test [-]
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample-test/src/testDebug [-]
@@ -2209,6 +2116,10 @@ PROJECT                       : NonStandardSourceSetDependencies
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample-test.main
             Scope                         : Test
         BUILD_TASKS
@@ -2261,7 +2172,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/kmp-java/sample/src/commonMain
@@ -2319,7 +2230,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:kmp-java:sample:commonMain, :kmp-java:sample:jvmMain]
@@ -2378,7 +2289,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             - SourceSetName               : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -2395,6 +2306,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         Classes
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/main
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/jvmMain
+            -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/main
             -                             : file://<PROJECT>/kmp-java/sample/build/processedResources/jvm/main
         BUILD_TASKS
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmTest
@@ -2440,7 +2352,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (25)
+            Platform                      : JVM (24)
             - SourceSetName               : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -2462,6 +2374,40 @@ PROJECT                       : NonStandardSourceSetDependencies
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
             Scope                         : Test
+        BUILD_TASKS
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.main
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample:main
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.test
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample:test
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.main
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
     MODULE                        : NonStandardSourceSetDependencies.lib
         LINKED_ANDROID_MODULE_GROUP
@@ -2563,7 +2509,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
@@ -2687,7 +2633,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
@@ -2719,8 +2665,8 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-            -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debug
             -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
+            -                             : file://<PROJECT>/lib/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes
         BUILD_TASKS
                 CLEAN                         : :lib:generateDebugSources
                 ASSEMBLE                      : :lib:assembleDebug
@@ -2779,7 +2725,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (25)
+            Platform                      : JVM (11)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:lib:main]
@@ -2971,11 +2917,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:testClasses, <PROJECT>::javaLibrary:testEnvClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::javaLibrary:testEnvClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample-test:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:compileTestJava, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:compileTestEnvJava, <PROJECT>::javaLibrary:compileTestJava, <PROJECT>::kmp-java:sample-test:compileDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:compileDebugSources, <PROJECT>::kmp-java:sample-test:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-b:assembleAndroidMain, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:testClasses, <PROJECT>::javaLibrary:testEnvClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleAndroidMain, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::javaLibrary:testEnvClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample-test:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:compileTestJava, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileAndroidMain, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:compileTestEnvJava, <PROJECT>::javaLibrary:compileTestJava, <PROJECT>::kmp-java:sample-test:compileDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:compileDebugSources, <PROJECT>::kmp-java:sample-test:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
             BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile

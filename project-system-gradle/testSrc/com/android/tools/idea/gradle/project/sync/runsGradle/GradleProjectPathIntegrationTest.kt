@@ -81,9 +81,9 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
           .feature-a.main ==> :feature-a/MAIN
           .feature-a.unitTest ==> :feature-a/UNIT_TEST
           .feature-b ==> :feature-b
-          .feature-b.androidTest ==> :feature-b/ANDROID_TEST
-          .feature-b.main ==> :feature-b/MAIN
-          .feature-b.unitTest ==> :feature-b/UNIT_TEST
+          .feature-b.androidMain ==> :feature-b/androidMain
+          .feature-b.commonMain ==> :feature-b/commonMain
+          .feature-b.commonTest ==> :feature-b/commonTest
           .jarWrapperLib ==> :jarWrapperLib
           .javaLibrary ==> :javaLibrary
           .javaLibrary.main ==> :javaLibrary/MAIN
@@ -99,6 +99,8 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
           .kmp-java.sample.commonTest ==> :kmp-java:sample/commonTest
           .kmp-java.sample.jvmMain ==> :kmp-java:sample/jvmMain
           .kmp-java.sample.jvmTest ==> :kmp-java:sample/jvmTest
+          .kmp-java.sample.main ==> :kmp-java:sample/MAIN
+          .kmp-java.sample.test ==> :kmp-java:sample/test
           .lib ==> :lib
           .lib.androidTest ==> :lib/ANDROID_TEST
           .lib.main ==> :lib/MAIN

@@ -118,59 +118,6 @@ PROJECT                       : kotlinMultiPlatform
             -                             : file://<PROJECT>/app/build/classes/kotlin/android/deviceTest
             -                             : file://<PROJECT>/app/build/processedResources/android/deviceTest
         BUILD_TASKS
-    MODULE                        : kotlinMultiPlatform.app.androidDeviceTestExtra
-        ExternalModuleGroup           : kotlinMultiPlatform
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :app:androidDeviceTestExtra
-        LinkedProjectPath             : <PROJECT>/app
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT><.ANDROID>DeviceTestExtra [-]
-            compilerTestOutputPath        : file://<PROJECT><.ANDROID>DeviceTestExtra [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        FACET                         : Kotlin
-            TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
-            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
-            CompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-                multiPlatform                 : true
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            CompilerSettings
-                additionalArguments           :
-                copyJsLibraryFiles            : true
-                outputDirectoryForJsLibraryFiles        : lib
-            ExternalProjectId             : :app
-            IsTestModule                  : false
-            Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
-            MergedCompilerArguments
-                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
-                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-                multiPlatform                 : true
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (1.8)
-            UseProjectSettings            : false
-            Version                       : 5
-        CONTENT_ENTRY                 : file://<PROJECT>/app/src/androidDeviceTestExtra [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/androidDeviceTestExtra/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/androidDeviceTestExtra/resources [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : kotlinMultiPlatform.app.androidDeviceTest
-        BUILD_TASKS
     MODULE                        : kotlinMultiPlatform.app.androidHostTest
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -587,6 +534,65 @@ PROJECT                       : kotlinMultiPlatform
                 COMPILE_JAVA                  : :module2:compileAndroidDeviceTest
                 BASELINE_PROFILE_GEN          : :module2:generateAndroidMainBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :module2:generateBaselineProfile
+    MODULE                        : kotlinMultiPlatform.module2.androidDeviceTestExtra
+        ExternalModuleGroup           : kotlinMultiPlatform
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :module2:androidDeviceTestExtra
+        LinkedProjectPath             : <PROJECT>/module2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT><.ANDROID>DeviceTestExtra [-]
+            compilerTestOutputPath        : file://<PROJECT><.ANDROID>DeviceTestExtra [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
+            CompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           :
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :module2
+            IsTestModule                  : false
+            Kind                          : SOURCE_SET_HOLDER
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
+            MergedCompilerArguments
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (1.8)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONTENT_ENTRY                 : file://<PROJECT>/module2/src/androidDeviceTestExtra [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDeviceTestExtra/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDeviceTestExtra/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.androidDeviceTest
+        BUILD_TASKS
     MODULE                        : kotlinMultiPlatform.module2.androidHostTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.module2

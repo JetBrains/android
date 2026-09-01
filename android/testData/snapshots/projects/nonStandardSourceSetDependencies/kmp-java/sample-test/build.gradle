@@ -3,5 +3,6 @@ plugins {
 }
 
 android {
+  namespace = "test"
   compileSdkVersion 30
 }

@@ -1,14 +1,13 @@
 plugins {
   id 'org.jetbrains.kotlin.multiplatform'
-  id 'com.android.library'
-}
-
-android {
-    compileSdkVersion 30
+  id 'com.android.kotlin.multiplatform.library'
 }
 
 kotlin {
-  androidTarget()
+  android {
+    namespace = "me.monori.feature.b"
+    compileSdk = 30
+  }
   sourceSets {
     commonMain {
       dependencies {

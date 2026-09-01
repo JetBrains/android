@@ -358,12 +358,20 @@ fun migratePackageAttribute(root: File) {
 
       when {
         buildGradle?.exists() == true -> {
-          buildGradle.replaceContent { it.placeNamespaceProperty(namespace) }
-          VfsUtil.markDirtyAndRefresh(false, false, false, buildGradle)
+          val original = buildGradle.toFile().readText()
+          val updated = original.placeNamespaceProperty(namespace)
+          if (original != updated) {
+            buildGradle.toFile().writeText(updated)
+            VfsUtil.markDirtyAndRefresh(false, false, false, buildGradle)
+          }
         }
         buildGradleKts?.exists() == true -> {
-          buildGradleKts.replaceContent { it.placeNamespaceProperty(namespace) }
-          VfsUtil.markDirtyAndRefresh(false, false, false, buildGradleKts)
+          val original = buildGradleKts.toFile().readText()
+          val updated = original.placeNamespaceProperty(namespace)
+          if (original != updated) {
+            buildGradleKts.toFile().writeText(updated)
+            VfsUtil.markDirtyAndRefresh(false, false, false, buildGradleKts)
+          }
         }
         else -> {
           error("Cannot find a build file to store the value of 'package' attribute in $manifestPath")
@@ -398,6 +406,7 @@ fun patchLegacyLibraryTargetSdk(root: File) {
 }
 
 fun String.placeNamespaceProperty(namespace: String): String {
+  if (this.contains(Regex("""\bnamespace\s*="""))) return this
   val marker = "\nandroid {\n"
   val firstIndex = indexOf(marker)
   val insertionIndex = if (firstIndex < 0) -1 else firstIndex + marker.length
