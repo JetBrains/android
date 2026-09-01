@@ -1,5 +1,6 @@
 load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//platform/build-scripts/bazel-rules:content_module_jar.bzl", "dev_dist_plugin_jar")
 
 ### auto-generated section `build intellij.android.plugin.descriptor` start
 jvm_library(
@@ -211,5 +212,118 @@ dev_dist_plugin(
         "@lib//:studio-test-platform",
         "@lib//:truth",
     ],
+)
+
+dev_dist_plugin_jar(
+    modules = [
+        # do not sort,
+        "//android/adt-ui",
+        "//android/adt-ui-compose",
+        "//android/adt-ui-model",
+    ],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "adt-ui.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = [
+        # do not sort,
+        "//android/android-common:common",
+        "//android/jps-model",
+    ],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "android-common.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = [
+        # do not sort,
+        "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+        "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl",
+        "//android/project-system-gradle-sync:projectSystem-gradle-sync",
+    ],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "android-gradle.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = [
+        # do not sort,
+        "//android/android-kotlin/idea-android:android-kotlin-idea",
+        "//android/android-kotlin/idea-android/common",
+        "//android/android-kotlin/idea-android/k2",
+        "//android/android-kotlin/idea-android/idea-android-output-parser:android-kotlin-output-parser",
+    ],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "android-kotlin.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = [
+        # do not sort,
+        "//android/profilers",
+        "//android/profilers-atrace",
+        "//android/profilers-ui",
+        "//android/transport-database",
+    ],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "android-profilers.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = ["//android/project-system-gradle-models:projectSystem-gradle-models"],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "android-project-system-gradle-models.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = [
+        # do not sort,
+        "//android/artwork",
+        "//android/artwork-compose",
+    ],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "artwork.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = ["//android/build-common"],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "build-common.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = [
+        # do not sort,
+        "//android/inspectors-common/api",
+        "//android/inspectors-common/api-ide",
+        "//android/inspectors-common/ui",
+    ],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "inspectors-common.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = ["//android/layoutlib-loader"],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "layoutlib-loader.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = ["//android/lint:lint-common"],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "lint-ide.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = ["//android/memory-usage"],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "memory-usage.jar",
+)
+
+dev_dist_plugin_jar(
+    modules = ["//android/utp"],
+    plugin_main_module = "intellij.android.plugin.descriptor",
+    relative_output_file = "utp.jar",
 )
 ### auto-generated section `dev intellij.android.plugin.descriptor` end
