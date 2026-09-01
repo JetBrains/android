@@ -15,8 +15,8 @@
 # layout variant. `descriptor:` is keyed by `<main module>` or `<main module>/<variant>`, because a descriptor
 # deviation is a fact about one variant. Each producer rewrites only its own part.
 #
-# No row is a Bazel label, and no row is a path. A label carries the artifact version of a library, and a path
-# restates a rule the rule already derives.
+# No row is a Bazel label, because a label carries the artifact version of a library. A row is a path only
+# where the layout names a jar that no rule derives, which is what `member_jars` states.
 content:
   # Modules the layout packs that this plugin's `<content>` does not name - a `PluginLayout.withModule` call.
   extra_members:
@@ -138,6 +138,63 @@ content:
   - "intellij.android.wear-whs"
   - "intellij.android.wizard"
   - "intellij.android.wizard.model"
+  # The jars this plugin packs a member into, where `PluginLayout.withModule(name, jarName)` names the jar. The
+  # whole jar set of the member, relative to the plugin's `lib/`, and the plugin's main jar name means the main jar.
+  member_jars:
+    "intellij.android.adt.ui":
+    - "adt-ui.jar"
+    "intellij.android.adt.ui.compose":
+    - "adt-ui.jar"
+    "intellij.android.adt.ui.model":
+    - "adt-ui.jar"
+    "intellij.android.artwork":
+    - "artwork.jar"
+    "intellij.android.artwork-compose":
+    - "artwork.jar"
+    "intellij.android.buildCommon":
+    - "build-common.jar"
+    "intellij.android.common":
+    - "android-common.jar"
+    "intellij.android.gradle-tooling.api":
+    - "android-gradle.jar"
+    "intellij.android.gradle-tooling.impl":
+    - "android-gradle.jar"
+    "intellij.android.inspectors-common.api":
+    - "inspectors-common.jar"
+    "intellij.android.inspectors-common.api-ide":
+    - "inspectors-common.jar"
+    "intellij.android.inspectors-common.ui":
+    - "inspectors-common.jar"
+    "intellij.android.jps.model":
+    - "android-common.jar"
+    "intellij.android.kotlin.idea":
+    - "android-kotlin.jar"
+    "intellij.android.kotlin.idea.common":
+    - "android-kotlin.jar"
+    "intellij.android.kotlin.idea.k2":
+    - "android-kotlin.jar"
+    "intellij.android.kotlin.output.parser":
+    - "android-kotlin.jar"
+    "intellij.android.layoutlib-loader":
+    - "layoutlib-loader.jar"
+    "intellij.android.lint.common":
+    - "lint-ide.jar"
+    "intellij.android.memory-usage":
+    - "memory-usage.jar"
+    "intellij.android.profilers":
+    - "android-profilers.jar"
+    "intellij.android.profilers.atrace":
+    - "android-profilers.jar"
+    "intellij.android.profilers.ui":
+    - "android-profilers.jar"
+    "intellij.android.projectSystem.gradle.models":
+    - "android-project-system-gradle-models.jar"
+    "intellij.android.projectSystem.gradle.sync":
+    - "android-gradle.jar"
+    "intellij.android.transportDatabase":
+    - "android-profilers.jar"
+    "intellij.android.utp":
+    - "utp.jar"
   # Libraries the layout packs that no member declares. A row with no `module` is a project library.
   libraries:
   - name: "kotlinx-coroutines-guava"
