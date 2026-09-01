@@ -38,6 +38,7 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
@@ -335,6 +336,30 @@ class JavaKotlinAllocationsTaskHandlerTest {
       .isEqualTo(
         "There was an error with the Java/Kotlin Allocations task. Error message: The task arguments (AllocationsTaskArgs) supplied do " +
           "not contains a valid artifact to load."
+      )
+
+    // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to MainMemoryProfilerStage.
+    assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
+  }
+
+  @Test
+  fun testLoadTaskWithInvalidTaskArgsType() {
+    // Before enter + loadTask, the stage should not be set yet.
+    assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
+
+    val exception =
+      assertFailsWith<Throwable> {
+        myJavaKotlinAllocationsTaskHandler.loadTask(
+          object : TaskArgs {
+            override val isFromStartup = false
+          }
+        )
+      }
+
+    assertThat(exception.message)
+      .isEqualTo(
+        "There was an error with the Java/Kotlin Allocations task. Error message: The task arguments (TaskArgs) supplied are not of the " +
+          "expected type (JavaKotlinAllocationTaskArgs)."
       )
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to MainMemoryProfilerStage.
