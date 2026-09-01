@@ -104,7 +104,6 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
         // Save the dpi, fontScale such that we can convert dimensions.
         model.resourceLookup.updateConfiguration(metadata.dpi, metadata.fontScale)
       }
-      snapshot.foldInfo?.let { model.foldInfo = it.convert() }
     }
     return metadata
   }
@@ -116,7 +115,6 @@ fun saveAppInspectorSnapshot(
   properties: Map<Long, LayoutInspectorViewProtocol.PropertiesEvent>,
   composeProperties: Map<Long, GetAllParametersResponse>,
   snapshotMetadata: SnapshotMetadata,
-  foldInfo: InspectorModel.FoldInfo?,
 ) {
   val response =
     LayoutInspectorViewProtocol.CaptureSnapshotResponse.newBuilder()
@@ -136,7 +134,7 @@ fun saveAppInspectorSnapshot(
       }
       .build()
   val composeInfo = composeProperties.mapValues { (id, composePropertyEvent) -> data[id]?.composeEvent to composePropertyEvent }
-  saveAppInspectorSnapshot(path, response, composeInfo, snapshotMetadata, foldInfo)
+  saveAppInspectorSnapshot(path, response, composeInfo, snapshotMetadata)
 }
 
 fun saveAppInspectorSnapshot(
@@ -144,7 +142,6 @@ fun saveAppInspectorSnapshot(
   data: LayoutInspectorViewProtocol.CaptureSnapshotResponse,
   composeInfo: Map<Long, Pair<GetComposablesResult?, GetAllParametersResponse>>,
   snapshotMetadata: SnapshotMetadata,
-  foldInfo: InspectorModel.FoldInfo?,
 ) {
   snapshotMetadata.containsCompose = composeInfo.isNotEmpty()
   val snapshot =
@@ -163,7 +160,6 @@ fun saveAppInspectorSnapshot(
               .build()
           }
         )
-        foldInfo?.toProto()?.let { this.foldInfo = it }
       }
       .build()
   val output = ByteArrayOutputStream()

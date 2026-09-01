@@ -216,7 +216,6 @@ class ViewLayoutInspectorClient(
             Event.SpecializedCase.LAYOUT_EVENT -> handleLayoutEvent(event.layoutEvent)
             Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
             Event.SpecializedCase.PROGRESS_EVENT -> handleProgressEvent(event.progressEvent)
-            Event.SpecializedCase.FOLD_EVENT -> handleFoldEvent(event.foldEvent)
             else -> {
               val handled = onDeviceRendering.handleEvent(event)
               if (!handled) {
@@ -225,13 +224,6 @@ class ViewLayoutInspectorClient(
             }
           }
         }
-    }
-  }
-
-  private fun handleFoldEvent(foldEvent: LayoutInspectorViewProtocol.FoldEvent) {
-    model.foldInfo = foldEvent.convert()
-    if (model.foldInfo != null) {
-      stats.foldInfoReceived()
     }
   }
 
@@ -418,7 +410,7 @@ class ViewLayoutInspectorClient(
     val data = HashMap(lastData)
     val properties = HashMap(lastProperties)
     val composeParameters = HashMap(lastComposeParameters)
-    saveAppInspectorSnapshot(path, data, properties, composeParameters, snapshotMetadata, model.foldInfo)
+    saveAppInspectorSnapshot(path, data, properties, composeParameters, snapshotMetadata)
   }
 
   private suspend fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata, screenshotType: Screenshot.Type) {
@@ -437,7 +429,7 @@ class ViewLayoutInspectorClient(
         emptyMap()
       }
 
-    saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata, model.foldInfo)
+    saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata)
   }
 }
 

@@ -157,12 +157,6 @@ class FakeRenderSettings : RenderSettings {
       invokeListeners()
     }
 
-  override var drawFold = false
-    set(value) {
-      field = value
-      invokeListeners()
-    }
-
   override val hoverColor = HOVER_COLOR_ARGB
   override val selectionColor = SELECTION_COLOR_ARGB
   override val baseColor = BASE_COLOR_ARGB

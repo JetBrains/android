@@ -50,7 +50,6 @@ class RenderSettingsAction(private val isEnabled: () -> Boolean, renderSettingsP
       add(ToggleRenderSettingsAction("Show Layout Bounds", renderSettingsProvider, RenderSettings::drawUntransformedBounds))
     }
     add(ToggleRenderSettingsAction("Show View Label", renderSettingsProvider, RenderSettings::drawLabel))
-    add(ToggleRenderSettingsAction("Show Fold Hinge and Angle", renderSettingsProvider, RenderSettings::drawFold))
     add(HighlightColorAction(renderSettingsProvider))
   }
 

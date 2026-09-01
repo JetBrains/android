@@ -572,33 +572,31 @@ class InspectorModelTest {
     }
 
     // Start a thread that constantly runs the scheduler to decrease the highlight count in COMPOSE2
-    val thread1 =
-      Thread {
-          while (!stop) {
-            Thread.yield()
-            if (model.maxHighlight > 0f) {
-              virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
-            } else {
-              check()
-            }
-          }
+    val thread1 = Thread {
+      while (!stop) {
+        Thread.yield()
+        if (model.maxHighlight > 0f) {
+          virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+        } else {
+          check()
         }
-        .apply { start() }
+      }
+    }
+      .apply { start() }
 
     // Start a thread that constantly runs an update to increase the highlight count of COMPOSE2
     var count = 0
-    val thread2 =
-      Thread {
-          while (!stop) {
-            Thread.yield()
-            if (compose2.recompositions.highlightCount < DECREASE_BREAK_OFF) {
-              model.update(window1(++count), listOf(ROOT), 0)
-            } else {
-              check()
-            }
-          }
+    val thread2 = Thread {
+      while (!stop) {
+        Thread.yield()
+        if (compose2.recompositions.highlightCount < DECREASE_BREAK_OFF) {
+          model.update(window1(++count), listOf(ROOT), 0)
+        } else {
+          check()
         }
-        .apply { start() }
+      }
+    }
+      .apply { start() }
 
     // Run the 2 threads for 2 seconds:
     Thread.sleep(2000)
@@ -622,9 +620,9 @@ class InspectorModelTest {
         }
       }
 
-    model.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    assertThat(model.isEmpty).isFalse()
     model.clear()
-    assertThat(model.foldInfo).isNull()
+    assertThat(model.isEmpty).isTrue()
   }
 
   @Test
@@ -652,7 +650,7 @@ class InspectorModelTest {
     processModel.selectedProcess = DEVICE_1.createProcess()
     latch.await(2, TimeUnit.SECONDS)
 
-    assertThat(observedNewWindows).containsExactly(newWindow, newWindow, null)
+    assertThat(observedNewWindows).containsExactly(newWindow, null)
   }
 
   @Test

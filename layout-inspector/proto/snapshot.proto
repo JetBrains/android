@@ -48,5 +48,7 @@ message Snapshot {
    }
    repeated ComposeInfo compose_info = 2;
 
-   layoutinspector.view.inspection.FoldEvent fold_info = 3;
+   // The field fold_info was removed. Do not reuse id 3 or the name fold_info.
+   reserved 3;
+   reserved "fold_info";
 }

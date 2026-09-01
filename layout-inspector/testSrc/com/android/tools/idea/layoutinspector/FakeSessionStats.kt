@@ -58,8 +58,6 @@ class FakeSessionStats : SessionStatistics {
 
   override fun frameReceived() {}
 
-  override fun foldInfoReceived() {}
-
   override fun debuggerInUse(isPaused: Boolean) {}
 
   override fun setOnDeviceRendering(enabled: Boolean) {

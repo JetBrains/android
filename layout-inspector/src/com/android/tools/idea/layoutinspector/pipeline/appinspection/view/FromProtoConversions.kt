@@ -56,7 +56,6 @@ import com.android.resources.UiMode
 import com.android.resources.WideGamutColor
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_MASK
 import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_NO
@@ -109,7 +108,6 @@ import com.android.tools.idea.layoutinspector.resource.data.Display
 import com.android.tools.idea.layoutinspector.resource.data.Locale
 import com.android.tools.idea.layoutinspector.resource.data.Resource
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import java.awt.Dimension
@@ -220,12 +218,6 @@ fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: AndroidApiLevel)
   config.versionQualifier = VersionQualifier(apiLevel)
   config.grammaticalGenderQualifier = grammaticalGenderQualifierFromRawValue(grammaticalGender)
   return config
-}
-
-fun LayoutInspectorViewProtocol.FoldEvent.convert(): InspectorModel.FoldInfo? {
-  val angle = if (angle == NO_FOLD_ANGLE_VALUE) null else angle
-  val orientation = orientation.convert()
-  return orientation?.let { o -> InspectorModel.FoldInfo(angle, foldState.convert(), o) }
 }
 
 private fun layoutDirectionFromRawValue(value: Int): LayoutDirectionQualifier? =
@@ -345,17 +337,3 @@ private fun grammaticalGenderQualifierFromRawValue(value: Int): GrammaticalGende
     GRAMMATICAL_GENDER_MASCULINE -> GrammaticalGender.MASCULINE
     else -> null
   }?.let { GrammaticalGenderQualifier(it) }
-
-private fun LayoutInspectorViewProtocol.FoldEvent.FoldState.convert() =
-  when (this) {
-    LayoutInspectorViewProtocol.FoldEvent.FoldState.FLAT -> InspectorModel.Posture.FLAT
-    LayoutInspectorViewProtocol.FoldEvent.FoldState.HALF_OPEN -> InspectorModel.Posture.HALF_OPEN
-    else -> null
-  }
-
-private fun LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.convert() =
-  when (this) {
-    LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL -> InspectorModel.FoldOrientation.HORIZONTAL
-    LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL -> InspectorModel.FoldOrientation.VERTICAL
-    else -> null
-  }

@@ -22,7 +22,6 @@ import kotlin.properties.Delegates
 private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
 private const val SHOW_LAYOUT_BOUNDS_KEY = "live.layout.inspector.draw.layout"
 private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
-private const val DRAW_FOLD_KEY = "live.layout.inspector.draw.fold"
 private const val RECOMPOSITION_COLOR_KEY = "live.layout.inspector.highlight.color"
 
 // Colors are defined as hex ARGB so they can be reused as-is for on-device rendering.
@@ -39,7 +38,6 @@ interface RenderSettings {
     val drawBorders: Boolean,
     val drawUntransformedBounds: Boolean,
     val drawLabel: Boolean,
-    val drawFold: Boolean,
     val hoverColor: Int,
     val selectionColor: Int,
     val baseColor: Int,
@@ -66,8 +64,6 @@ interface RenderSettings {
 
   var drawLabel: Boolean
 
-  var drawFold: Boolean
-
   /** The color used for bounds that are hovered. */
   val hoverColor: Int
 
@@ -89,7 +85,6 @@ interface RenderSettings {
       drawBorders = drawBorders,
       drawUntransformedBounds = drawUntransformedBounds,
       drawLabel = drawLabel,
-      drawFold = drawFold,
       hoverColor = hoverColor,
       selectionColor = selectionColor,
       baseColor = baseColor,
@@ -113,8 +108,6 @@ class EditorRenderSettings(scalePercent: Int = 100) : RenderSettings {
   override var drawUntransformedBounds: Boolean by Delegates.observable(false) { _, _, _ -> invokeListeners() }
 
   override var drawLabel by Delegates.observable(true) { _, _, _ -> invokeListeners() }
-
-  override var drawFold by Delegates.observable(true) { _, _, _ -> invokeListeners() }
 
   override val hoverColor = HOVER_COLOR_ARGB
   override val selectionColor = SELECTION_COLOR_ARGB
@@ -150,13 +143,6 @@ class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_LABEL_KEY, true)
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_LABEL_KEY, value, true)
-      invokeListeners()
-    }
-
-  override var drawFold: Boolean
-    get() = PropertiesComponent.getInstance().getBoolean(DRAW_FOLD_KEY, true)
-    set(value) {
-      PropertiesComponent.getInstance().setValue(DRAW_FOLD_KEY, value, true)
       invokeListeners()
     }
 

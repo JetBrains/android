@@ -20,8 +20,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.application.invokeLater
@@ -132,41 +130,6 @@ class InspectorModel(
   val hasMultipleDisplays: Boolean
     get() {
       return resourceLookup.displays.size > 1
-    }
-
-  enum class Posture {
-    HALF_OPEN,
-    FLAT,
-  }
-
-  enum class FoldOrientation {
-    VERTICAL,
-    HORIZONTAL,
-  }
-
-  class FoldInfo(var angle: Int?, var posture: Posture?, var orientation: FoldOrientation) {
-    fun toProto(): LayoutInspectorViewProtocol.FoldEvent =
-      LayoutInspectorViewProtocol.FoldEvent.newBuilder()
-        .also { builder ->
-          when (posture) {
-            Posture.HALF_OPEN -> LayoutInspectorViewProtocol.FoldEvent.FoldState.HALF_OPEN
-            Posture.FLAT -> LayoutInspectorViewProtocol.FoldEvent.FoldState.FLAT
-            else -> null
-          }?.let { builder.foldState = it }
-          builder.angle = angle ?: NO_FOLD_ANGLE_VALUE
-          builder.orientation =
-            when (orientation) {
-              FoldOrientation.VERTICAL -> LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL
-              FoldOrientation.HORIZONTAL -> LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL
-            }
-        }
-        .build()
-  }
-
-  var foldInfo: FoldInfo? = null
-    set(value) {
-      field = value
-      notifyModified()
     }
 
   /** Whether there are currently any views in this model */
@@ -427,7 +390,6 @@ class InspectorModel(
   }
 
   fun clear() {
-    foldInfo = null
     update(null, listOf<Nothing>(), 0)
   }
 
