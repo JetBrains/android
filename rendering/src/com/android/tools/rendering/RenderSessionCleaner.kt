@@ -22,7 +22,6 @@ import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.rendering.classloading.ModuleClassLoader
-import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.compose.RECOMPOSER_CLASS
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.ref.WeakReference
@@ -292,15 +291,21 @@ private fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
   for (className in GAP_WORKER_CLASS_NAMES) {
     try {
       val gapWorkerClass = classLoader.loadClass(className)
-      if (gapWorkerClass.classLoader !is DelegatingClassLoader) {
-        LOG.debug("GapWorker loaded by IDE/system classloader, skipping clean-up")
-        continue
-      }
       val gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker")
       gapWorkerField.isAccessible = true
 
       val gapWorkerFieldValue = gapWorkerField[null] as? ThreadLocal<*>
-      gapWorkerFieldValue?.set(null)
+      val gapWorker = gapWorkerFieldValue?.get()
+      if (gapWorker != null) {
+        try {
+          val recyclerViewsField = gapWorker.javaClass.getDeclaredField("mRecyclerViews")
+          recyclerViewsField.isAccessible = true
+          (recyclerViewsField.get(gapWorker) as? MutableCollection<*>)?.clear()
+        } catch (t: Throwable) {
+          LOG.debug("Failed to clear mRecyclerViews in GapWorker", t)
+        }
+      }
+      gapWorkerFieldValue?.remove()
       LOG.debug("GapWorker was cleared")
     } catch (t: Throwable) {
       LOG.debug(t)

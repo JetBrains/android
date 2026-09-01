@@ -24,6 +24,7 @@ import com.android.tools.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.rendering.classloading.CooperativeInterruptTransform;
 import com.android.tools.rendering.classloading.FilteringClassLoader;
 import com.android.tools.rendering.classloading.FirewalledResourcesClassLoader;
+import com.android.tools.rendering.classloading.GapWorkerTransform;
 import com.android.tools.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.rendering.classloading.RenderActionAllocationLimiterTransform;
 import com.android.tools.rendering.classloading.RepackageTransform;
@@ -173,6 +174,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     PreviewAnimationClockMethodTransform::new,
     ResourcesCompatTransform::new,
     RequestExecutorTransform::new,
+    GapWorkerTransform::new,
     FontsContractCompatTransform::new,
     ViewTreeLifecycleTransform::new,
     LocalNavigationEventTransform::new,

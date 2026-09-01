@@ -21,6 +21,7 @@ import com.android.tools.rendering.classloading.ModuleClassLoader
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics
 import com.android.tools.rendering.classloading.loadClassBytes
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -44,6 +45,17 @@ class FakeAndroidComposeView {
     @JvmField val cacheMap: MutableMap<String, String> = mutableMapOf("key" to "value")
   }
 }
+
+@Suppress("unused")
+class FakeGapWorker {
+  @JvmField val mRecyclerViews: MutableList<Any> = mutableListOf("dummyRecyclerView")
+
+  companion object {
+    @JvmField val sGapWorker: ThreadLocal<FakeGapWorker> = ThreadLocal()
+  }
+}
+
+class FakeRecyclerView
 
 private class TestModuleClassLoader(
   parent: ClassLoader?,
@@ -136,5 +148,132 @@ class RenderSessionCleanerTest {
     dummySession.dispose(moduleClassLoader)
 
     assertEquals(String::class.java, FakeAndroidComposeView.systemPropertiesClass)
+  }
+
+  @Test
+  fun testDisposeClearsGapWorkerCache() {
+    val recyclerViewFqn = "androidx.recyclerview.widget.RecyclerView"
+    val gapWorkerFqn = "androidx.recyclerview.widget.GapWorker"
+
+    val definedClasses =
+      createTestDefinedClasses(
+        mapOf(
+          recyclerViewFqn to FakeRecyclerView::class.java,
+          gapWorkerFqn to FakeGapWorker::class.java,
+        )
+      )
+
+    val moduleClassLoader = TestModuleClassLoader(FakeGapWorker::class.java.classLoader, definedClasses)
+
+    val gapWorkerClass = moduleClassLoader.loadClass(gapWorkerFqn)
+    moduleClassLoader.loadClass(recyclerViewFqn)
+
+    val sGapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker").apply { isAccessible = true }
+    @Suppress("UNCHECKED_CAST") val threadLocal = sGapWorkerField.get(null) as ThreadLocal<Any>
+
+    val gapWorkerInstance = gapWorkerClass.getDeclaredConstructor().newInstance()
+    val recyclerViewsField = gapWorkerClass.getDeclaredField("mRecyclerViews").apply { isAccessible = true }
+    @Suppress("UNCHECKED_CAST") val recyclerViewsList = recyclerViewsField.get(gapWorkerInstance) as MutableList<Any>
+
+    RenderService.getRenderAsyncActionExecutor()
+      .runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
+        threadLocal.set(gapWorkerInstance)
+      }
+      .get()
+
+    val dummySession = object : RenderSession() {}
+    dummySession.dispose(moduleClassLoader).get()
+
+    RenderService.getRenderAsyncActionExecutor()
+      .runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
+        assertNull(threadLocal.get())
+      }
+      .get()
+
+    assertTrue(recyclerViewsList.isEmpty())
+  }
+
+  @Test
+  fun testDisposeClearsGapWorkerCacheWhenLoadedByParentClassLoader() {
+    val recyclerViewFqn = "androidx.recyclerview.widget.RecyclerView"
+    val gapWorkerFqn = "androidx.recyclerview.widget.GapWorker"
+
+    val definedClasses =
+      createTestDefinedClasses(
+        mapOf(
+          recyclerViewFqn to FakeRecyclerView::class.java,
+          gapWorkerFqn to FakeGapWorker::class.java,
+        )
+      )
+
+    val parentClassLoader = DelegatingClassLoader(FakeGapWorker::class.java.classLoader, StaticLoader(definedClasses))
+    val moduleClassLoader =
+      TestModuleClassLoader(
+        parentClassLoader,
+        emptyMap(),
+        setOf(recyclerViewFqn, gapWorkerFqn),
+      )
+
+    val gapWorkerClass = moduleClassLoader.loadClass(gapWorkerFqn)
+    moduleClassLoader.loadClass(recyclerViewFqn)
+
+    val sGapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker").apply { isAccessible = true }
+    @Suppress("UNCHECKED_CAST") val threadLocal = sGapWorkerField.get(null) as ThreadLocal<Any>
+
+    val gapWorkerInstance = gapWorkerClass.getDeclaredConstructor().newInstance()
+    val recyclerViewsField = gapWorkerClass.getDeclaredField("mRecyclerViews").apply { isAccessible = true }
+    @Suppress("UNCHECKED_CAST") val recyclerViewsList = recyclerViewsField.get(gapWorkerInstance) as MutableList<Any>
+
+    RenderService.getRenderAsyncActionExecutor()
+      .runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
+        threadLocal.set(gapWorkerInstance)
+      }
+      .get()
+
+    val dummySession = object : RenderSession() {}
+    dummySession.dispose(moduleClassLoader).get()
+
+    RenderService.getRenderAsyncActionExecutor()
+      .runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
+        assertNull(threadLocal.get())
+      }
+      .get()
+
+    assertTrue(recyclerViewsList.isEmpty())
+  }
+
+  @Test
+  fun testDisposeSkipsGapWorkerIfRecyclerViewNotLoaded() {
+    val gapWorkerFqn = "androidx.recyclerview.widget.GapWorker"
+
+    val definedClasses = createTestDefinedClasses(mapOf(gapWorkerFqn to FakeGapWorker::class.java))
+    val moduleClassLoader = TestModuleClassLoader(FakeGapWorker::class.java.classLoader, definedClasses)
+
+    val gapWorkerClass = moduleClassLoader.loadClass(gapWorkerFqn)
+    val sGapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker").apply { isAccessible = true }
+    @Suppress("UNCHECKED_CAST") val threadLocal = sGapWorkerField.get(null) as ThreadLocal<Any>
+
+    val gapWorkerInstance = gapWorkerClass.getDeclaredConstructor().newInstance()
+    val recyclerViewsField = gapWorkerClass.getDeclaredField("mRecyclerViews").apply { isAccessible = true }
+    @Suppress("UNCHECKED_CAST") val recyclerViewsList = recyclerViewsField.get(gapWorkerInstance) as MutableList<Any>
+
+    RenderService.getRenderAsyncActionExecutor()
+      .runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
+        threadLocal.set(gapWorkerInstance)
+      }
+      .get()
+
+    val dummySession = object : RenderSession() {}
+    dummySession.dispose(moduleClassLoader).get()
+
+    RenderService.getRenderAsyncActionExecutor()
+      .runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
+        assertEquals(gapWorkerInstance, threadLocal.get())
+        // Clean up threadLocal
+        threadLocal.remove()
+      }
+      .get()
+
+    assertEquals(1, recyclerViewsList.size)
   }
 }
