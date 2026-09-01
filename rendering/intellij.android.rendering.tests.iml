@@ -32,7 +32,7 @@
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.bouncy.castle.provider" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.rendering" />
 </module>

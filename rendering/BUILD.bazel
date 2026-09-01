@@ -164,7 +164,8 @@ jvm_library(
         "//libraries/layoutlib:layoutlib_test_lib",
         "//libraries/bouncy-castle-provider",
         "//libraries/bouncy-castle-provider:bouncy-castle-provider_test_lib",
-        "@lib//:mockito",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.rendering.tests` end

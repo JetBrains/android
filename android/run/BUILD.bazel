@@ -55,7 +55,6 @@ jvm_library(
         "//libraries/junit4:junit4_test_lib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
-        "@lib//:mockito",
         "@lib//:truth",
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
