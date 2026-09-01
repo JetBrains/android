@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide.observable" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.lombok-compiler-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.lombok.compiler.plugin" scope="PROVIDED" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />

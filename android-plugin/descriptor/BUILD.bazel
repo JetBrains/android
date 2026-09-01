@@ -197,7 +197,6 @@ dev_dist_plugin(
         "@lib//:kotlinc-kotlin-compiler-ir",
         "@lib//:kotlinc-kotlin-gradle-statistics",
         "@lib//:kotlinc-kotlin-jps-plugin-classpath",
-        "@lib//:kotlinc-lombok-compiler-plugin",
         "@lib//:libraries-ffmpeg-ffmpeg",
         "@lib//:libraries-ffmpeg-ffmpeg-javacpp",
         "@lib//:libraries-ffmpeg-ffmpeg-linux-x64",
