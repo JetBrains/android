@@ -32,6 +32,22 @@ internal fun loadClass(
   // We use a temp classloader so we can have the same class name across different classes without conflict.
   val tempLoader =
     object : URLClassLoader(arrayOf(URL("jar:file:$composeRuntimePath!/"))) {
+      // The compiled output must win over the parent classpath. A prebuilt jar on the test
+      // classpath can carry a class with the same name as a fixture facade, and the default
+      // parent-first delegation would load that foreign class instead of the compiled one.
+      override fun loadClass(name: String, resolve: Boolean): Class<*> {
+        if (name in output.classesMap || name in output.supportClassesMap || name in extraClasses) {
+          synchronized(getClassLoadingLock(name)) {
+            val loaded = findLoadedClass(name) ?: findClass(name)!!
+            if (resolve) {
+              resolveClass(loaded)
+            }
+            return loaded
+          }
+        }
+        return super.loadClass(name, resolve)
+      }
+
       override fun findClass(name: String): Class<*>? {
         return if (output.classesMap.containsKey(name)) {
           // load it from the target
