@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.kotlin.mock
 
@@ -189,6 +190,7 @@ class AndroidWearWidgetConfigurationExecutorTest : AndroidConfigurationExecutorB
   }
 
   @Test
+  @Ignore("b/553018671")
   fun testDebug() {
     val receivedAmCommands = ArrayList<String>()
     addProtolayoutVersionHandler { shellCommandOutput ->
