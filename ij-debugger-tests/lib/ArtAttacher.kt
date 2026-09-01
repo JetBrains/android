@@ -135,7 +135,7 @@ internal class ArtAttacher : VmAttacher {
   }
 
   private fun getRemoteConnection(testCase: KotlinDescriptorTestCase, javaParameters: JavaParameters): RemoteConnection {
-    println("Running on ART VM with DEX Cache")
+    println("Running ART test: ${testCase.javaClass.name}.${testCase.name}")
     val timeout = getTestTimeoutMillis()
     if (timeout != null) {
       testCase.setTimeout(timeout)

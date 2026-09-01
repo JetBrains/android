@@ -4,15 +4,11 @@ load("@rules_java//java:defs.bzl", "java_test")
 load("@tools_idea//build:tests-options.bzl", "ADD_OPENS_FLAGS", "JAVA_TEST_FLAGS", "TEST_FRAMEWORK_DEPS")
 load("@tools_idea//plugins/kotlin:kotlin_test_dependencies.bzl", "all_test_dep_targets")
 
-def include_tests_filter(tests):
-    patterns = "|".join([test.replace("$", "\\$").replace(".", "\\.") for test in tests])
-    return "include-methodname=" + patterns
-
 def debugger_test(
         name,
         test_dep,
         expected_results = None,
-        filter = None,
+        filters = [],
         run_on_art = False,
         **kwargs):
     """Define a debugger test that a JVM.
@@ -21,7 +17,7 @@ def debugger_test(
         name: The base name of the tests
         test_dep: The jar dep that contains the tests
         expected_results: An option text file containing expected results
-        filter: An option filter
+        filters: A list of option filters
         run_on_art: Specifies whether to run on ART or JVM
         **kwargs: Additional arguments for java_test
     """
@@ -54,14 +50,13 @@ def debugger_test(
         data = data + [expected_results]
         runtime_deps = runtime_deps + ["//tools/adt/idea/ij-debugger-tests/lib:expected-failures-interceptor"]
 
-    if filter:
-        env = env | {"JB_TEST_JUNIT5_FILTERS": filter}
+    if filters:
+        env = env | {"JB_TEST_JUNIT5_FILTERS": ";".join(filters)}
 
     if run_on_art:
         env = env | {
             "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "com.google.android.tools.debugger.test.lib.ArtAttacher",
             "INTELLIJ_DEBUGGER_TESTS_DEX_CACHE": "./dex_cache",
-            "INTELLIJ_DEBUGGER_TESTS_TIMEOUT_MILLIS": "60000",
             "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": ".",
         }
         data = data + [
