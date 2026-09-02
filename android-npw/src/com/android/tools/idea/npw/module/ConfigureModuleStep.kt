@@ -31,7 +31,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectModelData
-import com.android.tools.idea.npw.model.hasKtsUsage
+import com.android.tools.idea.npw.model.hasDclUsage
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
@@ -59,7 +59,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.DCL
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.Groovy
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
 import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
@@ -102,7 +101,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   // language is not visible,
   // thus, build script is determined if the existing project has KTS usage
   private val buildConfigurationLanguage: OptionalValueProperty<BuildConfigurationLanguageForNewModule> =
-    OptionalValueProperty(if (model.project.hasKtsUsage()) KTS else Groovy)
+    OptionalValueProperty(if (model.project.hasDclUsage()) DCL else KTS)
 
   private val disposable by lazy { parentDisposable ?: this }
   private val androidVersionsInfo = AndroidVersionsInfo()
@@ -211,7 +210,6 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     model.dslLanguage.set(
       when (buildConfigurationLanguage.value) {
         KTS -> DslLanguage.KTS
-        Groovy -> DslLanguage.GROOVY
         DCL -> DslLanguage.DCL
       }
     )
