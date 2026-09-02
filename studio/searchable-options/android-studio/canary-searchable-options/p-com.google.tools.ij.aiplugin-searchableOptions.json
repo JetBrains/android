@@ -416,7 +416,11 @@
       "path": "ActionManager"
     },
     {
-      "hit": "Migrate to Compose",
+      "hit": "Migrate Project to Compose",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Migrate the project to Jetpack Compose using AI.",
       "path": "ActionManager"
     },
     {
@@ -501,10 +505,6 @@
     },
     {
       "hit": "Start a review of your pending changes using the AI agent",
-      "path": "ActionManager"
-    },
-    {
-      "hit": "Starts the migration of the project to Compose using AI",
       "path": "ActionManager"
     },
     {
