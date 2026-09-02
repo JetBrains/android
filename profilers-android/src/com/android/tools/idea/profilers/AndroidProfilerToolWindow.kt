@@ -396,11 +396,15 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     }
   }
 
-  /** Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened. */
-  fun openTaskTab() {
+  /**
+   * Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened. Returns true if the task
+   * tab was opened inside the tool window, false if opened in the editor.
+   */
+  fun openTaskTab(): Boolean {
     val taskTab = findTaskTab()
     if (taskTab != null) {
       window.getContentManager().setSelectedContent(taskTab)
+      return true
     } else {
       liveTaskVirtualFile?.let { virtualFile ->
         val fileEditorManager = FileEditorManager.getInstance(project)
@@ -408,6 +412,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
           ApplicationManager.getApplication().invokeLater { fileEditorManager.openFile(virtualFile, true) }
         }
       }
+      return false
     }
   }
 
