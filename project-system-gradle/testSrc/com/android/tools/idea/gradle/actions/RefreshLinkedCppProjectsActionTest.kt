@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.Facets
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.testFramework.replaceService
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -53,7 +55,7 @@ class RefreshLinkedCppProjectsActionTest : HeavyPlatformTestCase() {
   fun testDoUpdateWithSyncInProgressWithoutCpp() {
     myAction = createAction(false)
 
-    IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState::class.java, mySyncState!!)
+    project.replaceService(GradleSyncState::class.java, mySyncState!!, testRootDisposable)
     Mockito.`when`(mySyncState!!.isSyncInProgress).thenReturn(true)
 
     myAction!!.doUpdate(myEvent!!, project)
@@ -64,7 +66,7 @@ class RefreshLinkedCppProjectsActionTest : HeavyPlatformTestCase() {
   fun testDoUpdateWithSyncInProgressWithCpp() {
     myAction = createAction(true)
 
-    IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState::class.java, mySyncState!!)
+    project.replaceService(GradleSyncState::class.java, mySyncState!!, testRootDisposable)
     Mockito.`when`(mySyncState!!.isSyncInProgress).thenReturn(true)
 
     myAction!!.doUpdate(myEvent!!, project)
@@ -75,7 +77,7 @@ class RefreshLinkedCppProjectsActionTest : HeavyPlatformTestCase() {
   fun testDoUpdateWithSyncNotInProgressWithoutCpp() {
     myAction = createAction(false)
 
-    IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState::class.java, mySyncState!!)
+    project.replaceService(GradleSyncState::class.java, mySyncState!!, testRootDisposable)
     Mockito.`when`(mySyncState!!.isSyncInProgress).thenReturn(false)
 
     myAction!!.doUpdate(myEvent!!, project)
@@ -87,12 +89,28 @@ class RefreshLinkedCppProjectsActionTest : HeavyPlatformTestCase() {
   fun testDoUpdateWithSyncNotInProgressWithCpp() {
     myAction = createAction(true)
 
-    IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState::class.java, mySyncState!!)
+    project.replaceService(GradleSyncState::class.java, mySyncState!!, testRootDisposable)
     Mockito.`when`(mySyncState!!.isSyncInProgress).thenReturn(false)
 
     myAction!!.doUpdate(myEvent!!, project)
 
     assertTrue(myPresentation!!.isEnabled)
+  }
+
+  fun testContainsExternalCppProjectsWithoutCpp() {
+    val action = RefreshLinkedCppProjectsAction()
+    assertFalse(action.containsExternalCppProjects(project))
+  }
+
+  fun testContainsExternalCppProjectsWithCpp() {
+    val action = RefreshLinkedCppProjectsAction()
+    val ndkFacet = Facets.createAndAddNdkFacet(module)
+    val ndkModuleModel = Mockito.mock(NdkModuleModel::class.java)
+    Mockito.`when`(ndkModuleModel.selectedVariant).thenReturn("debug")
+    Mockito.`when`(ndkModuleModel.selectedAbi).thenReturn("x86")
+    ndkFacet.setNdkModuleModel(ndkModuleModel)
+
+    assertTrue(action.containsExternalCppProjects(project))
   }
 
   private fun createAction(projectHasCpp: Boolean): RefreshLinkedCppProjectsAction {
