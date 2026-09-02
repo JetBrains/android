@@ -102,7 +102,7 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
     <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinTest" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.codeInsight.liveTemplates" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-ide-plugin" />

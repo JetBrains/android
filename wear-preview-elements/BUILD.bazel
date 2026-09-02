@@ -78,7 +78,8 @@ jvm_library(
     runtime_deps = [":wear-preview-elements-tests"],
     deps = [
         # do not sort,
-        "@lib//:kotlin-test",
+        "//libraries/kotlin/test:libraries-kotlinTest",
+        "//libraries/kotlin/test:libraries-kotlinTest_test_lib",
         "@lib//:truth",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
