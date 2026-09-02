@@ -239,7 +239,7 @@
         errorLine2="    ^">
         <location
             file="src/com/android/tools/idea/welcome/wizard/FirstRunWizardModel.kt"
-            line="130"
+            line="128"
             column="5"/>
     </issue>
 
@@ -322,6 +322,17 @@
 
     <issue
         id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but the work passed to `invokeLater` is expected to run from `@UiThread`"
+        errorLine1="          promptAndReboot(prompt);"
+        errorLine2="          ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/avdmanager/AccelerationErrorSolution.java"
+            line="317"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
         message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
         errorLine1="    return wizard.showAndGet()"
         errorLine2="                  ~~~~~~~~~~~~">
@@ -333,12 +344,34 @@
 
     <issue
         id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but the work passed to `invokeLater` is expected to run from `@UiThread`"
+        errorLine1="              ApplicationManager.getApplication().invokeLater(() -> openColorPicker(getCurrentColor(), configuration), ModalityState.any());"
+        errorLine2="                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/org/jetbrains/android/AndroidAnnotatorUtil.java"
+            line="410"
+            column="69"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but the work passed to `invokeLater` is expected to run from `@UiThread`"
+        errorLine1="            AndroidFindStyleApplicationsAction.doRefactoringForTag("
+        errorLine2="                                               ^">
+        <location
+            file="src/org/jetbrains/android/refactoring/AndroidExtractStyleAction.java"
+            line="205"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
         message="Call must be from `@{Slow,WorkerThread}`, but super method `BaseRefactoringProcessor.performRefactoring(…)` is allowing `@UiThread`"
         errorLine1="          getOrCreateTargetDirectory(repo, resource)?.let { targetDir ->"
         errorLine2="          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/refactoring/modularize/AndroidModularizeProcessor.kt"
-            line="200"
+            line="199"
             column="11"/>
     </issue>
 
@@ -349,7 +382,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/refactoring/modularize/AndroidModularizeProcessor.kt"
-            line="205"
+            line="204"
             column="12"/>
     </issue>
 
@@ -360,7 +393,7 @@
         errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/refactoring/modularize/AndroidModularizeProcessor.kt"
-            line="216"
+            line="215"
             column="10"/>
     </issue>
 
@@ -516,6 +549,17 @@
             file="src/com/android/tools/idea/welcome/wizard/SdkComponentsStepController.kt"
             line="105"
             column="18"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but the work passed to `invokeLater` is expected to run from `@UiThread`"
+        errorLine1="          Futures.addCallback(myData.setKeyName(keyToRename, (String)value), new FutureCallback&lt;>() {"
+        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/strings/table/StringResourceTableModel.java"
+            line="124"
+            column="38"/>
     </issue>
 
 </issues>
