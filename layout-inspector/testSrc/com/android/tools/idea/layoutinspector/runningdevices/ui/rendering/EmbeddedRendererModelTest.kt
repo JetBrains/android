@@ -54,6 +54,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import java.awt.Rectangle
+import java.awt.image.BufferedImage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -286,6 +287,23 @@ class EmbeddedRendererModelTest {
       )
     val instructions1 = localRenderModel.images.first()
     assertThat(instructions1).isEqualTo(expectedInstructions1)
+  }
+
+  @Test
+  fun testRenderImagesUpdatesOnWindowUpdate() = runTest {
+    val image1 = BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB)
+    val localInspectorModel = model(disposableRule.disposable, displayId = 0) { view(ROOT, 0, 0, 100, 100) { image = image1 } }
+    val localRenderModel = createEmbeddedRendererModel(model = localInspectorModel)
+    testScheduler.advanceUntilIdle()
+
+    assertThat(localRenderModel.images.first().first().image).isSameAs(image1)
+
+    val image2 = BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB)
+    val updatedWindow = viewWindow(ROOT, 0, 0, 100, 100, image = image2) {}
+    localInspectorModel.update(updatedWindow, listOf(ROOT), 1)
+    testScheduler.advanceUntilIdle()
+
+    assertThat(localRenderModel.images.first().first().image).isSameAs(image2)
   }
 
   @Test

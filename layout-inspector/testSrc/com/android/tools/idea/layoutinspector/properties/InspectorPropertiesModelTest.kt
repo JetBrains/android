@@ -67,13 +67,13 @@ class InspectorPropertiesModelTest {
 
     assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(1)
     assertThat(layoutInspector.inspectorModel.connectionListeners.size()).isEqualTo(1)
-    assertThat(layoutInspector.inspectorModel.modificationListeners.size()).isEqualTo(3)
+    assertThat(layoutInspector.inspectorModel.modificationListeners.size()).isEqualTo(2)
 
     Disposer.dispose(disposableRule.disposable)
 
     assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(0)
     assertThat(layoutInspector.inspectorModel.connectionListeners.size()).isEqualTo(0)
-    assertThat(layoutInspector.inspectorModel.modificationListeners.size()).isEqualTo(2)
+    assertThat(layoutInspector.inspectorModel.modificationListeners.size()).isEqualTo(1)
   }
 
   private fun createLayoutInspector(): LayoutInspector {

@@ -143,13 +143,6 @@ private constructor(
     onClientChanged(client)
   }
 
-  init {
-    // refresh the rendering each time the inspector model changes
-    inspectorModel.addModificationListener { _, newAndroidWindow, _ ->
-      coroutineScope.launch { newAndroidWindow?.refreshImages(renderSettings.scaleFraction) }
-    }
-  }
-
   val currentClient
     get() = currentClientProvider()
 
@@ -234,6 +227,7 @@ private constructor(
           latestLoadTime.set(time)
           // If we've disconnected, don't continue with the update.
           if (currentClient.state <= InspectorClient.State.CONNECTED) {
+            data.window?.refreshImages(renderSettings.scaleFraction)
             inspectorModel.update(data.window, allIds, data.generation) {
               currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
               if (logger.isDebugEnabled) {

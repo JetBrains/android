@@ -67,6 +67,7 @@ abstract class AndroidWindow(val root: ViewNode, val displayId: Int?, val id: An
     } else {
       imageType = other.imageType
     }
+    image = other.image
   }
 
   /**

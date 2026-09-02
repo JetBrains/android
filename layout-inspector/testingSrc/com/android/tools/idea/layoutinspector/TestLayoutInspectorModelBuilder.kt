@@ -68,6 +68,7 @@ fun viewWindow(
   rootViewQualifiedName: String = CLASS_VIEW,
   layoutFlags: Int = 0,
   isXr: Boolean = false,
+  image: BufferedImage? = null,
   body: InspectorViewDescriptor.() -> Unit = {},
 ): ViewAndroidWindow {
   val root =
@@ -90,7 +91,9 @@ fun viewWindow(
 
   val layoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply { this.isXr = isXr }.build()
 
-  return ViewAndroidWindow(root = root, event = layoutEvent, folderConfiguration = mock(), logEvent = {})
+  return ViewAndroidWindow(root = root, event = layoutEvent, folderConfiguration = mock(), logEvent = {}).apply {
+    this.image = image
+  }
 }
 
 fun window(
@@ -105,6 +108,7 @@ fun window(
   viewId: ResourceReference? = null,
   textValue: String = "",
   layoutFlags: Int = 0,
+  image: BufferedImage? = null,
   onRefreshImages: () -> Unit = {},
   body: InspectorViewDescriptor.() -> Unit = {},
 ): AndroidWindow {
@@ -126,7 +130,7 @@ fun window(
       .also(body)
       .build()
 
-  return FakeAndroidWindow(inspectorViewDescriptor, windowId, imageType) { _, _ -> onRefreshImages() }
+  return FakeAndroidWindow(inspectorViewDescriptor, windowId, imageType, image = image) { _, _ -> onRefreshImages() }
 }
 
 private val defaultLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "defaultLayout")
