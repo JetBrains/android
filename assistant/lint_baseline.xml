@@ -1,15 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.5.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.5.0-dev">
-
-    <issue
-        id="WrongThread"
-        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
-        errorLine1="        templateData = getExistingModuleTemplateDataBuilder(module).build(),"
-        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="tools/adt/idea/assistant/src/com/android/tools/idea/assistant/RecipeUtils.kt"
-            line="98"
-            column="24"/>
-    </issue>
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
 </issues>

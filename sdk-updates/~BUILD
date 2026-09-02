@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.sdkUpdates",
     srcs = ["src"],
     iml_files = ["intellij.android.sdkUpdates.iml"],
-    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

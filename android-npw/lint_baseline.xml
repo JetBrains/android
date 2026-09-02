@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.5.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.5.0-dev">
+<issues format="6" by="lint 9.4.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.4.0-dev">
 
     <issue
         id="JbUiStored"
@@ -7,31 +7,9 @@
         errorLine1="  private static final int ICON_ROW_HEIGHT = JBUI.scale(48 + 16);"
         errorLine2="                                                  ~~~~~">
         <location
-            file="tools/adt/idea/android-npw/src/com/android/tools/idea/npw/assetstudio/ui/IconPickerDialog.java"
+            file="src/com/android/tools/idea/npw/assetstudio/ui/IconPickerDialog.java"
             line="127"
             column="51"/>
-    </issue>
-
-    <issue
-        id="UnsatisfiableThreadConstraint"
-        message="Statement must run from `@{Slow,WorkerThread}`, incompatible with earlier code that must run from `@UiThread`"
-        errorLine1="    myInstallSDKButton.addActionListener(e -> {"
-        errorLine2="                                              ^">
-        <location
-            file="tools/adt/idea/android-npw/src/com/android/tools/idea/npw/project/ConfigureAndroidSdkStep.java"
-            line="30"
-            column="47"/>
-    </issue>
-
-    <issue
-        id="UnsatisfiableThreadConstraint"
-        message="Statement must run from `@UiThread`, incompatible with earlier code that must run from `@{Slow,WorkerThread}`"
-        errorLine1="    for (AndroidIconType iconType : supportedTypes) {"
-        errorLine2="    ^">
-        <location
-            file="tools/adt/idea/android-npw/src/com/android/tools/idea/npw/assetstudio/wizard/GenerateImageAssetPanel.java"
-            line="238"
-            column="5"/>
     </issue>
 
     <issue
@@ -40,7 +18,7 @@
         errorLine1="          while (f != null &amp;&amp; !Objects.equals(f, root)) {"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="tools/adt/idea/android-npw/src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
+            file="src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
             line="592"
             column="32"/>
     </issue>
@@ -51,7 +29,7 @@
         errorLine1="    val context = getAndroidAssetStudioContext(event) ?: return"
         errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="tools/adt/idea/android-npw/src/com/android/tools/idea/npw/actions/AndroidAssetStudioAction.kt"
+            file="src/com/android/tools/idea/npw/actions/AndroidAssetStudioAction.kt"
             line="59"
             column="19"/>
     </issue>
