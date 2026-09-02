@@ -38,20 +38,18 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import kotlin.Unit;
 
-/**
- * Simple implementation of {@link BuildInvoker} for injecting dependencies in test code.
- */
+/** Simple implementation of {@link BuildInvoker} for injecting dependencies in test code. */
 @AutoValue
 public abstract class FakeBuildInvoker implements BuildInvoker {
 
   public static Builder builder() {
     return new AutoValue_FakeBuildInvoker.Builder()
-      .type(BuildBinaryType.NONE)
-      .invokeCommand(ImmutableList.of(""))
-      .capabilities(ImmutableSet.of())
-      .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build())
-      .testResults(null)
-      .bepStreamProvider(null);
+        .type(BuildBinaryType.NONE)
+        .invokeCommand(ImmutableList.of(""))
+        .capabilities(ImmutableSet.of())
+        .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build())
+        .testResults(null)
+        .bepStreamProvider(null);
   }
 
   @Override
@@ -83,19 +81,22 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   }
 
   @Override
-  public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
-                                               BlazeContext blazeContext,
-                                               BuildSystem.BuildEventStreamConsumer<Unit> consumer) {
+  public ProcessHandler invokeAsProcessHandler(
+      BlazeCommand.Builder blazeCommandBuilder,
+      BlazeContext blazeContext,
+      BuildSystem.BuildEventStreamConsumer<Unit> consumer) {
     return new FakeProcessHandler();
   }
 
   @Override
-  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException {
+  public InputStream invokeQuery(
+      BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException {
     return InputStream.nullInputStream();
   }
 
   @Override
-  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
+  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
+      throws BuildException {
     return InputStream.nullInputStream();
   }
 
@@ -112,7 +113,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     }
     return new BuildEventStreamProvider() {
       private final UnmodifiableIterator<BuildEventStreamProtos.BuildEvent> messages =
-        getBuildEvents().iterator();
+          getBuildEvents().iterator();
 
       @Override
       public Object getId() {
@@ -141,44 +142,40 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   private ImmutableList<BuildEventStreamProtos.BuildEvent> getBuildEvents() {
     ImmutableList.Builder<BuildEventStreamProtos.BuildEvent> events = ImmutableList.builder();
     events.add(
-      BuildEventStreamProtos.BuildEvent.newBuilder()
-        .setId(
-          BuildEventStreamProtos.BuildEventId.newBuilder()
-            .setStarted(
-              BuildEventStreamProtos.BuildEventId.BuildStartedId
-                .getDefaultInstance()))
-        .setStarted(
-          BuildEventStreamProtos.BuildStarted.newBuilder().setUuid("buildId"))
-        .build());
+        BuildEventStreamProtos.BuildEvent.newBuilder()
+            .setId(
+                BuildEventStreamProtos.BuildEventId.newBuilder()
+                    .setStarted(
+                        BuildEventStreamProtos.BuildEventId.BuildStartedId.getDefaultInstance()))
+            .setStarted(BuildEventStreamProtos.BuildStarted.newBuilder().setUuid("buildId"))
+            .build());
 
     if (getTestResults() != null) {
       getTestResults()
-        .perTargetResults
-        .forEach(
-          (label, result) ->
-            events.add(
-              BuildEventStreamProtos.BuildEvent.newBuilder()
-                .setId(
-                  BuildEventStreamProtos.BuildEventId.newBuilder()
-                    .setTestResult(
-                      BuildEventStreamProtos.BuildEventId.TestResultId
-                        .newBuilder()
-                        .setLabel(label.toString())))
-                .setTestResult(
-                  BuildEventStreamProtos.TestResult.newBuilder()
-                    .setStatus(getTestStatus(result.getTestStatus())))
-                .build()));
+          .perTargetResults
+          .forEach(
+              (label, result) ->
+                  events.add(
+                      BuildEventStreamProtos.BuildEvent.newBuilder()
+                          .setId(
+                              BuildEventStreamProtos.BuildEventId.newBuilder()
+                                  .setTestResult(
+                                      BuildEventStreamProtos.BuildEventId.TestResultId.newBuilder()
+                                          .setLabel(label.toString())))
+                          .setTestResult(
+                              BuildEventStreamProtos.TestResult.newBuilder()
+                                  .setStatus(getTestStatus(result.getTestStatus())))
+                          .build()));
     }
 
     events.add(
-      BuildEventStreamProtos.BuildEvent.newBuilder()
-        .setId(
-          BuildEventStreamProtos.BuildEventId.newBuilder()
-            .setBuildFinished(
-              BuildEventStreamProtos.BuildEventId.BuildFinishedId
-                .getDefaultInstance()))
-        .setFinished(BuildEventStreamProtos.BuildFinished.newBuilder())
-        .build());
+        BuildEventStreamProtos.BuildEvent.newBuilder()
+            .setId(
+                BuildEventStreamProtos.BuildEventId.newBuilder()
+                    .setBuildFinished(
+                        BuildEventStreamProtos.BuildEventId.BuildFinishedId.getDefaultInstance()))
+            .setFinished(BuildEventStreamProtos.BuildFinished.newBuilder())
+            .build());
     return events.build();
   }
 

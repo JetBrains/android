@@ -53,7 +53,7 @@ interface BuildSystem {
     PARALLEL,
   }
 
-  fun interface BuildEventStreamConsumer<T> {
+  fun interface BuildEventStreamConsumer<T : Any> {
     @Throws(BuildException::class) fun consume(streamProvider: BuildEventStreamProvider): T
   }
 
@@ -80,7 +80,7 @@ interface BuildSystem {
 
     /** Runs a blaze command, parses the build results into a [BlazeBuildOutputs] object. */
     @Throws(BuildException::class)
-    fun <T> invoke(blazeCommandBuilder: BlazeCommand.Builder, blazeContext: BlazeContext, consumer: BuildEventStreamConsumer<T>): T
+    fun <T : Any> invoke(blazeCommandBuilder: BlazeCommand.Builder, blazeContext: BlazeContext, consumer: BuildEventStreamConsumer<T>): T
 
     /** Runs a blaze command and returns a process handler, which can be used by the IDE to control its execution. */
     @Throws(BuildException::class)
@@ -93,7 +93,7 @@ interface BuildSystem {
     /**
      * Runs a blaze query command.
      *
-     * @return [InputStream] from the stdout of the blaze invocation and null if the query fails
+     * @return [InputStream] from the stdout of the blaze invocation
      */
     @MustBeClosed
     @Throws(BuildException::class)
@@ -102,7 +102,7 @@ interface BuildSystem {
     /**
      * Runs a blaze info command.
      *
-     * @return [InputStream] from the stdout of the blaze invocation and null if blaze info fails
+     * @return [InputStream] from the stdout of the blaze invocation
      */
     @MustBeClosed
     @Throws(BuildException::class)
@@ -188,7 +188,7 @@ constructor(
 
   val invocations: MutableList<RecordedInvocation> = mutableListOf()
 
-  override fun <T> invoke(
+  override fun <T : Any> invoke(
     blazeCommandBuilder: BlazeCommand.Builder,
     blazeContext: BlazeContext,
     consumer: BuildSystem.BuildEventStreamConsumer<T>,
