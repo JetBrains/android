@@ -5,6 +5,8 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "bazel",
+    "bazel8",
+    "bazel9",
     "bazel_central_registry.zip",
     "projects.zip",
 ])
@@ -29,9 +31,16 @@ def _aswb_test_deps_repository_impl(rctx):
         artifacts.append(sha256)
 
     rctx.download(
-        rctx.attr.bazel_url,
-        output = "bazel",
-        sha256 = rctx.attr.bazel_sha256,
+        rctx.attr.bazel8_url,
+        output = "bazel8",
+        sha256 = rctx.attr.bazel8_sha256,
+        executable = True,
+    )
+    rctx.symlink("bazel8", "bazel")
+    rctx.download(
+        rctx.attr.bazel9_url,
+        output = "bazel9",
+        sha256 = rctx.attr.bazel9_sha256,
         executable = True,
     )
     rctx.download(
@@ -61,9 +70,13 @@ aswb_test_deps_repository = repository_rule(
         # Artifacts needed for repository cache.
         "artifacts": attr.string_dict(mandatory = True),
 
-        # Bazel binary URL and SHA256.
-        "bazel_url": attr.string(mandatory = True),
-        "bazel_sha256": attr.string(mandatory = True),
+        # Bazel 8 binary URL and SHA256.
+        "bazel8_url": attr.string(mandatory = True),
+        "bazel8_sha256": attr.string(mandatory = True),
+
+        # Bazel 9 binary URL and SHA256.
+        "bazel9_url": attr.string(mandatory = True),
+        "bazel9_sha256": attr.string(mandatory = True),
 
         # Bazel central registry URL and SHA256.
         "bcr_url": attr.string(mandatory = True),
