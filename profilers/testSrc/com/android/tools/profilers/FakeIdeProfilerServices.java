@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -558,10 +559,27 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myNotification = notification;
   }
 
+  private List<String> myNativeSymbolsDirectories = Collections.singletonList(FAKE_SYMBOL_DIR);
+  private Map<String, String> myProguardMappings = Collections.emptyMap();
+
   @NotNull
   @Override
   public List<String> getNativeSymbolsDirectories() {
-    return Collections.singletonList(FAKE_SYMBOL_DIR);
+    return myNativeSymbolsDirectories;
+  }
+
+  public void setNativeSymbolsDirectories(@NotNull List<String> dirs) {
+    myNativeSymbolsDirectories = dirs;
+  }
+
+  @NotNull
+  @Override
+  public Map<String, String> getProguardMappings() {
+    return myProguardMappings;
+  }
+
+  public void setProguardMappings(@NotNull Map<String, String> mappings) {
+    myProguardMappings = mappings;
   }
 
   @NotNull
@@ -676,7 +694,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Nullable
   @Override
-  public File symbolizeAndDeobfuscateTrace(@NotNull File traceFile, @NotNull List<String> symbolDirs) {
+  public File symbolizeAndDeobfuscateTrace(@NotNull File traceFile,
+                                          @NotNull List<String> symbolDirs,
+                                          @NotNull Map<String, String> proguardMaps) {
     myTraceSymbolizedAndDeobfuscated = true;
     return traceFile;
   }

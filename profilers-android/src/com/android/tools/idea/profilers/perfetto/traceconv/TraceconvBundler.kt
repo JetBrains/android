@@ -33,8 +33,14 @@ object TraceconvBundler {
   private const val TRACECONV_TIMEOUT_MS = 120_000
 
   @JvmStatic
-  fun bundle(traceFile: File, symbolDirs: List<String>): File? {
-    if (symbolDirs.isEmpty() || !traceFile.exists()) {
+  @JvmOverloads
+  fun bundle(
+    traceFile: File,
+    symbolDirs: List<String> = emptyList(),
+    proguardMaps: Map<String, String> = emptyMap(),
+  ): File? {
+    val validProguardMaps = proguardMaps.filter { File(it.value).exists() }
+    if ((symbolDirs.isEmpty() && validProguardMaps.isEmpty()) || !traceFile.exists()) {
       return null
     }
 
@@ -59,7 +65,7 @@ object TraceconvBundler {
     }
 
     try {
-      val bundledFile = executeBundle(traceFile, symbolDirs)
+      val bundledFile = executeBundle(traceFile, symbolDirs, validProguardMaps)
       bundleTask.complete(bundledFile)
       return bundledFile
     } finally {
@@ -68,7 +74,11 @@ object TraceconvBundler {
     }
   }
 
-  private fun executeBundle(traceFile: File, symbolDirs: List<String>): File? {
+  private fun executeBundle(
+    traceFile: File,
+    symbolDirs: List<String>,
+    proguardMaps: Map<String, String>,
+  ): File? {
     var tempOut: File? = null
     var success = false
     return try {
@@ -82,7 +92,7 @@ object TraceconvBundler {
       LOGGER.debug("Starting traceconv bundle for trace: ${traceFile.name}")
       tempOut = File(FileUtil.getTempDirectory(), "bundled_${java.util.UUID.randomUUID()}.temp")
 
-      val command = buildBundleCommand(traceFile, tempOut, symbolDirs)
+      val command = buildBundleCommand(traceFile, tempOut, symbolDirs, proguardMaps)
       LOGGER.info("Running traceconv command: $command")
 
       val commandLine = GeneralCommandLine(command)
@@ -98,7 +108,7 @@ object TraceconvBundler {
       }
 
       if (processOutput.exitCode != 0) {
-        val error = processOutput.stderr.trim()
+        val error = processOutput.stderr.trim().ifEmpty { processOutput.stdout.trim() }
         LOGGER.warn("traceconv bundle failed for trace ${traceFile.name} (exit code: ${processOutput.exitCode}): $error")
         return null
       }
@@ -143,12 +153,29 @@ object TraceconvBundler {
   }
 
   @VisibleForTesting
-  internal fun buildBundleCommand(traceFile: File, outputFile: File, symbolDirs: List<String>): List<String> {
+  internal fun buildBundleCommand(
+    traceFile: File,
+    outputFile: File,
+    symbolDirs: List<String> = emptyList(),
+    proguardMaps: Map<String, String> = emptyMap(),
+    verbose: Boolean = LOGGER.isDebugEnabled,
+  ): List<String> {
     val command = mutableListOf<String>()
     command.add(TraceconvManager.getExecutablePath())
     command.add("bundle")
-    command.add("--symbol-paths")
-    command.add(symbolDirs.joinToString(","))
+    if (symbolDirs.isNotEmpty()) {
+      command.add("--symbol-paths")
+      command.add(symbolDirs.joinToString(","))
+    }
+
+    for ((pkg, mapPath) in proguardMaps) {
+      command.add("--proguard-map")
+      command.add(if (pkg.isNotEmpty()) "$pkg=$mapPath" else mapPath)
+    }
+
+    if (verbose) {
+      command.add("--verbose")
+    }
     command.add(traceFile.absolutePath)
     command.add(outputFile.absolutePath)
     return command

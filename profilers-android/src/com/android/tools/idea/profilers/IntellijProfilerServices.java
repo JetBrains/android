@@ -108,6 +108,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -131,6 +132,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @NotNull private final SymbolFilesLocator mySymbolLocator;
+  @NotNull private final MappingFilesLocator myMappingLocator;
   private final CodeNavigator myCodeNavigator;
   @NotNull private final NativeFrameSymbolizer myNativeSymbolizer;
   private final StudioFeatureTracker myFeatureTracker;
@@ -140,11 +142,13 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
 
   public IntellijProfilerServices(@NotNull Project project,
-                                  @NotNull SymbolFilesLocator symbolLocator) {
+                                  @NotNull SymbolFilesLocator symbolLocator,
+                                  @NotNull MappingFilesLocator mappingLocator) {
     myProject = project;
     myFeatureTracker = new StudioFeatureTracker(myProject);
 
     mySymbolLocator = symbolLocator;
+    myMappingLocator = mappingLocator;
 
     NativeSymbolizer nativeSymbolizer = NativeSymbolizerKt.createNativeSymbolizer(mySymbolLocator);
     Disposer.register(this, nativeSymbolizer::stop);
@@ -834,10 +838,19 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return LeakCanaryAiHandler.fetchLeakInsight(myProject, rawTrace);
   }
 
+  @NotNull
+  @Override
+  @Unmodifiable
+  public Map<String, String> getProguardMappings() {
+    return myMappingLocator.getMappings();
+  }
+
   @Nullable
   @Override
-  public File symbolizeAndDeobfuscateTrace(@NotNull File traceFile, @NotNull List<String> symbolDirs) {
-    return TraceconvBundler.bundle(traceFile, symbolDirs);
+  public File symbolizeAndDeobfuscateTrace(@NotNull File traceFile,
+                                          @NotNull List<String> symbolDirs,
+                                          @NotNull Map<String, String> proguardMaps) {
+    return TraceconvBundler.bundle(traceFile, symbolDirs, proguardMaps);
   }
   /**
    * Implementation of {@link FeatureConfig} with values used in production.

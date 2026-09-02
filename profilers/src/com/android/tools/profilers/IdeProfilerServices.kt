@@ -254,10 +254,17 @@ interface IdeProfilerServices {
    */
   fun fetchLeakInsight(rawTrace: String): Flow<String> = emptyFlow()
 
+  /** Maps package names (or empty string) to Proguard/R8 mapping file paths. */
+  fun getProguardMappings(): Map<String, String> = emptyMap()
+
   /**
    * Symbolizes and deobfuscates a trace file using traceconv.
    *
    * @return The bundled File on success, or null on failure.
    */
-  fun symbolizeAndDeobfuscateTrace(traceFile: File, symbolDirs: List<String>): File? = null
+  fun symbolizeAndDeobfuscateTrace(
+    traceFile: File,
+    symbolDirs: List<String>,
+    proguardMaps: Map<String, String>,
+  ): File? = null
 }

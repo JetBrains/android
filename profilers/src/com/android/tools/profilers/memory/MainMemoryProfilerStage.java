@@ -60,6 +60,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
@@ -761,10 +762,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   @NotNull
   private File deobfuscateNativeAllocationTrace(@NotNull File originalFile) {
     List<String> symbolDirs = getStudioProfilers().getIdeServices().getNativeSymbolsDirectories();
-    if (symbolDirs.isEmpty()) {
+    Map<String, String> proguardMaps = getStudioProfilers().getIdeServices().getProguardMappings();
+    if (symbolDirs.isEmpty() && proguardMaps.isEmpty()) {
       return originalFile;
     }
-    File bundledFile = getStudioProfilers().getIdeServices().symbolizeAndDeobfuscateTrace(originalFile, symbolDirs);
+    File bundledFile = getStudioProfilers().getIdeServices().symbolizeAndDeobfuscateTrace(originalFile, symbolDirs, proguardMaps);
     return bundledFile != null ? bundledFile : originalFile;
   }
 

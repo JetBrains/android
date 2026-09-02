@@ -125,6 +125,8 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.profilers.profilerProgramRunnerToken"
                     interface="com.android.tools.idea.profilers.ProfilerProgramRunnerToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.profilers.profilerR8MappingToken"
+                    interface="com.android.tools.idea.profilers.ProfilerR8MappingToken"/>
   </extensionPoints>
   <projectListeners>
     <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />

@@ -88,7 +88,8 @@ class IntellijProfilerServicesTest {
     StudioFlags.PROFILER_LEAKCANARY.override(false)
     project = Mockito.spy(MockProjectEx(disposableRule.disposable))
     mockProjectAttributes(project)
-    intellijProfilerServices = IntellijProfilerServices(project, Mockito.mock(SymbolFilesLocator::class.java))
+    intellijProfilerServices =
+      IntellijProfilerServices(project, Mockito.mock(SymbolFilesLocator::class.java), Mockito.mock(MappingFilesLocator::class.java))
     Disposer.register(disposableRule.disposable, intellijProfilerServices)
   }
 
@@ -180,7 +181,8 @@ class IntellijProfilerServicesTest {
     StudioFlags.PROFILER_TASK_BASED_UX.override(true)
     project = Mockito.spy(MockProjectEx(disposableRule.disposable))
     mockProjectAttributes(project)
-    val intellijProfilerServicesNow = IntellijProfilerServices(project, Mockito.mock(SymbolFilesLocator::class.java))
+    val intellijProfilerServicesNow =
+      IntellijProfilerServices(project, Mockito.mock(SymbolFilesLocator::class.java), Mockito.mock(MappingFilesLocator::class.java))
     Disposer.register(disposableRule.disposable, intellijProfilerServicesNow)
     try {
       val result = intellijProfilerServicesNow.getTaskCpuProfilerConfigs(9)
@@ -335,7 +337,7 @@ class IntellijProfilerServicesTest {
     whenever(module.project).thenReturn(project)
 
     // Re-create services as a spy for this test
-    val actualInstance = IntellijProfilerServices(project, mock<SymbolFilesLocator>())
+    val actualInstance = IntellijProfilerServices(project, mock<SymbolFilesLocator>(), mock<MappingFilesLocator>())
     Disposer.register(disposableRule.disposable, actualInstance)
     val servicesSpy = spy(actualInstance)
     doReturn(featureTracker).whenever(servicesSpy).featureTracker
@@ -351,5 +353,16 @@ class IntellijProfilerServicesTest {
     whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
     whenever(project.getService(ModuleManager::class.java)).thenReturn(moduleManager)
     whenever(project.getService(PsiManager::class.java)).thenReturn(psiManger)
+  }
+
+  @Test
+  fun testGetProguardMappingsDelegatesToMappingFilesLocator() {
+    val mockLocator = mock<MappingFilesLocator>()
+    whenever(mockLocator.getMappings()).thenReturn(mapOf("com.example.app" to "/path/to/mapping.txt"))
+
+    val services = IntellijProfilerServices(project, mock<SymbolFilesLocator>(), mockLocator)
+    Disposer.register(disposableRule.disposable, services)
+
+    assertThat(services.getProguardMappings()).containsExactly("com.example.app", "/path/to/mapping.txt")
   }
 }

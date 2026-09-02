@@ -13,6 +13,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
     ],

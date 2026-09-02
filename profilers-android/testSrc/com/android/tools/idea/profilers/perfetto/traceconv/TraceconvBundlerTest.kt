@@ -30,10 +30,25 @@ class TraceconvBundlerTest {
   @get:Rule val temporaryFolder = TemporaryFolder()
 
   @Test
-  fun testBundleWhenSymbolDirsEmpty() {
+  fun testBundleWhenBothSymbolsAndProguardMapsEmpty() {
     val traceFile = temporaryFolder.newFile("sample.heapprofd")
 
-    val result = TraceconvBundler.bundle(traceFile, emptyList())
+    val result = TraceconvBundler.bundle(traceFile)
+
+    assertThat(result).isNull()
+  }
+
+  @Test
+  fun testBundleWhenProguardMapFilesDoNotExist() {
+    val traceFile = temporaryFolder.newFile("sample_missing_map.heapprofd")
+    val nonExistentMap = File(temporaryFolder.root, "non_existent_map.txt")
+
+    val result =
+      TraceconvBundler.bundle(
+        traceFile = traceFile,
+        symbolDirs = emptyList(),
+        proguardMaps = mapOf("com.example.app" to nonExistentMap.absolutePath),
+      )
 
     assertThat(result).isNull()
   }
@@ -74,12 +89,12 @@ class TraceconvBundlerTest {
   }
 
   @Test
-  fun testBuildBundleCommand() {
+  fun testBuildBundleCommandWithSymbolsOnly() {
     val traceFile = temporaryFolder.newFile("input.heapprofd")
     val outputFile = temporaryFolder.newFile("output.heapprofd")
     val symbolDirs = listOf("/path/to/symbols1", "/path/to/symbols2")
 
-    val command = TraceconvBundler.buildBundleCommand(traceFile, outputFile, symbolDirs)
+    val command = TraceconvBundler.buildBundleCommand(traceFile, outputFile, symbolDirs, verbose = false)
 
     assertThat(command)
       .containsExactly(
@@ -87,6 +102,119 @@ class TraceconvBundlerTest {
         "bundle",
         "--symbol-paths",
         "/path/to/symbols1,/path/to/symbols2",
+        traceFile.absolutePath,
+        outputFile.absolutePath,
+      )
+      .inOrder()
+  }
+
+  @Test
+  fun testBuildBundleCommandWithOnlyProguardMap() {
+    val traceFile = temporaryFolder.newFile("input_pg.heapprofd")
+    val outputFile = temporaryFolder.newFile("output_pg.heapprofd")
+    val mappingFile = temporaryFolder.newFile("mapping.txt")
+
+    val command =
+      TraceconvBundler.buildBundleCommand(
+        traceFile = traceFile,
+        outputFile = outputFile,
+        proguardMaps = mapOf("com.example.app" to mappingFile.absolutePath),
+        verbose = false,
+      )
+
+    assertThat(command)
+      .containsExactly(
+        TraceconvManager.getExecutablePath(),
+        "bundle",
+        "--proguard-map",
+        "com.example.app=${mappingFile.absolutePath}",
+        traceFile.absolutePath,
+        outputFile.absolutePath,
+      )
+      .inOrder()
+  }
+
+  @Test
+  fun testBuildBundleCommandWithEmptyPackageNameFormatsWithoutPrefix() {
+    val traceFile = temporaryFolder.newFile("input_no_pkg.heapprofd")
+    val outputFile = temporaryFolder.newFile("output_no_pkg.heapprofd")
+    val mappingFile = temporaryFolder.newFile("mapping_no_pkg.txt")
+
+    val command =
+      TraceconvBundler.buildBundleCommand(
+        traceFile = traceFile,
+        outputFile = outputFile,
+        proguardMaps = mapOf("" to mappingFile.absolutePath),
+        verbose = false,
+      )
+
+    assertThat(command)
+      .containsExactly(
+        TraceconvManager.getExecutablePath(),
+        "bundle",
+        "--proguard-map",
+        mappingFile.absolutePath,
+        traceFile.absolutePath,
+        outputFile.absolutePath,
+      )
+      .inOrder()
+  }
+
+  @Test
+  fun testBuildBundleCommandWithSymbolsAndProguardMap() {
+    val traceFile = temporaryFolder.newFile("input2.heapprofd")
+    val outputFile = temporaryFolder.newFile("output2.heapprofd")
+    val mappingFile = temporaryFolder.newFile("mapping.txt")
+    val symbolDirs = listOf("/path/to/symbols")
+
+    val command =
+      TraceconvBundler.buildBundleCommand(
+        traceFile,
+        outputFile,
+        symbolDirs,
+        mapOf("com.example.app" to mappingFile.absolutePath),
+        verbose = false,
+      )
+
+    assertThat(command)
+      .containsExactly(
+        TraceconvManager.getExecutablePath(),
+        "bundle",
+        "--symbol-paths",
+        "/path/to/symbols",
+        "--proguard-map",
+        "com.example.app=${mappingFile.absolutePath}",
+        traceFile.absolutePath,
+        outputFile.absolutePath,
+      )
+      .inOrder()
+  }
+
+  @Test
+  fun testBuildBundleCommandWithVerbose() {
+    val traceFile = temporaryFolder.newFile("input3.heapprofd")
+    val outputFile = temporaryFolder.newFile("output3.heapprofd")
+    val mappingFile = temporaryFolder.newFile("mapping3.txt")
+    val symbolDirs = listOf("/path/to/symbols")
+
+    val command =
+      TraceconvBundler.buildBundleCommand(
+        traceFile,
+        outputFile,
+        symbolDirs,
+        mapOf("com.example.app" to mappingFile.absolutePath),
+        verbose = true,
+      )
+
+    assertThat(command)
+      .containsExactly(
+        TraceconvManager.getExecutablePath(),
+        "bundle",
+        "--symbol-paths",
+        "/path/to/symbols",
+        "--proguard-map",
+        "com.example.app=${mappingFile.absolutePath}",
+        "--verbose",
         traceFile.absolutePath,
         outputFile.absolutePath,
       )
