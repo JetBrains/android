@@ -57,4 +57,23 @@ class RecommendedPluginVersionUpgradeSuppressionTest : UpgradeGradleFileModelTes
       TestCase.assertFalse(shouldRecommendPluginUpgrade(project, current, recommended).upgrade)
     }
   }
+
+  @Test
+  fun testNoPluginUpgradeRecommendationWhenSkipAgpUpgradePropertyIsTrue() {
+    val current = parse("8.0.0")
+    val recommended = parse("8.1.0")
+    val project = projectRule.project
+
+    val previousProperty = System.getProperty("studio.skip.agp.upgrade")
+    try {
+      System.setProperty("studio.skip.agp.upgrade", "true")
+      TestCase.assertFalse(shouldRecommendPluginUpgrade(project, current, recommended).upgrade)
+    } finally {
+      if (previousProperty != null) {
+        System.setProperty("studio.skip.agp.upgrade", previousProperty)
+      } else {
+        System.clearProperty("studio.skip.agp.upgrade")
+      }
+    }
+  }
 }
