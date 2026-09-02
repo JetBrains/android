@@ -437,6 +437,10 @@
       "path": "ActionManager"
     },
     {
+      "hit": "Predict Now",
+      "path": "ActionManager"
+    },
+    {
       "hit": "Previous Chat",
       "path": "ActionManager"
     },
@@ -498,6 +502,10 @@
     },
     {
       "hit": "Suggest commit message by summarizing changes",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Triggers Next Edit Prediction manually at the current caret position.",
       "path": "ActionManager"
     },
     {
