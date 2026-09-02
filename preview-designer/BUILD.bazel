@@ -1,11 +1,16 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.preview-designer` start
 create_kotlinc_options(
     name = "custom_preview-designer",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
 )
 
 jvm_library(
@@ -37,7 +42,6 @@ jvm_library(
         "//libraries/kotlinx/coroutines/core",
         "//libraries/protobuf",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-        "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "//android/adt-ui",
         "//android/artwork",
         "//platform/util/concurrency",
@@ -91,6 +95,7 @@ jvm_library(
         "//plugins/kotlin/base/code-insight",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/rd/core",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
     ],
 )
 
@@ -115,7 +120,8 @@ jvm_library(
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-ir-provided",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/artwork:artwork_test_lib",
         "//platform/util/concurrency:concurrency_test_lib",

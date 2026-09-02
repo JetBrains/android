@@ -25,6 +25,11 @@ kt_javac_options(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
+)
+
+jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
     lib = "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
 )
@@ -89,7 +94,6 @@ jvm_library(
         "//libraries/kotlinc/kotlin-scripting-jvm:libraries-kotlinc-kotlin-scripting-jvm",
         "//plugins/kotlin/scripting",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
-        "@lib//:kotlinc-kotlin-compiler-ir-provided",
         "@lib//:kotlinc-kotlin-gradle-statistics-provided",
         "//android/android-adb:adb",
         "//android/adt-ui",
@@ -270,6 +274,7 @@ jvm_library(
         "//xml/emmet",
         "//libraries/jspecify",
         "//plugins/gradle/java/groovy",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
         ":plugins_maven_artifactResolver-m31_provided",
     ],
@@ -327,7 +332,8 @@ jvm_library(
         "//libraries/kotlinc/kotlin-scripting-jvm:libraries-kotlinc-kotlin-scripting-jvm_test_lib",
         "//plugins/kotlin/scripting:scripting_test_lib",
         "@lib//:kotlinc-kotlin-compiler-fe10-provided",
-        "@lib//:kotlinc-kotlin-compiler-ir-provided",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "@lib//:kotlinc-kotlin-gradle-statistics-provided",
         "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
         "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common_test_lib",
@@ -12065,7 +12071,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-ir",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "@lib//:android-tools-analytics-library-testing",
         "//android/analytics",
         "//android/analytics:analytics_test_lib",

@@ -24,7 +24,6 @@ dev_dist_plugin(
         "@lib//:android-nav-editor-eclipse-layout-kernel",
         "@lib//:jaxb-api",
         "@lib//:kotlinc-kotlin-compiler-fe10",
-        "@lib//:kotlinc-kotlin-compiler-ir",
         "@lib//:libraries-layoutlib-layoutlib",
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",

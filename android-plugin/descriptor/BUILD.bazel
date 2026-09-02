@@ -194,7 +194,6 @@ dev_dist_plugin(
         "@lib//:jaxb-api",
         "@lib//:kotlinc-kotlin-compiler-cli",
         "@lib//:kotlinc-kotlin-compiler-fe10",
-        "@lib//:kotlinc-kotlin-compiler-ir",
         "@lib//:kotlinc-kotlin-gradle-statistics",
         "@lib//:kotlinc-kotlin-jps-plugin-classpath",
         "@lib//:libraries-ffmpeg-ffmpeg",
