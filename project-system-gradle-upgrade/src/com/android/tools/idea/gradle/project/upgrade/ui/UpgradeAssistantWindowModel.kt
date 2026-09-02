@@ -435,9 +435,7 @@ class UpgradeAssistantWindowModel(
       .asSequence()
       // Keep only versions that are later than or equal to current
       .filter { current?.let { current -> it >= current } ?: false }
-      // Keep only versions that are no later than the latest version we support
-      .filter { it <= latestKnownVersion }
-      // Do not keep other versions that the IDE does not support
+      // Do not keep versions that the IDE does not support
       .filter { !versionsAreUnsupported(it, latestKnownVersion) }
       .toList()
       .sortedDescending()

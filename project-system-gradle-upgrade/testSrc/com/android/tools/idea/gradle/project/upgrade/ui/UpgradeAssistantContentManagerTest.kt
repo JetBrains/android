@@ -1158,6 +1158,15 @@ class UpgradeAssistantContentManagerTest {
   }
 
   @Test
+  fun testSuggestedVersionsIncludesNewProjectVersion() {
+    val newerPatch = latestAgpVersion.run { AgpVersion.parse("$major.$minor.${micro+1}") }
+    val toolWindowManager = UpgradeAssistantWindowModel(project, { supportedAgpVersion }, latestKnownVersion = latestAgpVersion, newProjectVersion = newerPatch)
+    val knownVersions = setOf(latestAgpVersion)
+    val suggestedVersions = toolWindowManager.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(setOf(newerPatch, latestAgpVersion, supportedAgpVersion).toList().sortedDescending())
+  }
+
+  @Test
   fun `test suggested versions does not include current alpha if not published`() {
     val latestKnownNotPublished = AgpVersion.parse("8.2.0-alpha11")
     val knownVersions =
