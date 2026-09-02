@@ -28,6 +28,7 @@ import com.android.utils.FileUtils
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IJIgnore
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -65,6 +66,7 @@ class GradleUtilAndroidGradleTest {
     preparedProject.open { project -> verifyBuildFile(project, project.findModuleByFullName(project.name), "build.gradle") }
   }
 
+  @IJIgnore(issue = "AND-93")
   @Test
   fun testHasKtsBuildFilesKtsBasedProject() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_GRADLE_DSL)
