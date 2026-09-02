@@ -37,8 +37,7 @@ SHERLOCK_SUBDIR = "sherlock"
 GITHUB_REPO = "android-graphics/sherlock-platform"
 VERSION_XML_PATH = "idea/AndroidPerformanceAnalyzerApplicationInfo.xml"
 NAMESPACE_URI = "http://jetbrains.org/intellij/schema/application-info"
-# tools/gpu-profiler/idea is retained as a fallback for backward compatibility and can be removed later.
-SHERLOCK_PLATFORM_SHA_METADATA_KEYS = ("tools/idea", "tools/gpu-profiler/idea")
+SHERLOCK_PLATFORM_SHA_METADATA_KEY = "tools/idea"
 
 
 def check_gh_auth() -> None:
@@ -107,9 +106,8 @@ def parse_sha_from_metadata(metadata_path: Path) -> str | None:
     sys.exit(f"Error: METADATA file not found at {metadata_path}")
   with open(metadata_path, 'r') as f:
     for line in f:
-      for key in SHERLOCK_PLATFORM_SHA_METADATA_KEYS:
-        if line.startswith(key):
-          return line.split(":", 1)[1].strip()
+      if line.startswith(SHERLOCK_PLATFORM_SHA_METADATA_KEY):
+        return line.split(":", 1)[1].strip()
   return None
 
 
