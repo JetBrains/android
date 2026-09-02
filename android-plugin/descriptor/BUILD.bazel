@@ -175,6 +175,7 @@ dev_dist_plugin(
         "@lib//:libraries-ffmpeg-javacpp-macos-aarch64",
         "@lib//:libraries-ffmpeg-javacpp-macos-x64",
         "@lib//:libraries-ffmpeg-javacpp-windows-x64",
+        "@lib//:libraries-kotlinx-coroutines-guava-kotlinx-coroutines-guava",
         "@lib//:libraries-kxml2-kxml2",
         "@lib//:libraries-layoutlib-layoutlib",
         "@lib//:libraries-sqlite-sqlite",
