@@ -73,6 +73,14 @@ class EmulatorCommandBuilder(emulator: Path, val avd: AvdInfo) {
     if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
       avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)?.let { command.addParameters(parseCommandLineOptions(it)) }
     }
+
+    // Clear vars that make it look like we're running under Bazel, which may be present if we're running Studio from Bazel. These confuse
+    // qemu-next.
+    // TODO(b/556288959): Remove this once we no longer need to support emulators without the fix.
+    for (envVar in listOf("BUILD_WORKING_DIRECTORY", "TEST_BINARY", "RUNFILES_DIR")) {
+      command.environment[envVar] = ""
+    }
+
     return command
   }
 }
