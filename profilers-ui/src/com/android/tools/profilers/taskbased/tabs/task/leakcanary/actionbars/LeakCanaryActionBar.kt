@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.actionbars
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +31,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.leakcanary.LeakCanaryModel
@@ -84,25 +86,36 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
     }
 
   if (isRecording) {
-    Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
       RecordingTimer(leakCanaryModel)
-      Spacer(modifier = Modifier.weight(1f))
-      HeapDumpAndAnalysisStatus(leakCanaryModel)
-      Spacer(modifier = Modifier.width(8.dp))
-      val forceDumpButton =
-        @Composable {
-          DefaultButton(onClick = { leakCanaryModel.forceHeapDump(isUserInitiated = true) }, enabled = isForceDumpEnabled) {
-            Text(LEAKCANARY_FORCE_DUMP)
-          }
-        }
-
-      if (forceDumpTooltipText != null) {
-        Tooltip(tooltip = { Text(forceDumpTooltipText) }) { forceDumpButton() }
-      } else {
-        forceDumpButton()
+      Row(
+        modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        HeapDumpAndAnalysisStatus(leakCanaryModel)
       }
-      Spacer(modifier = Modifier.width(8.dp))
-      DefaultButton(onClick = { leakCanaryModel.requestStopRecording() }, enabled = !isStopping) { Text(ACTION_BAR_STOP_RECORDING) }
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        val forceDumpButton =
+          @Composable {
+            DefaultButton(onClick = { leakCanaryModel.forceHeapDump(isUserInitiated = true) }, enabled = isForceDumpEnabled) {
+              Text(LEAKCANARY_FORCE_DUMP)
+            }
+          }
+
+        if (forceDumpTooltipText != null) {
+          Tooltip(tooltip = { Text(forceDumpTooltipText) }) { forceDumpButton() }
+        } else {
+          forceDumpButton()
+        }
+        DefaultButton(onClick = { leakCanaryModel.requestStopRecording() }, enabled = !isStopping) { Text(ACTION_BAR_STOP_RECORDING) }
+      }
     }
   }
 }
@@ -132,14 +145,21 @@ fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
   val isStopping by leakCanaryModel.isStopping.collectAsState()
 
   if (analysisProgress > 0 || objectRetainedCount >= requiredRetainedObjectCount) {
-    Text(LEAKCANARY_ANALYSIS)
-    HorizontalProgressBar(
-      analysisProgress / 100f,
-      modifier = Modifier.width(140.dp).height(4.dp).padding(horizontal = 10.dp).testTag("AnalysisProgressBar"),
-    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Text(
+        LEAKCANARY_ANALYSIS,
+        modifier = Modifier.weight(1f, fill = false),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      HorizontalProgressBar(
+        analysisProgress / 100f,
+        modifier = Modifier.width(140.dp).height(4.dp).padding(horizontal = 10.dp).testTag("AnalysisProgressBar"),
+      )
+    }
   } else if (isStopping && objectRetainedCount > 0) {
     // Show intermediate status while capturing the heap dump before analysis starts.
-    Text(LEAKCANARY_CAPTURING_DUMP, modifier = Modifier.padding(end = 10.dp))
+    Text(LEAKCANARY_CAPTURING_DUMP, maxLines = 1, overflow = TextOverflow.Ellipsis)
   } else {
     val text =
       AnnotatedString.Builder()
@@ -150,7 +170,7 @@ fun HeapDumpAndAnalysisStatus(leakCanaryModel: LeakCanaryModel) {
           append(" $LEAKCANARY_WAITING_HEAP_DUMP $requiredRetainedObjectCount ${objectRetainedText(requiredRetainedObjectCount)}")
         }
         .toAnnotatedString()
-    Text(text, modifier = Modifier.padding(end = 10.dp))
+    Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
   }
 }
 
