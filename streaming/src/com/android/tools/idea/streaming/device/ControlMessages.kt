@@ -764,7 +764,6 @@ internal data class DisplayAddedOrChangedNotification(
   val displaySize: Dimension,
   val rotation: Int,
   val displayType: Int,
-  val environmentSize: Dimension? = null,
 ) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
@@ -774,13 +773,11 @@ internal data class DisplayAddedOrChangedNotification(
     stream.writeInt(displaySize.height)
     stream.writeInt(rotation)
     stream.writeInt(displayType)
-    stream.writeInt(environmentSize?.width ?: 0)
-    stream.writeInt(environmentSize?.height ?: 0)
   }
 
   override fun toString(): String {
     return "DisplayAddedOrChangedNotification(displayId=$displayId, displaySize=${displaySize.toWxH()}, rotation=$rotation," +
-      " displayType=$displayType, environmentSize=${environmentSize.toWxH()})"
+      " displayType=$displayType)"
   }
 
   companion object : Deserializer {
@@ -792,10 +789,7 @@ internal data class DisplayAddedOrChangedNotification(
       val height = stream.readInt()
       val rotation = stream.readInt()
       val displayType = stream.readInt()
-      val environmentWidth = stream.readInt()
-      val environmentHeight = stream.readInt()
-      val environmentSize = if (environmentWidth != 0 || environmentHeight != 0) Dimension(environmentWidth, environmentHeight) else null
-      return DisplayAddedOrChangedNotification(displayId, Dimension(width, height), rotation, displayType, environmentSize)
+      return DisplayAddedOrChangedNotification(displayId, Dimension(width, height), rotation, displayType)
     }
   }
 }

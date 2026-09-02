@@ -1097,9 +1097,8 @@ void Controller::SendPendingDisplayEvents() {
             it->second.rotation != display_info.rotation || it->second.type != display_info.type;
         current_displays_.insert_or_assign(display_id, display_info);
         if (significant_change) {
-          Size environment_size(0, 0);
           DisplayAddedOrChangedNotification notification(
-              display_id, display_info.logical_size, display_info.rotation, display_info.type, environment_size);
+              display_id, display_info.logical_size, display_info.rotation, display_info.type);
           SendControlMessage(notification);
           if (Log::IsEnabled(Log::Level::DEBUG)) {
             Log::D("Sent %s", notification.ToDebugString().c_str());

@@ -738,14 +738,12 @@ private:
 // Notification of an added or a changed display.
 class DisplayAddedOrChangedNotification : public ControlMessage {
 public:
-  explicit DisplayAddedOrChangedNotification(
-      int32_t display_id, Size display_size, int32_t rotation, int32_t display_type, Size environment_size)
+  DisplayAddedOrChangedNotification(int32_t display_id, Size display_size, int32_t rotation, int32_t display_type)
       : ControlMessage(TYPE),
         display_id_(display_id),
         display_size_(display_size),
         rotation_(rotation),
-        display_type_(display_type),
-        environment_size_(environment_size) {
+        display_type_(display_type) {
   }
   ~DisplayAddedOrChangedNotification() override = default;
 
@@ -753,7 +751,6 @@ public:
   [[nodiscard]] const Size& display_size() const { return display_size_; }
   [[nodiscard]] int32_t rotation() const { return rotation_; }
   [[nodiscard]] int32_t display_type() const { return display_type_; }
-  [[nodiscard]] const Size& environment_size() const { return environment_size_; }
   [[nodiscard]] std::string ToDebugString() const;
 
   void Serialize(Base128OutputStream& stream) const override;
@@ -767,7 +764,6 @@ private:
   Size display_size_;
   int32_t rotation_;
   int32_t display_type_;
-  Size environment_size_;
 
   DISALLOW_COPY_AND_ASSIGN(DisplayAddedOrChangedNotification);
 };
@@ -798,7 +794,7 @@ private:
 // Notification of a passthrough coefficient change on an XR device.
 class XrPassthroughCoefficientChangedNotification : public ControlMessage {
 public:
-  explicit XrPassthroughCoefficientChangedNotification(float passthrough_coefficient)
+  XrPassthroughCoefficientChangedNotification(float passthrough_coefficient)
       : ControlMessage(TYPE),
         passthrough_coefficient_(passthrough_coefficient) {
   }

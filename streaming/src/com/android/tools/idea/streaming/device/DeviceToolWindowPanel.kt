@@ -279,7 +279,6 @@ internal class DeviceToolWindowPanel(
       displaySize: Dimension,
       rotation: Int,
       displayType: DisplayType,
-      environmentSize: Dimension?,
     ) {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (contentDisposable != null) {

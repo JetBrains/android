@@ -341,7 +341,6 @@ internal class DeviceController(disposableParent: Disposable, private val contro
         message.displaySize,
         message.rotation,
         displayType,
-        message.environmentSize,
       )
     }
   }
@@ -396,7 +395,6 @@ internal class DeviceController(disposableParent: Disposable, private val contro
       displaySize: Dimension,
       rotation: Int,
       displayType: DisplayType,
-      environmentSize: Dimension?,
     )
 
     fun onDisplayRemoved(displayId: Int)
