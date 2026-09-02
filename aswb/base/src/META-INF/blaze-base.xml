@@ -321,6 +321,7 @@
     <additionalTextAttributes scheme="Default" file="resources/colorSchemes/BuildDefault.xml"/>
     <typedHandler implementation="com.google.idea.blaze.base.lang.buildfile.completion.BuildCompletionAutoPopupHandler"/>
     <projectViewNodeDecorator implementation="com.google.idea.blaze.base.syncstatus.QuerySyncNodeDecorator"/>
+    <projectViewNodeDecorator implementation="com.google.idea.blaze.base.treeview.WorkspaceSwitcherProjectViewNodeDecorator"/>
     <macro implementation="com.google.idea.blaze.base.actions.WorkspaceRootMacro"/>
     <consoleFilterProvider implementation="com.google.idea.blaze.base.run.filter.GenericFileMessageFilter$Provider"/>
     <consoleFilterProvider implementation="com.google.idea.blaze.base.run.filter.TestLogFilter$Provider"/>
