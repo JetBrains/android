@@ -192,8 +192,8 @@ fun LeakCanaryScreen(leakCanaryModel: LeakCanaryModel, ideProfilerComponents: Id
             @Composable {
               HorizontalSplitLayout(
                 state = horizontalInnerSplitState,
-                firstPaneMinWidth = 150.dp,
-                secondPaneMinWidth = 450.dp,
+                firstPaneMinWidth = 240.dp,
+                secondPaneMinWidth = 360.dp,
                 first = leakListContent,
                 second = leakDetailsContent,
                 modifier = Modifier.fillMaxSize(),
