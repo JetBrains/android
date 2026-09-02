@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.internal.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.ProjectIdeaConfigFilesUtils
 import com.android.tools.idea.sdk.IdeSdks
@@ -157,7 +158,9 @@ internal fun patchMppProject(
   if (addIosTo.isNotEmpty()) {
     val konanDir = File(FileUtil.getTempDirectory(), ".konan")
     konanDir.mkdirs()
-    projectRoot.resolve("gradle.properties").appendText("\nkonan.data.dir=${konanDir.path}\nkotlin.native.version=2.4.20-RC2\n")
+    projectRoot
+      .resolve("gradle.properties")
+      .appendText("\nkonan.data.dir=${konanDir.path}\nkotlin.native.version=$KOTLIN_VERSION_FOR_TESTS\n")
   }
   for (module in addIntermediateTo) {
     projectRoot.resolve(module).resolve("build.gradle").replaceContent { content ->
