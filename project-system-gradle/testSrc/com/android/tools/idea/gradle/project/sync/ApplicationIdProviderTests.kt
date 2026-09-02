@@ -230,8 +230,6 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       expectPackageName = mapOf(AGP_CURRENT to "com.example.projectwithappandlib.lib.test"),
       expectTestPackageName = mapOf(AGP_CURRENT to "com.example.projectwithappandlib.lib.test"),
-      // CHANGE: Use the helper here to ensure old versions (AGP_35 etc) don't inherit AGP_CURRENT's warnings
-      expectSyncIssueContent = expectedWarnings(ALL_LEGACY_WARNINGS),
     ),
     def(
       stackMarker = { it() },

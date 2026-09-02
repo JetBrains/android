@@ -52,7 +52,7 @@ class JavaLanguageLevelDeprecationOutputParserTest : BuildOutputIntegrationTestB
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     // The built-in Kotlin plugin, enabled by default in AGP 9.0+, does not support JVM target 6. Disable
     // it to allow this test to run with Java 6.
-    preparedProject.root.resolve("gradle.properties").appendText("\nandroid.builtInKotlin=false".trimIndent())
+    preparedProject.root.resolve("app/build.gradle").appendText("\nandroid.enableKotlin = false\n")
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_6, expectSuccess = false)
 
     assertThat(buildEvents.printEvents())
@@ -106,7 +106,7 @@ class JavaLanguageLevelDeprecationOutputParserTest : BuildOutputIntegrationTestB
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     // The built-in Kotlin plugin, enabled by default in AGP 9.0+, does not support JVM target 7. Disable
     // it to allow this test to run with Java 7.
-    preparedProject.root.resolve("gradle.properties").appendText("\nandroid.builtInKotlin=false".trimIndent())
+    preparedProject.root.resolve("app/build.gradle").appendText("\nandroid.enableKotlin = false\n")
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_7, expectSuccess = true)
 
     assertThat(buildEvents.printEvents())
@@ -171,7 +171,7 @@ class JavaLanguageLevelDeprecationOutputParserTest : BuildOutputIntegrationTestB
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     // The built-in Kotlin plugin, enabled by default in AGP 9.0+, does not support JVM target 7. Disable
     // it to allow this test to run with Java 7.
-    preparedProject.root.resolve("gradle.properties").appendText("\nandroid.builtInKotlin=false".trimIndent())
+    preparedProject.root.resolve("app/build.gradle").appendText("\nandroid.enableKotlin = false\n")
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_7, expectSuccess = false)
     assertThat(buildEvents.printEvents())
       .isEqualTo(
@@ -225,7 +225,7 @@ class JavaLanguageLevelDeprecationOutputParserTest : BuildOutputIntegrationTestB
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     // The built-in Kotlin plugin, enabled by default in AGP 9.0+, does not support JVM target 7. Disable
     // it to allow this test to run with Java 7.
-    preparedProject.root.resolve("gradle.properties").appendText("\nandroid.builtInKotlin=false".trimIndent())
+    preparedProject.root.resolve("app/build.gradle").appendText("\nandroid.enableKotlin = false\n")
     preparedProject.root.resolve("lib").let { lib ->
       lib.mkdirs()
       lib
