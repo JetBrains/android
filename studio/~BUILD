@@ -961,6 +961,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/android-plugin/descriptor:aiplugin.android-plugin.descriptor",
             "//tools/vendor/google/ml/aiplugin/backends/aicode:aiplugin.backends.aicode",
             "//tools/vendor/google/ml/aiplugin/backends/baicode:aiplugin.backends.baicode",
+            "//tools/vendor/google/ml/aiplugin/backends/baicode-ui:aiplugin.backends.baicode-ui",
             "//tools/vendor/google/ml/aiplugin/backends/local:aiplugin.backends.local",
             "//tools/vendor/google/ml/aiplugin/backends/runtime/llamacpp:aiplugin.backends.runtime.llamacpp",
             "//tools/vendor/google/ml/aiplugin/backends/third-party:aiplugin.backends.third-party",
