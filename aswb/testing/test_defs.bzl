@@ -172,6 +172,7 @@ def intellij_unit_test_suite(
         jvm_flags = jvm_flags,
         test_class = suite_class,
         runtime_deps = runtime_deps + [name + ".testlib"],
+        target_compatible_with = target_compatible_with,
         **kwargs
     )
 
@@ -340,7 +341,7 @@ def intellij_integration_test_suite(
     args.append("--main_advice_classpath=./%s/%s_protoeditor_resource_fix" % (native.package_name(), name))
     data.append(name + "_protoeditor_resource_fix")
 
-    target_compatible_with = kwargs.get("target_compatible_with", None)
+    target_compatible_with = kwargs.pop("target_compatible_with", None)
     kotlin_library(
         name = name + ".testlib",
         kotlin_version = "2.3",
@@ -403,7 +404,7 @@ def aswb_test(
         visibility = None,
         **kwargs):
     """A regular ASwB test target."""
-    target_compatible_with = kwargs.get("target_compatible_with", None)
+    target_compatible_with = kwargs.pop("target_compatible_with", None)
     kotlin_library(
         name = name + ".testlib",
         srcs = srcs,
@@ -426,5 +427,6 @@ def aswb_test(
             ":" + name + ".testlib",
         ] + runtime_deps,
         visibility = visibility,
+        target_compatible_with = target_compatible_with,
         **kwargs
     )
