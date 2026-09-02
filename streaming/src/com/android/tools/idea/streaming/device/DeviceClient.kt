@@ -237,6 +237,9 @@ class DeviceClient(
     }
 
     if (channels != null) {
+      if (startVideoStream) {
+        synchronized(videoStreams) { videoStreams[PRIMARY_DISPLAY_ID] = VideoStreamArbiter(project, PRIMARY_DISPLAY_ID, maxVideoSize) }
+      }
       connection.deviceController = DeviceController(connection, channels.controlChannel)
       connection.videoDecoder =
         VideoDecoder(channels.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker).apply {
@@ -248,10 +251,6 @@ class DeviceClient(
         val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
         messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateAudioStreaming() })
       }
-    }
-
-    if (startVideoStream) {
-      synchronized(videoStreams) { videoStreams[PRIMARY_DISPLAY_ID] = VideoStreamArbiter(project, PRIMARY_DISPLAY_ID, maxVideoSize) }
     }
   }
 
