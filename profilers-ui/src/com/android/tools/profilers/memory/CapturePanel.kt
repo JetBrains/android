@@ -223,23 +223,26 @@ private class CapturePanelUi(
       val totalShallowSizeLabel = mkLabel("Shallow Size")
       val totalRetainedSizeLabel = mkLabel("Retained Size")
 
-      // Compute total classes asynchronously because it can take multiple seconds
+      // Compute total classes asynchronously to avoid locking on the UI thread
       fun refreshTotalClassesAsync(heap: HeapSet) =
         profilersView.studioProfilers.ideServices.poolExecutor.execute {
-          // Handle "no filter" case specially, because it recomputes from the current instance stream,
-          // and `ClassifierSet` only considers instances as "matched" if the filter is not empty.
-          // This is analogous to how `MemoryClassifierView` is checking if filter is empty to treat it specially
-          val filterMatches = if (selection.filterHandler.filter.isEmpty) heap.instancesStream else heap.filterMatches
-          // Totals other than class count don't need this, because they are direct fields initialized correctly
-          val count = filterMatches.mapToLong { it.classEntry.classId }.distinct().count()
-          profilersView.studioProfilers.ideServices.mainExecutor.execute { totalClassLabel.numValue = count }
+          val classCount = heap.classSetCount
+          profilersView.studioProfilers.ideServices.mainExecutor.execute {
+            if (selection.selectedHeapSet == heap) {
+              totalClassLabel.numValue = classCount
+            }
+          }
         }
 
       // Compute total retained size asynchronously because it can take multiple seconds
       fun refreshTotalRetainedSizeAsync(heap: HeapSet) =
         profilersView.studioProfilers.ideServices.poolExecutor.execute {
           val retainedSize = heap.totalRetainedSize
-          profilersView.studioProfilers.ideServices.mainExecutor.execute { totalRetainedSizeLabel.numValue = retainedSize }
+          profilersView.studioProfilers.ideServices.mainExecutor.execute {
+            if (selection.selectedHeapSet == heap) {
+              totalRetainedSizeLabel.numValue = retainedSize
+            }
+          }
         }
 
       fun refreshSummaries() {
@@ -277,10 +280,10 @@ private class CapturePanelUi(
         .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
         .onChange(CaptureSelectionAspect.CURRENT_FILTER, ::refreshSummaries)
 
-      add(totalClassLabel)
       add(totalLeakLabel)
       add(totalBitmapDuplicatesLabel)
       add(FlatSeparator(6, 36))
+      add(totalClassLabel)
       add(totalCountLabel)
       add(totalNativeSizeLabel)
       add(totalShallowSizeLabel)

@@ -36,6 +36,36 @@ class HeapSetTest {
   }
 
   @Test
+  fun `classSetCount sums only unfiltered classes`() {
+    val capture = FakeCaptureObject.Builder().build()
+    val cl1 = capture.registerClass(1, 0, "Class1", -1)
+    val cl2 = capture.registerClass(2, 0, "Class2", -1)
+    // Add two instances for Class1 and one for Class2.
+    val inst1 = FakeInstanceObject.Builder(cl1).build()
+    val inst1Dup = FakeInstanceObject.Builder(cl1).build()
+    val inst2 = FakeInstanceObject.Builder(cl2).build()
+    val h = HeapSet(capture, "Fake", 0)
+    h.addDeltaInstanceObject(inst1)
+    h.addDeltaInstanceObject(inst1Dup)
+    h.addDeltaInstanceObject(inst2)
+
+    // Should count distinct classes (2), not the total instance count (3).
+    assertThat(h.classSetCount).isEqualTo(2)
+
+    // Filter down to only Class1; only 1 class should match.
+    h.applyFilter(Filter("Class1"), true)
+    assertThat(h.classSetCount).isEqualTo(1)
+
+    // Filter with no matches should return 0 classes.
+    h.applyFilter(Filter("NonExistent"), true)
+    assertThat(h.classSetCount).isEqualTo(0)
+
+    // Resetting to empty filter should restore the full class count.
+    h.applyFilter(Filter.EMPTY_FILTER, true)
+    assertThat(h.classSetCount).isEqualTo(2)
+  }
+
+  @Test
   fun `heap set makes use of classes' retained sizes if present`() {
     val capture = FakeCaptureObject.Builder().build()
     val cl = capture.registerClass(1, 0, "obj", 8)

@@ -237,6 +237,25 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   val totalObjectCount: Int
     get() = snapshotObjectCount + deltaAllocationCount - deltaDeallocationCount
 
+  /** Returns the count of unfiltered [ClassSet] descendants in this classifier subtree. */
+  open val classSetCount: Long
+    get() {
+      val s = state
+      // For partitioned classifier trees (the common case for heap dumps), the child structure is
+      // immutable, allowing lock-free sequence traversal without thread pool monitor contention.
+      if (s is State.Partitioned) {
+        return s.classifier.classifierSetSequence.filter { !it.isFiltered }.sumOf { it.classSetCount }
+      }
+      // If unpartitioned or coalesced (e.g. after changing class grouping), synchronize on `this`
+      // to prevent race conditions while ensurePartitioned() mutates state to build the child tree.
+      return synchronized(this) {
+        when (val forcedState = ensurePartitioned()) {
+          is State.Partitioned -> forcedState.classifier.classifierSetSequence.filter { !it.isFiltered }.sumOf { it.classSetCount }
+          is State.Coalesced -> 0L
+        }
+      }
+    }
+
   val totalRemainingSize: Long
     get() = allocationSize - deallocationSize
 
@@ -267,9 +286,6 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    */
   protected val snapshotInstanceStream: Stream<InstanceObject>
     get() = getStreamOf({ true }) { it.snapshotInstances.stream() }
-
-  val filterMatches: Stream<InstanceObject>
-    get() = getStreamOf({ it.isMatched }) { Stream.concat(it.snapshotInstances.stream(), it.deltaInstances.stream()) }
 
   val childrenClassifierSets: List<ClassifierSet>
     get() {

@@ -26,6 +26,9 @@ open class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEnt
   override val stringForMatching
     get() = classEntry.className
 
+  override val classSetCount: Long
+    get() = if (!isFiltered) 1L else 0L
+
   override val totalRetainedSize: Long
     get() =
       when (val size = classEntry.retainedSize) {
