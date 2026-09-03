@@ -129,6 +129,26 @@ class PreviewItemPanel(
   }
 
   private fun createMatchPercentageLabel(previewData: PreviewDetails): JPanel {
+    val hasReferenceImage =
+      (previewData.destImagePath?.let { File(it).exists() } == true) ||
+        previewData.diffPercent != null ||
+        previewData.testResult == AndroidTestCaseResult.PASSED
+
+    if (!hasReferenceImage) {
+      return JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.X_AXIS)
+        isOpaque = false
+        alignmentX = LEFT_ALIGNMENT
+
+        add(
+          JBLabel(NEW_TAG_TEXT).apply {
+            foreground = JBColor.GREEN.darker()
+            font = font.deriveFont(Font.BOLD)
+          }
+        )
+      }
+    }
+
     val diffDouble = previewData.diffPercent?.toDoubleOrNull()
     val matchPercentage = ScreenshotTestUtils.calculateMatchPercentage(diffDouble)
     val percentageText = matchPercentage ?: DEFAULT_MATCH_PERCENTAGE

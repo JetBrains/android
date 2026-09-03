@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import java.awt.Container
 import org.junit.Assert.assertEquals
@@ -90,6 +91,91 @@ class PreviewItemPanelTest {
     assertNotNull("Match prefix label 'Match: ' should exist", matchTextLabel)
     assertNotNull("Match percentage label '99.00%' should exist", percentageLabel)
     assertNotNull("Name label 'MyPreview' should exist", nameLabel)
+  }
+
+  @Test
+  fun verifyDetailsLabels_whenNoReferenceImage_displaysNewTag() = runInEdtAndWait {
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "MyPreview",
+        testResult = AndroidTestCaseResult.FAILED,
+        destImagePath = null,
+        diffPercent = null,
+      )
+    val panel = PreviewItemPanel(details, projectRule.project, showDetails = true)
+
+    val labels = findAllLabels(panel)
+
+    val matchTextLabel = labels.find { it.text == "Match: " }
+    val newTagLabel = labels.find { it.text == "New" }
+    val nameLabel = labels.find { it.text == "MyPreview" }
+
+    assertNull("Match prefix label 'Match: ' should not exist for new screenshot", matchTextLabel)
+    assertNotNull("New tag label 'New' should exist", newTagLabel)
+    assertEquals(JBColor.GREEN.darker(), newTagLabel?.foreground)
+    assertNotNull("Name label 'MyPreview' should exist", nameLabel)
+  }
+
+  @Test
+  fun verifyDetailsLabels_whenNonExistentDestImagePath_displaysNewTag() = runInEdtAndWait {
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "MyPreview",
+        testResult = AndroidTestCaseResult.FAILED,
+        destImagePath = "non_existent_ref.png",
+        diffPercent = null,
+      )
+    val panel = PreviewItemPanel(details, projectRule.project, showDetails = true)
+
+    val labels = findAllLabels(panel)
+
+    val matchTextLabel = labels.find { it.text == "Match: " }
+    val newTagLabel = labels.find { it.text == "New" }
+
+    assertNull("Match prefix label 'Match: ' should not exist for new screenshot", matchTextLabel)
+    assertNotNull("New tag label 'New' should exist", newTagLabel)
+    assertEquals(JBColor.GREEN.darker(), newTagLabel?.foreground)
+  }
+
+  @Test
+  fun testUpdateData_toNewPreview_updatesToNewTag() = runInEdtAndWait {
+    val refFile = temporaryFolder.newFile("ref.png")
+    val details1 =
+      PreviewDetails(
+        testId = "id1",
+        className = "Class1",
+        methodName = "method1",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.FAILED,
+        destImagePath = refFile.absolutePath,
+        diffPercent = "0.05",
+      )
+    val panel = PreviewItemPanel(details1, projectRule.project)
+
+    val details2 =
+      PreviewDetails(
+        testId = "id2",
+        className = "Class2",
+        methodName = "method2",
+        previewName = "preview2",
+        testResult = AndroidTestCaseResult.FAILED,
+        destImagePath = null,
+        diffPercent = null,
+      )
+
+    panel.updateData(details2, ScreenshotViewType.NEW)
+
+    val labels = findAllLabels(panel)
+    assertNull(labels.find { it.text == "Match: " })
+    val newTagLabel = labels.find { it.text == "New" }
+    assertNotNull(newTagLabel)
+    assertEquals(JBColor.GREEN.darker(), newTagLabel?.foreground)
   }
 
   @Test
