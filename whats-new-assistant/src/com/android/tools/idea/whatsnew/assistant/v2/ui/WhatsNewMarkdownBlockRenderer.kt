@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.android.tools.adtui.compose.IntUiPaletteDefaults
 import com.android.tools.adtui.compose.rememberColor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.ImagePainterLoaderMarkdownRendererExtension
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.modifier.onHover
@@ -132,7 +133,7 @@ internal class WhatsNewMarkdownBlockRenderer(
     onUrlClick: (String) -> Unit,
     modifier: Modifier,
   ) {
-    val markdownGroups = remember(blocks) { groupBlocksByH1ThenH2Blocks(blocks) }
+    val markdownGroups = remember(blocks) { filterFeatureFlagGroups(groupBlocksByH1ThenH2Blocks(blocks)) }
 
     BoxWithConstraints(modifier = modifier) {
       val columnHorizontalPadding = 24.dp
@@ -265,6 +266,42 @@ internal class WhatsNewMarkdownBlockRenderer(
 
       /** A single cell of the grid, to render in a columns */
       class Cell(val blocks: List<MarkdownBlock>) : MarkdownGroup()
+    }
+
+    private val FEATURE_FLAG_REGEX = Regex("""<!--\s*FEATURE_FLAG\s*=\s*(\S+?)\s*-->""")
+
+    /**
+     * Removes Cells from the Markdown groups if the Cell (1 card) contains a comment with a flag and the flag is disabled
+     */
+    internal fun filterFeatureFlagGroups(groups: List<MarkdownGroup>): List<MarkdownGroup> {
+      return groups.filter { group ->
+        if (group is MarkdownGroup.Cell) {
+          !hasDisabledFlag(group)
+        } else {
+          true
+        }
+      }
+    }
+
+    /**
+     * Returns true if the cell contains an HtmlBlock matching the format `<!-- FEATURE_FLAG=studiobot.local.gemma.enabled -->` and
+     * the flag exists and is disabled. We check for disabled instead of enabled, because flags that no longer exist should be treated as
+     * enabled.
+     */
+    private fun hasDisabledFlag(cell: MarkdownGroup.Cell): Boolean {
+      // JetBrains patch: MarkdownBlock.HtmlBlock was removed from Jewel by JEWEL-1345, so there is no block type here that carries the
+      //  raw `<!-- FEATURE_FLAG=... -->` text. This Jewel also drops raw HTML blocks during processing unless the processor is built with
+      //  parseEmbeddedHtml = true, and HTML comments produce no block even then, so the comment never reaches these blocks at all.
+      //  The What's New Assistant is disabled in IntelliJ, so the filter stays off.
+      // for (block in cell.blocks) {
+      //   if (block !is MarkdownBlock.HtmlBlock) continue
+      //   val match = FEATURE_FLAG_REGEX.find(block.content) ?: continue
+      //   val flag = StudioFlags.FLAGS.getFlag(match.groupValues[1])
+      //   if (flag != null && flag.get() == false) {
+      //     return true
+      //   }
+      // }
+      return false
     }
 
     internal fun groupBlocksByH1ThenH2Blocks(blocks: List<MarkdownBlock>): List<MarkdownGroup> {
