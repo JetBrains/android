@@ -467,7 +467,6 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     prop("listPhases") { compilerArguments.listPhases.takeIf { it }?.toString() }
     prop("metadataVersion") { compilerArguments.metadataVersion }
     prop("multiPlatform") { compilerArguments.multiPlatform.takeIf { it }?.toString() }
-    prop("noCheckActual") { compilerArguments.noCheckActual.takeIf { it }?.toString() }
     prop("noInline") { compilerArguments.noInline.takeIf { it }?.toString() }
     compilerArguments.phasesToDump?.forEach { prop("- phasesToDump") { it } }
     compilerArguments.phasesToDumpAfter?.forEach { prop("- phasesToDumpAfter") { it } }
