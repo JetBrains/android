@@ -1896,8 +1896,15 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMULATOR_PREVIEW_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "emulator.preview.enabled",
-    "Enable Emulator Preview",
+    "Enable Emulator Preview (qemu-next)",
     "Enables launching AVDs with the preview version of the emulator, if installed."
+  );
+
+  public static final Flag<Boolean> EMULATOR_PREVIEW_REQUIRED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "emulator.preview.required",
+    "Require Emulator Preview (qemu-next)",
+    "Requires launching AVDs with the preview version of the emulator."
   );
   // endregion
 

@@ -24,7 +24,9 @@ import com.android.repository.api.RepoPackage
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
+import com.android.sdklib.deviceprovisioner.deviceType
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdInfo
@@ -202,6 +204,7 @@ constructor(
         // noinspection DuplicateBranchesInSwitch
         return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
       AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED,
+      AccelerationErrorCode.QEMU_NEXT_REQUIRED,
       AccelerationErrorCode.NO_EMULATOR_INSTALLED -> return handleAccelerationError(project, avd, forceLaunchInToolWindow, bootMode, code)
       else -> {
         val abi = Abi.getEnum(avd.abiType) ?: return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
@@ -216,8 +219,26 @@ constructor(
     }
   }
 
+  private fun isQemuNextRequired(avd: AvdInfo) =
+    StudioFlags.EMULATOR_PREVIEW_REQUIRED.get() &&
+      avd.androidVersion.androidApiLevel.majorVersion >= 37 &&
+      avd.deviceType() == DeviceType.HANDHELD
+
   private suspend fun continueToStartAvd(project: Project?, avd: AvdInfo, forceLaunchInToolWindow: Boolean, bootMode: BootMode): IDevice =
     coroutineScope {
+      // Check AVD-specific error conditions
+      if (isQemuNextRequired(avd)) {
+        if (sdkHandler?.getEmulatorPackage(REPO_LOG, requireLatestEmulator = true) == null) {
+          return@coroutineScope handleAccelerationError(
+            project,
+            avd,
+            forceLaunchInToolWindow,
+            bootMode,
+            AccelerationErrorCode.QEMU_NEXT_REQUIRED,
+          )
+        }
+      }
+
       var avd = avd
       val emulator = emulator
       if (emulator == null) {
@@ -337,7 +358,14 @@ constructor(
 
   private suspend fun showAccelerationErrorDialog(code: AccelerationErrorCode, project: Project?): Int =
     withContext(uiContext) {
-      val message = "${code.problem}\n\n${code.solutionMessage}"
+      val message =
+        when (code) {
+          AccelerationErrorCode.QEMU_NEXT_REQUIRED ->
+            // TODO(b/556789299): Include hyperlink to details about qemu-next once the docs are ready
+            "<html>API 37.0 and above now requires Emulator (Preview), the next generation Android Emulator.<br><br>" +
+              "Emulator (Preview) will be downloaded.</html>"
+          else -> "${code.problem}\n\n${code.solutionMessage}"
+        }
       Messages.showOkCancelDialog(
         project,
         message,

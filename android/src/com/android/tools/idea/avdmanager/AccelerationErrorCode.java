@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.EmulatorPackage.QEMU_NEXT_PACKAGE_NAME;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_ACCELERATION_NOT_SUPPORTED;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_TURN_OFF_HYPER_V;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.DOWNLOAD_EMULATOR;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.DOWNLOAD_QEMU_NEXT;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.ENABLE_WHPX;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_AEHD;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_KVM;
@@ -76,7 +78,8 @@ public enum AccelerationErrorCode {
   SYSTEM_IMAGE_UPDATE_ADVISED(-7, "System image update is available", UPDATE_SYSTEM_IMAGES, "Please update system images"),
   HAXM_REQUIRES_INTEL_CPU(-8, "HAXM is deprecated and should be uninstalled.", NONE, "Please use the latest emulator and follow https://developer.android.com/studio/run/emulator-acceleration#vm-windows to configure WHPX or AEHD instead"),
   AEHD_REQUIRES_WINDOWS(-9, "Android Emulator hypervisor driver can only be installed on Windows.", NONE, "Please file a bug against Android Studio."),
-  MACOS_VERSION_TOO_OLD(-10, "The Android Emulator requires macOS 12.7 or newer.", NONE, "Please upgrade to a newer version of macOS.");
+  MACOS_VERSION_TOO_OLD(-10, "The Android Emulator requires macOS 12.7 or newer.", NONE, "Please upgrade to a newer version of macOS."),
+  QEMU_NEXT_REQUIRED(-11, QEMU_NEXT_PACKAGE_NAME + " is not installed.", DOWNLOAD_QEMU_NEXT, "Please download " + QEMU_NEXT_PACKAGE_NAME + ".");
 
   private int myErrorCode;
   private String myProblem;

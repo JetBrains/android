@@ -92,6 +92,7 @@ public class AccelerationErrorSolution {
   public enum SolutionCode {
     NONE("Troubleshoot"),
     DOWNLOAD_EMULATOR("Install Emulator"),
+    DOWNLOAD_QEMU_NEXT("Install " + EmulatorPackage.QEMU_NEXT_PACKAGE_NAME),
     UPDATE_EMULATOR("Update Emulator"),
     UPDATE_PLATFORM_TOOLS("Update Platform Tools"),
     UPDATE_SYSTEM_IMAGES("Update System Images"),
@@ -149,7 +150,17 @@ public class AccelerationErrorSolution {
       case UPDATE_EMULATOR:
         return () -> {
           try {
-            showQuickFix(ImmutableList.of(SdkConstants.FD_EMULATOR));
+            showQuickFix(ImmutableList.of(StudioFlags.EMULATOR_PREVIEW_REQUIRED.get() ? EmulatorPackage.QEMU_NEXT_PACKAGE_PATH : SdkConstants.FD_EMULATOR));
+          }
+          finally {
+            reportBack();
+          }
+        };
+
+      case DOWNLOAD_QEMU_NEXT:
+        return () -> {
+          try {
+            showQuickFix(ImmutableList.of(EmulatorPackage.QEMU_NEXT_PACKAGE_PATH));
           }
           finally {
             reportBack();
