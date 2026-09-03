@@ -1,5 +1,6 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
+load("@community//platform/build-scripts/bazel-rules:ij_plugin.bzl", "ij_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.smali` start
@@ -94,6 +95,12 @@ jvm_library(
         "//platform/code-style-api:codeStyle_test_lib",
         "//platform/platform-impl:ide-impl",
     ],
+)
+
+ij_plugin(
+    name = "smali_plugin",
+    descriptor_module = ":smali",
+    visibility = ["//visibility:public"],
 )
 ### auto-generated section `build intellij.android.smali` end
 
