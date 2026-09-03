@@ -1,15 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <issues format="6" by="lint 9.5.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.5.0-dev">
-
-    <issue
-        id="WrongThread"
-        message="Call must be from `@{Slow,WorkerThread}`, but the work passed to `invokeLater` is expected to run from `@UiThread`"
-        errorLine1="          ApplicationManager.getApplication().invokeLater { processScreenshot(if (allowImageRotation) rotationQuadrants else 0) }"
-        errorLine2="                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/ui/screenshot/ScreenshotViewer.kt"
-            line="401"
-            column="61"/>
-    </issue>
-
 </issues>
