@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
-import static org.mockito.Mockito.any;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.IOException;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 public class IgnoredBuildScriptSetupStepTest extends HeavyPlatformTestCase {
@@ -43,7 +48,13 @@ public class IgnoredBuildScriptSetupStepTest extends HeavyPlatformTestCase {
   public void testCheckIsIgnored() throws IOException {
     when(myFileTypeManager.isFileIgnored((String)any())).thenReturn(true);
     IgnoredBuildScriptSetupStep.checkIsNotIgnored("prefix ", createTempFile("buildScript", null), myFileTypeManager, myMessages);
-    verify(myMessages).report((SyncMessage)any());
+    ArgumentCaptor<SyncMessage> messageCaptor = ArgumentCaptor.forClass(SyncMessage.class);
+    verify(myMessages).report(messageCaptor.capture());
+    SyncMessage message = messageCaptor.getValue();
+    List<SyncMessageFragment> quickFixes = message.getQuickFixes();
+    assertThat(quickFixes).hasSize(2);
+    assertThat(quickFixes.get(0).getQuickFixIds()).isEmpty();
+    assertThat(quickFixes.get(1).getQuickFixIds()).containsExactly(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK);
   }
 
   public void testCheckIsNotIgnored() throws IOException {
