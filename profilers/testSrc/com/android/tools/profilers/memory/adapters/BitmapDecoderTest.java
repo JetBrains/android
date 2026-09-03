@@ -30,8 +30,14 @@ import java.util.List;
 import org.junit.Test;
 
 public class BitmapDecoderTest {
-  final String BITMAP_CLASS_NAME = "android.graphics.Bitmap";
-  final String BYTES_CLASS_NAME = "byte[]";
+  private static final String BITMAP_CLASS_NAME = "android.graphics.Bitmap";
+  private static final String BYTES_CLASS_NAME = "byte[]";
+  private static final byte[] SAMPLE_PNG_BYTES = new byte[]{
+    -119, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 2, 0, 0, 0, 1, 8, 6, 0, 0, 0, -12, 34,
+    127, -118, 0, 0, 0, 14, 73, 68, 65, 84, 120, 94, 99, -8, -49, -64, 0, 66, -1, 1, 15, -7, 3, -3, -8, -86, -104, -127, 0, 0,
+    0, 0, 73, 69, 78, 68, -82, 66, 96, -126
+  };
+
 
   @Test
   public void dataProviderTestWithMBuffer() {
@@ -81,10 +87,8 @@ public class BitmapDecoderTest {
 
     FakeInstanceObject buffers = new FakeInstanceObject.Builder(fakeCaptureObject, 6, "byte[][]").setFields(List.of("0")).build();
     buffers.setFieldValue("0", ARRAY, new FakeInstanceObject.Builder(fakeCaptureObject, 5, BYTES_CLASS_NAME).setValueType(ARRAY)
-      .setArray(BYTE,
-                new byte[]{-119, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 2, 0, 0, 0, 1, 8, 6, 0, 0, 0, -12, 34,
-                  127, -118, 0, 0, 0, 14, 73, 68, 65, 84, 120, 94, 99, -8, -49, -64, 0, 66, -1, 1, 15, -7, 3, -3, -8, -86, -104, -127, 0, 0,
-                  0, 0, 73, 69, 78, 68, -82, 66, 96, -126}, 71).build());
+      .setArray(BYTE, SAMPLE_PNG_BYTES, SAMPLE_PNG_BYTES.length).build());
+
 
     FakeInstanceObject natives = new FakeInstanceObject.Builder(fakeCaptureObject, 4, BYTES_CLASS_NAME)
       .setFields(List.of("0")).build();
@@ -153,5 +157,92 @@ public class BitmapDecoderTest {
 
     BitmapDecoder.BitmapDataProvider dataProvider = AndroidBitmapDataProvider.createDecoder(shadowBufferBitmapInstance);
     assertNull(dataProvider);
+  }
+
+  @Test
+  public void dataProviderTestWithShadowKlassSizeMismatch() {
+    FakeCaptureObject fakeCaptureObject = new FakeCaptureObject.Builder().build();
+
+    // buffers has 1 element ("0"), while natives has 2 elements ("0", "1")
+    FakeInstanceObject buffers = new FakeInstanceObject.Builder(fakeCaptureObject, 6, "byte[][]").setFields(List.of("0")).build();
+    buffers.setFieldValue("0", ARRAY, new FakeInstanceObject.Builder(fakeCaptureObject, 5, BYTES_CLASS_NAME).setValueType(ARRAY)
+      .setArray(BYTE, SAMPLE_PNG_BYTES, SAMPLE_PNG_BYTES.length).build());
+
+    FakeInstanceObject natives = new FakeInstanceObject.Builder(fakeCaptureObject, 4, BYTES_CLASS_NAME)
+      .setFields(Arrays.asList("0", "1")).build();
+    natives.setFieldValue("0", LONG, -1L);
+    natives.setFieldValue("1", LONG, 0L);
+
+    FakeInstanceObject dumpDataInstance = new FakeInstanceObject.Builder(fakeCaptureObject, 3, "Bitmap$DumpData")
+      .setFields(Arrays.asList("buffers", "natives")).build();
+    dumpDataInstance.setFieldValue("buffers", OBJECT, buffers).setFieldValue("natives", OBJECT, natives);
+
+    FakeInstanceObject shadowKlassInstance = new FakeInstanceObject.Builder(fakeCaptureObject, 2, "Class")
+      .setFields(List.of("dumpData")).build();
+    shadowKlassInstance.setFieldValue("dumpData", OBJECT, dumpDataInstance);
+
+    FakeInstanceObject shadowBufferBitmapInstance = new FakeInstanceObject.Builder(fakeCaptureObject, 1, BITMAP_CLASS_NAME)
+      .setFields(Arrays.asList("shadow$_klass_", "mWidth", "mHeight", "mNativePtr")).build();
+    shadowBufferBitmapInstance
+      .setFieldValue("shadow$_klass_", OBJECT, shadowKlassInstance)
+      .setFieldValue("mWidth", INT, 2)
+      .setFieldValue("mHeight", INT, 1)
+      .setFieldValue("mNativePtr", LONG, -1L);
+
+    fakeCaptureObject.addInstanceObjects(ImmutableSet.of(shadowBufferBitmapInstance));
+
+    BitmapDecoder.BitmapDataProvider dataProvider = AndroidBitmapDataProvider.createDecoder(shadowBufferBitmapInstance);
+    assertNotNull(dataProvider);
+    assertNotNull(BitmapDecoder.getBitmap(dataProvider));
+  }
+
+  @Test
+  public void dataProviderTestWithShadowKlassOmittedNullSlot() {
+    FakeCaptureObject fakeCaptureObject = new FakeCaptureObject.Builder().build();
+
+    // buffers only contains "1" (slot "0" was null / omitted)
+    FakeInstanceObject buffers = new FakeInstanceObject.Builder(fakeCaptureObject, 6, "byte[][]").setFields(List.of("1")).build();
+    buffers.setFieldValue("1", ARRAY, new FakeInstanceObject.Builder(fakeCaptureObject, 5, BYTES_CLASS_NAME).setValueType(ARRAY)
+      .setArray(BYTE, SAMPLE_PNG_BYTES, SAMPLE_PNG_BYTES.length).build());
+
+    FakeInstanceObject natives = new FakeInstanceObject.Builder(fakeCaptureObject, 4, BYTES_CLASS_NAME)
+      .setFields(Arrays.asList("0", "1")).build();
+    natives.setFieldValue("0", LONG, -100L);
+    natives.setFieldValue("1", LONG, -200L);
+
+    FakeInstanceObject dumpDataInstance = new FakeInstanceObject.Builder(fakeCaptureObject, 3, "Bitmap$DumpData")
+      .setFields(Arrays.asList("buffers", "natives")).build();
+    dumpDataInstance.setFieldValue("buffers", OBJECT, buffers).setFieldValue("natives", OBJECT, natives);
+
+    FakeInstanceObject shadowKlassInstance = new FakeInstanceObject.Builder(fakeCaptureObject, 2, "Class")
+      .setFields(List.of("dumpData")).build();
+    shadowKlassInstance.setFieldValue("dumpData", OBJECT, dumpDataInstance);
+
+    // Bitmap 1 matches slot "1" (-200L)
+    FakeInstanceObject validBitmap = new FakeInstanceObject.Builder(fakeCaptureObject, 1, BITMAP_CLASS_NAME)
+      .setFields(Arrays.asList("shadow$_klass_", "mWidth", "mHeight", "mNativePtr")).build();
+    validBitmap
+      .setFieldValue("shadow$_klass_", OBJECT, shadowKlassInstance)
+      .setFieldValue("mWidth", INT, 2)
+      .setFieldValue("mHeight", INT, 1)
+      .setFieldValue("mNativePtr", LONG, -200L);
+
+    // Bitmap 0 matches slot "0" (-100L) which has no buffer
+    FakeInstanceObject missingBufferBitmap = new FakeInstanceObject.Builder(fakeCaptureObject, 7, BITMAP_CLASS_NAME)
+      .setFields(Arrays.asList("shadow$_klass_", "mWidth", "mHeight", "mNativePtr")).build();
+    missingBufferBitmap
+      .setFieldValue("shadow$_klass_", OBJECT, shadowKlassInstance)
+      .setFieldValue("mWidth", INT, 2)
+      .setFieldValue("mHeight", INT, 1)
+      .setFieldValue("mNativePtr", LONG, -100L);
+
+    fakeCaptureObject.addInstanceObjects(ImmutableSet.of(validBitmap, missingBufferBitmap));
+
+    BitmapDecoder.BitmapDataProvider validProvider = AndroidBitmapDataProvider.createDecoder(validBitmap);
+    assertNotNull(validProvider);
+    assertNotNull(BitmapDecoder.getBitmap(validProvider));
+
+    BitmapDecoder.BitmapDataProvider missingProvider = AndroidBitmapDataProvider.createDecoder(missingBufferBitmap);
+    assertNull(missingProvider);
   }
 }

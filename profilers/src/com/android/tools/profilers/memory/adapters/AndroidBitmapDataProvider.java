@@ -20,13 +20,14 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Locale;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.List;
 
 /**
  * Adapter for Android Bitmap and BitmapDrawable objects in access the pixel data underneath.
@@ -154,27 +155,26 @@ public final class AndroidBitmapDataProvider implements BitmapDecoder.BitmapData
 
     List<FieldObject> buffersFields = buffersInstance.getFields();
     List<FieldObject> nativesFields = nativesInstance.getFields();
-    if (buffersFields.size() != nativesFields.size()) {
-      LOG.warn(
-        String.format(Locale.US, "Mismatch in size between 'buffers' (%d) and 'natives' (%d) fields. Cannot process.",
-                      buffersFields.size(), nativesFields.size()));
-      return null;
+
+    Map<String, FieldObject> bufferFieldMap = new HashMap<>(buffersFields.size());
+    for (FieldObject f : buffersFields) {
+      if (f != null) {
+        bufferFieldMap.put(f.getFieldName(), f);
+      }
     }
 
     InstanceObject matchingBufferInstance = null;
 
-    for (int i = 0; i < nativesFields.size(); i++) {
-      FieldObject nativeField = nativesFields.get(i);
+    for (FieldObject nativeField : nativesFields) {
       if (nativeField == null) continue;
 
       Object nativeValue = nativeField.getValue();
       if (nativeValue instanceof Long && Objects.equals(nativePtr, nativeValue)) {
-        FieldObject bufferField = buffersFields.get(i);
-
+        FieldObject bufferField = bufferFieldMap.get(nativeField.getFieldName());
         if (bufferField != null) {
           matchingBufferInstance = bufferField.getAsInstance();
-          break;
         }
+        break;
       }
     }
 
