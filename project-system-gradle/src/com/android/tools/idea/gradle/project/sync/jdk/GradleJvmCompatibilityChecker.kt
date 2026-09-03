@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
@@ -45,6 +46,7 @@ class GradleJvmCompatibilityChecker(private val scope: CoroutineScope) {
 
   suspend fun checkIncompatibleGradleJvmForProject(project: Project): Boolean {
     if (!StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.get()) return false
+    if (!IdeInfo.getInstance().isAndroidStudio) return false
     val gradleProjectSettings = GradleSettings.getInstance(project).linkedProjectsSettings.firstOrNull() ?: return false
     val currentJavaVersion =
       AndroidStudioGradleInstallationManager.instance.resolveGradleJvmVersion(project, gradleProjectSettings) ?: return false
