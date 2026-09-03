@@ -140,6 +140,7 @@ import javax.swing.JButton
 import javax.swing.JEditorPane
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.apache.http.entity.mime.MultipartEntityBuilder
@@ -999,7 +1000,7 @@ internal class DeviceViewTest {
   @Test
   fun testConnectionTimeout() {
     StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.overrideForTest(200, testRootDisposable)
-    agent.startDelayMillis = 500
+    agent.startDelay = 500.milliseconds
     val loggedWarnings = executeCapturingLoggedWarnings {
       createDeviceViewWithoutWaitingForAgent(500, 1000)
       val errorMessage = fakeUi.getComponent<JEditorPane>()

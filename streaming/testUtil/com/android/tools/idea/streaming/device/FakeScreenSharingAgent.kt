@@ -74,6 +74,7 @@ import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.math.sin
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -223,7 +224,7 @@ class FakeScreenSharingAgent(
     get() = audioStreamer != null
 
   @Volatile var crashOnStart: Boolean = false
-  @Volatile var startDelayMillis: Long = 0
+  @Volatile var startDelay: Duration = Duration.ZERO
   @Volatile
   var bitRate: Int = VIDEO_DEFAULT_BIT_RATE
     set(value) {
@@ -305,8 +306,8 @@ class FakeScreenSharingAgent(
       terminateAgent(139)
       return
     }
-    if (startDelayMillis > 0) {
-      delay(startDelayMillis)
+    if (startDelay.isPositive()) {
+      delay(startDelay)
     }
     sendVideoChannelHeader(videoChannel)
     audioChannel?.write(ByteBuffer.wrap("A".toByteArray()))
@@ -1485,7 +1486,7 @@ class FakeScreenSharingAgent(
                 return@launch
               }
             }
-            delay(100)
+            delay(100.milliseconds)
           }
         }
     }
