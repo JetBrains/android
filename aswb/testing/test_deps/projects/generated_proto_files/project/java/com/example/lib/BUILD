@@ -1,6 +1,7 @@
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("@protobuf//bazel:proto_library.bzl", "proto_library")
+load("@rules_java//java:defs.bzl", "java_library")
 load(":rule.bzl", "custom_rule")
 
 copy_file(

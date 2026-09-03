@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "JavaInfo")
+
 def _custom_rule_impl(ctx):
     ctx.actions.run_shell(
         inputs = [ctx.files.deps[0]],

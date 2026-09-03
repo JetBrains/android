@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+
 package(default_visibility = ["//visibility:private"])
 
 java_binary(

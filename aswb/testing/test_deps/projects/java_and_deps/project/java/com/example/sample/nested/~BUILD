@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
 package(default_visibility = ["//simple_java:__pkg__"])
 
 java_library(
