@@ -24,25 +24,38 @@ class ArtMethodTraceOutputFormatTest {
 
   @Test
   fun testOutputVersionForPreCinnamonBun() {
-    val device = Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.BAKLAVA).setArtVersionCode(373399999L).build()
+    val device =
+      Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.BAKLAVA).setArtVersionCode(ART_V2_MIN_VERSION_CODE).build()
     assertThat(getArtMethodTraceOutputVersion(device, true)).isEqualTo(1)
   }
 
   @Test
   fun testOutputVersionWhenEditorFlagDisabled() {
-    val device = Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.CINNAMON_BUN).setArtVersionCode(373399999L).build()
+    val device =
+      Common.Device.newBuilder()
+        .setFeatureLevel(AndroidVersion.VersionCodes.CINNAMON_BUN)
+        .setArtVersionCode(ART_V2_MIN_VERSION_CODE)
+        .build()
     assertThat(getArtMethodTraceOutputVersion(device, false)).isEqualTo(1)
   }
 
   @Test
   fun testOutputVersionWhenArtVersionIsTooLow() {
-    val device = Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.CINNAMON_BUN).setArtVersionCode(373399998L).build()
+    val device =
+      Common.Device.newBuilder()
+        .setFeatureLevel(AndroidVersion.VersionCodes.CINNAMON_BUN)
+        .setArtVersionCode(ART_V2_MIN_VERSION_CODE - 1)
+        .build()
     assertThat(getArtMethodTraceOutputVersion(device, true)).isEqualTo(1)
   }
 
   @Test
   fun testOutputVersionReturnsTwo() {
-    val device = Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.CINNAMON_BUN).setArtVersionCode(373399999L).build()
+    val device =
+      Common.Device.newBuilder()
+        .setFeatureLevel(AndroidVersion.VersionCodes.CINNAMON_BUN)
+        .setArtVersionCode(ART_V2_MIN_VERSION_CODE)
+        .build()
     assertThat(getArtMethodTraceOutputVersion(device, true)).isEqualTo(2)
   }
 }

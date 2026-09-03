@@ -18,8 +18,9 @@ package com.android.tools.profilers.cpu.config
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Common
+import org.jetbrains.annotations.VisibleForTesting
 
-private const val ART_V2_MIN_VERSION_CODE = 373399999L
+@VisibleForTesting internal const val ART_V2_MIN_VERSION_CODE = 372042020L
 
 /**
  * Returns the output format version for ART method traces for a given device. This corresponds to the --profiler-output-version argument in
