@@ -7,9 +7,7 @@
         android:targetSdkVersion="34" />
 
     <application
-        android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name" >
+        android:allowBackup="true" >
         <activity
             android:name="com.basicapp.BasicActivity"
             android:exported="true">

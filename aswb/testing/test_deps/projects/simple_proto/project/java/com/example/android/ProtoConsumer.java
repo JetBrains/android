@@ -16,26 +16,23 @@
 package com.example.android;
 
 import com.example.external.ExternalMessage;
+import com.example.lib.LibEdition2024OuterClass.MessageContent;
+import com.example.lib.LibEdition2024OuterClass.MessageManager;
+import com.example.lib.LibEdition2024Proto.LibMessageEdition2024DisableMultiFile;
 import com.example.lib.LibMessage;
 import com.example.lib.LibMessage.LibEnum;
-import com.example.lib.LibEdition2024OuterClass.MessageManager;
-import com.example.lib.LibEdition2024OuterClass.MessageContent;
-import com.example.lib.LibEdition2024Proto.LibMessageEdition2024DisableMultiFile;
 import com.example.lib.LibMessageEdition2024EnableMultiFile;
+import java.util.Arrays;
 
-/**
- * An example proto consumer.
- */
+/** An example proto consumer. */
 public class ProtoConsumer {
 
   public MessageContent getMessage() {
     MessageManager message =
-      MessageManager.newBuilder()
-        .setMessage(MessageContent.newBuilder()
-                      .setContent("abc")
-                      .build())
-        .build();
-    System.out.println(LibEnum.values());
+        MessageManager.newBuilder()
+            .setMessage(MessageContent.newBuilder().setContent("abc").build())
+            .build();
+    System.out.println(Arrays.toString(LibEnum.values()));
     System.out.println(LibEnum.valueOf(0));
     System.out.println(LibEnum.valueOf("VALUE_A"));
     System.out.println(LibEnum.forNumber(1));
@@ -45,32 +42,35 @@ public class ProtoConsumer {
 
   public ProtoConsumer() {
     LibMessage message =
-      LibMessage.newBuilder()
-        .setMessage("abc")
-        .setExternalMessage(ExternalMessage.newBuilder().setMessage("xyz").build())
-        .build();
+        LibMessage.newBuilder()
+            .setMessage("abc")
+            .setExternalMessage(ExternalMessage.newBuilder().setMessage("xyz").build())
+            .build();
     LibMessageEdition2024DisableMultiFile messageEdition2024DisableMultiFile =
-      LibMessageEdition2024DisableMultiFile.newBuilder()
-        .setMessage("abc")
-        .build();
+        LibMessageEdition2024DisableMultiFile.newBuilder().setMessage("abc").build();
     LibMessageEdition2024EnableMultiFile.Builder builder =
-      LibMessageEdition2024EnableMultiFile.newBuilder()
-        .setMessage("abc")
-        .setLibEnum(LibMessageEdition2024EnableMultiFile.LibEnum.VALUE_A)
-        .addRepeatedStrings("s1")
-        .addRepeatedStrings("s2")
-        .setChoiceA("choice_a_value");
+        LibMessageEdition2024EnableMultiFile.newBuilder()
+            .setMessage("abc")
+            .setLibEnum(LibMessageEdition2024EnableMultiFile.LibEnum.VALUE_A)
+            .addRepeatedStrings("s1")
+            .addRepeatedStrings("s2")
+            .setChoiceA("choice_a_value");
 
     LibMessageEdition2024EnableMultiFile.NestedMessage nested =
-      LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder()
-        .setNestedContent("nested_abc")
-        .build();
+        LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder()
+            .setNestedContent("nested_abc")
+            .build();
 
     builder.setNestedMessage(nested);
     builder.addRepeatedNestedMessages(nested);
-    builder.addRepeatedNestedMessages(LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder().setNestedContent("nested_builder"));
+    builder.addRepeatedNestedMessages(
+        LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder()
+            .setNestedContent("nested_builder"));
     builder.setRepeatedNestedMessages(0, nested);
-    builder.setRepeatedNestedMessages(1, LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder().setNestedContent("nested_builder_set"));
+    builder.setRepeatedNestedMessages(
+        1,
+        LibMessageEdition2024EnableMultiFile.NestedMessage.newBuilder()
+            .setNestedContent("nested_builder_set"));
     builder.removeRepeatedNestedMessages(0);
 
     LibMessageEdition2024EnableMultiFile messageEdition2024EnableMultiFile = builder.build();
@@ -81,7 +81,7 @@ public class ProtoConsumer {
 
     System.out.println(messageEdition2024EnableMultiFile.getLibEnum());
     System.out.println(messageEdition2024EnableMultiFile.getLibEnumValue());
-    System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.values());
+    System.out.println(Arrays.toString(LibMessageEdition2024EnableMultiFile.LibEnum.values()));
     System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.valueOf(1));
     System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.valueOf("VALUE_A"));
     System.out.println(LibMessageEdition2024EnableMultiFile.LibEnum.forNumber(1));
@@ -101,6 +101,5 @@ public class ProtoConsumer {
     System.out.println(messageEdition2024EnableMultiFile.getRepeatedNestedMessagesList());
     System.out.println(messageEdition2024EnableMultiFile.getRepeatedNestedMessagesCount());
     System.out.println(messageEdition2024EnableMultiFile.getRepeatedNestedMessages(0));
-
   }
 }

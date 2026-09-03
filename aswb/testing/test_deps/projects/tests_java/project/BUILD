@@ -42,7 +42,7 @@ java_library(
 java_test(
     name = "FirstSharedTest",
     test_class = "com.example.tests.SharedLibTest",
-    deps = [
+    runtime_deps = [
         ":shared_test_lib",
         "@rules_android_maven//:junit_junit",
     ],
@@ -51,7 +51,7 @@ java_test(
 java_test(
     name = "SecondSharedTest",
     test_class = "com.example.tests.SharedLibTest",
-    deps = [
+    runtime_deps = [
         ":shared_test_lib",
         "@rules_android_maven//:junit_junit",
     ],
