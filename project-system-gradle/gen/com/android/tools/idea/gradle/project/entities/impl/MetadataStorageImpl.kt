@@ -560,7 +560,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                               isComputable = false,
                                                                                                                               isKey = false,
                                                                                                                               isOpen = false,
-                                                                                                                              name = "aidlDirectories",
+                                                                                                                              name = "aarKeepRulesDirectories",
                                                                                                                               valueType = ValueTypeMetadata.ParameterizedType(
                                                                                                                                 generics = listOf(
                                                                                                                                   ValueTypeMetadata.SimpleType.CustomType(
@@ -579,6 +579,32 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                                         "java.io.File",
                                                                                                                                         "java.io.Serializable",
                                                                                                                                         "kotlin.Comparable")))),
+                                                                                                                                primitive = primitiveTypeListNotNullable),
+                                                                                                                              withDefault = false),
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "aarKeepRulesDirectoriesField",
+                                                                                                                              valueType = ValueTypeMetadata.ParameterizedType(
+                                                                                                                                generics = listOf(
+                                                                                                                                  ValueTypeMetadata.SimpleType.CustomType(
+                                                                                                                                    isNullable = false,
+                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
+                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
+                                                                                                                                primitive = primitiveTypeListNotNullable),
+                                                                                                                              withDefault = false),
+                                                                                                                            OwnPropertyMetadata(
+                                                                                                                              isComputable = false,
+                                                                                                                              isKey = false,
+                                                                                                                              isOpen = false,
+                                                                                                                              name = "aidlDirectories",
+                                                                                                                              valueType = ValueTypeMetadata.ParameterizedType(
+                                                                                                                                generics = listOf(
+                                                                                                                                  ValueTypeMetadata.SimpleType.CustomType(
+                                                                                                                                    isNullable = false,
+                                                                                                                                    typeMetadata = FinalClassMetadata.KnownClass(
+                                                                                                                                      fqName = "com.android.tools.idea.gradle.model.impl.FileImpl"))),
                                                                                                                                 primitive = primitiveTypeListNotNullable),
                                                                                                                               withDefault = false),
                                                                                                                             OwnPropertyMetadata(
@@ -8067,6 +8093,13 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                   isComputable = false,
                                                                                                                   isKey = false,
                                                                                                                   isOpen = false,
+                                                                                                                  name = "hasLegacyKaptPlugin",
+                                                                                                                  valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                  withDefault = false),
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
                                                                                                                   name = "moduleNameField",
                                                                                                                   valueType = primitiveTypeStringNotNullable,
                                                                                                                   withDefault = false),
@@ -8369,11 +8402,11 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
   }
 
   override fun initializeMetadataHash() {
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = -2095636646)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = 588642854)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityId", metadataHash = -1768909912)
     addMetadataHash(typeFqn = "com.intellij.platform.workspace.jps.entities.ModuleId", metadataHash = 369441961)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl", metadataHash = -885493048)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeSourceProvider", metadataHash = -1488779769)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl", metadataHash = -1360807464)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeSourceProvider", metadataHash = 781378755)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.FileImpl", metadataHash = -1013892919)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl", metadataHash = 236716780)
     addMetadataHash(typeFqn = "com.android.ide.common.repository.AgpVersion", metadataHash = 779049036)
@@ -8483,9 +8516,9 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl", metadataHash = -618495050)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable", metadataHash = 1979204270)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl", metadataHash = 586445021)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", metadataHash = 523357887)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", metadataHash = 1413038037)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityId", metadataHash = -409283803)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleModuleModel", metadataHash = 1018626463)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleModuleModel", metadataHash = -991281719)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleProjectPathEntity", metadataHash = -1975636342)
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.gradle.GradleProjectPath", metadataHash = -561408553)
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath", metadataHash = -1572612363)
