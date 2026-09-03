@@ -37,6 +37,7 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.ClipboardSynchronizationDisablementRule
+import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.core.extractText
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
@@ -130,6 +131,7 @@ import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
+import java.awt.geom.Rectangle2D
 import java.text.AttributedString
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
@@ -193,6 +195,7 @@ internal class DeviceViewTest {
 
   @Before
   fun setUp() {
+    StudioFlags.DEVICE_MIRRORING_GLASSES_DISPLAY.overrideForTest(true, testRootDisposable)
     BitRateManager.getInstance().clear()
     device = agentRule.connectDevice("Pixel 5", 32, Dimension(1080, 2340))
     @Suppress("UnstableApiUsage")
@@ -216,7 +219,7 @@ internal class DeviceViewTest {
     view.addFrameListener(frameListener)
     waitForCondition(2.seconds) {
       fakeUi.render()
-      view.frameNumber == agent.getFrameNumber(PRIMARY_DISPLAY_ID)
+      view.frameNumber > 0u && view.frameNumber == agent.getFrameNumber(PRIMARY_DISPLAY_ID)
     }
 
     assertThat(frameListenerCalls).isGreaterThan(0u)
@@ -1245,6 +1248,44 @@ internal class DeviceViewTest {
   }
 
   @Test
+  fun testDisplayGlasses() {
+    val displayId = 48
+    val displaySize = Dimension(450, 450)
+    agent.addDisplay(displayId, displaySize, DisplayType.VIRTUAL, hasAssociatedCamera = true)
+    createDeviceView(200, 300, displayId, displaySize, retinaMode = true)
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(StartVideoStreamMessage(displayId, Dimension(400, 600)))
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(displayId, Dimension(1066, 900)))
+    assertAppearance("DisplayGlasses1")
+    assertThat(view.displayRectangle).isEqualTo(Rectangle2D.Double(0.4375, 100.0, 400.125, 400.0))
+
+    executeAction("android.streaming.zoom.fit", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(400, 600)))
+    assertAppearance("DisplayGlasses2")
+    assertThat(view.displayRectangle).isEqualTo(Rectangle2D.Double(125.0, 225.0, 150.0, 150.0))
+
+    executeAction("android.streaming.zoom.in", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(600, 580)))
+    assertAppearance("DisplayGlasses3")
+
+    executeAction("android.streaming.zoom.out", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(400, 600)))
+
+    executeAction("android.streaming.zoom.fit.inner", view, project)
+    fakeUi.root.size = Dimension(250, 300)
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(displayId))
+      .isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(1200, 900)))
+    assertAppearance("DisplayGlasses4")
+
+    executeAction("android.streaming.zoom.fit.inner", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    assertAppearance("DisplayGlasses5")
+  }
+
+  @Test
   fun testErrorNotification() {
     createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
@@ -1256,21 +1297,35 @@ internal class DeviceViewTest {
     assertThat(notification.type).isEqualTo(NotificationType.WARNING)
   }
 
-  private fun createDeviceView(width: Int, height: Int, retinaMode: Boolean = false) {
+  private fun createDeviceView(
+    width: Int,
+    height: Int,
+    displayId: Int = PRIMARY_DISPLAY_ID,
+    displaySize: Dimension = device.displaySize,
+    retinaMode: Boolean = false,
+  ) {
     if (retinaMode) {
       hiDpiRule.setRetinaMode()
     }
-    createDeviceViewWithoutWaitingForAgent(width, height)
+    createDeviceViewWithoutWaitingForAgent(width, height, displayId, displaySize)
     waitForCondition(15, SECONDS) { agent.isRunning }
   }
 
-  private fun createDeviceViewWithoutWaitingForAgent(width: Int, height: Int) {
+  private fun createDeviceViewWithoutWaitingForAgent(
+    width: Int,
+    height: Int,
+    displayId: Int = PRIMARY_DISPLAY_ID,
+    displaySize: Dimension = device.displaySize,
+  ) {
     val deviceClient = DeviceClient(device.handle.id, device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
     // DeviceView has to be disposed before DeviceClient.
     val disposable = Disposer.newDisposable()
     Disposer.register(testRootDisposable, disposable)
-    val displayPanel = DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
+    if (displayId != PRIMARY_DISPLAY_ID) {
+      deviceClient.establishAgentConnectionWithoutVideoStreamAsync(project)
+    }
+    val displayPanel = DeviceDisplayPanel(disposable, deviceClient, displayId, displaySize, UNKNOWN_ORIENTATION, project, false)
     displayPanel.size = Dimension(width, height)
     view = displayPanel.displayView
     fakeUi = FakeUi(displayPanel, createFakeWindow = true, parentDisposable = testRootDisposable)
@@ -1292,7 +1347,17 @@ internal class DeviceViewTest {
   /** Waits for all video frames to be received. */
   private fun waitForFrame(displayId: Int = PRIMARY_DISPLAY_ID) {
     waitForCondition(2.seconds) {
-      view.isConnected && agent.getFrameNumber(displayId) > 0u && renderAndGetFrameNumber() == agent.getFrameNumber(displayId)
+      if (!view.isConnected) return@waitForCondition false
+      val expectedDisplayFrameNumber = agent.getFrameNumber(displayId)
+      if (expectedDisplayFrameNumber == 0u) return@waitForCondition false
+      if (agent.hasAssociatedCamera(displayId)) {
+        val expectedCameraFrameNumber = agent.getCameraFrameNumber(displayId)
+        if (expectedCameraFrameNumber == 0u) return@waitForCondition false
+        renderAndGetFrameNumber()
+        view.frameNumber == expectedDisplayFrameNumber && view.environmentFrameNumber == expectedCameraFrameNumber
+      } else {
+        renderAndGetFrameNumber() == expectedDisplayFrameNumber
+      }
     }
   }
 

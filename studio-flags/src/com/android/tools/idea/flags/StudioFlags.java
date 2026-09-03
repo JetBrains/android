@@ -1366,6 +1366,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_USE_UINPUT = new BooleanFlag(
     DEVICE_MIRRORING, "use.uinput", "Use uinput module (https://kernel.org/doc/html/v4.12/input/uinput.html)",
     "Use uinput module ((https://kernel.org/doc/html/v4.12/input/uinput.html) for injecting input events");
+  public static final Flag<Boolean> DEVICE_MIRRORING_GLASSES_DISPLAY = new BooleanFlag(
+    DEVICE_MIRRORING, "glasses.display", "Mirror Glasses Display",
+    "Enable mirroring of glasses display");
   public static final Flag<Boolean> DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH = new BooleanFlag(
     DEVICE_MIRRORING, "xr.simulated.passthrough", "Enable Simulated Passthrough for XR Headsets",
     "Enable simulated passthrough for XR headsets");

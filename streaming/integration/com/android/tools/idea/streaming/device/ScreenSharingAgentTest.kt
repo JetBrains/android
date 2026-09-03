@@ -448,7 +448,7 @@ class ScreenSharingAgentTest {
           "x86_64",
         )
       Disposer.register(testRootDisposable, deviceClient)
-      deviceView = DeviceView(testRootDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, 0)
+      deviceView = DeviceView(testRootDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, Dimension(), 0)
 
       fakeUi = FakeUi(deviceView.wrapInScrollPane(200, 300))
       fakeUi.render()

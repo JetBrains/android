@@ -298,7 +298,7 @@ class DeviceUiSettingsControllerTest {
   private fun createDeviceView(device: FakeDevice): DeviceView {
     val deviceClient = DeviceClient(device.handle.id, device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
-    val view = DeviceView(deviceClient, deviceClient, project, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION)
+    val view = DeviceView(deviceClient, deviceClient, project, PRIMARY_DISPLAY_ID, device.displaySize, UNKNOWN_ORIENTATION)
     view.size = Dimension(600, 800)
     waitForFrame(view)
     return view

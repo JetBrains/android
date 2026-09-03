@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.core.contains
 import com.android.tools.idea.streaming.core.createShowLogHyperlinkListener
 import com.android.tools.idea.streaming.core.getShowLogHyperlink
 import com.android.tools.idea.streaming.core.location
+import com.android.tools.idea.streaming.core.scaledDown
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
@@ -119,6 +120,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.awt.geom.AffineTransform
+import java.awt.geom.Rectangle2D
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
@@ -126,20 +128,24 @@ import javax.swing.KeyStroke
 import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A view of a mirrored device display.
  *
  * @param disposableParent the disposable parent determining the lifespan of the view
  * @param deviceClient the client for communicating with the device agent
- * @param initialDisplayOrientation initial orientation of the device display in quadrants counterclockwise
  * @param project the project associated with the view
+ * @param displayId the ID of the device display
+ * @param displaySize the size of the device display
+ * @param initialDisplayOrientation initial orientation of the device display in quadrants counterclockwise
  */
 internal class DeviceView(
   disposableParent: Disposable,
   val deviceClient: DeviceClient,
   override val project: Project,
   displayId: Int,
+  displaySize: Dimension,
   private val initialDisplayOrientation: Int,
 ) : AbstractDisplayView(project, displayId, "StreamingContextMenuPhysicalDevice"), DeviceMirroringSettingsListener {
 
@@ -148,6 +154,22 @@ internal class DeviceView(
 
   override val deviceId: StreamingDeviceId = deviceClient.deviceId
   override val deviceType: DeviceType = deviceConfig.deviceType
+
+  override val displayRectangle: Rectangle2D?
+    get() {
+      val projectionRect = projectionRectangle ?: return null
+      val environmentSize = environmentSize ?: return projectionRect
+      return when {
+        deviceDisplaySize.width <= 0 || deviceDisplaySize.height <= 0 -> null
+        else -> {
+          val w = deviceDisplaySize.width.toDouble() / environmentSize.width * projectionRect.width
+          val h = deviceDisplaySize.height.toDouble() / environmentSize.height * projectionRect.height
+          val x = projectionRect.x + (projectionRect.width - w) / 2
+          val y = projectionRect.y + (projectionRect.height - h) / 2
+          Rectangle2D.Double(x, y, w, h)
+        }
+      }
+    }
 
   /**
    * Orientation of the device display according to Android's
@@ -187,7 +209,36 @@ internal class DeviceView(
   private val deviceConfig
     get() = deviceClient.deviceConfig
 
-  override val deviceDisplaySize = Dimension()
+  override val deviceDisplaySize = Dimension(displaySize)
+  override val hasInnerPart: Boolean
+    get() = environmentSize != null && deviceDisplaySize.width > 0 && deviceDisplaySize.height > 0
+
+  override var framing: Framing = if (hasInnerPart) Framing.INNER else Framing.OUTER
+    set(value) {
+      if (field != value) {
+        field = value
+        EventQueue.invokeLater { updateVideoSize() }
+      }
+    }
+
+  private var environmentSize: Dimension? = null
+    set(value) {
+      if (field != value) {
+        val wasNull = field == null
+        field = value
+        if (value == null) {
+          framing = Framing.OUTER
+        } else if (wasNull) {
+          framing = Framing.INNER
+        }
+        ActivityTracker.getInstance().inc()
+      }
+    }
+
+  @get:VisibleForTesting
+  internal var environmentFrameNumber: UInt = 0u
+    private set
+
   private var deviceScaleFactor: Double = 1.0
 
   private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
@@ -289,12 +340,13 @@ internal class DeviceView(
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
     frameNumber = 0u
+    environmentFrameNumber = 0u
     val disconnectionListener = MyAgentTerminationListener()
     if (!agentTerminationListener.compareAndSet(null, disconnectionListener)) {
       throw IllegalStateException("Agent termination listener already set")
     }
     connectionState = ConnectionState.CONNECTING
-    maxVideoSize = physicalSize
+    maxVideoSize = computeMaxVideoSize(initialDisplayOrientation)
     deviceClient.addAgentTerminationListener(disconnectionListener)
     createCoroutineScope().launch { connectToAgent(maxVideoSize, initialDisplayOrientation, disconnectionListener) }
   }
@@ -334,8 +386,22 @@ internal class DeviceView(
     }
   }
 
+  private fun computeMaxVideoSize(orientationQuadrants: Int): Dimension {
+    val maxSize = physicalSize.rotatedByQuadrants(-orientationQuadrants)
+    val environmentSize = this.environmentSize
+    if (environmentSize != null && deviceDisplaySize.width > 0 && deviceDisplaySize.height > 0) {
+      if (framing == Framing.INNER) {
+        maxSize.width = maxSize.width.scaledDown(environmentSize.width, deviceDisplaySize.width)
+        maxSize.height = maxSize.height.scaledDown(environmentSize.height, deviceDisplaySize.height)
+      }
+      maxSize.width = maxSize.width.coerceAtMost(environmentSize.width)
+      maxSize.height = maxSize.height.coerceAtMost(environmentSize.height)
+    }
+    return maxSize.rotatedByQuadrants(orientationQuadrants)
+  }
+
   private fun updateVideoSize() {
-    val maxSize = physicalSize
+    val maxSize = computeMaxVideoSize(displayOrientationQuadrants)
     if (maxVideoSize != maxSize) {
       maxVideoSize = maxSize
       deviceClient.setMaxVideoResolution(project, displayId, maxSize)
@@ -444,11 +510,10 @@ internal class DeviceView(
   override fun canZoom(): Boolean = connectionState == ConnectionState.CONNECTED
 
   override fun computeActualSize(framing: Framing): Dimension {
-    require(framing == Framing.OUTER) { "Unexpected framing value $framing" }
-    return computeActualSize(displayOrientationQuadrants)
+    val environmentSize = this@DeviceView.environmentSize
+    val size = if (environmentSize == null || framing == Framing.INNER) deviceDisplaySize else environmentSize
+    return size.rotatedByQuadrants(displayOrientationQuadrants)
   }
-
-  private fun computeActualSize(rotationQuadrants: Int): Dimension = deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
 
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
@@ -467,18 +532,14 @@ internal class DeviceView(
       repaintAlarm.cancelAllRequests()
       if (
         displayOrientationQuadrants != displayFrame.orientation ||
-          deviceDisplaySize.width != 0 && deviceDisplaySize.width != displayFrame.displaySize.width ||
-          deviceDisplaySize.height != 0 && deviceDisplaySize.height != displayFrame.displaySize.height
+          deviceDisplaySize.width != 0 && deviceDisplaySize != displayFrame.displaySize
       ) {
         zoom(ZoomType.FIT) // Orientation or dimensions of the display have changed - reset zoom level.
       }
-      val rotatedDisplaySize = displayFrame.displaySize.rotatedByQuadrants(displayFrame.orientation)
-      val maxSize = computeMaxImageSize()
-      val scaleFactor =
-        roundScale(min(maxSize.width.toDouble() / rotatedDisplaySize.width, maxSize.height.toDouble() / rotatedDisplaySize.height))
-      val w = rotatedDisplaySize.width.scaled(scaleFactor).coerceAtMost(physicalWidth)
-      val h = rotatedDisplaySize.height.scaled(scaleFactor).coerceAtMost(physicalHeight)
-      val displayRect = Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
+      if (displayFrame.unscaledSize != displayFrame.displaySize) {
+        environmentSize = displayFrame.unscaledSize
+      }
+      val displayRect = computeDisplayRectangle(displayFrame.unscaledSize, displayFrame.orientation)
       projectionRectangle = displayRect
 
       val image = displayFrame.image
@@ -506,11 +567,13 @@ internal class DeviceView(
         deviceDisplaySize.size = displayFrame.displaySize
         displayOrientationQuadrants = displayFrame.orientation
         ActivityTracker.getInstance().inc() // Size and orientation changes may affect enablement of zoom actions.
+        updateVideoSize()
       }
       deviceScaleFactor =
         min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScalingFactor / min(displayRect.width, displayRect.height)
       displayOrientationCorrectionQuadrants = displayFrame.orientationCorrection
       frameNumber = displayFrame.frameNumber
+      environmentFrameNumber = displayFrame.environmentFrameNumber
 
       notifyFrameListeners(displayRect, displayFrame.image)
 
@@ -519,6 +582,33 @@ internal class DeviceView(
         drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
       }
     }
+  }
+
+  private fun computeDisplayRectangle(unscaledSize: Dimension, orientation: Int): Rectangle {
+    // The roundScale call below is used to avoid scaling by a fractional factor larger than 1 or
+    // by a factor that is only slightly below 1.
+    val maxSize = computeMaxImageSize()
+    val maxWidth = maxSize.width.toDouble()
+    val maxHeight = maxSize.height.toDouble()
+    val environmentOrDisplaySize = environmentSize ?: unscaledSize
+    val rotatedDisplaySize = environmentOrDisplaySize.rotatedByQuadrants(orientation)
+    var w = rotatedDisplaySize.width
+    var h = rotatedDisplaySize.height
+    val scale =
+      if (framing == Framing.INNER) {
+        val environmentSize = checkNotNull(environmentSize)
+        roundScale(
+          min(
+            maxWidth / deviceDisplaySize.width * environmentSize.width / w,
+            maxHeight / deviceDisplaySize.height * environmentSize.height / h,
+          )
+        )
+      } else {
+        roundScale(min(maxWidth / w, maxHeight / h))
+      }
+    w = w.scaled(scale)
+    h = h.scaled(scale)
+    return Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
   }
 
   private fun requestHighQualityRepaint() {

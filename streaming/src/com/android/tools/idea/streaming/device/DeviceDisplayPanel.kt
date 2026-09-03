@@ -23,12 +23,14 @@ import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListene
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.project.Project
+import java.awt.Dimension
 
 /** Represents a single display of an Android device. */
 internal class DeviceDisplayPanel(
   disposableParent: Disposable,
   deviceClient: DeviceClient,
   displayId: Int,
+  displaySize: Dimension,
   initialDisplayOrientation: Int,
   project: Project,
   zoomToolbarVisible: Boolean,
@@ -38,7 +40,7 @@ internal class DeviceDisplayPanel(
     get() = displayView.deviceClient.deviceConfig.deviceType
 
   init {
-    displayView = DeviceView(this, deviceClient, project, displayId, initialDisplayOrientation)
+    displayView = DeviceView(this, deviceClient, project, displayId, displaySize, initialDisplayOrientation)
 
     loadingPanel.setLoadingText("Connecting to the device")
     loadingPanel.startLoading() // The stopLoading method is called by DeviceView after a connection to the device is established.

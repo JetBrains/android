@@ -42,8 +42,10 @@ struct VideoPacketHeader {
   static constexpr int16_t FLAG_DISPLAY_ROUND = 0x01;
   // Bit rate reduced compared to the previous frame or, for the very first flame, to the initial value.
   static constexpr int16_t FLAG_BIT_RATE_REDUCED = 0x02;
+  // Display video frame that should be overlaid on top of the camera video frame.
+  static constexpr int16_t FLAG_ACCOMPANIED_BY_CAMERA = 0x04;
   // Video frame originated from camera.
-  static constexpr int16_t FLAG_CAMERA = 0x04;
+  static constexpr int16_t FLAG_CAMERA = 0x08;
 
   static size_t SIZE;  // Similar to sizeof(VideoPacketHeader) but without the trailing alignment.
 };

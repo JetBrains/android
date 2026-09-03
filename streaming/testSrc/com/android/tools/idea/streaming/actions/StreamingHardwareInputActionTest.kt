@@ -223,7 +223,8 @@ class StreamingHardwareInputActionTest {
   private fun createDeviceView(device: FakeDevice): DeviceView {
     val deviceClient = DeviceClient(device.handle.id, device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
-    val panel = DeviceDisplayPanel(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
+    val panel =
+      DeviceDisplayPanel(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, device.displaySize, UNKNOWN_ORIENTATION, project, false)
     return panel.displayView
   }
 

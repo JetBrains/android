@@ -147,7 +147,7 @@ internal class DeviceToolWindowPanel(
     val initialOrientation = uiState.orientation
     val primaryDisplayPanel =
       createDisplayPanelIfAbsent(PRIMARY_DISPLAY_ID) {
-        DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, initialOrientation, project, zoomToolbarVisible)
+        DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, Dimension(), initialOrientation, project, zoomToolbarVisible)
       }
     val zoomScrollState = uiState.zoomScrollState
     for (displayPanel in displayPanels) {
@@ -361,7 +361,7 @@ internal class DeviceToolWindowPanel(
           val displayId = display.displayId
           createDisplayPanelIfAbsent(displayId) {
             assert(it != PRIMARY_DISPLAY_ID)
-            DeviceDisplayPanel(contentDisposable!!, deviceClient, displayId, display.orientation, project, zoomToolbarVisible)
+            DeviceDisplayPanel(contentDisposable!!, deviceClient, displayId, display.size, display.orientation, project, zoomToolbarVisible)
           }
         }
         is SplitNode -> {
@@ -385,7 +385,7 @@ internal class DeviceToolWindowPanel(
         val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
         createDisplayPanelIfAbsent(displayId) {
           assert(it != PRIMARY_DISPLAY_ID)
-          DeviceDisplayPanel(contentDisposable!!, deviceClient, displayId, display.orientation, project, zoomToolbarVisible)
+          DeviceDisplayPanel(contentDisposable!!, deviceClient, displayId, display.size, display.orientation, project, zoomToolbarVisible)
         }
       }
     }
