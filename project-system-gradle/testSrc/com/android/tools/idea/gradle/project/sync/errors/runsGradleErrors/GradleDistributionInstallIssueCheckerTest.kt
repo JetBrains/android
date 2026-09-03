@@ -21,7 +21,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.JdkConstants
 import com.android.utils.FileUtils
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_HOST
 import com.intellij.openapi.util.io.NioFiles
 import java.io.File
 import java.net.InetAddress
@@ -78,7 +79,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
             )
           )
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
+      expectedFailureReported = GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported =
         """
         FAILURE : SYNC_TOTAL
@@ -137,7 +138,7 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
           .that(buildIssue.quickFixes.map { it::class.java })
           .isEqualTo(listOf(GradleWrapperSettingsOpenQuickFix::class.java, OpenStudioProxySettingsQuickFix::class.java))
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
+      expectedFailureReported = GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported =
         """
         FAILURE : SYNC_TOTAL
@@ -204,11 +205,11 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
             .isEqualTo(listOf(GradleWrapperSettingsOpenQuickFix::class.java, OpenStudioProxySettingsQuickFix::class.java))
         }
       },
-      // TODO (b/537264151): adopt multiple failures in metrics
+      // TODO (b/557090685): fix double reporting for this case
       // As now multiple issue checkers can be triggered (see platform's db0c12c0ed93a329d2ceff8917dd7aa7455d8b95),
       // it becomes a valid situation that multiple failure values are reported. Current logic treats this as not intended behavior,
       // logs warning and only saves the last value. Hence change in expectation here.
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.UNKNOWN_HOST,
+      expectedFailuresReported = listOf(GRADLE_DISTRIBUTION_INSTALL_ERROR, UNKNOWN_HOST),
       expectedPhasesReported =
         """
         FAILURE : SYNC_TOTAL

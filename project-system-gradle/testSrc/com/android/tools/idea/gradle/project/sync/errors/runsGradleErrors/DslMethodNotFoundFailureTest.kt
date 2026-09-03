@@ -47,7 +47,9 @@ class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
         expect.that(buildEvents.finishEventFailures()).isEmpty()
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)

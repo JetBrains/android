@@ -24,9 +24,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CONNECTION_DENIED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
 import com.google.wireless.android.sdk.stats.GradleFailureDetails
 import com.intellij.build.BuildProgressListener
@@ -111,7 +110,6 @@ class SyncFailureUsageReporterTest {
 
     val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
-    Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(CLASS_NOT_FOUND)
     Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString())
       .isEqualTo(
         """
@@ -144,6 +142,7 @@ class SyncFailureUsageReporterTest {
           }
         }
       }
+      detected_gradle_sync_failures: CLASS_NOT_FOUND
     """
           .trimIndent()
       )
@@ -160,7 +159,26 @@ class SyncFailureUsageReporterTest {
 
     val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
-    Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE)
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.detectedGradleSyncFailuresList)
+      .isEqualTo(listOf(ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE))
+  }
+
+  @Test
+  fun multipleFailuresReported() {
+    SyncFailureUsageReporter.getInstance().onSyncStart(buildId, projectRule.project, projectRule.project.basePath!!)
+
+    SyncFailureUsageReporter.getInstance().collectFailure(projectRule.project.basePath!!, CLASS_NOT_FOUND)
+    SyncFailureUsageReporter.getInstance().collectFailure(projectRule.project.basePath!!, CONNECTION_DENIED)
+
+    val exception = BuildIssueException(BuildIssueComposer("Test error").composeBuildIssue())
+    SyncFailureUsageReporter.getInstance().collectProcessedError(buildId, projectRule.project, projectRule.project.basePath!!, exception)
+
+    sendBuildFinishedEvent(exception)
+
+    val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.detectedGradleSyncFailuresList)
+      .isEqualTo(listOf(CLASS_NOT_FOUND, CONNECTION_DENIED))
   }
 
   /**
@@ -189,7 +207,7 @@ class SyncFailureUsageReporterTest {
 
     val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
-    Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(UNSUPPORTED_GRADLE_VERSION)
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.detectedGradleSyncFailuresList).isEqualTo(listOf(UNSUPPORTED_GRADLE_VERSION))
   }
 
   @Test
@@ -203,7 +221,6 @@ class SyncFailureUsageReporterTest {
 
     val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
-    Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(BUILD_ISSUE_CREATED_UNKNOWN_FAILURE)
     Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString())
       .isEqualTo(
         """
@@ -218,6 +235,7 @@ class SyncFailureUsageReporterTest {
             }
           }
         }
+        detected_gradle_sync_failures: BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
         """
           .trimIndent()
       )
@@ -234,7 +252,6 @@ class SyncFailureUsageReporterTest {
 
     val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
-    Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(UNKNOWN_GRADLE_FAILURE)
     Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString())
       .isEqualTo(
         """
@@ -249,6 +266,7 @@ class SyncFailureUsageReporterTest {
           }
         }
       }
+      detected_gradle_sync_failures: UNKNOWN_GRADLE_FAILURE
     """
           .trimIndent()
       )

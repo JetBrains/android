@@ -28,7 +28,6 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
@@ -36,8 +35,6 @@ import com.intellij.openapi.util.Disposer
 import java.util.concurrent.ConcurrentHashMap
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.util.GradleBundle
-
-private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
 
 /**
  * This service is responsible for collecting sync failure information to be reported to metrics. Failure means that an exception was thrown
@@ -49,7 +46,7 @@ private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
  */
 @Service(Service.Level.APP)
 class SyncFailureUsageReporter {
-  private val collectedFailureTypesByProjectPath = ConcurrentHashMap<String, GradleSyncFailure>()
+  private val collectedFailureTypesByProjectPath = ConcurrentHashMap<String, List<GradleSyncFailure>>()
   private val collectedFailureDetailsByProjectPath = ConcurrentHashMap<String, GradleFailureDetails>()
   private val collectedFailureDetailsByBuildId = ConcurrentHashMap<Any, AndroidStudioEvent.Builder>()
 
@@ -78,9 +75,8 @@ class SyncFailureUsageReporter {
   }
 
   fun collectFailure(rootProjectPath: @SystemIndependent String, failure: GradleSyncFailure) {
-    val previousValue = collectedFailureTypesByProjectPath.put(rootProjectPath, failure)
-    if (previousValue != null) {
-      LOG.warn("Multiple sync failures reported. Discarding: $previousValue")
+    synchronized(collectedFailureTypesByProjectPath) {
+      collectedFailureTypesByProjectPath.merge(rootProjectPath, listOf(failure)) { existing, new -> existing + new }
     }
   }
 
@@ -93,50 +89,57 @@ class SyncFailureUsageReporter {
     if (externalSystemTaskId == null) return
     // If nothing was collected by the issue checkers try to derive a bit more details from the processed error.
     // e.g. if it has a BuildIssue attached then something just did not report the recognized failure.
-    val failureType = collectedFailureTypesByProjectPath.remove(rootProjectPath) ?: deriveSyncFailureFromProcessedError(processedError)
+    val failureTypes =
+      collectedFailureTypesByProjectPath.remove(rootProjectPath)?.takeIf { it.isNotEmpty() }
+        ?: deriveSyncFailureFromProcessedError(processedError)
     val failureErrorDetails =
-      collectedFailureDetailsByProjectPath.remove(rootProjectPath)
-        ?: extractGradleFailureDetails(processedError)
-        ?: GradleFailureDetails.newBuilder().build()
+      (collectedFailureDetailsByProjectPath.remove(rootProjectPath)
+          ?: extractGradleFailureDetails(processedError)
+          ?: GradleFailureDetails.newBuilder().build())
+        .let {
+          GradleFailureDetails.newBuilder().mergeFrom(it).addAllDetectedGradleSyncFailures(failureTypes).build()
+        }
+
     // At this point we start waiting for finish event in the listener and loosing guarantee that no other sync starts before that.
     // Create half-prepared event from what we have now and put it to the map by build id.
     val syncStateHolder = GradleSyncStateHolder.getInstance(project)
     collectedFailureDetailsByBuildId[externalSystemTaskId] =
       syncStateHolder
         .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS, rootProjectPath)
-        .setGradleSyncFailure(failureType)
         .setGradleFailureDetails(failureErrorDetails)
   }
 
-  private fun deriveSyncFailureFromProcessedError(error: Throwable?) =
-    if (error is BuildIssueException) {
-      when {
-        error.buildIssue.javaClass.packageName.startsWith("com.android.tools.") ->
-          GradleSyncFailure.ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
-        error.buildIssue.title == GradleBundle.message("gradle.build.issue.gradle.unsupported.title") ->
-          GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
-        else -> GradleSyncFailure.BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
+  private fun deriveSyncFailureFromProcessedError(error: Throwable?): List<GradleSyncFailure> =
+    listOf(
+      if (error is BuildIssueException) {
+        when {
+          error.buildIssue.javaClass.packageName.startsWith("com.android.tools.") ->
+            GradleSyncFailure.ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
+          error.buildIssue.title == GradleBundle.message("gradle.build.issue.gradle.unsupported.title") ->
+            GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
+          else -> GradleSyncFailure.BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
+        }
+      } else {
+        when {
+          error?.message?.startsWith("Could not find method ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+          error?.message?.startsWith("Could not get unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+          error?.message?.startsWith("Could not set unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+          error?.message?.startsWith("Script compilation error:") == true -> GradleSyncFailure.KTS_COMPILATION_ERROR
+          error?.message?.startsWith("Compilation failed; see the compiler ") == true -> GradleSyncFailure.JAVA_COMPILATION_ERROR
+          error?.message?.startsWith("Cannot cast object ") == true -> GradleSyncFailure.CANNOT_BE_CAST_TO // Cast exception in groovy code
+          error?.isTomlError() == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
+          error?.cause?.toString()?.startsWith("org.codehaus.groovy.control.MultipleCompilationErrorsException:") == true ->
+            GradleSyncFailure.GROOVY_COMPILATION_ERROR
+          error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: 'com.android.") == true ->
+            GradleSyncFailure.UNKNOWN_PLUGIN_COM_ANDROID
+          error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: '") == true ->
+            GradleSyncFailure.UNKNOWN_PLUGIN_OTHER
+          error?.cause?.toString()?.startsWith("org.gradle.internal.resolve.ModuleVersionNotFoundException:") == true ->
+            GradleSyncFailure.MISSING_DEPENDENCY_OTHER
+          else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
+        }
       }
-    } else {
-      when {
-        error?.message?.startsWith("Could not find method ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
-        error?.message?.startsWith("Could not get unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
-        error?.message?.startsWith("Could not set unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
-        error?.message?.startsWith("Script compilation error:") == true -> GradleSyncFailure.KTS_COMPILATION_ERROR
-        error?.message?.startsWith("Compilation failed; see the compiler ") == true -> GradleSyncFailure.JAVA_COMPILATION_ERROR
-        error?.message?.startsWith("Cannot cast object ") == true -> GradleSyncFailure.CANNOT_BE_CAST_TO // Cast exception in groovy code
-        error?.isTomlError() == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
-        error?.cause?.toString()?.startsWith("org.codehaus.groovy.control.MultipleCompilationErrorsException:") == true ->
-          GradleSyncFailure.GROOVY_COMPILATION_ERROR
-        error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: 'com.android.") == true ->
-          GradleSyncFailure.UNKNOWN_PLUGIN_COM_ANDROID
-        error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: '") == true ->
-          GradleSyncFailure.UNKNOWN_PLUGIN_OTHER
-        error?.cause?.toString()?.startsWith("org.gradle.internal.resolve.ModuleVersionNotFoundException:") == true ->
-          GradleSyncFailure.MISSING_DEPENDENCY_OTHER
-        else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
-      }
-    }
+    )
 
   fun collectUnprocessedGradleError(rootProjectPath: @SystemIndependent String, gradleError: Throwable?) {
     extractGradleFailureDetails(gradleError)?.let { gradleFailureDetails ->

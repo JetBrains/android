@@ -101,7 +101,7 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
           }
         }
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP,
+      expectedFailuresReported = listOf(AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP),
       expectedFailureDetailsString = null,
       expectedPhasesReported = null,
     )
@@ -136,7 +136,7 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
             )
         }
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP,
+      expectedFailuresReported = listOf(AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP),
       expectedFailureDetailsString = null,
       expectedPhasesReported = null,
     )
@@ -188,7 +188,7 @@ class IncompatibleGradleJvmAndGradleIssueCheckerTest : AbstractIssueCheckerInteg
           expect.that(gradleJvmVersion).isEqualTo(expectedJvmVersion.toFeatureString())
         }
       },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP,
+      expectedFailuresReported = listOf(AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP),
       expectedFailureDetailsString = null,
       expectedPhasesReported = null,
     )

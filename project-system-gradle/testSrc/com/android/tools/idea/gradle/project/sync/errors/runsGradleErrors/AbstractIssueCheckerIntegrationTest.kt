@@ -40,12 +40,12 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
       preparedProject = preparedProject,
       overrideGradleJdkPath = overrideGradleJdkPath,
       verifyBuildIssues = { p, issues ->
-        issues.verifyIssueSafely(0, { verifyBuildIssue(p, it) })
         if (issues.size > 1) {
           expect.fail("There is more than a single failure issue:\n${issues.descriptions()}")
         }
+        issues.verifyIssueSafely(0, { verifyBuildIssue(p, it) })
       },
-      expectedFailureReported = expectedFailureReported,
+      expectedFailuresReported = listOf(expectedFailureReported),
       expectedPhasesReported = expectedPhasesReported,
       expectedFailureDetailsString = expectedFailureDetailsString,
     )
@@ -54,7 +54,7 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
     preparedProject: PreparedTestProject,
     overrideGradleJdkPath: File? = null,
     verifyBuildIssues: (Project, List<BuildIssue?>) -> Unit,
-    expectedFailureReported: AndroidStudioEvent.GradleSyncFailure,
+    expectedFailuresReported: List<AndroidStudioEvent.GradleSyncFailure>,
     expectedPhasesReported: String?,
     expectedFailureDetailsString: String?,
   ) {
@@ -78,7 +78,7 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
         }
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(expectedFailureReported)
+        expect.that(it.gradleFailureDetails.detectedGradleSyncFailuresList).isEqualTo(expectedFailuresReported)
         expect.that(it.buildOutputWindowStats.buildErrorMessagesList).isEmpty()
         if (expectedPhasesReported != null) expect.that(it.gradleSyncStats.printPhases()).isEqualTo(expectedPhasesReported)
         if (expectedFailureDetailsString != null)

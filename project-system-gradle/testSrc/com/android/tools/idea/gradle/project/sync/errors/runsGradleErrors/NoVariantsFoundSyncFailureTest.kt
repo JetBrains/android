@@ -63,7 +63,9 @@ class NoVariantsFoundSyncFailureTest : AbstractSyncFailureIntegrationTest() {
         }
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND))
         expect.that(it.buildOutputWindowStats.buildErrorMessagesList).isEmpty()
         // This failure is thrown during model building, but it is passed with the models instead of failing the build,
         // Thus we have successful build but failed Sync.

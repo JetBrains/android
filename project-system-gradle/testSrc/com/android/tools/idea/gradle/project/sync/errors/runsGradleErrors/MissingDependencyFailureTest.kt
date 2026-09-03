@@ -83,7 +83,9 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
         expect.that(buildEvents.finishEventFailures()).isEmpty()
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_OTHER)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_OTHER))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
@@ -166,7 +168,9 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
         expect.that(buildEvents.finishEventFailures()).isEmpty()
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_OTHER)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_OTHER))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
@@ -288,7 +292,9 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
       .map { it.studioEvent }
       .firstOrNull()
       ?.let {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)

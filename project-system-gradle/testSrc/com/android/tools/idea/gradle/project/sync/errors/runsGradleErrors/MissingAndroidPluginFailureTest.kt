@@ -170,7 +170,9 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
         expect.that(buildEvents.finishEventFailures()).isEmpty()
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.UNKNOWN_PLUGIN_COM_ANDROID)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.UNKNOWN_PLUGIN_COM_ANDROID))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)

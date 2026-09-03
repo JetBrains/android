@@ -42,7 +42,9 @@ class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
         expect.that(buildEvents.finishEventFailures()).isEmpty()
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.INVALID_TOML_DEFINITION)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.INVALID_TOML_DEFINITION))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION)

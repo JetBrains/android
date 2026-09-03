@@ -52,7 +52,9 @@ class JavaCompilationInBuildSrcBrokenTest : AbstractSyncFailureIntegrationTest()
         expect.that(buildEvents.finishEventFailures()).isEmpty()
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.JAVA_COMPILATION_ERROR)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.JAVA_COMPILATION_ERROR))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.JAVA_COMPILER, BuildErrorMessage.ErrorType.JAVA_COMPILER)

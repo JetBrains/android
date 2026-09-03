@@ -50,7 +50,9 @@ class GroovyBuildFileCompilationBrokenTest : AbstractSyncFailureIntegrationTest(
         expect.that(buildEvents.finishEventFailures()).isEmpty()
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.GROOVY_COMPILATION_ERROR)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.GROOVY_COMPILATION_ERROR))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
@@ -151,7 +153,9 @@ class GroovyBuildFileCompilationBrokenTest : AbstractSyncFailureIntegrationTest(
         expect.that(buildEvents.finishEventFailures()).isEmpty()
       },
       verifyFailureReported = {
-        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO)
+        expect
+          .that(it.gradleFailureDetails.detectedGradleSyncFailuresList)
+          .isEqualTo(listOf(AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO))
         expect
           .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
