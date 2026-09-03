@@ -633,12 +633,14 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
       when (val s = ensurePartitioned()) {
         is State.Coalesced.Leaf -> {
           myIsFiltered = (!isMatched && !hasMatchedAncestor) || !matchesClassFilter
+          instanceFilterMatchCounts.clear()
           needsRefiltering = false
         }
         is State.Partitioned -> {
           myIsFiltered = true
           snapshotObjectCount = 0
           invalidateRetainedSizeCache()
+          instanceFilterMatchCounts.clear()
           deltaAllocationCount = 0
           deltaDeallocationCount = 0
           allocationSize = 0
@@ -678,7 +680,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
 
   protected open fun countInstanceFilterMatch(filter: CaptureObjectInstanceFilter): Int =
     when (val s = state) {
-      is State.Partitioned -> s.classifier.classifierSetSequence.sumOf { it.getInstanceFilterMatchCount(filter) }
+      is State.Partitioned -> s.classifier.classifierSetSequence.filter { !it.isFiltered }.sumOf { it.getInstanceFilterMatchCount(filter) }
       is State.Coalesced ->
         s.deltaInstances.count(filter.instanceTest) +
           s.snapshotInstances.sumOf { inst ->

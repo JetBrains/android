@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory.adapters.classifiers
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -62,5 +63,23 @@ class HeapSetTest {
 
     h.applyFilter(Filter("Class1"), true)
     assertThat(h.totalRetainedSize).isEqualTo(10)
+  }
+
+  @Test
+  fun `getInstanceFilterMatchCount sums only unfiltered children`() {
+    val capture = FakeCaptureObject.Builder().build()
+    val cl1 = capture.registerClass(1, 0, "Class1", -1)
+    val cl2 = capture.registerClass(2, 0, "Class2", -1)
+    val inst1 = FakeInstanceObject.Builder(cl1).build()
+    val inst2 = FakeInstanceObject.Builder(cl2).build()
+    val h = HeapSet(capture, "Fake", 0)
+    h.addDeltaInstanceObject(inst1)
+    h.addDeltaInstanceObject(inst2)
+
+    val filter = CaptureObjectInstanceFilter("Test", "Test", null, null) { true }
+    assertThat(h.getInstanceFilterMatchCount(filter)).isEqualTo(2)
+
+    h.applyFilter(Filter("Class1"), true)
+    assertThat(h.getInstanceFilterMatchCount(filter)).isEqualTo(1)
   }
 }
