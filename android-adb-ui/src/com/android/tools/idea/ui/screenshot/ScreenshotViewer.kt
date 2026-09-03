@@ -397,8 +397,8 @@ class ScreenshotViewer(
       withModalProgress(project, message("screenshot.task.step.obtain")) {
         try {
           val screenshotImage = screenshotProvider.captureScreenshot()
-          sourceImageRef.set(screenshotImage)
-          ApplicationManager.getApplication().invokeLater { processScreenshot(if (allowImageRotation) rotationQuadrants else 0) }
+          processScreenshot(screenshotImage, if (allowImageRotation) rotationQuadrants else 0)
+          ApplicationManager.getApplication().invokeLater { updateEditorImage() }
         } catch (e: CancellationException) {
           throw e
         } catch (e: Throwable) {
@@ -437,7 +437,11 @@ class ScreenshotViewer(
   }
 
   private fun processScreenshot(rotationQuadrants: Int = 0) {
-    val screenshotImage: ScreenshotImage = sourceImageRef.get()
+    processScreenshot(sourceImageRef.get(), rotationQuadrants)
+    updateEditorImage()
+  }
+
+  private fun processScreenshot(screenshotImage: ScreenshotImage, rotationQuadrants: Int = 0) {
     val rotatedImage = screenshotImage.rotatedAndScaled(rotationQuadrants = rotationQuadrants)
     val processedImage = processImage(rotatedImage)
 
@@ -452,7 +456,6 @@ class ScreenshotViewer(
     }
     sourceImageRef.set(rotatedImage)
     displayedImageRef.set(TimestampedImage(processedImage))
-    updateEditorImage()
   }
 
   private fun processImage(sourceImage: ScreenshotImage): BufferedImage {

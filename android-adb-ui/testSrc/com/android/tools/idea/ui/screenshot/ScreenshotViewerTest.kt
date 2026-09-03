@@ -136,15 +136,21 @@ class ScreenshotViewerTest {
 
   @Test
   fun testRecapture() {
-    val screenshotImage =
+    val screenshotImage1 =
       ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
-    val screenshotProvider = TestScreenshotProvider(screenshotImage, testRootDisposable)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), screenshotProvider)
+    val screenshotImage2 =
+      ScreenshotImage(createImage(150, 250), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
+    val screenshotProvider = TestScreenshotProvider(screenshotImage2, testRootDisposable)
+    val viewer = createScreenshotViewer(screenshotImage1, DeviceScreenshotDecorator(), screenshotProvider)
     val ui = FakeUi(viewer.rootPane)
+    val imageComponent = ui.getComponent<ImageComponent>()
+    waitForCondition(2.seconds) { imageComponent.document.value?.width == 100 }
 
     val recaptureButton = ui.getComponent<JButton> { it.text == "Recapture" }
     ui.clickOn(recaptureButton)
     waitForCondition(2.seconds) { screenshotProvider.captured }
+    waitForCondition(2.seconds) { imageComponent.document.value?.width == 150 }
+    assertThat(imageComponent.document.value.height).isEqualTo(250)
     Disposer.dispose(screenshotProvider)
     assertThat(recaptureButton.isEnabled).isFalse()
   }
