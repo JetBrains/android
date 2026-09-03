@@ -166,6 +166,8 @@ class AndroidGradleProjectStartupActivityTest {
 
   @Test
   fun `test sync banner is displayed when gradle JVM was modified`() {
+    // this test only works in AndroidStudio, the sync banner provider is registered only there
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     val testFileEditor = spy(FileEditorManager.getInstance(myProject))
     myProject.replaceService(FileEditorManager::class.java, testFileEditor, myProjectRule.testRootDisposable)
     GradleSettings.getInstance(myProject).linkProject(GradleProjectSettings().apply { externalProjectPath = myProject.basePath!! })
