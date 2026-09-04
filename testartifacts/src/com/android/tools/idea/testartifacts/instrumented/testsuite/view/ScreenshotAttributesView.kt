@@ -181,6 +181,11 @@ class ScreenshotAttributesView : Disposable {
   @VisibleForTesting
   @Composable
   fun ScreenshotAttributesUi(currentState: ScreenshotAttributesState) {
+    val isNew =
+      currentState.refLocation == NOT_APPLICABLE &&
+        currentState.matchPercentage == null &&
+        currentState.testResult == AndroidTestCaseResult.FAILED
+
     var refMetadata by remember { mutableStateOf(ImageMetadata()) }
     var newMetadata by remember { mutableStateOf(ImageMetadata()) }
 
@@ -189,9 +194,11 @@ class ScreenshotAttributesView : Disposable {
 
     LaunchedEffect(currentState, refMetadata, newMetadata) {
       val matchText =
-        currentState.matchPercentage?.let { "Match: $it" }
-          ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) "Match: 0.00%"
-          else "Match: ${currentState.testResult?.name ?: NOT_APPLICABLE}"
+        if (isNew) "Match: New"
+        else
+          currentState.matchPercentage?.let { "Match: $it" }
+            ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) "Match: 0.00%"
+            else "Match: ${currentState.testResult?.name ?: NOT_APPLICABLE}"
 
       val description =
         """
@@ -213,9 +220,11 @@ class ScreenshotAttributesView : Disposable {
     val scope = rememberCoroutineScope()
 
     val matchText =
-      currentState.matchPercentage?.let { "Match: $it" }
-        ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) "Match: 0.00%"
-        else "Match: ${currentState.testResult?.name ?: NOT_APPLICABLE}"
+      if (isNew) "Match: New"
+      else
+        currentState.matchPercentage?.let { "Match: $it" }
+          ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) "Match: 0.00%"
+          else "Match: ${currentState.testResult?.name ?: NOT_APPLICABLE}"
 
     val summarySemanticsDescription =
       """
@@ -235,15 +244,20 @@ class ScreenshotAttributesView : Disposable {
         Section("Summary") {
           KeyValueRow("Match") {
             val text =
-              currentState.matchPercentage
-                ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) {
-                  "0.00%"
-                } else {
-                  currentState.testResult?.name ?: NOT_APPLICABLE
-                }
-            when (currentState.testResult) {
-              AndroidTestCaseResult.PASSED -> GreenText(text)
-              AndroidTestCaseResult.FAILED -> RedText(text)
+              if (isNew) {
+                "New"
+              } else {
+                currentState.matchPercentage
+                  ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) {
+                    "0.00%"
+                  } else {
+                    currentState.testResult?.name ?: NOT_APPLICABLE
+                  }
+              }
+            when {
+              isNew -> GreenText(text)
+              currentState.testResult == AndroidTestCaseResult.PASSED -> GreenText(text)
+              currentState.testResult == AndroidTestCaseResult.FAILED -> RedText(text)
               else -> GrayText(text)
             }
           }
