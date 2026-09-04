@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.getDefaultMarkdownRenderExtensions
 import com.android.tools.adtui.compose.markdownFactory
@@ -243,7 +245,11 @@ private fun TableOfContents(
             val isSelected = (doc == activeDocument)
             SimpleListItem(
               selected = isSelected,
-              modifier = Modifier.fillMaxWidth().clickable { coroutineScope.launch { activeItemTracker.scrollToItem(doc) } },
+              modifier =
+                Modifier.fillMaxWidth().heightIn(min = JewelTheme.globalMetrics.rowHeight).clickable {
+                  coroutineScope.launch { activeItemTracker.scrollToItem(doc) }
+                },
+              height = Dp.Unspecified,
             ) {
               Text("${doc.shortName} | ${doc.productVersion}", Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
             }
