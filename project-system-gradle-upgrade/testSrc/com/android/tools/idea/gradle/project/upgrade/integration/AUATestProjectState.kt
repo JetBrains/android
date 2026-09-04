@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_3
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_8_0
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_8_11
+import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_9_0
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_40_ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_40_BASIC
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_80_BASIC
@@ -71,6 +72,7 @@ enum class TestAGPVersion(
   V_7_3("7.3.0", jdkVersion = JavaSdkVersion.JDK_11, kotlinVersion = "1.6.21"),
   V_8_0("8.0.2", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "1.6.21"),
   V_8_11("8.11.0", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "1.6.21"),
+  V_9_0("9.0.0", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "2.2.10"),
   LATEST(null, jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = AGP_BUILT_IN_KOTLIN_VERSION),
 }
 
@@ -133,6 +135,8 @@ enum class AUATestProjectState(
     patchPath = "dev-upgraded",
   ),
   FROM_80_BASIC_8_0(FROM_AGP_80_BASIC, V_8_0, minimalState = true, basePath = "8.0.0"),
+  FROM_80_BASIC_9_0_MIN(FROM_AGP_80_BASIC, V_9_0, minimalState = true, basePath = "8.0.0", patchPath = "dev-minimal"),
+  FROM_80_BASIC_9_0_FULL(FROM_AGP_80_BASIC, V_9_0, minimalState = false, basePath = "8.0.0", patchPath = "dev-upgraded"),
   FROM_80_BASIC_LATEST_MIN(FROM_AGP_80_BASIC, LATEST, minimalState = true, basePath = "8.0.0", patchPath = "dev-minimal"),
   FROM_80_BASIC_LATEST_FULL(FROM_AGP_80_BASIC, LATEST, minimalState = false, basePath = "8.0.0", patchPath = "dev-upgraded");
 
