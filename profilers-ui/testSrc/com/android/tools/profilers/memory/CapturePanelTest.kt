@@ -68,24 +68,40 @@ class CapturePanelTest {
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
   }
 
+  /**
+   * Verifies that for a [HeapDumpCaptureObject], selecting a heap accurately computes and displays class counts and shallow sizes in the
+   * summary panel, and the panel is visible.
+   */
   @Test
   fun `panel shows numbers for selected heap`() {
-    val capture = FakeCaptureObject.Builder().build()
+    val fakeCapture = FakeCaptureObject.Builder().build()
+    val capture = mock(HeapDumpCaptureObject::class.java)
+    `when`(capture.classDatabase).thenReturn(fakeCapture.classDatabase)
+    `when`(capture.activityFragmentLeakFilter).thenReturn(ActivityFragmentLeakInstanceFilter(fakeCapture.classDatabase))
+    `when`(capture.bitmapDuplicationFilter).thenReturn(BitmapDuplicationInstanceFilter(emptySet()))
+    `when`(capture.supportedClassTypeFilters).thenReturn(setOf(AllClassTypeFilter))
+    `when`(capture.instances).thenAnswer { fakeCapture.instances }
+    `when`(capture.classifierAttributes).thenReturn(fakeCapture.classifierAttributes)
+    `when`(capture.instanceAttributes).thenReturn(fakeCapture.instanceAttributes)
+    `when`(capture.isGroupingSupported(any())).thenReturn(true)
+    `when`(capture.isDoneLoading).thenReturn(true)
+    `when`(capture.isError).thenReturn(false)
+
     val heap1 = HeapSet(capture, "heap1", 1)
     val heap2 = HeapSet(capture, "heap2", 2)
     val allHeap = AllHeapSet(capture, arrayOf(heap1, heap2)).also { it.clearClassifierSets() }
 
     val insts1 =
       arrayOf(
-        FakeInstanceObject.Builder(capture, 1, "obj").setHeapId(1).setShallowSize(4).build(),
-        FakeInstanceObject.Builder(capture, 2, "int").setHeapId(1).setShallowSize(8).build(),
-        FakeInstanceObject.Builder(capture, 3, "str").setHeapId(1).setShallowSize(14).build(),
+        FakeInstanceObject.Builder(fakeCapture, 1, "obj").setHeapId(1).setShallowSize(4).build(),
+        FakeInstanceObject.Builder(fakeCapture, 2, "int").setHeapId(1).setShallowSize(8).build(),
+        FakeInstanceObject.Builder(fakeCapture, 3, "str").setHeapId(1).setShallowSize(14).build(),
       )
     val insts2 =
       arrayOf(
-        FakeInstanceObject.Builder(capture, 4, "cat").setHeapId(2).setShallowSize(3).build(),
-        FakeInstanceObject.Builder(capture, 5, "dog").setHeapId(2).setShallowSize(5).build(),
-        FakeInstanceObject.Builder(capture, 6, "rat").setHeapId(2).setShallowSize(7).build(),
+        FakeInstanceObject.Builder(fakeCapture, 4, "cat").setHeapId(2).setShallowSize(3).build(),
+        FakeInstanceObject.Builder(fakeCapture, 5, "dog").setHeapId(2).setShallowSize(5).build(),
+        FakeInstanceObject.Builder(fakeCapture, 6, "rat").setHeapId(2).setShallowSize(7).build(),
       )
     val insts = insts1 + insts2
     insts.forEach { allHeap.addDeltaInstanceObject(it) }
@@ -100,14 +116,17 @@ class CapturePanelTest {
     selection.finishSelectingCaptureObject(capture)
 
     selection.selectHeapSet(heap1)
+    assertThat(panel.component.getStatLabel("Classes")!!.parent.isVisible).isTrue()
     assertThat(panel.component.getStatLabelValue("Classes")).isEqualTo("${insts1.size}")
     assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts1.sumOf { it.shallowSize }}")
 
     selection.selectHeapSet(heap2)
+    assertThat(panel.component.getStatLabel("Classes")!!.parent.isVisible).isTrue()
     assertThat(panel.component.getStatLabelValue("Classes")).isEqualTo("${insts2.size}")
     assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts2.sumOf { it.shallowSize }}")
 
     selection.selectHeapSet(allHeap)
+    assertThat(panel.component.getStatLabel("Classes")!!.parent.isVisible).isTrue()
     assertThat(panel.component.getStatLabelValue("Classes")).isEqualTo("${insts.size}")
     assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts.sumOf { it.shallowSize }}")
   }
@@ -199,6 +218,28 @@ class CapturePanelTest {
     assertThat(leakLabel).isNotNull()
     assertThat(leakLabel!!.icon).isNull()
     assertThat(leakLabel.isVisible).isTrue()
+  }
+
+  /**
+   * Verifies that for non-heap dump captures (such as live allocation tracking), the summary panel remains hidden and does not perform
+   * redundant stats calculations.
+   */
+  @Test
+  fun `summary panel is hidden for non-heap dump captures`() {
+    val capture = FakeCaptureObject.Builder().build()
+    val heap = HeapSet(capture, "heap", 1)
+    val selection = MemoryCaptureSelection(profilers.ideServices)
+    val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    val panel =
+      CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange, FakeIdeProfilerComponents(), profilers.timeline, true)
+
+    selection.selectCaptureEntry(CaptureEntry(Any()) { capture })
+    selection.finishSelectingCaptureObject(capture)
+    selection.selectHeapSet(heap)
+
+    val classesLabel = panel.component.getStatLabel("Classes")
+    assertThat(classesLabel).isNotNull()
+    assertThat(classesLabel!!.parent.isVisible).isFalse()
   }
 
   companion object {

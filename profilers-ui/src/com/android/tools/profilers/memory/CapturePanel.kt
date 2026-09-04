@@ -209,6 +209,12 @@ private class CapturePanelUi(
       minimumSize = Dimension(0, minimumSize.height)
     }
 
+  /**
+   * Builds the summary panel bar displaying high-level metrics (classes, leaks, duplicates, count, native/shallow/retained sizes).
+   *
+   * Note: This summary bar is only displayed for static [HeapDumpCaptureObject]s with an active heap selection. For non-heap dump captures
+   * (such as live allocation tracking), this panel remains hidden and skips computations.
+   */
   private fun buildSummaryPanel() =
     JPanel(FlowLayout(FlowLayout.LEFT)).apply {
       border = AdtUiUtils.DEFAULT_TOP_BORDER
@@ -246,39 +252,39 @@ private class CapturePanelUi(
         }
 
       fun refreshSummaries() {
-        selection.selectedHeapSet?.let { heap ->
-          refreshTotalClassesAsync(heap)
-          totalCountLabel.numValue = heap.totalObjectCount.toLong()
-          totalNativeSizeLabel.numValue = heap.totalNativeSize
-          totalShallowSizeLabel.numValue = heap.totalShallowSize
-          refreshTotalRetainedSizeAsync(heap)
-
-          val capture = selection.selectedCapture
-          isVisible = capture is HeapDumpCaptureObject
-          if (capture !is HeapDumpCaptureObject) {
-            totalLeakLabel.isVisible = false
-            totalBitmapDuplicatesLabel.isVisible = false
-            return@let
-          }
-
-          fun updateLabel(label: StatLabel, filter: CaptureObjectInstanceFilter) {
-            // A local val is required for functionality because StatLabel.numValue doesn't store
-            // the value, it just updates the label and can't be used for any other purpose.
-            val count = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, filter)
-            label.numValue = count
-            label.isVisible = true
-            label.icon = if (count > 0) StudioIcons.Common.WARNING else null
-          }
-
-          updateLabel(totalLeakLabel, capture.activityFragmentLeakFilter)
-          updateLabel(totalBitmapDuplicatesLabel, capture.bitmapDuplicationFilter)
+        val capture = selection.selectedCapture
+        val heap = selection.selectedHeapSet
+        if (capture !is HeapDumpCaptureObject || heap == null) {
+          isVisible = false
+          return
         }
+
+        refreshTotalClassesAsync(heap)
+        totalCountLabel.numValue = heap.totalObjectCount.toLong()
+        totalNativeSizeLabel.numValue = heap.totalNativeSize
+        totalShallowSizeLabel.numValue = heap.totalShallowSize
+        refreshTotalRetainedSizeAsync(heap)
+
+        fun updateLabel(label: StatLabel, filter: CaptureObjectInstanceFilter) {
+          // A local val is required for functionality because StatLabel.numValue doesn't store
+          // the value, it just updates the label and can't be used for any other purpose.
+          val count = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, filter)
+          label.numValue = count
+          label.isVisible = true
+          label.icon = if (count > 0) StudioIcons.Common.WARNING else null
+        }
+
+        updateLabel(totalLeakLabel, capture.activityFragmentLeakFilter)
+        updateLabel(totalBitmapDuplicatesLabel, capture.bitmapDuplicationFilter)
+        isVisible = true
       }
 
       selection.aspect
         .addDependency(observer)
         .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
         .onChange(CaptureSelectionAspect.CURRENT_FILTER, ::refreshSummaries)
+
+      refreshSummaries()
 
       add(totalLeakLabel)
       add(totalBitmapDuplicatesLabel)
