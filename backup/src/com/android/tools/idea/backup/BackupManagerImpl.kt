@@ -61,6 +61,7 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.text.Strings.escapeXmlEntities
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
@@ -124,7 +125,10 @@ internal constructor(
             reporter.onStep(Step(++step, steps, "Detecting debuggable apps..."))
             val debuggableApps = backupService.getDebuggableApps(serialNumber)
             if (!debuggableApps.contains(appId)) {
-              project.showDialog(message("backup.app.action.error.title"), message("error.application.not.debuggable", appId))
+              project.showDialog(
+                message("backup.app.action.error.title"),
+                message("error.application.not.debuggable", escapeXmlEntities(appId)),
+              )
               return@withContext null
             }
             reporter.onStep(Step(++step, steps, "Checking apps..."))
