@@ -3,9 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" filepath="$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/config-tests/aiplugin.acp.config-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/config-tests/aiplugin.acp.config-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/config/aiplugin.acp.config.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/config/aiplugin.acp.config.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/plugin/aiplugin.acp.plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/plugin/aiplugin.acp.plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/config-tests/aiplugin.acp.config-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/config-tests/aiplugin.acp.config-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/ui/aiplugin.acp.ui.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/acp/ui/aiplugin.acp.ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/npx/aiplugin.agents.npx.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/npx/aiplugin.agents.npx.iml" />
