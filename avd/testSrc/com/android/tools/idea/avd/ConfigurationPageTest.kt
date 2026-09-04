@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.runtime.remember
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -32,20 +33,27 @@ import androidx.compose.ui.test.performTextReplacement
 import com.android.SdkConstants
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
+import com.android.repository.testframework.FakeProgressIndicator
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.SystemImageSupplier
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.UserSettingsKey
+import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
+import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Component
 import java.nio.file.Files
+import javax.swing.JPanel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,6 +116,7 @@ class ConfigurationPageTest {
   internal inner class ConfigurationPageFixture(
     val sdkFixture: SdkFixture,
     initialSystemImageState: SystemImageState = sdkFixture.systemImageState(),
+    val context: ConfigurationPageContext = DefaultConfigurationPageContext,
   ) {
     val wizard: TestComposeWizard
     internal val systemImageStateFlow: MutableStateFlow<SystemImageState> = MutableStateFlow(initialSystemImageState)
@@ -118,11 +127,27 @@ class ConfigurationPageTest {
         val profiles = runBlocking { addDeviceWizard.profilesWhenReady() }
         val pixel8 = profiles.first { it.name == "Pixel 8" }
 
-        wizard = TestComposeWizard { with(addDeviceWizard) { selectionUpdated(pixel8, finish = ::finish) } }
+        wizard = TestComposeWizard {
+          val deviceNameValidator = remember { DeviceNameValidator.createForAvdManager(avdManager) }
+          val device =
+            remember(pixel8) {
+              VirtualDevice(pixel8.device).apply {
+                initializeFromProfile()
+                name = deviceNameValidator.uniquify(AvdNames.cleanDisplayName(pixel8.name))
+              }
+            }
+          ConfigurationPage(
+            device = device,
+            systemImageStateFlow = systemImageStateFlow,
+            skins = persistentListOf(NoSkin.INSTANCE),
+            deviceNameValidator = deviceNameValidator,
+            sdkHandler = sdkHandler,
+            finish = ::finish,
+            context = context,
+          )
+        }
 
         composeTestRule.setContentWithSdkLocals { wizard.Content() }
-
-        wizard.performAction(wizard.nextAction)
         composeTestRule.waitForIdle()
       }
     }
@@ -370,6 +395,286 @@ class ConfigurationPageTest {
         assertThat(wizard.nextAction.enabled).isTrue()
       }
     }
+  }
+
+  @Test
+  fun clickDownloadButton_callsPackageDownloader() {
+    with(SdkFixture()) {
+      val remoteImage = remoteApi34()
+      repoPackages.setRemotePkgInfos(listOf(remoteImage))
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+        )
+
+      with(ConfigurationPageFixture(this, context = context)) {
+        composeTestRule.onNodeWithContentDescription("Download").performClick()
+        composeTestRule.waitForIdle()
+
+        assertThat(context.recordedDownloadPaths).containsExactly(remoteImage.path)
+      }
+    }
+  }
+
+  @Test
+  fun finishWizard_withRemoteSystemImage_downloadsAndCompletes() {
+    with(SdkFixture()) {
+      val remoteImage = remoteApi34()
+      val localImage = api34()
+      repoPackages.setRemotePkgInfos(listOf(remoteImage))
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+          onDownload = {
+            repoPackages.setLocalPkgInfos(listOf(localImage))
+          },
+        )
+
+      with(ConfigurationPageFixture(this, context = context)) {
+        composeTestRule.onNodeWithText(remoteImage.displayName).assertIsSelected()
+        wizard.performAction(wizard.nextAction)
+        composeTestRule.waitForIdle()
+        wizard.awaitClose()
+
+        assertThat(context.recordedPrompts).isNotEmpty()
+        assertThat(context.recordedDownloadPaths).containsExactly(remoteImage.path)
+        val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
+        assertThat(files).containsAllOf("Pixel_8.avd", "Pixel_8.ini")
+      }
+    }
+  }
+
+  @Test
+  fun ensureNeededPackagesArePresent_noPackagesRequired_returnsTrueImmediately() {
+    with(SdkFixture()) {
+      val localImage = api34()
+      repoPackages.setLocalPkgInfos(listOf(localImage))
+      val systemImages = sdkHandler.getSystemImageManager(FakeProgressIndicator()).images
+      val pixel8 = readTestDevices().first { it.name == "Pixel 8" }
+      val device =
+        VirtualDevice(pixel8).apply {
+          initializeFromProfile()
+          image = systemImages.first()
+        }
+
+      val context = FakeConfigurationPageContext()
+      val result = context.ensureNeededPackagesArePresent(sdkHandler, device, JPanel(), emptyList())
+
+      assertThat(result).isTrue()
+      assertThat(context.recordedPrompts).isEmpty()
+      assertThat(context.recordedDownloadPaths).isEmpty()
+      assertThat(device.image).isEqualTo(systemImages.first())
+    }
+  }
+
+  @Test
+  fun ensureNeededPackagesArePresent_remoteImage_userCancelsConfirmation_returnsFalse() {
+    with(SdkFixture()) {
+      val remotePkg = remoteApi34()
+      repoPackages.setRemotePkgInfos(listOf(remotePkg))
+      val remoteImage =
+        SystemImageSupplier(repoManager, sdkHandler.getSystemImageManager(FakeProgressIndicator()), NullLogger()).get().first()
+      val pixel8 = readTestDevices().first { it.name == "Pixel 8" }
+      val device =
+        VirtualDevice(pixel8).apply {
+          initializeFromProfile()
+          image = remoteImage
+        }
+
+      val context = FakeConfigurationPageContext(promptYesNoResult = false)
+      val result = context.ensureNeededPackagesArePresent(sdkHandler, device, JPanel(), emptyList())
+
+      assertThat(result).isFalse()
+      assertThat(context.recordedPrompts).containsExactly("Confirm Download" to "Download $remoteImage?")
+      assertThat(context.recordedDownloadPaths).isEmpty()
+      assertThat(device.image).isEqualTo(remoteImage)
+    }
+  }
+
+  @Test
+  fun ensureNeededPackagesArePresent_remoteImage_downloadFails_returnsFalse() {
+    with(SdkFixture()) {
+      val remotePkg = remoteApi34()
+      repoPackages.setRemotePkgInfos(listOf(remotePkg))
+      val remoteImage =
+        SystemImageSupplier(repoManager, sdkHandler.getSystemImageManager(FakeProgressIndicator()), NullLogger()).get().first()
+      val pixel8 = readTestDevices().first { it.name == "Pixel 8" }
+      val device =
+        VirtualDevice(pixel8).apply {
+          initializeFromProfile()
+          image = remoteImage
+        }
+
+      val context = FakeConfigurationPageContext(promptYesNoResult = true, downloadPackagesResult = false)
+      val result = context.ensureNeededPackagesArePresent(sdkHandler, device, JPanel(), emptyList())
+
+      assertThat(result).isFalse()
+      assertThat(context.recordedPrompts).containsExactly("Confirm Download" to "Download $remoteImage?")
+      assertThat(context.recordedDownloadPaths).containsExactly(remotePkg.path)
+      assertThat(device.image).isEqualTo(remoteImage)
+    }
+  }
+
+  @Test
+  fun ensureNeededPackagesArePresent_remoteImage_downloadSucceeds_updatesDeviceImageToLocal() {
+    with(SdkFixture()) {
+      val remotePkg = remoteApi34()
+      repoPackages.setRemotePkgInfos(listOf(remotePkg))
+      val remoteImage =
+        SystemImageSupplier(repoManager, sdkHandler.getSystemImageManager(FakeProgressIndicator()), NullLogger()).get().first()
+      val pixel8 = readTestDevices().first { it.name == "Pixel 8" }
+      val device =
+        VirtualDevice(pixel8).apply {
+          initializeFromProfile()
+          image = remoteImage
+        }
+
+      val localPkg = api34()
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+          onDownload = { repoPackages.setLocalPkgInfos(listOf(localPkg)) },
+        )
+      val result = context.ensureNeededPackagesArePresent(sdkHandler, device, JPanel(), emptyList())
+
+      assertThat(result).isTrue()
+      assertThat(context.recordedPrompts).containsExactly("Confirm Download" to "Download $remoteImage?")
+      assertThat(context.recordedDownloadPaths).containsExactly(remotePkg.path)
+      assertThat(device.image).isNotEqualTo(remoteImage)
+      assertThat(device.image).isInstanceOf(SystemImage::class.java)
+      assertThat(device.image?.`package`?.path).isEqualTo(remotePkg.path)
+    }
+  }
+
+  @Test
+  fun ensureNeededPackagesArePresent_remoteImage_downloadReportsSuccessButPackageNotPresent_returnsFalse() {
+    with(SdkFixture()) {
+      val remotePkg = remoteApi34()
+      repoPackages.setRemotePkgInfos(listOf(remotePkg))
+      val remoteImage =
+        SystemImageSupplier(repoManager, sdkHandler.getSystemImageManager(FakeProgressIndicator()), NullLogger()).get().first()
+      val pixel8 = readTestDevices().first { it.name == "Pixel 8" }
+      val device =
+        VirtualDevice(pixel8).apply {
+          initializeFromProfile()
+          image = remoteImage
+        }
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+          onDownload = { /* do not install local package */ },
+        )
+      val result = context.ensureNeededPackagesArePresent(sdkHandler, device, JPanel(), emptyList())
+
+      assertThat(result).isFalse()
+      assertThat(context.recordedPrompts).containsExactly("Confirm Download" to "Download $remoteImage?")
+      assertThat(device.image).isEqualTo(remoteImage)
+    }
+  }
+
+  @Test
+  fun ensureNeededPackagesArePresent_requiredExtraPackages_downloadsSuccessfully() {
+    with(SdkFixture()) {
+      val localImage = api34()
+      repoPackages.setLocalPkgInfos(listOf(localImage))
+      val systemImages = sdkHandler.getSystemImageManager(FakeProgressIndicator()).images
+      val pixel8 = readTestDevices().first { it.name == "Pixel 8" }
+      val device =
+        VirtualDevice(pixel8).apply {
+          initializeFromProfile()
+          image = systemImages.first()
+        }
+
+      val extraRemotePkg =
+        FakeRemotePackage("emulator_preview").apply {
+          setDisplayName("Emulator Preview (latest)")
+        }
+      val extraLocalPkg = FakeLocalPackage("emulator_preview")
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+          onDownload = {
+            repoPackages.setLocalPkgInfos(listOf(localImage, extraLocalPkg))
+          },
+        )
+      val result = context.ensureNeededPackagesArePresent(sdkHandler, device, JPanel(), listOf(extraRemotePkg))
+
+      assertThat(result).isTrue()
+      assertThat(context.recordedPrompts).containsExactly("Confirm Download" to "Download Emulator Preview?")
+      assertThat(context.recordedDownloadPaths).containsExactly("emulator_preview")
+    }
+  }
+
+  @Test
+  fun ensureNeededPackagesArePresent_bothRemoteImageAndRequiredPackages_downloadsAll() {
+    with(SdkFixture()) {
+      val remotePkg = remoteApi34()
+      repoPackages.setRemotePkgInfos(listOf(remotePkg))
+      val remoteImage =
+        SystemImageSupplier(repoManager, sdkHandler.getSystemImageManager(FakeProgressIndicator()), NullLogger()).get().first()
+      val pixel8 = readTestDevices().first { it.name == "Pixel 8" }
+      val device =
+        VirtualDevice(pixel8).apply {
+          initializeFromProfile()
+          image = remoteImage
+        }
+
+      val extraRemotePkg =
+        FakeRemotePackage("emulator_preview").apply {
+          setDisplayName("Emulator Preview (latest)")
+        }
+      val extraLocalPkg = FakeLocalPackage("emulator_preview")
+      val localImage = api34()
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+          onDownload = {
+            repoPackages.setLocalPkgInfos(listOf(localImage, extraLocalPkg))
+          },
+        )
+      val result = context.ensureNeededPackagesArePresent(sdkHandler, device, JPanel(), listOf(extraRemotePkg))
+
+      assertThat(result).isTrue()
+      assertThat(context.recordedPrompts).containsExactly("Confirm Download" to "Download Emulator Preview and $remoteImage?")
+      assertThat(context.recordedDownloadPaths).containsExactly("emulator_preview", remotePkg.path)
+      assertThat(device.image).isInstanceOf(SystemImage::class.java)
+    }
+  }
+}
+
+private class FakeConfigurationPageContext(
+  var promptYesNoResult: Boolean = true,
+  var downloadPackagesResult: Boolean = true,
+  var onDownload: ((paths: List<String>) -> Unit)? = null,
+) : ConfigurationPageContext {
+  val recordedPrompts = mutableListOf<Pair<String, String>>()
+  val recordedDownloadPaths = mutableListOf<String>()
+  val recordedErrors = mutableListOf<Pair<String, String?>>()
+
+  override fun promptYesNo(parent: Component, title: String, message: String): Boolean {
+    recordedPrompts.add(title to message)
+    return promptYesNoResult
+  }
+
+  override fun downloadPackages(parent: Component, paths: List<String>): Boolean {
+    recordedDownloadPaths.addAll(paths)
+    onDownload?.invoke(paths)
+    return downloadPackagesResult
+  }
+
+  override fun showError(parent: Component, message: String?, title: String) {
+    recordedErrors.add(title to message)
   }
 }
 

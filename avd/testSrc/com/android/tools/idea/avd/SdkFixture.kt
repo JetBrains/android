@@ -105,7 +105,7 @@ class SdkFixture(
     val fullPath = "system-images;android-${androidVersion.apiStringWithExtension};$path;${abis[0]}"
     val pkg =
       if (isRemote) {
-        FakeRemotePackage(fullPath)
+        FakeRemotePackage(fullPath).apply { setCompleteUrl("https://example.com/sys-img.zip") }
       } else {
         val location = sdkRoot.resolve(fullPath.replace(";", "/"))
         location.resolve(SystemImageManager.SYS_IMG_NAME).recordExistingFile()

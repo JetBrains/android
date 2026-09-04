@@ -41,7 +41,6 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.adtui.compose.LocalFileSystem
 import com.android.tools.adtui.compose.WizardAction
-import com.android.tools.adtui.compose.WizardDialogScope
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.adtui.compose.catchAndShowErrors
 import com.android.tools.adtui.compose.table.TableSelectionState
@@ -97,6 +96,7 @@ internal fun WizardPageScope.ConfigurationPage(
   deviceNameValidator: DeviceNameValidator,
   sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   @UiThread finish: suspend (VirtualDevice) -> Boolean,
+  context: ConfigurationPageContext = DefaultConfigurationPageContext,
 ) {
   val systemImageState by systemImageStateFlow.collectAsState(SystemImageState.INITIAL)
 
@@ -151,44 +151,42 @@ internal fun WizardPageScope.ConfigurationPage(
     remember(repoManager) { repoManager.consolidatedPackagesFlow().map { it[EmulatorPackage.QEMU_NEXT_PACKAGE_PATH] } }.collectAsState(null)
   val qemuNextIsNeeded = qemuNextPackage?.hasLocal() == false && state.qemuNextIsRequired()
 
-  Column {
-    if (!state.isPreferredAbiValid) {
-      ErrorBanner(
-        "Preferred ABI \"${state.device.preferredAbi}\" is not available with selected system image",
-        Modifier.padding(vertical = 6.dp),
+  with(context) {
+    Column {
+      if (!state.isPreferredAbiValid) {
+        ErrorBanner(
+          "Preferred ABI \"${state.device.preferredAbi}\" is not available with selected system image",
+          Modifier.padding(vertical = 6.dp),
+        )
+      }
+
+      ConfigureDevicePanel(
+        state,
+        filteredImageState,
+        packageToDownload = EmulatorPackage.QEMU_NEXT_PACKAGE_NAME.takeIf { qemuNextIsNeeded },
+        onDownloadButtonClick = { coroutineScope.launch { downloadPackages(parent, listOf(it)) } },
+        onSystemImageTableRowClick = {
+          state.setSystemImageSelection(it)
+          state.setSkin(resolve(sdkHandler, defaultDeviceSkin(state.device.deviceProfile, fileSystem), it.skins))
+        },
       )
     }
-
-    ConfigureDevicePanel(
-      state,
-      filteredImageState,
-      packageToDownload = EmulatorPackage.QEMU_NEXT_PACKAGE_NAME.takeIf { qemuNextIsNeeded },
-      onDownloadButtonClick = { coroutineScope.launch { downloadPackages(parent, listOf(it)) } },
-      onSystemImageTableRowClick = {
-        state.setSystemImageSelection(it)
-        state.setSkin(resolve(sdkHandler, defaultDeviceSkin(state.device.deviceProfile, fileSystem), it.skins))
-      },
-    )
-  }
-  nextActionName = "Finish"
-  nextAction =
-    if (state.isValid) {
-      WizardAction {
-        runWithModalProgressBlocking(ModalTaskOwner.component(parent), "Creating AVD", TaskCancellation.nonCancellable()) {
-          withContext(Dispatchers.EDT) {
-            finish(
-              state.device,
-              parent,
-              finish,
-              sdkHandler,
-              packagesRequired = listOfNotNull(qemuNextPackage?.remote),
-            )
+    nextActionName = "Finish"
+    nextAction =
+      if (state.isValid) {
+        WizardAction {
+          runWithModalProgressBlocking(ModalTaskOwner.component(parent), "Creating AVD", TaskCancellation.nonCancellable()) {
+            withContext(Dispatchers.EDT) {
+              if (finish(state.device, parent, finish, sdkHandler, packagesRequired = listOfNotNull(qemuNextPackage?.remote))) {
+                close()
+              }
+            }
           }
         }
+      } else {
+        WizardAction.Disabled
       }
-    } else {
-      WizardAction.Disabled
-    }
+  }
 }
 
 private fun RepoManager.consolidatedPackagesFlow(): Flow<Map<String, UpdatablePackage>> = callbackFlow {
@@ -226,13 +224,13 @@ private fun defaultDeviceSkin(device: Device, fileSystem: FileSystem): Path {
   }
 }
 
-private suspend fun WizardDialogScope.finish(
+private suspend fun ConfigurationPageContext.finish(
   device: VirtualDevice,
   parent: Component,
   @UiThread finish: suspend (VirtualDevice) -> Boolean,
   sdkHandler: AndroidSdkHandler,
   packagesRequired: List<RemotePackage>,
-) {
+): Boolean {
   if (ensureNeededPackagesArePresent(sdkHandler, device, parent, packagesRequired)) {
     catchAndShowErrors<AvdConfigurationPage>(
       parent,
@@ -240,15 +238,14 @@ private suspend fun WizardDialogScope.finish(
       title = "Error Creating AVD",
     ) {
       try {
-        if (finish(device)) {
-          close()
-        }
+        return finish(device)
       } catch (e: AvdManagerException) {
         logger<AvdConfigurationPage>().warn(e)
-        Messages.showErrorDialog(parent, e.message, "Error Creating AVD")
+        showError(parent, e.message, "Error Creating AVD")
       }
     }
   }
+  return false
 }
 
 /**
@@ -258,7 +255,7 @@ private suspend fun WizardDialogScope.finish(
  * @return true if the system image is present (either because it was already there or it was downloaded successfully).
  */
 @UiThread
-private fun ensureNeededPackagesArePresent(
+internal fun ConfigurationPageContext.ensureNeededPackagesArePresent(
   sdkHandler: AndroidSdkHandler,
   device: VirtualDevice,
   parent: Component,
@@ -279,7 +276,7 @@ private fun ensureNeededPackagesArePresent(
     return true
   }
 
-  if (!MessageDialogBuilder.yesNo("Confirm Download", "Download ${NlsMessages.formatAndList(displayNames)}?").ask(parent)) {
+  if (!promptYesNo(parent, "Confirm Download", "Download ${NlsMessages.formatAndList(displayNames)}?")) {
     return false
   }
 
@@ -302,22 +299,39 @@ private fun ensureNeededPackagesArePresent(
   return true
 }
 
-@UiThread
-private fun downloadPackages(parent: Component, paths: List<String>): Boolean {
-  catchAndShowErrors<AvdConfigurationPage>(
-    parent = parent,
-    message = "An unexpected error occurred downloading the package. See idea.log for details.",
-  ) {
-    val dialog = SdkQuickfixUtils.createDialogForPaths(parent, paths, false)
+internal interface ConfigurationPageContext {
+  fun downloadPackages(parent: Component, paths: List<String>): Boolean
 
-    if (dialog == null) {
-      logger<AvdConfigurationPage>().warn("Could not create the SDK Quickfix Installation dialog")
-      return false
+  fun promptYesNo(parent: Component, title: String, message: String): Boolean
+
+  fun showError(parent: Component, message: String?, title: String)
+}
+
+internal object DefaultConfigurationPageContext : ConfigurationPageContext {
+  override fun downloadPackages(parent: Component, paths: List<String>): Boolean {
+    catchAndShowErrors<AvdConfigurationPage>(
+      parent = parent,
+      message = "An unexpected error occurred downloading the package. See idea.log for details.",
+    ) {
+      val dialog = SdkQuickfixUtils.createDialogForPaths(parent, paths, false)
+
+      if (dialog == null) {
+        logger<AvdConfigurationPage>().warn("Could not create the SDK Quickfix Installation dialog")
+        return false
+      }
+
+      return dialog.showAndGet()
     }
-
-    return dialog.showAndGet()
+    return false
   }
-  return false
+
+  override fun promptYesNo(parent: Component, title: String, message: String): Boolean {
+    return MessageDialogBuilder.yesNo(title, message).ask(parent)
+  }
+
+  override fun showError(parent: Component, message: String?, title: String) {
+    Messages.showErrorDialog(parent, message, title)
+  }
 }
 
 object AvdConfigurationPage
