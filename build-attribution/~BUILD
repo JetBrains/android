@@ -163,6 +163,7 @@ maven_repository(
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:de.undercouch.gradle-download-task_4.0.2",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
+        "@maven//:org.jetbrains.kotlin.kotlin-annotation-processing-gradle_2.2.10",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",

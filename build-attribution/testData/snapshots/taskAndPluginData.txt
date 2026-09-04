@@ -267,11 +267,16 @@ Task                          : :lib:javaPreCompileDebug
     PrimaryTaskCategory           : JAVA
     SecondaryTaskCategories       : COMPILATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:kaptDebugKotlin
+    TaskType                      : org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask
+    PrimaryTaskCategory           : KOTLIN
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:kaptGenerateStubsDebugKotlin
     TaskType                      : org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
     PrimaryTaskCategory           : KOTLIN
     SecondaryTaskCategories       : COMPILATION
-    Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:mapDebugSourceSetPaths
     TaskType                      : com.android.build.gradle.tasks.MapSourceSetPathsTask
     PrimaryTaskCategory           : ANDROID_RESOURCES
@@ -358,6 +363,9 @@ Plugin                        : :lib:build.gradle
 Plugin                        : AlwaysRunTasksPlugin
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : AlwaysRunTasksPlugin
+Plugin                        : com.android.build.gradle.AndroidKaptPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : com.android.legacy-kapt
 Plugin                        : com.android.build.gradle.AppPlugin
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : com.android.application
@@ -415,12 +423,6 @@ Plugin                        : org.gradle.language.base.plugins.LifecycleBasePl
 Plugin                        : org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
     PluginType                    : BINARY_PLUGIN
     PluginDisplayNames            : org.gradle.java-gradle-plugin
-Plugin                        : org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
+Plugin                        : org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
     PluginType                    : BINARY_PLUGIN
-    PluginDisplayNames            : kotlin-kapt
-Plugin                        : org.jetbrains.kotlin.gradle.plugin.BuildMetricsPlugin
-    PluginType                    : BINARY_PLUGIN
-    PluginDisplayNames            : org.jetbrains.kotlin.gradle.plugin.BuildMetricsPlugin
-Plugin                        : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
-    PluginType                    : BINARY_PLUGIN
-    PluginDisplayNames            : kotlin-android
+    PluginDisplayNames            : org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
