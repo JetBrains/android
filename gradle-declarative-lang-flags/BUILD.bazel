@@ -1,6 +1,10 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//platform/build-scripts/bazel-rules:content_module_jar.bzl", "content_module_jar")
 
+### auto-generated section `dev intellij.android.gradle.declarative.lang.flags` start
+content_module_jar(module = ":gradle-declarative-lang-flags")
+### auto-generated section `dev intellij.android.gradle.declarative.lang.flags` end
+
 ### auto-generated section `build intellij.android.gradle.declarative.lang.flags` start
 jvm_library(
     name = "gradle-declarative-lang-flags",
@@ -26,8 +30,6 @@ jvm_library(
         "//platform/ide-core-impl",
     ],
 )
-
-content_module_jar(module = ":gradle-declarative-lang-flags")
 
 jvm_library(
     name = "gradle-declarative-lang-flags_test_lib",

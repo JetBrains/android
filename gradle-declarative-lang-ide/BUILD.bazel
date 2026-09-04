@@ -1,6 +1,31 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
+load("@jps_dynamic_deps_community//:targets.bzl", "MODULE_DESCRIPTORS", "MODULE_TARGETS")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+### auto-generated section `dev intellij.android.gradle.declarative.lang.ide` start
+dev_dist_plugin(
+    descriptor = "resources/META-INF/plugin.xml",
+    descriptor_index = MODULE_DESCRIPTORS,
+    descriptor_modules = [
+        "intellij.android.gradle.declarative.lang",
+        "intellij.android.gradle.declarative.lang.flags",
+        "intellij.android.gradle.declarative.lang.sync",
+    ],
+    libraries = [
+        "@lib//:studio-platform",
+        "@lib//:studio-test-platform",
+    ],
+    main_module = "intellij.android.gradle.declarative.lang.ide",
+    module_targets = MODULE_TARGETS,
+    prepacked_jars = {
+        "intellij.android.gradle.declarative.lang.flags": "intellij.android.gradle.declarative.lang.flags.jar",
+        "intellij.android.gradle.declarative.lang.sync": "intellij.android.gradle.declarative.lang.sync.jar",
+        "intellij.android.gradle.declarative.lang": "intellij.android.gradle.declarative.lang.jar",
+    },
+    separate_jar = ["intellij.android.gradle.declarative.lang"],
+)
+### auto-generated section `dev intellij.android.gradle.declarative.lang.ide` end
 
 ### auto-generated section `build intellij.android.gradle.declarative.lang.ide` start
 jvm_library(
@@ -117,29 +142,6 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.gradle.declarative.lang.ide` end
-
-### auto-generated section `dev intellij.android.gradle.declarative.lang.ide` start
-dev_dist_plugin(
-    descriptor = "resources/META-INF/plugin.xml",
-    descriptor_module = ":gradle-declarative-lang-ide",
-    descriptors = {
-        "@community//android/gradle-declarative-lang-flags:resources/intellij.android.gradle.declarative.lang.flags.xml": "intellij.android.gradle.declarative.lang.flags.xml",
-        "@community//android/gradle-declarative-lang-sync:resources/intellij.android.gradle.declarative.lang.sync.xml": "intellij.android.gradle.declarative.lang.sync.xml",
-        "@community//android/gradle-declarative-lang:resources/intellij.android.gradle.declarative.lang.xml": "intellij.android.gradle.declarative.lang.xml",
-    },
-    libraries = [
-        "@lib//:studio-platform",
-        "@lib//:studio-test-platform",
-    ],
-    main_module = "intellij.android.gradle.declarative.lang.ide",
-    prepacked_jars = {
-        "//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags_content_module_jar": "intellij.android.gradle.declarative.lang.flags.jar",
-        "//android/gradle-declarative-lang-sync:gradle-declarative-lang-sync_content_module_jar": "intellij.android.gradle.declarative.lang.sync.jar",
-        "//android/gradle-declarative-lang:gradle-declarative-lang_content_module_jar": "intellij.android.gradle.declarative.lang.jar",
-    },
-    separate_jar = ["intellij.android.gradle.declarative.lang"],
-)
-### auto-generated section `dev intellij.android.gradle.declarative.lang.ide` end
 
 ### auto-generated section `build intellij.android.gradle.declarative.lang.ide.tests` start
 jvm_library(

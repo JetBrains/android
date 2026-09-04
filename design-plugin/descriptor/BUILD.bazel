@@ -1,5 +1,39 @@
 load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
+load("@jps_dynamic_deps_community//:targets.bzl", "MODULE_TARGETS")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+### auto-generated section `dev intellij.android.design-plugin.descriptor` start
+dev_dist_plugin(
+    content_modules = [
+        # do not sort,
+        "intellij.android.compose-designer",
+        "intellij.android.designer",
+        "intellij.android.designer.customview",
+        "intellij.android.designer.gradle",
+        "intellij.android.glance-designer",
+        "intellij.android.layoutlib",
+        "intellij.android.nav.editor",
+        "intellij.android.nav.editor.gradle",
+        "intellij.android.preview-designer",
+        "intellij.android.visual-lint",
+        "intellij.android.wear-designer",
+        "intellij.libraries.layoutlib",
+    ],
+    libraries = [
+        "//android/compose-designer/lib:android-compose-designer-ui-animation-tooling-internal",
+        "@lib//:android-nav-editor-eclipse-layout-kernel",
+        "@lib//:jaxb-api",
+        "@lib//:kotlinc-kotlin-compiler-fe10",
+        "@lib//:kotlinc-kotlin-compiler-ir",
+        "@lib//:libraries-layoutlib-layoutlib",
+        "@lib//:studio-platform",
+        "@lib//:studio-test-platform",
+        "@lib//:truth",
+    ],
+    main_module = "intellij.android.design-plugin.descriptor",
+    module_targets = MODULE_TARGETS,
+)
+### auto-generated section `dev intellij.android.design-plugin.descriptor` end
 
 ### auto-generated section `build intellij.android.design-plugin.descriptor` start
 jvm_library(
@@ -51,34 +85,3 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.design-plugin.descriptor` end
-
-### auto-generated section `dev intellij.android.design-plugin.descriptor` start
-dev_dist_plugin(
-    content_modules = [
-        "//android/compose-designer",
-        "//android/designer",
-        "//android/designer/customview",
-        "//android/designer/gradle",
-        "//android/glance-designer",
-        "//android/layoutlib",
-        "//android/nav/editor",
-        "//android/nav/editor/gradle",
-        "//android/preview-designer",
-        "//android/visual-lint",
-        "//android/wear-designer",
-        "//libraries/layoutlib",
-    ],
-    descriptor_module = ":descriptor",
-    libraries = [
-        "//android/compose-designer/lib:android-compose-designer-ui-animation-tooling-internal",
-        "@lib//:android-nav-editor-eclipse-layout-kernel",
-        "@lib//:jaxb-api",
-        "@lib//:kotlinc-kotlin-compiler-fe10",
-        "@lib//:kotlinc-kotlin-compiler-ir",
-        "@lib//:libraries-layoutlib-layoutlib",
-        "@lib//:studio-platform",
-        "@lib//:studio-test-platform",
-        "@lib//:truth",
-    ],
-)
-### auto-generated section `dev intellij.android.design-plugin.descriptor` end

@@ -1,6 +1,10 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//platform/build-scripts/bazel-rules:content_module_jar.bzl", "content_module_jar")
 
+### auto-generated section `dev intellij.android.gradle.declarative.lang.sync` start
+content_module_jar(module = ":gradle-declarative-lang-sync")
+### auto-generated section `dev intellij.android.gradle.declarative.lang.sync` end
+
 ### auto-generated section `build intellij.android.gradle.declarative.lang.sync` start
 jvm_library(
     name = "gradle-declarative-lang-sync",
@@ -29,8 +33,6 @@ jvm_library(
         "//android/gradle-declarative-lang-flags",
     ],
 )
-
-content_module_jar(module = ":gradle-declarative-lang-sync")
 
 jvm_library(
     name = "gradle-declarative-lang-sync_test_lib",

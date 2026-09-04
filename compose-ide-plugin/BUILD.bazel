@@ -1,7 +1,23 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
+load("@jps_dynamic_deps_community//:targets.bzl", "MODULE_TARGETS")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
+
+### auto-generated section `dev intellij.android.compose-ide-plugin` start
+dev_dist_plugin(
+    libraries = [
+        "@lib//:kotlinc-compose-compiler-plugin",
+        "@lib//:kotlinc-kotlin-compiler-cli",
+        "@lib//:kotlinc-kotlin-compiler-fe10",
+        "@lib//:kotlinc-kotlin-compiler-ir",
+        "@lib//:studio-platform",
+        "@lib//:studio-test-platform",
+    ],
+    main_module = "intellij.android.compose-ide-plugin",
+    module_targets = MODULE_TARGETS,
+)
+### auto-generated section `dev intellij.android.compose-ide-plugin` end
 
 ### auto-generated section `build intellij.android.compose-ide-plugin` start
 create_kotlinc_options(
@@ -240,20 +256,6 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.compose-ide-plugin` end
-
-### auto-generated section `dev intellij.android.compose-ide-plugin` start
-dev_dist_plugin(
-    descriptor_module = ":compose-ide-plugin",
-    libraries = [
-        "@lib//:kotlinc-compose-compiler-plugin",
-        "@lib//:kotlinc-kotlin-compiler-cli",
-        "@lib//:kotlinc-kotlin-compiler-fe10",
-        "@lib//:kotlinc-kotlin-compiler-ir",
-        "@lib//:studio-platform",
-        "@lib//:studio-test-platform",
-    ],
-)
-### auto-generated section `dev intellij.android.compose-ide-plugin` end
 
 ### auto-generated section `build intellij.android.compose-ide-plugin.tests` start
 create_kotlinc_options(
