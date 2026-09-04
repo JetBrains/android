@@ -50,6 +50,7 @@ import org.jetbrains.jewel.ui.theme.defaultTabStyle
 internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   images: SystemImageState,
+  packageToDownload: String?,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
 ) {
@@ -72,6 +73,7 @@ internal fun ConfigureDevicePanel(
         configureDevicePanelState.systemImageTableSelectionState.selection?.takeIf {
           configureDevicePanelState.isSystemImageTableSelectionValid
         },
+      packageToDownload = packageToDownload,
     )
   }
 }

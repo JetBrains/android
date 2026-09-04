@@ -57,7 +57,12 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
  * metadata in a tabular format.
  */
 @Composable
-fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier, systemImage: ISystemImage? = null) {
+fun DeviceDetails(
+  device: DeviceProfile,
+  modifier: Modifier = Modifier,
+  systemImage: ISystemImage? = null,
+  packageToDownload: String? = null,
+) {
   VerticallyScrollableContainer(modifier) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
       Text(device.name, fontWeight = FontWeight.Bold, fontSize = LocalTextStyle.current.fontSize * 1.2)
@@ -72,10 +77,15 @@ fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier, systemIm
         )
       }
 
-      if (systemImage != null && systemImage is RemoteSystemImage) {
-        val imageSize = (systemImage.`package` as? RemotePackage)?.archive?.complete?.size
+      val systemImageDescription =
+        if (systemImage != null && systemImage is RemoteSystemImage) {
+          val imageSize = (systemImage.`package` as? RemotePackage)?.archive?.complete?.size
+          (if (imageSize == null) "System" else Storage(imageSize).toUiString() + " system") + " image"
+        } else null
+      val thingsToDownload = listOfNotNull(packageToDownload, systemImageDescription)
+      if (thingsToDownload.isNotEmpty()) {
         InfoBanner(
-          text = (if (imageSize == null) "System" else Storage(imageSize).toUiString() + " system") + " image will be downloaded",
+          text = thingsToDownload.joinToString(" and ") + " will be downloaded",
           AllIconsKeys.Actions.Download,
           Modifier.padding(vertical = 4.dp),
         )
