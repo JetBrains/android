@@ -74,38 +74,52 @@ internal fun updateIconsAtDir(
 ): Boolean {
   cleanupUnusedIcons(existingMetadata, targetDir)
 
-  // The metadata builder should reflect the current status of the metadata during the process, so
-  // deletions or additions of icons should be updated here.
-  val metadataBuilder =
-    MaterialIconsMetadataBuilder(host = newMetadata.host, urlPattern = newMetadata.urlPattern, families = newMetadata.families)
-  existingMetadata.icons.forEach(metadataBuilder::addIconMetadata)
-
   val updateData = getIconsUpdateData(existingMetadata, newMetadata, iconsUrlProvider)
   if (updateData.isEmpty()) {
     log.info("No icons metadata update needed")
     return false
   }
 
+  // The metadata builder should reflect the current status of the metadata during the process, so
+  // additions or replacements of icons should be updated here while preserving existing ones.
+  val metadataBuilder =
+    MaterialIconsMetadataBuilder(host = newMetadata.host, urlPattern = newMetadata.urlPattern, families = newMetadata.families)
+  existingMetadata.icons.forEach(metadataBuilder::addIconMetadata)
+
+  val existingIconsByName = existingMetadata.icons.groupBy { it.name }
+  var anyUpdated = false
+
   try {
     ProgressManager.checkCanceled()
 
-    updateData.iconsToRemove.forEach {
+    updateData.iconsToDownload.forEach { iconToDownload ->
       ProgressManager.checkCanceled()
-      metadataBuilder.removeIconMetadata(it)
+      downloadIconStyles(newMetadata, targetDir, iconToDownload)
+      existingIconsByName[iconToDownload.name]?.forEach { metadataBuilder.removeIconMetadata(it) }
+      metadataBuilder.addIconMetadata(iconToDownload)
+      anyUpdated = true
     }
 
-    updateData.iconsToDownload.forEach {
+    val newIconNames = newMetadata.icons.map { it.name }.toSet()
+    val genuinelyRemovedIcons = updateData.iconsToRemove.filter { it.name !in newIconNames }
+    genuinelyRemovedIcons.forEach {
       ProgressManager.checkCanceled()
-      downloadIconStyles(newMetadata, targetDir, it)
-      metadataBuilder.addIconMetadata(it)
+      metadataBuilder.removeIconMetadata(it)
+      anyUpdated = true
     }
-  } catch (e: ProcessCanceledException) {} catch (e: CancellationException) {} catch (e: Exception) {
-    log.warn("Download error", e)
-  } finally {
+
     // Update metadata file
     MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), targetDir.resolve(METADATA_FILE_NAME), log)
-    log.info("Updated icons remove=${updateData.iconsToRemove.size} download=${updateData.iconsToDownload}")
-    return true
+    log.info("Updated icons remove=${genuinelyRemovedIcons.size} download=${updateData.iconsToDownload.size}")
+    return anyUpdated
+  } catch (e: Exception) {
+    if (e !is ProcessCanceledException && e !is CancellationException) {
+      log.warn("Download error", e)
+    }
+    if (anyUpdated) {
+      MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), targetDir.resolve(METADATA_FILE_NAME), log)
+    }
+    return anyUpdated
   }
 }
 
@@ -115,6 +129,9 @@ internal fun updateIconsAtDir(
  * Note that this involves looking through the directories of each Icon for each style/family.
  */
 private fun cleanupUnusedIcons(existingMetadata: MaterialIconsMetadata, targetDir: Path) {
+  if (existingMetadata.icons.isEmpty() || existingMetadata.families.isEmpty()) {
+    return
+  }
   // Set of expected style directories.
   val styleDirNames = existingMetadata.families.map { it.toDirFormat() }.toSet()
   // Set of expected icon names within each style directory.

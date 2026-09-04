@@ -23,6 +23,7 @@ import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirForma
 import com.android.tools.idea.testing.disposable
 import com.android.utils.SdkUtils
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.ProjectRule
@@ -274,6 +275,63 @@ class MaterialIconsUpdaterTest {
       )
     )
 
+    assertThat(existingIcon1).exists()
+    assertThat(existingIcon2).exists()
+  }
+
+  @Test
+  fun cancellationDuringDownloadPreservesExistingMetadata() {
+    val mockDownloadableFileService = Mockito.mock(DownloadableFileService::class.java)
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(DownloadableFileService::class.java, mockDownloadableFileService, projectRule.disposable)
+    val mockDownloader = Mockito.mock(FileDownloader::class.java)
+    whenever(mockDownloader.download(Mockito.any())).thenThrow(ProcessCanceledException())
+    whenever(mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))).thenReturn(mockDownloader)
+    val descriptor = DownloadableFileDescriptionImpl("url", "path", "tmp")
+    whenever(mockDownloadableFileService.createFileDescription(Mockito.any(), Mockito.any())).thenReturn(descriptor)
+
+    val loadExistingMetadata: () -> MaterialIconsMetadata = {
+      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow()
+    }
+
+    val testDownloadedMetadataFile = testDirectory.resolve("downloaded_metadata.txt").apply { writeText(NEW_METADATA_CONTENT) }.toFile()
+    val loadTestDownloadedMetadata: () -> MaterialIconsMetadata = {
+      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testDownloadedMetadataFile)).getOrThrow()
+    }
+
+    val result =
+      updateIconsAtDir(
+        existingMetadata = loadExistingMetadata(),
+        newMetadata = loadTestDownloadedMetadata(),
+        targetDir = downloadDir,
+        iconsUrlProvider = iconsUrlProvider,
+      )
+
+    assertFalse(result)
+    // Metadata on disk must still contain the existing icons and not be wiped or emptied!
+    val currentMetadata = loadExistingMetadata()
+    assertEquals(2, currentMetadata.icons.size)
+    assertTrue(currentMetadata.icons.any { it.name == "my_icon_1" })
+    assertTrue(currentMetadata.icons.any { it.name == "my_icon_2" })
+  }
+
+  @Test
+  fun emptyExistingMetadataDoesNotDeleteIconsOnDisk() {
+    val existingIcon1 = downloadDir.resolve("style1/my_icon_1/style1_my_icon_1_24.xml")
+    val existingIcon2 = downloadDir.resolve("style1/my_icon_2/style1_my_icon_2_24.xml")
+    assertThat(existingIcon1).exists()
+    assertThat(existingIcon2).exists()
+
+    val result =
+      updateIconsAtDir(
+        existingMetadata = MaterialIconsMetadata.EMPTY,
+        newMetadata = MaterialIconsMetadata.EMPTY,
+        targetDir = downloadDir,
+        iconsUrlProvider = iconsUrlProvider,
+      )
+
+    assertFalse(result)
+    // Existing icons must not be cleaned up or deleted when existing metadata is empty
     assertThat(existingIcon1).exists()
     assertThat(existingIcon2).exists()
   }

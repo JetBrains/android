@@ -40,10 +40,11 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.progress.blockingContextScope
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.progress.getCancellable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -80,22 +81,34 @@ class MaterialVdIconsProvider {
       iconsUrlProvider: MaterialIconsUrlProvider? = null,
       @UiThread onNewIconsAvailable: () -> Unit = {},
     ) {
-      val metadataUrl = (metadataUrlProvider ?: getMetadataUrlProvider()).getMetadataUrl()
-      val metadataParseResult = metadataUrl?.let { MaterialIconsMetadata.parse(it) } ?: Result.success(MaterialIconsMetadata.EMPTY)
+      var resolvedIconsUrlProvider = iconsUrlProvider
+      var metadataParseResult =
+        (metadataUrlProvider ?: getMetadataUrlProvider()).getMetadataUrl()?.let {
+          MaterialIconsMetadata.parse(it)
+        }
 
-      if (metadataParseResult.isSuccess && metadataParseResult.getOrThrow() === MaterialIconsMetadata.EMPTY) {
-        LOG.warn("Empty metadata for material icons.")
-        refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
+      // If the default SDK metadata failed or produced no families, fall back to bundled metadata and icons
+      if (metadataUrlProvider == null && metadataParseResult?.getOrNull()?.families.isNullOrEmpty()) {
+        if (metadataParseResult?.isFailure == true) {
+          LOG.warn("Failed to load metadata from SDK path, falling back to bundled metadata.", metadataParseResult.exceptionOrNull())
+        }
+        val bundledUrl = BundledMetadataUrlProvider().getMetadataUrl()
+        if (bundledUrl != null) {
+          metadataParseResult = MaterialIconsMetadata.parse(bundledUrl)
+          resolvedIconsUrlProvider = iconsUrlProvider ?: BundledIconsUrlProvider()
+        }
       }
 
-      if (metadataParseResult.isFailure) {
-        // Simply log the error
-        LOG.warn("Failed to load metadata", metadataParseResult.exceptionOrNull())
+      val metadata = metadataParseResult?.getOrNull()
+      if (metadata == null || metadata.families.isEmpty()) {
+        LOG.warn("Empty or missing metadata for material icons.", metadataParseResult?.exceptionOrNull())
+        refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
+        return
       }
 
       loadMaterialVdIcons(
-        metadataParseResult.getOrDefault(MaterialIconsMetadata.EMPTY),
-        iconsUrlProvider ?: getIconsUrlProvider(),
+        metadata,
+        resolvedIconsUrlProvider ?: getIconsUrlProvider(),
         refreshUiCallback,
         onNewIconsAvailable,
         parentDisposable,
@@ -119,24 +132,23 @@ private fun loadMaterialVdIcons(
       1,
       parentDisposable,
     )
+  val backgroundDispatcher = backgroundExecutor.asCoroutineDispatcher()
   AndroidCoroutineScope(parentDisposable).launch {
     var icons = MaterialVdIcons.EMPTY
     metadata.families.forEachIndexed { index, style ->
       val status = if (index == metadata.families.lastIndex) Status.FINISHED else Status.LOADING
 
       // Load icons in a background thread.
-      @Suppress("UnstableApiUsage")
-      blockingContextScope {
-        backgroundExecutor.submit {
-          try {
-            LOG.debug("Loading icons for style=$style.")
-            icons = iconsLoader.loadMaterialVdIcons(style)
-            if (icons.styles.isEmpty()) {
-              LOG.warn("No icons loaded for style=$style.")
-            }
-          } catch (_: ProcessCanceledException) {} catch (t: Throwable) {
-            LOG.error("Error loading icons.", t)
+      withContext(backgroundDispatcher) {
+        try {
+          LOG.debug("Loading icons for style=$style.")
+          icons = iconsLoader.loadMaterialVdIcons(style)
+          if (icons.styles.isEmpty()) {
+            LOG.warn("No icons loaded for style=$style.")
           }
+        } catch (t: Throwable) {
+          if (t is ProcessCanceledException || t is CancellationException) throw t
+          LOG.error("Error loading icons.", t)
         }
       }
 
@@ -145,18 +157,16 @@ private fun loadMaterialVdIcons(
     }
 
     var iconsUpdated = false
-    @Suppress("UnstableApiUsage")
-    blockingContextScope {
-      backgroundExecutor.submit {
-        try {
-          // When finished loading, copy icons to the Android/Sdk directory.
-          copyBundledIcons(metadata, icons)
+    withContext(backgroundDispatcher) {
+      try {
+        // When finished loading, copy icons to the Android/Sdk directory.
+        copyBundledIcons(metadata, icons)
 
-          // Then, download the most recent metadata file and any new icons.
-          iconsUpdated = updateMetadataAndIcons(metadata, iconsUrlProvider)
-        } catch (_: ProcessCanceledException) {} catch (t: Throwable) {
-          LOG.error("Error updating icons.", t)
-        }
+        // Then, download the most recent metadata file and any new icons.
+        iconsUpdated = updateMetadataAndIcons(metadata, iconsUrlProvider)
+      } catch (t: Throwable) {
+        if (t is ProcessCanceledException || t is CancellationException) throw t
+        LOG.error("Error updating icons.", t)
       }
     }
     if (iconsUpdated) {

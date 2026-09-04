@@ -27,6 +27,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.ApplicationRule
+import java.io.File
 import java.net.URL
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
@@ -104,6 +105,37 @@ class MaterialVdIconsProviderTest {
     )
     assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons!!.styles).isEmpty()
+  }
+
+  @Test
+  fun testCorruptMetadataCallsFinishedCallback() {
+    val latch = CountDownLatch(1)
+    var finished = false
+    var materialIcons: MaterialVdIcons? = null
+    val uiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit = { icons, status ->
+      materialIcons = icons
+      if (status == MaterialVdIconsProvider.Status.FINISHED) {
+        finished = true
+        latch.countDown()
+      }
+    }
+    val tempFile = File.createTempFile("corrupt_metadata", ".txt")
+    tempFile.writeText("corrupt content")
+    try {
+      MaterialVdIconsProvider.loadMaterialVdIcons(
+        uiCallback,
+        disposable,
+        object : MaterialIconsMetadataUrlProvider {
+          override fun getMetadataUrl(): URL = tempFile.toURI().toURL()
+        },
+        null,
+      )
+      assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
+      assertTrue(finished)
+      Truth.assertThat(materialIcons!!.styles).isEmpty()
+    } finally {
+      tempFile.delete()
+    }
   }
 
   @Test
@@ -192,10 +224,12 @@ class MaterialVdIconsProviderTestWithSdk {
 
   @get:Rule val rule = AndroidProjectRule.inMemory()
 
+  private lateinit var testSdkDirectory: File
+
   @Before
   fun setup() {
     val testDirectory = FileUtil.createTempDirectory(javaClass.simpleName, null)
-    val testSdkDirectory = testDirectory.resolve("FakeSdk").apply { mkdir() }
+    testSdkDirectory = testDirectory.resolve("FakeSdk").apply { mkdir() }
     val testMaterialIconsSdkDirectory = testSdkDirectory.resolve("icons").resolve("material").apply { mkdirs() }
     testMaterialIconsSdkDirectory.resolve("icons_metadata.txt").writeText(SIMPLE_METADATA)
     testMaterialIconsSdkDirectory
@@ -227,5 +261,31 @@ class MaterialVdIconsProviderTestWithSdk {
     Truth.assertThat(materialIcons.styles).containsExactly("Style 1")
     val icons = materialIcons.getAllIcons("Style 1")
     Truth.assertThat(icons.map { it.name }).containsExactly("style1_my_sdk_icon_24.xml")
+  }
+
+  @Test
+  fun testCorruptSdkMetadataFallsBackToBundled() {
+    val testMaterialIconsSdkDirectory = testSdkDirectory.resolve("icons").resolve("material")
+    testMaterialIconsSdkDirectory.resolve("icons_metadata.txt").writeText("corrupt content")
+
+    val latch = CountDownLatch(1)
+    var materialIcons = MaterialVdIcons.EMPTY
+    var finished = false
+    val uiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit = { icons, status ->
+      materialIcons = icons
+      if (status == MaterialVdIconsProvider.Status.FINISHED) {
+        finished = true
+        latch.countDown()
+      }
+    }
+    MaterialVdIconsProvider.loadMaterialVdIcons(
+      uiCallback,
+      rule.fixture.projectDisposable,
+      null,
+      null,
+    )
+    assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
+    assertTrue(finished)
+    Truth.assertThat(materialIcons.styles).isNotEmpty()
   }
 }

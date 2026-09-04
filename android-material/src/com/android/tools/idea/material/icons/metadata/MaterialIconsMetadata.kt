@@ -31,8 +31,10 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.lang.reflect.Type
 import java.net.URL
+import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import kotlin.io.path.isDirectory
 
 /** Metadata for the Material design icons, based on the metadata file obtained from http://fonts.google.com/metadata/icons. */
@@ -88,7 +90,24 @@ data class MaterialIconsMetadata(
         return
       }
       try {
-        Files.newBufferedWriter(target, Charsets.UTF_8).use { writer -> getGson().toJson(metadata, writer) }
+        val parent = target.parent
+        if (parent != null) {
+          Files.createDirectories(parent)
+        }
+
+        // Write to a temporary file first and then move it to the target path to ensure the file is updated atomically
+        // and avoid potential corrupted files if the process is interrupted during writing.
+        val tempFile = Files.createTempFile(parent ?: Path.of("."), "icons_metadata", ".tmp")
+        try {
+          Files.newBufferedWriter(tempFile, Charsets.UTF_8).use { writer -> getGson().toJson(metadata, writer) }
+          try {
+            Files.move(tempFile, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+          } catch (_: AtomicMoveNotSupportedException) {
+            Files.move(tempFile, target, StandardCopyOption.REPLACE_EXISTING)
+          }
+        } finally {
+          Files.deleteIfExists(tempFile)
+        }
       } catch (e: Exception) {
         when (e) {
           is IOException,
