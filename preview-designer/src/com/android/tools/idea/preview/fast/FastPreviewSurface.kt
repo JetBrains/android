@@ -21,22 +21,32 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
+import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.util.findAndroidModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import java.io.File
+import com.intellij.util.concurrency.annotations.RequiresReadLock
+import com.intellij.util.graph.GraphAlgorithms
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.kotlin.psi.KtFile
+import kotlin.io.path.Path
 
 /** Interface to be implemented by surfaces (like the Preview) that support FastPreview. */
 interface FastPreviewSurface {
@@ -118,10 +128,62 @@ class CommonFastPreviewSurface(
       previewStatusProvider(),
       fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileAndroidModule).pushOverlayPath(File(outputAbsolutePath).toPath())
+      val outputPath = Path(outputAbsolutePath)
+      val project = psiFilePointer.project
+
+      fun pushOverlayPath(module: Module) =
+        ModuleClassLoaderOverlays.getInstance(module).pushOverlayPath(outputPath)
+
+      pushOverlayPath(previewFileAndroidModule)
+
+      val outOfDateModules = readAction {
+        val otherOpenPreviewModules = project.findOpenPreviewAndroidHolderModules() - previewFileAndroidModule.androidHolderModule
+        if (otherOpenPreviewModules.isEmpty()) return@readAction emptySet()
+
+        project.findDependentAndroidHolderModules(outOfDateFiles) { it in otherOpenPreviewModules }
+      }
+      outOfDateModules.forEach(::pushOverlayPath)
+
       delegateRefresh()
     }
   }
 
   override fun dispose() {}
+}
+
+private inline val Module.androidHolderModule: Module
+  get() = (findAndroidModule() ?: this).getModuleSystem().getHolderModule()
+
+@RequiresReadLock
+private fun Project.findOpenPreviewAndroidHolderModules(): Set<Module> = buildSet {
+  val project = this@findOpenPreviewAndroidHolderModules
+  val fileIndex = ProjectFileIndex.getInstance(project)
+  val editorManager = FileEditorManager.getInstance(project)
+
+  for (editor in editorManager.allEditors) when (editor) {
+    is MultiRepresentationPreview -> editor
+    is TextEditorWithMultiRepresentationPreview<*> -> editor.preview
+    else -> null
+  }?.let { preview ->
+    if (preview.representationNames.isEmpty()) continue
+    val module = fileIndex.getModuleForFile(preview.file) ?: continue
+    val androidHolderModule = module.androidHolderModule
+    add(androidHolderModule)
+  }
+}
+
+@RequiresReadLock
+private fun Project.findDependentAndroidHolderModules(
+  files: Iterable<PsiFile>,
+  predicate: (Module) -> Boolean,
+): Set<Module> {
+  val moduleGraph = ModuleManager.getInstance(this).moduleGraph()
+  val algorithms = GraphAlgorithms.getInstance()
+
+  return buildSet {
+    files.forEach { outOfDateFile ->
+      val module = ModuleUtilCore.findModuleForFile(outOfDateFile) ?: return@forEach
+      algorithms.collectOutsRecursively(moduleGraph, module, this)
+    }
+  }.mapNotNullTo(HashSet()) { it.androidHolderModule.takeIf(predicate) }
 }
