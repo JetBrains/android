@@ -13,404 +13,437 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk.wizard;
+package com.android.tools.idea.sdk.wizard
 
-import static com.android.testutils.AsyncTestUtils.waitForCondition;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import com.android.repository.api.DelegatingProgressIndicator;
-import com.android.repository.api.Installer;
-import com.android.repository.api.InstallerFactory;
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.PackageOperation;
-import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoPackage;
-import com.android.repository.api.Uninstaller;
-import com.android.repository.api.UpdatablePackage;
-import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.testframework.FakePackage;
-import com.android.repository.testframework.FakeProgressIndicator;
-import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.FakeSettingsController;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.testutils.file.InMemoryFileSystems;
-import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.wizard.model.ModelWizard;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.JBUI;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.InOrder;
+import com.android.repository.api.DelegatingProgressIndicator
+import com.android.repository.api.Installer
+import com.android.repository.api.InstallerFactory
+import com.android.repository.api.LocalPackage
+import com.android.repository.api.PackageOperation
+import com.android.repository.api.ProgressIndicator
+import com.android.repository.api.RemotePackage
+import com.android.repository.api.RepoPackage
+import com.android.repository.api.Uninstaller
+import com.android.repository.api.UpdatablePackage
+import com.android.repository.impl.meta.RepositoryPackages
+import com.android.repository.testframework.FakePackage.FakeLocalPackage
+import com.android.repository.testframework.FakePackage.FakeRemotePackage
+import com.android.repository.testframework.FakeProgressIndicator
+import com.android.repository.testframework.FakeRepoManager
+import com.android.repository.testframework.FakeSettingsController
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.testutils.waitForCondition
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.observable.InvalidationListener
+import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.wizard.model.ModelWizard.WizardListener
+import com.android.tools.idea.wizard.model.ModelWizard.WizardResult
+import com.intellij.openapi.util.Disposer
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
+import org.jetbrains.android.AndroidTestCase
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mockito
+import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when` as whenever
 
 /**
- * Tests for {@link InstallSelectedPackagesStep}.
+ * Tests for [InstallSelectedPackagesStep].
  *
  * TODO: this does not include tests for in-process installs.
  */
-public class InstallTaskTest extends AndroidTestCase {
+class InstallTaskTest : AndroidTestCase() {
+  private val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
+  private val progressIndicator: ProgressIndicator = FakeProgressIndicator()
 
-  private RemotePackage myAvailable1;
-  private RemotePackage myAvailable2;
+  private lateinit var available1: RemotePackage
+  private lateinit var available2: RemotePackage
+  private lateinit var installer: Installer
+  private lateinit var installer2: Installer
+  private lateinit var uninstaller: Uninstaller
+  private lateinit var operations: MutableMap<RepoPackage, PackageOperation>
+  private lateinit var installTask: InstallTask
+  private lateinit var sdkHandler: AndroidSdkHandler
+  private lateinit var factory: InstallerFactory
+  private lateinit var existing1: LocalPackage
 
-  private final Path mySdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
-  private final ProgressIndicator myProgressIndicator = new FakeProgressIndicator();
+  override fun setUp() {
+    super.setUp()
+    existing1 = spy(FakeLocalPackage("p1", sdkRoot.resolve("p1")))
+    available1 = spy(FakeRemotePackage("p2"))
+    available2 = spy(FakeRemotePackage("p3"))
+    factory = mock()
+    installer = mock()
+    installer2 = mock()
+    uninstaller = mock()
 
-  private Installer myInstaller;
-  private Installer myInstaller2;
-  private Uninstaller myUninstaller;
-  private Map<RepoPackage, PackageOperation> myOperations;
-  private InstallTask myInstallTask;
-  private AndroidSdkHandler mySdkHandler;
+    val repoPackages = RepositoryPackages(listOf(existing1), listOf(available1, available2))
+    val repoManager = FakeRepoManager(sdkRoot, repoPackages)
+    sdkHandler = AndroidSdkHandler(sdkRoot, sdkRoot, repoManager)
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    LocalPackage existing1 = spy(new FakePackage.FakeLocalPackage("p1", mySdkRoot.resolve("p1")));
-    myAvailable1 = spy(new FakePackage.FakeRemotePackage("p2"));
-    myAvailable2 = spy(new FakePackage.FakeRemotePackage("p3"));
-    InstallerFactory factory = mock(InstallerFactory.class);
-    myInstaller = mock(Installer.class);
-    myInstaller2 = mock(Installer.class);
-    myUninstaller = mock(Uninstaller.class);
+    whenever(installer.prepare(any())).thenReturn(true)
+    whenever(installer2.prepare(any())).thenReturn(true)
+    whenever(uninstaller.prepare(any())).thenReturn(true)
+    whenever(installer.complete(any())).thenReturn(true)
+    whenever(installer2.complete(any())).thenReturn(true)
+    whenever(uninstaller.complete(any())).thenReturn(true)
 
-    RepositoryPackages repoPackages = new RepositoryPackages(ImmutableList.of(existing1), ImmutableList.of(myAvailable1, myAvailable2));
+    operations =
+      mutableMapOf(
+        existing1 to uninstaller,
+        available1 to installer,
+        available2 to installer2,
+      )
 
-    FakeRepoManager repoManager = new FakeRepoManager(mySdkRoot, repoPackages);
-    mySdkHandler = new AndroidSdkHandler(mySdkRoot, mySdkRoot, repoManager);
+    whenever(factory.createInstaller(eq(available1), eq(repoManager), any())).thenReturn(installer)
+    whenever(factory.createInstaller(eq(available2), eq(repoManager), any())).thenReturn(installer2)
+    whenever(factory.createUninstaller(existing1, repoManager)).thenReturn(uninstaller)
 
-    myInstallTask = new InstallTask(factory, mySdkHandler, new FakeSettingsController(false), myProgressIndicator);
-    myInstallTask.setInstallRequests(ImmutableList.of(new UpdatablePackage(myAvailable1), new UpdatablePackage(myAvailable2)));
-    myInstallTask.setUninstallRequests(ImmutableList.of(existing1));
-    when(myInstaller.prepare(any())).thenReturn(true);
-    when(myInstaller2.prepare(any())).thenReturn(true);
-    when(myUninstaller.prepare(any())).thenReturn(true);
-    when(myInstaller.complete(any())).thenReturn(true);
-    when(myInstaller2.complete(any())).thenReturn(true);
-    when(myUninstaller.complete(any())).thenReturn(true);
-
-    myOperations = new HashMap<>();
-    myOperations.put(existing1, myUninstaller);
-    myOperations.put(myAvailable1, myInstaller);
-    myOperations.put(myAvailable2, myInstaller2);
-
-    when(factory.createInstaller(eq(myAvailable1), eq(repoManager), any())).thenReturn(myInstaller);
-    when(factory.createInstaller(eq(myAvailable2), eq(repoManager), any())).thenReturn(myInstaller2);
-    when(factory.createUninstaller(existing1, repoManager)).thenReturn(myUninstaller);
+    installTask = createInstallTask()
   }
 
-  public void testPrepare() {
-    List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.preparePackages(myOperations, failures, new FakeProgressIndicator());
+  private fun createInstallTask(
+    prepareCompleteCallback: (() -> Unit)? = null,
+    completeCallback: ((List<RepoPackage>) -> Unit)? = null,
+  ): InstallTask =
+    InstallTask(
+      installerFactory = factory,
+      sdkHandler = sdkHandler,
+      settingsController = FakeSettingsController(false),
+      logger = progressIndicator,
+      installRequests = listOf(UpdatablePackage(available1), UpdatablePackage(available2)),
+      uninstallRequests = listOf(existing1),
+      prepareCompleteCallback = prepareCompleteCallback,
+      completeCallback = completeCallback,
+    )
 
-    verify(myInstaller).prepare(any());
-    verify(myInstaller2).prepare(any());
-    verify(myUninstaller).prepare(any());
+  fun testPrepare() {
+    val failures = mutableListOf<RepoPackage>()
+    installTask.preparePackages(operations, failures, FakeProgressIndicator())
 
-    assertTrue(failures.isEmpty());
+    verify(installer).prepare(any())
+    verify(installer2).prepare(any())
+    verify(uninstaller).prepare(any())
+
+    assertTrue(failures.isEmpty())
   }
 
-  public void testPrepareWithFallback() {
-    Installer fallback = mock(Installer.class);
-    when(fallback.prepare(any())).thenReturn(true);
-    when(myInstaller2.prepare(any())).thenReturn(false);
-    when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
+  fun testPrepareWithFallback() {
+    val fallback = mock<Installer>()
+    whenever(fallback.prepare(any())).thenReturn(true)
+    whenever(installer2.prepare(any())).thenReturn(false)
+    whenever(installer2.fallbackOperation).thenReturn(fallback)
 
-    List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.preparePackages(myOperations, failures, new FakeProgressIndicator());
+    val failures = mutableListOf<RepoPackage>()
+    installTask.preparePackages(operations, failures, FakeProgressIndicator())
 
-    verify(myInstaller).prepare(any());
-    verify(myInstaller2).prepare(any());
-    verify(myUninstaller).prepare(any());
-    verify(fallback).prepare(any());
+    verify(installer).prepare(any())
+    verify(installer2).prepare(any())
+    verify(uninstaller).prepare(any())
+    verify(fallback).prepare(any())
 
-    assertTrue(failures.isEmpty());
-    assertEquals(fallback, myOperations.get(myAvailable2));
+    assertTrue(failures.isEmpty())
+    assertEquals(fallback, operations[available2])
   }
 
-  public void testPrepareWithDoubleFallback() {
-    Installer fallback = mock(Installer.class);
-    when(fallback.prepare(any())).thenReturn(false);
-    Installer fallback2 = mock(Installer.class);
-    when(fallback2.prepare(any())).thenReturn(true);
+  fun testPrepareWithDoubleFallback() {
+    val fallback = mock<Installer>()
+    whenever(fallback.prepare(any())).thenReturn(false)
+    val fallback2 = mock<Installer>()
+    whenever(fallback2.prepare(any())).thenReturn(true)
 
-    when(myInstaller2.prepare(any())).thenReturn(false);
-    when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
-    when(fallback.getFallbackOperation()).thenReturn(fallback2);
+    whenever(installer2.prepare(any())).thenReturn(false)
+    whenever(installer2.fallbackOperation).thenReturn(fallback)
+    whenever(fallback.fallbackOperation).thenReturn(fallback2)
 
-    List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.preparePackages(myOperations, failures, new FakeProgressIndicator());
+    val failures = mutableListOf<RepoPackage>()
+    installTask.preparePackages(operations, failures, FakeProgressIndicator())
 
-    verify(myInstaller).prepare(any());
-    verify(myInstaller2).prepare(any());
-    verify(myUninstaller).prepare(any());
-    verify(fallback).prepare(any());
-    verify(fallback2).prepare(any());
+    verify(installer).prepare(any())
+    verify(installer2).prepare(any())
+    verify(uninstaller).prepare(any())
+    verify(fallback).prepare(any())
+    verify(fallback2).prepare(any())
 
-    assertTrue(failures.isEmpty());
-    assertEquals(fallback2, myOperations.get(myAvailable2));
+    assertTrue(failures.isEmpty())
+    assertEquals(fallback2, operations[available2])
   }
 
-  public void testPrepareWithErrors() {
-    when(myInstaller2.prepare(any())).thenReturn(false);
+  fun testPrepareWithErrors() {
+    whenever(installer2.prepare(any())).thenReturn(false)
 
-    List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.preparePackages(myOperations, failures, new FakeProgressIndicator());
+    val failures = mutableListOf<RepoPackage>()
+    installTask.preparePackages(operations, failures, FakeProgressIndicator())
 
-    verify(myInstaller).prepare(any());
-    verify(myInstaller2).prepare(any());
-    verify(myUninstaller).prepare(any());
+    verify(installer).prepare(any())
+    verify(installer2).prepare(any())
+    verify(uninstaller).prepare(any())
 
-    assertTrue(failures.contains(myAvailable2));
-    assertEquals(1, failures.size());
+    assertTrue(available2 in failures)
+    assertEquals(1, failures.size)
   }
 
-  public void testComplete() {
-    List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true),
-                                   new FakeProgressIndicator());
+  fun testComplete() {
+    val failures = mutableListOf<RepoPackage>()
+    installTask.completePackages(
+      operations,
+      failures,
+      FakeProgressIndicator(true),
+      FakeProgressIndicator(),
+    )
 
-    verify(myInstaller).complete(any());
-    verify(myInstaller2).complete(any());
-    verify(myUninstaller).complete(any());
+    verify(installer).complete(any())
+    verify(installer2).complete(any())
+    verify(uninstaller).complete(any())
 
-    assertTrue(failures.isEmpty());
-    assertTrue(myOperations.isEmpty());
+    assertTrue(failures.isEmpty())
+    assertTrue(operations.isEmpty())
   }
 
-  public void testCompleteWithFallback() {
-    Installer fallback = mock(Installer.class);
-    when(myInstaller.getFallbackOperation()).thenReturn(fallback);
+  fun testCompleteWithFallback() {
+    val fallback = mock<Installer>()
+    whenever(installer.fallbackOperation).thenReturn(fallback)
+    whenever(installer.complete(any())).thenReturn(false)
 
-    when(myInstaller.complete(any())).thenReturn(false);
-    List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true),
-                                   new FakeProgressIndicator());
+    val failures = mutableListOf<RepoPackage>()
+    installTask.completePackages(
+      operations,
+      failures,
+      FakeProgressIndicator(true),
+      FakeProgressIndicator(),
+    )
 
-    verify(myInstaller).complete(any());
-    verify(myInstaller2).complete(any());
-    verify(myUninstaller).complete(any());
+    verify(installer).complete(any())
+    verify(installer2).complete(any())
+    verify(uninstaller).complete(any())
 
-    assertTrue(failures.isEmpty());
-    assertEquals(fallback, myOperations.get(myAvailable1));
-    assertEquals(1, myOperations.size());
+    assertTrue(failures.isEmpty())
+    assertEquals(fallback, operations[available1])
+    assertEquals(1, operations.size)
   }
 
-  public void testCompleteWithErrors() {
-    when(myInstaller.complete(any())).thenReturn(false);
-    List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true),
-                                   new FakeProgressIndicator());
+  fun testCompleteWithErrors() {
+    whenever(installer.complete(any())).thenReturn(false)
 
-    verify(myInstaller).complete(any());
-    verify(myInstaller2).complete(any());
-    verify(myUninstaller).complete(any());
+    val failures = mutableListOf<RepoPackage>()
+    installTask.completePackages(
+      operations,
+      failures,
+      FakeProgressIndicator(true),
+      FakeProgressIndicator(),
+    )
 
-    assertTrue(failures.contains(myAvailable1));
-    assertEquals(1, failures.size());
-    assertTrue(myOperations.isEmpty());
+    verify(installer).complete(any())
+    verify(installer2).complete(any())
+    verify(uninstaller).complete(any())
+
+    assertTrue(available1 in failures)
+    assertEquals(1, failures.size)
+    assertTrue(operations.isEmpty())
   }
 
-  public void testRunBasic() {
-    myInstallTask.run(myProgressIndicator);
-    InOrder installer1Calls = inOrder(myInstaller);
-    installer1Calls.verify(myInstaller).prepare(any());
-    installer1Calls.verify(myInstaller).complete(any());
-    InOrder installer2Calls = inOrder(myInstaller2);
-    installer2Calls.verify(myInstaller2).prepare(any());
-    installer2Calls.verify(myInstaller2).complete(any());
-    InOrder uninstallerCalls = inOrder(myUninstaller);
-    uninstallerCalls.verify(myUninstaller).prepare(any());
-    uninstallerCalls.verify(myUninstaller).complete(any());
+  fun testRunBasic() {
+    installTask.run(progressIndicator)
+
+    val installer1Calls = inOrder(installer)
+    installer1Calls.verify(installer).prepare(any())
+    installer1Calls.verify(installer).complete(any())
+    val installer2Calls = inOrder(installer2)
+    installer2Calls.verify(installer2).prepare(any())
+    installer2Calls.verify(installer2).complete(any())
+    val uninstallerCalls = inOrder(uninstaller)
+    uninstallerCalls.verify(uninstaller).prepare(any())
+    uninstallerCalls.verify(uninstaller).complete(any())
   }
 
-  public void testRunCallbacks() {
-    Runnable prepareComplete = mock(Runnable.class);
-    myInstallTask.setPrepareCompleteCallback(prepareComplete);
-    Function<List<RepoPackage>, Void> complete = (Function<List<RepoPackage>, Void>)mock(Function.class);
-    myInstallTask.setCompleteCallback(complete);
+  fun testRunCallbacks() {
+    val prepareComplete = mock<() -> Unit>()
+    val complete = mock<(List<RepoPackage>) -> Unit>()
+    val installTask = createInstallTask(prepareCompleteCallback = prepareComplete, completeCallback = complete)
 
-    myInstallTask.run(myProgressIndicator);
+    installTask.run(progressIndicator)
 
-    InOrder callbackCalls = inOrder(myInstaller, prepareComplete, complete);
-    callbackCalls.verify(myInstaller).prepare(any());
-    callbackCalls.verify(prepareComplete).run();
-    callbackCalls.verify(myInstaller).complete(any());
-    callbackCalls.verify(complete).apply(new ArrayList<>());
+    val callbackCalls = inOrder(installer, prepareComplete, complete)
+    callbackCalls.verify(installer).prepare(any())
+    callbackCalls.verify(prepareComplete).invoke()
+    callbackCalls.verify(installer).complete(any())
+    callbackCalls.verify(complete).invoke(emptyList())
   }
 
-  public void testRunWithFallbackOnPrepare() {
-    Installer fallback = mock(Installer.class);
-    when(fallback.prepare(any())).thenReturn(true);
-    when(myInstaller2.prepare(any())).thenReturn(false);
-    when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
+  fun testRunWithFallbackOnPrepare() {
+    val fallback = mock<Installer>()
+    whenever(fallback.prepare(any())).thenReturn(true)
+    whenever(installer2.prepare(any())).thenReturn(false)
+    whenever(installer2.fallbackOperation).thenReturn(fallback)
 
-    myInstallTask.run(myProgressIndicator);
+    installTask.run(progressIndicator)
 
-    verify(myInstaller).prepare(any());
-    verify(myInstaller2).prepare(any());
-    verify(myUninstaller).prepare(any());
-    verify(fallback).prepare(any());
+    verify(installer).prepare(any())
+    verify(installer2).prepare(any())
+    verify(uninstaller).prepare(any())
+    verify(fallback).prepare(any())
 
-    verify(myInstaller).complete(any());
-    verify(myUninstaller).complete(any());
-    verify(fallback).complete(any());
-    verify(myInstaller2, never()).complete(any());
+    verify(installer).complete(any())
+    verify(uninstaller).complete(any())
+    verify(fallback).complete(any())
+    verify(installer2, never()).complete(any())
   }
 
-  public void testRunWithFallbackOnComplete() {
-    Installer fallback = mock(Installer.class);
-    when(fallback.prepare(any())).thenReturn(true);
-    when(myInstaller2.complete(any())).thenReturn(false);
-    when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
+  fun testRunWithFallbackOnComplete() {
+    val fallback = mock<Installer>()
+    whenever(fallback.prepare(any())).thenReturn(true)
+    whenever(installer2.complete(any())).thenReturn(false)
+    whenever(installer2.fallbackOperation).thenReturn(fallback)
 
-    myInstallTask.run(myProgressIndicator);
+    installTask.run(progressIndicator)
 
-    verify(myInstaller).prepare(any());
-    verify(myInstaller2).prepare(any());
-    verify(myUninstaller).prepare(any());
-    verify(fallback).prepare(any());
+    verify(installer).prepare(any())
+    verify(installer2).prepare(any())
+    verify(uninstaller).prepare(any())
+    verify(fallback).prepare(any())
 
-    verify(myInstaller).complete(any());
-    verify(myUninstaller).complete(any());
-    verify(fallback).complete(any());
-    verify(myInstaller2).complete(any());
+    verify(installer).complete(any())
+    verify(uninstaller).complete(any())
+    verify(fallback).complete(any())
+    verify(installer2).complete(any())
   }
 
-  public void testBackground() throws Exception {
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    InstallerFactory factory = mock(InstallerFactory.class);
-    when(factory.createInstaller(eq(myAvailable1), any(), any())).thenReturn(myInstaller);
+  fun testBackground() {
+    val factory = mock<InstallerFactory>()
+    whenever(factory.createInstaller(eq(available1), any(), any())).thenReturn(installer)
 
-    InstallSelectedPackagesStep installStep =
-      new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
-                                      new ArrayList<>(), mySdkHandler, true, JBUI.emptyInsets(), factory, false);
-    CompletableFuture<Boolean> listenerAdded = new CompletableFuture<>();
-    when(myInstaller.prepare(any())).then(invocation -> {
+    val installStep =
+      InstallSelectedPackagesStep(
+        installRequests = listOf(UpdatablePackage(available1)),
+        sdkHandler = sdkHandler,
+        backgroundable = true,
+        factory = factory,
+      )
+    val listenerAdded = CompletableFuture<Boolean>()
+    whenever(installer.prepare(any())).thenAnswer {
       // wait until the wizard completion listener is added, or maybe we'll be done too early and not see that the wizard is finished.
-      listenerAdded.get();
+      listenerAdded.get()
       // This is the background action
-      installStep.getExtraAction().actionPerformed(null);
-      return true;
-    });
-    assertNotNull(installStep.getExtraAction());
-    ModelWizard wizard = wizardBuilder.addStep(installStep).build();
-    CompletableFuture<Boolean> completed = new CompletableFuture<>();
-    wizard.addResultListener(new ModelWizard.WizardListener() {
-      @Override
-      public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
-        completed.complete(true);
+      installStep.extraAction?.actionPerformed(null)
+      true
+    }
+    assertNotNull(installStep.extraAction)
+    var wizard = ModelWizard.Builder().addStep(installStep).build()
+    val completed = CompletableFuture<Boolean>()
+    wizard.addResultListener(
+      object : WizardListener {
+        override fun onWizardFinished(result: WizardResult) {
+          completed.complete(true)
+        }
       }
-    });
-    listenerAdded.complete(true);
-    FutureUtils.pumpEventsAndWaitForFuture(completed, 5, TimeUnit.SECONDS);
+    )
+    listenerAdded.complete(true)
+    pumpEventsAndWaitForFuture(completed, 5, TimeUnit.SECONDS)
 
     // Wizard will complete after prepare and without running complete.
-    verify(myInstaller).prepare(any());
-    verify(myInstaller, never()).complete(any());
-    assertTrue(wizard.isFinished());
+    verify(installer).prepare(any())
+    verify(installer, never()).complete(any())
+    assertTrue(wizard.isFinished)
     // This would normally be done by the wizard frame
-    Disposer.dispose(wizard);
+    Disposer.dispose(wizard)
 
-    when(factory.createInstaller(eq(myAvailable1), any(), any())).thenReturn(myInstaller2);
-    InstallSelectedPackagesStep installStep2 =
-      new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
-                                      new ArrayList<>(), mySdkHandler, true, JBUI.emptyInsets(), factory, false);
-    wizardBuilder = new ModelWizard.Builder(installStep2);
-    CompletableFuture<Boolean> completed2 = new CompletableFuture<>();
-    installStep2.canGoForward().addListener(() -> completed2.complete(true));
-    wizard = wizardBuilder.build();
-    FutureUtils.pumpEventsAndWaitForFuture(completed2, 5, TimeUnit.SECONDS);
-    wizard.goForward();
+    whenever(factory.createInstaller(eq(available1), any(), any())).thenReturn(installer2)
+    val installStep2 =
+      InstallSelectedPackagesStep(
+        installRequests = listOf(UpdatablePackage(available1)),
+        sdkHandler = sdkHandler,
+        backgroundable = true,
+        factory = factory,
+      )
+    val completed2 = CompletableFuture<Boolean>()
+    installStep2.canGoForward().addListener(InvalidationListener { completed2.complete(true) })
+    wizard = ModelWizard.Builder(installStep2).build()
+    pumpEventsAndWaitForFuture(completed2, 5, TimeUnit.SECONDS)
+    wizard.goForward()
 
-    assertTrue(wizard.isFinished());
+    assertTrue(wizard.isFinished)
     // now both prepare and complete will run.
-    verify(myInstaller2).prepare(any());
-    verify(myInstaller2).complete(any());
+    verify(installer2).prepare(any())
+    verify(installer2).complete(any())
     // This would normally be done by the wizard frame
-    Disposer.dispose(wizard);
+    Disposer.dispose(wizard)
   }
 
-  public void testProgressWithBackgrounding() throws Exception {
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    InstallerFactory factory = mock(InstallerFactory.class);
-    FakePackage.FakeRemotePackage p3 = spy(new FakePackage.FakeRemotePackage("p4"));
-    FakePackage.FakeRemotePackage p4 = spy(new FakePackage.FakeRemotePackage("p5"));
-    when(factory.createInstaller(eq(myAvailable1), any(), any())).thenReturn(myInstaller);
-    when(factory.createInstaller(eq(myAvailable2), any(), any())).thenReturn(myInstaller2);
-    Installer installer3 = mock(Installer.class);
-    when(factory.createInstaller(eq(p3), any(), any())).thenReturn(installer3);
-    Installer installer4 = mock(Installer.class);
-    when(factory.createInstaller(eq(p4), any(), any())).thenReturn(installer4);
+  fun testProgressWithBackgrounding() {
+    val factory = mock<InstallerFactory>()
+    val p3 = spy(FakeRemotePackage("p4"))
+    val p4 = spy(FakeRemotePackage("p5"))
+    whenever(factory.createInstaller(eq(available1), any(), any())).thenReturn(installer)
+    whenever(factory.createInstaller(eq(available2), any(), any())).thenReturn(installer2)
+    val installer3 = mock<Installer>()
+    whenever(factory.createInstaller(eq(p3), any(), any())).thenReturn(installer3)
+    val installer4 = mock<Installer>()
+    whenever(factory.createInstaller(eq(p4), any(), any())).thenReturn(installer4)
 
-    InstallSelectedPackagesStep installStep =
-      new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1),
-                                                                       new UpdatablePackage(myAvailable2),
-                                                                       new UpdatablePackage(p3),
-                                                                       new UpdatablePackage(p4))),
-                                      new ArrayList<>(), mySdkHandler, true, JBUI.emptyInsets(), factory, false);
-    CompletableFuture<Boolean> listenerAdded = new CompletableFuture<>();
-    ProgressIndicator[] progressIndicator = new ProgressIndicator[1];
-    when(myInstaller.prepare(any())).then(invocation -> {
-      progressIndicator[0] =
-        ((DelegatingProgressIndicator)invocation.getArgument(0, ProgressIndicator.class)).getDelegates().iterator().next();
-      assertEquals(0., progressIndicator[0].getFraction());
+    val installStep =
+      InstallSelectedPackagesStep(
+        installRequests =
+          listOf(
+            UpdatablePackage(available1),
+            UpdatablePackage(available2),
+            UpdatablePackage(p3),
+            UpdatablePackage(p4),
+          ),
+        sdkHandler = sdkHandler,
+        backgroundable = true,
+        factory = factory,
+      )
+    val listenerAdded = CompletableFuture<Boolean>()
+    var capturedProgress: ProgressIndicator? = null
+    whenever(installer.prepare(any())).thenAnswer { invocation ->
+      val delegating = invocation.arguments[0] as DelegatingProgressIndicator
+      capturedProgress = delegating.delegates.first()
+      assertEquals(0.0, capturedProgress?.fraction)
       // wait until the wizard completion listener is added, or maybe we'll be done too early and not see that the wizard is finished.
-      listenerAdded.get();
-      return true;
-    });
-    when(myInstaller2.prepare(any())).then(invocation -> {
-      // At this point we're 1/8 done = one preparation out of four preparations + four completions.
-      assertEquals(0.125, progressIndicator[0].getFraction());
-      return true;
-    });
-    when(installer3.prepare(any())).then(invocation -> {
-      assertEquals(0.25, progressIndicator[0].getFraction());
-      // This is the background action
-      installStep.getExtraAction().actionPerformed(null);
-      return true;
-    });
-    when(installer4.prepare(any())).then(invocation -> {
-      // When we background the max progress for preparing will go from 0.5 to 1.0, and we're 3/4 done so far.
-      assertEquals(0.75, progressIndicator[0].getFraction());
-      return true;
-    });
-    ModelWizard wizard = null;
-    try {
-      wizard = wizardBuilder.addStep(installStep).build();
-      CompletableFuture<Boolean> completed = new CompletableFuture<>();
-      wizard.addResultListener(new ModelWizard.WizardListener() {
-        @Override
-        public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
-          completed.complete(true);
-        }
-      });
-      listenerAdded.complete(true);
-      FutureUtils.pumpEventsAndWaitForFuture(completed, 5, TimeUnit.SECONDS);
-      // The above only waits for the wizard to be completed, but the backgrounded step may not be done yet.
-      waitForCondition(5, TimeUnit.SECONDS, () -> progressIndicator[0].getFraction() == 1.0);
+      listenerAdded.get()
+      true
     }
-    finally {
-      if (wizard != null) {
-        Disposer.dispose(wizard);
-      }
+    whenever(installer2.prepare(any())).thenAnswer {
+      // At this point we're 1/8 done = one preparation out of four preparations + four completions.
+      assertEquals(0.125, capturedProgress?.fraction)
+      true
+    }
+    whenever(installer3.prepare(any())).thenAnswer {
+      assertEquals(0.25, capturedProgress?.fraction)
+      // This is the background action
+      installStep.extraAction?.actionPerformed(null)
+      true
+    }
+    whenever(installer4.prepare(any())).thenAnswer {
+      // When we background the max progress for preparing will go from 0.5 to 1.0, and we're 3/4 done so far.
+      assertEquals(0.75, capturedProgress?.fraction)
+      true
+    }
+    var wizard: ModelWizard? = null
+    try {
+      wizard = ModelWizard.Builder().addStep(installStep).build()
+      val completed = CompletableFuture<Boolean>()
+      wizard.addResultListener(
+        object : WizardListener {
+          override fun onWizardFinished(result: WizardResult) {
+            completed.complete(true)
+          }
+        }
+      )
+      listenerAdded.complete(true)
+      pumpEventsAndWaitForFuture(completed, 5, TimeUnit.SECONDS)
+      // The above only waits for the wizard to be completed, but the backgrounded step may not be done yet.
+      waitForCondition(5, TimeUnit.SECONDS) { capturedProgress?.fraction == 1.0 }
+    } finally {
+      wizard?.let { Disposer.dispose(it) }
     }
   }
 
+  private inline fun <reified T : Any> mock(): T = Mockito.mock(T::class.java)
+
+  private inline fun <reified T : Any> spy(value: T): T = Mockito.spy(value)
 }

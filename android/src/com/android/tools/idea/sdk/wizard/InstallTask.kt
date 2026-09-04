@@ -36,7 +36,6 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableSet
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationListener
@@ -51,8 +50,6 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.platform.util.progress.reportRawProgress
-import java.util.LinkedHashMap
-import java.util.function.Function
 import javax.swing.event.HyperlinkEvent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -67,22 +64,19 @@ private val log: Logger
   get() = logger<InstallTask>()
 
 /** Task that installs SDK packages. */
-class InstallTask
-@JvmOverloads
-constructor(
+class InstallTask(
   private val installerFactory: InstallerFactory,
   private val sdkHandler: AndroidSdkHandler,
   private val settingsController: SettingsController = StudioSettingsController.getInstance(),
   private val logger: ProgressIndicator = StudioLoggerProgressIndicator(InstallTask::class.java),
-  var installRequests: Collection<UpdatablePackage> = emptyList(),
-  var uninstallRequests: Collection<LocalPackage> = emptyList(),
+  val installRequests: Collection<UpdatablePackage> = emptyList(),
+  val uninstallRequests: Collection<LocalPackage> = emptyList(),
   private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+  val prepareCompleteCallback: (() -> Unit)? = null,
+  val completeCallback: ((List<RepoPackage>) -> Unit)? = null,
 ) {
   private val repoManager: RepoManager = sdkHandler.getRepoManagerAndLoadSynchronously(logger)
   private var isBackgrounded: Boolean = false
-
-  var prepareCompleteCallback: Runnable? = null
-  var completeCallback: Function<List<RepoPackage>, Void>? = null
 
   fun onCancel() {
     logger.cancel()
@@ -102,9 +96,9 @@ constructor(
     title: String = "Installing Android SDK",
     cancellable: Boolean = true,
   ): List<RepoPackage> {
-    val targetProject = (project ?: IdeFocusManager.getGlobalInstance().lastFocusedFrame?.project)
-      ?.takeUnless { it.isDisposed || it.isDefault }
-      ?: ProjectManager.getInstance().openProjects.firstOrNull { !it.isDisposed && !it.isDefault }
+    val targetProject =
+      (project ?: IdeFocusManager.getGlobalInstance().lastFocusedFrame?.project)?.takeUnless { it.isDisposed || it.isDefault }
+        ?: ProjectManager.getInstance().openProjects.firstOrNull { !it.isDisposed && !it.isDefault }
 
     return if (targetProject != null) {
       withBackgroundProgress(targetProject, title, cancellable) {
@@ -143,7 +137,7 @@ constructor(
   @VisibleForTesting
   fun execute(progress: ProgressIndicator): List<RepoPackage> {
     val failures = mutableListOf<RepoPackage>()
-    val operations = LinkedHashMap<RepoPackage, PackageOperation>()
+    val operations = mutableMapOf<RepoPackage, PackageOperation>()
 
     if (installRequests.isNotEmpty()) {
       logger.logInfo("Packages to install: ")
@@ -170,7 +164,7 @@ constructor(
       while (operations.isNotEmpty()) {
         progress.fraction = 0.0
         preparePackages(operations, failures, progress)
-        prepareCompleteCallback?.run()
+        prepareCompleteCallback?.invoke()
         progress.checkCanceled()
         if (!isBackgrounded) {
           completePackages(operations, failures, progress.createSubProgress(0.9), progress)
@@ -192,7 +186,7 @@ constructor(
     // Use a simple progress indicator here so we don't pick up the log messages from the reload.
     val reloadProgress = StudioLoggerProgressIndicator(javaClass)
     repoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, reloadProgress, null, settingsController)
-    completeCallback?.apply(failures)
+    completeCallback?.invoke(failures)
     progress.fraction = 1.0
     return failures
   }
@@ -211,7 +205,7 @@ constructor(
     taskProgressIndicator: ProgressIndicator,
   ) {
     var progressMax = 0.0
-    val packages = ImmutableSet.copyOf(operations.keys)
+    val packages = operations.keys.toList()
     val progressIncrement = 1.0 / packages.size
 
     for (p in packages) {
@@ -237,8 +231,8 @@ constructor(
     }
   }
 
-  private fun getOrCreateInstaller(p: RepoPackage): PackageOperation {
-    var op = repoManager.getInProgressInstallOperation(p)
+  private fun getOrCreateInstaller(remote: RemotePackage): PackageOperation {
+    var op = repoManager.getInProgressInstallOperation(remote)
     if (op !is Installer) {
       val downloader: Downloader =
         StudioDownloader().apply {
@@ -247,15 +241,15 @@ constructor(
             setDownloadIntermediatesLocation(localPath.resolve(AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN))
           }
         }
-      op = installerFactory.createInstaller(p as RemotePackage, repoManager, downloader)
+      op = installerFactory.createInstaller(remote, repoManager, downloader)
     }
     return op
   }
 
-  private fun getOrCreateUninstaller(p: RepoPackage): PackageOperation {
-    val op = repoManager.getInProgressInstallOperation(p)
+  private fun getOrCreateUninstaller(local: LocalPackage): PackageOperation {
+    val op = repoManager.getInProgressInstallOperation(local)
     if (op !is Uninstaller || op.installStatus == PackageOperation.InstallStatus.FAILED) {
-      return installerFactory.createUninstaller(p as LocalPackage, repoManager)
+      return installerFactory.createUninstaller(local, repoManager)
     }
     return op
   }
@@ -271,7 +265,7 @@ constructor(
     failures: MutableList<RepoPackage>,
     progress: ProgressIndicator,
   ) {
-    val packages = ImmutableSet.copyOf(packageOperationMap.keys)
+    val packages = packageOperationMap.keys.toList()
     var progressIncrement = 1.0 / (packages.size * 2.0)
     var wasBackgrounded = false
 
@@ -320,7 +314,7 @@ constructor(
     val notificationListener =
       object : NotificationListener.Adapter() {
         override fun hyperlinkActivated(notification: Notification, event: HyperlinkEvent) {
-          if ("install" == event.description) {
+          if (event.description == "install") {
             val dialogForPaths = SdkQuickfixUtils.createDialogForPackages(null, installRequests, uninstallRequests, true)
             dialogForPaths?.show()
           }
@@ -330,7 +324,7 @@ constructor(
 
     val group = NotificationGroupManager.getInstance().getNotificationGroup("SDK Install")
     val openProjects = ProjectManager.getInstance().openProjects
-    val openProjectsOrNull = if (openProjects.isEmpty()) arrayOf<Project?>(null) else openProjects
+    val openProjectsOrNull = openProjects.ifEmpty { arrayOf<Project?>(null) }
 
     ApplicationManager.getApplication()
       .invokeLater(
@@ -350,13 +344,9 @@ constructor(
         },
         ModalityState.nonModal(),
         {
-          for (pack in packages) {
-            val installer = repoManager.getInProgressInstallOperation(pack)
-            if (installer != null && installer.installStatus == PackageOperation.InstallStatus.PREPARED) {
-              return@invokeLater false
-            }
+          packages.none { pack ->
+            repoManager.getInProgressInstallOperation(pack)?.installStatus == PackageOperation.InstallStatus.PREPARED
           }
-          true
         },
       )
   }
