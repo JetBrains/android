@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leaklist
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,12 +52,15 @@ import org.jetbrains.jewel.foundation.lazy.items
 import org.jetbrains.jewel.foundation.lazy.rememberSingleSelectionLazyListState
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
 
 /**
  * Renders a single row in the LeakCanary leak list table. Displays the leak name, type ([LeakType.APPLICATION_LEAKS] or
  * [LeakType.LIBRARY_LEAKS]), occurrence count, and total leaked memory.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LeakListRow(leak: Leak, isSelected: Boolean) {
   val name = LeakCanaryModel.getLeakClassName(leak)
@@ -68,21 +72,23 @@ private fun LeakListRow(leak: Leak, isSelected: Boolean) {
   val totalLeakedKb = "${leak.retainedByteSize / 1024} KB"
   val occurrences = leak.leakTraceCount.toString()
 
-  Row(
-    modifier =
-      Modifier.fillMaxWidth()
-        .height(TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP)
-        .background(if (isSelected) TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent)
-        .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP)
-        .testTag("leakListRow")
-  ) {
-    LeftAlignedColumnText(name, rowScope = this)
-    Spacer(modifier = Modifier.width(1.dp))
-    RightAlignedColumnText(text = leakTypeStr, colWidth = LEAKCANARY_LEAK_TYPE_COL_WIDTH_DP)
-    Spacer(modifier = Modifier.width(1.dp))
-    RightAlignedColumnText(text = occurrences, colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
-    Spacer(modifier = Modifier.width(1.dp))
-    RightAlignedColumnText(text = totalLeakedKb, colWidth = LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP)
+  Tooltip(tooltip = { Text(name) }) {
+    Row(
+      modifier =
+        Modifier.fillMaxWidth()
+          .height(TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP)
+          .background(if (isSelected) TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR else Color.Transparent)
+          .padding(horizontal = TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP)
+          .testTag("leakListRow")
+    ) {
+      LeftAlignedColumnText(name, rowScope = this)
+      Spacer(modifier = Modifier.width(1.dp))
+      RightAlignedColumnText(text = leakTypeStr, colWidth = LEAKCANARY_LEAK_TYPE_COL_WIDTH_DP)
+      Spacer(modifier = Modifier.width(1.dp))
+      RightAlignedColumnText(text = occurrences, colWidth = LEAKCANARY_OCCURRENCE_COL_WIDTH_DP)
+      Spacer(modifier = Modifier.width(1.dp))
+      RightAlignedColumnText(text = totalLeakedKb, colWidth = LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP)
+    }
   }
 }
 
