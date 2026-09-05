@@ -387,15 +387,15 @@ class FakeScreenSharingAgent(
     withContext(singleThreadedDispatcher) { shellProtocol?.writeStderr(message) }
   }
 
-  fun getFrameNumber(displayId: Int = PRIMARY_DISPLAY_ID): UInt {
+  fun getFrameNumber(displayId: Int): UInt {
     return displayStreamers[displayId]?.frameNumber ?: 0u
   }
 
-  fun getCameraFrameNumber(displayId: Int = PRIMARY_DISPLAY_ID): UInt {
+  fun getCameraFrameNumber(displayId: Int): UInt {
     return cameraStreamers[displayId]?.frameNumber ?: 0u
   }
 
-  fun hasAssociatedCamera(displayId: Int = PRIMARY_DISPLAY_ID): Boolean {
+  fun hasAssociatedCamera(displayId: Int): Boolean {
     return displays.find { it.displayId == displayId }?.hasAssociatedCamera ?: false
   }
 
@@ -1050,7 +1050,8 @@ class FakeScreenSharingAgent(
       private set
 
     suspend fun renderCamera() {
-      val size = Dimension(environmentImage.width, environmentImage.height)
+      val image = environmentImage.rotatedByQuadrants(1)
+      val size = Dimension(image.width, image.height)
       val videoSize = Dimension(size.width, size.height.roundUpToMultipleOf8())
       val encoderContext =
         avcodec_alloc_context3(videoEncoder)?.apply {
@@ -1079,8 +1080,6 @@ class FakeScreenSharingAgent(
       if (av_frame_make_writable(encodingFrame) < 0) {
         throw RuntimeException("av_frame_make_writable failed")
       }
-
-      val image = environmentImage
 
       val rgbFrame =
         av_frame_alloc().apply {
@@ -1160,7 +1159,7 @@ class FakeScreenSharingAgent(
         }
         packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
         packetHeader.displaySize.size = Dimension(environmentImage.width, environmentImage.height)
-        packetHeader.displayOrientation = 0
+        packetHeader.displayOrientation = 1
         packetHeader.displayOrientationCorrection = 0
         packetHeader.frameNumber = ++frameNumber
         val packetSize = packet.size()

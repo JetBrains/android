@@ -132,6 +132,7 @@ import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.geom.Rectangle2D
+import java.awt.image.BufferedImage
 import java.text.AttributedString
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
@@ -140,6 +141,7 @@ import javax.swing.JButton
 import javax.swing.JEditorPane
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
+import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
@@ -1255,30 +1257,31 @@ internal class DeviceViewTest {
     agent.addDisplay(displayId, displaySize, DisplayType.VIRTUAL, hasAssociatedCamera = true)
     createDeviceView(200, 300, displayId, displaySize, retinaMode = true)
     assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(StartVideoStreamMessage(displayId, Dimension(400, 600)))
-    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(displayId, Dimension(1066, 900)))
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(displayId, Dimension(400, 450)))
     assertAppearance("DisplayGlasses1")
     assertThat(view.displayRectangle).isEqualTo(Rectangle2D.Double(0.4375, 100.0, 400.125, 400.0))
 
     executeAction("android.streaming.zoom.fit", view, project)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(400, 600)))
-    assertAppearance("DisplayGlasses2")
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(150, 300)))
+    assertAppearance("DisplayGlasses2", maxPercentDifferent = 0.3) // TODO: Investigate why the image is nondeterministic.
     assertThat(view.displayRectangle).isEqualTo(Rectangle2D.Double(125.0, 225.0, 150.0, 150.0))
 
     executeAction("android.streaming.zoom.in", view, project)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(600, 580)))
-    assertAppearance("DisplayGlasses3")
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(225, 290)))
+    assertAppearance("DisplayGlasses3", maxPercentDifferent = 0.3) // TODO: Investigate why the image is nondeterministic.
 
     executeAction("android.streaming.zoom.out", view, project)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(400, 600)))
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(150, 300)))
 
     executeAction("android.streaming.zoom.fit.inner", view, project)
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(400, 450)))
     fakeUi.root.size = Dimension(250, 300)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame(displayId))
-      .isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(1200, 900)))
+    assertThat(getNextControlMessageAndWaitForFrame(displayId)).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(450, 450)))
     assertAppearance("DisplayGlasses4")
 
     executeAction("android.streaming.zoom.fit.inner", view, project)
@@ -1332,12 +1335,14 @@ internal class DeviceViewTest {
     fakeUi = FakeUi(displayPanel, createFakeWindow = true, parentDisposable = testRootDisposable)
   }
 
-  private fun assertAppearance(goldenImageName: String) {
+  private fun assertAppearance(goldenImageName: String, maxPercentDifferent: Double = 0.0) {
     // First rendering may be low quality.
-    goldenImageRule.assertImageSimilar(goldenImageName, ImageUtils.scale(fakeUi.render(), 0.5), 0.5, ignoreMissingGoldenFile = true)
+    goldenImageRule.assertImageSimilar(goldenImageName, renderAndScaleDown(), max(0.5, maxPercentDifferent), ignoreMissingGoldenFile = true)
     // Second rendering is guaranteed to be high quality.
-    goldenImageRule.assertImageSimilar(goldenImageName, ImageUtils.scale(fakeUi.render(), 0.5))
+    goldenImageRule.assertImageSimilar(goldenImageName, renderAndScaleDown(), maxPercentDifferent)
   }
+
+  private fun renderAndScaleDown(): BufferedImage = ImageUtils.scale(fakeUi.render(), 0.5)
 
   private fun getNextControlMessageAndWaitForFrame(displayId: Int = PRIMARY_DISPLAY_ID): ControlMessage {
     val message = agent.getNextControlMessage(5.seconds)

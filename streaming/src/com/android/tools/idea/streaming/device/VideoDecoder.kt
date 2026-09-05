@@ -356,7 +356,7 @@ internal constructor(
 
         if (cameraImage != null && cameraHeader != null) {
           val cameraRotationAdjustment = orientation - cameraHeader.displayOrientation
-          val cameraSize = cameraHeader.displaySize.size.rotatedByQuadrants(cameraRotationAdjustment)
+          val cameraSize = cameraHeader.displaySize.rotatedByQuadrants(orientation)
           val rotatedDisplaySize = displayHeader.displaySize.rotatedByQuadrants(orientation)
           val displayScale = displayImage.width.toDouble() / rotatedDisplaySize.width
           val targetCameraWidth = (cameraSize.width * displayScale).roundToInt()

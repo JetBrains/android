@@ -388,14 +388,14 @@ internal class DeviceView(
 
   private fun computeMaxVideoSize(orientationQuadrants: Int): Dimension {
     val maxSize = physicalSize.rotatedByQuadrants(-orientationQuadrants)
-    val environmentSize = this.environmentSize
+    val environmentSize = environmentSize
     if (environmentSize != null && deviceDisplaySize.width > 0 && deviceDisplaySize.height > 0) {
-      if (framing == Framing.INNER) {
-        maxSize.width = maxSize.width.scaledDown(environmentSize.width, deviceDisplaySize.width)
-        maxSize.height = maxSize.height.scaledDown(environmentSize.height, deviceDisplaySize.height)
+      if (framing == Framing.OUTER) {
+        maxSize.width = maxSize.width.scaledDown(deviceDisplaySize.width, environmentSize.width)
+        maxSize.height = maxSize.height.scaledDown(deviceDisplaySize.height, environmentSize.height)
       }
-      maxSize.width = maxSize.width.coerceAtMost(environmentSize.width)
-      maxSize.height = maxSize.height.coerceAtMost(environmentSize.height)
+      maxSize.width = maxSize.width.coerceAtMost(deviceDisplaySize.width)
+      maxSize.height = maxSize.height.coerceAtMost(deviceDisplaySize.height)
     }
     return maxSize.rotatedByQuadrants(orientationQuadrants)
   }
@@ -510,7 +510,7 @@ internal class DeviceView(
   override fun canZoom(): Boolean = connectionState == ConnectionState.CONNECTED
 
   override fun computeActualSize(framing: Framing): Dimension {
-    val environmentSize = this@DeviceView.environmentSize
+    val environmentSize = environmentSize
     val size = if (environmentSize == null || framing == Framing.INNER) deviceDisplaySize else environmentSize
     return size.rotatedByQuadrants(displayOrientationQuadrants)
   }
@@ -555,10 +555,12 @@ internal class DeviceView(
           displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
           displayTransform.scale(xScale, yScale)
           g.drawImage(image, displayTransform, null)
-          if (isUnitTestMode) {
-            requestHighQualityRepaint()
-          } else {
-            repaintAlarm.addRequest(::requestHighQualityRepaint, 500)
+          if (xScale < 0.5 || yScale < 0.5) {
+            if (isUnitTestMode) {
+              requestHighQualityRepaint()
+            } else {
+              repaintAlarm.addRequest(::requestHighQualityRepaint, 500)
+            }
           }
         }
       }
