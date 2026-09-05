@@ -13,67 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui
 
-import static com.intellij.util.ui.ImageUtil.applyQualityRenderingHints;
-import static java.awt.RenderingHints.KEY_ANTIALIASING;
-import static java.awt.RenderingHints.KEY_INTERPOLATION;
-import static java.awt.RenderingHints.KEY_RENDERING;
-import static java.awt.RenderingHints.VALUE_ANTIALIAS_OFF;
-import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
-import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
-import static java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
-import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
-import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import com.android.annotations.concurrency.Slow
+import com.intellij.util.ui.ImageUtil
+import java.awt.AlphaComposite
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Rectangle
+import java.awt.RenderingHints
+import java.awt.Shape
+import java.awt.geom.AffineTransform
+import java.awt.geom.Area
+import java.awt.geom.Ellipse2D
+import java.awt.image.AffineTransformOp
+import java.awt.image.BufferedImage
+import java.awt.image.DataBufferInt
+import java.awt.image.SinglePixelPackedSampleModel
+import java.io.IOException
+import java.io.InputStream
+import javax.imageio.ImageIO
+import javax.swing.Icon
+import javax.swing.ImageIcon
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
-import com.android.annotations.concurrency.Slow;
-import com.intellij.util.ui.ImageUtil;
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.awt.image.SinglePixelPackedSampleModel;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReadParam;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-/**
- * Utilities related to image processing.
- */
-@SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, deliberately not creating Retina images in some cases
-public class ImageUtils {
+/** Utilities related to image processing. */
+@Suppress("UndesirableClassUsage", "UseJBColor") // BufferedImage is ok, deliberately not creating Retina images in some cases
+object ImageUtils {
   /** Mask of the alpha channel in the ARGB color representation. */
-  public static final int ALPHA_MASK = 0xFF000000;
+  const val ALPHA_MASK: Int = 0xFF000000.toInt()
+
+  private const val TILE_SIZE = 32
 
   /** Transforms the source image to TYPE_INT_ARGB if it has TYPE_CUSTOM. */
-  public static @NotNull BufferedImage normalizeImage(@NotNull BufferedImage source) {
-    if (source.getType() != BufferedImage.TYPE_CUSTOM) {
-      return source;
+  @JvmStatic
+  fun normalizeImage(source: BufferedImage): BufferedImage {
+    if (source.type != BufferedImage.TYPE_CUSTOM) {
+      return source
     }
-    BufferedImage result =  new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g = result.createGraphics();
-    g.drawImage(source, 0, 0, null);
-    g.dispose();
-    return result;
+    val result = BufferedImage(source.width, source.height, BufferedImage.TYPE_INT_ARGB)
+    val g = result.createGraphics()
+    g.drawImage(source, 0, 0, null)
+    g.dispose()
+    return result
   }
 
   /**
@@ -83,134 +68,153 @@ public class ImageUtils {
    * @param numQuadrants the number of quadrants to rotate by counterclockwise
    * @return the rotated image
    */
-  public static @NotNull BufferedImage rotateByQuadrants(@NotNull BufferedImage source, int numQuadrants) {
-    numQuadrants = numQuadrants & 0x3;
-    if (numQuadrants == 0) {
-      return source;
+  @JvmStatic
+  fun rotateByQuadrants(source: BufferedImage, numQuadrants: Int): BufferedImage {
+    val quadrants = numQuadrants and 0x3
+    if (quadrants == 0) {
+      return source
     }
 
-    int w = source.getWidth();
-    int h = source.getHeight();
-    int type = source.getType();
+    val w = source.width
+    val h = source.height
+    val type = source.type
 
     if (isStandardIntImage(source, type, w, h)) {
-      int rotatedW = (numQuadrants == 2) ? w : h;
-      int rotatedH = (numQuadrants == 2) ? h : w;
-      BufferedImage result = new BufferedImage(rotatedW, rotatedH, type);
-      DataBufferInt srcBuffer = (DataBufferInt) source.getRaster().getDataBuffer();
-      DataBufferInt dstBuffer = (DataBufferInt) result.getRaster().getDataBuffer();
-      rotateIntArray(srcBuffer.getData(), dstBuffer.getData(), w, h, numQuadrants);
-      return result;
+      val rotatedW = if (quadrants == 2) w else h
+      val rotatedH = if (quadrants == 2) h else w
+      val result = BufferedImage(rotatedW, rotatedH, type)
+      val srcBuffer = source.raster.dataBuffer as DataBufferInt
+      val dstBuffer = result.raster.dataBuffer as DataBufferInt
+      rotateIntArray(srcBuffer.data, dstBuffer.data, w, h, quadrants)
+      return result
     }
 
-    return rotateByQuadrantsUsingJava2D(source, numQuadrants, w, h, type);
+    return rotateByQuadrantsUsingJava2D(source, quadrants, w, h, type)
   }
 
-  private static boolean isStandardIntImage(@NotNull BufferedImage image, int type, int w, int h) {
-    return (type == BufferedImage.TYPE_INT_ARGB
-            || type == BufferedImage.TYPE_INT_RGB
-            || type == BufferedImage.TYPE_INT_BGR
-            || type == BufferedImage.TYPE_INT_ARGB_PRE)
-        && image.getRaster().getDataBuffer() instanceof DataBufferInt dataBuffer
-        && dataBuffer.getOffset() == 0
-        && dataBuffer.getData().length == w * h
-        && image.getSampleModel() instanceof SinglePixelPackedSampleModel sampleModel
-        && sampleModel.getScanlineStride() == w;
+  private fun isStandardIntImage(image: BufferedImage, type: Int, w: Int, h: Int): Boolean {
+    val raster = image.raster
+    val dataBuffer = raster.dataBuffer
+    val sampleModel = image.sampleModel
+    val isSupportedType =
+      when (type) {
+        BufferedImage.TYPE_INT_ARGB,
+        BufferedImage.TYPE_INT_RGB,
+        BufferedImage.TYPE_INT_BGR,
+        BufferedImage.TYPE_INT_ARGB_PRE -> true
+        else -> false
+      }
+    return isSupportedType &&
+      (dataBuffer is DataBufferInt) &&
+      (dataBuffer.offset == 0) &&
+      (dataBuffer.data.size == w * h) &&
+      (sampleModel is SinglePixelPackedSampleModel) &&
+      (sampleModel.scanlineStride == w)
   }
 
-  private static void rotateIntArray(int[] src, int[] dst, int w, int h, int numQuadrants) {
-    final int TILE_SIZE = 32;
-    switch (numQuadrants) {
-      case 1: // 90 degrees CCW (270 degrees CW): dst[(w - 1 - x) * h + y] = src[y * w + x]
-        for (int tx = 0; tx < w; tx += TILE_SIZE) {
-          int xMax = min(tx + TILE_SIZE, w);
-          for (int ty = 0; ty < h; ty += TILE_SIZE) {
-            int yMax = min(ty + TILE_SIZE, h);
-            for (int x = tx; x < xMax; x++) {
-              int dstRowOffset = (w - 1 - x) * h;
-              for (int y = ty; y < yMax; y++) {
-                dst[dstRowOffset + y] = src[y * w + x];
+  private fun rotateIntArray(src: IntArray, dst: IntArray, w: Int, h: Int, numQuadrants: Int) {
+    when (numQuadrants) {
+      1 -> { // 90 degrees CCW (270 degrees CW): dst[(w - 1 - x) * h + y] = src[y * w + x]
+        var tx = 0
+        while (tx < w) {
+          val xMax = min(tx + TILE_SIZE, w)
+          var ty = 0
+          while (ty < h) {
+            val yMax = min(ty + TILE_SIZE, h)
+            for (x in tx until xMax) {
+              val dstRowOffset = (w - 1 - x) * h
+              for (y in ty until yMax) {
+                dst[dstRowOffset + y] = src[y * w + x]
               }
             }
+            ty += TILE_SIZE
           }
+          tx += TILE_SIZE
         }
-        break;
+      }
 
-      case 2: // 180 degrees
-        int len = w * h;
-        for (int i = 0; i < len; i++) {
-          dst[i] = src[len - 1 - i];
+      2 -> { // 180 degrees
+        val len = w * h
+        for (i in 0 until len) {
+          dst[i] = src[len - 1 - i]
         }
-        break;
+      }
 
-      case 3: // 270 degrees CCW (90 degrees CW): dst[x * h + (h - 1 - y)] = src[y * w + x]
-        for (int tx = 0; tx < w; tx += TILE_SIZE) {
-          int xMax = min(tx + TILE_SIZE, w);
-          for (int ty = 0; ty < h; ty += TILE_SIZE) {
-            int yMax = min(ty + TILE_SIZE, h);
-            for (int x = tx; x < xMax; x++) {
-              int dstRowOffset = x * h + h - 1;
-              for (int y = ty; y < yMax; y++) {
-                dst[dstRowOffset - y] = src[y * w + x];
+      3 -> { // 270 degrees CCW (90 degrees CW): dst[x * h + (h - 1 - y)] = src[y * w + x]
+        var tx = 0
+        while (tx < w) {
+          val xMax = min(tx + TILE_SIZE, w)
+          var ty = 0
+          while (ty < h) {
+            val yMax = min(ty + TILE_SIZE, h)
+            for (x in tx until xMax) {
+              val dstRowOffset = x * h + h - 1
+              for (y in ty until yMax) {
+                dst[dstRowOffset - y] = src[y * w + x]
               }
             }
+            ty += TILE_SIZE
           }
+          tx += TILE_SIZE
         }
-        break;
+      }
     }
   }
 
-  private static @NotNull BufferedImage rotateByQuadrantsUsingJava2D(
-      @NotNull BufferedImage source, int numQuadrants, int w, int h, int type) {
-    int rotatedW;
-    int rotatedH;
-    int shiftX;
-    int shiftY;
-    switch (numQuadrants) {
-      case 1:
-        rotatedW = h;
-        rotatedH = w;
-        shiftX = 0;
-        shiftY = w;
-        break;
+  private fun rotateByQuadrantsUsingJava2D(
+    source: BufferedImage,
+    numQuadrants: Int,
+    w: Int,
+    h: Int,
+    type: Int,
+  ): BufferedImage {
+    val rotatedW: Int
+    val rotatedH: Int
+    val shiftX: Int
+    val shiftY: Int
+    when (numQuadrants) {
+      1 -> {
+        rotatedW = h
+        rotatedH = w
+        shiftX = 0
+        shiftY = w
+      }
 
-      case 2:
-        rotatedW = w;
-        rotatedH = h;
-        shiftX = w;
-        shiftY = h;
-        break;
+      2 -> {
+        rotatedW = w
+        rotatedH = h
+        shiftX = w
+        shiftY = h
+      }
 
-      case 3:
-        rotatedW = h;
-        rotatedH = w;
-        shiftX = h;
-        shiftY = 0;
-        break;
+      3 -> {
+        rotatedW = h
+        rotatedH = w
+        shiftX = h
+        shiftY = 0
+      }
 
-      default:
-        rotatedW = w;
-        rotatedH = h;
-        shiftX = 0;
-        shiftY = 0;
-        break;
+      else -> {
+        rotatedW = w
+        rotatedH = h
+        shiftX = 0
+        shiftY = 0
+      }
     }
 
-    if (type == BufferedImage.TYPE_CUSTOM) {
-      type = BufferedImage.TYPE_INT_ARGB;
-    }
+    val imageType = if (type == BufferedImage.TYPE_CUSTOM) BufferedImage.TYPE_INT_ARGB else type
 
-    BufferedImage result = new BufferedImage(rotatedW, rotatedH, type);
-    Graphics2D graphics = result.createGraphics();
-    graphics.setRenderingHint(KEY_RENDERING, VALUE_RENDER_SPEED);
-    graphics.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-    AffineTransform transform = new AffineTransform();
+    val result = BufferedImage(rotatedW, rotatedH, imageType)
+    val graphics = result.createGraphics()
+    graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED)
+    graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR)
+    val transform = AffineTransform()
     // Please notice that the transformations are applied in the reverse order, starting from rotation.
-    transform.translate(shiftX, shiftY);
-    transform.quadrantRotate(-numQuadrants);
-    graphics.drawRenderedImage(source, transform);
-    graphics.dispose();
-    return result;
+    transform.translate(shiftX.toDouble(), shiftY.toDouble())
+    transform.quadrantRotate(-numQuadrants)
+    graphics.drawRenderedImage(source, transform)
+    graphics.dispose()
+    return result
   }
 
   /**
@@ -222,13 +226,15 @@ public class ImageUtils {
    * @param destinationHeight the height of the resulting image
    * @return the rotated and scaled image
    */
-  public static @NotNull BufferedImage rotateByQuadrantsAndScale(
-      @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight) {
-    int imageType = source.getType();
-    if (imageType == BufferedImage.TYPE_CUSTOM) {
-      imageType = BufferedImage.TYPE_INT_ARGB;
-    }
-    return rotateByQuadrantsAndScale(source, numQuadrants, destinationWidth, destinationHeight, imageType);
+  @JvmStatic
+  fun rotateByQuadrantsAndScale(
+    source: BufferedImage,
+    numQuadrants: Int,
+    destinationWidth: Int,
+    destinationHeight: Int,
+  ): BufferedImage {
+    val imageType = if (source.type == BufferedImage.TYPE_CUSTOM) BufferedImage.TYPE_INT_ARGB else source.type
+    return rotateByQuadrantsAndScale(source, numQuadrants, destinationWidth, destinationHeight, imageType)
   }
 
   /**
@@ -241,85 +247,96 @@ public class ImageUtils {
    * @param imageType the type of the image to produce
    * @return the rotated and scaled image
    */
-  public static @NotNull BufferedImage rotateByQuadrantsAndScale(
-      @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight, int imageType) {
-    numQuadrants = numQuadrants & 0x3;
-    if (numQuadrants == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
-      return source;
+  @JvmStatic
+  fun rotateByQuadrantsAndScale(
+    source: BufferedImage,
+    numQuadrants: Int,
+    destinationWidth: Int,
+    destinationHeight: Int,
+    imageType: Int,
+  ): BufferedImage {
+    val quadrants = numQuadrants and 0x3
+    if (quadrants == 0 && destinationWidth == source.width && destinationHeight == source.height) {
+      return source
     }
 
-    int w = source.getWidth();
-    int h = source.getHeight();
+    val w = source.width
+    val h = source.height
 
-    double rotatedW;
-    double rotatedH;
-    int shiftX;
-    int shiftY;
-    switch (numQuadrants) {
-      case 0:
-      default:
-        rotatedW = w;
-        rotatedH = h;
-        shiftX = 0;
-        shiftY = 0;
-        break;
+    val rotatedW: Double
+    val rotatedH: Double
+    val shiftX: Double
+    val shiftY: Double
+    when (quadrants) {
+      0 -> {
+        rotatedW = w.toDouble()
+        rotatedH = h.toDouble()
+        shiftX = 0.0
+        shiftY = 0.0
+      }
 
-      case 1:
-        rotatedW = h;
-        rotatedH = w;
-        shiftX = 0;
-        shiftY = destinationHeight;
-        break;
+      1 -> {
+        rotatedW = h.toDouble()
+        rotatedH = w.toDouble()
+        shiftX = 0.0
+        shiftY = destinationHeight.toDouble()
+      }
 
-      case 2:
-        rotatedW = w;
-        rotatedH = h;
-        shiftX = destinationWidth;
-        shiftY = destinationHeight;
-        break;
+      2 -> {
+        rotatedW = w.toDouble()
+        rotatedH = h.toDouble()
+        shiftX = destinationWidth.toDouble()
+        shiftY = destinationHeight.toDouble()
+      }
 
-      case 3:
-        rotatedW = h;
-        rotatedH = w;
-        shiftX = destinationWidth;
-        shiftY = 0;
-        break;
+      3 -> {
+        rotatedW = h.toDouble()
+        rotatedH = w.toDouble()
+        shiftX = destinationWidth.toDouble()
+        shiftY = 0.0
+      }
+
+      else -> {
+        rotatedW = w.toDouble()
+        rotatedH = h.toDouble()
+        shiftX = 0.0
+        shiftY = 0.0
+      }
     }
 
-    BufferedImage result = new BufferedImage(destinationWidth, destinationHeight, imageType);
-    AffineTransform transform = new AffineTransform();
+    val result = BufferedImage(destinationWidth, destinationHeight, imageType)
+    val transform = AffineTransform()
     // Please notice that the transformations are applied in the reverse order, starting from rotation.
-    transform.translate(shiftX, shiftY);
-    transform.scale(destinationWidth / rotatedW, destinationHeight / rotatedH);
-    transform.quadrantRotate(-numQuadrants);
-    AffineTransformOp transformOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
-    return transformOp.filter(source, result);
+    transform.translate(shiftX, shiftY)
+    transform.scale(destinationWidth / rotatedW, destinationHeight / rotatedH)
+    transform.quadrantRotate(-quadrants)
+    val transformOp = AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR)
+    return transformOp.filter(source, result)
   }
 
   /** Creates a HiDPI aware image. */
-  public static BufferedImage createDipImage(int width, int height, int type) {
-    return ImageUtil.createImage(width, height, type);
+  @JvmStatic
+  fun createDipImage(width: Int, height: Int, type: Int): BufferedImage {
+    return ImageUtil.createImage(width, height, type)
   }
 
-  /**
-   * Returns a new image that is the source image surrounded by a transparent margin of given size.
-   */
-  public static BufferedImage addMargin(BufferedImage source, int marginSize) {
-    int destWidth = source.getWidth() + 2 * marginSize;
-    int destHeight = source.getHeight() + 2 * marginSize;
+  /** Returns a new image that is the source image surrounded by a transparent margin of given size. */
+  @JvmStatic
+  fun addMargin(source: BufferedImage, marginSize: Int): BufferedImage {
+    val destWidth = source.width + 2 * marginSize
+    val destHeight = source.height + 2 * marginSize
 
     // since we are adding a transparent margin, make sure destination image has an alpha channel
-    int type = source.getColorModel().hasAlpha() ? source.getType() : BufferedImage.TYPE_INT_ARGB;
+    val type = if (source.colorModel.hasAlpha()) source.type else BufferedImage.TYPE_INT_ARGB
 
-    BufferedImage expanded = new BufferedImage(destWidth, destHeight, type);
-    Graphics2D g2 = expanded.createGraphics();
-    //noinspection UseJBColor
-    g2.setColor(new Color(0, true));
-    g2.fillRect(0, 0, destWidth, destHeight);
-    g2.drawImage(source, marginSize, marginSize, null);
-    g2.dispose();
+    val expanded = BufferedImage(destWidth, destHeight, type)
+    val g2 = expanded.createGraphics()
+    g2.color = Color(0, true)
+    g2.fillRect(0, 0, destWidth, destHeight)
+    g2.drawImage(source, marginSize, marginSize, null)
+    g2.dispose()
 
-    return expanded;
+    return expanded
   }
 
   /**
@@ -329,9 +346,9 @@ public class ImageUtils {
    * @param amount to scale the image in both directions
    * @return the scaled image
    */
-  @NotNull
-  public static BufferedImage scale(BufferedImage source, double amount) {
-    return scale(source, amount, amount, 0, 0);
+  @JvmStatic
+  fun scale(source: BufferedImage, amount: Double): BufferedImage {
+    return scale(source, amount, amount, 0, 0, null)
   }
 
   /**
@@ -342,9 +359,9 @@ public class ImageUtils {
    * @param yScale y scale
    * @return the scaled image
    */
-  @NotNull
-  public static BufferedImage scale(BufferedImage source, double xScale, double yScale) {
-    return scale(source, xScale, yScale, 0, 0);
+  @JvmStatic
+  fun scale(source: BufferedImage, xScale: Double, yScale: Double): BufferedImage {
+    return scale(source, xScale, yScale, 0, 0, null)
   }
 
   /**
@@ -353,79 +370,97 @@ public class ImageUtils {
    * @param source the image to be scaled
    * @param xScale x scale
    * @param yScale y scale
-   * @param clip   an optional clip rectangle to use
+   * @param clip an optional clip rectangle to use
    * @return the scaled image
    */
-  @NotNull
-  public static BufferedImage scale(BufferedImage source, double xScale, double yScale, @Nullable Shape clip) {
-    return scale(source, xScale, yScale, 0, 0, clip);
+  @JvmStatic
+  fun scale(source: BufferedImage, xScale: Double, yScale: Double, clip: Shape?): BufferedImage {
+    return scale(source, xScale, yScale, 0, 0, clip)
   }
 
   /**
    * Resize the given image
    *
-   * @param source       the image to be scaled
-   * @param xScale       x scale
-   * @param yScale       y scale
-   * @param rightMargin  extra margin to add on the right
+   * @param source the image to be scaled
+   * @param xScale x scale
+   * @param yScale y scale
+   * @param rightMargin extra margin to add on the right
    * @param bottomMargin extra margin to add on the bottom
    * @return the scaled image
    */
-  @NotNull
-  public static BufferedImage scale(BufferedImage source, double xScale, double yScale,
-                                    int rightMargin, int bottomMargin) {
-    return scale(source, xScale, yScale, rightMargin, bottomMargin, null);
+  @JvmStatic
+  fun scale(
+    source: BufferedImage,
+    xScale: Double,
+    yScale: Double,
+    rightMargin: Int,
+    bottomMargin: Int,
+  ): BufferedImage {
+    return scale(source, xScale, yScale, rightMargin, bottomMargin, null)
   }
 
   /**
    * Resize the given image
    *
-   * @param source       the image to be scaled
-   * @param xScale       x scale
-   * @param yScale       y scale
-   * @param rightMargin  extra margin to add on the right
+   * @param source the image to be scaled
+   * @param xScale x scale
+   * @param yScale y scale
+   * @param rightMargin extra margin to add on the right
    * @param bottomMargin extra margin to add on the bottom
-   * @param clip         an optional clip rectangle to use
+   * @param clip an optional clip rectangle to use
    * @return the scaled image
    */
-  @NotNull
-  public static BufferedImage scale(BufferedImage source, double xScale, double yScale,
-                                    int rightMargin, int bottomMargin, @Nullable Shape clip) {
-    int sourceWidth = source.getWidth();
-    int sourceHeight = source.getHeight();
-    int destWidth = max(1, (int)(xScale * sourceWidth));
-    int destHeight = max(1, (int)(yScale * sourceHeight));
-    int imageType = source.getType();
-    if (imageType == BufferedImage.TYPE_CUSTOM
-        || imageType == BufferedImage.TYPE_BYTE_INDEXED
-        || imageType == BufferedImage.TYPE_BYTE_BINARY) {
-      imageType = BufferedImage.TYPE_INT_ARGB;
+  @JvmStatic
+  fun scale(
+    source: BufferedImage,
+    xScale: Double,
+    yScale: Double,
+    rightMargin: Int,
+    bottomMargin: Int,
+    clip: Shape?,
+  ): BufferedImage {
+    var src = source
+    var sourceWidth = src.width
+    var sourceHeight = src.height
+    val destWidth = max(1, (xScale * sourceWidth).toInt())
+    val destHeight = max(1, (yScale * sourceHeight).toInt())
+    var imageType = src.type
+    if (
+      imageType == BufferedImage.TYPE_CUSTOM || imageType == BufferedImage.TYPE_BYTE_INDEXED || imageType == BufferedImage.TYPE_BYTE_BINARY
+    ) {
+      imageType = BufferedImage.TYPE_INT_ARGB
     }
     if (xScale > 0.5 && yScale > 0.5) {
-      BufferedImage scaled =
-        new BufferedImage(destWidth + rightMargin, destHeight + bottomMargin, imageType);
-      Graphics2D g2 = scaled.createGraphics();
-      g2.setComposite(AlphaComposite.Src);
-      //noinspection UseJBColor
-      g2.setColor(new Color(0, true));
-      g2.fillRect(0, 0, destWidth + rightMargin, destHeight + bottomMargin);
+      val scaled = BufferedImage(destWidth + rightMargin, destHeight + bottomMargin, imageType)
+      val g2 = scaled.createGraphics()
+      g2.composite = AlphaComposite.Src
+      g2.color = Color(0, true)
+      g2.fillRect(0, 0, destWidth + rightMargin, destHeight + bottomMargin)
       if (clip != null) {
-        g2.setClip(clip);
+        g2.clip = clip
       }
-      if (xScale == 1 && yScale == 1) {
-        g2.drawImage(source, 0, 0, null);
+      if (xScale == 1.0 && yScale == 1.0) {
+        g2.drawImage(src, 0, 0, null)
+      } else {
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g2.drawImage(
+          src,
+          0,
+          0,
+          destWidth,
+          destHeight,
+          0,
+          0,
+          sourceWidth,
+          sourceHeight,
+          null,
+        )
       }
-      else {
-        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-        g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
-        g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-        g2.drawImage(source, 0, 0, destWidth, destHeight, 0, 0, sourceWidth, sourceHeight,
-                     null);
-      }
-      g2.dispose();
-      return scaled;
-    }
-    else {
+      g2.dispose()
+      return scaled
+    } else {
       // When creating a thumbnail, using the above code doesn't work very well;
       // you get some visible artifacts, especially for text. Instead, use the
       // technique of repeatedly scaling the image into half; this will cause
@@ -451,67 +486,86 @@ public class ImageUtils {
       // We end up with the expected final size, but we've been doing an exact
       // divide-in-half resizing operation at the end so there is less distortion.
 
-      int iterations = 0; // Number of halving operations to perform after the initial resize
-      int nearestWidth = destWidth; // Width closest to source width that = 2^x, x is integer
-      int nearestHeight = destHeight;
+      var iterations = 0 // Number of halving operations to perform after the initial resize
+      var nearestWidth = destWidth // Width closest to source width that = 2^x, x is integer
+      var nearestHeight = destHeight
       while (nearestWidth < sourceWidth / 2) {
-        nearestWidth *= 2;
-        nearestHeight *= 2;
-        iterations++;
+        nearestWidth *= 2
+        nearestHeight *= 2
+        iterations++
       }
 
       // If we're supposed to add in margins, we need to do it in the initial resizing
       // operation if we don't have any subsequent resizing operations.
       if (iterations == 0) {
-        nearestWidth += rightMargin;
-        nearestHeight += bottomMargin;
+        nearestWidth += rightMargin
+        nearestHeight += bottomMargin
       }
 
-      @SuppressWarnings("UndesirableClassUsage")
-      BufferedImage scaled = new BufferedImage(nearestWidth, nearestHeight, imageType);
+      var scaled = BufferedImage(nearestWidth, nearestHeight, imageType)
 
-      Graphics2D g2 = scaled.createGraphics();
-      g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-      g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
-      g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-      g2.drawImage(source, 0, 0, nearestWidth, nearestHeight,
-                   0, 0, sourceWidth, sourceHeight, null);
-      g2.dispose();
+      var g2 = scaled.createGraphics()
+      g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+      g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+      g2.drawImage(
+        src,
+        0,
+        0,
+        nearestWidth,
+        nearestHeight,
+        0,
+        0,
+        sourceWidth,
+        sourceHeight,
+        null,
+      )
+      g2.dispose()
 
-      sourceWidth = nearestWidth;
-      sourceHeight = nearestHeight;
-      source = scaled;
+      sourceWidth = nearestWidth
+      sourceHeight = nearestHeight
+      src = scaled
 
-      for (int iteration = iterations - 1; iteration >= 0; iteration--) {
-        int halfWidth = sourceWidth / 2;
-        int halfHeight = sourceHeight / 2;
+      for (iteration in iterations - 1 downTo 0) {
+        val halfWidth = sourceWidth / 2
+        val halfHeight = sourceHeight / 2
         if (iteration == 0) { // Last iteration: Add margins in final image
-          scaled = new BufferedImage(halfWidth + rightMargin, halfHeight + bottomMargin,
-                                     imageType);
-          g2 = scaled.createGraphics();
+          scaled =
+            BufferedImage(
+              halfWidth + rightMargin,
+              halfHeight + bottomMargin,
+              imageType,
+            )
+          g2 = scaled.createGraphics()
           if (clip != null) {
-            g2.setClip(clip);
+            g2.clip = clip
           }
+        } else {
+          scaled = BufferedImage(halfWidth, halfHeight, imageType)
+          g2 = scaled.createGraphics()
         }
-        else {
-          scaled = new BufferedImage(halfWidth, halfHeight, imageType);
-          g2 = scaled.createGraphics();
-        }
-        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-        g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
-        g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-        g2.drawImage(source, 0, 0,
-                     halfWidth, halfHeight, 0, 0,
-                     sourceWidth, sourceHeight,
-                     null);
-        g2.dispose();
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g2.drawImage(
+          src,
+          0,
+          0,
+          halfWidth,
+          halfHeight,
+          0,
+          0,
+          sourceWidth,
+          sourceHeight,
+          null,
+        )
+        g2.dispose()
 
-        sourceWidth = halfWidth;
-        sourceHeight = halfHeight;
-        source = scaled;
-        iterations--;
+        sourceWidth = halfWidth
+        sourceHeight = halfHeight
+        src = scaled
       }
-      return scaled;
+      return scaled
     }
   }
 
@@ -523,189 +577,186 @@ public class ImageUtils {
    * @param yScale y scale
    * @return the scaled image
    */
-  @NotNull
-  public static BufferedImage lowQualityFastScale(@NotNull BufferedImage source, double xScale, double yScale) {
-    return lowQualityFastScale(source, xScale, yScale, 0, 0, null);
+  @JvmStatic
+  fun lowQualityFastScale(source: BufferedImage, xScale: Double, yScale: Double): BufferedImage {
+    return lowQualityFastScale(source, xScale, yScale, 0, 0, null)
   }
 
   /**
    * Does a fast, low-quality, scaling of the given image
    *
-   * @param source       the image to be scaled
-   * @param xScale       x scale
-   * @param yScale       y scale
-   * @param rightMargin  extra margin to add on the right
+   * @param source the image to be scaled
+   * @param xScale x scale
+   * @param yScale y scale
+   * @param rightMargin extra margin to add on the right
    * @param bottomMargin extra margin to add on the bottom
-   * @param clip         an optional clip rectangle to use
+   * @param clip an optional clip rectangle to use
    * @return the scaled image
    */
-  @NotNull
-  public static BufferedImage lowQualityFastScale(@NotNull BufferedImage source, double xScale, double yScale,
-                                                  int rightMargin, int bottomMargin, @Nullable Shape clip) {
-    int sourceWidth = source.getWidth();
-    int sourceHeight = source.getHeight();
-    int destWidth = max(1, (int)(xScale * sourceWidth));
-    int destHeight = max(1, (int)(yScale * sourceHeight));
-    int imageType = source.getType();
+  @JvmStatic
+  fun lowQualityFastScale(
+    source: BufferedImage,
+    xScale: Double,
+    yScale: Double,
+    rightMargin: Int,
+    bottomMargin: Int,
+    clip: Shape?,
+  ): BufferedImage {
+    val sourceWidth = source.width
+    val sourceHeight = source.height
+    val destWidth = max(1, (xScale * sourceWidth).toInt())
+    val destHeight = max(1, (yScale * sourceHeight).toInt())
+    var imageType = source.type
     if (imageType == BufferedImage.TYPE_CUSTOM) {
-      imageType = BufferedImage.TYPE_INT_ARGB;
+      imageType = BufferedImage.TYPE_INT_ARGB
     }
-    BufferedImage scaled = new BufferedImage(destWidth + rightMargin, destHeight + bottomMargin, imageType);
-    Graphics2D g2 = scaled.createGraphics();
-    g2.setComposite(AlphaComposite.Src);
-    //noinspection UseJBColor
-    g2.setColor(new Color(0, true));
-    g2.fillRect(0, 0, destWidth + rightMargin, destHeight + bottomMargin);
+    val scaled = BufferedImage(destWidth + rightMargin, destHeight + bottomMargin, imageType)
+    val g2 = scaled.createGraphics()
+    g2.composite = AlphaComposite.Src
+    g2.color = Color(0, true)
+    g2.fillRect(0, 0, destWidth + rightMargin, destHeight + bottomMargin)
     if (clip != null) {
-      g2.setClip(clip);
+      g2.clip = clip
     }
-    if (xScale == 1 && yScale == 1) {
-      g2.drawImage(source, 0, 0, null);
+    if (xScale == 1.0 && yScale == 1.0) {
+      g2.drawImage(source, 0, 0, null)
+    } else {
+      g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED)
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
+      g2.drawImage(source, 0, 0, destWidth, destHeight, 0, 0, sourceWidth, sourceHeight, null)
     }
-    else {
-      g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_SPEED);
-      g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_OFF);
-      g2.drawImage(source, 0, 0, destWidth, destHeight, 0, 0, sourceWidth, sourceHeight, null);
-    }
-    g2.dispose();
-    return scaled;
+    g2.dispose()
+    return scaled
   }
 
   /**
-   * Creates a {@link BufferedImage} from the provided inputStream and scale it to fit
-   * into the provided dimension while keeping the original aspect ratio.
-   * <p>
-   * The particularity of this method is that if the original image is more than twice
-   * the size of the target dimensions, it doesn't load the full image in memory
-   * but only reads enough pixels to have quality good enough for the target size.
-   * <p>
-   * For example, if an image measures 100x100 pixels, and the target dimension
-   * is 10x10 (10 times smaller), only the pixels at x and y coordinates
-   * 0, 9, 19,..., 99 will be read.
-   * <p>
-   * See {@link ImageReadParam#setSourceSubsampling(int, int, int, int)} for more details.
+   * Creates a [BufferedImage] from the provided inputStream and scale it to fit into the provided dimension while keeping the original
+   * aspect ratio.
    *
-   * @param dimension   The dimension in which the image will be rendered.
-   *                    The image will keep its original aspect ratio and will
-   *                    be fitted inside these dimension.
+   * The particularity of this method is that if the original image is more than twice the size of the target dimensions, it doesn't load
+   * the full image in memory but only reads enough pixels to have quality good enough for the target size.
+   *
+   * For example, if an image measures 100x100 pixels, and the target dimension is 10x10 (10 times smaller), only the pixels at x and y
+   * coordinates 0, 9, 19,..., 99 will be read.
+   *
+   * See [javax.imageio.ImageReadParam.setSourceSubsampling] for more details.
+   *
+   * @param dimension The dimension in which the image will be rendered. The image will keep its original aspect ratio and will be fitted
+   *   inside these dimension.
    * @param inputStream the input
-   * @return the image file as a {@link BufferedImage}
-   * @see ImageReadParam#setSourceSubsampling(int, int, int, int)
+   * @return the image file as a [BufferedImage]
    */
   @Slow
-  public static @Nullable BufferedImage readImageAtScale(@NotNull InputStream inputStream, @NotNull Dimension dimension)
-      throws IOException {
-    ImageInputStream imageStream = ImageIO.createImageInputStream(inputStream);
+  @Throws(IOException::class)
+  @JvmStatic
+  fun readImageAtScale(inputStream: InputStream, dimension: Dimension): BufferedImage? {
+    val imageStream = ImageIO.createImageInputStream(inputStream) ?: return null
 
     // Find all image readers that recognize the image format
-    Iterator<ImageReader> readerIterator = ImageIO.getImageReaders(imageStream);
+    val readerIterator = ImageIO.getImageReaders(imageStream)
     if (!readerIterator.hasNext()) {
-      return null;
+      imageStream.close()
+      return null
     }
 
-    ImageReader reader = readerIterator.next();
-    reader.setInput(imageStream);
-    ImageReadParam readParams = reader.getDefaultReadParam();
+    val reader = readerIterator.next()
+    reader.input = imageStream
+    val readParams = reader.defaultReadParam
 
-    double srcW = reader.getWidth(0);
-    double srcH = reader.getHeight(0);
-    double scale = srcW > srcH ? dimension.width / srcW : dimension.height / srcH;
+    val srcW = reader.getWidth(0).toDouble()
+    val srcH = reader.getHeight(0).toDouble()
+    var scale = if (srcW > srcH) dimension.width / srcW else dimension.height / srcH
 
     // If the target size is at least twice as small as the origin, we do the subsampling.
     // Otherwise, we just scale.
     if (scale < 0.5) {
       // Because subsampling actually skip pixels, the end result quality is lower
-      // than a downscaling (which average neighbouring pixels). To minimize the loss
+      // than a downscaling (which average neighboring pixels). To minimize the loss
       // of quality, we double the initial scale value so the subsampling is reduced and
       // replaced by a downscaling step.
-      scale *= 2;
-      double xStep = Math.floor(1 / scale);
-      double yStep = Math.floor(1 / scale);
+      scale *= 2.0
+      val xStep = floor(1.0 / scale)
+      val yStep = floor(1.0 / scale)
 
-      readParams.setSourceSubsampling((int)xStep, (int)yStep, 0, 0);
+      readParams.setSourceSubsampling(xStep.toInt(), yStep.toInt(), 0, 0)
     }
 
     // Read the image, with the optional downsampling.
-    BufferedImage intermediateImage = reader.read(0, readParams);
+    val intermediateImage = reader.read(0, readParams)
 
-    imageStream.close();
-    inputStream.close();
+    imageStream.close()
+    inputStream.close()
 
     // Do a final scale to be sure that the image fits in the provided dimension
-    scale = srcW > srcH ? dimension.width / (double)intermediateImage.getWidth() : dimension.height / (double)intermediateImage.getHeight();
-    return scale(intermediateImage, scale, scale);
+    scale =
+      if (srcW > srcH) dimension.width.toDouble() / intermediateImage.width else dimension.height.toDouble() / intermediateImage.height
+    return scale(intermediateImage, scale, scale)
   }
 
   /**
-   * Crops blank pixels from the edges of the image and returns the cropped result. We
-   * crop off pixels that are blank (meaning they have an alpha value = 0). Note that
-   * this is not the same as pixels that aren't opaque (an alpha value other than 255).
+   * Crops blank pixels from the edges of the image and returns the cropped result. We crop off pixels that are blank (meaning they have an
+   * alpha value = 0). Note that this is not the same as pixels that aren't opaque (an alpha value other than 255).
    *
-   * @param image       the image to be cropped
-   * @param initialCrop If not null, specifies a rectangle which contains an initial
-   *                    crop to continue. This can be used to crop an image where you already
-   *                    know about margins in the image
-   * @return a cropped version of the source image, or null if the whole image was blank
-   * and cropping completely removed everything
+   * @param image the image to be cropped
+   * @param initialCrop If not null, specifies a rectangle which contains an initial crop to continue. This can be used to crop an image
+   *   where you already know about margins in the image
+   * @return a cropped version of the source image, or null if the whole image was blank and cropping completely removed everything
    */
-  @Nullable
-  public static BufferedImage cropBlank(@NotNull BufferedImage image, @Nullable Rectangle initialCrop) {
-    return cropBlank(image, initialCrop, image.getType());
+  @JvmStatic
+  fun cropBlank(image: BufferedImage, initialCrop: Rectangle?): BufferedImage? {
+    return cropBlank(image, initialCrop, image.type)
   }
 
   /**
-   * Crops blank pixels from the edges of the image and returns the cropped result. We
-   * crop off pixels that are blank (meaning they have an alpha value = 0). Note that
-   * this is not the same as pixels that aren't opaque (an alpha value other than 255).
+   * Crops blank pixels from the edges of the image and returns the cropped result. We crop off pixels that are blank (meaning they have an
+   * alpha value = 0). Note that this is not the same as pixels that aren't opaque (an alpha value other than 255).
    *
-   * @param image       the image to be cropped
-   * @param initialCrop If not null, specifies a rectangle which contains an initial
-   *                    crop to continue. This can be used to crop an image where you already
-   *                    know about margins in the image
-   * @param imageType   the type of {@link BufferedImage} to create
-   * @return a cropped version of the source image, or null if the whole image was blank
-   * and cropping completely removed everything
+   * @param image the image to be cropped
+   * @param initialCrop If not null, specifies a rectangle which contains an initial crop to continue. This can be used to crop an image
+   *   where you already know about margins in the image
+   * @param imageType the type of [BufferedImage] to create
+   * @return a cropped version of the source image, or null if the whole image was blank and cropping completely removed everything
    */
-  @Nullable
-  public static BufferedImage cropBlank(@Nullable BufferedImage image, @Nullable Rectangle initialCrop, int imageType) {
-    return crop(image, ImageUtils::isTransparentPixel, initialCrop, imageType);
+  @JvmStatic
+  fun cropBlank(image: BufferedImage?, initialCrop: Rectangle?, imageType: Int): BufferedImage? {
+    return crop(image, CropFilter(::isTransparentPixel), initialCrop, imageType)
   }
 
   /**
    * Determines the crop bounds for the given image.
    *
-   * @param image       the image to be cropped
-   * @param filter      the filter determining whether a pixel is blank or not
-   * @param initialCrop If not null, specifies a rectangle which contains an initial
-   *                    crop to continue. This can be used to crop an image where you already
-   *                    know about margins in the image
-   * @return the bounds of the crop in the given image, or null if the whole image was blank
-   * and cropping completely removed everything
+   * @param image the image to be cropped
+   * @param filter the filter determining whether a pixel is blank or not
+   * @param initialCrop If not null, specifies a rectangle which contains an initial crop to continue. This can be used to crop an image
+   *   where you already know about margins in the image
+   * @return the bounds of the crop in the given image, or null if the whole image was blank and cropping completely removed everything
    */
-  @Nullable
-  public static Rectangle getCropBounds(@Nullable BufferedImage image, @NotNull CropFilter filter, @Nullable Rectangle initialCrop) {
+  @JvmStatic
+  fun getCropBounds(image: BufferedImage?, filter: CropFilter, initialCrop: Rectangle?): Rectangle? {
     if (image == null) {
-      return null;
+      return null
     }
 
     // First, determine the dimensions of the real image within the image.
-    int x1, y1, x2, y2;
+    var x1: Int
+    var y1: Int
+    var x2: Int
+    var y2: Int
     if (initialCrop != null) {
-      x1 = max(initialCrop.x, 0);
-      y1 = max(initialCrop.y, 0);
-      x2 = min(initialCrop.x + initialCrop.width, image.getWidth());
-      y2 = min(initialCrop.y + initialCrop.height, image.getHeight());
-    }
-    else {
-      x1 = 0;
-      y1 = 0;
-      x2 = image.getWidth();
-      y2 = image.getHeight();
+      x1 = max(initialCrop.x, 0)
+      y1 = max(initialCrop.y, 0)
+      x2 = min(initialCrop.x + initialCrop.width, image.width)
+      y2 = min(initialCrop.y + initialCrop.height, image.height)
+    } else {
+      x1 = 0
+      y1 = 0
+      x2 = image.width
+      y2 = image.height
     }
 
     // Nothing left to crop.
     if (x1 == x2 || y1 == y2) {
-      return null;
+      return null
     }
 
     // This algorithm is linear with respect to the number of pixels in the cropped
@@ -714,88 +765,85 @@ public class ImageUtils {
     // may be disjoint.
 
     // First determine top edge.
-    topEdge:
-    for (; y1 < y2; y1++) {
-      for (int x = x1; x < x2; x++) {
+    topEdge@ while (y1 < y2) {
+      for (x in x1 until x2) {
         if (!filter.crop(image, x, y1)) {
-          break topEdge;
+          break@topEdge
         }
       }
+      y1++
     }
 
     if (y1 == y2) {
       // The image is blank.
-      return null;
+      return null
     }
 
     // Next determine left edge.
-    leftEdge:
-    for (; x1 < x2; x1++) {
-      for (int y = y1; y < y2; y++) {
+    leftEdge@ while (x1 < x2) {
+      for (y in y1 until y2) {
         if (!filter.crop(image, x1, y)) {
-          break leftEdge;
+          break@leftEdge
         }
       }
+      x1++
     }
 
     // Next determine right edge.
-    rightEdge:
-    while (--x2 >= x1) {
-      for (int y = y1; y < y2; y++) {
+    rightEdge@ while (--x2 >= x1) {
+      for (y in y1 until y2) {
         if (!filter.crop(image, x2, y)) {
-          break rightEdge;
+          break@rightEdge
         }
       }
     }
-    ++x2;
+    ++x2
 
     // Finally determine bottom edge.
-    bottomEdge:
-    while (--y2 >= y1) {
-      for (int x = x1; x < x2; x++) {
+    bottomEdge@ while (--y2 >= y1) {
+      for (x in x1 until x2) {
         if (!filter.crop(image, x, y2)) {
-          break bottomEdge;
+          break@bottomEdge
         }
       }
     }
-    ++y2;
+    ++y2
 
     if (x1 == x2 || y1 == y2) {
       // Nothing left after crop -- blank image
-      return null;
+      return null
     }
 
-    int width = x2 - x1;
-    int height = y2 - y1;
+    val width = x2 - x1
+    val height = y2 - y1
 
-    return new Rectangle(x1, y1, width, height);
+    return Rectangle(x1, y1, width, height)
   }
 
   /**
    * Crops a given image with the given crop filter.
    *
-   * @param image       the image to be cropped
-   * @param filter      the filter determining whether a pixel is blank or not
-   * @param initialCrop If not null, specifies a rectangle which contains an initial
-   *                    crop to continue. This can be used to crop an image where you already
-   *                    know about margins in the image
-   * @param imageType   the type of {@link BufferedImage} to create, or -1 to use the type of the original image
-   * @return a cropped version of the source image, or null if the whole image was blank
-   *     and cropping completely removed everything
+   * @param image the image to be cropped
+   * @param filter the filter determining whether a pixel is blank or not
+   * @param initialCrop If not null, specifies a rectangle which contains an initial crop to continue. This can be used to crop an image
+   *   where you already know about margins in the image
+   * @param imageType the type of [BufferedImage] to create, or -1 to use the type of the original image
+   * @return a cropped version of the source image, or null if the whole image was blank and cropping completely removed everything
    */
-  @Nullable
-  public static BufferedImage crop(@Nullable BufferedImage image, @NotNull CropFilter filter, @Nullable Rectangle initialCrop,
-                                   int imageType) {
+  @JvmStatic
+  fun crop(
+    image: BufferedImage?,
+    filter: CropFilter,
+    initialCrop: Rectangle?,
+    imageType: Int,
+  ): BufferedImage? {
     if (image == null) {
-      return null;
+      return null
     }
 
-    Rectangle cropBounds = getCropBounds(image, filter, initialCrop);
-    if (cropBounds == null) {
-      return null;
-    }
+    val cropBounds = getCropBounds(image, filter, initialCrop) ?: return null
 
-    return getCroppedImage(image, cropBounds, imageType);
+    return getCroppedImage(image, cropBounds, imageType)
   }
 
   /**
@@ -803,37 +851,38 @@ public class ImageUtils {
    *
    * @param image the image to be cropped
    * @param cropBounds defines the part of the original image that is returned
-   * @param imageType the type of {@link BufferedImage} to create, or -1 to use the type of the original image
-   * @return the part of the original image located inside the {@code cropBounds} rectangle
+   * @param imageType the type of [BufferedImage] to create, or -1 to use the type of the original image
+   * @return the part of the original image located inside the `cropBounds` rectangle
    */
-  @NotNull
-  public static BufferedImage getCroppedImage(@NotNull BufferedImage image, @NotNull Rectangle cropBounds, int imageType) {
-    int x1 = cropBounds.x;
-    int y1 = cropBounds.y;
-    int width = cropBounds.width;
-    int height = cropBounds.height;
-    int x2 = x1 + width;
-    int y2 = y1 + height;
+  @JvmStatic
+  fun getCroppedImage(image: BufferedImage, cropBounds: Rectangle, imageType: Int): BufferedImage {
+    val x1 = cropBounds.x
+    val y1 = cropBounds.y
+    val width = cropBounds.width
+    val height = cropBounds.height
+    val x2 = x1 + width
+    val y2 = y1 + height
 
-    if (imageType == -1) {
-      imageType = image.getType();
+    var actualImageType = imageType
+    if (actualImageType == -1) {
+      actualImageType = image.type
     }
-    if (imageType == BufferedImage.TYPE_CUSTOM) {
-      imageType = BufferedImage.TYPE_INT_ARGB;
+    if (actualImageType == BufferedImage.TYPE_CUSTOM) {
+      actualImageType = BufferedImage.TYPE_INT_ARGB
     }
 
-    if (x1 == 0 && y2 == 0 && width == image.getWidth() && height == image.getHeight() && imageType == image.getType()) {
-      return image;
+    if (x1 == 0 && y1 == 0 && width == image.width && height == image.height && actualImageType == image.type) {
+      return image
     }
 
     // Create a cropped image.
-    BufferedImage cropped = new BufferedImage(width, height, imageType);
-    Graphics g = cropped.getGraphics();
-    g.drawImage(image, 0, 0, width, height, x1, y1, x2, y2, null);
+    val cropped = BufferedImage(width, height, actualImageType)
+    val g = cropped.graphics
+    g.drawImage(image, 0, 0, width, height, x1, y1, x2, y2, null)
 
-    g.dispose();
+    g.dispose()
 
-    return cropped;
+    return cropped
   }
 
   /**
@@ -842,129 +891,125 @@ public class ImageUtils {
    * @param image the image to check
    * @return true if it has one or more non-opaque pixels
    */
-  public static boolean isNonOpaque(@NotNull BufferedImage image) {
-    for (int y = 0; y < image.getHeight(); y++) {
-      for (int x = 0; x < image.getWidth(); x++) {
+  @JvmStatic
+  fun isNonOpaque(image: BufferedImage): Boolean {
+    for (y in 0 until image.height) {
+      for (x in 0 until image.width) {
         if (!isOpaquePixel(image, x, y)) {
-          return true;
+          return true
         }
       }
     }
-    return false;
+    return false
   }
 
   /** Checks if the image is fully transparent at the given coordinates. */
-  public static boolean isTransparentPixel(BufferedImage image, int x, int y) {
-    return (image.getRGB(x, y) & ALPHA_MASK) == 0;
+  @JvmStatic
+  fun isTransparentPixel(image: BufferedImage, x: Int, y: Int): Boolean {
+    return (image.getRGB(x, y) and ALPHA_MASK) == 0
   }
 
   /** Checks if the image is fully opaque at the given coordinates. */
-  public static boolean isOpaquePixel(BufferedImage image, int x, int y) {
-    return (image.getRGB(x, y) & ALPHA_MASK) == ALPHA_MASK;
+  @JvmStatic
+  fun isOpaquePixel(image: BufferedImage, x: Int, y: Int): Boolean {
+    return (image.getRGB(x, y) and ALPHA_MASK) == ALPHA_MASK
   }
 
   /**
-   * Clips the image by the ellipse inscribed into the image. The area outside the ellipse is filled
-   * with backgroundColor, or left transparent if backgroundColor is null.
+   * Clips the image by the ellipse inscribed into the image. The area outside the ellipse is filled with backgroundColor, or left
+   * transparent if backgroundColor is null.
    */
-  public static @NotNull BufferedImage ellipticalClip(@NotNull BufferedImage image, @Nullable Color backgroundColor) {
-    BufferedImage mask = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2 = mask.createGraphics();
-    applyQualityRenderingHints(g2);
-    g2.fill(new Area(new Ellipse2D.Double(0, 0, image.getWidth(), image.getHeight())));
-    g2.dispose();
-    BufferedImage shapedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    g2 = shapedImage.createGraphics();
-    applyQualityRenderingHints(g2);
-    g2.drawImage(image, 0, 0, null);
-    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN));
-    g2.drawImage(mask, 0, 0, null);
+  @JvmStatic
+  fun ellipticalClip(image: BufferedImage, backgroundColor: Color?): BufferedImage {
+    val mask = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
+    var g2 = mask.createGraphics()
+    ImageUtil.applyQualityRenderingHints(g2)
+    g2.fill(Area(Ellipse2D.Double(0.0, 0.0, image.width.toDouble(), image.height.toDouble())))
+    g2.dispose()
+    val shapedImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
+    g2 = shapedImage.createGraphics()
+    ImageUtil.applyQualityRenderingHints(g2)
+    g2.drawImage(image, 0, 0, null)
+    g2.composite = AlphaComposite.getInstance(AlphaComposite.DST_IN)
+    g2.drawImage(mask, 0, 0, null)
     if (backgroundColor != null) {
-      g2.setColor(backgroundColor);
-      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_OVER));
-      g2.fillRect(0, 0, image.getWidth(), image.getHeight());
+      g2.color = backgroundColor
+      g2.composite = AlphaComposite.getInstance(AlphaComposite.DST_OVER)
+      g2.fillRect(0, 0, image.width, image.height)
     }
-    g2.dispose();
-    return shapedImage;
+    g2.dispose()
+    return shapedImage
   }
 
-  /**
-   * Creates a diff image between two images. Unchanged pixels are grayscale, changed pixels are red.
-   */
+  /** Creates a diff image between two images. Unchanged pixels are grayscale, changed pixels are red. */
   @Slow
-  @NotNull
-  public static BufferedImage createDiffImage(@NotNull BufferedImage img1, @NotNull BufferedImage img2) {
-    if (img1.getWidth() != img2.getWidth() || img1.getHeight() != img2.getHeight()) {
-      throw new IllegalArgumentException("Images must be of the same size");
-    }
-    int width = img1.getWidth();
-    int height = img1.getHeight();
-    BufferedImage diffImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+  @JvmStatic
+  fun createDiffImage(img1: BufferedImage, img2: BufferedImage): BufferedImage {
+    require(img1.width == img2.width && img1.height == img2.height) { "Images must be of the same size" }
+    val width = img1.width
+    val height = img1.height
+    val diffImg = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
 
     // Use scanlines to process the image row-by-row. This is significantly faster than
     // pixel-by-pixel getRGB() calls while avoiding the memory spikes of loading the
     // full image into a single buffer.
-    int[] row1 = new int[width];
-    int[] row2 = new int[width];
-    int[] diffRow = new int[width];
-    int redRgb = Color.RED.getRGB();
+    val row1 = IntArray(width)
+    val row2 = IntArray(width)
+    val diffRow = IntArray(width)
+    val redRgb = Color.RED.rgb
 
-    for (int y = 0; y < height; y++) {
-      img1.getRGB(0, y, width, 1, row1, 0, width);
-      img2.getRGB(0, y, width, 1, row2, 0, width);
+    for (y in 0 until height) {
+      img1.getRGB(0, y, width, 1, row1, 0, width)
+      img2.getRGB(0, y, width, 1, row2, 0, width)
 
-      for (int x = 0; x < width; x++) {
-        int rgb1 = row1[x];
-        int rgb2 = row2[x];
+      for (x in 0 until width) {
+        val rgb1 = row1[x]
+        val rgb2 = row2[x]
 
         if (rgb1 == rgb2) {
           // Same pixel: convert to grayscale using bitwise operations (Rec. 601)
-          int a = (rgb2 >> 24) & 0xFF;
-          int r = (rgb2 >> 16) & 0xFF;
-          int g = (rgb2 >> 8) & 0xFF;
-          int b = rgb2 & 0xFF;
+          val a = (rgb2 ushr 24) and 0xFF
+          val r = (rgb2 ushr 16) and 0xFF
+          val g = (rgb2 ushr 8) and 0xFF
+          val b = rgb2 and 0xFF
           // Use Math.round for better accuracy during grayscale conversion.
-          int gray = (int)Math.round(r * 0.299 + g * 0.587 + b * 0.114);
-          diffRow[x] = (a << 24) | (gray << 16) | (gray << 8) | gray;
-        }
-        else {
+          val gray = (r * 0.299 + g * 0.587 + b * 0.114).roundToInt()
+          diffRow[x] = (a shl 24) or (gray shl 16) or (gray shl 8) or gray
+        } else {
           // Different pixel: highlight in red
-          diffRow[x] = redRgb;
+          diffRow[x] = redRgb
         }
       }
-      diffImg.setRGB(0, y, width, 1, diffRow, 0, width);
+      diffImg.setRGB(0, y, width, 1, diffRow, 0, width)
     }
-    return diffImg;
+    return diffImg
   }
 
-  /**
-   * Interface implemented by cropping functions that determine whether a pixel should be cropped or not.
-   */
-  public interface CropFilter {
+  /** Interface implemented by cropping functions that determine whether a pixel should be cropped or not. */
+  fun interface CropFilter {
     /**
      * Returns true if the pixel should be cropped.
      *
      * @param image the image containing the pixel in question
-     * @param x     the x position of the pixel
-     * @param y     the y position of the pixel
+     * @param x the x position of the pixel
+     * @param y the y position of the pixel
      * @return true if the pixel should be cropped (for example, is blank)
      */
-    boolean crop(BufferedImage image, int x, int y);
+    fun crop(image: BufferedImage, x: Int, y: Int): Boolean
   }
 
-  /**
-   * Utility function to convert from an Icon to a BufferedImage.
-   */
-  public static BufferedImage iconToImage(Icon icon) {
-    if (icon instanceof ImageIcon) {
-      return ImageUtil.toBufferedImage(((ImageIcon)icon).getImage());
+  /** Utility function to convert from an Icon to a BufferedImage. */
+  @JvmStatic
+  fun iconToImage(icon: Icon): BufferedImage {
+    if (icon is ImageIcon) {
+      return ImageUtil.toBufferedImage(icon.image)
     }
-    int w = icon.getIconWidth();
-    int h = icon.getIconHeight();
-    BufferedImage image = ImageUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
-    Graphics2D g = image.createGraphics();
-    icon.paintIcon(null, g, 0, 0);
-    g.dispose();
-    return image;
+    val w = icon.iconWidth
+    val h = icon.iconHeight
+    val image = ImageUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR)
+    val g = image.createGraphics()
+    icon.paintIcon(null, g, 0, 0)
+    g.dispose()
+    return image
   }
 }
