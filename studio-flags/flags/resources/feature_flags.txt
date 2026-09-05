@@ -39,6 +39,7 @@ compose.render.error.fix.with.ai=COMPLETE:2025
 compose.transform.ui.with.ai.agentic=COMPLETE:2025
 compose.ui.check.fix.with.ai=COMPLETE:2025
 design.tools.assetstudio.dynamic.material.symbols=PREVIEW
+design.tools.render.tool.diff.viewer=PREVIEW
 device.manager.ai.glasses.device.support.enabled=PREVIEW
 device.manager.ai.glasses.displayless.device.support.enabled=PREVIEW
 device.manager.ai.glasses.nested.device.view.enabled=PREVIEW
