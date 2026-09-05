@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BIG_DECIMAL_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -25,6 +29,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
@@ -40,6 +45,8 @@ public class JavaModelTest extends GradleFileModelTestCase {
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+    assertEquals(new BigDecimal("1.5"), java.sourceCompatibility().getValue(BIG_DECIMAL_TYPE));
+    assertEquals(new BigDecimal("1.6"), java.targetCompatibility().getValue(BIG_DECIMAL_TYPE));
   }
 
   @Test
@@ -49,6 +56,8 @@ public class JavaModelTest extends GradleFileModelTestCase {
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+    assertEquals("1.5", java.sourceCompatibility().getValue(STRING_TYPE));
+    assertEquals("1.6", java.targetCompatibility().getValue(STRING_TYPE));
   }
 
   @Test
@@ -58,6 +67,8 @@ public class JavaModelTest extends GradleFileModelTestCase {
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+    assertEquals("1.5", java.sourceCompatibility().getValue(STRING_TYPE));
+    assertEquals("1.6", java.targetCompatibility().getValue(STRING_TYPE));
   }
 
   @Test
@@ -75,6 +86,10 @@ public class JavaModelTest extends GradleFileModelTestCase {
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+    assertEquals("JavaVersion.VERSION_1_5", java.sourceCompatibility().getValue(STRING_TYPE));
+    assertEquals("JavaVersion.VERSION_1_6", java.targetCompatibility().getValue(STRING_TYPE));
+    assertNull(java.sourceCompatibility().getValue(INTEGER_TYPE));
+    assertNull(java.targetCompatibility().getValue(INTEGER_TYPE));
   }
 
   @Test
