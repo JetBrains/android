@@ -773,6 +773,35 @@ class InspectionsTest {
         fun ClassMethodPreview() {
         }
       }
+
+      class cClass {
+        companion object {
+          @Preview("in a companion object") // ERROR
+          @MyEmptyAnnotation
+          @MyAnnotation // ERROR
+          @Composable
+          fun CompanionMethodPreview() {
+          }
+
+          object NestedObject {
+            @Preview("in an object inside a companion object") // ERROR
+            @MyEmptyAnnotation
+            @MyAnnotation // ERROR
+            @Composable
+            fun NestedObjectMethodPreview() {
+            }
+          }
+        }
+      }
+
+      object aTopLevelObject {
+        @Preview("in a top level object") // ERROR
+        @MyEmptyAnnotation
+        @MyAnnotation // ERROR
+        @Composable
+        fun ObjectMethodPreview() {
+        }
+      }
     """
         .trimIndent()
 
@@ -795,6 +824,12 @@ class InspectionsTest {
       |53: Preview must be a top level declaration or in a top level class with a default constructor.
       |68: Preview must be a top level declaration or in a top level class with a default constructor.
       |70: Preview must be a top level declaration or in a top level class with a default constructor.
+      |78: Preview must be a top level declaration or in a top level class with a default constructor.
+      |80: Preview must be a top level declaration or in a top level class with a default constructor.
+      |86: Preview must be a top level declaration or in a top level class with a default constructor.
+      |88: Preview must be a top level declaration or in a top level class with a default constructor.
+      |97: Preview must be a top level declaration or in a top level class with a default constructor.
+      |99: Preview must be a top level declaration or in a top level class with a default constructor.
       """
         .trimMargin(),
       inspections,

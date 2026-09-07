@@ -47,6 +47,7 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassInitializer
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
@@ -61,7 +62,6 @@ import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.allConstructors
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 private val composableFunctionKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isComposableFunction")
 private val deprecatedKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
@@ -239,8 +239,8 @@ fun KtNamedFunction.isValidPreviewLocation(): Boolean {
 
   if (parentOfType<KtNamedFunction>() == null) {
     // This is not a nested method
-    val containingClass = containingClass()
-    if (containingClass != null) {
+    val containingClass = parentOfType<KtClassOrObject>()
+    if (containingClass is KtClass && !containingClass.isInterface()) {
       // We allow functions that are not top level defined in top level classes that have a default
       // (no parameter) constructor.
       if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
