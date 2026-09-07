@@ -17,10 +17,11 @@ package com.android.tools.idea.lint.inspections
 
 import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
-import com.android.tools.lint.checks.RestrictedEnvironmentBlockedCallDetector
+//import com.android.tools.lint.checks.RestrictedEnvironmentBlockedCallDetector // TODO android-merge
 
-class AndroidLintPrivacySandboxBlockedCallInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.privacy.sandbox.blocked.call"),
-    RestrictedEnvironmentBlockedCallDetector.ISSUE,
-  )
+// TODO android-merge RestrictedEnvironmentBlockedCallDetector got deleted upstream -- delete?
+// class AndroidLintPrivacySandboxBlockedCallInspection :
+//   AndroidLintInspectionBase(
+//     message("android.lint.inspections.privacy.sandbox.blocked.call"),
+//     RestrictedEnvironmentBlockedCallDetector.ISSUE,
+//   )

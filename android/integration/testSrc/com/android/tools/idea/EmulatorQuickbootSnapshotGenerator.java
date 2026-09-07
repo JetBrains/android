@@ -103,8 +103,8 @@ public class EmulatorQuickbootSnapshotGenerator {
                              avdName,
                              8554,
                              new ArrayList<>(),
-                             false,
-                             true)) {
+                             // TODO: android-merge enum COLD_BOOT_AND_SNAPSHOT_SAVE ok?
+                             Emulator.BootMode.COLD_BOOT_AND_SNAPSHOT_SAVE)) {
             emulator.waitForBoot();
             adb.waitForDevice(emulator);
         }

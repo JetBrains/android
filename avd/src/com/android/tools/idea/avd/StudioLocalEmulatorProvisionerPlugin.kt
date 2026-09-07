@@ -19,6 +19,7 @@ import com.android.adblib.ConnectedDevice
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.AvdDeviceError
+import com.android.sdklib.deviceprovisioner.AvdScanner
 import com.android.sdklib.deviceprovisioner.BootSnapshotAction
 import com.android.sdklib.deviceprovisioner.ColdBootAction
 import com.android.sdklib.deviceprovisioner.CreateDeviceAction
@@ -97,6 +98,7 @@ class StudioLocalEmulatorProvisionerPlugin(
   val scope: CoroutineScope,
   val basePlugin: LocalEmulatorProvisionerPlugin,
   val context: LocalEmulatorContext,
+  val avdScanner: AvdScanner, // TODO android-merge
   val project: Project?,
 ) : DeviceProvisionerPlugin by basePlugin {
   private val accelerationError = MutableStateFlow(AccelerationErrorCode.ALREADY_INSTALLED)
@@ -110,7 +112,9 @@ class StudioLocalEmulatorProvisionerPlugin(
   }
 
   fun refreshDevices() {
-    basePlugin.refreshDevices()
+    // TODO android-merge refreshDevices() got removed, changed to rescanAsync -- ok?
+    // basePlugin.refreshDevices()
+    avdScanner.rescanAsync()
   }
 
   override val devices: StateFlow<List<StudioLocalEmulatorDeviceHandle>> =
@@ -121,7 +125,7 @@ class StudioLocalEmulatorProvisionerPlugin(
           for (baseHandle in baseHandles) {
             wrappedHandles.add(
               handles.computeIfAbsent(baseHandle as LocalEmulatorDeviceHandle) {
-                StudioLocalEmulatorDeviceHandle(project, baseHandle, context, devices)
+                StudioLocalEmulatorDeviceHandle(project, baseHandle, context, devices, avdScanner)
               }
             )
           }
@@ -177,6 +181,7 @@ class StudioLocalEmulatorDeviceHandle(
   internal val baseDeviceHandle: LocalEmulatorDeviceHandle,
   private val context: LocalEmulatorContext,
   private val deviceHandleFlow: Flow<List<StudioLocalEmulatorDeviceHandle>>,
+  private val avdScanner: AvdScanner,
 ) : DeviceHandle by baseDeviceHandle {
   // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
   private val avdManagerConnection
@@ -195,7 +200,9 @@ class StudioLocalEmulatorDeviceHandle(
   private val onDiskAvdInfo by baseDeviceHandle::onDiskAvdInfo
 
   private fun refreshDevices() {
-    baseDeviceHandle.refreshDevices()
+    // TODO android-merge refreshDevices() got removed, changed to rescanAsync -- ok?
+    // baseDeviceHandle.refreshDevices()
+    avdScanner.rescanAsync()
   }
 
   private val defaultPresentation: DeviceAction.DefaultPresentation = StudioDefaultDeviceActionPresentation
@@ -422,7 +429,8 @@ class StudioLocalEmulatorDeviceHandle(
     if (pairedPhone != null) {
       withContext(Dispatchers.IO) {
         glassesHandle.baseDeviceHandle.updatePairedPhone(pairedPhone.baseDeviceHandle)
-        pairedPhone.baseDeviceHandle.updatePairedGlasses(glassesHandle.baseDeviceHandle)
+        // TODO android-merge updatePairedGlasses(handle) gone, new addPairedGlasses(id, mac) needs a MAC we don't have
+        // pairedPhone.baseDeviceHandle.updatePairedGlasses(glassesHandle.baseDeviceHandle)
       }
     }
     return pairedPhone != null
@@ -435,7 +443,11 @@ class StudioLocalEmulatorDeviceHandle(
       }
 
       override val presentation: StateFlow<DeviceAction.Presentation> =
-        defaultPresentation.fromContext().enabledIf { it.properties.pairedPhoneId != null || it.properties.pairedGlassesId != null }
+        defaultPresentation.fromContext().enabledIf {
+          // TODO android-merge pairedGlassesId renamed to pairedGlassesInfos upstream
+          // it.properties.pairedPhoneId != null || it.properties.pairedGlassesId != null
+          it.properties.pairedPhoneId != null || it.properties.pairedGlassesInfos.isNotEmpty()
+        }
     }
 
   private fun DeviceAction.Presentation.enabledIf(condition: (DeviceState) -> Boolean) =

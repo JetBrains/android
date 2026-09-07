@@ -32,6 +32,7 @@ import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesFor
 import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForKotlin
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.intellij.openapi.progress.ProgressIndicator
@@ -190,6 +191,8 @@ class NewProjectTemplateRendererTest {
       null,
       null,
       true,
+      // TODO android-merge DslLanguage is new upstream, just hardcoding KTS to get this compiling
+      dslLanguage = DslLanguage.KTS,
     )
 
   private fun assertFoojayPlugin(isApplied: Boolean) {

@@ -20,6 +20,7 @@ import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.adblib.utils.createChildScope
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.deviceprovisioner.AvdScanner
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.FakeAvdManager
@@ -96,19 +97,41 @@ class StudioLocalEmulatorProvisionerPluginTest {
   /** Verify that DeviceActions are implemented as fields rather than via getters. */
   @Test
   fun actionPresentationIdentity() = runTest {
+    // TODO android-merge added fakeAvdScanner stub to satisfy compiler -- fix later
+    val fakeAvdScanner =
+      object : AvdScanner {
+        override fun rescanAsync() {}
+
+        override suspend fun rescan(): List<AvdInfo> = emptyList()
+
+        override val avdFlow = MutableStateFlow<List<AvdInfo>>(emptyList())
+      }
+    val handleContext = testContext(this)
+    val initialAvdInfo = makeAvdInfo(createInMemoryFileSystemAndFolder("avds"), 1)
     val handle =
       StudioLocalEmulatorDeviceHandle(
         null,
         baseDeviceHandle =
+          // TODO android-merge refreshDevices param is gone, now needs properties directly (couldn't confirm
+          // real param names from the bumped jar, so passed positionally below)
+          // LocalEmulatorDeviceHandle(
+          //   context = testContext(this),
+          //   refreshDevices = {},
+          //   scope = this.createChildScope(),
+          //   extensions = emptyList(),
+          //   initialAvdInfo = makeAvdInfo(createInMemoryFileSystemAndFolder("avds"), 1),
+          // )
           LocalEmulatorDeviceHandle(
-            context = testContext(this),
-            refreshDevices = {},
-            scope = this.createChildScope(),
-            extensions = emptyList(),
-            initialAvdInfo = makeAvdInfo(createInMemoryFileSystemAndFolder("avds"), 1),
+            handleContext,
+            fakeAvdScanner,
+            this.createChildScope(),
+            emptyList(),
+            initialAvdInfo,
+            handleContext.disconnectedDeviceProperties(initialAvdInfo),
           ),
-        context = testContext(this),
+        context = handleContext,
         deviceHandleFlow = MutableStateFlow(emptyList()),
+        avdScanner = fakeAvdScanner,
       )
 
     for (property in StudioLocalEmulatorDeviceHandle::class.memberProperties) {

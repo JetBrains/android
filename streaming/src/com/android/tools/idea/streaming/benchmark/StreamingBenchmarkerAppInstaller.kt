@@ -19,9 +19,7 @@ import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
 import com.android.adblib.TextShellV2Collector
 import com.android.adblib.shellCommand
-import com.android.adblib.tools.UninstallResult
 import com.android.adblib.tools.install
-import com.android.adblib.tools.uninstall
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.downloads.UrlFileCache
 import com.android.tools.idea.util.StudioPathManager
@@ -96,8 +94,11 @@ interface StreamingBenchmarkerAppInstaller {
               .first()
               .exitCode == 0
 
-          override suspend fun uninstall(serialNumber: String): Boolean =
-            adb.uninstall(DeviceSelector.fromSerialNumber(serialNumber), APP_PKG).status == UninstallResult.Status.SUCCESS
+          override suspend fun uninstall(serialNumber: String): Boolean {
+            // TODO android-merge AdbDeviceServices.uninstall()/UninstallResult got removed upstream, disabled for now
+            // adb.uninstall(DeviceSelector.fromSerialNumber(serialNumber), APP_PKG).status == UninstallResult.Status.SUCCESS
+            return false
+          }
         }
     }
   }

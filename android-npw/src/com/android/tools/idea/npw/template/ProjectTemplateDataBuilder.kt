@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.project.determineKotlinVersionOrDefault
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.PackageName
@@ -54,6 +55,8 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var applicationName: String? = null
   var builtInKotlinDefaultEnabled = true
   var kotlinSupport: TemplateKotlinSupport? = null
+  // TODO android-merge DslLanguage is new upstream, not wired to anything real yet, just defaulting to KTS below
+  var dslLanguage: DslLanguage? = null
 
   internal fun setEssentials(project: Project) {
     applicationName = project.name
@@ -104,5 +107,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
             !builtInKotlinDefaultEnabled -> TemplateKotlinSupport.EXPLICIT_BUILT_IN_KOTLIN
             else -> TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN
           },
+      dslLanguage = dslLanguage ?: DslLanguage.KTS, // TODO android-merge
     )
 }

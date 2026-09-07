@@ -16,6 +16,7 @@
 package com.android.tools.idea.avd
 
 import com.android.adblib.AdbSession
+import com.android.sdklib.deviceprovisioner.AvdScanner
 import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorContext
@@ -27,7 +28,20 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.Clock
+
+// TODO android-merge AvdScanner is new upstream, replacing the plain refreshAvds lambda -- minimal wrapper for now
+private class LambdaAvdScanner(private val scan: () -> List<AvdInfo>) : AvdScanner {
+  private val state = MutableStateFlow(emptyList<AvdInfo>())
+  override val avdFlow = state
+
+  override fun rescanAsync() {
+    state.value = scan()
+  }
+
+  override suspend fun rescan(): List<AvdInfo> = scan().also { state.value = it }
+}
 
 /** Builds a LocalEmulatorProvisionerPlugin with its dependencies provided by Studio. */
 class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
@@ -53,16 +67,20 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
         headset = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET,
         glasses = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS,
       )
+    // TODO android-merge refreshAvds param renamed to avdScanner and now wants an AvdScanner instead of a lambda
+    // LocalEmulatorProvisionerPlugin(scope = coroutineScope, adbSession = adbSession, refreshAvds = avdScanner, deviceIcons = icons)
+    val scanner = LambdaAvdScanner(avdScanner)
     return StudioLocalEmulatorProvisionerPlugin(
       scope = coroutineScope,
       basePlugin =
-        LocalEmulatorProvisionerPlugin(scope = coroutineScope, adbSession = adbSession, refreshAvds = avdScanner, deviceIcons = icons),
+        LocalEmulatorProvisionerPlugin(scope = coroutineScope, adbSession = adbSession, avdScanner = scanner, deviceIcons = icons),
       context =
         LocalEmulatorContext(
           logger = adbSession.host.loggerFactory.createLogger(StudioLocalEmulatorProvisionerPlugin::class.java),
           deviceIcons = icons,
           clock = Clock.System,
         ),
+      avdScanner = scanner,
       project = project,
     )
   }
