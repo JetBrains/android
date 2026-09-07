@@ -36,7 +36,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -165,7 +164,7 @@ class RecordingManager : Disposable {
         // Don't need to check if the capture's end is before the start of the previous recording,
         // since it would have been deleted by the previous call to purgeCompletedCaptures.
         if (pendingCaptures.any { it.start.isBefore(previousRecordingEnd) }) {
-          val recPath = File(FileUtil.getTempDirectory(), "recording.jfr").toPath()
+          val recPath = PathManager.getTempDir().resolve("recording.jfr")
           try {
             recording.dump(recPath)
             recording.close()
