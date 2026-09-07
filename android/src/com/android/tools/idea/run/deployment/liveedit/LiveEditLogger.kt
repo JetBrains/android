@@ -16,9 +16,10 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.intellij.openapi.application.PathManager
 import java.io.IOException
 import java.nio.file.Files
-import java.nio.file.Paths
+import kotlin.io.path.div
 
 class LiveEditLogger(val tag: String) {
   internal fun log(message: String) {
@@ -62,9 +63,10 @@ class LiveEditLogger(val tag: String) {
   }
 
   private fun writeDebugToTmp(name: String, data: ByteArray) {
-    val tmpPath = System.getProperty("java.io.tmpdir") ?: return
-    val path = Paths.get(tmpPath, name)
+    val dir = PathManager.getLogDir() / "liveedit_classes"
+    val path = dir / name
     try {
+      Files.createDirectories(dir)
       Files.write(path, data)
       log("Wrote debug file at '${path.toAbsolutePath()}'")
     } catch (e: IOException) {
