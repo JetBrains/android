@@ -16,7 +16,9 @@
 package com.android.tools.idea.preview.find
 
 import com.android.tools.preview.AnnotationAttributesProvider
+import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiLiteralExpression
+import com.intellij.psi.util.ClassUtil
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
@@ -58,7 +60,9 @@ class UastAnnotationAttributesProvider(
     annotation.findDeclaredAttributeValue(attributeName)?.getValueOfType() ?: findAttributeConstantValue(attributeName) as? T
 
   override fun findClassNameValue(name: String): String? =
-    (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText ?: findAttributeClassLiteralClassId(name)
+    (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.let { classLiteral ->
+      ((classLiteral.type as? PsiClassType)?.resolve())?.let { ClassUtil.getJVMClassName(it) } ?: classLiteral.type?.canonicalText
+    } ?: findAttributeClassLiteralClassId(name)
 
   /**
    * Be aware not to get some [org.jetbrains.kotlin.analysis.api.lifetime.KaLifetimeOwner] from the `analyze` block, as this can lead to
@@ -79,7 +83,12 @@ class UastAnnotationAttributesProvider(
     findAttributeValue(attributeName) { (it as? KaAnnotationValue.ConstantValue)?.value?.value }
 
   private fun findAttributeClassLiteralClassId(attributeName: String): String? =
-    findAttributeValue(attributeName) { (it as? KaAnnotationValue.ClassLiteralValue)?.classId?.asFqNameString() }
+    findAttributeValue(attributeName) {
+      (it as? KaAnnotationValue.ClassLiteralValue)?.classId?.let { classId ->
+        val packagePrefix = if (classId.packageFqName.isRoot) "" else "${classId.packageFqName.asString()}."
+        packagePrefix + classId.relativeClassName.asString().replace('.', '$')
+      }
+    }
 }
 
 private inline fun <T> UExpression.getValueOfType(): T? {
