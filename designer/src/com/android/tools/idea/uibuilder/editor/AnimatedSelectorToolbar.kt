@@ -30,11 +30,11 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.type.TEMP_ANIMATED_SELECTOR_FOLDER
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -48,6 +48,7 @@ import java.io.IOException
 import java.util.UUID
 import java.util.function.Consumer
 import javax.swing.DefaultComboBoxModel
+import kotlin.io.path.div
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
 /** Control that provides controls for animations (play, pause, stop and frame-by-frame steps). */
@@ -264,7 +265,7 @@ class AnimatedSelectorModel(
   }
 
   private fun createTempAnimatedSelectorFile(): VirtualFile {
-    val tempDir = File(FileUtil.getTempDirectory(), TEMP_ANIMATED_SELECTOR_FOLDER)
+    val tempDir = (PathManager.getTempDir() / TEMP_ANIMATED_SELECTOR_FOLDER).toFile()
     if (!tempDir.exists()) {
       tempDir.mkdirs()
     }

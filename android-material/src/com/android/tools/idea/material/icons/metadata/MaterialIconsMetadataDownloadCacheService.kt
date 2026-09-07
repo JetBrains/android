@@ -18,13 +18,14 @@ package com.android.tools.idea.material.icons.metadata
 import com.android.tools.idea.material.icons.common.BundledMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.SdkMetadataUrlProvider
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getMetadata
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.File
 import java.net.URL
 import java.util.concurrent.CompletableFuture
+import kotlin.io.path.div
 
 /**
  * Application Service that caches a [MaterialIconsMetadataDownloadService].
@@ -50,7 +51,10 @@ class MaterialIconsMetadataDownloadCacheService {
       checkNotNull(SdkMetadataUrlProvider().getMetadataUrl() ?: BundledMetadataUrlProvider().getMetadataUrl())
 
     // Return the fallback URL for the metadata if there's no Sdk directory.
-    val downloadDir = File(FileUtil.getTempDirectory())
+    val downloadDir = (PathManager.getSystemDir() / "caches" / "material_icons").toFile()
+    if (!downloadDir.exists()) {
+      downloadDir.mkdirs()
+    }
     if (!downloadDir.isDirectory) {
       val metadataResult = getMetadata(fallbackMetadataURL)
       return if (metadataResult.isSuccess) {
