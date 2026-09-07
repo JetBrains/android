@@ -163,6 +163,40 @@ class WidgetConstraintModelTest : SceneTest() {
   }
 
   @Test
+  fun testBaselineOverConstrained() {
+    val widgetModel = WidgetConstraintModel {}
+    val linear = myModel.treeReader.find("linear")!!
+    widgetModel.component = linear
+
+    NlWriteCommandActionUtil.run(linear, "Set Baseline and Horizontal") {
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, SdkConstants.ATTR_PARENT)
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_PARENT)
+    }
+
+    assertFalse(widgetModel.isMissingHorizontalConstrained)
+    assertFalse(widgetModel.isMissingVerticalConstrained)
+    assertFalse(widgetModel.isOverConstrained)
+
+    // Adding top constraint while baseline is present makes it over-constrained
+    NlWriteCommandActionUtil.run(linear, "Set Top Constraint") {
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_PARENT)
+    }
+    assertTrue(widgetModel.isOverConstrained)
+
+    // Removing top constraint removes over-constrained status
+    NlWriteCommandActionUtil.run(linear, "Remove Top Constraint") {
+      linear.removeAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF)
+    }
+    assertFalse(widgetModel.isOverConstrained)
+
+    // Adding bottom constraint while baseline is present makes it over-constrained
+    NlWriteCommandActionUtil.run(linear, "Set Bottom Constraint") {
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_PARENT)
+    }
+    assertTrue(widgetModel.isOverConstrained)
+  }
+
+  @Test
   fun testTriggerCallbackWhenSettingSurface() {
     // The callback in practise is used to update ui components.
     val callback = Mockito.mock(Runnable::class.java)

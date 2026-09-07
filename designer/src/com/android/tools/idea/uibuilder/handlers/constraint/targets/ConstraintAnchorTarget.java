@@ -403,6 +403,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       targetId = SdkConstants.NEW_ID_PREFIX + NlComponentHelperKt.ensureLiveId(targetComponent);
     }
     modification.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
+    // In ConstraintLayout, baseline and top/bottom constraints are mutually exclusive for vertical positioning.
+    // When connecting a baseline anchor, remove conflicting top/bottom constraints, vertical bias, and vertical margins.
     if (myType == Type.BASELINE) {
       ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes, modification);
       ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes, modification);
@@ -410,8 +412,14 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       modification.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
       modification.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
     }
-    else if (ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute) != null) {
-      modification.setAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute), null);
+    else {
+      // When connecting top or bottom anchors, clear any existing baseline constraint to resolve conflicts.
+      if (myType == Type.TOP || myType == Type.BOTTOM) {
+        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBaselineAttributes, modification);
+      }
+      if (ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute) != null) {
+        modification.setAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute), null);
+      }
     }
 
     // If the other side is already connected to the same component, the user is trying to

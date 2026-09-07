@@ -422,6 +422,21 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     assertEquals("parent", attribute);
   }
 
+  public void testConnectBaselineClearsTopConstraintAndMargin() {
+    SceneComponent button3 = myScene.getSceneComponent("button3");
+    assertEquals("@id/root", button3.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF));
+    assertEquals("20dp", button3.getNlComponent().getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP));
+
+    myInteraction.select("button3", true);
+    myInteraction.performViewAction(button3, target -> target instanceof BaseLineToggleViewAction);
+    myInteraction.mouseDown("button3", AnchorTarget.Type.BASELINE);
+    myInteraction.mouseRelease("button1", AnchorTarget.Type.BASELINE);
+
+    assertNull(button3.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF));
+    assertNull(button3.getNlComponent().getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP));
+    assertEquals("@+id/button1", button3.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF));
+  }
+
   @Override
   public ModelBuilder createModel() {
     myFixture.addFileToProject("res/values/styles.xml", """

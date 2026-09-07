@@ -249,7 +249,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
 
     boolean baseline = myWidgetModel.hasBaseline();
 
-    boolean showVerticalSlider = bottom != UNCONNECTED && top != UNCONNECTED;
+    // Baseline constraints override top/bottom vertical alignment and bias, so only show the vertical bias slider when not baseline aligned.
+    boolean showVerticalSlider = !baseline && bottom != UNCONNECTED && top != UNCONNECTED;
     boolean showHorizontalSlider = left != UNCONNECTED && right != UNCONNECTED;
 
     if (showHorizontalSlider) {

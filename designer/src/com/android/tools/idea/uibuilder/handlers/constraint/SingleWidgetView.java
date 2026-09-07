@@ -839,24 +839,26 @@ public class SingleWidgetView extends JPanel {
     mCacheBaseline = baseline;
     mCacheWidth = width;
     mCacheHeight = height;
-    mTopMargin.setVisible(top != UNCONNECTED);
+    // When baseline is active, top and bottom constraints/margins/buttons are disabled and hidden
+    // to avoid displaying conflicting vertical controls in the inspector.
+    mTopMargin.setVisible(!baseline && top != UNCONNECTED);
     mLeftMargin.setVisible(left != UNCONNECTED);
     mRightMargin.setVisible(right != UNCONNECTED);
-    mBottomMargin.setVisible(bottom != UNCONNECTED);
+    mBottomMargin.setVisible(!baseline && bottom != UNCONNECTED);
     mTopMargin.setMargin(top);
     mLeftMargin.setMargin(left);
     mRightMargin.setMargin(right);
     mBottomMargin.setMargin(bottom);
-    mWidgetRender.setConstraints(left, top, right, bottom);
+    mWidgetRender.setConstraints(left, baseline ? UNCONNECTED : top, right, baseline ? UNCONNECTED : bottom);
     mWidgetRender.mBaseline = baseline;
-    mTopKill.setVisible(top != UNCONNECTED);
+    mTopKill.setVisible(!baseline && top != UNCONNECTED);
     mLeftKill.setVisible(left != UNCONNECTED);
     mRightKill.setVisible(right != UNCONNECTED);
-    mBottomKill.setVisible(bottom != UNCONNECTED);
-    mTopConnect.setVisible(top == UNCONNECTED);
+    mBottomKill.setVisible(!baseline && bottom != UNCONNECTED);
+    mTopConnect.setVisible(!baseline && top == UNCONNECTED);
     mLeftConnect.setVisible(left == UNCONNECTED);
     mRightConnect.setVisible(right == UNCONNECTED);
-    mBottomConnect.setVisible(bottom == UNCONNECTED);
+    mBottomConnect.setVisible(!baseline && bottom == UNCONNECTED);
     mBaselineKill.setVisible(baseline);
     mAspectButton.setVisible(true);
     mAspectText.setVisible(mRatioString != null);
@@ -1016,18 +1018,14 @@ public class SingleWidgetView extends JPanel {
       g.setColor(colorSet.getInspectorFillColor());
       g.fillRect(mX, mY, mWidth + 1, mHeight + 1);
       g.setColor(colorSet.getInspectorStrokeColor());
+      // Always draw the outer box rectangle, including top/bottom borders, even when baseline is active
+      g.drawRect(mX, mY, mWidth, mHeight);
 
       if (mBaseline) {
-        g.drawLine(mX, mY, mX, mY + mWidth);
-        g.drawLine(mX + mWidth, mY, mX + mWidth, mY + mHeight);
-
         int y = mY + baselinePos(mHeight);
 
         g.setStroke(defaultStroke);
         g.drawLine(mX, y, mX + mWidth, y);
-      }
-      else {
-        g.drawRect(mX, mY, mWidth, mHeight);
       }
     }
   }
@@ -1236,10 +1234,13 @@ public class SingleWidgetView extends JPanel {
       mWidgetCenter.paint(g, colorSet);
       mAspectLock.paint(g, colorSet);
 
-      mTopArrow.paint(g, colorSet);
+      // Omit top and bottom arrow lines (which render dashed lines when unconnected) when baseline is active
+      if (!mBaseline) {
+        mTopArrow.paint(g, colorSet);
+        mBottomArrow.paint(g, colorSet);
+      }
       mLeftArrow.paint(g, colorSet);
       mRightArrow.paint(g, colorSet);
-      mBottomArrow.paint(g, colorSet);
       mBaselineArrow.paint(g, colorSet);
     }
   }

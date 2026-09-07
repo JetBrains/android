@@ -1544,12 +1544,15 @@ public final class ConstraintComponentUtilities {
     {null, null, ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF, null},
     {null, null, null, null, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
+  // Attributes to clear when setting a new constraint.
+  // Note: Baseline (index 4) and top/bottom (indices 0 & 1) vertical constraints are mutually exclusive,
+  // so setting a baseline constraint clears all top/bottom constraints, and setting top/bottom clears baseline.
   public static String[][] ATTRIB_CLEAR = {
     {ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
     {ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
     {ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF},
     {ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TO_START_OF},
-    {ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
+    {ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF}
   };
 
   public static String[] ATTRIB_MARGIN = {
