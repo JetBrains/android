@@ -16,6 +16,8 @@
 package com.android.tools.idea.preview
 
 import com.android.SdkConstants
+import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlDataProvider
@@ -24,19 +26,44 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.preview.config.MutableDeviceConfig
 import com.android.tools.preview.config.createDeviceInstance
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPopupMenu
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
+import com.intellij.pom.Navigatable
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import java.awt.Cursor
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import javax.swing.MenuSelectionManager
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class NavigatingInteractionHandlerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -59,6 +86,13 @@ class NavigatingInteractionHandlerTest {
     surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
     surface.addModelsWithoutRender(listOf(model))
     previewModeManager = CommonPreviewModeManager()
+  }
+
+  @After
+  fun tearDown() {
+    runInEdtAndWait {
+      MenuSelectionManager.defaultManager().clearSelectedPath()
+    }
   }
 
   @Test
@@ -122,5 +156,168 @@ class NavigatingInteractionHandlerTest {
     handler.keyPressedWithoutInteraction(keyEvent)
 
     assertThat(sceneView2.selectionModel.isSelected(sceneView2.firstComponent!!)).isTrue()
+  }
+
+  @Test
+  fun testOptionClickShowsMenuWithElementsUnderClick() {
+    runInEdtAndWait {
+      FakeUi(surface, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
+    }
+
+    runBlocking {
+      val navigationHandler = mock<NavigationHandler>()
+      val navigatable1 = mock<Navigatable>()
+      val navigatable2 = mock<Navigatable>()
+      val wrapper1 = PreviewNavigatableWrapper("Text, MainActivity.kt: 50", navigatable1)
+      val wrapper2 = PreviewNavigatableWrapper("Column, MainActivity.kt: 48", navigatable2)
+
+      val screenView = surface.sceneManagers.single().sceneViews.first() as ScreenView
+      whenever(navigationHandler.findNavigatablesWithCoordinates(eq(screenView), any(), any(), eq(false), eq(true)))
+        .thenReturn(listOf(wrapper1, wrapper2))
+
+      val popupCreatedDeferred = CompletableDeferred<ActionPopupMenu>()
+      val popupMenuListener =
+        object : ActionPopupMenuListener {
+          override fun actionPopupMenuCreated(menu: ActionPopupMenu) {
+            if (menu.place == "Navigatables") {
+              popupCreatedDeferred.complete(menu)
+            }
+          }
+        }
+      (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, projectRule.testRootDisposable)
+
+      val handler = NavigatingInteractionHandler(surface, navigationHandler, true)
+      val mouseEvent =
+        MouseEvent(
+          surface.interactionPane,
+          MouseEvent.MOUSE_CLICKED,
+          System.currentTimeMillis(),
+          InputEvent.ALT_DOWN_MASK,
+          screenView.x + 10,
+          screenView.y + 10,
+          1,
+          false,
+        )
+
+      handler.singleClick(mouseEvent, InputEvent.ALT_DOWN_MASK)
+
+      val popupMenu = withTimeout(5.seconds) { popupCreatedDeferred.await() }
+      assertThat(popupMenu.place).isEqualTo("Navigatables")
+
+      val actions = popupMenu.actionGroup.getChildren(null)
+      assertThat(actions).hasLength(2)
+      assertThat(actions[0].templateText).isEqualTo("Text, MainActivity.kt: 50")
+      assertThat(actions[1].templateText).isEqualTo("Column, MainActivity.kt: 48")
+
+      // Verify selecting an action invokes navigateTo with the selected navigatable
+      val actionEvent = TestActionEvent.createTestEvent(actions[0])
+      actions[0].actionPerformed(actionEvent)
+
+      waitForCondition(5.seconds) {
+        Mockito.mockingDetails(navigationHandler).invocations.any {
+          it.method.name == "navigateTo" && it.arguments.contains(navigatable1)
+        }
+      }
+      verify(navigationHandler, never()).navigateTo(eq(screenView), eq(navigatable2), any())
+
+      runInEdtAndWait {
+        popupMenu.component.isVisible = false
+        MenuSelectionManager.defaultManager().clearSelectedPath()
+      }
+    }
+  }
+
+  @Test
+  fun testOptionClickWithNoNavigatablesDoesNotShowPopup() {
+    runInEdtAndWait {
+      FakeUi(surface, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
+    }
+
+    runBlocking {
+      val navigationHandler = mock<NavigationHandler>()
+      val screenView = surface.sceneManagers.single().sceneViews.first() as ScreenView
+      whenever(navigationHandler.findNavigatablesWithCoordinates(eq(screenView), any(), any(), eq(false), eq(true))).thenReturn(emptyList())
+
+      val popupCreatedDeferred = CompletableDeferred<ActionPopupMenu>()
+      val popupMenuListener =
+        object : ActionPopupMenuListener {
+          override fun actionPopupMenuCreated(menu: ActionPopupMenu) {
+            if (menu.place == "Navigatables") {
+              popupCreatedDeferred.complete(menu)
+            }
+          }
+        }
+      (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, projectRule.testRootDisposable)
+
+      val handler = NavigatingInteractionHandler(surface, navigationHandler, true)
+      val mouseEvent =
+        MouseEvent(
+          surface.interactionPane,
+          MouseEvent.MOUSE_CLICKED,
+          System.currentTimeMillis(),
+          InputEvent.ALT_DOWN_MASK,
+          screenView.x + 10,
+          screenView.y + 10,
+          1,
+          false,
+        )
+
+      handler.singleClick(mouseEvent, InputEvent.ALT_DOWN_MASK)
+
+      delay(200.milliseconds)
+      assertThat(popupCreatedDeferred.isCompleted).isFalse()
+    }
+  }
+
+  @Test
+  fun testNormalClickDoesNotShowPopupAndNavigatesDirectly() {
+    runInEdtAndWait {
+      FakeUi(surface, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
+    }
+
+    runBlocking {
+      val navigationHandler = mock<NavigationHandler>()
+      val navigatable = mock<Navigatable>()
+      val wrapper = PreviewNavigatableWrapper("Text, MainActivity.kt: 50", navigatable)
+
+      val screenView = surface.sceneManagers.single().sceneViews.first() as ScreenView
+      whenever(navigationHandler.findNavigatablesWithCoordinates(eq(screenView), any(), any(), eq(false), eq(false)))
+        .thenReturn(listOf(wrapper))
+      whenever(navigationHandler.navigateTo(eq(screenView), eq(navigatable), eq(false))).thenReturn(true)
+
+      val popupCreatedDeferred = CompletableDeferred<ActionPopupMenu>()
+      val popupMenuListener =
+        object : ActionPopupMenuListener {
+          override fun actionPopupMenuCreated(menu: ActionPopupMenu) {
+            if (menu.place == "Navigatables") {
+              popupCreatedDeferred.complete(menu)
+            }
+          }
+        }
+      (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, projectRule.testRootDisposable)
+
+      val handler = NavigatingInteractionHandler(surface, navigationHandler, true)
+      val mouseEvent =
+        MouseEvent(
+          surface.interactionPane,
+          MouseEvent.MOUSE_CLICKED,
+          System.currentTimeMillis(),
+          0,
+          screenView.x + 10,
+          screenView.y + 10,
+          1,
+          false,
+        )
+
+      handler.singleClick(mouseEvent, 0)
+
+      waitForCondition(5.seconds) {
+        Mockito.mockingDetails(navigationHandler).invocations.any {
+          it.method.name == "navigateTo"
+        }
+      }
+      verify(navigationHandler).navigateTo(eq(screenView), eq(navigatable), eq(false))
+      assertThat(popupCreatedDeferred.isCompleted).isFalse()
+    }
   }
 }
