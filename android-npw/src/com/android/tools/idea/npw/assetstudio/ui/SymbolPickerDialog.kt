@@ -270,6 +270,7 @@ constructor(
    * It gets triggered whenever a configuration option is modified, or when the [metadata] gets updated
    */
   private fun updateIconList() {
+    isOKActionEnabled = false
     val style = Symbols.getInstance(stylesBox.selectedItem as String)
     val symbolConfiguration =
       SymbolConfiguration(

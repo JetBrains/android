@@ -379,6 +379,18 @@ class SymbolPickerDialogTest {
             }
           }
         assertTrue(waitOk.isConditionRealized)
+
+        val refreshButton =
+          UIUtil.findComponentsOfType(dialog.createCenterPanel(), JButton::class.java).find { it.icon == AllIcons.General.Refresh }
+        refreshButton!!.doClick()
+        val waitOkDisabled =
+          object : WaitFor(3000) {
+            override fun condition(): Boolean {
+              PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+              return !dialog.isOKActionEnabled
+            }
+          }
+        assertTrue(waitOkDisabled.isConditionRealized)
       } finally {
         dialog.close(0)
       }
