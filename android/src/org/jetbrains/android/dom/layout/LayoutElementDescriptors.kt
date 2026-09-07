@@ -116,7 +116,13 @@ open class LayoutElementDescriptor(private val delegate: XmlElementDescriptor) :
   }
 
   override fun getAttributeDescriptor(attribute: XmlAttribute): XmlAttributeDescriptor? {
-    return delegate.getAttributeDescriptor(attribute) ?: AndroidAnyAttributeDescriptor(attribute.name)
+    val descriptor = delegate.getAttributeDescriptor(attribute)
+    if (descriptor != null) return descriptor
+    if (attribute.namespace.startsWith(SdkConstants.URI_PREFIX) && attribute.namespace != SdkConstants.ANDROID_URI) {
+      val fallbackDescriptor = delegate.getAttributeDescriptor(attribute.localName, attribute.parent)
+      if (fallbackDescriptor != null) return fallbackDescriptor
+    }
+    return AndroidAnyAttributeDescriptor(attribute.name)
   }
 
   override fun getIcon() = getIconForViewTag(name)

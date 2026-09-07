@@ -15,10 +15,12 @@
  */
 package org.jetbrains.android.dom.drawable;
 
+import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.ResAutoAttributeValue;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 
@@ -29,4 +31,9 @@ public interface BitmapElement extends DrawableDomElement {
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("drawable")
   AndroidAttributeValue<String> getSrc();
+
+  @Attribute("srcCompat")
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("drawable")
+  ResAutoAttributeValue<String> getSrcCompat();
 }

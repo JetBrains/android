@@ -73,7 +73,10 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor {
 
   @Override
   public XmlAttributeDescriptor getAttributeDescriptor(XmlAttribute attribute) {
-    final XmlAttributeDescriptor descriptor = myParentDescriptor.getAttributeDescriptor(attribute);
+    XmlAttributeDescriptor descriptor = myParentDescriptor.getAttributeDescriptor(attribute);
+    if (descriptor == null) {
+      descriptor = myParentDescriptor.getAttributeDescriptor(attribute.getLocalName(), attribute.getParent());
+    }
     return descriptor != null ? descriptor : new AndroidAnyAttributeDescriptor(attribute.getName());
   }
 

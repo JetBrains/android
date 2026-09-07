@@ -2855,6 +2855,63 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestHighlighting("include_in_merge.xml")
   }
 
+  fun testUnknownAppAttributeHighlighting() {
+    val layout =
+      myFixture.addFileToProject(
+        "res/layout/unknown_app_attr.xml",
+        // language=xml
+        """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                <warning descr="Unknown attribute app:unknownAttribute">app:unknownAttribute</warning>="value" />
+
+        </LinearLayout>
+        """
+          .trimIndent(),
+      )
+
+    myFixture.configureFromExistingVirtualFile(layout.virtualFile)
+    myFixture.checkHighlighting()
+  }
+
+  fun testUnknownAppAttributeInConstraintLayout_b79968470() {
+    setAndroidx()
+    myFixture.addClass(constraintLayout)
+    myFixture.addFileToProject("res/values/values.xml", constraintLayoutResources)
+
+    val layout =
+      myFixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=xml
+        """
+        <androidx.constraintlayout.widget.ConstraintLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/styledText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                <warning descr="Unknown attribute app:layout_constraintRight_toStartOf">app:layout_constraintRight_toStartOf</warning>="parent"
+                app:constraint_referenced_ids="styledText" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        """
+          .trimIndent(),
+      )
+
+    myFixture.configureFromExistingVirtualFile(layout.virtualFile)
+    myFixture.checkHighlighting()
+  }
+
   private fun doTestAttrReferenceCompletion(textToType: String) {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
     val file = copyFileToProject(getTestName(true) + ".xml")
