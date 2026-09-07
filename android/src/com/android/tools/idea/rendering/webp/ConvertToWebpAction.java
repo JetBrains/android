@@ -215,16 +215,28 @@ public class ConvertToWebpAction extends DumbAwareAction {
         return true;
       }
       if (endsWithIgnoreCase(name, DOT_GIF)) {
-        // Can convert only if not an animated gif (TODO: Support animated webp!)
         ImageReader is = ImageIO.getImageReadersBySuffix("GIF").next();
-        ImageInputStream iis;
-        try {
-          iis = ImageIO.createImageInputStream(file.getInputStream());
+        try (ImageInputStream iis = ImageIO.createImageInputStream(file.getInputStream())) {
           is.setInput(iis);
-          return is.getNumImages(true) == 1;
+          int numImages = is.getNumImages(true);
+          if (numImages <= 0) {
+            return false;
+          }
+          if (settings != null && settings.skipTransparentImages) {
+            for (int i = 0; i < numImages; i++) {
+              BufferedImage image = is.read(i);
+              if (image != null && ImageUtils.isNonOpaque(image)) {
+                return false;
+              }
+            }
+          }
+          return true;
         }
         catch (IOException ignore) {
           return false;
+        }
+        finally {
+          is.dispose();
         }
       }
     }
@@ -397,7 +409,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
         indicator.setFraction(fraction);
         fraction += fileFraction;
 
-        if (skipAlreadyEncoded && file.encoded != null) {
+        if (skipAlreadyEncoded && file.encoded != null && !file.isMultiFrame) {
           continue;
         }
 

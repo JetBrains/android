@@ -28,13 +28,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,12 +43,24 @@ import org.jetbrains.annotations.Nullable;
 public class WebpConvertedFile {
   public final VirtualFile sourceFile;
   public final long sourceFileSize;
+  public final boolean isMultiFrame;
+  public final int frameCount;
   public byte[] encoded;
   public long saved;
 
   public WebpConvertedFile(@NotNull VirtualFile sourceFile, long sourceFileSize) {
+    this(sourceFile, sourceFileSize, 1);
+  }
+
+  public WebpConvertedFile(@NotNull VirtualFile sourceFile, long sourceFileSize, boolean isMultiFrame) {
+    this(sourceFile, sourceFileSize, isMultiFrame ? 2 : 1);
+  }
+
+  public WebpConvertedFile(@NotNull VirtualFile sourceFile, long sourceFileSize, int frameCount) {
     this.sourceFile = sourceFile;
     this.sourceFileSize = sourceFileSize;
+    this.frameCount = frameCount;
+    this.isMultiFrame = frameCount > 1;
   }
 
   public void apply(@Nullable Object requestor) throws IOException {
@@ -60,6 +73,38 @@ public class WebpConvertedFile {
   }
 
   public boolean convert(@NotNull WebpConversionSettings settings) {
+    String name = sourceFile.getName();
+    if (endsWithIgnoreCase(name, DOT_GIF)) {
+      try {
+        ImageReader reader = ImageIO.getImageReadersBySuffix("GIF").next();
+        try (ImageInputStream iis = ImageIO.createImageInputStream(sourceFile.getInputStream())) {
+          reader.setInput(iis);
+          int numImages = reader.getNumImages(true);
+          if (numImages > 1) {
+            if (settings.skipTransparentImages) {
+              for (int i = 0; i < numImages; i++) {
+                BufferedImage frame = reader.read(i);
+                if (frame != null && ImageUtils.isNonOpaque(frame)) {
+                  return false;
+                }
+              }
+            }
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream((int)sourceFileSize);
+            WebpEncoding.writeAnimatedGif(reader, numImages, byteArrayOutputStream, settings);
+            encoded = byteArrayOutputStream.toByteArray();
+            saved = sourceFileSize - encoded.length;
+            return true;
+          }
+        }
+        finally {
+          reader.dispose();
+        }
+      } catch (IOException e) {
+        Logger.getInstance(WebpConvertedFile.class).error("Can't convert " + sourceFile.getPath(), e);
+        return false;
+      }
+    }
+
     try {
       BufferedImage image;
       try (InputStream stream = new BufferedInputStream(sourceFile.getInputStream())) {
@@ -106,8 +151,37 @@ public class WebpConvertedFile {
   @Nullable
   public static WebpConvertedFile create(@NotNull VirtualFile pngFile, @NotNull WebpConversionSettings settings) {
     try {
-      InputStream stream = new BufferedInputStream(pngFile.getInputStream());
       long size = pngFile.getLength();
+      String fileName = pngFile.getName();
+
+      if (settings.skipNinePatches && endsWithIgnoreCase(fileName, DOT_9PNG)) {
+        return null;
+      }
+
+      if (endsWithIgnoreCase(fileName, DOT_GIF)) {
+        ImageReader reader = ImageIO.getImageReadersBySuffix("GIF").next();
+        try (ImageInputStream iis = ImageIO.createImageInputStream(pngFile.getInputStream())) {
+          reader.setInput(iis);
+          int numImages = reader.getNumImages(true);
+          if (numImages <= 0) {
+            return null;
+          }
+          if (settings.skipTransparentImages) {
+            for (int i = 0; i < numImages; i++) {
+              BufferedImage frame = reader.read(i);
+              if (frame != null && ImageUtils.isNonOpaque(frame)) {
+                return null;
+              }
+            }
+          }
+          return new WebpConvertedFile(pngFile, size, numImages);
+        }
+        finally {
+          reader.dispose();
+        }
+      }
+
+      InputStream stream = new BufferedInputStream(pngFile.getInputStream());
       BufferedImage image = ImageIO.read(stream);
       stream.close();
 
@@ -116,13 +190,8 @@ public class WebpConvertedFile {
         return null;
       }
 
-      String fileName = pngFile.getName();
-      if (settings.skipNinePatches && endsWithIgnoreCase(fileName, DOT_9PNG)) {
-        return null;
-      }
-
       // See if we find an alpha channel in this image and if so, return null
-      if (settings.skipTransparentImages && (endsWithIgnoreCase(fileName, DOT_PNG) || endsWithIgnoreCase(fileName, DOT_GIF))) {
+      if (settings.skipTransparentImages && endsWithIgnoreCase(fileName, DOT_PNG)) {
         if (ImageUtils.isNonOpaque(image)) {
           return null;
         }
@@ -143,8 +212,7 @@ public class WebpConvertedFile {
   @Nullable
   public BufferedImage getEncodedImage() throws IOException {
     if (encoded != null) {
-      InputStream webpStream = new ByteArrayInputStream(encoded);
-      return ImageIO.read(webpStream);
+      return WebpEncoding.decodeWebp(encoded);
     } else {
       return null;
     }

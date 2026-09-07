@@ -42,10 +42,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -69,6 +67,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
   private JBLabel myWebpSizeLabel;
   private JBLabel myQualityLabel;
   private JBLabel myPngLabel;
+  private JBLabel myWebpLabel;
 
   private BufferedImage myPngImage;
   private BufferedImage myWebpImage;
@@ -232,12 +231,12 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
     myPanel.add(myPngLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
                                                 GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    final JBLabel jBLabel1 = new JBLabel();
-    jBLabel1.setHorizontalAlignment(0);
-    jBLabel1.setText("WEBP");
-    myPanel.add(jBLabel1, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                              GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myWebpLabel = new JBLabel();
+    myWebpLabel.setHorizontalAlignment(0);
+    myWebpLabel.setText("WEBP");
+    myPanel.add(myWebpLabel, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     myPngSizeLabel = new JBLabel();
     myPngSizeLabel.setText("");
     myPanel.add(myPngSizeLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_NONE, 1,
@@ -331,14 +330,14 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
       }
     }
 
-    if (myPngImage != null) {
-      mySettings.quality = myQualitySlider.getValue();
-      mySettings.lossless = myAllowLossless && mySettings.quality == 100;
+    mySettings.quality = myQualitySlider.getValue();
+    mySettings.lossless = myAllowLossless && mySettings.quality == 100;
 
+    if (myPngImage != null) {
       convertedFile.convert(myPngImage, mySettings);
       byte[] bytes = convertedFile.encoded;
       try {
-        myWebpImage = bytes != null ? ImageIO.read(new ByteArrayInputStream(bytes)) : null;
+        myWebpImage = convertedFile.getEncodedImage();
         myWebpBytes = bytes != null ? bytes.length : 0;
 
         if (myWebpImage != null) {
@@ -401,7 +400,11 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
         myWebpSizeLabel.setText(ConvertToWebpAction.formatSize(myWebpBytes) + " (" + percentage + "% of original size)");
         VirtualFile file = myFiles.get(myFileIndex).sourceFile;
         String path = VfsUtilCore.getRelativePath(file, myProject.getBaseDir());
-        myFileIndexLabel.setText(path + " (" + (myFileIndex + 1) + "/" + myFiles.size() + ")");
+        String fileIndexText = path + " (" + (myFileIndex + 1) + "/" + myFiles.size() + ")";
+        if (convertedFile.isMultiFrame) {
+          fileIndexText += " - Animated (" + convertedFile.frameCount + " frames)";
+        }
+        myFileIndexLabel.setText(fileIndexText);
         myQualityLabel.setText(mySettings.lossless ? "Lossless" : "Quality (Default 75%)");
 
         String extension = convertedFile.sourceFile.getExtension();
@@ -411,7 +414,14 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
         else {
           extension = StringUtil.toUpperCase(extension);
         }
-        myPngLabel.setText(extension);
+        if (convertedFile.isMultiFrame) {
+          myPngLabel.setText(extension + " (Animated, " + convertedFile.frameCount + " frames)");
+          myWebpLabel.setText("WEBP (Animated, " + convertedFile.frameCount + " frames)");
+        }
+        else {
+          myPngLabel.setText(extension);
+          myWebpLabel.setText("WEBP");
+        }
 
         repaint();
       });
