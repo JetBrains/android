@@ -19,16 +19,22 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
 
-/** [ToggleAction] to that sets an specific [ScreenViewProvider] to the [NlDesignSurface]. */
+/** [ToggleAction] that sets a specific [ScreenViewProvider] to the [NlDesignSurface]. */
 class SetScreenViewProviderAction(private val sceneModeProvider: ScreenViewProvider) :
   ToggleAction(
     sceneModeProvider.displayName,
     message("android.layout.screenview.action.description", sceneModeProvider.displayName),
     null,
   ) {
+
+  init {
+    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never
+  }
+
   override fun isSelected(e: AnActionEvent): Boolean {
     val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return false
     return surface.screenViewProvider == sceneModeProvider
