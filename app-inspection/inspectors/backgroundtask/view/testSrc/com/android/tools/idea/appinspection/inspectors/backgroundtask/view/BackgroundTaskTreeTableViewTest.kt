@@ -377,27 +377,29 @@ class BackgroundTaskTreeTableViewTest {
 
   /** Asserts that the header renderer uses the same underlying component (b/472094288) and sets height correctly. */
   @Test
-  fun headerRendererUsesSameComponent() {
-    val view = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
+  fun headerRendererUsesSameComponent(): Unit = runBlocking {
+    withContext(uiDispatcher) {
+      val view = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
 
-    val tree = view.component.getDescendant<JTree>()
-    val renderer = tree.cellRenderer
-    val root = DefaultMutableTreeNode("root")
-    val foo = DefaultMutableTreeNode("Foo").apply { setParent(root) }
-    val bar = DefaultMutableTreeNode("FooBar").apply { setParent(root) }
+      val tree = view.component.getDescendant<JTree>()
+      val renderer = tree.cellRenderer
+      val root = DefaultMutableTreeNode("root")
+      val foo = DefaultMutableTreeNode("Foo").apply { setParent(root) }
+      val bar = DefaultMutableTreeNode("FooBar").apply { setParent(root) }
 
-    val fooLabel = renderer.getTreeCellRendererComponent(tree, foo, false, false, false, 0, false)
-    assertThat((fooLabel as JLabel).text).isEqualTo("Foo")
-    val fooWidth = fooLabel.preferredWidth
-    assertThat(fooWidth).isGreaterThan(0)
-    assertThat(fooLabel.preferredHeight).isEqualTo(HEADER_LABEL_HEIGHT)
+      val fooLabel = renderer.getTreeCellRendererComponent(tree, foo, false, false, false, 0, false)
+      assertThat((fooLabel as JLabel).text).isEqualTo("Foo")
+      val fooWidth = fooLabel.preferredWidth
+      assertThat(fooWidth).isGreaterThan(0)
+      assertThat(fooLabel.preferredHeight).isEqualTo(HEADER_LABEL_HEIGHT)
 
-    val barLabel = renderer.getTreeCellRendererComponent(tree, bar, false, false, false, 0, false)
-    assertThat((barLabel as JLabel).text).isEqualTo("FooBar")
-    assertThat(barLabel.preferredWidth).isGreaterThan(fooWidth)
-    assertThat(barLabel.preferredHeight).isEqualTo(HEADER_LABEL_HEIGHT)
+      val barLabel = renderer.getTreeCellRendererComponent(tree, bar, false, false, false, 0, false)
+      assertThat((barLabel as JLabel).text).isEqualTo("FooBar")
+      assertThat(barLabel.preferredWidth).isGreaterThan(fooWidth)
+      assertThat(barLabel.preferredHeight).isEqualTo(HEADER_LABEL_HEIGHT)
 
-    assertThat(fooLabel).isSameAs(barLabel)
+      assertThat(fooLabel).isSameAs(barLabel)
+    }
   }
 }
 

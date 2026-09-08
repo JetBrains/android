@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.TestNetwork
 import com.android.tools.idea.appinspection.inspectors.network.view.utils.findComponentWithUniqueName
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -65,15 +66,18 @@ class NetworkInspectorTabTest {
   @Test
   fun pressActionButtons(): Unit = runBlocking {
     val dataSource = FakeNetworkInspectorDataSource(listOf(), listOf())
-    val tab =
-      NetworkInspectorTab(
-        projectRule.project,
-        FakeUiComponentsProvider(),
-        dataSource,
-        services,
-        scope,
-        projectRule.fixture.testRootDisposable,
-      )
+    lateinit var tab: NetworkInspectorTab
+    runInEdtAndWait {
+      tab =
+        NetworkInspectorTab(
+          projectRule.project,
+          FakeUiComponentsProvider(),
+          dataSource,
+          services,
+          scope,
+          projectRule.fixture.testRootDisposable,
+        )
+    }
 
     tab.launchJob.join()
 
@@ -113,15 +117,18 @@ class NetworkInspectorTabTest {
 
   @Test
   fun zoomToSelection_enableState() = runBlocking {
-    val tab =
-      NetworkInspectorTab(
-        projectRule.project,
-        FakeUiComponentsProvider(),
-        FakeNetworkInspectorDataSource(),
-        services,
-        scope,
-        projectRule.fixture.testRootDisposable,
-      )
+    lateinit var tab: NetworkInspectorTab
+    runInEdtAndWait {
+      tab =
+        NetworkInspectorTab(
+          projectRule.project,
+          FakeUiComponentsProvider(),
+          FakeNetworkInspectorDataSource(),
+          services,
+          scope,
+          projectRule.fixture.testRootDisposable,
+        )
+    }
 
     tab.launchJob.join()
 
