@@ -646,10 +646,18 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
 
 void Controller::InjectUnicodeCharacter(uint16_t c) {
   Log::D("InjectUnicodeCharacter('\\u%04X')", c);
-  // Activate unicode composition.
+  // Activate Unicode composition.
   InjectKeyEvent(AKEY_EVENT_ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON);
   InjectKeyEvent(AKEY_EVENT_ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_CTRL_ON | AMETA_SHIFT_ON);
-  InjectKeyEvent(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_U, AMETA_CTRL_ON | AMETA_SHIFT_ON);
+  if (Agent::feature_level() >= 32) {
+    // Use silent Unicode composition.
+    InjectKeyEvent(AKEY_EVENT_ACTION_DOWN, AKEYCODE_ALT_LEFT, AMETA_CTRL_ON | AMETA_SHIFT_ON | AMETA_ALT_ON);
+    InjectKeyEvent(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_U, AMETA_CTRL_ON | AMETA_SHIFT_ON | AMETA_ALT_ON);
+    InjectKeyEvent(AKEY_EVENT_ACTION_UP, AKEYCODE_ALT_LEFT, AMETA_CTRL_ON | AMETA_SHIFT_ON);
+  } else {
+    // Cannot use silent Unicode composition due to b/531563251.
+    InjectKeyEvent(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_U, AMETA_CTRL_ON | AMETA_SHIFT_ON);
+  }
   InjectKeyEvent(AKEY_EVENT_ACTION_UP, AKEYCODE_SHIFT_LEFT, AMETA_CTRL_ON);
   InjectKeyEvent(AKEY_EVENT_ACTION_UP, AKEYCODE_CTRL_LEFT, 0);
   // Enter hexadecimal code of the character.
