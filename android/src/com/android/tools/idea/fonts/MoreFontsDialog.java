@@ -36,6 +36,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -66,7 +67,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.font.FontRenderContext;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
@@ -105,6 +105,7 @@ public class MoreFontsDialog extends DialogWrapper {
   private HyperlinkLabel myLicenseLabel;
   private FontFamily myLastSelectedFont;
   private String myResultingFont;
+  private String myInitialFontName;
 
   private void createUIComponents() {
     myContentPanel = new JPanel();
@@ -125,7 +126,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     ProjectFonts projectFonts =
       showExistingFonts ? new ProjectFonts(StudioDownloadableFontCacheService.getInstance(), myResourceRepository) : null;
-    myModel = new FontListModel(projectFonts, showExistingFonts);
+    myModel = new FontListModel(projectFonts, showExistingFonts, myFontList);
     myModel.setRepopulateListener(this::repopulated);
     myDetailModel = new DefaultListModel<>();
     myCreateParams.setLayout(createGroupLayoutForCreateParams());
@@ -167,11 +168,11 @@ public class MoreFontsDialog extends DialogWrapper {
     mySelectedFontFamily = new SelectedListValueProperty<>(myFontList);
     bindComponents();
     addValidators();
-    if (currentValue != null) {
-      myFontList.setSelectedValue(myModel.getFont(currentValue), true);
-    }
     myLicenseLabel.setHyperlinkText("These fonts are available under the ", "Apache License Version 2.0 or Open Font License", "");
     myLicenseLabel.setHyperlinkTarget("https://fonts.google.com");
+    myFontList.setPaintBusy(true);
+    myFontList.getEmptyText().setText("Loading fonts...");
+    myInitialFontName = currentValue;
 
     init();
   }
@@ -179,15 +180,6 @@ public class MoreFontsDialog extends DialogWrapper {
   @Nullable
   public String getResultingFont() {
     return myResultingFont;
-  }
-
-  @Override
-  public void show() {
-    if (myModel.getSize() == 0) {
-      Messages.showErrorDialog("Please setup your SDK first. Make sure the folder is writable. Then try again.", "Font Cache Missing");
-      return;
-    }
-    super.show();
   }
 
   @Override
@@ -489,6 +481,15 @@ public class MoreFontsDialog extends DialogWrapper {
   }
 
   private void repopulated() {
+    myFontList.setPaintBusy(false);
+    myFontList.getEmptyText().setText("No fonts available");
+    if (myInitialFontName != null) {
+      FontFamily font = myModel.getFont(myInitialFontName);
+      if (font != null) {
+        myLastSelectedFont = font;
+      }
+      myInitialFontName = null;
+    }
     myFontList.setSelectedIndex(myModel.getElementIndex(myLastSelectedFont));
   }
 
@@ -541,8 +542,6 @@ public class MoreFontsDialog extends DialogWrapper {
   }
 
   private static class FontFamilyRenderer extends ColoredListCellRenderer<FontFamily> {
-    private static final int FONT_CACHE_LOAD_BATCH_SIZE = 15;
-
     private final DownloadableFontCacheService myFontService;
     private final JLabel myTitle;
     private final Cache<FontFamily, Font> myMenuFontCache = CacheBuilder.newBuilder()
@@ -562,32 +561,19 @@ public class MoreFontsDialog extends DialogWrapper {
      * Iterates over all the available families and pre-populates the cache.
      */
     private void warmUpCache() {
-      List<FontFamily> families = myFontService.getFontFamilies();
-      int familyCount = families.size();
-
-      if (familyCount == 0) {
-        return;
-      }
-
-      int batches = (familyCount / FONT_CACHE_LOAD_BATCH_SIZE) + 1;
-      for (int i = 0; i < batches; i++) {
-        final int batchStart = i * FONT_CACHE_LOAD_BATCH_SIZE;
-        final int batchEnd = Math.min((i + 1) * FONT_CACHE_LOAD_BATCH_SIZE, familyCount);
-        ForkJoinPool.commonPool().execute(() -> {
-          for (int j = batchStart; j < batchEnd; j++) {
-            FontFamily family = families.get(j);
-            Font addedFont = getMenuFontFromFamily(family);
-
-            if (addedFont == null) {
-              continue;
-            }
-
-            // This is just to warm-up the font measuring call. Subsequent calls will be faster.
-            FontRenderContext fontRenderContext = getFontMetrics(addedFont).getFontRenderContext();
-            addedFont.getStringBounds(family.getMenuName(), fontRenderContext);
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        List<FontFamily> families = myFontService.getFontFamilies();
+        for (FontFamily family : families) {
+          Font addedFont = getMenuFontFromFamily(family);
+          if (addedFont == null) {
+            continue;
           }
-        });
-      }
+
+          // This is just to warm-up the font measuring call. Subsequent calls will be faster.
+          FontRenderContext fontRenderContext = getFontMetrics(addedFont).getFontRenderContext();
+          addedFont.getStringBounds(family.getMenuName(), fontRenderContext);
+        }
+      });
     }
 
     @Nullable
@@ -688,22 +674,24 @@ public class MoreFontsDialog extends DialogWrapper {
     @Nullable private final ProjectFonts myProjectFonts;
     private final SpeedSearchComparator myComparator;
     private final List<FontFamily> myFilteredList;
+    private final boolean myShowFrameworkFonts;
+    private final ModalityState myModalityState;
     private Runnable myRepopulateListener;
     private String myFilter;
     private int myFirstLoadedFontIndex;
     private int myLoadedFontIndex;
-    private boolean myShowFrameworkFonts;
 
-    private FontListModel(@Nullable ProjectFonts projectFonts, @NotNull Boolean showFrameworkFonts) {
+    private FontListModel(@Nullable ProjectFonts projectFonts, @NotNull Boolean showFrameworkFonts, @NotNull JComponent component) {
+      myModalityState = ModalityState.stateForComponent(component);
       myFontService = StudioDownloadableFontCacheService.getInstance();
       myProjectFonts = projectFonts;
       myComparator = new SpeedSearchComparator();
       myFilteredList = new ArrayList<>();
       myFilter = "";
-      populateModel();
       myLoadedFontIndex = -1;
       myFirstLoadedFontIndex = -1;
       myShowFrameworkFonts = showFrameworkFonts;
+      repopulateModel();
       myFontService.refresh(this::repopulateModel, null);
     }
 
@@ -751,29 +739,36 @@ public class MoreFontsDialog extends DialogWrapper {
     }
 
     private void repopulateModel() {
-      UIUtil.invokeLaterIfNeeded(this::repopulateModelEDT);
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        Collection<FontFamily> projectFonts = myProjectFonts != null ? myProjectFonts.getFonts() : Collections.emptyList();
+        Collection<FontFamily> systemFonts = myShowFrameworkFonts ? myFontService.getSystemFontFamilies() : Collections.emptyList();
+        Collection<FontFamily> downloadableFonts = myFontService.getFontFamilies();
+        ApplicationManager.getApplication().invokeLater(
+          () -> repopulateModelEDT(projectFonts, systemFonts, downloadableFonts),
+          myModalityState
+        );
+      });
     }
 
-    private void repopulateModelEDT() {
+    private void repopulateModelEDT(@NotNull Collection<FontFamily> projectFonts,
+                                    @NotNull Collection<FontFamily> systemFonts,
+                                    @NotNull Collection<FontFamily> downloadableFonts) {
       ApplicationManager.getApplication().assertIsDispatchThread();
-      boolean startLoad;
-      startLoad = myLoadedFontIndex < 0;
-      populateModel();
+      boolean startLoad = myLoadedFontIndex < 0;
+      populateModel(projectFonts, systemFonts, downloadableFonts);
       if (startLoad) {
         myLoadedFontIndex = 0;
         loadRemainingFonts();
       }
     }
 
-    private void populateModel() {
+    private void populateModel(@NotNull Collection<FontFamily> projectFonts,
+                              @NotNull Collection<FontFamily> systemFonts,
+                              @NotNull Collection<FontFamily> downloadableFonts) {
       clear();
-      if (myProjectFonts != null) {
-        addFamilies("Project", myProjectFonts.getFonts());
-      }
-      if (myShowFrameworkFonts) {
-        addFamilies("Android", myFontService.getSystemFontFamilies());
-      }
-      addFamilies("Downloadable", myFontService.getFontFamilies());
+      addFamilies("Project", projectFonts);
+      addFamilies("Android", systemFonts);
+      addFamilies("Downloadable", downloadableFonts);
       redoFiltering();
     }
 
@@ -788,8 +783,16 @@ public class MoreFontsDialog extends DialogWrapper {
     }
 
     @Nullable
-    public FontFamily getFont(@NotNull String name) {
-      return (myProjectFonts != null) ? myProjectFonts.getFont(name) : null;
+    private FontFamily getFont(@NotNull String name) {
+      int size = super.getSize();
+      for (int i = 0; i < size; i++) {
+        FontFamily family = super.get(i);
+        if (family.getFontSource() != FontSource.HEADER &&
+            (name.equalsIgnoreCase(family.getName()) || name.equalsIgnoreCase(family.getMenuName()))) {
+          return family;
+        }
+      }
+      return null;
     }
 
     @Nullable
