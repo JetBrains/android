@@ -33,7 +33,7 @@ class ProfilingConfigurationTest {
   @get:Rule val myThrown = ExpectedException.none()
 
   @Test
-  fun fromProtoLegacy() {
+  fun fromProtoSampledLegacy() {
     val proto =
       TraceConfiguration.newBuilder()
         .setArtOptions(
@@ -51,7 +51,22 @@ class ProfilingConfigurationTest {
   }
 
   @Test
-  fun fromProtoWallClock() {
+  fun fromProtoInstrumentedLegacy() {
+    val proto =
+      TraceConfiguration.newBuilder()
+        .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(TraceMode.INSTRUMENTED).setBufferSizeInMb(12).setDualClock(true))
+        .build()
+    val config = ProfilingConfiguration.fromProto(proto, false)
+    assertThat(config).isInstanceOf(ArtInstrumentedConfigurationLegacy::class.java)
+    config as ArtInstrumentedConfigurationLegacy
+    assertThat(config.name).isEqualTo("")
+    assertThat(config.traceType).isEqualTo(TraceType.ART)
+    assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
+    assertThat(config.dualClock).isTrue()
+  }
+
+  @Test
+  fun fromProtoSampledWallClock() {
     val proto =
       TraceConfiguration.newBuilder()
         .setArtOptions(
@@ -64,6 +79,21 @@ class ProfilingConfigurationTest {
     assertThat(config.name).isEqualTo("")
     assertThat(config.traceType).isEqualTo(TraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
+    assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
+    assertThat(config.dualClock).isFalse()
+  }
+
+  @Test
+  fun fromProtoInstrumentedWallClock() {
+    val proto =
+      TraceConfiguration.newBuilder()
+        .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(TraceMode.INSTRUMENTED).setBufferSizeInMb(12).setDualClock(false))
+        .build()
+    val config = ProfilingConfiguration.fromProto(proto, false)
+    assertThat(config).isInstanceOf(ArtInstrumentedConfigurationWallClock::class.java)
+    config as ArtInstrumentedConfigurationWallClock
+    assertThat(config.name).isEqualTo("")
+    assertThat(config.traceType).isEqualTo(TraceType.ART)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
     assertThat(config.dualClock).isFalse()
   }

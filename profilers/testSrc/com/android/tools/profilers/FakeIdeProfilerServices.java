@@ -26,7 +26,6 @@ import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfigurationLegacy;
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfigurationLegacy;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration;
@@ -481,7 +480,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   public void addCustomProfilingConfiguration(String name, TraceType type) {
     ProfilingConfiguration config;
     if (type == TraceType.ART) {
-      config = ArtSampledConfiguration.create(name, getFeatureConfig().isMethodTraceInEditorEnabled());
+      config = ArtInstrumentedConfiguration.create(name, getFeatureConfig().isMethodTraceInEditorEnabled());
     }
     else if (type == TraceType.SIMPLEPERF) {
       config = new SimpleperfConfiguration(name);

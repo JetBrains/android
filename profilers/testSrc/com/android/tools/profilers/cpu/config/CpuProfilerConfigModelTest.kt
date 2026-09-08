@@ -186,7 +186,7 @@ class CpuProfilerConfigModelTest {
     val observer = AspectObserver()
     var aspectCalled = false
     myProfilerStage!!.aspect.addDependency(observer).onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, { aspectCalled = true })
-    model!!.profilingConfiguration = ArtSampledConfigurationLegacy("cfg")
+    model!!.profilingConfiguration = ArtInstrumentedConfigurationLegacy("cfg")
     assertThat(aspectCalled).isTrue()
   }
 
