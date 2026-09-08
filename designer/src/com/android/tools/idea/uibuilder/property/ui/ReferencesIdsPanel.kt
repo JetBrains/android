@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.property.ui
 
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.ptable.PFormTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Cursor
+import java.awt.GraphicsEnvironment
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
@@ -48,7 +50,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     table = PFormTable(dataModel)
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     table.autoResizeMode = JTable.AUTO_RESIZE_LAST_COLUMN
-    table.dragEnabled = true
+    table.dragEnabled = !GraphicsEnvironment.isHeadless()
     table.dropMode = DropMode.INSERT_ROWS
     table.transferHandler = ReferencesTransferHandler(table)
     add(table)
@@ -243,6 +245,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     return table.selectedRow
   }
 
+  @Slow
   fun getListIds(): ArrayList<String> {
     val ids = arrayListOf<String>()
     val currentIds = dataModel.getCurrentReferences()

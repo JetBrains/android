@@ -34,6 +34,8 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.util.ui.JBUI
@@ -51,6 +53,9 @@ import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.border.EmptyBorder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val ADD_PROPERTY_ACTION_TITLE = "Add View Reference"
 private const val DELETE_ROW_ACTION_TITLE = "Remove selected View reference"
@@ -86,12 +91,18 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
 
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
-      val popupMenu = LightCalloutPopup({})
-      val picker = createPopupPanel(popupMenu)
-      popupMenu.show(picker, panel, Point(panel.width - JBUI.scale(40), 0), Balloon.Position.below)
+      event.coroutineScope.launch {
+        val listIds = readAction { panel.getListIds() }
+        withContext(Dispatchers.EDT) {
+          if (!panel.isShowing) return@withContext
+          val popupMenu = LightCalloutPopup({})
+          val picker = createPopupPanel(popupMenu, listIds)
+          popupMenu.show(picker, panel, Point(panel.width - JBUI.scale(40), 0), Balloon.Position.below)
+        }
+      }
     }
 
-    private fun createPopupPanel(popupMenu: LightCalloutPopup): JPanel {
+    private fun createPopupPanel(popupMenu: LightCalloutPopup, listIds: List<String>): JPanel {
       val picker = JPanel(BorderLayout())
       picker.background = secondaryPanelBackground
       picker.preferredSize = Dimension(150, 70)
@@ -99,7 +110,7 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
       label.border = EmptyBorder(8, 8, 8, 8)
       picker.add(label, BorderLayout.NORTH)
       val comboBox = ComboBox<String>()
-      fillCombobox(comboBox)
+      fillCombobox(comboBox, listIds)
       comboBox.border = EmptyBorder(8, 8, 8, 8)
       comboBox.putClientProperty(ComboBox.IS_TABLE_CELL_EDITOR_PROPERTY, true)
       comboBox.addActionListener {
@@ -126,9 +137,8 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
       return picker
     }
 
-    private fun fillCombobox(comboBox: ComboBox<String>) {
+    private fun fillCombobox(comboBox: ComboBox<String>, listIds: List<String>) {
       comboBox.addItem("")
-      var listIds = panel.getListIds()
       listIds.forEach { comboBox.addItem(it) }
     }
   }
