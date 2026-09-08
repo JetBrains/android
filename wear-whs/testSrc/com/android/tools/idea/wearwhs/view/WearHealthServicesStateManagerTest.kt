@@ -492,4 +492,26 @@ class WearHealthServicesStateManagerTest {
         stateManager.getState(it).mapState { (it as UpToDateCapabilityUIState).currentState.enabled }.waitForValue(it.isStandardCapability)
       }
     }
+
+  // Regression test for b/442773686
+  @Test
+  fun `reset does not apply standard capabilities if they were not applied`() = runBlocking {
+    // Initially, all capabilities are enabled on device and up to date
+    assertThat(stateManager.preset.value).isEqualTo(Preset.ALL)
+    capabilities.forEach { capability ->
+      stateManager.getState(capability).mapState { it.currentState.enabled }.waitForValue(true)
+    }
+
+    // User selects STANDARD preset, but does not apply changes
+    stateManager.loadPreset(Preset.STANDARD).join()
+    stateManager.getState(stepsCapability).mapState { it.currentState.enabled }.waitForValue(false)
+
+    stateManager.reset()
+
+    assertThat(stateManager.preset.value).isEqualTo(Preset.ALL)
+    // Check that all capabilities are set to "true" as per the "ALL" preset.
+    capabilities.forEach { capability ->
+      stateManager.getState(capability).mapState { (it as UpToDateCapabilityUIState).currentState.enabled }.waitForValue(true)
+    }
+  }
 }

@@ -63,6 +63,8 @@ internal class WearHealthServicesStateManagerImpl(
 
   override val capabilitiesList = deviceManager.getCapabilities()
 
+  /** Tracks the last applied preset. When reverting changes, this preset will be set. */
+  private var appliedPreset = Preset.ALL
   override val preset = MutableStateFlow(Preset.ALL)
 
   private val capabilityToState = capabilitiesList.associateWith {
@@ -242,6 +244,7 @@ internal class WearHealthServicesStateManagerImpl(
           eventLogger.logApplyChangesFailure()
           return@runWithStatus Result.failure(it)
         }
+        appliedPreset = preset.value
       }
       capabilityUpdatesLock.withLock {
         capabilityToState.entries.forEach {
@@ -268,7 +271,7 @@ internal class WearHealthServicesStateManagerImpl(
   }
 
   private suspend fun resetCapabilities(): Result<Unit> {
-    loadPreset(preset.value).join()
+    loadPreset(appliedPreset).join()
     val resetCapabilities = capabilityToState.entries.associate { it.key.dataType to it.value.value.currentState.enabled }
     return deviceManager.setCapabilities(resetCapabilities).also {
       if (it.isSuccess) {
