@@ -279,4 +279,4 @@ wear.runconfigs.autocreate.enabled=COMPLETE:2023
 wear.surfaces.glance.preview.appwidget.enabled=COMPLETE:2024
 wear.surfaces.wear.tile.preview.animation.inspector.enabled=COMPLETE:2024
 wear.surfaces.wear.tile.preview.enabled=COMPLETE:2024
-whatsnew.use.whats.new.v2=PREVIEW
+whatsnew.use.whats.new.v2=COMPLETE:2026
