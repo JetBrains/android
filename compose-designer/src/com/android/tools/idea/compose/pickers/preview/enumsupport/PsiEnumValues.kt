@@ -165,21 +165,21 @@ internal enum class Device(override val classConstant: String, override val disp
 
 /** Pre-defined Font scaling options, based from the options available in the Layout Validation tool window. */
 internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValue {
-  DEFAULT(1f, "Default (100%)"),
-  P85(0.85f, "85%"),
-  P115(1.15f, "115%"),
-  P130(1.30f, "130%"),
-  P150(1.50f, "150%"),
-  P180(1.80f, "180%"),
-  P200(2f, "200%");
+  DEFAULT(1f, "100% (1.0f)"),
+  P85(0.85f, "85% (0.85f)"),
+  P115(1.15f, "115% (1.15f)"),
+  P130(1.30f, "130% (1.3f)"),
+  P150(1.50f, "150% (1.5f)"),
+  P180(1.80f, "180% (1.8f)"),
+  P200(2f, "200% (2.0f)");
 
-  override val value: String = "%.2f".format(scaleValue)
+  override val value: String = "${scaleValue}f"
 
   override val display: String = visibleName
 
   override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback, onSelected: () -> Unit): Boolean {
-    newEnumValue.newValue("${this.value}f")
-    property.value = "${this.value}f"
+    newEnumValue.newValue(this.value)
+    property.value = this.value
     onSelected()
     return true
   }

@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterProp
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
+import com.android.tools.idea.compose.pickers.preview.enumsupport.FontScale
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiModeWithNightMaskEnumValue
 import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
@@ -302,6 +303,26 @@ class PreviewPickerTests {
     assertValidationError("11")
     assertValidationError("Infinity")
     assertValidationError("NaN")
+  }
+
+  @Test
+  fun fontScaleEnumValues() {
+    val fontScaleValues = FontScale.entries
+    assertEquals(7, fontScaleValues.size)
+    assertEquals("100% (1.0f)", fontScaleValues[0].display)
+    assertEquals("1.0f", fontScaleValues[0].value)
+    assertEquals("85% (0.85f)", fontScaleValues[1].display)
+    assertEquals("0.85f", fontScaleValues[1].value)
+    assertEquals("115% (1.15f)", fontScaleValues[2].display)
+    assertEquals("1.15f", fontScaleValues[2].value)
+    assertEquals("130% (1.3f)", fontScaleValues[3].display)
+    assertEquals("1.3f", fontScaleValues[3].value)
+    assertEquals("150% (1.5f)", fontScaleValues[4].display)
+    assertEquals("1.5f", fontScaleValues[4].value)
+    assertEquals("180% (1.8f)", fontScaleValues[5].display)
+    assertEquals("1.8f", fontScaleValues[5].value)
+    assertEquals("200% (2.0f)", fontScaleValues[6].display)
+    assertEquals("2.0f", fontScaleValues[6].value)
   }
 
   @Test
