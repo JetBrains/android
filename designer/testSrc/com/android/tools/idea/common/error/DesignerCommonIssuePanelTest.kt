@@ -318,4 +318,46 @@ class DesignerCommonIssuePanelTest {
     assertEquals(file.virtualFile, descriptor.file)
     assertEquals(9, descriptor.line) // Line numbers are 0-indexed
   }
+
+  @RunsInEdt
+  @Test
+  fun testSelectionAndVisibilityChangedToNotifiesIssueListeners() {
+    val file = rule.fixture.addFileToProject("src/MyClass.kt", "fun myMethod() {}")
+    val fileIssue = TestIssue(source = IssueSourceWithFile(file.virtualFile, "my_layout"), description = "layout issue")
+
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        false,
+        "name",
+        SHARED_ISSUE_PANEL_TAB_ID,
+        { LayoutValidationNodeFactory },
+        EmptyFilter,
+        { "" },
+      )
+    IdeEventQueue.getInstance().flushQueue()
+    val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
+
+    var selectedIssue: Issue? = null
+    panel.addIssueSelectionListener({ issue -> selectedIssue = issue }, rule.testRootDisposable)
+
+    rule.project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, listOf(fileIssue))
+    tree.isRootVisible = false
+    tree.expandRow(0)
+    tree.setSelectionRow(1)
+    assertEquals(fileIssue, selectedIssue)
+
+    // Unselecting tab notifies null
+    panel.selectionChangedTo(false)
+    assertNull(selectedIssue)
+
+    // Selecting tab again restores the selected issue
+    panel.selectionChangedTo(true)
+    assertEquals(fileIssue, selectedIssue)
+
+    // Hiding panel notifies null
+    panel.visibilityChangedTo(false)
+    assertNull(selectedIssue)
+  }
 }

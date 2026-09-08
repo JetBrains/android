@@ -152,12 +152,12 @@ class DesignerCommonIssuePanel(
       val newSelectedNode = event?.newLeadSelectionPath?.lastPathComponent
       if (newSelectedNode == null) {
         updateSidePanel(null, false) // force hide the side panel even the sidePanelVisible is true.
-        issueListeners.forEach { it.onIssueSelected(null) }
+        clearIssueSelection()
         return@addTreeSelectionListener
       }
       val selectedNode = newSelectedNode as DesignerCommonIssueNode
       updateSidePanel(selectedNode, sidePanelVisible)
-      (selectedNode as? IssueNode)?.issue.let { issue -> issueListeners.forEach { it.onIssueSelected(issue) } }
+      notifyIssueSelected(selectedNode)
     }
 
     // Listener for metric
@@ -214,6 +214,9 @@ class DesignerCommonIssuePanel(
         if (tabId == SHARED_ISSUE_PANEL_TAB_ID) UniversalProblemsPanelEvent.ActivatedTab.DESIGN_TOOLS
         else UniversalProblemsPanelEvent.ActivatedTab.UI_CHECK
       DesignerCommonIssuePanelUsageTracker.getInstance().trackSelectingTab(type, project)
+      notifyIssueSelected()
+    } else {
+      clearIssueSelection()
     }
   }
 
@@ -221,7 +224,20 @@ class DesignerCommonIssuePanel(
     if (visible) {
       updateIssueOrder()
       updateIssueVisibility()
+    } else {
+      clearIssueSelection()
     }
+  }
+
+  /** Notifies all registered [IssueListener]s of the issue represented by [node]. */
+  private fun notifyIssueSelected(node: DesignerCommonIssueNode? = getSelectedNode()) {
+    val issue = (node as? IssueNode)?.issue
+    issueListeners.forEach { it.onIssueSelected(issue) }
+  }
+
+  /** Clears the issue selection by notifying all registered [IssueListener]s with null. */
+  private fun clearIssueSelection() {
+    notifyIssueSelected(node = null)
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
