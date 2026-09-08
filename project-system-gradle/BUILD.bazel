@@ -31,6 +31,11 @@ jvm_provided_library(
     lib = "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl",
 )
 
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+)
+
 jvm_library(
     name = "projectSystem-gradle",
     srcs = glob(
@@ -70,7 +75,6 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/gradle",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//android/adt-ui",
         "//android/analytics",
         "//android/apkanalyzer",
@@ -213,6 +217,7 @@ jvm_library(
         ":libraries_kotlin_libraries-kotlin-tooling-core_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-scripting-compiler-impl_provided",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
     ],
 )
 
@@ -255,7 +260,8 @@ jvm_library(
         "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl",
         "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl_test_lib",
         "//libraries/gradle:gradle_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/analytics:analytics_test_lib",
         "//android/apkanalyzer:apkanalyzer_test_lib",

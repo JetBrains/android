@@ -1,11 +1,16 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.layout-inspector` start
 create_kotlinc_options(
     name = "custom_layout-inspector",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
 )
 
 jvm_library(
@@ -29,7 +34,6 @@ jvm_library(
         # do not sort,
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//libraries/gson",
         "//libraries/guava",
         "//libraries/io",
@@ -100,6 +104,7 @@ jvm_library(
         "//xml/xml-psi-impl:psi-impl",
         "//platform/progress/shared:ide-progress",
         "//fleet/util/core",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
     ],
 )
 
@@ -131,7 +136,8 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/gson",
         "//libraries/gson:gson_test_lib",
         "//libraries/guava",

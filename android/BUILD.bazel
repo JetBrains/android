@@ -25,6 +25,11 @@ kt_javac_options(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+)
+
+jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
     lib = "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
 )
@@ -93,7 +98,6 @@ jvm_library(
         "//libraries/kotlinc/kotlin-scripting-common:libraries-kotlinc-kotlin-scripting-common",
         "//libraries/kotlinc/kotlin-scripting-jvm:libraries-kotlinc-kotlin-scripting-jvm",
         "//plugins/kotlin/scripting",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "@lib//:kotlinc-kotlin-gradle-statistics-provided",
         "//android/android-adb:adb",
         "//android/adt-ui",
@@ -274,6 +278,7 @@ jvm_library(
         "//xml/emmet",
         "//libraries/jspecify",
         "//plugins/gradle/java/groovy",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
         ":plugins_maven_artifactResolver-m31_provided",
@@ -331,7 +336,8 @@ jvm_library(
         "//libraries/kotlinc/kotlin-scripting-common:libraries-kotlinc-kotlin-scripting-common_test_lib",
         "//libraries/kotlinc/kotlin-scripting-jvm:libraries-kotlinc-kotlin-scripting-jvm_test_lib",
         "//plugins/kotlin/scripting:scripting_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
         "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "@lib//:kotlinc-kotlin-gradle-statistics-provided",
@@ -12206,7 +12212,8 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled",
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-fe10",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//android/android-templates:templates-tests",
         "//android/android-templates:templates-tests_test_lib",
         "//images:images-tests",

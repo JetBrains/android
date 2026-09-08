@@ -23,7 +23,6 @@ dev_dist_plugin(
         "//android/compose-designer/lib:android-compose-designer-ui-animation-tooling-internal",
         "@lib//:android-nav-editor-eclipse-layout-kernel",
         "@lib//:jaxb-api",
-        "@lib//:kotlinc-kotlin-compiler-fe10",
         "@lib//:libraries-layoutlib-layoutlib",
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",

@@ -11,6 +11,11 @@ create_kotlinc_options(
 )
 
 jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+)
+
+jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
     lib = "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
 )
@@ -54,7 +59,6 @@ jvm_library(
         "//libraries/protobuf",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//android/intellij.android.compose-common:compose-common",
         "//android/execution/common",
         "//android/jps-model",
@@ -121,6 +125,7 @@ jvm_library(
         "//android/visual-lint",
         "//platform/refactoring",
         "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
     ],
 )
@@ -157,7 +162,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
         "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "//android/intellij.android.compose-common:compose-common_test_lib",

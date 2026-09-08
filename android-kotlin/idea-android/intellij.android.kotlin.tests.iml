@@ -31,7 +31,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.fe10" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-tests" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
