@@ -1,3 +1,4 @@
+load(":art-k2-failing-tests.bzl", "ART_K2_FAILING")
 load(":ij-debugger-tests.bzl", "debugger_test")
 
 smoke_test = "include-methodname=org.jetbrains.kotlin.idea.k2.debugger.test.cases.K2PositionManagerTestGenerated\\$SingleFile#testClass"
@@ -48,5 +49,15 @@ debugger_test(
         "ci:studio-linux_very_flaky",
         "noci:studio-linux",
     ],
+    test_dep = "@tools_idea//plugins/kotlin/jvm-debugger/test/k2:kotlin-jvm-debugger-test_test_lib",
+)
+
+# A target of just the failing tests
+debugger_test(
+    name = "art-k2-failing-tests",
+    filters = ART_K2_FAILING,
+    run_on_art = True,
+    shard_count = 50,
+    tags = ["manual"],
     test_dep = "@tools_idea//plugins/kotlin/jvm-debugger/test/k2:kotlin-jvm-debugger-test_test_lib",
 )
