@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcechooser
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
-import com.android.tools.configurations.Configuration
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
@@ -30,13 +30,12 @@ import com.android.tools.idea.ui.resourcemanager.model.getModuleResources
 import com.android.tools.idea.ui.resourcemanager.model.getThemeAttributes
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
-import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.text.StringUtil
@@ -50,9 +49,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearch
-import com.intellij.util.ModalityUiUtil
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
@@ -64,16 +60,17 @@ import java.awt.Dimension
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.ItemEvent
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
-import java.util.function.BiConsumer
-import java.util.function.Supplier
 import javax.swing.BorderFactory
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.event.DocumentEvent
 import kotlin.properties.Delegates
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
 private const val CELL_WIDTH = 300
@@ -86,20 +83,49 @@ private const val PANEL_HEIGHT = 400
  * the resources being displayed: Project, Libraries, Android and Theme Attributes.
  *
  * @param facet The current [AndroidFacet]
- * @param configuration [Configuration] of the current file, provides the context to properly render resources and resolve theme attributes
+ * @param contextFile The file that provides the context for resources
+ * @param resourceResolverSupplier Provides the [ResourceResolver] to properly render resources and resolve theme attributes
+ * @param resourceType The [ResourceType] of resources to display
+ * @param selectedPickerSources Initial set of [ResourcePickerSources] to pick from
  * @param selectedResourceCallback Called whenever there's a selection change, including the final selection from the [ResourcePickerDialog]
  * @param resourcePickerDialogOpenedCallback Called when the **Browse** label is clicked to open the [ResourcePickerDialog]
+ * @param parentDisposable [Disposable] for resource cleanup
+ * @param coroutineScope [CoroutineScope] used to load resources in background
  */
 class CompactResourcePicker(
-  facet: AndroidFacet,
+  private val facet: AndroidFacet,
   contextFile: VirtualFile?,
-  resourceResolver: ResourceResolver,
-  resourceType: ResourceType,
+  resourceResolverSupplier: () -> ResourceResolver,
+  private val resourceType: ResourceType,
   selectedPickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
   selectedResourceCallback: (String) -> Unit,
   resourcePickerDialogOpenedCallback: () -> Unit,
-  parentDisposable: Disposable,
+  private val parentDisposable: Disposable,
+  coroutineScope: CoroutineScope = parentDisposable.createCoroutineScope(),
 ) : JPanel(BorderLayout()) {
+
+  constructor(
+    facet: AndroidFacet,
+    contextFile: VirtualFile?,
+    resourceResolver: ResourceResolver,
+    resourceType: ResourceType,
+    selectedPickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
+    selectedResourceCallback: (String) -> Unit,
+    resourcePickerDialogOpenedCallback: () -> Unit,
+    parentDisposable: Disposable,
+    coroutineScope: CoroutineScope = parentDisposable.createCoroutineScope(),
+  ) : this(
+    facet,
+    contextFile,
+    { resourceResolver },
+    resourceType,
+    selectedPickerSources,
+    selectedResourceCallback,
+    resourcePickerDialogOpenedCallback,
+    parentDisposable,
+    coroutineScope,
+  )
+
   private val sources: List<ResourcePickerSources> =
     if (selectedPickerSources.isEmpty()) {
       // Make sure that the sources parameter does not return an empty list, otherwise default to all sources
@@ -179,11 +205,6 @@ class CompactResourcePicker(
       background = PICKER_BACKGROUND_COLOR
       fixedCellHeight = scaledCellHeight
       fixedCellWidth = JBUIScale.scale(CELL_WIDTH)
-      cellRenderer =
-        CompactResourceListCellRenderer(
-          AssetPreviewManagerImpl(facet, ImageCache.createImageCache(parentDisposable), resourceResolver),
-          scaledCellHeight,
-        )
       addListSelectionListener { event ->
         if (!event.valueIsAdjusting) {
           selectedValue?.getHighestDensityAsset()?.resourceUrl?.toString()?.let { resourceName -> selectedResourceCallback(resourceName) }
@@ -234,27 +255,9 @@ class CompactResourcePicker(
       )
     }
 
-  /**
-   * JobScheduler future that when run, will make the resources list look like if it's loading. If the list loads before the job is run,
-   * then it will simply be cancelled.
-   */
-  private val showAsLoadingFuture =
-    JobScheduler.getScheduler()
-      .schedule(
-        {
-          ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState()) {
-            // Schedule the 'loading' state of the list, to avoid flashing in the UI
-            resourcesList.setPaintBusy(true)
-            resourcesList.emptyText.text = "Loading..."
-          }
-        },
-        250L,
-        TimeUnit.MILLISECONDS,
-      )
-
   init {
     populatePanel()
-    loadResources(facet, resourceResolver, resourceType)
+    loadResources(coroutineScope, facet, resourceResolverSupplier, resourceType)
   }
 
   private fun populatePanel() {
@@ -280,36 +283,52 @@ class CompactResourcePicker(
   }
 
   /** Load every resource that can be displayed in a background thread, then populate the [resourcesModel] in the EDT. */
-  private fun loadResources(facet: AndroidFacet, resourceResolver: ResourceResolver, type: ResourceType) {
-    CompletableFuture.supplyAsync(
-        Supplier {
-          val resourcesMap = mutableMapOf<ResourcePickerSources, List<ResourceAssetSet>>()
+  private fun loadResources(
+    coroutineScope: CoroutineScope,
+    facet: AndroidFacet,
+    resourceResolverSupplier: () -> ResourceResolver,
+    type: ResourceType,
+  ) {
+    val loadingJob =
+      coroutineScope.launch(Dispatchers.EDT) {
+        delay(250)
+        // Schedule the 'loading' state of the list, to avoid flashing in the UI
+        resourcesList.setPaintBusy(true)
+        resourcesList.emptyText.text = "Loading..."
+      }
 
-          for (source in sources) {
-            resourcesMap[source] =
-              when (source) {
-                // Project resources come from the current module and its dependencies.
-                ResourcePickerSources.PROJECT ->
-                  ArrayList<ResourceAssetSet>().apply {
-                    addAll(getModuleResources(facet, type, emptyList()).assetSets)
-                    addAll(getDependentModuleResources(facet, type, emptyList()).flatMap { it.assetSets })
-                  }
-                ResourcePickerSources.LIBRARY -> getLibraryResources(facet, type, emptyList()).flatMap { it.assetSets }
-                ResourcePickerSources.ANDROID -> getAndroidResources(facet, type, emptyList())?.assetSets ?: emptyList()
-                ResourcePickerSources.THEME_ATTR -> getThemeAttributes(facet, type, emptyList(), resourceResolver)?.assetSets ?: emptyList()
-              }
-          }
-          return@Supplier resourcesMap
-        },
-        AppExecutorUtil.getAppExecutorService(),
-      )
-      .whenCompleteAsync(
-        BiConsumer { resourcesMap, _ ->
-          showAsLoadingFuture.cancel(true)
+    coroutineScope.launch(Dispatchers.Default) {
+      try {
+        val resourceResolver = resourceResolverSupplier()
+        val resourcesMap = mutableMapOf<ResourcePickerSources, List<ResourceAssetSet>>()
+
+        for (source in sources) {
+          resourcesMap[source] =
+            when (source) {
+              // Project resources come from the current module and its dependencies.
+              ResourcePickerSources.PROJECT ->
+                ArrayList<ResourceAssetSet>().apply {
+                  addAll(getModuleResources(facet, type, emptyList()).assetSets)
+                  addAll(getDependentModuleResources(facet, type, emptyList()).flatMap { it.assetSets })
+                }
+              ResourcePickerSources.LIBRARY -> getLibraryResources(facet, type, emptyList()).flatMap { it.assetSets }
+              ResourcePickerSources.ANDROID -> getAndroidResources(facet, type, emptyList())?.assetSets ?: emptyList()
+              ResourcePickerSources.THEME_ATTR -> getThemeAttributes(facet, type, emptyList(), resourceResolver)?.assetSets ?: emptyList()
+            }
+        }
+
+        withContext(Dispatchers.EDT) {
+          resourcesList.cellRenderer =
+            CompactResourceListCellRenderer(
+              AssetPreviewManagerImpl(facet, ImageCache.createImageCache(parentDisposable), resourceResolver),
+              scaledCellHeight,
+            )
           resourcesModel = resourcesMap
-        },
-        EdtExecutorService.getScheduledExecutorInstance(),
-      )
+        }
+      } finally {
+        loadingJob.cancel()
+      }
+    }
   }
 
   /** Update the [resourcesList] with the resources from the selected [ResourcePickerSources]. */

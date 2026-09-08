@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcemanager.simulateMouseClick
 import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.testFramework.EdtRule
@@ -149,6 +150,37 @@ class CompactResourcePickerTest {
       // The local color resources only has 4 different resources, the framework repository should have more.
       it != null && it.model.size > 4
     }
+  }
+
+  @Test
+  fun resourceResolverSupplierRunsInBackgroundThread() {
+    val facet = AndroidFacet.getInstance(rule.module)!!
+    val configuration =
+      ConfigurationManager.getOrCreateInstance(facet.module)
+        .getConfiguration(StandardFileSystems.local().findFileByPath(rule.project.basePath!!)!!)
+    var evaluatedInBackground = false
+    val panel =
+      CompactResourcePicker(
+        facet,
+        configuration.file,
+        {
+          evaluatedInBackground = !ApplicationManager.getApplication().isDispatchThread
+          configuration.resourceResolver
+        },
+        ResourceType.COLOR,
+        ResourcePickerSources.allSources(),
+        {},
+        {},
+        disposable,
+      )
+
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      UIUtil.findComponentOfType(panel, JList::class.java)!!.setUI(HeadlessListUI())
+    }
+
+    waitAndAssert<JList<in Any>>(panel) { it != null && it.model.size > 0 }
+    assertTrue(evaluatedInBackground)
   }
 
   private fun createAndWaitForResourcePickerPanel(
