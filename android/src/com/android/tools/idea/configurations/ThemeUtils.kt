@@ -212,7 +212,7 @@ fun getDeviceDefaultTheme(
   }
 
   if (moduleInfo == null) {
-    return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"
+    return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light.NoActionBar"
   }
 
   // From manifest theme documentation: "If that attribute is also not set, the default system theme is used."
@@ -224,7 +224,7 @@ fun getDeviceDefaultTheme(
   val apiLevel = targetOrMinSdk.coerceAtMost(renderingTargetSdk)
   return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX +
     when {
-      apiLevel >= 21 -> "Theme.Material.Light"
+      apiLevel >= 21 -> "Theme.Material.Light.NoActionBar"
       apiLevel >= 14 || apiLevel >= 11 && screenSize == ScreenSize.XLARGE -> "Theme.Holo"
       else -> "Theme"
     }
