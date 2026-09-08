@@ -21,7 +21,7 @@ data class GenericEvent
 @JvmOverloads
 constructor(
   val project: Project?,
-  val caller: Any?,
+  val caller: Class<*>?,
   val eventType: String,
   val keyValues: Map<String, String> = emptyMap(),
   val durationInNanos: Long? = null,

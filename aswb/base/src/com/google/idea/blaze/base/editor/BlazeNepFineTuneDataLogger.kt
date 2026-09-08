@@ -27,6 +27,7 @@ class BlazeNepFineTuneDataLogger : NepFineTuneDataListener {
 
   override fun onData(project: Project, data: NepFineTuneData) {
     if (!nepFineTuneDataCaptureExperiment.isEnabled) return
-    EventLoggingService.getInstance().log(GenericEvent(project, data.caller, data.type, data.values, data.durationNanos))
+    val callerClass = (data.caller as? Class<*>) ?: data.caller?.javaClass
+    EventLoggingService.getInstance().log(GenericEvent(project, callerClass, data.type, data.values, data.durationNanos))
   }
 }
