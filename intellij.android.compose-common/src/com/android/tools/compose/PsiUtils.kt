@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
+import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.allConstructors
@@ -188,6 +189,16 @@ private tailrec fun KtElement.composableHolderAndScope(): Pair<KtModifierListOwn
       // If we're a lambda stored in a property, and that property has an explicit type, then the
       // type has to be annotated. The lambda is again the actual scope.
       if (lambdaParent is KtProperty) {
+        val typeReference = lambdaParent.typeReference
+        if (typeReference != null) return typeReference to scope
+      }
+      // If the lambda is returned from a block body, annotate the function return type.
+      if (lambdaParent is KtReturnExpression) {
+        val typeReference = lambdaParent.parentOfType<KtNamedFunction>()?.typeReference
+        if (typeReference != null) return typeReference to scope
+      }
+      // If the lambda is the function body, annotate the function return type.
+      if (lambdaParent is KtNamedFunction) {
         val typeReference = lambdaParent.typeReference
         if (typeReference != null) return typeReference to scope
       }

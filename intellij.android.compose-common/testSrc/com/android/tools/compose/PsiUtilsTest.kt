@@ -620,6 +620,48 @@ class PsiUtilsTest {
   }
 
   @Test
+  fun expectedComposableAnnotationHolder_returnedLambda_withReturnType() {
+    fixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      fun Greeting(): () -> Int {
+        return { 35 }
+      }
+      """
+        .trimIndent(),
+    )
+
+    runReadActionWithIndexesReady {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtTypeReference = fixture.getEnclosing("() -> Int")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_lambdaFunctionBody_withReturnType() {
+    fixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      fun Greeting(): () -> Int = { 35 }
+      """
+        .trimIndent(),
+    )
+
+    runReadActionWithIndexesReady {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtTypeReference = fixture.getEnclosing("() -> Int")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
   fun expectedComposableAnnotationHolder_inlineLambda() {
     fixture.loadNewFile(
       "Test.kt",
