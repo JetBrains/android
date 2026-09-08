@@ -115,12 +115,23 @@ iml_module(
             "data": [
                 "//prebuilts/studio/sdk:platforms/android-36",
             ],
+            "tags": ["noci:studio-win"],
         },
         "TemplateRegistryServiceTest": {
             "test_filter": "com.android.tools.idea.npw.templateengine.services.TemplateRegistryServiceTest",
+            "tags": ["noci:studio-win"],
         },
         "ProjectImporterTest": {
             "test_filter": "com.android.tools.idea.npw.templateengine.importer.ProjectImporterTest",
+            "tags": ["noci:studio-win"],
+        },
+        "TemplateEngineWizardUITest": {
+            "test_filter": "com.android.tools.idea.npw.templateengine.ui.TemplateEngineWizardUITest",
+            "tags": ["noci:studio-win"],
+        },
+        "ConfigureProjectViewModelTest": {
+            "test_filter": "com.android.tools.idea.npw.templateengine.viewmodel.ConfigureProjectViewModelTest",
+            "tags": ["noci:studio-win"],
         },
         "other": {
             "shard_count": 10,

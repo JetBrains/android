@@ -44,6 +44,7 @@ class ConfigureProjectViewModelTest {
 
   @Before
   fun setUp() {
+    clearProperties()
     Dispatchers.setMain(testDispatcher)
     defaultParentDir = tempFolder.newFolder("AndroidStudioProjects").toPath()
     viewModel = ConfigureProjectViewModel(defaultParentDir)
@@ -51,7 +52,14 @@ class ConfigureProjectViewModelTest {
 
   @After
   fun tearDown() {
+    clearProperties()
     Dispatchers.resetMain()
+  }
+
+  private fun clearProperties() {
+    for (formFactor in FormFactor.values()) {
+      PropertiesComponent.getInstance().unsetValue(formFactor.name + "minApi")
+    }
   }
 
   @Test
