@@ -427,19 +427,49 @@ internal constructor(
     }
   }
 
+  /**
+   * Adjusts the viewport position after a scale change so the content remains anchored to the focal point.
+   *
+   * The focal point represents the anchor coordinate on screen (typically the mouse cursor position or the center of the visible viewport)
+   * that should appear stationary before and after zooming.
+   *
+   * - When a preview is selected: The viewport centers directly on the selected [SceneView].
+   * - Otherwise: [ZoomCenterScroller] scales the viewport smoothly around the viewport-relative focus point.
+   */
   override fun onScaleChange(update: ScaleChange) {
     super.onScaleChange(update)
 
-    val port = viewport
-    val scrollPosition = pannable.scrollPosition
-    var focusPoint = update.focusPoint
-
-    if (focusPoint.x < 0 || focusPoint.y < 0) {
-      focusPoint = Point(port.viewportComponent.width / 2, port.viewportComponent.height / 2)
+    // When a preview or a component inside it is selected, prioritize keeping that selected preview centered on screen
+    // across zoom scale changes conforming to the new scale.
+    val selectedSceneView = focusedSceneView?.takeIf { !selectionModel.isEmpty }
+    if (selectedSceneView != null) {
+      val unscaledContentSize = selectedSceneView.getContentSize(null)
+      val scaledRectangle =
+        Rectangle(
+          0,
+          0,
+          (unscaledContentSize.width * update.newScale).toInt(),
+          (unscaledContentSize.height * update.newScale).toInt(),
+        )
+      viewportScroller = DesignSurfaceViewportScroller {
+        scrollToCenter(selectedSceneView, scaledRectangle)
+      }
+      return
     }
-    val zoomCenterInView = Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y)
 
-    viewportScroller = ZoomCenterScroller(Dimension(port.viewSize), Point(scrollPosition), zoomCenterInView)
+    val currentScrollPosition = pannable.scrollPosition
+    val viewportComponentSize = Dimension(viewport.viewportComponent.width, viewport.viewportComponent.height)
+
+    // The focal point represents the reference position on screen (e.g. mouse cursor or center of the viewport)
+    // around which the scale change occurs. Because ZoomCenterScroller expects the focal coordinate in viewport-relative
+    // space, we convert update.focusPoint (which is in canvas/view coordinates) to viewport coordinates by subtracting
+    // the current scroll position. If negative coordinates are passed (e.g. from toolbar actions), we default to the
+    // center of the viewport.
+    val zoomCenterInViewport = resolveFocusPointInViewport(update.focusPoint, currentScrollPosition, viewportComponentSize)
+
+    // ZoomCenterScroller computes the weight of the focal point across the canvas before zoom, calculates its new
+    // position in the scaled canvas, and adjusts the viewport scroll position so that exact point remains under the cursor.
+    viewportScroller = ZoomCenterScroller(Dimension(viewport.viewSize), Point(currentScrollPosition), zoomCenterInViewport)
   }
 
   /** Return whenever surface is rotating. */
@@ -507,4 +537,23 @@ internal constructor(
       manager.model.configuration.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, null)
     }
   }
+
+  /**
+   * Translates [focusPoint] from canvas/view coordinates to viewport-relative coordinates.
+   *
+   * The focal point represents the anchor position on screen where the zoom is targeted (e.g. mouse cursor location).
+   * - If an explicit coordinate is provided, subtract the current [scrollPosition] to find its position within the visible viewport window.
+   * - If negative coordinates are provided (e.g. from toolbar actions or keyboard zoom without cursor on surface), default to the center of
+   *   the viewport window.
+   */
+  private fun resolveFocusPointInViewport(
+    focusPoint: Point,
+    scrollPosition: Point,
+    viewportComponentSize: Dimension,
+  ): Point =
+    if (focusPoint.x < 0 || focusPoint.y < 0) {
+      Point(viewportComponentSize.width / 2, viewportComponentSize.height / 2)
+    } else {
+      Point(focusPoint.x - scrollPosition.x, focusPoint.y - scrollPosition.y)
+    }
 }

@@ -618,6 +618,49 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     }
   }
 
+  fun testZoomWithSelectedComponentCentersSceneView() {
+    val model: NlModel =
+      model(
+          "my_linear.xml",
+          component(SdkConstants.LINEAR_LAYOUT)
+            .withBounds(0, 0, 200, 200)
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(component(SdkConstants.BUTTON).id("@+id/myButton").withBounds(0, 0, 100, 100).width("100dp").height("100dp")),
+        )
+        .build()
+    designSurface.setModel(model)
+    waitForSurfaceToBeReady(model)
+    designSurface.setScrollViewSizeAndValidateForTest(1000, 1000)
+
+    val button = model.treeReader.find("myButton")!!
+    designSurface.selectionModel.setSelection(listOf(button))
+
+    val initialScale = designSurface.zoomController.scale
+    designSurface.zoomController.zoom(ZoomType.IN)
+    assertTrue(designSurface.zoomController.scale > initialScale)
+    assertTrue(designSurface.pannable.scrollPosition.x >= 0)
+    assertTrue(designSurface.pannable.scrollPosition.y >= 0)
+  }
+
+  fun testZoomInWithFocalPointOnVoid() {
+    val model: NlModel =
+      model(
+          "my_linear.xml",
+          component(SdkConstants.LINEAR_LAYOUT).withBounds(0, 0, 200, 200).matchParentWidth().matchParentHeight(),
+        )
+        .build()
+    designSurface.setModel(model)
+    waitForSurfaceToBeReady(model)
+    designSurface.setScrollViewSizeAndValidateForTest(1000, 1000)
+
+    val initialScale = designSurface.zoomController.scale
+    designSurface.zoomController.zoom(ZoomType.IN, 800, 800)
+    assertTrue(designSurface.zoomController.scale > initialScale)
+    assertTrue(designSurface.pannable.scrollPosition.x >= 0)
+    assertTrue(designSurface.pannable.scrollPosition.y >= 0)
+  }
+
   private fun refreshSurface() {
     for (manager in designSurface.sceneManagers) {
       // TODO (b/370994254): it may be necessary to make this method suspendable and replace this

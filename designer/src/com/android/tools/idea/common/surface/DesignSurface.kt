@@ -526,28 +526,46 @@ abstract class DesignSurface<T : SceneManager>(
 
   override fun magnificationFinished(magnification: Double) {}
 
-  override fun magnify(magnification: Double) {
-    // The mousePoint represents the focal point for the magnification.
-    // The default center point is the center of the surface.
-    // We divide the width and height of the surface by 2 to get the exact center point.
-    val defaultCenterPoint = Point(width / 2, height / 2)
+  /**
+   * Returns the mouse cursor location in the [interactionPane] coordinate system if the cursor is currently over the visible area of the
+   * [DesignSurface] and not over floating toolbars, or null otherwise.
+   */
+  fun getMouseLocationOnSurface(): Point? {
+    if (GraphicsEnvironment.isHeadless() || !isShowing || !interactionPane.isShowing) {
+      return null
+    }
+    val pointerLocation = MouseInfo.getPointerInfo()?.location ?: return null
+    val pointInThis = Point(pointerLocation).also { SwingUtilities.convertPointFromScreen(it, this) }
+    if (pointInThis.x !in 0..<width || pointInThis.y !in 0..<height) {
+      return null
+    }
 
-    // We check if the mouse points to a specific point of the surface. However, if we are in a headless environment (like in tests) or if
-    // we can't get the actual pointer info, we default to the center of the surface because we want to zoom over the
-    // middle of the surface.
-    // Note that [GraphicsEnvironment.isHeadless()] needs to be checked before checking [MouseInfo] or an [HeadlessException] will be
-    // called.
-    val mousePointFromScreen =
-      if (GraphicsEnvironment.isHeadless()) {
-        defaultCenterPoint
-      } else {
-        MouseInfo.getPointerInfo()?.location?.also { SwingUtilities.convertPointFromScreen(it, interactionPane) }
+    if (zoomControlsLayerPane != null) {
+      val deepest = SwingUtilities.getDeepestComponentAt(this, pointInThis.x, pointInThis.y)
+      if (deepest != null && SwingUtilities.isDescendingFrom(deepest, zoomControlsLayerPane)) {
+        return null
       }
+    }
 
-    // If any mouse point is detected, we change the scale and scroll towards the mouse point.
-    val mousePoint = mousePointFromScreen ?: defaultCenterPoint
+    val pointInPane = Point(pointerLocation).also { SwingUtilities.convertPointFromScreen(it, interactionPane) }
+    return if (interactionPane.visibleRect.contains(pointInPane)) pointInPane else null
+  }
+
+  override fun magnify(magnification: Double) {
+    val mouseLocation = getMouseLocationOnSurface()
     val newScale = currentMagnificationScale + magnification * MAGNIFICATION_SENSITIVITY
-    zoomController.setScale(newScale, mousePoint.x, mousePoint.y)
+    if (mouseLocation != null) {
+      zoomController.setScale(newScale, mouseLocation.x, mouseLocation.y)
+    } else {
+      val view = focusedSceneView ?: sceneViews.firstOrNull()
+      if (view != null) {
+        val centerX = view.x + view.scaledContentSize.width / 2
+        val centerY = view.y + view.scaledContentSize.height / 2
+        zoomController.setScale(newScale, centerX, centerY)
+      } else {
+        zoomController.setScale(newScale, -1, -1)
+      }
+    }
   }
 
   protected fun notifyPanningChanged() {
@@ -805,13 +823,11 @@ abstract class DesignSurface<T : SceneManager>(
       override var scrollPosition: Point
         get() = viewport.viewPosition
         set(value) {
-          value.setLocation(max(0, value.x), max(0, value.y))
-
           val extent: Dimension = viewport.extentSize
           val view: Dimension = viewport.viewSize
 
-          val minX = min(value.x, view.width - extent.width)
-          val minY = min(value.y, view.height - extent.height)
+          val minX = max(0, min(value.x, view.width - extent.width))
+          val minY = max(0, min(value.y, view.height - extent.height))
 
           value.setLocation(minX, minY)
 
