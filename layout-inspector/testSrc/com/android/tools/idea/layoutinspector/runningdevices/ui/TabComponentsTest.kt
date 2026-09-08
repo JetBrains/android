@@ -22,7 +22,9 @@ import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
@@ -32,7 +34,7 @@ class TabComponentsTest {
 
   private val displayViewRule = EmulatorViewRule()
 
-  @get:Rule val rule = RuleChain(TestScopeRule(), displayViewRule)
+  @get:Rule val rule = RuleChain(TestScopeRule(), displayViewRule, EdtRule())
 
   private lateinit var displayListeners: MutableList<DeviceDisplayListener>
   private lateinit var displayView1: DisplayView
@@ -52,6 +54,7 @@ class TabComponentsTest {
   }
 
   @Test
+  @RunsInEdt
   fun testDynamicDisplaysAreHandled() {
     val tabComponents = createTabComponents()
     assertThat(tabComponents.displayList.value).hasSize(2)
