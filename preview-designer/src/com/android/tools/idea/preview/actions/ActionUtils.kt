@@ -47,11 +47,12 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 
 /**
- * Helper method that navigates back to the pre`vious [PreviewMode] for all [PreviewModeManager]s in the given [AnActionEvent]'s
+ * Helper method that navigates back to the previous [PreviewMode] for all [PreviewModeManager]s in the given [AnActionEvent]'s
  * [DataContext].
  *
  * @param e the [AnActionEvent] holding the context of the action
  */
+@RequiresBackgroundThread
 fun navigateBack(e: AnActionEvent) {
   e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.restorePrevious()
 }

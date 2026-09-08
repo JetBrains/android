@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
+import kotlinx.coroutines.launch
 
 class StopUiCheckPreviewAction :
   DumbAwareAction(
@@ -40,10 +41,9 @@ class StopUiCheckPreviewAction :
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    navigateBack(e)
+    e.coroutineScope.launch { navigateBack(e) }
   }
 
-  // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
-  // VirtualFile
+  // BGT is needed when calling findPreviewManager because it accesses the VirtualFile
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
