@@ -153,6 +153,25 @@ public class ScreenViewLayerTest {
     ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", unscaled, output, 0.0);
   }
 
+  @Test
+  // Regression test for b/546380658
+  public void paintWhenDisposedDoesNotFail() {
+    Ref<Rectangle> screenViewSize = new Ref<>(scaleRectangle(FULL_SIZE, SCALE));
+
+    RecyclableImage imageHQ = getTestImage(IMAGE_WIDTH, IMAGE_HEIGHT);
+    ScreenView screenView = createScreenViewMock(screenViewSize, createRenderResultMock(imageHQ));
+    ScreenViewLayer layer = new ScreenViewLayer(screenView, screenView.getSurface(), screenView.getSurface()::getRotateSurfaceDegree);
+
+    Disposer.dispose(layer);
+
+    BufferedImage output = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = createGraphicsAndClean(output, screenViewSize.get());
+    BufferedImage expected = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+    createGraphicsAndClean(expected, screenViewSize.get());
+
+    layer.paint(g);
+  }
+
   @NotNull
   private static RecyclableImage getTestImage(int imageWidth, int imageHeight) {
     RecyclableImage imageHQ = RecyclableImage.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);

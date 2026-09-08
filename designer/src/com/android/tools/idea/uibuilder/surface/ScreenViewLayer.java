@@ -37,6 +37,7 @@ import java.awt.Transparency;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,6 +79,8 @@ public class ScreenViewLayer extends Layer {
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle myCachedScreenViewDisplayRect = new Rectangle();
   private double myLastScale;
+
+  private final AtomicBoolean myIsDisposed = new AtomicBoolean(false);
 
   /**
    * Create a new ScreenViewLayer for the given screenView.
@@ -145,6 +148,9 @@ public class ScreenViewLayer extends Layer {
 
   @Override
   public void paint(@NotNull Graphics2D graphics2D) {
+    if (myIsDisposed.get()) {
+      return;
+    }
     myScreenView.getScaledContentSize(myScreenViewSize);
     // Calculate the portion of the screen view that it's visible
     myScreenViewVisibleRect.setBounds(myScreenView.getX(), myScreenView.getY(),
@@ -242,5 +248,6 @@ public class ScreenViewLayer extends Layer {
   public void dispose() {
     super.dispose();
     myLastRenderResult = null;
+    myIsDisposed.set(true);
   }
 }
