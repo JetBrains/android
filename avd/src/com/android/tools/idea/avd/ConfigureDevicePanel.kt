@@ -142,10 +142,13 @@ private fun Tabs(
  * Reduce this set of versions to the stable versions, plus any preview versions that are newer than the latest stable, sorted newest first.
  * Strip extension levels.
  */
-private fun Collection<AndroidVersion>.relevantVersions(): ImmutableList<AndroidVersion> {
+internal fun Collection<AndroidVersion>.relevantVersions(): ImmutableList<AndroidVersion> {
   val (previewVersions, stableVersions) = mapTo(TreeSet()) { it.withBaseExtensionLevel() }.partition { it.isPreview }
   val latestStableVersion = stableVersions.maxOrNull() ?: AndroidVersion.DEFAULT
-  return (previewVersions.filter { it > latestStableVersion } + stableVersions).sortedDescending().toImmutableList()
+  val latestCanaryVersion = previewVersions.filter { it.canaryNumber != null }.sortedByDescending { it.canaryNumber }.firstOrNull()
+  return (previewVersions.filter { it > latestStableVersion || it == latestCanaryVersion } + stableVersions)
+    .sortedDescending()
+    .toImmutableList()
 }
 
 private enum class Tab(val text: String) {
