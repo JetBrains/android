@@ -215,10 +215,15 @@
 
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
 
+    <!-- TODO: android-merge; the short name Deprecation is already taken by
+         com.intellij.codeInspection.deprecation.DeprecationInspection in the intellij.java.backend
+         content module, which the monorepo loads in Android Studio as well, and short names must be
+         unique. Registering the Android variant needs a different short name or the platform one gone.
     <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"
                      groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"
                      enabledByDefault="true" level="WARNING"
                      implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
+    -->
 
     <applicationConfigurable parentId="preferences.general"
                              bundle="messages.AndroidBundle"
