@@ -42,7 +42,7 @@ object TaskBasedUxColors {
   val DROPDOWN_SEC_TEXT_COLOR
     get() = retrieveColorOrUnspecified("Component.infoForeground")
 
-  // Border color of past recordings banner.
-  val PAST_RECORDINGS_BANNER_BORDER_COLOR
+  // Border color of banners across Task-Based UX.
+  val BANNER_BORDER_COLOR
     get() = retrieveColorOrUnspecified("ActionButton.focusedBorderColor")
 }

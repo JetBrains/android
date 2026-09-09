@@ -27,7 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.PAST_RECORDINGS_BANNER_BORDER_COLOR
+import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.BANNER_BORDER_COLOR
 import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.RECORDING_BANNER_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.DONT_SHOW_AGAIN_TITLE
@@ -65,5 +65,5 @@ fun LeakCanaryBanner(onBannerClose: () -> Unit, onBannerDoNotAskAgainClick: () -
 
 @Composable
 private fun LeakCanaryBannerBorderLine() {
-  Divider(orientation = Orientation.Horizontal, color = PAST_RECORDINGS_BANNER_BORDER_COLOR, modifier = Modifier.fillMaxWidth())
+  Divider(orientation = Orientation.Horizontal, color = BANNER_BORDER_COLOR, modifier = Modifier.fillMaxWidth())
 }

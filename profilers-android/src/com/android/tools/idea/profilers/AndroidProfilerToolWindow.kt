@@ -40,6 +40,7 @@ import com.android.tools.profilers.cpu.ProfilerInEditorUtils
 import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.taskbased.common.constants.strings.StringUtils
 import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskTabs
 import com.android.tools.profilers.tasks.ProfilerTaskType
@@ -50,9 +51,10 @@ import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.intellij.execution.RunManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -169,6 +171,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
         pastRecordingsPanel.add(pastRecordingsTab.view.panel)
         pastRecordingsPanel.revalidate()
         pastRecordingsPanel.repaint()
+        registerEditorTabFocusListener()
       }
       // The Profiler tab is initialized here with the home tab so that the view bindings will be ready in the case the user imports a file
       // from a fresh/un-opened Profiler tool window state. While entering a stage from an uninitialized Profiler state after importing is
@@ -303,7 +306,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       val currentSessionId = profilers.sessionsManager.selectedSession.sessionId
       val existingFile = liveTaskVirtualFile
       if (existingFile != null && (existingFile.sessionId != currentSessionId || !isLiveTaskInEditor)) {
-        ApplicationManager.getApplication().invokeLater { FileEditorManager.getInstance(project).closeFile(existingFile) }
+        invokeLater { FileEditorManager.getInstance(project).closeFile(existingFile) }
         liveTaskVirtualFile = null
       }
 
@@ -314,7 +317,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
           liveTaskVirtualFile = ProfilerVirtualFile(currentSessionId, taskType, taskTabTitle)
         }
         liveTaskVirtualFile?.let { virtualFile ->
-          ApplicationManager.getApplication().invokeLater { FileEditorManager.getInstance(project).openFile(virtualFile, true) }
+          invokeLater {
+            FileEditorManager.getInstance(project).openFile(virtualFile, true)
+            updateLiveTaskBanner()
+          }
         }
       }
     }
@@ -342,6 +348,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
    */
   fun notifyEditorTabClosed(sessionId: Long) {
     onTaskTabClose(sessionId)
+    updateLiveTaskBanner()
   }
 
   private fun onTaskTabClose(sessionId: Long) {
@@ -356,6 +363,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       currentTaskHandler?.exit()
       currentTaskHandler = null
       return
+    }
+
+    if (liveTaskVirtualFile?.sessionId == sessionId) {
+      liveTaskVirtualFile = null
     }
 
     // On close of the task tab, end the current session/task if its ongoing
@@ -385,6 +396,11 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
         // This check prevents the session cleanup logic to be fired if a new session has started.
         if (sessionsManager.isSessionAlive) return@invokeLater
 
+        if (isLiveTaskInEditor) {
+          liveTaskVirtualFile = null
+          updateLiveTaskBanner()
+        }
+
         currentTaskHandler?.takeIf { it.canStop() }?.stopTask()
 
         // If the task tab is closed, reset the selected session.
@@ -411,7 +427,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       liveTaskVirtualFile?.let { virtualFile ->
         val fileEditorManager = FileEditorManager.getInstance(project)
         if (fileEditorManager.isFileOpen(virtualFile)) {
-          ApplicationManager.getApplication().invokeLater { fileEditorManager.openFile(virtualFile, true) }
+          invokeLater {
+            fileEditorManager.openFile(virtualFile, true)
+            updateLiveTaskBanner()
+          }
         }
       }
       return false
@@ -449,6 +468,62 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
   private fun getCurrentTaskHandler(): ProfilerTaskHandler? {
     return currentTaskHandler
+  }
+
+  /**
+   * Registers a listener on [FileEditorManagerListener.FILE_EDITOR_MANAGER] to detect when profiler editor tabs are opened, closed, or
+   * switch selection/focus state.
+   */
+  private fun registerEditorTabFocusListener() {
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        FileEditorManagerListener.FILE_EDITOR_MANAGER,
+        object : FileEditorManagerListener {
+          override fun selectionChanged(event: FileEditorManagerEvent) {
+            updateLiveTaskBanner()
+          }
+
+          override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+            if (file is ProfilerVirtualFile) {
+              updateLiveTaskBanner()
+            }
+          }
+
+          override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+            if (file is ProfilerVirtualFile) {
+              updateLiveTaskBanner()
+            }
+          }
+        },
+      )
+    updateLiveTaskBanner()
+  }
+
+  /**
+   * Updates [TaskHomeTabModel.unfocusedLiveTaskInEditor] based on the current editor selection state. If a live profiler task tab is
+   * currently open but not focused/selected, informs the Home tab model so it can display the banner.
+   */
+  private fun updateLiveTaskBanner() {
+    if (project.isDisposed) return
+    val fileEditorManager = FileEditorManager.getInstance(project)
+    val openLiveFile = liveTaskVirtualFile?.takeIf {
+      fileEditorManager.isFileOpen(it) &&
+        it.sessionId == profilers.sessionsManager.selectedSession.sessionId &&
+        profilers.sessionsManager.isSessionAlive
+    }
+
+    if (openLiveFile == null) {
+      profilers.taskHomeTabModel.setUnfocusedLiveTaskInEditor(null)
+      return
+    }
+
+    val isSelected = fileEditorManager.selectedFiles.contains(openLiveFile)
+    if (isSelected) {
+      profilers.taskHomeTabModel.setUnfocusedLiveTaskInEditor(null)
+    } else {
+      profilers.taskHomeTabModel.setUnfocusedLiveTaskInEditor(openLiveFile.taskType)
+    }
   }
 
   companion object {

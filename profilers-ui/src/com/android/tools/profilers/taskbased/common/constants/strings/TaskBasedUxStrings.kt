@@ -94,6 +94,10 @@ object TaskBasedUxStrings {
     "Profiler recordings are not preserved across Android Studio restarts. If the task supports " +
       "exporting you can export the recording to preserve it."
 
+  // Live task running in editor banner
+  const val LIVE_TASK_RUNNING_IN_EDITOR_MESSAGE = "%s task is running in the editor"
+  const val RETURN_TO_TASK_LINK_TEXT = "Return to task ↗"
+
   // Do not show again option text
   const val DONT_SHOW_AGAIN_TITLE = "Don't show again"
 

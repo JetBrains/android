@@ -16,12 +16,14 @@
 package com.android.tools.profilers.taskbased.home
 
 import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.LogUtils
 import com.android.tools.profilers.ProcessUtils.isProfileable
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromNow
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromProcessStart
@@ -54,6 +56,38 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   val isProfilingFromProcessStartOptionEnabled = _isProfilingFromProcessStartOptionEnabled.asStateFlow()
   private val _isPrevTaskStartDone = MutableStateFlow(true)
   val isPrevTaskStartDone = _isPrevTaskStartDone.asStateFlow()
+  private val _unfocusedLiveTaskInEditor = MutableStateFlow<ProfilerTaskType?>(null)
+
+  /**
+   * Represents the active live profiler task currently open in an editor tab but not focused/selected by the user. Null if no live task is
+   * open, the live task editor tab is currently focused, or the profiling session has ended.
+   */
+  val unfocusedLiveTaskInEditor = _unfocusedLiveTaskInEditor.asStateFlow()
+  private val aspectObserver = AspectObserver()
+
+  init {
+    // Automatically clear the banner if the active profiling session ends or if session selection changes to a terminated session.
+    profilers.sessionsManager
+      .addDependency(aspectObserver)
+      .onChange(SessionAspect.ONGOING_SESSION_NEWLY_ENDED) {
+        _unfocusedLiveTaskInEditor.value = null
+      }
+      .onChange(SessionAspect.SELECTED_SESSION) {
+        if (!profilers.sessionsManager.isSessionAlive) {
+          _unfocusedLiveTaskInEditor.value = null
+        }
+      }
+  }
+
+  /**
+   * Updates the unfocused live task type. The value is only set if the profiling session is currently alive; otherwise, it is cleared to
+   * null.
+   *
+   * @param taskType the [ProfilerTaskType] of the live task running in the editor tab, or null if no live task is open or unfocused.
+   */
+  fun setUnfocusedLiveTaskInEditor(taskType: ProfilerTaskType?) {
+    _unfocusedLiveTaskInEditor.value = if (profilers.sessionsManager.isSessionAlive) taskType else null
+  }
 
   /**
    * The user's selections made at the moment of clicking the start profiler task button. This state needs to be stored as performing a

@@ -515,4 +515,48 @@ class TaskHomeTabTest {
 
     verifyDropdownOption()
   }
+
+  @Test
+  fun `unfocused live task in editor shows banner in Home tab only while session is alive`() {
+    composeTestRule.setContent { TaskHomeTab(taskHomeTabModel, myComponents) }
+    val bannerText = TaskBasedUxStrings.LIVE_TASK_RUNNING_IN_EDITOR_MESSAGE.format("LeakCanary")
+
+    // Initially, with no session alive, attempting to set an unfocused live task is ignored
+    taskHomeTabModel.setUnfocusedLiveTaskInEditor(ProfilerTaskType.LEAKCANARY)
+    composeTestRule.onNodeWithText(bannerText).assertDoesNotExist()
+
+    // Start a live session
+    val streamId = 1L
+    val pid = 10
+    val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
+    val onlineProcess = Common.Process.newBuilder().setDeviceId(streamId).setPid(pid).setState(Common.Process.State.ALIVE).build()
+    TaskModelTestUtils.addDeviceWithProcess(onlineDevice, onlineProcess, myTransportService, myTimer)
+    myManager.beginSession(1, onlineDevice, onlineProcess, Common.ProfilerTaskType.LEAKCANARY, false)
+    myManager.update()
+
+    // With an active live session, setting unfocused live task displays the banner
+    taskHomeTabModel.setUnfocusedLiveTaskInEditor(ProfilerTaskType.LEAKCANARY)
+    composeTestRule.onNodeWithText(bannerText).assertIsDisplayed()
+
+    // Verify that LIVE_VIEW resolves to "Live Telemetry" in the banner
+    taskHomeTabModel.setUnfocusedLiveTaskInEditor(ProfilerTaskType.LIVE_VIEW)
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.LIVE_TASK_RUNNING_IN_EDITOR_MESSAGE.format("Live Telemetry")).assertIsDisplayed()
+
+    // Switch back to LeakCanary for return link and session termination checks
+    taskHomeTabModel.setUnfocusedLiveTaskInEditor(ProfilerTaskType.LEAKCANARY)
+    composeTestRule.onNodeWithText(bannerText).assertIsDisplayed()
+    val returnLink = composeTestRule.onNodeWithText(TaskBasedUxStrings.RETURN_TO_TASK_LINK_TEXT)
+    returnLink.assertIsDisplayed().assertHasClickAction()
+    returnLink.performClick()
+
+    // When the session ends/stops, the banner is automatically dismissed
+    myManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myManager.update()
+    composeTestRule.onNodeWithText(bannerText).assertDoesNotExist()
+
+    // Subsequent calls while session is dead do not show the banner
+    taskHomeTabModel.setUnfocusedLiveTaskInEditor(ProfilerTaskType.LEAKCANARY)
+    composeTestRule.onNodeWithText(bannerText).assertDoesNotExist()
+  }
 }

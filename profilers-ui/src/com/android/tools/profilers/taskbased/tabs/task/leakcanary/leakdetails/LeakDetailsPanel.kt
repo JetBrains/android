@@ -214,7 +214,7 @@ fun LeakTraceNodeView(
       Modifier.height(IntrinsicSize.Min)
         .border(
           width = if (showBorder) 1.dp else 0.dp,
-          color = if (showBorder) TaskBasedUxColors.PAST_RECORDINGS_BANNER_BORDER_COLOR else Color.Transparent,
+          color = if (showBorder) TaskBasedUxColors.BANNER_BORDER_COLOR else Color.Transparent,
           shape = RoundedCornerShape(4.dp),
         )
         .padding(horizontal = 5.dp)
