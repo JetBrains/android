@@ -455,17 +455,6 @@
     <issue
         id="WrongThread"
         message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
-        errorLine1="    updateActions(e.dataContext)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/actions/DeviceMenuAction.kt"
-            line="158"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="WrongThread"
-        message="Call must be from `@{Slow,WorkerThread}`, but super method `AnAction.actionPerformed(…)` is allowing `@UiThread`"
         errorLine1="      updateActions(event.getDataContext());"
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location

@@ -245,7 +245,7 @@ class DeviceMenuAction(private val deviceChangeListener: DeviceChangeListener = 
   private fun createDeviceMenuList(configuration: Configuration) {
     var selectionMade = false
     val groupedDevices = getSuitableDevicesForMenu(configuration)
-    val currentDevice = configuration.device
+    val currentDevice = configuration.cachedDevice
     selectionMade = addReferenceDeviceSection(groupedDevices, currentDevice, selectionMade)
     selectionMade = addWearDeviceSection(groupedDevices, currentDevice, selectionMade)
     selectionMade = addTvDeviceSection(groupedDevices, currentDevice, selectionMade)
