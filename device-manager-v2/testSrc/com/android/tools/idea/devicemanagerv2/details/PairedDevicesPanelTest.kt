@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.devicemanagerv2.details
 
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.DeviceInfo
 import com.android.adblib.utils.createChildScope
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
@@ -22,6 +24,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.PairedGlassesInfo
+import com.android.tools.idea.devicemanagerv2.DeviceRowData
 import com.android.tools.idea.devicemanagerv2.PairingStatus
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.truth.Truth.assertThat
@@ -47,6 +50,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PairedDevicesPanelTest {
@@ -298,6 +303,60 @@ class PairedDevicesPanelTest {
     }
   }
 
+  @Test
+  fun pairedDevice_displaysOnlineStatus_whenDeviceIsOnlineEvenIfPairingStateIsOffline() = runTestWithFixture {
+    val handle2 = createHandle("2").apply { setOnline() }
+    deviceHandles.send(listOf(mainHandle, handle2))
+    yield()
+    pairedDevices.send(mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.OFFLINE))))
+    yield()
+
+    assertThat(panel.pairingsTable.values).hasSize(1)
+    val pairedDevice = panel.pairingsTable.values.single()
+    assertThat(pairedDevice.status).isEqualTo(DeviceRowData.Status.ONLINE)
+    assertThat(pairedDevice.pairingState).isEqualTo(WearPairingManager.PairingState.OFFLINE)
+    assertThat(PairedDevicesTable.Status.attribute.value(pairedDevice)).isEqualTo("Online")
+  }
+
+  @Test
+  fun pairedDevice_displaysOfflineStatus_whenDeviceIsOffline() = runTestWithFixture {
+    val handle2 = createHandle("2")
+    deviceHandles.send(listOf(mainHandle, handle2))
+    yield()
+    pairedDevices.send(mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED))))
+    yield()
+
+    assertThat(panel.pairingsTable.values).hasSize(1)
+    val pairedDevice = panel.pairingsTable.values.single()
+    assertThat(pairedDevice.status).isEqualTo(DeviceRowData.Status.OFFLINE)
+    assertThat(pairedDevice.pairingState).isEqualTo(WearPairingManager.PairingState.CONNECTED)
+    assertThat(PairedDevicesTable.Status.attribute.value(pairedDevice)).isEqualTo("Offline")
+  }
+
+  @Test
+  fun pairedDevice_transitionsBetweenOnlineAndOfflineDynamically() = runTestWithFixture {
+    val handle2 = createHandle("2")
+    deviceHandles.send(listOf(mainHandle, handle2))
+    yield()
+    pairedDevices.send(mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED))))
+    yield()
+
+    assertThat(panel.pairingsTable.values.single().status).isEqualTo(DeviceRowData.Status.OFFLINE)
+    assertThat(PairedDevicesTable.Status.attribute.value(panel.pairingsTable.values.single())).isEqualTo("Offline")
+
+    handle2.setOnline()
+    yield()
+
+    assertThat(panel.pairingsTable.values.single().status).isEqualTo(DeviceRowData.Status.ONLINE)
+    assertThat(PairedDevicesTable.Status.attribute.value(panel.pairingsTable.values.single())).isEqualTo("Online")
+
+    handle2.setOffline()
+    yield()
+
+    assertThat(panel.pairingsTable.values.single().status).isEqualTo(DeviceRowData.Status.OFFLINE)
+    assertThat(PairedDevicesTable.Status.attribute.value(panel.pairingsTable.values.single())).isEqualTo("Offline")
+  }
+
   class FakeDeviceHandle(
     override val scope: CoroutineScope,
     val name: String,
@@ -320,12 +379,24 @@ class PairedDevicesPanelTest {
           }
         )
       )
+
+    fun setOnline() {
+      val mockDevice =
+        mock<ConnectedDevice>().also {
+          whenever(it.deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo("SN1234", com.android.adblib.DeviceState.ONLINE)))
+        }
+      stateFlow.value = DeviceState.Connected(stateFlow.value.properties, mockDevice)
+    }
+
+    fun setOffline() {
+      stateFlow.value = DeviceState.Disconnected(stateFlow.value.properties)
+    }
   }
 
   private fun FakeDeviceHandle.pairingStatus(state: WearPairingManager.PairingState) = PairingStatus(name, name, state)
 
   private fun FakeDeviceHandle.pairedDeviceData(state: WearPairingManager.PairingState) =
-    PairedDeviceData(this, name, stateFlow.value.properties.icon, null, state)
+    PairedDeviceData.create(this, stateFlow.value, state)
 
   open class TestPairingDelegate(val pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>> = emptyFlow()) : PairingDelegate {
     override val addMenuItemTitle: String = "Test Pair Device"

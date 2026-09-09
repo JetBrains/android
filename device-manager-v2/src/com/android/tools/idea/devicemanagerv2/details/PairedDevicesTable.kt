@@ -24,8 +24,8 @@ import com.android.tools.adtui.categorytable.Column
 import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.adtui.categorytable.LabelColumn
 import com.android.tools.idea.devicemanagerv2.DeviceManagerBundle
+import com.android.tools.idea.devicemanagerv2.DeviceRowData
 import com.android.tools.idea.devicemanagerv2.TwoLineLabel
-import com.android.tools.idea.devicemanagerv2.titlecase
 import com.android.tools.idea.devicemanagerv2.toLabelText
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.intellij.util.ui.JBEmptyBorder
@@ -39,17 +39,24 @@ internal data class PairedDeviceData(
   val displayName: String,
   val icon: Icon?,
   val androidVersion: AndroidVersion?,
-  val state: WearPairingManager.PairingState,
+  val status: DeviceRowData.Status,
+  val pairingState: WearPairingManager.PairingState,
 ) {
   companion object {
     fun create(handle: DeviceHandle, state: DeviceState, pairingState: WearPairingManager.PairingState) =
-      PairedDeviceData(handle, state.properties.title, state.properties.icon, state.properties.androidVersion, pairingState)
+      PairedDeviceData(
+        handle = handle,
+        displayName = state.properties.title,
+        icon = state.properties.icon,
+        androidVersion = state.properties.androidVersion,
+        status = if (state.isOnline()) DeviceRowData.Status.ONLINE else DeviceRowData.Status.OFFLINE,
+        pairingState = pairingState,
+      )
   }
 }
 
 internal object PairedDevicesTable {
-  fun create(context: CoroutineContext): CategoryTable<PairedDeviceData> =
-    CategoryTable(listOf(Type, Name, WearConnectionStatus), { it.handle }, context)
+  fun create(context: CoroutineContext): CategoryTable<PairedDeviceData> = CategoryTable(listOf(Type, Name, Status), { it.handle }, context)
 
   object Type : Column<PairedDeviceData, Icon?, IconLabel> {
     override val name = DeviceManagerBundle.message("column.title.type")
@@ -83,10 +90,10 @@ internal object PairedDevicesTable {
     }
   }
 
-  object WearConnectionStatus :
+  object Status :
     LabelColumn<PairedDeviceData>(
-      "Status",
+      DeviceManagerBundle.message("column.title.status"),
       Column.SizeConstraint(min = 20, max = 80),
-      Attribute.stringAttribute(isGroupable = false) { it.state.toString().titlecase() },
+      Attribute.stringAttribute(isGroupable = false) { it.status.toString() },
     )
 }

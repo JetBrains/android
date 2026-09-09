@@ -131,7 +131,7 @@ private constructor(
   }
 
   fun updatePairedDeviceData(pairedDeviceData: PairedDeviceData) {
-    when (pairedDeviceData.state) {
+    when (pairedDeviceData.pairingState) {
       WearPairingManager.PairingState.UNKNOWN -> pairingsTable.removeRowByKey(pairedDeviceData.handle)
       else -> pairingsTable.addOrUpdateRow(pairedDeviceData)
     }
