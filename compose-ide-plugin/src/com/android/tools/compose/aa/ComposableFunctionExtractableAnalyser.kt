@@ -42,7 +42,7 @@ class ComposableFunctionExtractableAnalyser : ExtractFunctionDescriptorModifier 
     val lambdaExpression = getLambdaExpression() ?: return false
     return analyze(callExpression) {
       val call = callExpression.resolveToCall()?.singleFunctionCallOrNull() ?: return false
-      val parameterTypeForLambda = call.argumentMapping[lambdaExpression]?.returnType ?: return false
+      val parameterTypeForLambda = call.valueArgumentMapping[lambdaExpression]?.returnType ?: return false
       parameterTypeForLambda.annotations.classIds.any { it == ComposeClassIds.Composable }
     }
   }

@@ -344,7 +344,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       val argument = expression.parent as? KtValueArgument ?: return false
       val call = argument.getStrictParentOfType<KtCallExpression>() ?: return false
       // K2 plugin - use Analysis API in existing analysis session.
-      return call.resolveToCall()?.singleFunctionCallOrNull()?.argumentMapping?.get(argument.getArgumentExpression())?.symbol?.let {
+      return call.resolveToCall()?.singleFunctionCallOrNull()?.valueArgumentMapping?.get(argument.getArgumentExpression())?.symbol?.let {
         ClassId.topLevel(COMPOSABLE_ANNOTATION_FQNAME) in it.annotations
       } == true
     }
