@@ -150,5 +150,41 @@ public class AndroidXmlDocumentationProviderTest {
       assertThat(doc).isEqualTo("Test description with &lt;b&gt;bold&lt;/b&gt; and &lt;script&gt;alert(1)&lt;/script&gt; tags");
     });
   }
+
+  @Test
+  public void localAttributeEnumValueDocumentationWithHtml() {
+    myFixture.addFileToProject("res/values/attrs.xml",
+                              "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                              "<resources>\n" +
+                              "  <declare-styleable name=\"MyView\">\n" +
+                              "    <attr name=\"myAttr\">\n" +
+                              "      <!-- Test description with <b>bold</b> and <script>alert(1)</script> tags -->\n" +
+                              "      <enum name=\"myValue\" value=\"0\"/>\n" +
+                              "    </attr>\n" +
+                              "  </declare-styleable>\n" +
+                              "</resources>");
+
+    final VirtualFile f = myFixture.addFileToProject("res/layout/test.xml",
+                                                   "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                   "<FrameLayout\n" +
+                                                   "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                   "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                                                   "    android:layout_width=\"match_parent\"\n" +
+                                                   "    android:layout_height=\"wrap_content\"\n" +
+                                                   "    app:myAttr=\"myVal<caret>ue\">\n" +
+                                                   "</FrameLayout>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(f);
+
+    ApplicationManager.getApplication().runReadAction(() -> {
+      PsiElement element = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+      assertThat(element).isNotNull();
+      DocumentationProvider documentationProvider = new AndroidXmlDocumentationProvider();
+      PsiElement docElement = documentationProvider.getDocumentationElementForLookupItem(
+        myFixture.getPsiManager(), "myValue", element);
+      assertThat(docElement).isNotNull();
+      String doc = documentationProvider.generateDoc(docElement, null);
+      assertThat(doc).isEqualTo("Test description with &lt;b&gt;bold&lt;/b&gt; and &lt;script&gt;alert(1)&lt;/script&gt; tags");
+    });
+  }
 }
 

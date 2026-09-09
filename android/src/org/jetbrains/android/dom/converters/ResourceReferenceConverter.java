@@ -761,6 +761,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       // Custom documentation for enums and flags of attr resources.
       String description = myAttributeDefinition.getValueDescription(value);
       if (description != null) {
+        ResourceReference ref = myAttributeDefinition.getResourceReference();
+        if (ref == null || !ResourceNamespace.ANDROID.equals(ref.getNamespace())) {
+          description = StringUtil.escapeXmlEntities(description);
+        }
         return description;
       }
     }
