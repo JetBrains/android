@@ -35,4 +35,4 @@ internal fun KtCallElement.addNewValueArgument(newValueArgument: KtValueArgument
 }
 
 internal fun getArgumentForParameter(functionCall: KaFunctionCall<*>, parameterSymbol: KaValueParameterSymbol) =
-  functionCall.argumentMapping.entries.singleOrNull { (_, parameter) -> parameter.symbol == parameterSymbol }?.key
+  functionCall.valueArgumentMapping.entries.singleOrNull { (_, parameter) -> parameter.symbol == parameterSymbol }?.key
