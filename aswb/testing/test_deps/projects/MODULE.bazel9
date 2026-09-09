@@ -11,6 +11,10 @@ bazel_dep(
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     known_contributing_modules = ["protobuf", "test_projects"],
+    # TODO(b/557857766): Remove this workaround and restore fail_on_missing_checksum = True
+    # once upstream prebuilts in prebuilts/tools/common/m2 are cleaned up and checksum
+    # file extraction is restored.
+    fail_on_missing_checksum = False,
     artifacts = [
         "com.google.guava:guava:32.1.2-jre",
         "org.mockito:mockito-core:5.20.0",
@@ -24,6 +28,10 @@ use_repo(maven, "maven")
 maven.install(
     name = "rules_dagger",
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+    # TODO(b/557857766): Remove this workaround and restore fail_on_missing_checksum = True
+    # once upstream prebuilts in prebuilts/tools/common/m2 are cleaned up and checksum
+    # file extraction is restored.
+    fail_on_missing_checksum = False,
     artifacts = [
         "com.google.dagger:hilt-android:2.40.1",
         "com.google.dagger:hilt-android-compiler:2.40.1",
@@ -43,6 +51,10 @@ use_repo(maven, "rules_dagger")
 maven.install(
     name = "rules_compose_maven",
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+    # TODO(b/557857766): Remove this workaround and restore fail_on_missing_checksum = True
+    # once upstream prebuilts in prebuilts/tools/common/m2 are cleaned up and checksum
+    # file extraction is restored.
+    fail_on_missing_checksum = False,
     artifacts = [
         "androidx.activity:activity:1.10.1",
         "androidx.activity:activity-compose:1.10.1",
@@ -95,6 +107,10 @@ maven.install(
     name = "rules_android_maven",
     known_contributing_modules = ["rules_android", "test_projects"],
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+    # TODO(b/557857766): Remove this workaround and restore fail_on_missing_checksum = True
+    # once upstream prebuilts in prebuilts/tools/common/m2 are cleaned up and checksum
+    # file extraction is restored.
+    fail_on_missing_checksum = False,
     artifacts = [
         "androidx.privacysandbox.tools:tools:1.0.0-alpha06",
         "androidx.privacysandbox.tools:tools-apigenerator:1.0.0-alpha06",
@@ -166,6 +182,10 @@ maven.install(
     name = "android_ide_common_30_1_3",
     known_contributing_modules = ["rules_android", "test_projects"],
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+    # TODO(b/557857766): Remove this workaround and restore fail_on_missing_checksum = True
+    # once upstream prebuilts in prebuilts/tools/common/m2 are cleaned up and checksum
+    # file extraction is restored.
+    fail_on_missing_checksum = False,
     artifacts = [
         "com.android.tools.layoutlib:layoutlib-api:30.1.3",
         "com.android.tools.build:manifest-merger:30.1.3",
@@ -192,6 +212,10 @@ use_repo(
 maven.install(
     name = "bazel_worker_maven",
     known_contributing_modules = ["bazel_worker_java", "test_projects"],
+    # TODO(b/557857766): Remove this workaround and restore fail_on_missing_checksum = True
+    # once upstream prebuilts in prebuilts/tools/common/m2 are cleaned up and checksum
+    # file extraction is restored.
+    fail_on_missing_checksum = False,
     artifacts = [
         "com.google.code.gson:gson:2.10.1",
         "com.google.errorprone:error_prone_annotations:2.23.0",

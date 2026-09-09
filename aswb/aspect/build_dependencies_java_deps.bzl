@@ -1,7 +1,13 @@
+load(
+    ":build_dependencies_java_provider_deps.bzl",
+    _JAVA_COMMON = "JAVA_COMMON",
+    _JAVA_INFO = "JAVA_INFO",
+)
+
 def _get_java_info(target, _):
-    if not JavaInfo in target:
+    if _JAVA_INFO not in target:
         return None
-    return get_java_info_from_provider(target[JavaInfo])
+    return get_java_info_from_provider(target[_JAVA_INFO])
 
 def get_java_info_from_provider(p):
     generated_outputs = []
@@ -27,7 +33,7 @@ def get_java_info_from_provider(p):
 def merge_providers(provider_list):
     # Defined here where java_common is native vs. other bazel/blaze versions
     # where it is not native and comes from rules_java.
-    return java_common.merge(provider_list)
+    return _JAVA_COMMON.merge(provider_list)
 
 IDE_JAVA = struct(
     srcs_attributes = ["java_srcs", "java_test_srcs"],

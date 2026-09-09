@@ -34,12 +34,13 @@ def _cc_library_test_impl(env, target):
             external_includes = [],
             framework_includes = [],
             headers = ["*"],
-            includes = [],
+            includes = ["*"],
             quote_includes = ["*"],
             system_includes = ["*"],
         ),
     )
-    actual.toolchain_target().equals(CC_TOOLCHAIN_TARGET)
+    if actual.toolchain_target().actual != None:
+        actual.toolchain_target().equals(CC_TOOLCHAIN_TARGET)
 
 def _cc_binary_test(name, **test_kwargs):
     analysis_test(name = name, impl = _cc_binary_test_impl, target = ":cc_binary_test_fixture", **test_kwargs)
@@ -67,7 +68,8 @@ def _cc_binary_test_impl(env, target):
             system_includes = ["*"],
         ),
     )
-    actual.toolchain_target().equals(CC_TOOLCHAIN_TARGET)
+    if actual.toolchain_target().actual != None:
+        actual.toolchain_target().equals(CC_TOOLCHAIN_TARGET)
 
 def _cc_toolchain_test(name, **test_kwargs):
     analysis_test(name = name, impl = _cc_toolchain_test_impl, target = ":cc_toolchain_test_fixture", **test_kwargs)

@@ -54,6 +54,7 @@ def target_factory(actual, *, meta):
         return subjects_str_factory(actual = actual, meta = meta)
     self = struct(actual = actual, meta = meta)
     public = struct(
+        actual = actual,
         equals = lambda *a, **k: _target_label_equals(self, *a, **k),
     )
     return public
@@ -326,6 +327,7 @@ def subjects_str_factory(actual, *, meta):
     self = struct(actual = actual, meta = meta)
     return struct(
         actual = actual,
+        equals = lambda *a, **k: _str_subject_equals(self, *a, **k),
         contains_exactly = lambda *a, **k: _str_subject_equals(self, *a, **k),
     )
 
@@ -358,6 +360,7 @@ def subjects_bool_factory(actual, *, meta):
     self = struct(actual = actual, meta = meta)
     return struct(
         actual = actual,
+        equals = lambda *a, **k: _bool_subject_equals(self, *a, **k),
         contains_exactly = lambda *a, **k: _bool_subject_equals(self, *a, **k),
     )
 

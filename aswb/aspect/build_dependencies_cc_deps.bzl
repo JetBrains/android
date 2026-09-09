@@ -3,6 +3,11 @@ load(
     _CPP_COMPILE_ACTION_NAME = "CPP_COMPILE_ACTION_NAME",
     _C_COMPILE_ACTION_NAME = "C_COMPILE_ACTION_NAME",
 )
+load(
+    ":build_dependencies_cc_provider_deps.bzl",
+    _CC_COMMON = "CC_COMMON",
+    _CC_INFO = "CC_INFO",
+)
 
 def _get_cc_toolchain_target(rule):
     if hasattr(rule.attr, "_cc_toolchain"):
@@ -10,10 +15,10 @@ def _get_cc_toolchain_target(rule):
     return None
 
 def _get_cc_toolchain_info(target, ctx):
-    if cc_common.CcToolchainInfo not in target:
+    if _CC_COMMON.CcToolchainInfo not in target:
         return None
 
-    toolchain_info = target[cc_common.CcToolchainInfo]
+    toolchain_info = target[_CC_COMMON.CcToolchainInfo]
     cpp_fragment = ctx.fragments.cpp
 
     # TODO(b/301235884): This logic is not quite right. `ctx` here is the context for the
@@ -22,7 +27,7 @@ def _get_cc_toolchain_info(target, ctx):
     #  used for. Instead, we should attach `toolchain_info` itself to the `DependenciesInfo`
     #  provider, and execute this logic once per top level cc target that we're building, to ensure
     #  that the right features are used.
-    feature_config = cc_common.configure_features(
+    feature_config = _CC_COMMON.configure_features(
         ctx = ctx,
         cc_toolchain = toolchain_info,
         requested_features = ctx.features,
@@ -34,22 +39,22 @@ def _get_cc_toolchain_info(target, ctx):
             "module_maps",
         ],
     )
-    c_variables = cc_common.create_compile_variables(
+    c_variables = _CC_COMMON.create_compile_variables(
         feature_configuration = feature_config,
         cc_toolchain = toolchain_info,
         user_compile_flags = cpp_fragment.copts + cpp_fragment.conlyopts,
     )
-    cpp_variables = cc_common.create_compile_variables(
+    cpp_variables = _CC_COMMON.create_compile_variables(
         feature_configuration = feature_config,
         cc_toolchain = toolchain_info,
         user_compile_flags = cpp_fragment.copts + cpp_fragment.cxxopts,
     )
-    c_options = cc_common.get_memory_inefficient_command_line(
+    c_options = _CC_COMMON.get_memory_inefficient_command_line(
         feature_configuration = feature_config,
         action_name = _C_COMPILE_ACTION_NAME,
         variables = c_variables,
     )
-    cpp_options = cc_common.get_memory_inefficient_command_line(
+    cpp_options = _CC_COMMON.get_memory_inefficient_command_line(
         feature_configuration = feature_config,
         action_name = _CPP_COMPILE_ACTION_NAME,
         variables = cpp_variables,
@@ -68,8 +73,8 @@ def _get_cc_toolchain_info(target, ctx):
     )
 
 def _get_cc_compilation_context(target, rule):
-    if CcInfo in target:
-        compilation_context = target[CcInfo].compilation_context
+    if _CC_INFO in target:
+        compilation_context = target[_CC_INFO].compilation_context
         return struct(
             copts = getattr(rule.attr, "copts", []),
             headers = compilation_context.headers,
