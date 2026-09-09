@@ -29,7 +29,10 @@ import com.intellij.openapi.vfs.LocalFileSystem
 class OpenFileHandler : CliActionHandler {
   override val type: Int = CommandType.OPEN_FILE.number
 
-  override fun handle(project: Project, request: ByteArray): ByteArray {
+  override fun handle(projectLookup: () -> Project, request: ByteArray): ByteArray {
+    // Look up project here to ensure correct exception handling if no suitable project
+    val project = projectLookup()
+
     val parsedRequest =
       try {
         OpenFileRequest.parseFrom(request)

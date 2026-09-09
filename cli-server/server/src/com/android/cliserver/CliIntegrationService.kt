@@ -89,6 +89,7 @@ internal fun CliActionHandler.invokeHandler(
   openProjects: Array<Project> = ProjectManager.getInstance().openProjects,
 ): CommandResponse {
   val projectName = request.project
+
   val project =
     if (projectName.isEmpty() && openProjects.size == 1) {
       openProjects[0]
@@ -112,27 +113,27 @@ internal fun CliActionHandler.invokeHandler(
     } else {
       null
     }
-  if (project == null) {
-    return commandResponse {
-      error = genericError {
-        message =
-          when {
-            openProjects.isEmpty() -> "Studio has no open projects"
-            request.project.isNullOrEmpty() && openProjects.size > 1 -> "There are multiple open projects, please specify one"
-            else -> "No project found matching \"${request.project}\""
-          }
-      }
-    }
+
+  val projectProvider: () -> Project = {
+    project
+      ?: throw IllegalStateException(
+        when {
+          openProjects.isEmpty() -> "Studio has no open projects"
+          request.project.isNullOrEmpty() && openProjects.size > 1 -> "There are multiple open projects, please specify one"
+          else -> "No project found matching \"${request.project}\""
+        }
+      )
   }
+
   return try {
-    val result = handle(project, request.payload.toByteArray())
+    val result = handle(projectProvider, request.payload.toByteArray())
     commandResponse {
-      this.project = project.name
+      project?.let { this.project = it.name }
       payload = result.toByteString()
     }
   } catch (e: Exception) {
     commandResponse {
-      this.project = project.name
+      project?.let { this.project = it.name }
       error = genericError { message = e.message ?: "Unknown error" }
     }
   }
@@ -145,5 +146,5 @@ interface CliActionHandler {
 
   val type: Int
 
-  fun handle(project: Project, request: ByteArray): ByteArray
+  fun handle(projectLookup: () -> Project, request: ByteArray): ByteArray
 }

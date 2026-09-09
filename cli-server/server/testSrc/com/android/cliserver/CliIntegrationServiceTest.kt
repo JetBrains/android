@@ -36,8 +36,9 @@ class CliIntegrationServiceTest {
       object : CliActionHandler {
         override val type = 1
 
-        override fun handle(project: Project, request: ByteArray): ByteArray {
+        override fun handle(projectLookup: () -> Project, request: ByteArray): ByteArray {
           handled = true
+          assertThat(projectLookup()).isSameAs(project)
           return ByteArray(0)
         }
       }
@@ -58,7 +59,8 @@ class CliIntegrationServiceTest {
       object : CliActionHandler {
         override val type = 1
 
-        override fun handle(project: Project, request: ByteArray): ByteArray {
+        override fun handle(projectLookup: () -> Project, request: ByteArray): ByteArray {
+          projectLookup()
           return ByteArray(0)
         }
       }
@@ -79,7 +81,8 @@ class CliIntegrationServiceTest {
       object : CliActionHandler {
         override val type = 1
 
-        override fun handle(project: Project, request: ByteArray): ByteArray {
+        override fun handle(projectLookup: () -> Project, request: ByteArray): ByteArray {
+          projectLookup()
           return ByteArray(0)
         }
       }
@@ -103,8 +106,9 @@ class CliIntegrationServiceTest {
       object : CliActionHandler {
         override val type = 1
 
-        override fun handle(project: Project, request: ByteArray): ByteArray {
+        override fun handle(projectLookup: () -> Project, request: ByteArray): ByteArray {
           handled = true
+          assertThat(projectLookup()).isSameAs(project)
           return ByteArray(0)
         }
       }
@@ -126,8 +130,9 @@ class CliIntegrationServiceTest {
       object : CliActionHandler {
         override val type = 1
 
-        override fun handle(project: Project, request: ByteArray): ByteArray {
+        override fun handle(projectLookup: () -> Project, request: ByteArray): ByteArray {
           handled = true
+          assertThat(projectLookup()).isSameAs(project)
           return ByteArray(0)
         }
       }
