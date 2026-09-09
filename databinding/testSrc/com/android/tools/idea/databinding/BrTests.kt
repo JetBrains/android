@@ -241,4 +241,56 @@ class BrTests(private val mode: DataBindingMode) {
     assertThat(cache.getFieldsByNameIfNotMoreThan("aStr", projectScope, 0).asIterable()).isEmpty()
     assertThat(cache.allClassNames.asIterable()).contains(DataBindingUtil.BR)
   }
+
+  @Test
+  fun userBindablesAreFoundInModuleScope() {
+    fixture.addClass(
+      """
+      package ${mode.packageName};
+
+      import java.lang.annotation.ElementType;
+      import java.lang.annotation.Retention;
+      import java.lang.annotation.RetentionPolicy;
+      import java.lang.annotation.Target;
+
+      @Target({ElementType.FIELD, ElementType.METHOD})
+      @Retention(RetentionPolicy.RUNTIME)
+      public @interface Bindable {}
+      """
+        .trimIndent()
+    )
+
+    fixture.addClass(
+      """
+      package test.db;
+
+      import ${mode.bindable};
+
+      public class UserBindableModel {
+        @Bindable
+        public String getName() {
+          return "";
+        }
+      }
+      """
+        .trimIndent()
+    )
+
+    fixture.addClass(
+      """
+      package test.db;
+
+      import ${mode.bindable};
+
+      public interface UserBindableInterface {
+        @Bindable
+        String getInterfaceProp();
+      }
+      """
+        .trimIndent()
+    )
+
+    val brClass = LayoutBindingModuleCache.getInstance(androidFacet).lightBrClass!!
+    assertThat(brClass.allFieldNames).asList().containsAllOf("name", "interfaceProp")
+  }
 }

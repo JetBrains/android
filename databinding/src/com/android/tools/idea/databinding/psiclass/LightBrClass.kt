@@ -74,19 +74,17 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
     fieldCache =
       CachedValuesManager.getManager(project).createCachedValue {
         val variableNamesList = mutableListOf(ALL_FIELD)
-        run {
-          val groups = LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return@run
-
-          val variableNamesSet =
-            groups
-              .flatMap { group -> group.layouts }
-              .flatMap { layout -> layout.data.variables }
-              .map { variable -> variable.name }
-              .toMutableSet()
-          collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
-
-          variableNamesList.addAll(variableNamesSet.sorted())
+        val variableNamesSet = mutableSetOf<String>()
+        val groups = LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups
+        if (groups.isNotEmpty()) {
+          groups
+            .flatMap { group -> group.layouts }
+            .flatMap { layout -> layout.data.variables }
+            .mapTo(variableNamesSet) { variable -> variable.name }
         }
+        collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
+
+        variableNamesList.addAll(variableNamesSet.sorted())
 
         val elementFactory = PsiElementFactory.getInstance(project)
         val psiFields = variableNamesList.map { name -> createPsiField(project, elementFactory, name) }.toTypedArray()
@@ -102,21 +100,20 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
   private fun collectVariableNamesFromUserBindables(): Set<String>? {
     val facade = JavaPsiFacade.getInstance(facet.module.project)
     val mode = LayoutBindingModuleCache.getInstance(facet).dataBindingMode
-    val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
-    val bindableAnnotation = facade.findClass(mode.bindable, moduleScope) ?: return null
+    val resolveScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
+    val bindableAnnotation = facade.findClass(mode.bindable, resolveScope) ?: return null
 
     // Generated code with @Bindable annotations is identified as classes that inherit from
     // ViewDataBinding. User code should never do this.
     val psiElements =
       AnnotatedElementsSearch.searchElements<PsiModifierListOwner>(
           bindableAnnotation,
-          moduleScope,
+          facet.module.moduleScope,
           PsiMethod::class.java,
           PsiField::class.java,
         )
         .findAll()
-        // Asserting non-null as we are confident that @Bindable fields exist within a class
-        .filter { element -> PsiUtil.getTopLevelClass(element)!!.superClass!!.qualifiedName != mode.viewDataBinding }
+        .filter { element -> PsiUtil.getTopLevelClass(element)?.superClass?.qualifiedName != mode.viewDataBinding }
 
     return BrUtil.collectIds(psiElements)
   }
