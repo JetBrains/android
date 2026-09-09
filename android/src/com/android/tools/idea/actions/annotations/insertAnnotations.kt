@@ -104,7 +104,7 @@ fun KtAnnotated.findAnnotationWithUsageSite(annotationFqName: FqName, useSiteTar
       val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.symbol as? KaAnnotated
       val annotations = annotatedSymbol?.let { it.annotations[ClassId.topLevel(annotationFqName)] }
       return annotations?.firstOrNull { annoApp ->
-        annoApp.useSiteTarget == useSiteTarget
+        (annoApp.psi as? KtAnnotationEntry)?.useSiteTarget?.getAnnotationUseSiteTarget() == useSiteTarget
       }?.psi as? KtAnnotationEntry
     }
   }
