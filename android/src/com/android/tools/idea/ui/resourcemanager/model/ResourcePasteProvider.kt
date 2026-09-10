@@ -45,6 +45,8 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.base.psi.appendValueArgument
+import org.jetbrains.kotlin.idea.base.psi.setPropertyInitializer
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -313,7 +315,7 @@ private enum class SupportedKotlinElement(
     { psiElement: PsiElement, caret: Caret, resourceReference: String ->
       val methodCallElement = psiElement as KtCallExpression
       val resourceReferenceArgument = KtPsiFactory(psiElement.project).createArgument(resourceReference)
-      val resultingArgument = runWriteAction { methodCallElement.valueArgumentList?.addArgument(resourceReferenceArgument) }
+      val resultingArgument = runWriteAction { methodCallElement.valueArgumentList?.appendValueArgument(resourceReferenceArgument) }
       (resultingArgument as? PsiElement)?.let { caret.selectStringFromOffset(resourceReference, it.startOffset) }
     },
   ),
@@ -327,7 +329,7 @@ private enum class SupportedKotlinElement(
     KtProperty::class.java,
     { psiElement: PsiElement, caret: Caret, resourceReference: String ->
       val propertyElement = psiElement as KtProperty
-      runWriteAction { propertyElement.initializer = KtPsiFactory(psiElement.project).createExpression(resourceReference) }
+      runWriteAction { propertyElement.setPropertyInitializer(KtPsiFactory(psiElement.project).createExpression(resourceReference)) }
       (propertyElement.initializer as? PsiElement)?.let { caret.selectStringFromOffset(resourceReference, it.startOffset) }
     },
   );

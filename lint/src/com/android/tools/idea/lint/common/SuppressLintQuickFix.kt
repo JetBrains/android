@@ -52,6 +52,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.psi.appendValueArgument
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -347,7 +348,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         entry.addAfter(newArgList, entry.lastChild)
         args.arguments.isEmpty() -> // replace '()' with a new argument list
         args.replace(newArgList)
-        args.arguments.none { it.textMatches(argument) } -> args.addArgument(newArgList.arguments[0])
+        args.arguments.none { it.textMatches(argument) } -> args.appendValueArgument(newArgList.arguments[0])
       }
 
       return true

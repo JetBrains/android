@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.addAnnotation
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
@@ -89,7 +90,7 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
 
         val newAnnotationText = buildAnnotationText(previewElement, configuration, nameForNewPreview, targetFile)
         val newAnnotationEntry = ktPsiFactory.createAnnotationEntry(newAnnotationText)
-        val addedAnnotation = previewMethod.addAnnotationEntry(newAnnotationEntry)
+        val addedAnnotation = previewMethod.addAnnotation(newAnnotationEntry)
 
         handleImportsForNewAnnotation(targetFile, newAnnotationText)
 

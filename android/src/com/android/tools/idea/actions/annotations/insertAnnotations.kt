@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.addAnnotation
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
@@ -62,7 +63,7 @@ fun KtModifierListOwner.addAnnotationWithUsageSite(
   val modifierList = modifierList
 
   if (modifierList == null) {
-    val addedAnnotation = addAnnotationEntry(psiFactory.createAnnotationEntry(annotationText))
+    val addedAnnotation = addAnnotation(psiFactory.createAnnotationEntry(annotationText))
     ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
     return true
   }

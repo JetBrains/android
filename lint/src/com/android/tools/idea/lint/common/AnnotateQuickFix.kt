@@ -38,6 +38,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.addAnnotation
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -158,7 +159,7 @@ class AnnotateQuickFix(
           if (existing != null && existing !is SyntheticElement && replace) {
             existing.replace(annotationEntry) as KtAnnotationEntry
           } else {
-            element.addAnnotationEntry(annotationEntry)
+            element.addAnnotation(annotationEntry)
           }
         val shortened = ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
         return shortened?.parentOfType<KtAnnotationEntry>(true)

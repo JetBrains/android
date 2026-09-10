@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.pickers.preview.utils
 
 import org.jetbrains.kotlin.analysis.api.resolution.KaFunctionCall
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
+import org.jetbrains.kotlin.idea.base.psi.appendValueArgument
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -26,12 +27,12 @@ internal fun ResolvedCall<*>.addNewValueArgument(newValueArgument: KtValueArgume
   if (call.valueArgumentList == null) {
     call.callElement.add(psiFactory.createCallArguments("()"))
   }
-  return call.valueArgumentList!!.addArgument(newValueArgument)
+  return call.valueArgumentList!!.appendValueArgument(newValueArgument)
 }
 
 internal fun KtCallElement.addNewValueArgument(newValueArgument: KtValueArgument, psiFactory: KtPsiFactory): KtValueArgument {
   if (valueArguments.isEmpty()) add(psiFactory.createCallArguments("()"))
-  return valueArgumentList!!.addArgument(newValueArgument)
+  return valueArgumentList!!.appendValueArgument(newValueArgument)
 }
 
 internal fun getArgumentForParameter(functionCall: KaFunctionCall<*>, parameterSymbol: KaValueParameterSymbol) =

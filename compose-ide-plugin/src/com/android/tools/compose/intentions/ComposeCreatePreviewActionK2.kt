@@ -35,6 +35,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.addAnnotation
 import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFunction
@@ -139,6 +140,6 @@ class ComposeCreatePreviewActionK2 : ModCommandAction {
     val composableFunction = element.parentOfType<KtFunction>() ?: return
     val previewAnnotationEntry = KtPsiFactory(project).createAnnotationEntry("@${COMPOSE_PREVIEW_ANNOTATION_FQN}")
 
-    ShortenReferencesFacility.getInstance().shorten(composableFunction.addAnnotationEntry(previewAnnotationEntry))
+    ShortenReferencesFacility.getInstance().shorten(composableFunction.addAnnotation(previewAnnotationEntry))
   }
 }
