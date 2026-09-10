@@ -38,11 +38,10 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
+import com.intellij.util.io.IOUtil
 import java.io.DataInput
 import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.core.script.v1.readString
-import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -126,13 +125,13 @@ internal data class ComponentProvisionMethodIndexValue(val classId: ClassId, val
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(methodSimpleName)
+    IOUtil.writeUTF(output, methodSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType: DataType = DataType.COMPONENT_PROVISION_METHOD
 
-    override fun read(input: DataInput) = ComponentProvisionMethodIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = ComponentProvisionMethodIndexValue(input.readClassId(), IOUtil.readUTF(input))
   }
 
   companion object {
@@ -181,13 +180,13 @@ internal data class ComponentProvisionPropertyIndexValue(val classId: ClassId, v
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(propertySimpleName)
+    IOUtil.writeUTF(output, propertySimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.COMPONENT_PROVISION_PROPERTY
 
-    override fun read(input: DataInput) = ComponentProvisionPropertyIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = ComponentProvisionPropertyIndexValue(input.readClassId(), IOUtil.readUTF(input))
   }
 
   companion object {

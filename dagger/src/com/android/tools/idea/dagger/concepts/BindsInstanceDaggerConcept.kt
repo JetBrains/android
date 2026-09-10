@@ -32,11 +32,11 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.parentOfType
+import com.intellij.util.io.IOUtil
+import com.intellij.util.io.IOUtil.readUTF
 import java.io.DataInput
 import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.core.script.v1.readString
-import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
@@ -118,13 +118,13 @@ internal data class BindsInstanceBuilderMethodIndexValue(val classId: ClassId, v
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(methodSimpleName)
+    IOUtil.writeUTF(output, methodSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.BINDS_INSTANCE_BUILDER_METHOD
 
-    override fun read(input: DataInput) = BindsInstanceBuilderMethodIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = BindsInstanceBuilderMethodIndexValue(input.readClassId(), readUTF(input))
   }
 
   companion object {
@@ -180,15 +180,15 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(methodSimpleName)
-    output.writeString(parameterSimpleName)
+    IOUtil.writeUTF(output, methodSimpleName)
+    IOUtil.writeUTF(output, parameterSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.BINDS_INSTANCE_FACTORY_METHOD_PARAMETER
 
     override fun read(input: DataInput) =
-      BindsInstanceFactoryMethodParameterIndexValue(input.readClassId(), input.readString(), input.readString())
+      BindsInstanceFactoryMethodParameterIndexValue(input.readClassId(), IOUtil.readUTF(input), IOUtil.readUTF(input))
   }
 
   companion object {

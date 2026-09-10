@@ -31,11 +31,10 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.parentOfType
+import com.intellij.util.io.IOUtil
 import java.io.DataInput
 import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.core.script.v1.readString
-import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -97,13 +96,13 @@ internal data class ProvidesMethodIndexValue(val classId: ClassId, val methodSim
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(methodSimpleName)
+    IOUtil.writeUTF(output, methodSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.PROVIDES_METHOD
 
-    override fun read(input: DataInput) = ProvidesMethodIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = ProvidesMethodIndexValue(input.readClassId(), IOUtil.readUTF(input))
   }
 
   companion object {
@@ -151,14 +150,16 @@ internal data class ProvidesMethodParameterIndexValue(val classId: ClassId, val 
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(methodSimpleName)
-    output.writeString(parameterName)
+    IOUtil.writeUTF(output, methodSimpleName)
+    IOUtil.writeUTF(output, parameterName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.PROVIDES_METHOD_PARAMETER
 
-    override fun read(input: DataInput) = ProvidesMethodParameterIndexValue(input.readClassId(), input.readString(), input.readString())
+    override fun read(input: DataInput) = ProvidesMethodParameterIndexValue(input.readClassId(), IOUtil.readUTF(input),
+        IOUtil.readUTF(input)
+    )
   }
 
   companion object {
