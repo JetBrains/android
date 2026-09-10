@@ -31,6 +31,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import com.android.SdkConstants
+import com.android.flags.junit.FlagRule
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.repository.testframework.FakeProgressIndicator
@@ -38,6 +39,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageSupplier
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.AvdNames
+import com.android.sdklib.internal.avd.EmulatorPackage
 import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.adtui.compose.TestComposeWizard
@@ -45,6 +47,7 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
+import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.idea.IJIgnore
@@ -71,8 +74,11 @@ class ConfigurationPageTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val emulatorPreviewFlagRule = FlagRule(StudioFlags.EMULATOR_PREVIEW_REQUIRED, true)
 
   private fun SdkFixture.api34() = createLocalSystemImage("google_apis", listOf(SystemImageTags.GOOGLE_APIS_TAG), AndroidVersion(34))
+
+  private fun SdkFixture.api37() = createLocalSystemImage("google_apis", listOf(SystemImageTags.GOOGLE_APIS_TAG), AndroidVersion(37))
 
   private fun SdkFixture.api34Play() =
     createLocalSystemImage("google_apis_playstore", listOf(SystemImageTags.PLAY_STORE_TAG), AndroidVersion(34))
@@ -442,6 +448,133 @@ class ConfigurationPageTest {
 
         assertThat(context.recordedPrompts).isNotEmpty()
         assertThat(context.recordedDownloadPaths).containsExactly(remoteImage.path)
+        val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
+        assertThat(files).containsAllOf("Pixel_8.avd", "Pixel_8.ini")
+      }
+    }
+  }
+
+  @Test
+  fun finishWizard_withRemoteQemuNext_notNeeded_doesNotDownloadQemuNext() {
+    with(SdkFixture()) {
+      val localImage = api34()
+      val remoteQemuNext =
+        FakeRemotePackage(EmulatorPackage.QEMU_NEXT_PACKAGE_PATH).apply { displayName = EmulatorPackage.QEMU_NEXT_PACKAGE_NAME }
+      repoPackages.setLocalPkgInfos(listOf(localImage))
+      repoPackages.setRemotePkgInfos(listOf(remoteQemuNext))
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+        )
+
+      with(ConfigurationPageFixture(this, context = context)) {
+        composeTestRule.onNodeWithText("Emulator (Preview) will be downloaded").assertDoesNotExist()
+        composeTestRule.onNodeWithText(localImage.displayName).assertIsSelected()
+        wizard.performAction(wizard.nextAction)
+        composeTestRule.waitForIdle()
+        wizard.awaitClose()
+
+        assertThat(context.recordedPrompts).isEmpty()
+        assertThat(context.recordedDownloadPaths).isEmpty()
+        val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
+        assertThat(files).containsAllOf("Pixel_8.avd", "Pixel_8.ini")
+      }
+    }
+  }
+
+  @Test
+  fun finishWizard_withRemoteQemuNext_needed_downloadsQemuNext() {
+    with(SdkFixture()) {
+      val localImage = api37()
+      val remoteQemuNext =
+        FakeRemotePackage(EmulatorPackage.QEMU_NEXT_PACKAGE_PATH).apply { displayName = EmulatorPackage.QEMU_NEXT_PACKAGE_NAME }
+      val localQemuNext = FakeLocalPackage(EmulatorPackage.QEMU_NEXT_PACKAGE_PATH)
+      repoPackages.setLocalPkgInfos(listOf(localImage))
+      repoPackages.setRemotePkgInfos(listOf(remoteQemuNext))
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+          onDownload = {
+            repoPackages.setLocalPkgInfos(listOf(localImage, localQemuNext))
+          },
+        )
+
+      with(ConfigurationPageFixture(this, context = context)) {
+        composeTestRule.onNodeWithText("Emulator (Preview) will be downloaded").assertIsDisplayed()
+        composeTestRule.onNodeWithText(localImage.displayName).assertIsSelected()
+        wizard.performAction(wizard.nextAction)
+        composeTestRule.waitForIdle()
+        wizard.awaitClose()
+
+        assertThat(context.recordedPrompts).containsExactly("Confirm Download" to "Download Emulator (Preview)?")
+        assertThat(context.recordedDownloadPaths).containsExactly(EmulatorPackage.QEMU_NEXT_PACKAGE_PATH)
+        val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
+        assertThat(files).containsAllOf("Pixel_8.avd", "Pixel_8.ini")
+      }
+    }
+  }
+
+  @Test
+  fun finishWizard_withRemoteQemuNext_flagDisabled_doesNotDownloadQemuNext() {
+    StudioFlags.EMULATOR_PREVIEW_REQUIRED.override(false)
+
+    with(SdkFixture()) {
+      val localImage = api37()
+      val remoteQemuNext =
+        FakeRemotePackage(EmulatorPackage.QEMU_NEXT_PACKAGE_PATH).apply { displayName = EmulatorPackage.QEMU_NEXT_PACKAGE_NAME }
+      repoPackages.setLocalPkgInfos(listOf(localImage))
+      repoPackages.setRemotePkgInfos(listOf(remoteQemuNext))
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+        )
+
+      with(ConfigurationPageFixture(this, context = context)) {
+        composeTestRule.onNodeWithText("Emulator (Preview) will be downloaded").assertDoesNotExist()
+        composeTestRule.onNodeWithText(localImage.displayName).assertIsSelected()
+        wizard.performAction(wizard.nextAction)
+        composeTestRule.waitForIdle()
+        wizard.awaitClose()
+
+        assertThat(context.recordedPrompts).isEmpty()
+        assertThat(context.recordedDownloadPaths).isEmpty()
+        val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
+        assertThat(files).containsAllOf("Pixel_8.avd", "Pixel_8.ini")
+      }
+    }
+  }
+
+  @Test
+  fun finishWizard_withQemuNextInstalledLocally_doesNotDownloadQemuNext() {
+    with(SdkFixture()) {
+      val localImage = api37()
+      val localQemuNext = FakeLocalPackage(EmulatorPackage.QEMU_NEXT_PACKAGE_PATH)
+      val remoteQemuNext =
+        FakeRemotePackage(EmulatorPackage.QEMU_NEXT_PACKAGE_PATH).apply { displayName = EmulatorPackage.QEMU_NEXT_PACKAGE_NAME }
+      repoPackages.setLocalPkgInfos(listOf(localImage, localQemuNext))
+      repoPackages.setRemotePkgInfos(listOf(remoteQemuNext))
+
+      val context =
+        FakeConfigurationPageContext(
+          promptYesNoResult = true,
+          downloadPackagesResult = true,
+        )
+
+      with(ConfigurationPageFixture(this, context = context)) {
+        composeTestRule.onNodeWithText("Emulator (Preview) will be downloaded").assertDoesNotExist()
+        composeTestRule.onNodeWithText(localImage.displayName).assertIsSelected()
+        wizard.performAction(wizard.nextAction)
+        composeTestRule.waitForIdle()
+        wizard.awaitClose()
+
+        assertThat(context.recordedPrompts).isEmpty()
+        assertThat(context.recordedDownloadPaths).isEmpty()
         val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
         assertThat(files).containsAllOf("Pixel_8.avd", "Pixel_8.ini")
       }

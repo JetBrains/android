@@ -177,7 +177,15 @@ internal fun WizardPageScope.ConfigurationPage(
         WizardAction {
           runWithModalProgressBlocking(ModalTaskOwner.component(parent), "Creating AVD", TaskCancellation.nonCancellable()) {
             withContext(Dispatchers.EDT) {
-              if (finish(state.device, parent, finish, sdkHandler, packagesRequired = listOfNotNull(qemuNextPackage?.remote))) {
+              if (
+                finish(
+                  state.device,
+                  parent,
+                  finish,
+                  sdkHandler,
+                  packagesRequired = listOfNotNull(qemuNextPackage?.remote?.takeIf { qemuNextIsNeeded }),
+                )
+              ) {
                 close()
               }
             }
