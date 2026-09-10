@@ -2256,8 +2256,6 @@ android-studio/plugins/c/lib/modules/intellij.c.debugger.jar
 android-studio/plugins/c/lib/modules/intellij.c.doxygen.jar
 android-studio/plugins/c/lib/modules/intellij.c.testing.jar
 android-studio/plugins/c/lib/modules/intellij.cidr.modulemap.language.jar
-android-studio/plugins/c/lib/modules/intellij.libraries.objenesis.jar
-android-studio/plugins/c/lib/objenesis.jar
 android-studio/plugins/cidr-base/lib/LICENSE.txt
 android-studio/plugins/cidr-base/lib/cidr-base.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cidr.asm.debugger.jar
@@ -2274,8 +2272,6 @@ android-studio/plugins/cidr-base/lib/modules/intellij.cidr.util.serializer.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cidr.util.ui.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cidr.workspaceModel.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cmake.psi.jar
-android-studio/plugins/cidr-base/lib/modules/intellij.libraries.objenesis.jar
-android-studio/plugins/cidr-base/lib/objenesis.jar
 android-studio/plugins/cidr-clangd/bin/clang/win/x64/bin/clangd.exe
 android-studio/plugins/cidr-clangd/lib/LICENSE.txt
 android-studio/plugins/cidr-clangd/lib/cidr-clangd.jar
@@ -2294,6 +2290,7 @@ android-studio/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.debugger.f
 android-studio/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.debugger.profiles.jar
 android-studio/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.runner.jar
 android-studio/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.util.execution.jar
+android-studio/plugins/cidr-debugger-plugin/lib/modules/intellij.libraries.kryo2.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
 android-studio/plugins/compose-ide-plugin/lib/compose-ide-plugin.jar
 android-studio/plugins/compose-ide-plugin/lib/modules/intellij.compose.ide.plugin.gradleTooling.rt.jar

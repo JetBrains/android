@@ -2979,8 +2979,6 @@
 +++Android Studio.app/Contents/plugins/c/lib/modules/intellij.c.doxygen.jar
 +++Android Studio.app/Contents/plugins/c/lib/modules/intellij.c.testing.jar
 +++Android Studio.app/Contents/plugins/c/lib/modules/intellij.cidr.modulemap.language.jar
-+++Android Studio.app/Contents/plugins/c/lib/modules/intellij.libraries.objenesis.jar
-+++Android Studio.app/Contents/plugins/c/lib/objenesis.jar
 +++Android Studio.app/Contents/plugins/cidr-base/lib/LICENSE.txt
 +++Android Studio.app/Contents/plugins/cidr-base/lib/cidr-base.jar
 +++Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.asm.debugger.jar
@@ -2997,8 +2995,6 @@
 +++Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.util.ui.jar
 +++Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.workspaceModel.jar
 +++Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cmake.psi.jar
-+++Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.libraries.objenesis.jar
-+++Android Studio.app/Contents/plugins/cidr-base/lib/objenesis.jar
 +++Android Studio.app/Contents/plugins/cidr-clangd/bin/clang/mac/aarch64/bin/clangd
 +++Android Studio.app/Contents/plugins/cidr-clangd/lib/LICENSE.txt
 +++Android Studio.app/Contents/plugins/cidr-clangd/lib/cidr-clangd.jar
@@ -3017,6 +3013,7 @@
 +++Android Studio.app/Contents/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.debugger.profiles.jar
 +++Android Studio.app/Contents/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.runner.jar
 +++Android Studio.app/Contents/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.util.execution.jar
++++Android Studio.app/Contents/plugins/cidr-debugger-plugin/lib/modules/intellij.libraries.kryo2.jar
 +++Android Studio.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
 +++Android Studio.app/Contents/plugins/compose-ide-plugin/lib/compose-ide-plugin.jar
 +++Android Studio.app/Contents/plugins/compose-ide-plugin/lib/modules/intellij.compose.ide.plugin.gradleTooling.rt.jar
@@ -7016,8 +7013,6 @@
 ---Android Studio Preview.app/Contents/plugins/c/lib/modules/intellij.c.doxygen.jar
 ---Android Studio Preview.app/Contents/plugins/c/lib/modules/intellij.c.testing.jar
 ---Android Studio Preview.app/Contents/plugins/c/lib/modules/intellij.cidr.modulemap.language.jar
----Android Studio Preview.app/Contents/plugins/c/lib/modules/intellij.libraries.objenesis.jar
----Android Studio Preview.app/Contents/plugins/c/lib/objenesis.jar
 ---Android Studio Preview.app/Contents/plugins/cidr-base/lib/LICENSE.txt
 ---Android Studio Preview.app/Contents/plugins/cidr-base/lib/cidr-base.jar
 ---Android Studio Preview.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.asm.debugger.jar
@@ -7034,8 +7029,6 @@
 ---Android Studio Preview.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.util.ui.jar
 ---Android Studio Preview.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.workspaceModel.jar
 ---Android Studio Preview.app/Contents/plugins/cidr-base/lib/modules/intellij.cmake.psi.jar
----Android Studio Preview.app/Contents/plugins/cidr-base/lib/modules/intellij.libraries.objenesis.jar
----Android Studio Preview.app/Contents/plugins/cidr-base/lib/objenesis.jar
 ---Android Studio Preview.app/Contents/plugins/cidr-clangd/bin/clang/mac/aarch64/bin/clangd
 ---Android Studio Preview.app/Contents/plugins/cidr-clangd/lib/LICENSE.txt
 ---Android Studio Preview.app/Contents/plugins/cidr-clangd/lib/cidr-clangd.jar
@@ -7054,6 +7047,7 @@
 ---Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.debugger.profiles.jar
 ---Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.runner.jar
 ---Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/modules/intellij.cidr.util.execution.jar
+---Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/modules/intellij.libraries.kryo2.jar
 ---Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
 ---Android Studio Preview.app/Contents/plugins/compose-ide-plugin/lib/compose-ide-plugin.jar
 ---Android Studio Preview.app/Contents/plugins/compose-ide-plugin/lib/modules/intellij.compose.ide.plugin.gradleTooling.rt.jar
