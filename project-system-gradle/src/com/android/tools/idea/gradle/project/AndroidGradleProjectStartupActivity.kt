@@ -509,7 +509,7 @@ fun addJUnitProducersToIgnoredList(project: Project) {
   }
 }
 
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 private fun Module.isEmptyModule() =
   moduleFile == null &&
     rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }

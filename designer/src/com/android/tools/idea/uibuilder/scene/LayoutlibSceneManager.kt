@@ -287,7 +287,7 @@ open class LayoutlibSceneManager(
   }
 
   /** Adds a new render request to the queue and wait for it to finish. */
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   override suspend fun requestRenderAndWait() {
     layoutlibSceneRenderer.takeIf { onBeforeRender() }?.requestRenderAndWait(getRenderTrigger())
   }

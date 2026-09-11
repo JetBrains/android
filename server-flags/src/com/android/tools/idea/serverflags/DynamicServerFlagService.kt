@@ -20,7 +20,7 @@ import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 
 /** Variation of [ServerFlagService] with the ability to update the flags and get the latest values from server. */
 interface DynamicServerFlagService : ServerFlagService {
-  @RequiresBackgroundThread fun updateFlags()
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */) fun updateFlags()
 
   companion object {
     val instance: DynamicServerFlagService

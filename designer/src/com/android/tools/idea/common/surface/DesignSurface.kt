@@ -808,7 +808,7 @@ abstract class DesignSurface<T : SceneManager>(
    * This method is expected to be called in the background thread, and it will schedule the corresponding call to
    * [DesignSurfaceListener.modelsChanged] in EDT for later.
    */
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   fun addModelsWithoutRender(models: List<NlModel>): List<T> {
     val modelsAndManagers = models.map { model -> model to getOrCreateSceneManager(model) }
     modelsManager.addModels(modelsAndManagers)

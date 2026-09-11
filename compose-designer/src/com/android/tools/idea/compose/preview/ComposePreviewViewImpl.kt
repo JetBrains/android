@@ -354,7 +354,7 @@ internal class ComposePreviewViewImpl(
     scope.launch { updateVisibilityAndNotificationsRequestFlow.emit(Unit) }
   }
 
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private suspend fun handleUpdateVisibilityAndNotificationsRequest() =
     withContext(Dispatchers.EDT) {
       if (workbench.isMessageVisible && renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild) {

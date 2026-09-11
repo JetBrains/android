@@ -63,7 +63,7 @@ fun navigateBack(e: AnActionEvent) {
  * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT thread. For actions using it, they should
  * use [ActionUpdateThread.BGT].
  */
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 inline fun <reified T> DataContext.findPreviewManager(key: DataKey<T>): T? {
   getData(key)?.let {
     // The context is associated to a preview manager so return it

@@ -75,7 +75,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) : Proj
     }
   }
 
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private fun clearCaches() {
     StudioModuleClassLoaderManager.get().clearCache(project)
   }

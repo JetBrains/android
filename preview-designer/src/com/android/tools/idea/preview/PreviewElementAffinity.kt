@@ -69,7 +69,7 @@ fun <T : PreviewElement<*>> calcAffinity(el1: T, el2: T?): Int =
  * with the indices of the best matched models. The indices are for the input [models] [List]. If there are less [models] than [elements]
  * then indices for some [PreviewElement]s will be set to -1.
  */
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 fun <T : PreviewElement<*>, M> matchElementsToModels(
   models: List<M>,
   elements: List<T>,

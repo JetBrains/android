@@ -97,7 +97,7 @@ private val isTileAnnotationUsedCacheKey = Key<ChangeTrackerCachedValue<Deferred
  *   under a read lock.
  */
 internal class WearTilePreviewElementFinder(
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   private val findMethods: (PsiFile?) -> Collection<PsiElement> = { psiFile ->
     PsiTreeUtil.findChildrenOfAnyType(psiFile, PsiMethod::class.java, KtNamedFunction::class.java)
   }
@@ -154,7 +154,7 @@ internal class WearTilePreviewElementFinder(
  * Returns true if a [UMethod] or [UAnnotation] is not null is annotated with a Tile Preview annotation, either directly or through a
  * Multi-Preview annotation.
  */
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 fun UElement?.hasTilePreviewAnnotation(): Boolean {
   assert(this is UMethod? || this is UAnnotation?) { "The UElement should be either a UMethod or a UAnnotation" }
   val project = this?.sourcePsi?.project ?: return false
@@ -168,14 +168,14 @@ fun UElement?.hasTilePreviewAnnotation(): Boolean {
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock internal fun UAnnotation.isTilePreviewAnnotation() = this.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */) internal fun UAnnotation.isTilePreviewAnnotation() = this.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
 
 /**
  * Returns true if the [UElement] is a `@Preview` annotation.
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock private fun UElement?.isWearTilePreviewAnnotation() = (this as? UAnnotation)?.isTilePreviewAnnotation() == true
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */) private fun UElement?.isWearTilePreviewAnnotation() = (this as? UAnnotation)?.isTilePreviewAnnotation() == true
 
 @Slow
 private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(uMethod: UMethod): PsiWearTilePreviewElement? {
@@ -218,7 +218,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(uMethod: 
 private suspend fun CoroutineScope.findUMethodsWithTilePreviewSignature(
   project: Project,
   virtualFile: VirtualFile,
-  @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */) findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
   return cachedAsyncValue(virtualFile, uMethodsWithTilePreviewSignatureCacheKey, project.javaKotlinAndDumbChangeTrackers()) {
     findUMethodsWithTilePreviewSignatureNonCached(project, virtualFile, findMethods)
@@ -229,7 +229,7 @@ private suspend fun CoroutineScope.findUMethodsWithTilePreviewSignature(
 private suspend fun findUMethodsWithTilePreviewSignatureNonCached(
   project: Project,
   virtualFile: VirtualFile,
-  @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */) findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
   val pointerManager = SmartPointerManager.getInstance(project)
   return smartReadAction(project) {
@@ -256,7 +256,7 @@ private fun UElement.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph
  *
  * To be considered a method, the [PsiElement] should be either a [PsiMethod] or a [KtNamedFunction].
  */
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
   ProgressManager.checkCanceled()
   val hasValidReturnType =

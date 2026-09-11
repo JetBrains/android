@@ -120,7 +120,7 @@ class NavEnumSupportProvider : EnumSupportProvider<NlPropertyItem> {
 
   private class ClassEnumSupport(private val component: NlComponent) : EnumSupport {
     override val values: List<EnumValue>
-      @RequiresBackgroundThread
+      @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
       get() {
         ThreadingAssertions.assertBackgroundThread()
         return emptyList + getClasses(component)

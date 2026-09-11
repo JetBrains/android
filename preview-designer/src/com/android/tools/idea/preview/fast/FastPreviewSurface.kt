@@ -154,7 +154,7 @@ class CommonFastPreviewSurface(
 private inline val Module.androidHolderModule: Module
   get() = (findAndroidModule() ?: this).getModuleSystem().getHolderModule()
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 private fun Project.findOpenPreviewAndroidHolderModules(): Set<Module> = buildSet {
   val project = this@findOpenPreviewAndroidHolderModules
   val fileIndex = ProjectFileIndex.getInstance(project)
@@ -172,7 +172,7 @@ private fun Project.findOpenPreviewAndroidHolderModules(): Set<Module> = buildSe
   }
 }
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 private fun Project.findDependentAndroidHolderModules(
   files: Iterable<PsiFile>,
   predicate: (Module) -> Boolean,

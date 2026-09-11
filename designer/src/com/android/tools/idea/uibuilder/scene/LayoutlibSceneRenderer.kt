@@ -253,7 +253,7 @@ class LayoutlibSceneRenderer(
    *
    * @param trigger reason that triggered the render, used for tracking purposes
    */
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   suspend fun requestRenderAndWait(trigger: LayoutEditorRenderResult.Trigger?) {
     val request = enqueueRenderRequest(trigger) ?: return
     // Suspends until this or any newer request is processed
@@ -286,7 +286,7 @@ class LayoutlibSceneRenderer(
    * This method will also [inflate] the model when forced or needed (i.e. when [LayoutlibSceneRenderConfiguration.needsInflation] is true
    * or when [renderTask] is null).
    */
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private suspend fun doRender(request: RenderRequest, executeCallbacks: Boolean) {
     var result: RenderResult? = null
     val renderStartTimeMs = System.currentTimeMillis()
@@ -358,7 +358,7 @@ class LayoutlibSceneRenderer(
    *
    * It throws a [CancellationException] if cancelled midway.
    */
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private suspend fun inflate(): RenderResult? {
     val project: Project = model.project
     if (project.isDisposed || isDisposed.get()) {
@@ -424,7 +424,7 @@ class LayoutlibSceneRenderer(
    *
    * Returns the result if successful, or throws an exception if inflation fails or gets cancelled.
    */
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private suspend fun doInflate(newTask: RenderTask, logger: RenderLogger): RenderResult {
     newTask.defaultForegroundColor = '#'.toString() + ColorUtil.toHex(UIUtil.getLabelForeground())
     try {

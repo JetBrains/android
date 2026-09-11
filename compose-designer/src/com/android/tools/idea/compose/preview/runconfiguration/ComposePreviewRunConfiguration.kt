@@ -171,7 +171,7 @@ open class ComposePreviewRunConfiguration(
     return computeValidComposableSet()
   }
 
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private fun computeValidComposableSet(): Boolean {
     val composableFqn = composableMethodFqn ?: return false
 

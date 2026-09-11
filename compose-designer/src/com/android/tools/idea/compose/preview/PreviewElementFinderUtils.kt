@@ -64,7 +64,7 @@ import org.jetbrains.uast.UMethod
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun UAnnotation.isPreviewAnnotation(includingMultiplatform: Boolean = true) =
   (COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") && COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName) ||
     (includingMultiplatform && MULTIPLATFORM_PREVIEW_ANNOTATION_FQN == qualifiedName)
@@ -74,12 +74,12 @@ fun UAnnotation.isPreviewAnnotation(includingMultiplatform: Boolean = true) =
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewAnnotation() == true
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */) private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewAnnotation() == true
 
 /**
  * Returns true if the [UMethod] is annotated with a @Preview annotation, taking in consideration indirect annotations with MultiPreview.
  */
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 internal fun UMethod?.hasPreviewElements(): Boolean =
   // TODO(b/381827960): avoid using runBlockingCancellable
   this?.let {
@@ -91,8 +91,8 @@ internal fun UMethod?.hasPreviewElements(): Boolean =
  * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an annotation that is annotated with @Preview or
  * with other MultiPreview.
  */
-@RequiresReadLock
-@RequiresBackgroundThread
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 fun UAnnotation?.isMultiPreviewAnnotation(): Boolean =
   this?.let {
     !it.isPreviewAnnotation() &&
@@ -170,7 +170,7 @@ private suspend fun getPreviewNodes(
  *
  * @see getPreviewNodes
  */
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 @Slow
 private suspend fun UAnnotation.getPreviewNodes(overrideGroupName: String? = null, includeAllNodes: Boolean): Flow<PreviewNode> {
   val composableMethod = getContainingComposableUMethod() ?: return emptyFlow()
@@ -186,7 +186,7 @@ private suspend fun UAnnotation.getPreviewNodes(overrideGroupName: String? = nul
  * Returns the Composable [UMethod] annotated by this annotation, or null if it is not annotating a method, or if the method is not also
  * annotated with @Composable
  */
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 internal fun UAnnotation.getContainingComposableUMethod() = this.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
 
 /** Returns true when the UMethod is not null, and it is annotated with @Composable */

@@ -76,7 +76,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation : WearTilePrevie
   override fun getStaticDescription() = message("inspection.preview.annotation.not.from.tile.package")
 }
 
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 // TODO(b/381827960): avoid using runBlockingCancellable
 private fun UAnnotation.isMultiPreviewAnnotationFromInvalidPackage() = runBlockingCancellable {
   findAllAnnotationsInGraph { it.qualifiedName.isPreviewFqnFromDifferentPackage() }.firstOrNull() != null

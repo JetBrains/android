@@ -2432,7 +2432,7 @@ fun <T> IntegrationTestEnvironment.openPreparedProject(
   return openPreparedProject(this, nameToPath(name), options, action)
 }
 
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 private fun <T> openPreparedProject(
   integrationTestEnvironment: IntegrationTestEnvironment,
   projectPath: File,

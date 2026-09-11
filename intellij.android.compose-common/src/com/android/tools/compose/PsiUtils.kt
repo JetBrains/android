@@ -88,7 +88,7 @@ fun PsiElement.isComposableFunction(): Boolean =
  * }
  * ```
  */
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 fun KtLambdaArgument.isComposableLambdaArgument(): Boolean {
   val callExpression = parent as? KtCallExpression ?: return false
   val lambdaExpression = getLambdaExpression() ?: return false

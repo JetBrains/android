@@ -84,7 +84,7 @@ fun NlDataProvider.previewElement(): PsiComposePreviewElementInstance? = getData
  *
  * @see [isValidPreviewLocation]
  */
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 internal fun KtNamedFunction.isValidComposePreviewForRunConfiguration() =
   !isInTestFile() &&
     isInAndroidOrCommonModule() &&

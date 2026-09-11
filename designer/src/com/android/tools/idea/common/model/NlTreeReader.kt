@@ -28,7 +28,7 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.function.Predicate
 import java.util.stream.Stream
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun findAttributeByPsi(element: PsiElement): ResourceReference? {
   assert(ApplicationManager.getApplication().isReadAccessAllowed)
   var nextElement: PsiElement? = element
@@ -83,7 +83,7 @@ class NlTreeReader(private val file: () -> XmlFile) {
     return nlRootComponent?.findViewsByTag(tag) ?: ImmutableList.of()
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   fun findViewByPsi(element: PsiElement?): NlComponent? {
     assert(ApplicationManager.getApplication().isReadAccessAllowed)
     var nextElement = element

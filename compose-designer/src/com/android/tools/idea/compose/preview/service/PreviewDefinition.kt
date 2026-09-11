@@ -35,7 +35,7 @@ data class PreviewDefinition(
   val annotationPointer: SmartPsiElementPointer<KtAnnotationEntry>,
 ) {
   companion object {
-    @RequiresReadLock
+    @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
     fun create(function: KtNamedFunction, leafAnnotation: KtAnnotationEntry, leafName: String?): PreviewDefinition {
       val smartPointerManager = SmartPointerManager.getInstance(function.project)
       val functionName = function.name ?: "UnknownFunction"

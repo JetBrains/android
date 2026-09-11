@@ -36,7 +36,7 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder::class.java))
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun getPsiValidationState(psiFile: PsiFile): PsiState {
   val state = PsiState(psiFile)
   val traverseMs = measureTimeMillis { psiFile.accept(state) }
@@ -44,7 +44,7 @@ fun getPsiValidationState(psiFile: PsiFile): PsiState {
   return state
 }
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun validatePsiChanges(old: PsiState?, new: PsiState): List<LiveEditUpdateException> {
   if (old == null) {
     logger.info("No PSI snapshot for ${new.psiFile.name}; it is likely a new file. Skipping PSI validation.")

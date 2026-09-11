@@ -29,7 +29,7 @@ class DynamicServerFlagServiceImpl(
 
   private var timestamp = -1L
 
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   override fun updateFlags() {
     val currentTime = clock.millis()
     if (timestamp + CACHE_DURATION_MILLIS > currentTime) {
