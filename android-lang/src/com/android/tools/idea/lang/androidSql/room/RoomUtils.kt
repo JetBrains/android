@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lang.androidSql.room
 
+import com.android.tools.idea.lang.androidSql.room.RoomAnnotations.DATABASE_VIEW
+import com.android.tools.idea.lang.androidSql.room.RoomAnnotations.ENTITY
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -23,12 +25,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 private val PsiClass.definesRoomTable: Boolean
-  get() {
-    return hasAnnotation(RoomAnnotations.ENTITY.oldName()) ||
-      hasAnnotation(RoomAnnotations.ENTITY.newName()) ||
-      hasAnnotation(RoomAnnotations.DATABASE_VIEW.oldName()) ||
-      hasAnnotation(RoomAnnotations.DATABASE_VIEW.newName())
-  }
+  get() = (ENTITY.names() + DATABASE_VIEW.names()).any { hasAnnotation(it) }
 
 /** True if element is PsiElementForFakeColumn, @ENTITY/DATABASE_VIEW-annotated class or field inside such class. */
 val PsiElement.definesRoomSchema: Boolean

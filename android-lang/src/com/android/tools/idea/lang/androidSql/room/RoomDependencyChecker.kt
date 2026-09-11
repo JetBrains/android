@@ -42,6 +42,6 @@ class RoomDependencyChecker(val project: Project) {
 
     val scope = GlobalSearchScope.allScope(project)
     val psiFacade = JavaPsiFacade.getInstance(scope.project!!)
-    return sequenceOf(RoomAnnotations.ENTITY.newName(), RoomAnnotations.ENTITY.oldName()).any { psiFacade.findClass(it, scope) != null }
+    return RoomAnnotations.ENTITY.names().any { psiFacade.findClass(it, scope) != null }
   }
 }
