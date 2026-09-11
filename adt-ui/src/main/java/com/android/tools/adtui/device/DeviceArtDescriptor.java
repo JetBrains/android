@@ -19,9 +19,9 @@ import static com.android.utils.XmlUtils.getSubTags;
 
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
+import com.android.tools.idea.util.AndroidPluginPathManager;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.XmlUtils;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Dimension;
@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -63,10 +62,9 @@ public class DeviceArtDescriptor {
    * In the IDE distribution, this folder is located under plugins/android/resources.
    */
   public static @Nullable File getBundledDescriptorsFolder() {
-    // In the IDE distribution, this should be in plugins/android/resources/device-art-resources
     Path dir = StudioPathManager.isRunningFromSources() ?
                 StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/artwork/resources/device-art-resources") :
-                Paths.get(PathManager.getHomePath()).resolve("plugins/android/resources/device-art-resources");
+                AndroidPluginPathManager.getResource("device-art-resources"); // JetBrains patch
     if (Files.isDirectory(dir)) {
       return dir.toFile();
     }

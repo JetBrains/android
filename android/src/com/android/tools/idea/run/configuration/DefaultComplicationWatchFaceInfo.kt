@@ -16,18 +16,15 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.Complication.ComplicationType
+import com.android.tools.idea.util.AndroidPluginPathManager
 import com.android.tools.idea.util.StudioPathManager
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.io.FileUtil
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 
 /** Returns the base directory for the Sample Data directory contents */
 private fun getApksBaseDir(): Path? {
-  val homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath())
-  var apksPath = Paths.get(homePath, "plugins/android/resources/apks")
+  var apksPath = AndroidPluginPathManager.getResource("apks") // JetBrains patch
   if (StudioPathManager.isRunningFromSources()) {
     apksPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/lib/apks")
   }
