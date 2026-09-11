@@ -113,8 +113,9 @@
               extensions="pftrace;perfetto-trace;perfetto"/>
     <fileType name="ProfilerDatabase" implementationClass="com.android.tools.idea.profilers.capture.ProfilerDatabaseFileType"
               extensions="asdb"/>
-    <!-- TODO: android-merge; PerfettoAiService is a class of the sherlock.common module, which the
-         monorepo does not carry, so this service cannot be registered against that interface here.
+    <!-- PerfettoAiService is a class of the sherlock.common module. The monorepo does not carry
+         that module and Google publishes no artifact for it, so this service cannot be registered
+         against that interface here. This is permanent, not a pending merge step.
     <projectService serviceInterface="com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService"
                     serviceImplementation="com.android.tools.idea.profilers.perfetto.ai.GeminiPerfettoAiService" />
     -->

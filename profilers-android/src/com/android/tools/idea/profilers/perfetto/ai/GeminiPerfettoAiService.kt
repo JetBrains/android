@@ -18,9 +18,9 @@ package com.android.tools.idea.profilers.perfetto.ai
 
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.buildLlmPrompt
-// TODO: android-merge; the sherlock.common module is not part of the monorepo and Google publishes
-// no artifact for it, so com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService cannot be
-// imported here.
+// The sherlock.common module is not part of the monorepo and Google publishes no artifact for it,
+// so com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService cannot be imported here.
+// This is permanent, not a pending merge step.
 // import com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService
 import com.intellij.openapi.project.Project
 
@@ -28,8 +28,9 @@ import com.intellij.openapi.project.Project
  * Gemini-backed implementation of [PerfettoAiService]. This service uses the [GeminiPluginApi] to send chat queries to the Gemini assistant
  * in Android Studio.
  */
-// TODO: android-merge; PerfettoAiService lives in the sherlock.common module, which the monorepo
-// does not carry, so this class cannot implement it here and generateQuery cannot be an override.
+// PerfettoAiService lives in the sherlock.common module, which the monorepo does not carry, so
+// this class cannot implement it here and generateQuery cannot be an override. This is permanent,
+// not a pending merge step.
 // class GeminiPerfettoAiService(private val project: Project) : PerfettoAiService {
 class GeminiPerfettoAiService(private val project: Project) {
   fun generateQuery(prompt: String) {
