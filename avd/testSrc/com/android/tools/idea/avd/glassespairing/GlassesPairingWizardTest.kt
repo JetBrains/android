@@ -21,6 +21,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.adblib.ConnectedDevice
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.AbstractAvdScanner
@@ -41,6 +42,7 @@ import com.android.tools.analytics.UsageTrackerWriter
 import com.android.tools.idea.avd.glassespairing.LaunchState.Booting
 import com.android.tools.idea.avd.glassespairing.LaunchState.Launching
 import com.android.tools.idea.avd.glassespairing.LaunchState.Ready
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Message.Builder
@@ -48,6 +50,7 @@ import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GlassesPairingEvent
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ApplicationRule
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -73,7 +76,9 @@ import org.mockito.kotlin.mock
 
 class GlassesPairingWizardTest {
   @get:Rule val temporaryDirectoryRule = TemporaryDirectoryRule()
+  @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val pairingWizardFlagRule = FlagRule(StudioFlags.AI_GLASSES_PHONE_EMULATOR_PAIRING_WIZARD_ENABLED, true)
 
   @Test
   fun testGlassesPairingWizard() {
