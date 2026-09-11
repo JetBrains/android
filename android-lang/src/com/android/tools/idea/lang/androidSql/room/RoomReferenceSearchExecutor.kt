@@ -97,13 +97,6 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     }
   }
 
-  private fun PsiClass.definesSqlTable(): Boolean {
-    return hasAnnotation(RoomAnnotations.ENTITY.oldName()) ||
-      hasAnnotation(RoomAnnotations.ENTITY.newName()) ||
-      hasAnnotation(RoomAnnotations.DATABASE_VIEW.oldName()) ||
-      hasAnnotation(RoomAnnotations.DATABASE_VIEW.newName())
-  }
-
   /**
    * Returns set of words and element for given [AndroidSqlDefinition] to check during search usage process
    *

@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.androidSql.room
 
 object RoomAnnotations {
-  val PACKAGE_NAME = RoomAndroidxName("android.arch.persistence.room.", "androidx.room.")
+  val PACKAGE_NAME = RoomAndroidxName("android.arch.persistence.room.", "androidx.room3.", "androidx.room.")
   val ENTITY = RoomAndroidxName.of(PACKAGE_NAME, "Entity")
   val DATABASE = RoomAndroidxName.of(PACKAGE_NAME, "Database")
   val DAO = RoomAndroidxName.of(PACKAGE_NAME, "Dao")
