@@ -73,7 +73,7 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -602,7 +602,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       File ioFile = myFiles.get(0).getFile();
       if (ioFile != null) {
         sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, myToken,
-                                LocalFileSystem.getInstance().findFileByIoFile(ioFile), myManifestEditable));
+                                StandardFileSystems.local().findFileByPath(ioFile.getAbsolutePath()), myManifestEditable));
       }
       else {
         sb.add(record.getMessage());
@@ -755,7 +755,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       if (!SourceFile.UNKNOWN.equals(sourceFile)) {
         File ioFile = sourceFile.getSourceFile();
         if (ioFile != null) {
-          VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(ioFile);
+          VirtualFile file = StandardFileSystems.local().findFileByPath(ioFile.getAbsolutePath());
           assert file != null;
           int line = -1;
           int column = 0;
@@ -980,7 +980,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
 
       File resDir = file.getParentFile() == null ? null : file.getParentFile().getParentFile();
-      VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
+      VirtualFile vResDir = resDir == null ? null : StandardFileSystems.local().findFileByPath(resDir.getAbsolutePath());
       if (vResDir != null) {
         Module module = ModuleUtilCore.findModuleForFile(vResDir, myProject);
         if (module != null) {
@@ -1003,7 +1003,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       boolean isProjectFile = false;
 
       Module[] modules = ModuleManager.getInstance(myProject).getModules();
-      VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+      VirtualFile vFile = StandardFileSystems.local().findFileByPath(file.getAbsolutePath());
       if (vFile != null) {
         String path = file.getPath();
         Module module = ModuleUtilCore.findModuleForFile(vFile, myProject);
@@ -1308,7 +1308,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         int column = data.column == null ? 0 : data.column;
         try {
           File ioFile = SdkUtils.urlToFile(data.urlString);
-          VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(ioFile);
+          VirtualFile virtualFile = StandardFileSystems.local().findFileByPath(ioFile.getAbsolutePath());
           if (virtualFile != null) {
             OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, line, column);
             FileEditorManager manager = FileEditorManager.getInstance(project);

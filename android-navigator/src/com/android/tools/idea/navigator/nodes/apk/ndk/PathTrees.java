@@ -24,7 +24,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
@@ -101,7 +101,7 @@ public final class PathTrees {
 
   @Nullable
   private static PsiDirectory findFolder(@NotNull String path, @NotNull Project project) {
-    VirtualFile folder = LocalFileSystem.getInstance().findFileByPath(path);
+    VirtualFile folder = StandardFileSystems.local().findFileByPath(path);
     if (folder != null) {
       return PsiManager.getInstance(project).findDirectory(folder);
     }

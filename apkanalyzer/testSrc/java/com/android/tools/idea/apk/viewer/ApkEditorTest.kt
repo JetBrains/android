@@ -46,7 +46,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.ui.asSequence
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
@@ -161,7 +161,7 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
 
     val apk2 = TestResources.getFile("/1.apk").toPath()
     Files.copy(apk2, apk, REPLACE_EXISTING)
-    val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apk.toFile()) ?: fail("Can't find file")
+    val virtualFile = StandardFileSystems.local().refreshAndFindFileByPath(apk.toFile().absolutePath) ?: fail("Can't find file")
     @Suppress("UnstableApiUsage")
     runWriteAction {
       ApplicationManager.getApplication()
@@ -606,7 +606,7 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
 
   private fun apkEditor(path: String, isResource: Boolean = true): ApkEditor {
     val file = if (isResource) TestResources.getFile(path) else File(path)
-    val archive = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) ?: fail("File not found: $path")
+    val archive = StandardFileSystems.local().refreshAndFindFileByPath(file.absolutePath) ?: fail("File not found: $path")
     val root = ApkFileSystem().getRootByLocal(archive) ?: fail("Invalid archive: $path")
     val apkEditor = ApkEditor(project, archive, root, FakeAndroidApplicationInfoProvider(), isPageAlignFeatureEnabled)
     Disposer.register(disposableRule.disposable, apkEditor)

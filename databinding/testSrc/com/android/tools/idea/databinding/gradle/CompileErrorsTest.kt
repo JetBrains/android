@@ -23,7 +23,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.testFramework.RunsInEdt
 import java.io.File
 import java.io.PrintWriter
@@ -57,7 +57,7 @@ class CompileErrorsTest {
 
     val file =
       errorJson["file"].asString.let { path -> if (FileUtil.isAbsolute(path)) File(path) else File(projectRule.project.basePath, path) }
-    assertThat(LocalFileSystem.getInstance().findFileByIoFile(file)).isNotNull()
+    assertThat(StandardFileSystems.local().findFileByPath(file.absolutePath)).isNotNull()
     assertThat(file.name).isEqualTo("activity_main.xml")
     assertThat(errorJson["pos"].asJsonArray[0].asJsonObject["line0"].asInt).isEqualTo(12)
   }

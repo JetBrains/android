@@ -24,7 +24,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 
@@ -69,7 +69,7 @@ class IntelliJCodeElement(private val project: Project, private val codeLocation
     if (sourceFileName.isEmpty()) {
       return false
     }
-    val file = LocalFileSystem.getInstance().findFileByPath(sourceFileName) ?: return false
+    val file = StandardFileSystems.local().findFileByPath(sourceFileName) ?: return false
     val application = ApplicationManager.getApplication()
     return application.runReadAction(Computable { ProjectFileIndex.getInstance(project).isInSource(file) })
   }

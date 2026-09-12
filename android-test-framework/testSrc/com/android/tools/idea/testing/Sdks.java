@@ -40,7 +40,7 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.IndexingTestUtil;
@@ -105,15 +105,15 @@ public final class Sdks {
     VirtualFile androidJar = JarFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar!/");
     sdkModificator.addRoot(androidJar, OrderRootType.CLASSES);
 
-    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
+    VirtualFile resFolder = StandardFileSystems.local().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
 
-    VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
+    VirtualFile androidSrcFolder = StandardFileSystems.local().findFileByPath(sdkPath + "/sources/" + platformDir);
     if (androidSrcFolder != null) {
       sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
     }
 
-    VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
+    VirtualFile docsFolder = StandardFileSystems.local().findFileByPath(sdkPath + "/docs/reference");
     if (docsFolder != null) {
       sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
     }

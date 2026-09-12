@@ -21,7 +21,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -46,7 +46,7 @@ public class PsiIncludeReferenceTest extends AndroidTestCase {
     assertEquals("@layout/designtime", reference.getFromResourceUrl());
     PsiXmlFile xmlFile = (PsiXmlFile)reference.getFromXmlFile(getProject());
     assertEquals(file1, xmlFile.getXmlFile().getVirtualFile());
-    assertEquals(file1, LocalFileSystem.getInstance().findFileByIoFile(reference.getFromPath()));
+    assertEquals(file1, StandardFileSystems.local().findFileByPath(reference.getFromPath().getAbsolutePath()));
     //noinspection ConstantConditions
 
     reference = new PsiIncludeReference(file3);

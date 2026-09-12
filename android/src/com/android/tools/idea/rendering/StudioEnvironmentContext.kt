@@ -55,7 +55,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
@@ -96,7 +96,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
     PsiIncludeReference.get(xmlFile, resolver)
 
   override fun getFileText(fileName: String): String? {
-    val virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName)
+    val virtualFile = StandardFileSystems.local().findFileByPath(fileName)
     if (virtualFile != null) {
       val psiFile = AndroidPsiUtils.getPsiFileSafely(module.project, virtualFile)
       if (psiFile != null) {

@@ -70,8 +70,8 @@ import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VfsUtil.findFileByURL
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -821,7 +821,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
 
       val parentDir = checkedCreateDirectoryIfMissing(to.parentFile)
-      val vf = LocalFileSystem.getInstance().findFileByIoFile(to) ?: parentDir.createChildData(requestor, to.name)
+      val vf = StandardFileSystems.local().findFileByPath(to.absolutePath) ?: parentDir.createChildData(requestor, to.name)
       vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
 
       // ProjectBuildModel uses PSI, let's committed document, since it's illegal to modify PSI on

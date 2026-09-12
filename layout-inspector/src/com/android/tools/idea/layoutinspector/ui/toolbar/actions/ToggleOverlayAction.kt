@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -98,7 +98,7 @@ private class ToggleOverlayAction(
         .withTitle("Choose Overlay")
         .withExtensionFilter("Image files", "svg", "png", "jpg")
     val fileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
-    val toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
+    val toSelect = StandardFileSystems.local().refreshAndFindFileByPath(e.project?.basePath ?: "/")
     val files = fileChooserDialog.choose(null, toSelect!!)
     if (files.isEmpty()) {
       return

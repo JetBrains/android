@@ -23,7 +23,7 @@ import com.android.tools.idea.testing.disableKtsIndexing
 import com.android.tools.idea.testing.withDeclarative
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.PsiManager
 import java.io.File
 import org.junit.After
@@ -54,7 +54,7 @@ class DeclarativeInternalSchemaTest {
     val service = DeclarativeService.Companion.getInstance(project)
     runReadAction {
       // Verify included build schema is retrieved correctly
-      val includedSettingsFile = LocalFileSystem.getInstance().findFileByIoFile(File(root, "build-logic/settings.gradle.dcl"))
+      val includedSettingsFile = StandardFileSystems.local().findFileByPath(File(root, "build-logic/settings.gradle.dcl").absolutePath)
       Truth.assertThat(includedSettingsFile).isNotNull()
       val includedContext = PsiManager.getInstance(project).findFile(includedSettingsFile!!)
       Truth.assertThat(includedContext).isNotNull()
@@ -65,7 +65,7 @@ class DeclarativeInternalSchemaTest {
         .isNotNull()
 
       // Verify root build schema is retrieved correctly
-      val rootSettingsFile = LocalFileSystem.getInstance().findFileByIoFile(File(root, "settings.gradle.dcl"))
+      val rootSettingsFile = StandardFileSystems.local().findFileByPath(File(root, "settings.gradle.dcl").absolutePath)
       Truth.assertThat(rootSettingsFile).isNotNull()
       val rootContext = PsiManager.getInstance(project).findFile(rootSettingsFile!!)
       val rootSchema = service.getDeclarativeSchema(rootContext!!)

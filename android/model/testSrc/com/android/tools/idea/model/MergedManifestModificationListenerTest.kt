@@ -19,7 +19,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.io.delete
@@ -72,7 +72,7 @@ class MergedManifestModificationListenerTest : AndroidTestCase() {
     val manifestParent = AndroidRootUtil.getPrimaryManifestFile(myFacet)!!.parent!!.toIoFile()
     val manifestParentPath = manifestParent.toPath()
     manifestParentPath.delete(true)
-    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifestParent)
+    StandardFileSystems.local().refreshAndFindFileByPath(manifestParent.absolutePath)
 
     waitForCondition(2, TimeUnit.SECONDS) { mergedManifestTracker.modificationCount == baseMergedManifestTrackerCount + 1 }
   }

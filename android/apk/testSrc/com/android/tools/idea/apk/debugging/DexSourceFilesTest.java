@@ -16,7 +16,7 @@
 package com.android.tools.idea.apk.debugging;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 
@@ -115,7 +115,7 @@ public class DexSourceFilesTest extends HeavyPlatformTestCase {
     File smaliFilePath = new File(myOutputFolderPath, join("com", "android", "smali", "MyClass.smali"));
     createIfNotExists(smaliFilePath);
 
-    LocalFileSystem.getInstance().refresh(false /* synchronous */);
+    StandardFileSystems.local().refresh(false /* synchronous */);
     VirtualFile file = myDexSourceFiles.findSmaliFile("com.android.smali.MyClass");
     assertNotNull(file);
 

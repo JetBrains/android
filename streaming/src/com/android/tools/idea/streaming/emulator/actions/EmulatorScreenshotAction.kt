@@ -45,7 +45,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.platform.ide.progress.withModalProgress
 import java.awt.Color
@@ -106,7 +106,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
             processedImage.writeImage("PNG", file)
             val backingFile =
-              LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException("Unable to save screenshot")
+              VirtualFileManager.getInstance().refreshAndFindFileByNioPath(file) ?: throw IOException("Unable to save screenshot")
             val screenshotProvider = EmulatorScreenshotProvider(emulatorController, displayId, displayInfoProvider)
             ApplicationManager.getApplication().invokeLater {
               val viewer =

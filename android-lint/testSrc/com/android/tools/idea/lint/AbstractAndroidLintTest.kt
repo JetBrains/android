@@ -26,7 +26,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.VfsTestUtil
 import org.jetbrains.android.AndroidTestCase
@@ -45,7 +45,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     // light classes,
     // see AndroidResolveScopeEnlarger.
     if (!SystemInfo.isWindows) {
-      VfsTestUtil.createFile(LocalFileSystem.getInstance().findFileByPath("/")!!, myModule.moduleFilePath)
+      VfsTestUtil.createFile(StandardFileSystems.local().findFileByPath("/")!!, myModule.moduleFilePath)
     }
 
     val analyticsSettings = AnalyticsSettingsData()

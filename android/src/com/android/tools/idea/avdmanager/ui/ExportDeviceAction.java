@@ -20,7 +20,7 @@ import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ public class ExportDeviceAction extends DeviceUiAction {
     FileSaverDescriptor descriptor = new FileSaverDescriptor("Export Location", "Select a location for the exported device", "xml");
     String homePath = System.getProperty("user.home");
     File parentPath = homePath == null ? new File("/") : new File(homePath);
-    VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
+    VirtualFile parent = StandardFileSystems.local().findFileByPath(parentPath.getAbsolutePath());
     VirtualFileWrapper fileWrapper =
       FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProvider.getProject()).save(parent, "device.xml");
     Device device = myProvider.getDevice();

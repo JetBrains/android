@@ -26,7 +26,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,7 +89,7 @@ public class TranslationsEditorSavingTest {
     for (Path path : myFilesToRemove) {
       Files.delete(path);
     }
-    LocalFileSystem.getInstance().refresh(false);
+    StandardFileSystems.local().refresh(false);
     Disposer.dispose(myEditor);
   }
 
@@ -105,7 +105,7 @@ public class TranslationsEditorSavingTest {
     });
 
     VirtualFile vFile =
-      LocalFileSystem.getInstance().refreshAndFindFileByIoFile(myRes.resolve(Paths.get("values-zh", "strings.xml")).toFile());
+      StandardFileSystems.local().refreshAndFindFileByPath(myRes.resolve(Paths.get("values-zh", "strings.xml")).toFile().getAbsolutePath());
     assertTrue(vFile == null || !vFile.exists());
   }
 
@@ -129,7 +129,7 @@ public class TranslationsEditorSavingTest {
     });
 
     VirtualFile vFile =
-      LocalFileSystem.getInstance().refreshAndFindFileByIoFile(myRes.resolve(Paths.get("values-zh", "strings.xml")).toFile());
+      StandardFileSystems.local().refreshAndFindFileByPath(myRes.resolve(Paths.get("values-zh", "strings.xml")).toFile().getAbsolutePath());
     assertTrue(vFile != null && vFile.exists());
     myFilesToRemove.add(vFile.toNioPath());
   }

@@ -29,7 +29,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
@@ -83,7 +83,7 @@ public final class ProjectFiles {
     File moduleFile = new File(toSystemDependentName(projectRootFolder), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     createIfDoesntExist(moduleFile);
 
-    VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+    VirtualFile virtualFile = StandardFileSystems.local().refreshAndFindFileByPath(moduleFile.getAbsolutePath());
     return createModule(project, virtualFile, EmptyModuleType.getInstance());
   }
 

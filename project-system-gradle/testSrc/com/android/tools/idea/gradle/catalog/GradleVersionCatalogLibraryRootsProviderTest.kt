@@ -20,7 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.util.PlatformIcons
@@ -45,7 +45,7 @@ class GradleVersionCatalogLibraryRootsProviderTest {
     val externalCatalogFile = File.createTempFile("external", ".toml")
     externalCatalogFile.writeText("[libraries]")
     externalCatalogFile.deleteOnExit()
-    val externalCatalog = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(externalCatalogFile)!!
+    val externalCatalog = StandardFileSystems.local().refreshAndFindFileByPath(externalCatalogFile.absolutePath)!!
 
     // Register a test extension that returns both catalogs
     val testExtension =

@@ -20,7 +20,7 @@ import static com.android.utils.FileUtils.join;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.io.IOException;
@@ -108,7 +108,7 @@ public class DaemonMemorySettingsTest extends HeavyPlatformTestCase {
       Properties properties = new Properties();
       properties.setProperty("org.gradle.jvmargs", content);
       PropertiesFiles.savePropertiesToFile(properties, file, null);
-      LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+      StandardFileSystems.local().refreshAndFindFileByPath(file.getAbsolutePath());
     }
     return file;
   }

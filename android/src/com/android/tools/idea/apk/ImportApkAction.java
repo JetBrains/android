@@ -31,7 +31,7 @@ import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -76,7 +76,7 @@ public class ImportApkAction extends DumbAwareAction {
     VirtualFile toSelect = null;
     String lastLocation = myPropertiesComponent.getValue(LAST_IMPORTED_LOCATION);
     if (lastLocation != null) {
-      toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(lastLocation);
+      toSelect = StandardFileSystems.local().refreshAndFindFileByPath(lastLocation);
     }
     VirtualFile[] files = chooser.choose(null, toSelect);
     if (files.length == 0) {

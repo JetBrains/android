@@ -20,7 +20,7 @@ import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.testFramework.fixtures.BareTestFixtureTestCase
 import com.intellij.testFramework.rules.TempDirectory
 import java.io.File
@@ -30,7 +30,7 @@ import org.junit.Test
 class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
   @get:Rule val tempDir = TempDirectory()
 
-  private fun File.toVFile() = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this)!!
+  private fun File.toVFile() = StandardFileSystems.local().refreshAndFindFileByPath(this.absolutePath)!!
 
   @Test
   fun findGroovyBuildFile() {

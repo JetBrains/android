@@ -37,8 +37,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Queryable;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import java.util.ArrayList;
@@ -57,8 +58,8 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
 
   AndroidJniFolderNode(@NotNull Project project, @NotNull NdkModuleModel ndkModuleModel, @NotNull ViewSettings settings) {
     super(project, ndkModuleModel, settings);
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-    myBuildFileFolder = Objects.requireNonNull(fileSystem.findFileByIoFile(ndkModuleModel.getRootDirPath()));
+    VirtualFileSystem fileSystem = StandardFileSystems.local();
+    myBuildFileFolder = Objects.requireNonNull(fileSystem.findFileByPath(ndkModuleModel.getRootDirPath().getAbsolutePath()));
     myCachedHashCode = myBuildFileFolder.hashCode();
   }
 

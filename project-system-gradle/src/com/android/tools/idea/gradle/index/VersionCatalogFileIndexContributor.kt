@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.index
 import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtilCore.iterateChildrenRecursively
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileFilter
@@ -42,7 +42,7 @@ class VersionCatalogFileIndexContributor : IndexableSetContributor() {
 
     val versionsTomlFilter = VirtualFileFilter { file -> file.name.endsWith(EXT_VERSIONS_TOML) }
 
-    LocalFileSystem.getInstance().findFileByIoFile(File(project.basePath, GRADLE_FOLDER))?.let {
+    StandardFileSystems.local().findFileByPath(File(project.basePath, GRADLE_FOLDER).absolutePath)?.let {
       iterateChildrenRecursively(
         it,
         versionsTomlFilter,

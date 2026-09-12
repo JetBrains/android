@@ -22,8 +22,9 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.res.LocalResourceRepository;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -39,10 +40,10 @@ public final class Utils {
 
   static void loadResources(@NotNull StringResourceViewPanel panel, @NotNull Collection<Path> resPaths) {
     AndroidFacet facet = panel.getFacet();
-    LocalFileSystem system = LocalFileSystem.getInstance();
+    VirtualFileSystem system = StandardFileSystems.local();
 
     Collection<VirtualFile> resVirtualFiles = resPaths.stream()
-      .map(path -> system.findFileByIoFile(path.toFile()))
+      .map(path -> system.findFileByPath(path.toFile().getAbsolutePath()))
       .collect(Collectors.toList());
 
     LocalResourceRepository<VirtualFile> repository = ModuleResourceRepository.createForTest(facet, resVirtualFiles);

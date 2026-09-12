@@ -24,8 +24,9 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,7 +84,7 @@ public final class AndroidPackageUtilsTest {
   }
 
   private String getPackageForPath(NamedModuleTemplate NamedModuleTemplate, String targetDirPath) {
-    LocalFileSystem fs = LocalFileSystem.getInstance();
+    VirtualFileSystem fs = StandardFileSystems.local();
     VirtualFile targetDirectory = fs.refreshAndFindFileByPath(projectRule.getProject().getBasePath()).findFileByRelativePath(targetDirPath);
 
     return AndroidPackageUtils.getPackageForPath(facet, Lists.newArrayList(NamedModuleTemplate), targetDirectory);

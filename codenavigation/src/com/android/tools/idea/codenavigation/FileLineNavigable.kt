@@ -17,7 +17,7 @@ package com.android.tools.idea.codenavigation
 
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.pom.Navigatable
 
 /** Use the file name and line number to navigate to a local file. */
@@ -30,7 +30,7 @@ internal class FileLineNavigable(private val project: Project) : NavSource {
     // There is no need to check `sourceFile.exists()` since `findFileByPath()` will return null if
     // the file is not found. `exists()` could be false if the file was deleted, but that is not
     // likely since we are using the file immediately after looking it up.
-    val sourceFile = LocalFileSystem.getInstance().findFileByPath(location.fileName!!) ?: return null
+    val sourceFile = StandardFileSystems.local().findFileByPath(location.fileName!!) ?: return null
 
     return OpenFileDescriptor(project, sourceFile, location.lineNumber, 0)
   }

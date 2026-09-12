@@ -33,7 +33,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages.showErrorDialog
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.ide.progress.withModalProgress
 import com.intellij.util.ExceptionUtil.getMessage
 import icons.StudioIcons
@@ -79,7 +79,7 @@ class ScreenshotAction :
           val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
           processedImage.writeImage("PNG", file)
           val backingFile =
-            LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException(message("screenshot.error.save"))
+            VirtualFileManager.getInstance().refreshAndFindFileByNioPath(file) ?: throw IOException(message("screenshot.error.save"))
           while (backingFile.length == 0L) {
             // It's not clear why the file may have zero length after the first refresh, but it was empirically observed.
             backingFile.refresh(false, false)

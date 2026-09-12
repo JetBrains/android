@@ -24,8 +24,8 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.nio.file.Files;
@@ -71,7 +71,7 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
   private static VirtualFile getRootFolder(@NotNull Module module) throws IOException {
     Path dir = module.getModuleNioFile().getParent();
     Files.createDirectories(dir);
-    return LocalFileSystem.getInstance().refreshAndFindFileByNioFile(dir);
+    return VirtualFileManager.getInstance().refreshAndFindFileByNioPath(dir);
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileInsideBuildFolderInGradleProject() throws IOException {

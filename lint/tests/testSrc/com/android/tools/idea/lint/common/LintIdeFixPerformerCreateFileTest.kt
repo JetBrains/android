@@ -19,7 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.lint.detector.api.LintFix
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
@@ -123,7 +123,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
     val fix = lintFix.toIdeFix(currentFile) as ModCommandLintQuickFix
     myFixture.launchAction(fix.rawIntention())
 
-    val virtualBinFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newFile)
+    val virtualBinFile = StandardFileSystems.local().refreshAndFindFileByPath(newFile.absolutePath)
     val contents = virtualBinFile?.contentsToByteArray()
     assertEquals(Base64.getEncoder().encodeToString(binary), Base64.getEncoder().encodeToString(contents))
   }

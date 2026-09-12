@@ -20,7 +20,7 @@ import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -64,7 +64,7 @@ public abstract class SaveFileListener implements ActionListener {
     FileSaverDescriptor descriptor = new FileSaverDescriptor(myDialogTitle, "Save as *." + myExtension, myExtension);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myContentPanel);
 
-    VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(file.exists() ? file : new File(path));
+    VirtualFile vf = StandardFileSystems.local().findFileByPath((file.exists() ? file : new File(path)).getAbsolutePath());
     if (vf == null) {
       vf = VfsUtil.getUserHomeDir();
     }

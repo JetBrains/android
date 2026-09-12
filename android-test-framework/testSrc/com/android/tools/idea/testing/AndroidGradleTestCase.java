@@ -44,7 +44,7 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.TestApplicationManager;
@@ -143,7 +143,7 @@ abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIn
 
     Project project = fixture.getProject();
     FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
-    LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
+    StandardFileSystems.local().refreshAndFindFileByPath(project.getBasePath());
     AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk().toFile());
     myFixture = fixture;
   }

@@ -20,7 +20,7 @@ import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class ImportDevicesAction extends DeviceUiAction {
       .withExtensionFilter(XmlFileType.INSTANCE);
     String homePath = System.getProperty("user.home");
     File parentPath = homePath == null ? new File("/") : new File(homePath);
-    VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
+    VirtualFile parent = StandardFileSystems.local().findFileByPath(parentPath.getAbsolutePath());
     VirtualFile[] toSelect = parent != null ? new VirtualFile[]{parent} : VirtualFile.EMPTY_ARRAY;
     VirtualFile[] files = FileChooserFactory.getInstance().createFileChooser(descriptor, myProvider.getProject(), null).choose(null, toSelect);
     List<Device> importedDevices = new ArrayList<>();

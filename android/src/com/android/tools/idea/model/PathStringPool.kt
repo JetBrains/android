@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.inputStream
 import com.android.tools.idea.util.toVirtualFile
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.Closeable
 import java.io.File
@@ -43,7 +43,7 @@ class PathStringPool : Closeable {
     path.toVirtualFile()?.let {
       return it
     }
-    return LocalFileSystem.getInstance().findFileByIoFile(toFile(path))
+    return StandardFileSystems.local().findFileByPath(toFile(path).absolutePath)
   }
 
   /** Returns a [Path] containing the same content as the file at the given [PathString]. */

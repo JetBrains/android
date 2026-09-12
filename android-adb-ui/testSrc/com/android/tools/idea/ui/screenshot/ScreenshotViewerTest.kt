@@ -43,7 +43,7 @@ import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
@@ -547,7 +547,7 @@ class ScreenshotViewerTest {
     val processedImage = ImageUtils.scale(screenshotDecorator.decorate(screenshotImage, decoration), getScreenshotScale())
     val backingFile = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
     processedImage.writeImage("PNG", backingFile)
-    val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
+    val screenshotFile = VirtualFileManager.getInstance().refreshAndFindFileByNioPath(backingFile)!!
     val viewer =
       ScreenshotViewer(
         projectRule.project,

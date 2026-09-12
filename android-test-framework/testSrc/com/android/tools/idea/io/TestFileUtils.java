@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.io;
 
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +37,7 @@ public final class TestFileUtils {
    */
   public static VirtualFile createDirectoriesAndRefreshVfs(@NotNull Path path) throws IOException {
     Files.createDirectories(path);
-    return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(path.toFile());
+    return StandardFileSystems.local().refreshAndFindFileByPath(path.toFile().getAbsolutePath());
   }
 
   /**
@@ -47,6 +47,6 @@ public final class TestFileUtils {
     Files.createDirectories(path.getParent());
     Files.write(path, string.getBytes(StandardCharsets.UTF_8));
 
-    return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(path.toFile());
+    return StandardFileSystems.local().refreshAndFindFileByPath(path.toFile().getAbsolutePath());
   }
 }

@@ -21,7 +21,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import java.util.Properties
 import org.jetbrains.android.refactoring.ENABLE_JETIFIER_PROPERTY
 import org.jetbrains.android.refactoring.USE_ANDROIDX_PROPERTY
@@ -39,7 +39,7 @@ class EnableAndroidXHyperlink :
     val gradleProperties = GradleProperties(project)
     setProperties(gradleProperties.properties)
     gradleProperties.save()
-    LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(gradleProperties.path))
+    RefreshQueue.getInstance().refreshPaths(false, false, null, ImmutableList.of(gradleProperties.path).map { it.toPath() })
   }
 
   @VisibleForTesting

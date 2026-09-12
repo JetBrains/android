@@ -19,7 +19,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -38,7 +38,7 @@ object ReformatUtil {
         // created with the right formatting by the templates and we don't want the balloon on startup.
         .filterNot { it.name.startsWith("gradlew") }
         .forEach {
-          val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(it)!!
+          val virtualFile = StandardFileSystems.local().findFileByPath(it.absolutePath)!!
           reformatAndRearrange(project, virtualFile, keepDocumentLocked = true)
           FileDocumentManager.getInstance().run { getDocument(virtualFile)?.let { document -> saveDocument(document) } }
         }

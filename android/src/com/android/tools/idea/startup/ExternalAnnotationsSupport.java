@@ -46,7 +46,7 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.JavaPsiFacade;
@@ -196,7 +196,7 @@ public class ExternalAnnotationsSupport {
         for (String relativePath : paths) {
           if (relativePath == null) continue;
           if (root != null) break;
-          root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(relativePath));
+          root = StandardFileSystems.local().findFileByPath(FileUtil.toSystemIndependentName(relativePath));
         }
       }
 

@@ -24,13 +24,14 @@ import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityMod
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.RefreshQueue;
 import com.intellij.platform.backend.workspace.WorkspaceModelKt;
 import com.intellij.platform.workspace.jps.entities.ModuleEntity;
 import com.intellij.platform.workspace.jps.entities.ModuleEntityModifications;
 import com.intellij.platform.workspace.jps.entities.ModuleId;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Objects;
 import kotlin.Unit;
@@ -51,7 +52,7 @@ public class GradleUtilIdeaTest extends HeavyPlatformTestCase {
     myBuildFile = new File(myModuleRootDir, FN_BUILD_GRADLE);
     createIfNotExists(myBuildFile);
     // Ensure that the tests and see the file in the virtual file system.
-    LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(myBuildFile));
+    RefreshQueue.getInstance().refreshPaths(false, false, null, ContainerUtil.map(ImmutableList.of(myBuildFile), File::toPath));
   }
 
   public void testGetGradleBuildFileFromRootDir() {

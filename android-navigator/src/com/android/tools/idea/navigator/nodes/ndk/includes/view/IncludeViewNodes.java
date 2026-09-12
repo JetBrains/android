@@ -22,8 +22,9 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -61,9 +62,9 @@ public class IncludeViewNodes {
     List<AbstractTreeNode<?>> result = new ArrayList<>();
     Set<String> baseNameSeenAlready = new HashSet<>();
     PsiManager psiManager = PsiManager.getInstance(project);
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFileSystem fileSystem = StandardFileSystems.local();
     for (File include : includes) {
-      VirtualFile folder = fileSystem.findFileByIoFile(include);
+      VirtualFile folder = fileSystem.findFileByPath(include.getAbsolutePath());
       if (folder == null) {
         continue;
       }

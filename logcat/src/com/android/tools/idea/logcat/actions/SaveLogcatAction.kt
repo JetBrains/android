@@ -37,7 +37,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.text.SimpleDateFormat
@@ -82,7 +82,7 @@ internal class SaveLogcatAction :
 
     logcatPresenter.createCoroutineScope(extraContext = Dispatchers.IO).launch {
       LogcatFileIo().writeLogcat(file.toPath(), logcatMessages, device, filter, projectApplicationIds)
-      val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
+      val virtualFile = StandardFileSystems.local().refreshAndFindFileByPath(file.absolutePath)
       if (virtualFile == null) {
         LOGGER.warn("Failed to save Logcat file: $file")
         return@launch
@@ -102,7 +102,7 @@ internal class SaveLogcatAction :
     val properties = PropertiesComponent.getInstance(project)
     val lastPath = properties.getValue(SAVE_PATH_KEY)
     return if (lastPath != null) {
-      LocalFileSystem.getInstance().findFileByPath(lastPath)
+      StandardFileSystems.local().findFileByPath(lastPath)
     } else project.guessProjectDir()
   }
 

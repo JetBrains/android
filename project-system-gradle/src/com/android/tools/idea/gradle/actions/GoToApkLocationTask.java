@@ -39,7 +39,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collection;
@@ -212,13 +212,13 @@ public class GoToApkLocationTask {
         File apkPath = myApkPathsPerModule.get(description.substring(ANALYZE.length()));
         VirtualFile apk;
         if (apkPath.isFile()) {
-          apk = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apkPath);
+          apk = StandardFileSystems.local().refreshAndFindFileByPath(apkPath.getAbsolutePath());
         }
         else {
           FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
             .withDescription("Select APK to analyze")
             .withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
-          apk = FileChooser.chooseFile(descriptor, myProject, LocalFileSystem.getInstance().findFileByIoFile(apkPath));
+          apk = FileChooser.chooseFile(descriptor, myProject, StandardFileSystems.local().findFileByPath(apkPath.getAbsolutePath()));
         }
         if (apk != null) {
           OpenFileDescriptor fd = new OpenFileDescriptor(myProject, apk);

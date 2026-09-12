@@ -28,7 +28,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 
@@ -37,7 +37,7 @@ fun getStartDestLayoutId(navResourceId: String, project: Project, resourceResolv
     return null
   }
   val fileName = resourceResolver.findResValue(navResourceId, false)?.value ?: return null
-  val file = LocalFileSystem.getInstance().findFileByPath(fileName) ?: return null
+  val file = StandardFileSystems.local().findFileByPath(fileName) ?: return null
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile ?: return null
   return ApplicationManager.getApplication()
     .runReadAction(Computable<String> { findStartDestination(psiFile.rootTag)?.getAttributeValue(ATTR_LAYOUT, TOOLS_URI) })

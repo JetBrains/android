@@ -17,7 +17,7 @@ package com.android.screenshottest.util
 
 import com.android.screenshottest.ui.PreviewDetails
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import java.io.File
 import java.io.IOException
 
@@ -62,7 +62,7 @@ fun copyReferenceImages(imagesToCopy: List<ImageData>): List<ImageData> {
     }
 
     if (refreshRoots.isNotEmpty()) {
-      LocalFileSystem.getInstance().refreshIoFiles(refreshRoots, true, true, null)
+      RefreshQueue.getInstance().refreshPaths(true, true, null, refreshRoots.map { it.toPath() })
     }
   } catch (e: IllegalStateException) {
     LOG.error("Failed to copy screenshot reference images during setup due to invalid project state or configuration.", e)

@@ -30,6 +30,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -50,7 +51,7 @@ class DesignAssetImporter {
     // so assets with the same folder name are imported together.
     val groupedAssets = toIntermediateAssets(assetSets, resFolder).groupBy(IntermediateAsset::targetFolderName)
 
-    LocalFileSystem.getInstance().refreshIoFiles(listOf(resFolder))
+    RefreshQueue.getInstance().refreshPaths(false, false, null, listOf(resFolder).map { it.toPath() })
 
     WriteCommandAction.runWriteCommandAction(
       androidFacet.module.project,

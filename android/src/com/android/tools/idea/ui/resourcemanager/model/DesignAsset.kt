@@ -31,7 +31,7 @@ import com.android.tools.idea.ui.resourcemanager.importer.QualifierMatcher
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -89,7 +89,7 @@ interface Asset {
       if (resourceItem is SampleDataResourceItem) {
         val imageFile =
           resourceItem.getDrawableResources().getOrNull(0)?.value?.let { drawablePath ->
-            LocalFileSystem.getInstance().findFileByPath(drawablePath)
+            StandardFileSystems.local().findFileByPath(drawablePath)
           } ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
         return DesignAsset(
           file = imageFile,

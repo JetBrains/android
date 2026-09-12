@@ -35,7 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -134,7 +134,7 @@ public class AddGoogleMavenRepositoryHyperlinkIntegrationTest {
     GradleBuildModel appBuildModel = pbm.getModuleBuildModel(appModule);
     removeRepositories(appBuildModel);
     File settingsFile = new File(project.getBasePath(), FN_SETTINGS_GRADLE);
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
+    VirtualFile virtualFile = StandardFileSystems.local().findFileByPath(settingsFile.getAbsolutePath());
     ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Exception>)() -> {
       VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + """
         dependencyResolutionManagement {

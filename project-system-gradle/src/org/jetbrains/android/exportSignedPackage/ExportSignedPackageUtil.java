@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.event.ActionEvent;
@@ -102,7 +102,7 @@ public class ExportSignedPackageUtil {
       @Override
       public void actionPerformed(ActionEvent e) {
         final String defaultPath = form.getKeyStorePathField().getText().trim();
-        final VirtualFile defaultFile = LocalFileSystem.getInstance().findFileByPath(defaultPath);
+        final VirtualFile defaultFile = StandardFileSystems.local().findFileByPath(defaultPath);
         final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
         final VirtualFile file = FileChooser.chooseFile(descriptor, form.getPanel(), project, defaultFile);
         if (file != null) {

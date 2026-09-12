@@ -31,9 +31,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -148,7 +148,7 @@ public final class GradleModelSource extends GradleModelProvider {
   private static @Nullable VirtualFile findSettingsFile(@NotNull Module module) {
     String buildPath = ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectPath();
     if (buildPath != null) {
-      VirtualFile buildPathVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(new File(buildPath));
+      VirtualFile buildPathVirtualFile = StandardFileSystems.local().findFileByPath(new File(buildPath).getAbsolutePath());
       return BuildModelContext.tryToFindSettingsFile(buildPathVirtualFile);
     }
     return null;

@@ -24,7 +24,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
@@ -53,7 +53,7 @@ class BenchmarkLinkListener(
           // TODO (gijosh): Check if we have a task that is currently pulling the file
           return
         }
-        val virtualFileTrace = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(localFile) ?: return
+        val virtualFileTrace = StandardFileSystems.local().refreshAndFindFileByPath(localFile.absolutePath) ?: return
         val fd = OpenFileDescriptor(project, virtualFileTrace)
 
         if (isPerfettoWebLoaderEnabled && isUiPerfettoDevSupportedFile(fileName)) {

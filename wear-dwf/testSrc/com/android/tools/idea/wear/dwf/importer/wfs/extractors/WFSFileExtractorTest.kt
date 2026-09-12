@@ -19,7 +19,7 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.toNioPathOrNull
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFileManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -46,7 +46,7 @@ class WFSFileExtractorTest {
   fun `test extract example WFS file`() = runTest {
     val extractor = WFSFileExtractor(StandardTestDispatcher(testScheduler))
     val wfsFile =
-      LocalFileSystem.getInstance().findFileByNioFile(testDataPath.resolve("wfs/example.wfs")) ?: error("expected WFS file to exist")
+      VirtualFileManager.getInstance().findFileByNioPath(testDataPath.resolve("wfs/example.wfs")) ?: error("expected WFS file to exist")
 
     val mainFolderPath = fixture.tempDirPath.toNioPathOrNull() ?: error("expected path to be valid")
     val resFolderPath = fixture.tempDirFixture.findOrCreateDir("res").toNioPath()

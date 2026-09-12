@@ -29,7 +29,7 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.testFramework.PlatformTestUtil
 
 /** Tests for [ManualLayoutAlgorithm] */
@@ -146,7 +146,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     PlatformTestUtil.saveProject(project, true)
 
     assertTrue(
-      LocalFileSystem.getInstance()
+      StandardFileSystems.local()
         .findFileByPath(project.basePath!! + "/.idea/navEditor.xml")!!
         .contentsToByteArray()
         .toString(Charsets.UTF_8)

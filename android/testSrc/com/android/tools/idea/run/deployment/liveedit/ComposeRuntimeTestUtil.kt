@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.registerServiceInstance
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -96,7 +96,7 @@ fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(
 ) {
   // Load the compose runtime into the main module's library dependency.
   VfsRootAccess.allowRootAccess(projectRule.testRootDisposable, composeRuntimePath)
-  LocalFileSystem.getInstance().refreshAndFindFileByPath(composeRuntimePath)
+  StandardFileSystems.local().refreshAndFindFileByPath(composeRuntimePath)
   projectRule.project.modules.forEach {
     if (!exceptModuleNames.contains(it.name)) {
       PsiTestUtil.addLibrary(it, composeRuntimePath)

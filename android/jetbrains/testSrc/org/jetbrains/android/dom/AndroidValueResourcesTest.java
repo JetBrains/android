@@ -40,7 +40,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -837,10 +837,10 @@ public class AndroidValueResourcesTest {
   @Test
   public void navigationInPlatformXml1_NavigateFromParentAttr() {
     VirtualFile themes_holo =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
+      StandardFileSystems.local().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertThat(themes_holo).isNotNull();
     VirtualFile themes =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes.xml").toString());
+      StandardFileSystems.local().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes.xml").toString());
     assertThat(themes).isNotNull();
 
     // In themes_holo.xml: point to value of "Theme" in the parent attribute on line:
@@ -866,10 +866,10 @@ public class AndroidValueResourcesTest {
   @Test
   public void navigationInPlatformXml2_NavigateFromNameAttr() {
     VirtualFile themes_holo =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
+      StandardFileSystems.local().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertThat(themes_holo).isNotNull();
     VirtualFile themes =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes.xml").toString());
+      StandardFileSystems.local().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes.xml").toString());
     assertThat(themes).isNotNull();
 
     // In themes_holo.xml: point to value of "Theme" in the name attribute on line:
@@ -895,10 +895,10 @@ public class AndroidValueResourcesTest {
   @Test
   public void navigationInPlatformXml3() {
     VirtualFile themes_holo =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
+      StandardFileSystems.local().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertThat(themes_holo).isNotNull();
     VirtualFile colors_holo =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/colors_holo.xml").toString());
+      StandardFileSystems.local().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/colors_holo.xml").toString());
     assertThat(colors_holo).isNotNull();
 
     // In themes_holo.xml: point to value of "bright_foreground_holo_light" on line:

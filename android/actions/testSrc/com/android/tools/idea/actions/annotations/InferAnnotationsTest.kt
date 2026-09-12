@@ -30,7 +30,7 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.Comparing
 import com.intellij.openapi.vfs.JarFileSystem
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
@@ -2458,7 +2458,7 @@ class InferAnnotationsTest {
       return
     }
     val annotationsJarPath = "${fixture.testDataPath}/infer/data.jar"
-    val annotationsJar = LocalFileSystem.getInstance().findFileByPath(annotationsJarPath)
+    val annotationsJar = StandardFileSystems.local().findFileByPath(annotationsJarPath)
     if (annotationsJar != null) {
       val file = JarFileSystem.getInstance().getJarRootForLocalFile(annotationsJar)
       if (file != null) {
@@ -2469,7 +2469,7 @@ class InferAnnotationsTest {
     if (includeAndroidJar) {
       val androidJar = TestUtils.resolvePlatformPath("android.jar")
       assertThat(androidJar).isNotNull()
-      val jarFile = LocalFileSystem.getInstance().findFileByPath(androidJar.toString())!!
+      val jarFile = StandardFileSystems.local().findFileByPath(androidJar.toString())!!
       val file = JarFileSystem.getInstance().getJarRootForLocalFile(jarFile)
       if (file != null) {
         ModuleRootModificationUtil.addModuleLibrary(fixture.module, file.url)

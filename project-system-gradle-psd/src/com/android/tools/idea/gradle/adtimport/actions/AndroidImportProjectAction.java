@@ -39,7 +39,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NlsActions;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import java.io.IOException;
@@ -129,7 +129,7 @@ public class AndroidImportProjectAction extends AnAction {
     VirtualFile toSelect = null;
     String lastLocation = PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION);
     if (lastLocation != null) {
-      toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(lastLocation);
+      toSelect = StandardFileSystems.local().refreshAndFindFileByPath(lastLocation);
     }
     VirtualFile[] files = chooser.choose(project, toSelect);
     if (files.length == 0) {

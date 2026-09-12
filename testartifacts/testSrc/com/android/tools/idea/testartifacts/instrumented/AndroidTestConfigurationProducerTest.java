@@ -46,7 +46,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
@@ -304,7 +304,7 @@ public class AndroidTestConfigurationProducerTest {
       "  }\n" +
       "}");
 
-    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newTestFile);
+    StandardFileSystems.local().refreshAndFindFileByPath(newTestFile.getAbsolutePath());
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.getProject());
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(
       projectRule.getProject(), "google.simpleapplication.SomeTest.InnerClassTest");

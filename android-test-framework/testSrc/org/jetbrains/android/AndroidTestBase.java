@@ -46,7 +46,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -135,7 +135,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
       // This refresh must be synchronous and recursive so it is completed before continuing the test and clean everything so indexes are
       // properly updated. Apparently this solves outdated indexes and stubs problems
-      WriteAction.run(() -> LocalFileSystem.getInstance().refresh(false));
+      WriteAction.run(() -> StandardFileSystems.local().refresh(false));
 
       // Run VFS listeners.
       PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();

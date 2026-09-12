@@ -28,9 +28,10 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import java.io.File;
@@ -63,7 +64,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode<?>> getChildren() {
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFileSystem fileSystem = StandardFileSystems.local();
     Project project = getProject();
     if (project == null) {
       //noinspection unchecked
@@ -71,7 +72,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
     }
     PsiManager psiManager = PsiManager.getInstance(project);
     SimpleIncludeValue value = getSimpleIncludeValue();
-    VirtualFile virtualFile = fileSystem.findFileByIoFile(value.getIncludeFolder());
+    VirtualFile virtualFile = fileSystem.findFileByPath(value.getIncludeFolder().getAbsolutePath());
     if (virtualFile == null) {
       //noinspection unchecked
       return Collections.EMPTY_LIST;
@@ -119,9 +120,9 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
     if (!LexicalIncludePaths.hasHeaderExtension(file.getName())) {
       return false;
     }
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFileSystem fileSystem = StandardFileSystems.local();
     SimpleIncludeValue value = getSimpleIncludeValue();
-    VirtualFile ancestor = fileSystem.findFileByIoFile(value.getIncludeFolder());
+    VirtualFile ancestor = fileSystem.findFileByPath(value.getIncludeFolder().getAbsolutePath());
     if (ancestor != null && VfsUtilCore.isAncestor(ancestor, file, false)) {
       return true;
     }

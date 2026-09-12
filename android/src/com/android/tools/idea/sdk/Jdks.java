@@ -28,7 +28,7 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
 import java.nio.file.Path;
@@ -70,7 +70,7 @@ public class Jdks {
   }
 
   public @Nullable Sdk createAndAddJdk(@NotNull String jdkHomePath) {
-    VirtualFile sdkHome = LocalFileSystem.getInstance().refreshAndFindFileByPath(FileUtil.toSystemIndependentName(jdkHomePath));
+    VirtualFile sdkHome = StandardFileSystems.local().refreshAndFindFileByPath(FileUtil.toSystemIndependentName(jdkHomePath));
     if (sdkHome == null) {
       LOG.error(String.format("Unable to create JDK from path '%1$s'", jdkHomePath));
       return null;

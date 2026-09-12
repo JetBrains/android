@@ -37,7 +37,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
@@ -121,13 +121,13 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null, private
 
     val psiManager = PsiManager.getInstance(myProject)
 
-    val localFileSystem = LocalFileSystem.getInstance()
+    val localFileSystem = StandardFileSystems.local()
     val fileToPsiFile =
       unusedMap.values
         .flatMap { value -> value.keys }
         .distinct()
         .associateWithNotNull { javaFile ->
-          localFileSystem.findFileByIoFile(javaFile)?.takeUnless(VirtualFile::isDirectory)?.let(psiManager::findFile)
+          localFileSystem.findFileByPath(javaFile.absolutePath)?.takeUnless(VirtualFile::isDirectory)?.let(psiManager::findFile)
         }
 
     // TODO(b/223643511): This refactoring can break the project if it removes unused resources that

@@ -20,7 +20,7 @@ import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.jna.JnaLoader;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.mac.foundation.Foundation;
 import com.intellij.ui.mac.foundation.ID;
@@ -92,6 +92,6 @@ public class IdeFileUtils {
    */
   public static @Nullable VirtualFile getDesktopDirectoryVirtualFile() {
     Path desktop = getDesktopDirectoryIfExists();
-    return desktop == null ? null : LocalFileSystem.getInstance().refreshAndFindFileByIoFile(desktop.toFile());
+    return desktop == null ? null : StandardFileSystems.local().refreshAndFindFileByPath(desktop.toFile().getAbsolutePath());
   }
 }

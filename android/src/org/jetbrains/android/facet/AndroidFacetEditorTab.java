@@ -35,7 +35,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.TextWithMnemonic;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
@@ -830,7 +830,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (relativeGenPathR == null || relativeGenPathR.isEmpty()) {
       throw new ConfigurationException(AndroidBundle.message("file.must.be.under.module.error", FileUtil.toSystemDependentName(absPath)));
     }
-    if (checkExists && LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(absPath)) == null) {
+    if (checkExists && StandardFileSystems.local().findFileByPath(FileUtil.toSystemIndependentName(absPath)) == null) {
       throw new ConfigurationException(AndroidBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(absPath)));
     }
     return relativeGenPathR;
@@ -949,7 +949,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         path = myDefaultPath;
       }
       if (path != null) {
-        initialFile = LocalFileSystem.getInstance().findFileByPath(path);
+        initialFile = StandardFileSystems.local().findFileByPath(path);
       }
       if (initialFile == null) {
         ModuleRootManager manager = ModuleRootManager.getInstance(module);
@@ -962,7 +962,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
           if (initialFile == null) {
             @SystemIndependent String p = AndroidRootUtil.getModuleDirPath(myContext.getModule());
             if (p != null) {
-              initialFile = LocalFileSystem.getInstance().findFileByPath(p);
+              initialFile = StandardFileSystems.local().findFileByPath(p);
             }
           }
         }
@@ -1001,7 +1001,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         path = dir != null ? dir.getPath() : null;
       }
       if (path != null) {
-        initialFile = LocalFileSystem.getInstance().findFileByPath(path);
+        initialFile = StandardFileSystems.local().findFileByPath(path);
       }
       VirtualFile[] files = chooserDirsUnderModule(initialFile, myChooseFile, myFilter);
       if (files.length > 0) {
@@ -1020,7 +1020,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (initialFile == null) {
       @SystemIndependent String p = AndroidRootUtil.getModuleDirPath(myContext.getModule());
       if (p != null) {
-        initialFile = LocalFileSystem.getInstance().findFileByPath(p);
+        initialFile = StandardFileSystems.local().findFileByPath(p);
       }
     }
     final FileChooserDescriptor descriptor = new FileChooserDescriptor(chooseFile, !chooseFile, false, false, false, false) {

@@ -22,7 +22,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.EdtAndroidGradleProjectRule;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.RunsInEdt;
@@ -60,7 +60,7 @@ public class GradleAwareSourceRootRenameValidatorTest {
     Project project = projectRule.getProject();
     File sourceRoot = new File(project.getBasePath(), "app/build/generated/source/buildConfig/debug");
     PsiDirectory psiElement = PsiManager.getInstance(project).findDirectory(
-      LocalFileSystem.getInstance().refreshAndFindFileByIoFile(sourceRoot));
+      StandardFileSystems.local().refreshAndFindFileByPath(sourceRoot.getAbsolutePath()));
     String newName = "debug1";
 
     // Call validator.

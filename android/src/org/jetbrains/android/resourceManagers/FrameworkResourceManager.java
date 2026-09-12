@@ -22,8 +22,8 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.xml.ConvertContext;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -50,7 +50,7 @@ public class FrameworkResourceManager extends ResourceManager {
       return null;
     }
     Path resPath = platform.getTarget().getPath(IAndroidTarget.RESOURCES);
-    return LocalFileSystem.getInstance().findFileByNioFile(resPath);
+    return VirtualFileManager.getInstance().findFileByNioPath(resPath);
   }
 
   @Override

@@ -18,8 +18,8 @@ package org.jetbrains.android.dom;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.io.TestFileUtils;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import java.io.IOException;
@@ -141,7 +141,7 @@ public final class FileDescriptionUtilsTest extends AndroidTestCase {
 
   @NotNull
   private XmlFile getXmlFile(@NotNull Path path) {
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByNioFile(path);
+    VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByNioPath(path);
     assert virtualFile != null;
 
     XmlFile xmlFile = (XmlFile)PsiManager.getInstance(myModule.getProject()).findFile(virtualFile);

@@ -25,13 +25,14 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDat
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,10 +75,10 @@ public class PackagingFamilyViewNode extends IncludeViewNode<PackageFamilyValue>
     if (!LexicalIncludePaths.hasHeaderExtension(file.getName())) {
       return false;
     }
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFileSystem fileSystem = StandardFileSystems.local();
     PackageFamilyValue value = getPackageFamilyValue();
     for (ClassifiedIncludeValue include : value.myIncludes) {
-      VirtualFile ancestor = fileSystem.findFileByIoFile(include.getPackageFamilyBaseFolder());
+      VirtualFile ancestor = fileSystem.findFileByPath(include.getPackageFamilyBaseFolder().getAbsolutePath());
       if (ancestor != null && VfsUtilCore.isAncestor(ancestor, file, false)) {
         return true;
       }

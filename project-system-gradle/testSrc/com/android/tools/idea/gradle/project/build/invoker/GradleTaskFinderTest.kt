@@ -35,7 +35,7 @@ import com.google.common.truth.TruthJUnit.assume
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.PsiTestUtil
 import java.io.File
@@ -384,7 +384,7 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
 
     // Add sourceRoots to the test module, so we can check it is a test module in GradleTaskFinderWorker.
     val fakeSourceDir = Files.createDirectories(projectDir.toPath().resolve("lib/src/test/java"))
-    val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(fakeSourceDir)!!
+    val virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByNioPath(fakeSourceDir)!!
     PsiTestUtil.addSourceRoot(testModule, virtualFile)
 
     val mainTasks = taskFinder.findTasksToExecute(arrayOf(mainModule), BuildMode.ASSEMBLE)

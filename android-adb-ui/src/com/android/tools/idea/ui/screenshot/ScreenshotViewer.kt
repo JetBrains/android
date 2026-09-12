@@ -49,8 +49,8 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages.showErrorDialog
 import com.intellij.openapi.util.io.FileUtilRt.getExtension
 import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.platform.ide.progress.withModalProgress
 import com.intellij.ui.dsl.builder.Align
@@ -308,7 +308,7 @@ class ScreenshotViewer(
     when (saveConfig.postSaveAction) {
       PostSaveAction.NONE -> {}
       PostSaveAction.SHOW_IN_FOLDER -> RevealFileAction.openFile(file)
-      PostSaveAction.OPEN -> LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file)?.let { openAssociatedApplication(it) }
+      PostSaveAction.OPEN -> VirtualFileManager.getInstance().refreshAndFindFileByNioPath(file)?.let { openAssociatedApplication(it) }
     }
 
     super.doOKAction()

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileSystem
@@ -33,7 +33,7 @@ import java.io.InputStream
 class IntermediateAssetFile(val source: VirtualFile, val target: File) : VirtualFile() {
   override fun getName(): String = target.name
 
-  override fun getFileSystem(): VirtualFileSystem = LocalFileSystem.getInstance()
+  override fun getFileSystem(): VirtualFileSystem = StandardFileSystems.local()
 
   /** Returns the parent if it already exist at the target location, null otherwise. */
   override fun getParent(): VirtualFile? {

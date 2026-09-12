@@ -28,8 +28,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.AndroidTargetData;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AndroidTargetDataTest extends AndroidTestCase {
@@ -63,7 +63,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
       "<public type='attr' name='__removed1' />" +
       "</resources>");
 
-    LocalFileSystem.getInstance().refresh(false);
+    StandardFileSystems.local().refresh(false);
 
     IAndroidTarget target = mock(IAndroidTarget.class);
     when(target.getPath(eq(IAndroidTarget.ATTRIBUTES))).thenReturn(attrsXml.toPath());

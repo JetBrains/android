@@ -80,7 +80,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
@@ -282,7 +282,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       }
     }
     final File dir = lintProject.getDir();
-    final VirtualFile vDir = LocalFileSystem.getInstance().findFileByIoFile(dir);
+    final VirtualFile vDir = StandardFileSystems.local().findFileByPath(dir.getAbsolutePath());
     return vDir != null ? ModuleUtilCore.findModuleForFile(vDir, project) : null;
   }
 
@@ -374,7 +374,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     LintFix quickfixData = incident.getFix();
 
     File file = location.getFile();
-    VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    VirtualFile vFile = StandardFileSystems.local().findFileByPath(file.getAbsolutePath());
 
     if (lintResult.getMainFile().equals(vFile)) {
       Position start = location.getStart();
@@ -390,7 +390,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     Location secondary = location.getSecondary();
-    if (secondary != null && lintResult.getMainFile().equals(LocalFileSystem.getInstance().findFileByIoFile(secondary.getFile()))) {
+    if (secondary != null && lintResult.getMainFile().equals(StandardFileSystems.local().findFileByPath(secondary.getFile().getAbsolutePath()))) {
       reportSecondary(context, issue, severity, location, message, format, quickfixData);
     }
   }
@@ -410,7 +410,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     AnalysisScope scope = state.getScope();
     Map<Issue, Map<File, List<LintProblemData>>> myProblemMap = state.getProblemMap();
     File file = location.getFile();
-    VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    VirtualFile vFile = StandardFileSystems.local().findFileByPath(file.getAbsolutePath());
 
     boolean inScope = vFile != null && scope.contains(vFile);
     // In analysis batch mode, the AnalysisScope contains a specific set of virtual
@@ -606,7 +606,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       return readFile((LintEditorResult)myLintResult, file);
     }
 
-    VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    VirtualFile vFile = StandardFileSystems.local().findFileByPath(file.getAbsolutePath());
     if (vFile == null) {
       LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
       return "";
@@ -626,7 +626,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @NonNull
   private String readFile(@NonNull LintEditorResult lintEditorResult, @NonNull File file) {
-    final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    final VirtualFile vFile = StandardFileSystems.local().findFileByPath(file.getAbsolutePath());
 
     if (vFile == null) {
       try {
@@ -799,7 +799,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Override
   public boolean isEdited(@NotNull File file, boolean returnIfUnknown, long savedSinceMsAgo) {
-    VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    VirtualFile vFile = StandardFileSystems.local().findFileByPath(file.getAbsolutePath());
     if (vFile != null) {
       FileDocumentManager documentManager = FileDocumentManager.getInstance();
       if (documentManager.isFileModified(vFile)) {

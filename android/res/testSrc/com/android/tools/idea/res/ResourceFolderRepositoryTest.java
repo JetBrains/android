@@ -71,7 +71,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.problems.WolfTheProblemSolver;
@@ -4398,7 +4398,7 @@ public class ResourceFolderRepositoryTest {
 
     File valuesXmlFile = virtualToIoFile(valuesXmlVirtualFile);
     FileUtil.writeToFile(valuesXmlFile, "<resources><string name='from_git'>git</string></resources>");
-    LocalFileSystem.getInstance().refresh(false);
+    StandardFileSystems.local().refresh(false);
     waitForUpdates(repository);
     assertThat(repository.hasResources(RES_AUTO, ResourceType.STRING, "from_git")).isTrue();
   }

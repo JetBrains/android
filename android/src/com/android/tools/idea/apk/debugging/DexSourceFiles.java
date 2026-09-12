@@ -22,7 +22,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -117,7 +117,7 @@ public class DexSourceFiles {
   public VirtualFile findSmaliFile(@NotNull String classFqn) {
     File filePath = findSmaliFilePathForClass(classFqn);
     if (filePath.isFile()) {
-      return LocalFileSystem.getInstance().findFileByPath(filePath.getPath());
+      return StandardFileSystems.local().findFileByPath(filePath.getPath());
     }
     return null;
   }

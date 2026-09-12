@@ -35,7 +35,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileListener
@@ -277,7 +277,7 @@ class AnimatedSelectorModel(
     }
 
     var vFile: VirtualFile? = null
-    ApplicationManager.getApplication().invokeAndWait({ vFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(physicalFile) })
+    ApplicationManager.getApplication().invokeAndWait({ vFile = StandardFileSystems.local().refreshAndFindFileByPath(physicalFile.absolutePath) })
 
     return vFile!!
   }

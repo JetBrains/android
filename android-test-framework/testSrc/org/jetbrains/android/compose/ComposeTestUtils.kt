@@ -20,7 +20,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.io.ZipUtil
@@ -69,7 +69,7 @@ private fun CodeInsightTestFixture.addLibDep(composeLib: ComposeLib, version: St
   ZipUtil.extract(aarPath, tempDir.toPath()) { _, filename -> filename == "classes.jar" }
   val jarPath = File(tempDir, "classes.jar").path
 
-  LocalFileSystem.getInstance().refreshAndFindFileByPath(jarPath)
+  StandardFileSystems.local().refreshAndFindFileByPath(jarPath)
   PsiTestUtil.addLibrary(module, jarPath)
 }
 

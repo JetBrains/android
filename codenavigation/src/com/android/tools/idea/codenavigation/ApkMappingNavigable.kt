@@ -19,7 +19,7 @@ import com.android.tools.idea.apk.ApkFacet
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.pom.Navigatable
 import java.nio.file.Paths
 
@@ -35,7 +35,7 @@ internal class ApkMappingNavigable(private val project: Project) : NavSource {
       return null
     }
 
-    val fileSystem = LocalFileSystem.getInstance()
+    val fileSystem = StandardFileSystems.local()
 
     return libraryMappings
       .asSequence()

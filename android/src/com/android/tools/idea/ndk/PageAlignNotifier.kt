@@ -36,7 +36,7 @@ import com.intellij.notification.NotificationListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import java.io.File
 import javax.swing.event.HyperlinkEvent
 
@@ -125,7 +125,7 @@ abstract class PageAlignNotifier(val balloonsEnabled: Boolean = PageAlignConfig.
         val description = e.description
         if (description != null && description.endsWith(".apk")) {
           val apkFile = File(description)
-          val apkVirtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apkFile) ?: return
+          val apkVirtualFile = StandardFileSystems.local().refreshAndFindFileByPath(apkFile.absolutePath) ?: return
           val openFileDescriptor = OpenFileDescriptor(project, apkVirtualFile)
           FileEditorManager.getInstance(project).openEditor(openFileDescriptor, true)
         } else if (url != null) {

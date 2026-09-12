@@ -29,7 +29,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,10 +103,10 @@ public class PackagingViewNode extends IncludeViewNode<PackageValue> {
     if (!LexicalIncludePaths.hasHeaderExtension(file.getName())) {
       return false;
     }
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFileSystem fileSystem = StandardFileSystems.local();
     PackageValue value = getPackageValue();
     for (SimpleIncludeValue include : value.getIncludes()) {
-      VirtualFile ancestor = fileSystem.findFileByIoFile(include.getIncludeFolder());
+      VirtualFile ancestor = fileSystem.findFileByPath(include.getIncludeFolder().getAbsolutePath());
       if (ancestor != null && VfsUtilCore.isAncestor(ancestor, file, false)) {
         return true;
       }

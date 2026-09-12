@@ -33,7 +33,7 @@ import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -104,7 +104,7 @@ object TemplateUtils {
   @JvmStatic
   fun readTextFromDocument(project: Project, file: File): String? {
     assert(project.isInitialized)
-    val vFile = LocalFileSystem.getInstance().findFileByIoFile(file)
+    val vFile = StandardFileSystems.local().findFileByPath(file.absolutePath)
     if (vFile == null) {
       LOG.debug("Cannot find file " + file.path + " in the VFS")
       return null
@@ -203,7 +203,7 @@ object TemplateUtils {
     }
     val target = File(destination, relativePath)
     val toDir = checkedCreateDirectoryIfMissing(target.parentFile)
-    val targetVf = LocalFileSystem.getInstance().findFileByIoFile(target)
+    val targetVf = StandardFileSystems.local().findFileByPath(target.absolutePath)
     if (targetVf?.exists() == true) {
       return false
     }

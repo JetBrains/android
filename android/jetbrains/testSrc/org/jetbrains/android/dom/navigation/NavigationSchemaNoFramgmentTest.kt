@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.navigation
 
 import com.android.tools.idea.naveditor.navEditorRuntimePaths
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.io.ZipUtil
 import java.io.File
@@ -34,7 +34,7 @@ class NavigationSchemaNoFragmentTest : AndroidTestCase() {
       val tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null)
       ZipUtil.extract(aar, tempDir, null)
       val path = File(tempDir, "classes.jar").path
-      LocalFileSystem.getInstance().refreshAndFindFileByPath(path)
+      StandardFileSystems.local().refreshAndFindFileByPath(path)
       PsiTestUtil.addLibrary(myFixture.module, path)
     }
   }

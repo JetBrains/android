@@ -35,7 +35,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
@@ -82,7 +82,7 @@ fun exportAndroidTestMatrixResultXmlFile(
               runWriteAction {
                 exportFile.parentFile.mkdirs()
 
-                val parent = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(exportFile.parentFile)
+                val parent = StandardFileSystems.local().refreshAndFindFileByPath(exportFile.parentFile.absolutePath)
                 if (parent?.isValid != true) {
                   return@runWriteAction Pair(null, AndroidTestBundle.message("failed.to.create.output.file", exportFile.path))
                 }

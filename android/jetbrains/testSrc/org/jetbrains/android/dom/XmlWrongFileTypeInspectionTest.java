@@ -18,7 +18,7 @@ package org.jetbrains.android.dom;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.inspections.XmlWrongFileTypeInspection;
 
@@ -43,7 +43,7 @@ public class XmlWrongFileTypeInspectionTest extends AndroidDomTestCase {
 
     WriteAction.run(() -> action.invoke(getProject(), myFixture.getEditor(), myFixture.getFile()));
 
-    assertNull(LocalFileSystem.getInstance().refreshAndFindFileByPath("res/anim/animatedVector.xml"));
+    assertNull(StandardFileSystems.local().refreshAndFindFileByPath("res/anim/animatedVector.xml"));
     assertTrue(virtualFile.getPath().endsWith("res/drawable/animatedVector.xml"));
   }
 }

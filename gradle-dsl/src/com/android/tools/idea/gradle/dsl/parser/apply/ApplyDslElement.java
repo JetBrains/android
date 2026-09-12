@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
@@ -56,7 +56,7 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
         File realFile = new File(fileName);
         VirtualFile file;
         if (realFile.exists() && realFile.isAbsolute()) {
-          file = LocalFileSystem.getInstance().findFileByIoFile(realFile);
+          file = StandardFileSystems.local().findFileByPath(realFile.getAbsolutePath());
         } else {
           VirtualFile parsingRoot = getDslFile().getContext().getCurrentParsingRoot();
           if (parsingRoot == null) {

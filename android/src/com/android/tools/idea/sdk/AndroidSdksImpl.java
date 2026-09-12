@@ -60,7 +60,7 @@ import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.platform.workspace.jps.entities.SdkEntity;
@@ -412,7 +412,7 @@ public class AndroidSdksImpl implements AndroidSdks {
   @Nullable
   private static VirtualFile getPlatformFolder(@NotNull IAndroidTarget target) {
     String platformPath = getPlatformPath(target);
-    return LocalFileSystem.getInstance().refreshAndFindFileByPath(toSystemIndependentName(platformPath));
+    return StandardFileSystems.local().refreshAndFindFileByPath(toSystemIndependentName(platformPath));
   }
 
   @Nullable
@@ -449,7 +449,7 @@ public class AndroidSdksImpl implements AndroidSdks {
 
   @Nullable
   private static VirtualFile findFileInLocalFileSystem(@NotNull String path) {
-    return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(new File(path));
+    return StandardFileSystems.local().refreshAndFindFileByPath(new File(path).getAbsolutePath());
   }
 
   @Nullable

@@ -13,7 +13,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -47,7 +47,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
   public void testHighlighting_FindsClassesInTheSamePackage() throws Exception {
     myFixture.allowTreeAccessForAllFiles();
     String projectRoot = initializeDummyProject();
-    myFixture.configureFromExistingVirtualFile(LocalFileSystem.getInstance().findFileByPath(projectRoot + "/app/AppThread.java"));
+    myFixture.configureFromExistingVirtualFile(StandardFileSystems.local().findFileByPath(projectRoot + "/app/AppThread.java"));
 
     myFixture.checkHighlighting(false, false, false);
   }
@@ -55,7 +55,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
   public void testHighlighting_FindsClassesInTheAndroidSdk() throws Exception {
     myFixture.allowTreeAccessForAllFiles();
     String projectRoot = initializeDummyProject();
-    myFixture.configureFromExistingVirtualFile(LocalFileSystem.getInstance().findFileByPath(projectRoot + "/app/SomeActivity.java"));
+    myFixture.configureFromExistingVirtualFile(StandardFileSystems.local().findFileByPath(projectRoot + "/app/SomeActivity.java"));
 
     myFixture.checkHighlighting(false, false, false);
   }
@@ -63,7 +63,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
   public void testHighlighting_FindsClassesByWildcardImport() throws Exception {
     myFixture.allowTreeAccessForAllFiles();
     String projectRoot = initializeDummyProject();
-    myFixture.configureFromExistingVirtualFile(LocalFileSystem.getInstance().findFileByPath(projectRoot + "/util/UtilClass.java"));
+    myFixture.configureFromExistingVirtualFile(StandardFileSystems.local().findFileByPath(projectRoot + "/util/UtilClass.java"));
 
     myFixture.checkHighlighting(false, false, false);
   }
@@ -121,7 +121,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     myFixture.allowTreeAccessForAllFiles();
     String projectRoot = initializeDummyProject();
 
-    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(projectRoot + "/app/SomeActivity.java");
+    VirtualFile file = StandardFileSystems.local().findFileByPath(projectRoot + "/app/SomeActivity.java");
 
     myFixture.configureFromExistingVirtualFile(file);
 

@@ -16,9 +16,10 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.PsiFileSystemItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,9 +40,9 @@ public class VirtualFiles {
   @NotNull
   public static ImmutableList<VirtualFile> convertToVirtualFile(@Nullable Collection<String> names) {
     if (names != null) {
-      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+      VirtualFileSystem fileSystem = StandardFileSystems.local();
       return ImmutableList.copyOf(
-        names.stream().map(exclude -> fileSystem.findFileByIoFile(new File(exclude))).filter(exclude -> exclude != null)
+        names.stream().map(exclude -> fileSystem.findFileByPath(new File(exclude).getAbsolutePath())).filter(exclude -> exclude != null)
           .collect(Collectors.toList()));
     }
     else {

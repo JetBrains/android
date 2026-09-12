@@ -26,7 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFileManager
 import kotlin.io.path.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,7 +51,7 @@ class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
         withContext(Dispatchers.IO) {
           val pathString = Tracing.flush() ?: return@withContext null
           log.info("Perfetto Traces are flushed to ${pathString}.")
-          LocalFileSystem.getInstance().refreshAndFindFileByNioFile(Path(pathString))
+          VirtualFileManager.getInstance().refreshAndFindFileByNioPath(Path(pathString))
         }
 
       withContext(Dispatchers.Main) {

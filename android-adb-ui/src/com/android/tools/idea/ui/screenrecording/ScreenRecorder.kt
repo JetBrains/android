@@ -33,8 +33,9 @@ import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.ui.UIUtil
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -160,7 +161,7 @@ internal class ScreenRecorder(private val project: Project, private val recordin
     return withContext(Dispatchers.EDT) {
       val saveFileDialog: FileSaverDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
       val lastPath = properties.getValue(SAVE_PATH_KEY)
-      val baseDir = if (lastPath != null) LocalFileSystem.getInstance().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
+      val baseDir = if (lastPath != null) StandardFileSystems.local().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
       saveFileDialog.save(baseDir, getDefaultFileName(extension))?.file?.toPath()?.also {
         properties.setValue(SAVE_PATH_KEY, it.parent.toString())
       }
@@ -178,7 +179,7 @@ internal class ScreenRecorder(private val project: Project, private val recordin
   /** Tries to open the given file in the associated application. */
   private suspend fun openSavedFile(file: Path) {
     withContext(Dispatchers.IO) {
-      val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: return@withContext
+      val virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByNioPath(file) ?: return@withContext
       NativeFileType.openAssociatedApplication(virtualFile)
     }
   }

@@ -30,7 +30,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -94,7 +94,7 @@ public class ConvertToNinePatchAction extends AnAction {
           BufferedImage pngImage = ImageIO.read(VfsUtilCore.virtualToIoFile(pngFile));
           BufferedImage patchImage = ImageUtils.addMargin(pngImage, 1);
           ImageIO.write(patchImage, SdkConstants.EXT_PNG, patchFile);
-          LocalFileSystem.getInstance().refreshAndFindFileByIoFile(patchFile);
+          StandardFileSystems.local().refreshAndFindFileByPath(patchFile.getAbsolutePath());
         }
         catch (IOException e) {
           myException = e;

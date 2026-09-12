@@ -22,8 +22,9 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import com.android.sdklib.devices.Abi;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.serialization.ClassUtil;
 import com.intellij.util.xmlb.annotations.Transient;
 import java.io.File;
@@ -92,7 +93,7 @@ public class NativeLibrary {
     abis.clear();
     this.sharedObjectFilesByAbi.clear();
     List<String> nonExistingPaths = new ArrayList<>();
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFileSystem fileSystem = StandardFileSystems.local();
     for (String path : sharedObjectFilePaths) {
       VirtualFile file = fileSystem.findFileByPath(path);
       if (file != null) {

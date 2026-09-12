@@ -63,7 +63,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiBinaryFile;
@@ -241,7 +241,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
     for (final Map.Entry<File, List<LintProblemData>> entry : file2ProblemList.entrySet()) {
       final File file = entry.getKey();
-      final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+      final VirtualFile vFile = StandardFileSystems.local().findFileByPath(file.getAbsolutePath());
 
       if (vFile == null) {
         continue;

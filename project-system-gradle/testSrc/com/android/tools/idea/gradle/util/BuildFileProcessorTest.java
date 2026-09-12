@@ -29,7 +29,7 @@ import com.android.utils.FileUtils;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -94,7 +94,7 @@ public class BuildFileProcessorTest {
     }
 
     File settingsFile = new File(projectRule.getProject().getBasePath(), FN_SETTINGS_GRADLE);
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
+    VirtualFile virtualFile = StandardFileSystems.local().findFileByPath(settingsFile.getAbsolutePath());
     WriteAction.runAndWait(() -> {
       try {
         VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + "\ninclude 'notamodule'");

@@ -41,7 +41,7 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.OrderedSet;
@@ -230,7 +230,7 @@ public class AndroidRootUtil {
 
     if (platform != null && platform.needToAddAnnotationsJarToClasspath()) {
       String annotationsJarPath = toSystemIndependentName(sdkHomePath) + ANNOTATIONS_JAR_RELATIVE_PATH;
-      VirtualFile annotationsJar = LocalFileSystem.getInstance().findFileByPath(annotationsJarPath);
+      VirtualFile annotationsJar = StandardFileSystems.local().findFileByPath(annotationsJarPath);
 
       if (annotationsJar != null) {
         libs.add(annotationsJar);

@@ -30,7 +30,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.util.containers.mapSmartSet
 import java.io.File
 
@@ -145,7 +145,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
   ): GradleBuildModel? =
     moduleResolvedModel
       ?.buildFile
-      ?.let { buildFilePath -> LocalFileSystem.getInstance().findFileByIoFile(File(buildFilePath)) }
+      ?.let { buildFilePath -> StandardFileSystems.local().findFileByPath(File(buildFilePath).absolutePath) }
       ?.let { virtualFile -> projectParsedModel.getModuleBuildModel(virtualFile) }
       ?: projectParsedModel.takeIf { it.modules.contains(gradlePath) }?.getBuildModelByGradlePath(gradlePath)
 
@@ -202,7 +202,7 @@ private fun ProjectBuildModel.getBuildModelByGradlePath(gradlePath: String): Gra
           ?.let { relativeFile ->
             (projectSettingsModel.moduleDirectory(":") ?: return@getBuildModelByGradlePath null).resolve(relativeFile)
           }
-          ?.let { absoluteFile -> LocalFileSystem.getInstance().findFileByIoFile(absoluteFile) }
+          ?.let { absoluteFile -> StandardFileSystems.local().findFileByPath(absoluteFile.absolutePath) }
           ?.let { virtualFile -> this.getModuleBuildModel(virtualFile) }
       }
     }

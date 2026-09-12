@@ -17,7 +17,7 @@ package com.android.tools.idea.apk.dex;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
@@ -57,7 +57,7 @@ public class DexFileDisassemblerTest extends HeavyPlatformTestCase {
     assertThat(outFolder.getChildren()).isEmpty();
     myDisassembler.disassemble(dexFilePath, virtualToIoFile(outFolder));
 
-    LocalFileSystem.getInstance().refresh(false /* synchronous */);
+    StandardFileSystems.local().refresh(false /* synchronous */);
     assertThat(outFolder.getChildren()).isNotEmpty();
 
     List<String> smaliFileNames = new ArrayList<>();

@@ -5,9 +5,9 @@ package com.android.tools.idea.testing
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.util.io.FileUtilRt
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.common.runAllCatching
 import com.intellij.util.SmartList
@@ -94,7 +94,7 @@ class TemporaryDirectoryRule : ExternalResource() {
       val nioRoot = root!!
       Files.createDirectories(nioRoot)
       result =
-        LocalFileSystem.getInstance().refreshAndFindFileByNioFile(nioRoot)
+        VirtualFileManager.getInstance().refreshAndFindFileByNioPath(nioRoot)
           ?: throw IllegalStateException("Cannot find virtual file by $nioRoot")
       virtualFileRoot = result
     }
@@ -200,7 +200,7 @@ fun VirtualFile.writeChild(relativePath: String, data: ByteArray) = VfsTestUtil.
 fun Path.refreshVfs() {
   // If a temp directory is reused from some previous test run, there might be cached children in
   // its VFS. Ensure they're removed.
-  val virtualFile = (LocalFileSystem.getInstance() ?: return).refreshAndFindFileByNioFile(this) ?: return
+  val virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByNioPath(this) ?: return
   VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile)
 }
 

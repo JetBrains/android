@@ -27,7 +27,7 @@ import com.android.resources.ResourceType;
 import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.utils.XmlUtils;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
 import java.awt.image.BufferedImage;
@@ -88,7 +88,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     assertThat(input.getHeight()).isGreaterThan(MAX_HEIGHT);
     assertThat(input.getWidth()).isGreaterThan(MAX_WIDTH);
 
-    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+    VirtualFile file = StandardFileSystems.local().findFileByPath(path);
     Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
     assertThat(icon.getIconWidth()).isAtMost(MAX_WIDTH);
@@ -102,7 +102,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     assertThat(input.getHeight()).isAtMost(MAX_HEIGHT);
     assertThat(input.getWidth()).isAtMost(MAX_WIDTH);
 
-    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+    VirtualFile file = StandardFileSystems.local().findFileByPath(path);
     Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
     BufferedImage output = TestRenderingUtils.getImageFromIcon(icon);
@@ -118,7 +118,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     assertThat(input.getHeight()).isAtMost(MAX_HEIGHT);
     assertThat(input.getWidth()).isGreaterThan(MAX_WIDTH);
 
-    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+    VirtualFile file = StandardFileSystems.local().findFileByPath(path);
     Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
     assertThat(icon.getIconWidth()).isAtMost(MAX_WIDTH);

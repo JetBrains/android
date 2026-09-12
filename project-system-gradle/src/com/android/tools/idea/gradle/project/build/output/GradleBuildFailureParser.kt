@@ -32,7 +32,7 @@ import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.util.ui.NamedColorUtil
 import java.io.File
 import java.util.function.Consumer
@@ -291,7 +291,7 @@ abstract class GradleBuildFailureParser(
         return null
       }
 
-      val file = LocalFileSystem.getInstance().findFileByPath(fileName.replace(File.separatorChar, '/'))
+      val file = StandardFileSystems.local().findFileByPath(fileName.replace(File.separatorChar, '/'))
       if (file == null) {
         return null
       }

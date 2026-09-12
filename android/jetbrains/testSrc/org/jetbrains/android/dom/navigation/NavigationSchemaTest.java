@@ -41,7 +41,7 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
@@ -88,7 +88,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
       File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
       ZipUtil.extract(aar, tempDir, null);
       String path = new File(tempDir, "classes.jar").getPath();
-      LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+      StandardFileSystems.local().refreshAndFindFileByPath(path);
       PsiTestUtil.addLibrary(myFixture.getModule(), path);
     }
 

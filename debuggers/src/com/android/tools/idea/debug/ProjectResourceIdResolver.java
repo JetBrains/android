@@ -25,8 +25,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -89,7 +89,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
 
     for (String fileName : myPublicFileNames) {
       Path publicXmlPath = resDirPath.resolve(SdkConstants.FD_RES_VALUES).resolve(fileName);
-      VirtualFile publicXml = LocalFileSystem.getInstance().findFileByNioFile(publicXmlPath);
+      VirtualFile publicXml = VirtualFileManager.getInstance().findFileByNioPath(publicXmlPath);
 
       if (publicXml != null) {
         try {

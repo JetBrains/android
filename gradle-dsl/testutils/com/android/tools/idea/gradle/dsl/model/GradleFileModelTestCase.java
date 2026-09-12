@@ -75,9 +75,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.OpenProjectTaskBuilder;
@@ -226,8 +226,8 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
     Path basePath = ProjectKt.getStateStore(myProject).getProjectBasePath();
     Files.createDirectories(basePath);
-    LocalFileSystem fs = LocalFileSystem.getInstance();
-    myProjectBasePath = fs.refreshAndFindFileByNioFile(basePath);
+    VirtualFileManager fileManager = VirtualFileManager.getInstance();
+    myProjectBasePath = fileManager.refreshAndFindFileByNioPath(basePath);
 
     runWriteAction((ThrowableComputable<Void, Exception>)() -> {
       mySettingsFile = myProjectBasePath.createChildData(this, getSettingsFileName());
@@ -235,7 +235,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
       Path moduleDirPath = myModule.getModuleNioFile().getParent();
       Files.createDirectories(moduleDirPath);
-      VirtualFile moduleVirtualDir = fs.refreshAndFindFileByNioFile(moduleDirPath);
+      VirtualFile moduleVirtualDir = fileManager.refreshAndFindFileByNioPath(moduleDirPath);
       myBuildFile = moduleVirtualDir.createChildData(this, getBuildFileName());
       assertTrue(myBuildFile.isWritable());
       myProjectBuildFile = myProjectBasePath.createChildData(this, getBuildFileName());
@@ -245,7 +245,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
       Path subModuleNioDir = mySubModule.getModuleNioFile().getParent();
       Files.createDirectories(subModuleNioDir);
-      VirtualFile subModuleDirPath = fs.refreshAndFindFileByNioFile(subModuleNioDir);
+      VirtualFile subModuleDirPath = fileManager.refreshAndFindFileByNioPath(subModuleNioDir);
       assertTrue(subModuleDirPath.isDirectory());
       mySubModuleBuildFile = subModuleDirPath.createChildData(this, getBuildFileName());
       assertTrue(mySubModuleBuildFile.isWritable());
@@ -418,9 +418,9 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     Module newModule = createSubModule(name);
 
     Path newModuleDirPath = newModule.getModuleNioFile().getParent();
-    LocalFileSystem fs = LocalFileSystem.getInstance();
-    fs.refreshAndFindFileByNioFile(PathKt.write(newModuleDirPath.resolve(getBuildFileName()), buildFileText));
-    fs.refreshAndFindFileByNioFile(PathKt.write(newModuleDirPath.resolve(FN_GRADLE_PROPERTIES), propertiesFileText));
+    VirtualFileManager fileManager = VirtualFileManager.getInstance();
+    fileManager.refreshAndFindFileByNioPath(PathKt.write(newModuleDirPath.resolve(getBuildFileName()), buildFileText));
+    fileManager.refreshAndFindFileByNioPath(PathKt.write(newModuleDirPath.resolve(FN_GRADLE_PROPERTIES), propertiesFileText));
     return newModule;
   }
 

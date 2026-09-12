@@ -21,7 +21,7 @@ import com.google.gson.JsonParser
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.testFramework.PlatformTestUtil
 import java.io.File
 import junit.framework.TestCase
@@ -97,10 +97,10 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
     }
 
     private fun assertResourcesEqual(expectedPath: String) {
-        PlatformTestUtil.assertDirectoriesEqual(LocalFileSystem.getInstance().findFileByPath(expectedPath)!!, getResourceDirectory()!!)
+        PlatformTestUtil.assertDirectoriesEqual(StandardFileSystems.local().findFileByPath(expectedPath)!!, getResourceDirectory()!!)
     }
 
-    private fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")
+    private fun getResourceDirectory() = StandardFileSystems.local().findFileByPath(myFixture.tempDirPath + "/res")
 
     // Originally from jsonUtils.kt
     private fun JsonObject.getString(name: String): String {

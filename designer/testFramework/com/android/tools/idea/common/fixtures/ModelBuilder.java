@@ -37,7 +37,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiManager;
@@ -195,7 +195,7 @@ public class ModelBuilder {
   @Nullable
   private VirtualFile findVirtualFile(@NotNull String relativePath) {
     if (myFixture instanceof JavaCodeInsightTestFixture) {
-      VirtualFile root = LocalFileSystem.getInstance().findFileByIoFile(new File(myFixture.getTempDirPath()));
+      VirtualFile root = StandardFileSystems.local().findFileByPath(new File(myFixture.getTempDirPath()).getAbsolutePath());
       assertThat(root).isNotNull();
       return root.findFileByRelativePath(relativePath);
     }

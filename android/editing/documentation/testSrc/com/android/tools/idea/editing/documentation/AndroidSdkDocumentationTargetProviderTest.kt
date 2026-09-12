@@ -36,7 +36,7 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.platform.backend.documentation.AsyncDocumentation
 import com.intellij.platform.backend.documentation.DocumentationData
 import com.intellij.platform.backend.documentation.DocumentationResult.Documentation
@@ -366,7 +366,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     // would need to remove sources so that the provider in question runs, and this specific test
     // would put the sources back.
     val testDataSourceRoot =
-      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/androidSources").toString())
+      StandardFileSystems.local().findFileByPath(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/androidSources").toString())
     requireNotNull(testDataSourceRoot)
     sdk.sdkModificator.apply {
       addRoot(testDataSourceRoot, OrderRootType.SOURCES)

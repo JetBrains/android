@@ -40,7 +40,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -373,7 +373,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
     // virtual file results in the contents written not being picked up by the PsiFile and the ProjectBuildModel
     // still sees the old contents.
     ApplicationManager.getApplication().runWriteAction(() -> {
-      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(buildFile);
+      VirtualFile virtualFile = StandardFileSystems.local().findFileByPath(buildFile.getAbsolutePath());
       PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
       Document doc = PsiDocumentManager.getInstance(project).getDocument(psiFile);
       doc.setText(buildFileContent);

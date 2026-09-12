@@ -56,7 +56,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
@@ -376,7 +376,7 @@ open class LiveEditProjectMonitor(liveEditService: LiveEditService, private val 
     doOnManualLETrigger()
 
     val virtualFile =
-      LocalFileSystem.getInstance().findFileByPath(path)
+      StandardFileSystems.local().findFileByPath(path)
         ?: throw LiveEditUpdateException.internalErrorVibeEdit("$path not found in local file system.")
 
     val file = PsiManager.getInstance(project).findFile(virtualFile)

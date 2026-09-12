@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -110,7 +111,7 @@ public class AndroidProjectRootUtil {
   @Nullable
   public static VirtualFile getAidlGenDir(@NotNull AndroidFacet facet) {
     String genPath = getAidlGenSourceRootPath(facet);
-    return genPath != null ? LocalFileSystem.getInstance().findFileByPath(genPath) : null;
+    return genPath != null ? StandardFileSystems.local().findFileByPath(genPath) : null;
   }
 
   /**
@@ -130,7 +131,7 @@ public class AndroidProjectRootUtil {
   @Nullable
   public static VirtualFile getRenderscriptGenDir(@NotNull AndroidFacet facet) {
     String path = getRenderscriptGenSourceRootPath(facet);
-    return path != null ? LocalFileSystem.getInstance().findFileByPath(path) : null;
+    return path != null ? StandardFileSystems.local().findFileByPath(path) : null;
   }
 
   /**

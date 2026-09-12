@@ -87,7 +87,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.JavaPsiFacade;
@@ -266,7 +266,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     int column = parsed.column == null ? 0 : parsed.column;
     try {
       File ioFile = SdkUtils.urlToFile(parsed.urlString);
-      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(ioFile);
+      VirtualFile file = StandardFileSystems.local().findFileByPath(ioFile.getAbsolutePath());
       if (file != null) {
         openEditor(project, file, line, column);
       }

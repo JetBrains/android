@@ -24,7 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderer
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.xml.XmlFile
@@ -80,7 +80,7 @@ class NavigationSlowPreviewProvider(private val facet: AndroidFacet, private val
     val layoutUrl = destTag.readAttributeOrNull(SdkConstants.ATTR_LAYOUT, SdkConstants.TOOLS_URI) ?: return null
     val layoutResourceUrl = ResourceUrl.parse(layoutUrl) ?: return null
     val layoutResourceValue = runReadAction { resourceResolver.resolve(layoutResourceUrl, navPsiFile)?.value } ?: return null
-    val layoutVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(File(layoutResourceValue)) ?: return null
+    val layoutVirtualFile = StandardFileSystems.local().findFileByPath(File(layoutResourceValue).absolutePath) ?: return null
     return runReadAction { PsiManager.getInstance(facet.module.project).findFile(layoutVirtualFile) as? XmlFile }
   }
 }

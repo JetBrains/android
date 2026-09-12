@@ -89,6 +89,7 @@ import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.io.FileSystemUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import com.intellij.openapi.vfs.newvfs.VfsImplUtil
@@ -582,7 +583,7 @@ internal constructor(
             ProjectSyncModificationTracker.getInstance(project),
           )
         }
-      val fs = LocalFileSystem.getInstance()
+      val fs = StandardFileSystems.local()
       val toRefresh = mutableSetOf<VirtualFile>()
       val isAsynchronous = !ApplicationManager.getApplication().isUnitTestMode
 

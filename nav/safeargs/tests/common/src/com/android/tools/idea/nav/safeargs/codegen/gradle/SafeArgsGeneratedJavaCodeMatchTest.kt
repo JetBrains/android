@@ -24,7 +24,7 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.lang.jvm.JvmModifier
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -103,7 +103,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
     val assembleDebug = projectRule.invokeTasks(GENERATE_TASK)
     assertThat(assembleDebug.isBuildSuccessful).isTrue()
 
-    LocalFileSystem.getInstance().refresh(false)
+    StandardFileSystems.local().refresh(false)
     val codeOutDir =
       File(projectRule.project.basePath, "$moduleName/$PLUGIN_OUT_DIR").also {
         assertWithMessage("should be able to find generated navigation code").that(it.exists()).isTrue()
@@ -112,7 +112,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
     val allGeneratedCode = listOf(codeOutDir).flatMap(::loadClasses).toSet()
     // delete generated code
     assertThat(codeOutDir.deleteRecursively()).isTrue()
-    LocalFileSystem.getInstance().refresh(false)
+    StandardFileSystems.local().refresh(false)
 
     return allGeneratedCode
   }
@@ -148,7 +148,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
   private fun File.loadClassesDescriptions(): List<ClassDescription> {
     val descriptions = mutableListOf<ClassDescription>()
 
-    val virtual = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this) ?: throw IllegalArgumentException("cannot find $this")
+    val virtual = StandardFileSystems.local().refreshAndFindFileByPath(this.absolutePath) ?: throw IllegalArgumentException("cannot find $this")
     val psi = PsiManager.getInstance(projectRule.project).findFile(virtual)
     val uast = psi.toUElement()!!
     uast.accept(

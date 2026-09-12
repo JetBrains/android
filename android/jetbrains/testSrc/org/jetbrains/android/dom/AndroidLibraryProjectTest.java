@@ -22,7 +22,7 @@ import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -194,7 +194,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
 
   private List<String> buildFileList(Collection<UsageInfo> infos) {
     final List<String> result = new ArrayList<>();
-    VirtualFile tempDir = LocalFileSystem.getInstance().findFileByPath(myFixture.getTempDirPath());
+    VirtualFile tempDir = StandardFileSystems.local().findFileByPath(myFixture.getTempDirPath());
 
     for (UsageInfo info : infos) {
       final PsiFile file = info.getFile();

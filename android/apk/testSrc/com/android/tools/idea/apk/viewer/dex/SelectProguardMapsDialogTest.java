@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import org.jetbrains.android.AndroidTestCase;
@@ -28,7 +28,7 @@ public class SelectProguardMapsDialogTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    dataRoot = LocalFileSystem.getInstance().findFileByIoFile(new File(getTestDataPath(), dataPath));
+    dataRoot = StandardFileSystems.local().findFileByPath(new File(getTestDataPath(), dataPath).getAbsolutePath());
   }
 
   public void testNewFolderLayout() throws Exception {

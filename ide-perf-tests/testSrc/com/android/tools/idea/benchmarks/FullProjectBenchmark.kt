@@ -35,7 +35,7 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.modules
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
 import com.intellij.psi.PsiElement
@@ -220,8 +220,8 @@ abstract class FullProjectBenchmark {
 
   fun runLayoutEditingCuj(layoutCompletionInput: LayoutCompletionInput): LayoutCompletionSample {
     val project = gradleRule.project
-    val activityFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath + layoutCompletionInput.activityPath)!!
-    val layoutFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath + layoutCompletionInput.layoutPath)!!
+    val activityFile = StandardFileSystems.local().refreshAndFindFileByPath(project.basePath + layoutCompletionInput.activityPath)!!
+    val layoutFile = StandardFileSystems.local().refreshAndFindFileByPath(project.basePath + layoutCompletionInput.layoutPath)!!
     val psiFile = PsiManager.getInstance(project).findFile(activityFile)
     val classMapper = TagToClassMapper.getInstance(ModuleUtilCore.findModuleForFile(psiFile)!!)
     val fixture = gradleRule.fixture

@@ -42,7 +42,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collection;
@@ -218,7 +218,7 @@ public class GoToBundleLocationTask {
       }
 
       VirtualFile virtualFile = !bundleFile.isFile() ? askUserForBundleFile(bundleFile)
-                                                     : LocalFileSystem.getInstance().refreshAndFindFileByIoFile(bundleFile);
+                                                     : StandardFileSystems.local().refreshAndFindFileByPath(bundleFile.getAbsolutePath());
 
       if (virtualFile == null) {
         getLog().warn(String.format("Bundle file not found in virtual file system \"%s\"", bundlePath));
@@ -237,7 +237,7 @@ public class GoToBundleLocationTask {
       FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
         .withDescription("Select Bundle file to analyze")
         .withFileFilter(file -> SdkConstants.EXT_APP_BUNDLE.equalsIgnoreCase(file.getExtension()));
-      return FileChooser.chooseFile(descriptor, myProject, LocalFileSystem.getInstance().findFileByIoFile(bundleFile));
+      return FileChooser.chooseFile(descriptor, myProject, StandardFileSystems.local().findFileByPath(bundleFile.getAbsolutePath()));
     }
 
     @Override

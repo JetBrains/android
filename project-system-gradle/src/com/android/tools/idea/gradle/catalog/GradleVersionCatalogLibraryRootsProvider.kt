@@ -20,7 +20,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.roots.SyntheticLibrary
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.PlatformIcons
@@ -34,7 +34,7 @@ import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 class GradleVersionCatalogLibraryRootsProvider : AdditionalLibraryRootsProvider() {
   override fun getAdditionalProjectLibraries(project: Project): Collection<SyntheticLibrary> {
     val basePath = project.basePath ?: return emptyList()
-    val projectDir = LocalFileSystem.getInstance().findFileByPath(basePath) ?: return emptyList()
+    val projectDir = StandardFileSystems.local().findFileByPath(basePath) ?: return emptyList()
 
     val modules = ModuleManager.getInstance(project).modules
     val catalogs = modules.flatMap { module -> getVersionCatalogFiles(module).entries }.distinctBy { it.value }

@@ -32,7 +32,7 @@ import com.intellij.openapi.progress.util.SmoothProgressAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.SwingWorker;
 import java.io.File;
@@ -125,7 +125,7 @@ public class ExternalSourceFolders {
         Collection<JavaModuleSourceRoot> suggestedRoots = entryToRootMap.get(contentEntry);
         if (suggestedRoots != null) {
           for (JavaModuleSourceRoot suggestedRoot : suggestedRoots) {
-            VirtualFile sourceRoot = LocalFileSystem.getInstance().findFileByIoFile(suggestedRoot.getDirectory());
+            VirtualFile sourceRoot = StandardFileSystems.local().findFileByPath(suggestedRoot.getDirectory().getAbsolutePath());
             VirtualFile fileContent = contentEntry.getFile();
             if (sourceRoot != null && fileContent != null && isAncestor(fileContent, sourceRoot, false)) {
               contentEntry.addSourceFolder(sourceRoot, false, suggestedRoot.getPackagePrefix());

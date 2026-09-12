@@ -25,7 +25,7 @@ import com.android.tools.idea.ui.resourcemanager.simulateMouseClick
 import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -158,7 +158,7 @@ class CompactResourcePickerTest {
     val facet = AndroidFacet.getInstance(rule.module)!!
     val configuration =
       ConfigurationManager.getOrCreateInstance(facet.module)
-        .getConfiguration(LocalFileSystem.getInstance().findFileByPath(rule.project.basePath!!)!!)
+        .getConfiguration(StandardFileSystems.local().findFileByPath(rule.project.basePath!!)!!)
     val panel =
       CompactResourcePicker(
         AndroidFacet.getInstance(rule.module)!!,
