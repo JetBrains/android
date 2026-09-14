@@ -143,7 +143,11 @@ class ComposeAnalysisTest {
     ensureComposeCalls(output, START_RESTART_GROUP)
     val groupTable = computeGroupTableForTest(output)
 
-    groupTable.assertGroupTable(groupCount = 6, restartLambdaCount = 2, lambdaGroupCount = 4, innerClassCount = 2)
+    // Since Kotlin 2.4 an erased bridge method carries the annotations too (KT-82655). A composable lambda
+    // therefore has two methods with `@FunctionKeyMeta` and counts as two groups. Count +1 per composable
+    // function and +2 per composable lambda. A lambda of 21 or more parameters counts +1, because it
+    // implements `FunctionN`, whose bridge carries no annotations.
+    groupTable.assertGroupTable(groupCount = 10, restartLambdaCount = 2, lambdaGroupCount = 4, innerClassCount = 2)
 
     val test = groupTable.assertGroup(956630616)
     groupTable.assertRestartLambda(test)
@@ -186,7 +190,8 @@ class ComposeAnalysisTest {
       )
     ensureComposeCalls(output, START_RESTART_GROUP)
     val groupTable = computeGroupTableForTest(output)
-    groupTable.assertGroupTable(groupCount = 5, restartLambdaCount = 2, lambdaGroupCount = 3, innerClassCount = 5)
+    // Both invoke methods of each composable lambda carry the group key. See `composable with content`.
+    groupTable.assertGroupTable(groupCount = 8, restartLambdaCount = 2, lambdaGroupCount = 3, innerClassCount = 5)
 
     val test = groupTable.assertGroup(956630616)
     groupTable.assertRestartLambda(test)
@@ -272,8 +277,9 @@ class ComposeAnalysisTest {
 
   /** Asserts that the table contains a @Composable method with the provided key and returns that method. */
   private fun GroupTable.assertGroup(key: Int): IrMethod {
-    val (method, _) = groups.filterValues { it.key == key }.entries.single()
-    return method
+    // Since Kotlin 2.4 one key can belong to two methods: the composable invoke and its erased bridge.
+    // Pick the unerased one by its `Composer` parameter.
+    return groups.filterValues { it.key == key }.keys.single { it.desc.contains("Landroidx/compose/runtime/Composer;") }
   }
 
   /** Asserts that the table contains a restart lambda associated with the provided @Composable method and returns that lambda class. */
@@ -286,7 +292,7 @@ class ComposeAnalysisTest {
    * invoke() method.
    */
   private fun GroupTable.assertLambdaParent(key: Int, parentMethod: IrMethod): IrMethod {
-    val (method, _) = groups.filterValues { it.key == key }.entries.single()
+    val method = assertGroup(key)
     assertEquals(parentMethod, lambdaParents[method.clazz]!!)
     return method
   }
