@@ -18,9 +18,9 @@ package com.android.tools.idea.debug
 import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.deploy.proto.Deploy.FindDexResponse
-import com.android.tools.deployer.AdbClient
+import com.android.tools.deployer.common.AdbClient
 import com.android.tools.deployer.AdbInstaller
-import com.android.tools.deployer.Installer
+import com.android.tools.deployer.common.Installer
 import com.android.tools.deployer.MetricsRecorder
 import com.android.tools.idea.debug.DexFinder.Result
 import com.android.tools.idea.log.LogWrapper
@@ -180,7 +180,7 @@ private suspend fun findApksWithExpression(device: IDevice, apkProvider: ApkProv
        *   breakpoint is set in an application module, when debugging libraries it will not yield anything. At the same time, it is
        *   intentionally left here because of the reasons below:
        * 1. While not always being correct this heuristic still covers most of the user cases while debugging (which has been measured).
-       * 2. When it fails, the debugger will try to fetch the sought for DEX file via [com.android.tools.deployer.Installer]. If a DEX file
+       * 2. When it fails, the debugger will try to fetch the sought for DEX file via [com.android.tools.deployer.common.Installer]. If a DEX file
        *    is still not found after that, smart step target filtering will simply not be performed, which is not critical for "complex"
        *    debugging scenarios.
        * 3. If this heuristic is removed and we try to reach a 100% accuracy when searching for a DEX file with an [ApkProvider], we would

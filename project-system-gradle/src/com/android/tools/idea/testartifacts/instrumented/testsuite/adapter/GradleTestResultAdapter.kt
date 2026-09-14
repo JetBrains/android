@@ -20,9 +20,10 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.deviceToDeviceInfo
-import com.android.tools.deployer.AdbClient.InstallResult
-import com.android.tools.deployer.ApkInstaller
-import com.android.tools.deployer.InstallStatus
+import com.android.tools.deployer.common.AdbClient
+import com.android.tools.deployer.common.AdbClient.InstallResult
+import com.android.tools.deployer.install.ApkInstaller
+import com.android.tools.deployer.common.InstallStatus
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.protobuf.Timestamp
@@ -220,8 +221,8 @@ class GradleTestResultAdapter(
     for (errorDetail in myUtpTestSuiteResult.platformError.errorsList) {
       errorDetail.cause.summary.let { summary ->
         if (summary.namespace.namespace == "DdmlibAndroidDeviceController" && summary.errorCode == 1) {
-          val installResult = ApkInstaller.toInstallerResult(summary.errorName, summary.stackTrace)
-          // This list is copied from the com.android.tools.deployer.ApkInstaller. These errors are
+          val installResult = AdbClient.toInstallerResult(summary.errorName, summary.stackTrace)
+          // This list is copied from the com.android.tools.deployer.install.ApkInstaller. These errors are
           // known error names that are caused by an incompatible APK installation attempt.
           return when (installResult.status) {
             InstallStatus.INSTALL_FAILED_UPDATE_INCOMPATIBLE,

@@ -16,8 +16,8 @@
 package com.android.tools.idea.execution.common.deploy
 
 import com.android.tools.deployer.Deployer
-import com.android.tools.deployer.DeployerException
-import com.android.tools.deployer.InstallStatus
+import com.android.tools.deployer.common.DeployerException
+import com.android.tools.deployer.common.InstallStatus
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.testing.AndroidProjectRule

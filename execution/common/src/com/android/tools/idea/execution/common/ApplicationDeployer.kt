@@ -18,7 +18,7 @@ package com.android.tools.idea.execution.common
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerApplicationTerminator
-import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.common.DeployerException
 import com.android.tools.idea.run.ApkInfo
 import com.intellij.openapi.progress.ProgressIndicator
 

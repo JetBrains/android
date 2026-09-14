@@ -58,6 +58,7 @@ import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.DCL
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.Groovy
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
 import com.android.tools.idea.wizard.template.DslLanguage
@@ -211,6 +212,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       when (buildConfigurationLanguage.value) {
         KTS -> DslLanguage.KTS
         Groovy -> DslLanguage.GROOVY
+        DCL -> DslLanguage.DCL
       }
     )
 

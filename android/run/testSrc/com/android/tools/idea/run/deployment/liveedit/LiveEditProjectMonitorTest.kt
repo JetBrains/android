@@ -23,9 +23,9 @@ import com.android.testutils.waitForCondition
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.deploy.proto.Deploy
-import com.android.tools.deployer.AdbClient
-import com.android.tools.deployer.Installer
-import com.android.tools.deployer.TestLogger
+import com.android.tools.deployer.common.AdbClient
+import com.android.tools.deployer.common.Installer
+import com.android.tools.deployer.model.TestLogger
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService

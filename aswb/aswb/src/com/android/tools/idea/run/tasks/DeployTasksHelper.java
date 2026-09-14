@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.tools.deployer.DeployerApplicationTerminator;
-import com.android.tools.deployer.DeployerException;
+import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.idea.execution.common.AndroidExecutionException;
 import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.ApkInfo;

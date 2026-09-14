@@ -146,7 +146,7 @@ private constructor(val serialNumber: String, val deviceType: DeviceType, val de
       if (device.isTablet() != (screenshotImage.deviceType == DeviceType.HANDHELD && diagonalSizeInches >= MIN_TABLET_DIAGONAL_SIZE)) {
         continue
       }
-      val screen = device.defaultHardware.screen
+      val screen = device.defaultHardware.screen ?: continue
       if (screen.isRound() != screenshotImage.isRoundDisplay) {
         continue
       }
@@ -203,7 +203,7 @@ private constructor(val serialNumber: String, val deviceType: DeviceType, val de
     if (isAutomotive() || isTv() || isWatch() || isXrHeadset()) {
       return false
     }
-    val screen = defaultHardware.screen
+    val screen = defaultHardware.screen ?: return false
     return hypot(screen.xDimension / screen.xdpi, screen.yDimension / screen.ydpi) >= MIN_TABLET_DIAGONAL_SIZE
   }
 

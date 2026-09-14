@@ -133,8 +133,7 @@ internal fun createDeviceSpec(configuration: Configuration): String {
   val device = configuration.device!!
   val deviceState = configuration.deviceState!!
   val orientation = deviceState.orientation.name.lowercase(JavaUtilLocale.getDefault())
-  val screen = deviceState.hardware.screen
-  val dpi = screen.pixelDensity.dpiValue
+  val dpi = deviceState.hardware.screen?.pixelDensity?.dpiValue ?: DEFAULT_DPI
 
   val (widthDp, heightDp) = configuration.deviceSizeDp()
 

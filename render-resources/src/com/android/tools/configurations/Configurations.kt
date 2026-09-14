@@ -36,7 +36,7 @@ fun Configuration.updateScreenSize(
   deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
   val device = deviceBuilder.build()
   for (state in device.allStates) {
-    val screen = state.hardware.screen
+    val screen = state.hardware.screen ?: continue
     screen.xDimension = xDimension
     screen.yDimension = yDimension
 
@@ -50,8 +50,10 @@ fun Configuration.updateScreenSize(
 
     screen.ratio = ScreenRatio.create(xDimension, yDimension)
 
-    screen.screenRound = device.defaultHardware.screen.screenRound
-    screen.chin = device.defaultHardware.screen.chin
+    device.defaultHardware.screen?.let {
+      screen.screenRound = it.screenRound
+      screen.chin = it.chin
+    }
   }
 
   val state = device.defaultState.deepCopy()

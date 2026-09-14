@@ -41,8 +41,9 @@ private fun calculateDimensions(x: Int, y: Int, mScreenOrientation: ScreenOrient
 fun Configuration.deviceSizePx(): DeviceSize {
   val deviceState = deviceState ?: return DeviceSize(0, 0)
   val orientation = deviceState.orientation
-  val x = deviceState.hardware.screen.xDimension
-  val y = deviceState.hardware.screen.yDimension
+  val screen = deviceState.hardware.screen ?: return DeviceSize(0, 0)
+  val x = screen.xDimension
+  val y = screen.yDimension
   return calculateDimensions(x, y, orientation)
 }
 
@@ -51,8 +52,9 @@ fun Configuration.deviceSizePx(): DeviceSize {
 fun Configuration.deviceSizeDp(): DeviceSize {
   val deviceState = deviceState ?: return DeviceSize(0, 0)
   val orientation = deviceState.orientation
-  val x = ConversionUtil.pxToDp(deviceState.hardware.screen.xDimension, dpi())
-  val y = ConversionUtil.pxToDp(deviceState.hardware.screen.yDimension, dpi())
+  val screen = deviceState.hardware.screen ?: return DeviceSize(0, 0)
+  val x = ConversionUtil.pxToDp(screen.xDimension, dpi())
+  val y = ConversionUtil.pxToDp(screen.yDimension, dpi())
   return calculateDimensions(x, y, orientation)
 }
 

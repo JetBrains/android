@@ -56,7 +56,7 @@ internal class VirtualDevice(
   val deviceProfile: Device,
   // These properties are derivative of deviceProfile; they are exposed only for testing
   val hasPlaystore: Boolean = deviceProfile.hasPlayStore(),
-  val isFoldable: Boolean = deviceProfile.defaultHardware.screen.isFoldable,
+  val isFoldable: Boolean = deviceProfile.defaultHardware.screen?.isFoldable ?: false,
   val cameraLocations: Collection<CameraLocation> = deviceProfile.defaultHardware.cameras.map(Camera::getLocation),
   val formFactor: String = deviceProfile.formFactor,
   val defaultRam: StorageCapacity = EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity(),

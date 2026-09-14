@@ -17,7 +17,7 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.common.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.deploy.DeploymentConfiguration

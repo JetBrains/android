@@ -39,12 +39,14 @@ class ScreenViewTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private fun buildState(): State {
-    val screen =
-      Screen().apply {
-        yDimension = 500
-        xDimension = 300
+    val hardware =
+      Hardware().apply {
+        screen =
+          Screen().apply {
+            yDimension = 500
+            xDimension = 300
+          }
       }
-    val hardware = Hardware().apply { setScreen(screen) }
     return State().apply {
       setHardware(hardware)
       isDefaultState = true

@@ -20,6 +20,7 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_WALLPAPERS_CLASS_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.deviceSizeDp
+import com.android.tools.configurations.dpi
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -161,11 +162,11 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
 
   private fun logResizeSaved(e: AnActionEvent, previewElement: PreviewElement<*>, configuration: Configuration) {
     val showDecorations = previewElement.displaySettings.showDecoration
-    val deviceState = configuration.deviceState ?: error("Device state should not be null")
+    configuration.deviceState ?: error("Device state should not be null")
     val (widthDp, heightDp) = configuration.deviceSizeDp()
     val mode =
       if (showDecorations) ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE else ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE
-    val dpi = deviceState.hardware.screen.pixelDensity.dpiValue
+    val dpi = configuration.dpi()
     ComposeResizeToolingUsageTracker.logResizeSaved(DESIGN_SURFACE.getData(e.dataContext), mode, widthDp, heightDp, dpi)
   }
 

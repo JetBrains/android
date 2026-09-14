@@ -22,10 +22,11 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerApplicationTerminator;
-import com.android.tools.deployer.DeployerException;
-import com.android.tools.deployer.InstallOptions;
+import com.android.tools.deployer.common.DeployerException;
+import com.android.tools.deployer.common.InstallOptions;
+import com.android.tools.deployer.install.InstallMode;
 import com.android.tools.deployer.model.App;
-import com.android.tools.deployer.tasks.Canceller;
+import com.android.tools.deployer.common.Canceller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.diagnostic.Logger;
@@ -149,9 +150,9 @@ public class DeployTask extends AbstractDeployTask {
     options.setSkipVerification(device, apkInfo.getApplicationId());
 
     LOG.info("Installing application: " + apkInfo.getApplicationId());
-    Deployer.InstallMode installMode = Deployer.InstallMode.DELTA;
+    InstallMode installMode = InstallMode.DELTA;
     if (!StudioFlags.DELTA_INSTALL.get()) {
-        installMode = Deployer.InstallMode.FULL;
+        installMode = InstallMode.FULL;
     }
 
     options.setCancelChecker(canceller);

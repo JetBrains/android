@@ -29,7 +29,7 @@ internal class DeviceUtilsKtTest {
   @Test
   fun deviceToDeviceConfig() {
     val device = MutableDeviceConfig().createDeviceInstance()
-    val screen = device.defaultHardware.screen
+    val screen = device.defaultHardware.screen!!
 
     screen.xDimension = 1080
     screen.yDimension = 2280
@@ -62,7 +62,7 @@ internal class DeviceUtilsKtTest {
   @Test
   fun deviceInstanceOrientation() {
     var device: Device? = null
-    val screenProvider = { device!!.defaultHardware.screen }
+    val screenProvider = { device!!.defaultHardware.screen!! }
     val orientationProvider = { device!!.defaultState.orientation }
 
     device = deviceFromDeviceSpec("spec:width=100px,height=200px")
@@ -88,12 +88,12 @@ internal class DeviceUtilsKtTest {
       DeviceConfig(width = 100f, height = 100f, dimUnit = DimUnit.px, shape = Shape.Round, chinSize = 20f)
         .createDeviceInstance()
         .defaultHardware
-        .screen
+        .screen!!
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(20, screen.chin)
 
     // From DeviceSpec Language
-    screen = deviceFromDeviceSpec("spec:width=100px,height=200px,isRound=true,chinSize=50px")!!.defaultHardware.screen
+    screen = deviceFromDeviceSpec("spec:width=100px,height=200px,isRound=true,chinSize=50px")!!.defaultHardware.screen!!
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(50, screen.chin)
   }
@@ -102,7 +102,7 @@ internal class DeviceUtilsKtTest {
   fun deviceInstanceWithDifferentDimensionUnit() {
     val device1 = deviceFromDeviceSpec("spec:width=100px,height=200px,dpi=310")
     assertNotNull(device1)
-    val screen1 = device1.defaultHardware.screen
+    val screen1 = device1.defaultHardware.screen!!
     assertEquals(100, screen1.xDimension)
     assertEquals(200, screen1.yDimension)
     assertEquals(320, screen1.pixelDensity.dpiValue) // Adjusted Density bucket
@@ -110,7 +110,7 @@ internal class DeviceUtilsKtTest {
 
     val device2 = deviceFromDeviceSpec("spec:width=100dp,height=200dp,dpi=310")
     assertNotNull(device2)
-    val screen2 = device2.defaultHardware.screen
+    val screen2 = device2.defaultHardware.screen!!
 
     // Note: these dimensions are calculated with the closest Density bucket for dpi=310: XHDPI
     // (320)
@@ -125,14 +125,14 @@ internal class DeviceUtilsKtTest {
     val existingDevices = buildMockDevices()
 
     val deviceByName = existingDevices.findOrParseFromDefinition("name:name0")
-    val screen0 = deviceByName!!.defaultHardware.screen
+    val screen0 = deviceByName!!.defaultHardware.screen!!
     assertEquals("name0", deviceByName.displayName)
     assertEquals(1080, screen0.xDimension)
     assertEquals(1920, screen0.yDimension)
     assertEquals(320, screen0.pixelDensity.dpiValue)
 
     val deviceById = existingDevices.findOrParseFromDefinition("id:id1")
-    val screen1 = deviceById!!.defaultHardware.screen
+    val screen1 = deviceById!!.defaultHardware.screen!!
     assertEquals("id1", deviceById.id)
     assertEquals(540, screen1.xDimension)
     assertEquals(960, screen1.yDimension)
@@ -141,7 +141,7 @@ internal class DeviceUtilsKtTest {
 
     // Device parameters should be the same as 'id1' with a different orientation
     val deviceByParentId = existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape")
-    val screen2 = deviceByParentId!!.defaultHardware.screen
+    val screen2 = deviceByParentId!!.defaultHardware.screen!!
     // Devices defined by 'spec' are always Custom devices
     assertEquals("Custom", deviceByParentId.id)
     assertEquals(540, screen2.xDimension)

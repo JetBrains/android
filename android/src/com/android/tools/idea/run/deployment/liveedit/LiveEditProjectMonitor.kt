@@ -23,9 +23,9 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.deploy.proto.Deploy
 import com.android.tools.deploy.proto.Deploy.UnsupportedChange
-import com.android.tools.deployer.AdbClient
+import com.android.tools.deployer.common.AdbClient
 import com.android.tools.deployer.AdbInstaller
-import com.android.tools.deployer.Installer
+import com.android.tools.deployer.common.Installer
 import com.android.tools.deployer.MetricsRecorder
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.android.tools.deployer.tasks.LiveUpdateDeployer.UpdateLiveEditError

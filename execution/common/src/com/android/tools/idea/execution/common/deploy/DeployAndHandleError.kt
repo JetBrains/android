@@ -16,7 +16,7 @@
 package com.android.tools.idea.execution.common.deploy
 
 import com.android.tools.deployer.Deployer
-import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.common.DeployerException
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.execution.common.applychanges.ApplyChangesAction

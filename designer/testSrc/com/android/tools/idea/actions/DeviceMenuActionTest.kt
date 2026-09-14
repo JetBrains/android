@@ -34,6 +34,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationModelModule
 import com.android.tools.configurations.ConfigurationSettings
 import com.android.tools.configurations.ResourceResolverCache
+import com.android.tools.idea.configurations.CanonicalDeviceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.StudioConfigurationModelModule
@@ -152,6 +153,7 @@ class DeviceMenuActionTest {
                   Small Desktop (1366 × 768 dp, mdpi)
                   Medium Desktop (1920 × 1080 dp, xhdpi)
                   Large Desktop (1920 × 1080 dp, mdpi)
+                  Desktop (Preview) (1920 × 1200 dp, hdpi)
               ------------------------------------------------------
               Wear
               Wear OS Square (180 × 180 dp, xhdpi)
@@ -178,7 +180,7 @@ class DeviceMenuActionTest {
               XR
               XR Headset (1280 × 1279 dp, xhdpi)
               XR Glasses (960 × 600 dp, xhdpi)
-              AI Glasses (450 × 450 dp, mdpi)
+              AI Glasses (Display) (450 × 450 dp, mdpi)
               ------------------------------------------------------
               Generic Devices
                   Small Phone (360 × 640 dp, xhdpi)
@@ -380,6 +382,27 @@ class DeviceMenuActionTest {
   }
 
   @Test
+  fun testScreenlessReferenceDevicesAreNotTreatedAsTheSameDevice() = runBlocking {
+    val menuDevice = screenlessDevice(id = CanonicalDeviceType.MEDIUM_PHONE.id, name = "Medium Phone")
+    val currentDevice = screenlessDevice(id = Configuration.CUSTOM_DEVICE_ID, name = "Custom Device")
+
+    val configurationSettings = TestConfigurationSettings(listOf(menuDevice))
+    val configuration = Configuration.create(configurationSettings, FolderConfiguration.createDefault())
+    configuration.setEffectiveDevice(currentDevice, currentDevice.defaultState)
+
+    val menuAction = DeviceMenuAction()
+    menuAction.updateActions(SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration)))
+
+    val selectedActions =
+      menuAction.flattenActions().filterIsInstance<SetDeviceAction>().filter {
+        val event = TestActionEvent.createTestEvent()
+        it.update(event)
+        Toggleable.isSelected(event.presentation)
+      }
+    assertThat(selectedActions).isEmpty()
+  }
+
+  @Test
   fun testOtherDevicesAreShown() = runBlocking {
     val otherDeviceBuilder = Device.Builder()
     otherDeviceBuilder.setId("my-other-device")
@@ -415,6 +438,21 @@ class DeviceMenuActionTest {
         .trimIndent()
     assertThat(actual).contains(expectedSection)
   }
+}
+
+private fun screenlessDevice(id: String, name: String): Device {
+  val builder = Device.Builder()
+  builder.setId(id)
+  builder.setName(name)
+  builder.setManufacturer("Google")
+  builder.addState(
+    State().apply {
+      hardware = Hardware()
+      isDefaultState = true
+    }
+  )
+  builder.addSoftware(Software())
+  return builder.build()
 }
 
 private class TestConfigurationSettings(private val testDevices: List<Device>) : ConfigurationSettings {

@@ -83,10 +83,10 @@ data class VirtualDeviceProfile(
       manufacturer = device.manufacturer
       name = device.displayName
       val screen = device.defaultHardware.screen
-      resolution = Resolution(screen.xDimension, screen.yDimension)
-      displayDensity = screen.pixelDensity.dpiValue
-      displayDiagonalLength = screen.diagonalLength
-      isRound = screen.screenRound == ScreenRound.ROUND
+      resolution = if (screen != null) Resolution(screen.xDimension, screen.yDimension) else Resolution(0, 0)
+      displayDensity = screen?.pixelDensity?.dpiValue ?: 0
+      displayDiagonalLength = screen?.diagonalLength ?: 0.0
+      isRound = screen?.screenRound == ScreenRound.ROUND
       abis = device.defaultHardware.supportedAbis + device.defaultHardware.translatedAbis
       formFactor = device.formFactor
       isDeprecated = device.isDeprecated

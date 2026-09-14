@@ -93,7 +93,7 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
 fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
   val sorted =
     devices
-      .filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
+      .filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) || it.defaultHardware.screen == null }
       .sortedByDescending { it.displayName }
   return sorted
     .groupBy {
@@ -133,7 +133,7 @@ fun isReferenceDevice(device: Device): Boolean {
 }
 
 private fun sizeGroupNexus(device: Device): DeviceGroup {
-  val screen = device.defaultHardware.screen
+  val screen = device.defaultHardware.screen ?: return DeviceGroup.OTHER
   // For foldables the device definition diagonal might be for the unfolded device, calculate ourselves.
   val diagonalLength =
     if (!screen.isFoldable) screen.diagonalLength

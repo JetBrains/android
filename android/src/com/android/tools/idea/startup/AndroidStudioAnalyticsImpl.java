@@ -140,7 +140,7 @@ public final class AndroidStudioAnalyticsImpl {
     UsageTracker.setMaxJournalSize(1000);
 
     ApplicationInfo application = ApplicationInfo.getInstance();
-    AnalyticsPublisher.updatePublisher(logger, scheduler, application.getStrictVersion());
+    AnalyticsPublisher.initialize(logger, scheduler, application.getStrictVersion());
   }
 
   private ILogger getAndroidLogger() {

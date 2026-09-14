@@ -397,7 +397,7 @@ constructor(
     // Clear the paired devices when data is wiped.
     AvdBuilder.updateUserSettings(
       avdInfo.dataFolderPath,
-      mapOf(UserSettingsKey.PAIRED_PHONE_AVD_ID to null, UserSettingsKey.PAIRED_GLASSES_AVD_ID to null),
+      mapOf("${UserSettingsKey.PAIRED_PHONE_AVD_ID_PREFIX}1" to null, UserSettingsKey.PAIRED_GLASSES_AVD_ID to null),
       LogWrapper(IJ_LOG),
     )
     return true

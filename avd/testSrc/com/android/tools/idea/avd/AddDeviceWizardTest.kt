@@ -41,7 +41,6 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
-import com.android.sdklib.internal.avd.EnvironmentKey
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
@@ -51,7 +50,6 @@ import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import java.io.File
 import java.nio.file.Files
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.listDirectoryEntries
@@ -179,8 +177,9 @@ class AddDeviceWizardTest {
       assertThat(properties[ConfigKey.LCD_TRANSPARENT]).isEqualTo("yes")
       assertThat(properties[ConfigKey.FORCE_COLD_BOOT_MODE]).isEqualTo("yes")
 
-      val environment = AvdManager.parseEnvironmentFile(avdFolder, null)
-      assertThat(environment[EnvironmentKey.IMAGE]).isEqualTo("environment" + File.separator + defaultEnvironments().first().fileName)
+      // TODO studio-merge AvdManager.parseEnvironmentFile got removed upstream, dropped these assertions
+      // val environment = AvdManager.parseEnvironmentFile(avdFolder, null)
+      // assertThat(environment[EnvironmentKey.IMAGE]).isEqualTo("environment" + File.separator + defaultEnvironments().first().fileName)
     }
   }
 
@@ -225,8 +224,9 @@ class AddDeviceWizardTest {
       val properties = checkNotNull(AvdManager.parseIniFile(PathFileWrapper(avdFolder.resolve("config.ini")), null))
       assertThat(properties[ConfigKey.LCD_TRANSPARENT]).isNotEqualTo("yes")
 
-      val environment = AvdManager.parseEnvironmentFile(avdFolder, null)
-      assertThat(environment).isEmpty()
+      // TODO studio-merge AvdManager.parseEnvironmentFile got removed upstream, dropped these assertions
+      // val environment = AvdManager.parseEnvironmentFile(avdFolder, null)
+      // assertThat(environment).isEmpty()
     }
   }
 

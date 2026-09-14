@@ -493,22 +493,24 @@ class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
           val screen = state.hardware.screen
           @NavCoordinate var x = SCREEN_LONG
           @NavCoordinate var y = SCREEN_LONG
-          val ratio = screen.xDimension / screen.yDimension.toFloat()
-          if (ratio > 1) {
-            y /= ratio
-          } else {
-            x *= ratio
-          }
-          if (ratio < 1.1 && ratio > 0.9) {
-            // If it's approximately square make it smaller, otherwise it takes up too much space.
-            x /= 2
-            y /= 2
-          }
-          if (state.orientation == ScreenOrientation.LANDSCAPE == ratio < 1) {
-            val tmp = x
+          if (screen != null) {
+            val ratio = screen.xDimension / screen.yDimension.toFloat()
+            if (ratio > 1) {
+              y /= ratio
+            } else {
+              x *= ratio
+            }
+            if (ratio < 1.1 && ratio > 0.9) {
+              // If it's approximately square make it smaller, otherwise it takes up too much space.
+              x /= 2
+              y /= 2
+            }
+            if (state.orientation == ScreenOrientation.LANDSCAPE == ratio < 1) {
+              val tmp = x
 
-            x = y
-            y = tmp
+              x = y
+              y = tmp
+            }
           }
           sceneComponent.setSize(x.toInt(), y.toInt())
         }

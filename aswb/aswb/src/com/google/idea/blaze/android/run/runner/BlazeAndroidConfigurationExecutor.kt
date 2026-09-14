@@ -16,7 +16,7 @@
 package com.google.idea.blaze.android.run.runner
 
 import com.android.ddmlib.IDevice
-import com.android.tools.deployer.ApkVerifierTracker
+import com.android.tools.deployer.common.ApkVerifierTracker
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo

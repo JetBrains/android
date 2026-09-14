@@ -139,11 +139,11 @@ class ResourceResolverCacheTest : AndroidTestCase() {
     builder.setId(Configuration.CUSTOM_DEVICE_ID)
     val customDevice = builder.build()
 
-    customDevice.allStates.forEach { state ->
-      val screen = state.hardware.screen
+    for (state in customDevice.allStates) {
+      val screen = state.hardware.screen ?: continue
       // Explicit setters for screen dimensions
-      screen.setXDimension(100)
-      screen.setYDimension(100)
+      screen.xDimension = 100
+      screen.yDimension = 100
     }
 
     configuration.setEffectiveDevice(customDevice, customDevice.getState("Portrait"))

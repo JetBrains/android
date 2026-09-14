@@ -19,9 +19,9 @@ package com.android.tools.idea.run.tasks
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.Deployer
-import com.android.tools.deployer.InstallOptions
+import com.android.tools.deployer.common.InstallOptions
 import com.android.tools.deployer.model.App
-import com.android.tools.deployer.tasks.Canceller
+import com.android.tools.deployer.common.Canceller
 import com.android.tools.idea.run.ApkInfo
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule

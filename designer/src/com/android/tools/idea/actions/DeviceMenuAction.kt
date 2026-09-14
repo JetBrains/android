@@ -81,8 +81,8 @@ private data class ReferenceDeviceMetrics(
 )
 
 /** Creates a [ReferenceDeviceMetrics] object from a [Device] instance. */
-private fun metricsFor(device: Device): ReferenceDeviceMetrics {
-  val screen = device.defaultState.hardware.screen
+private fun metricsFor(device: Device): ReferenceDeviceMetrics? {
+  val screen = device.defaultState.hardware.screen ?: return null
   return ReferenceDeviceMetrics(
     xDimension = screen.xDimension,
     yDimension = screen.yDimension,
@@ -122,7 +122,8 @@ private fun isSameDevice(d1: Device?, d2: Device?): Boolean {
   return if (d1IsReference && d2IsReference) {
     // Both are reference devices (e.g., "Medium Phone", "Foldable").
     // They don't have stable unique IDs, so we compare by their physical characteristics.
-    metricsFor(d1) == metricsFor(d2)
+    val d1Metrics = metricsFor(d1)
+    d1Metrics != null && d1Metrics == metricsFor(d2)
   } else {
     // One or both are not reference devices (e.g., a custom AVD).
     // These devices have stable, unique IDs that we can rely on.
@@ -513,7 +514,7 @@ class DeviceMenuAction(private val deviceChangeListener: DeviceChangeListener = 
   }
 
   private fun getDeviceLabel(device: Device): String {
-    val screen = device.defaultHardware.screen
+    val screen = device.defaultHardware.screen ?: return device.displayName
     val density = screen.pixelDensity
     val xDp = screen.xDimension.toDp(density).roundToInt()
     val yDp = screen.yDimension.toDp(density).roundToInt()

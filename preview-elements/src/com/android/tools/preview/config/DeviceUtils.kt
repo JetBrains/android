@@ -64,7 +64,7 @@ const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 fun Device.toDeviceConfig(): DeviceConfig {
   val config = MutableDeviceConfig().apply { dimUnit = DimUnit.px }
   val deviceState = this.defaultState
-  val screen = deviceState.hardware.screen
+  val screen = deviceState.hardware.screen ?: return config
   config.width = screen.xDimension.toFloat()
   config.height = screen.yDimension.toFloat()
   config.dpi = screen.pixelDensity.dpiValue

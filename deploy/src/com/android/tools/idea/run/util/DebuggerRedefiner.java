@@ -17,7 +17,7 @@ package com.android.tools.idea.run.util;
 
 import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.ClassRedefiner;
-import com.android.tools.deployer.DeployerException;
+import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.deployer.JdiBasedClassRedefiner;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.DebugProcessImpl;

@@ -674,12 +674,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.android().useLibraries().create(name)
   }
 
-  override fun addCompileSdk(androidVersion: AndroidVersion, isKotlinMultiplatform: Boolean) {
+  override fun addCompileSdk(androidVersion: AndroidVersion, isKotlinMultiplatform: Boolean, isDeclarative: Boolean) {
     val agpVersion = AndroidGradlePluginVersion.parse(projectTemplateData.agpVersion.toString())
     val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
 
     // AGP 8.13 supports new syntax for specifying compileSdk as a block
-    val isBlockAllowedAGP = compileSdkBlockVersion.isOkWith(agpVersion)
+    val isBlockAllowedAGP = compileSdkBlockVersion.isOkWith(agpVersion) && !isDeclarative
     val apiLevelMajor = androidVersion.androidApiLevel.majorVersion
     val apiLevelMinor = androidVersion.androidApiLevel.minorVersion
 
