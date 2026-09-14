@@ -145,7 +145,7 @@ private class SyncContributorAndroidProjectDependenciesContext(
   /** Converts a file to the exact format required by the platform . */
   fun File.toLibraryRootPath() =
     libraryRootPathCache.computeIfAbsent(this) {
-      androidProjectContext.context.virtualFileUrlManager.getOrCreateFromUrl(VfsUtil.getUrlForLibraryRoot(this))
+      androidProjectContext.context.virtualFileUrlManager.storeAndGet(VfsUtil.getUrlForLibraryRoot(this))
     }
 
   /* Creates a library entity or find an existing one from storage, also counting any newly created ones. */
