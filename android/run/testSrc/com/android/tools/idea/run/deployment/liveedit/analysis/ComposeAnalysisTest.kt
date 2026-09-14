@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.org.objectweb.asm.tree.MethodInsnNode
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
@@ -275,6 +276,27 @@ class ComposeAnalysisTest {
     computeGroupTableForTest(output)
   }
 
+  @Test
+  fun `conditional singleton lambda`() {
+    val output =
+      compileForTest(
+        """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun test(flag: Boolean) {
+        wrap(if (flag) ({ }) else ({ }))
+      }
+
+      @Composable
+      fun wrap(content: @Composable () -> Unit) {
+        content()
+      }
+      """
+      )
+    val groupTable = computeGroupTableForTest(output)
+    groupTable.assertSingletonLambdaParent("ComposableSingletons\$TestKt", "test")
+  }
+
   /** Asserts that the table contains a @Composable method with the provided key and returns that method. */
   private fun GroupTable.assertGroup(key: Int): IrMethod {
     // Since Kotlin 2.4 one key can belong to two methods: the composable invoke and its erased bridge.
@@ -313,6 +335,13 @@ class ComposeAnalysisTest {
     val keyMeta = output["${fileName}Kt\$KeyMeta"]
     val classes = output.values.filterNot { it == keyMeta }
     return Output(file, classes)
+  }
+
+  /** Asserts that the table maps each lambda class of the given ComposableSingletons class to the given parent method. */
+  private fun GroupTable.assertSingletonLambdaParent(singletonsClassName: String, parentName: String) {
+    val entries = lambdaParents.filterKeys { it.name.startsWith("$singletonsClassName\$") }
+    assertTrue("The table has no lambda parent entry for $singletonsClassName.", entries.isNotEmpty())
+    entries.forEach { (_, parent) -> assertEquals(parentName, parent.name) }
   }
 
   private fun ensureComposeCalls(output: Output, vararg methods: String) {

@@ -215,8 +215,13 @@ private fun analyzeMethod(analyzer: ComposeAnalyzer, method: IrMethod, classesBy
 
       INVOKEVIRTUAL -> {
         val methodInstr = instr as MethodInsnNode
-        if (isComposableSingleton(methodInstr.owner)) { // Look at the next stack frame to see what was returned from this method invocation
-          val lambda = frames[i + 1].getStackValue(0) as ComposableLambdaValue
+        if (isComposableSingleton(methodInstr.owner)) {
+          // The post-call frame merges every path that reaches it, and `BasicInterpreter` throws away
+          // a value the paths disagree on, so it cannot be recovered here. Ask the interpreter for
+          // the value it recorded.
+          val lambda =
+            analyzer.getterReturnValue(methodInstr.name)
+              ?: throw RuntimeException("Singleton getter ${methodInstr.owner}.${methodInstr.name} was not registered before $method")
           val clazz = classesByName[lambda.block.internalName] ?: throw RuntimeException("Unknown singleton lambda type: ${lambda.block}")
           groupTable.lambdaParents[clazz] = method
         }
@@ -237,6 +242,8 @@ private class ComposeAnalyzer private constructor(private val interpreter: Compo
     interpreter.setCurrentMethod(owner, method)
     return super.analyze(owner, method)
   }
+
+  fun getterReturnValue(name: String): ComposableLambdaValue? = interpreter.getterReturnValue(name)
 }
 
 private class ComposeInterpreter : BasicInterpreter(ASM9) {
