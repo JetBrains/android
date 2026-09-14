@@ -14,7 +14,6 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="library" name="google-api-client" level="project" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
