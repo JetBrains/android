@@ -94,12 +94,17 @@ fun computeGroupTable(classes: List<IrClass>): GroupTable {
 
   val singletonMethods = singletons?.methods ?: emptyList()
 
+  // Analyze the class initializer before the getters. It sets up the whole class, which can include
+  // a lambda field that a getter then reads.
   val singletonInit = singletonMethods.singleOrNull { it.name == SdkConstants.CLASS_CONSTRUCTOR }
   if (singletonInit != null) {
     analyzeMethod(analyzer, singletonInit, classesByName, groupTable)
-    for (method in singletonMethods.filter { it != singletonInit }) {
-      analyzeMethod(analyzer, method, classesByName, groupTable)
-    }
+  }
+
+  // Since the Compose compiler 2.5 a getter initializes its own field lazily and does not rely on
+  // `<clinit>`. Analyze the getters unconditionally (https://github.com/JetBrains/kotlin/pull/6921).
+  for (method in singletonMethods.filter { it != singletonInit }) {
+    analyzeMethod(analyzer, method, classesByName, groupTable)
   }
 
   for (method in classes.filter { it != singletons }.flatMap { it.methods }) {
@@ -156,6 +161,9 @@ fun GroupTable.toStringWithLineInfo(sourceFile: KtFile): String {
 private data class IntValue(val value: Int) : BasicValue(Type.INT_TYPE)
 
 private data class ComposableLambdaValue(val key: Int, val block: Type) : BasicValue(COMPOSABLE_LAMBDA_TYPE)
+
+/** A read of a singleton field whose stored value the analysis has not seen yet. Resolved on demand. */
+private data class SingletonBackingFieldDeferredValue(val field: String, val fieldType: Type) : BasicValue(fieldType)
 
 private val COMPOSABLE_LAMBDA_TYPE = Type.getObjectType("androidx/compose/runtime/internal/ComposableLambda")
 private val COMPOSABLE_LAMBDA_N_TYPE = Type.getObjectType("androidx/compose/runtime/internal/ComposableLambdaN")
@@ -235,12 +243,22 @@ private class ComposeInterpreter : BasicInterpreter(ASM9) {
   private var owner: String? = null
   private var method: MethodNode? = null
   private val singletonFields = mutableMapOf<String, ComposableLambdaValue>()
-  private val singletonGetters = mutableMapOf<String, ComposableLambdaValue>()
+  private val singletonGetters = mutableMapOf<String, BasicValue>()
 
   fun setCurrentMethod(owner: String?, method: MethodNode?) {
     this.owner = owner
     this.method = method
   }
+
+  /** The composable lambda a singleton getter returns, or null when the analysis could not resolve it. */
+  fun getterReturnValue(name: String): ComposableLambdaValue? = resolveDeferredFieldRead(singletonGetters[name])
+
+  private fun resolveDeferredFieldRead(value: BasicValue?): ComposableLambdaValue? =
+    when (value) {
+      is ComposableLambdaValue -> value
+      is SingletonBackingFieldDeferredValue -> singletonFields[value.field]
+      else -> null
+    }
 
   override fun newValue(type: Type?): BasicValue? {
     val value = super.newValue(type)
@@ -254,8 +272,8 @@ private class ComposeInterpreter : BasicInterpreter(ASM9) {
   override fun newOperation(instr: AbstractInsnNode): BasicValue? {
     when (instr.opcode) {
       GETSTATIC -> {
-        if (isComposableSingleton((instr as FieldInsnNode).owner) && instr.name in singletonFields) {
-          return singletonFields[instr.name]
+        if (isComposableSingleton((instr as FieldInsnNode).owner)) {
+          return singletonFields[instr.name] ?: SingletonBackingFieldDeferredValue(instr.name, Type.getType(instr.desc))
         }
       }
 
@@ -350,8 +368,10 @@ private class ComposeInterpreter : BasicInterpreter(ASM9) {
       }
 
       INVOKEVIRTUAL -> {
-        if (isComposableSingleton((instr as MethodInsnNode).owner) && instr.name in singletonGetters) {
-          return singletonGetters[instr.name]
+        if (isComposableSingleton((instr as MethodInsnNode).owner)) {
+          getterReturnValue(instr.name)?.let {
+            return it
+          }
         }
       }
     }
@@ -359,7 +379,7 @@ private class ComposeInterpreter : BasicInterpreter(ASM9) {
   }
 
   override fun returnOperation(instr: AbstractInsnNode?, value: BasicValue?, expected: BasicValue?) {
-    if (!isComposableSingleton(owner!!) || value !is ComposableLambdaValue) {
+    if (!isComposableSingleton(owner!!) || (value !is ComposableLambdaValue && value !is SingletonBackingFieldDeferredValue)) {
       return
     }
 
