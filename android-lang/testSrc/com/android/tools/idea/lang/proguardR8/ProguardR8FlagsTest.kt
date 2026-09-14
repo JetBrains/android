@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8
+package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.lang.proguardR8.KeepRulesR8FileType
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
-import com.android.tools.idea.lang.proguardR8.ProguardR8InvalidFlagInspection
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.fileTypes.LanguageFileType
