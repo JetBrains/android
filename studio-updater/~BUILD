@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.updater.studio-updater",
     srcs = ["src"],
     iml_files = ["intellij.android.updater.studio-updater.iml"],
+    jvm_target = "21",  # Must be compatible with the oldest Studio version for which we still offer patches.
     resources = ["resources"],
     # do not sort: must match IML order
     test_deps = [

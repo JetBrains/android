@@ -23,6 +23,8 @@ import com.google.wireless.android.sdk.stats.StudioPatchUpdaterEvent
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.rules.TempDirectory
 import java.io.BufferedInputStream
+import java.io.InputStream
+import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -30,7 +32,9 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.jar.JarFile
 import java.util.stream.Collectors
+import kotlin.io.path.name
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -168,6 +172,40 @@ class StudioPatchUpdaterIntegrationTest {
 
     // Version should not be corrupted.
     ExampleDirectory.V3.verifyDir(dir)
+  }
+
+  /**
+   * The updater is launched by the JVM of the Studio installation being patched, which is older than the Studio being installed and may
+   * therefore run an older JVM. So we need to ensure the bytecode is compatible.
+   */
+  @Test
+  fun updaterBytecodeIsReadableByOlderJvms() {
+    // Our target Java version is based on the oldest Studio release we still offer patches for.
+    // See https://dl.google.com/android/studio/patches/updates.xml for the list of patches we offer.
+    val targetJavaVersion = 21
+    val targetClassFileVersion = targetJavaVersion + 44
+
+    fun readClassFileMajorVersion(jarEntry: InputStream): Int? {
+      val header = ByteArray(8)
+      if (jarEntry.readNBytes(header, 0, header.size) < header.size) return null // Invalid .class file.
+      val buffer = ByteBuffer.wrap(header)
+      if (buffer.int != 0xCAFEBABE.toInt()) return null // Invalid .class file.
+      buffer.short // Skip the minor version.
+      return buffer.short.toInt()
+    }
+
+    JarFile(updaterFullJar.toFile()).use { jar ->
+      for (entry in jar.entries()) {
+        // Note: entries under META-INF/versions are only loaded by JVMs new enough to understand them.
+        if (!entry.name.endsWith(".class") || entry.name.startsWith("META-INF/versions/")) continue
+        val version = jar.getInputStream(entry).use(::readClassFileMajorVersion) ?: continue
+        if (version > targetClassFileVersion) {
+          val err = "Found classes in ${updaterFullJar.name} which are too new to be loaded by Java $targetJavaVersion."
+          val example = "For example, ${entry.name} has class file version $version."
+          throw AssertionError("$err $example")
+        }
+      }
+    }
   }
 
   private fun readEvents(analyticsHome: Path): List<AndroidStudioEvent> {
