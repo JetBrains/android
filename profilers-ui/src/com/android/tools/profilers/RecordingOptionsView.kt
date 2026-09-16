@@ -17,17 +17,20 @@ package com.android.tools.profilers
 
 import com.android.tools.adtui.model.AspectObserver
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.ui.panel.PanelBuilder
 import com.intellij.ui.components.JBPanel
-import com.intellij.util.ui.UI
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.MAX_LINE_LENGTH_NO_WRAP
+import com.intellij.ui.dsl.builder.RightGap
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.GridLayout
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
+import com.intellij.ui.dsl.gridLayout.VerticalAlign
+import com.intellij.ui.dsl.gridLayout.builders.RowsGridBuilder
 import java.awt.BorderLayout
 import java.awt.FlowLayout
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.BoxLayout
-import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JRadioButton
@@ -43,21 +46,19 @@ constructor(
   private val recordingModel: RecordingOptionsModel,
   // TODO unified UI for add/edit config instead of arbitrary callback?
   editConfig: ((MutableComboBoxModel<RecordingOption>) -> Unit)? = null,
-) : JBPanel<RecordingOptionsView>(GridBagLayout()) {
+) : JBPanel<RecordingOptionsView>() {
   private val observer = AspectObserver()
 
-  private val btnGroup = ButtonGroup()
-
   @VisibleForTesting
-  var builtInRadios = makeBuiltInRadios()
+  var builtInRadios: List<JRadioButton> = makeBuiltInRadios()
     private set
 
   @VisibleForTesting
-  val configComponents =
+  val configComponents: ConfigComponentGroup? =
     editConfig?.let {
       ConfigComponentGroup(
         JButton(EDIT_CONFIG).apply { addActionListener { editConfig(recordingModel.customConfigurationModel) } },
-        radioButton("").apply { addActionListener { recordingModel.selectCurrentCustomConfiguration() } },
+        JRadioButton("").apply { addActionListener { recordingModel.selectCurrentCustomConfiguration() } },
         ProfilerCombobox(recordingModel.customConfigurationModel).apply {
           // Sets prototype value to minimum width option to compute width of dropdown.
           // Now dropdown width is always constrained/overriden by parent width as parent is always wider.
@@ -66,10 +67,10 @@ constructor(
       )
     }
 
-  @VisibleForTesting val startStopButton = JButton(START).apply { addActionListener { onStartStopButtonPressed() } }
+  @VisibleForTesting val startStopButton: JButton = JButton(START).apply { addActionListener { onStartStopButtonPressed() } }
 
   @VisibleForTesting
-  val optionRows =
+  val optionRows: FlexibleGrid =
     FlexibleGrid().also {
       it.set(makeRows())
       addComponentListener(
@@ -80,7 +81,7 @@ constructor(
     }
 
   @VisibleForTesting
-  val allRadios
+  val allRadios: List<JRadioButton>
     get() = if (configComponents != null) builtInRadios + configComponents.radio else builtInRadios
 
   init {
@@ -95,7 +96,15 @@ constructor(
         add(optionRows, BorderLayout.CENTER)
         add(btnRow, BorderLayout.SOUTH)
       }
-    add(content, GridBagConstraints())
+
+    layout = GridLayout().apply {
+      respectMinimumSize = true
+    }
+
+    val builder = RowsGridBuilder(this)
+    builder
+      .resizableRow()
+      .cell(content, horizontalAlign = HorizontalAlign.CENTER, verticalAlign = VerticalAlign.CENTER, resizableColumn = true)
 
     recordingModel
       .addDependency(observer)
@@ -131,21 +140,18 @@ constructor(
     }
   }
 
-  private fun makeRows(): List<Pair<JComponent, String>> {
-    val builtInRows = builtInRadios zip recordingModel.builtInOptions.map { it.description }
-    return configComponents?.let {
-      val configRadioWrapper =
-        JBPanel<Nothing>(BorderLayout()).apply {
-          add(it.radio, BorderLayout.LINE_START)
-          add(it.menu, BorderLayout.CENTER)
-        }
-      builtInRows + (configRadioWrapper to ADD_CONFIG_DESC)
-    } ?: builtInRows
+  private fun makeRows(): List<OptionRow> {
+    val result = builtInRadios.mapIndexed { index, button -> OptionRow(button, null, recordingModel.builtInOptions[index].description) }
+      .toMutableList()
+    configComponents?.let {
+      result.add(OptionRow(it.radio, it.menu, ADD_CONFIG_DESC))
+    }
+    return result
   }
 
   private fun makeBuiltInRadios() =
     recordingModel.builtInOptions.map { opt ->
-      radioButton(opt.title).apply { addActionListener { recordingModel.selectBuiltInOption(opt) } }
+      JRadioButton(opt.title).apply { addActionListener { recordingModel.selectBuiltInOption(opt) } }
     }
 
   private fun onSelectionChanged() =
@@ -228,8 +234,6 @@ constructor(
     }
   }
 
-  private fun radioButton(text: String) = JRadioButton(text).apply(btnGroup::add)
-
   companion object {
     const val ADD_CONFIG_DESC = "Load saved custom profiling configurations"
     const val START = "Record"
@@ -237,7 +241,6 @@ constructor(
     const val RECORDING = "Recording"
     const val LOADING = "Loading"
     const val EDIT_CONFIG = "Edit Configurations"
-    const val DEFAULT_COLUMN_WIDTH = 250
   }
 
   data class ConfigComponentGroup(val button: JButton, val radio: JRadioButton, val menu: ProfilerCombobox<RecordingOption>)
@@ -249,11 +252,11 @@ constructor(
  */
 @VisibleForTesting
 class FlexibleGrid : JBPanel<FlexibleGrid>() {
-  @VisibleForTesting var doubleColumnWidth = 0
-  @VisibleForTesting var doubleColumnHeight = 0
-  @VisibleForTesting var singleColumnWidth = 0
-  @VisibleForTesting var singleColumnHeight = 0
-  private var rows = listOf<Pair<JComponent, String>>()
+  @VisibleForTesting var doubleColumnWidth: Int = 0
+  @VisibleForTesting var doubleColumnHeight: Int = 0
+  @VisibleForTesting var singleColumnWidth: Int = 0
+  @VisibleForTesting var singleColumnHeight: Int = 0
+  private var rows = listOf<OptionRow>()
 
   @VisibleForTesting
   var mode = Mode.Wide
@@ -269,13 +272,14 @@ class FlexibleGrid : JBPanel<FlexibleGrid>() {
     refresh()
   }
 
-  fun set(rows: List<Pair<JComponent, String>>) {
+  internal fun set(rows: List<OptionRow>) {
     this.rows = rows
-    makeWideView().preferredSize.let {
+    minimumSize = createView(rows, Mode.Compact).minimumSize
+    createView(rows, Mode.Wide).preferredSize.let {
       doubleColumnWidth = it.width
       doubleColumnHeight = it.height
     }
-    makeTallView().preferredSize.let {
+    createView(rows, Mode.Tall).preferredSize.let {
       singleColumnWidth = it.width
       singleColumnHeight = it.height
     }
@@ -293,26 +297,10 @@ class FlexibleGrid : JBPanel<FlexibleGrid>() {
 
   private fun refresh() {
     removeAll()
-    add(
-      when (mode) {
-        Mode.Wide -> makeWideView()
-        Mode.Tall -> makeTallView()
-        Mode.Compact -> makeCompactView()
-      }
-    )
+    add(createView(rows, mode))
     revalidate()
     repaint()
   }
-
-  private fun makeWideView() =
-    makePanelWithRows { (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withComment(desc).moveCommentRight() }.splitColumns().createPanel()
-
-  private fun makeTallView() = makePanelWithRows { (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withComment(desc) }.createPanel()
-
-  private fun makeCompactView() = makePanelWithRows { (ctrl, desc) -> UI.PanelFactory.panel(ctrl).withTooltip(desc) }.createPanel()
-
-  private fun makePanelWithRows(makeRow: (Pair<JComponent, String>) -> PanelBuilder) =
-    UI.PanelFactory.grid().apply { rows.forEach { add(makeRow(it)) } }
 
   @VisibleForTesting
   enum class Mode {
@@ -320,10 +308,29 @@ class FlexibleGrid : JBPanel<FlexibleGrid>() {
     Tall,
     Compact,
   }
+}
 
-  companion object {
-    const val DESC_HEIGHT = 50
-    const val CTRL_HEIGHT = 25
+private fun createView(rows: List<OptionRow>, viewMode: FlexibleGrid.Mode): JComponent {
+  return panel {
+    buttonsGroup {
+      for (row in rows) {
+        row {
+          val radioButtonCell = cell(row.radioButton)
+            .gap(RightGap.SMALL)
+          val additionalCell = row.additional?.let {
+            cell(it)
+              .resizableColumn()
+              .align(AlignX.FILL)
+          }
+
+          when (viewMode) {
+            FlexibleGrid.Mode.Wide -> comment(row.desc, maxLineLength = MAX_LINE_LENGTH_NO_WRAP)
+            FlexibleGrid.Mode.Tall -> radioButtonCell.comment(row.desc, maxLineLength = 50)
+            FlexibleGrid.Mode.Compact -> (additionalCell ?: radioButtonCell).contextHelp(row.desc)
+          }
+        }
+      }
+    }
   }
 }
 
@@ -331,3 +338,5 @@ private fun JRadioButton.set(enabled: Boolean, tooltip: String?) {
   isEnabled = enabled
   toolTipText = tooltip
 }
+
+internal data class OptionRow(val radioButton: JRadioButton, val additional: JComponent?, val desc: String)
