@@ -1,18 +1,18 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
-load("@jps_dynamic_deps_community//:targets.bzl", "MODULE_TARGETS")
+load("@jps_dynamic_deps_community//:targets.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `dev intellij.android.compose-ide-plugin` start
 dev_dist_plugin(
-    libraries = [
-        "@lib//:kotlinc-kotlin-compiler-cli",
-        "@lib//:studio-platform",
-        "@lib//:studio-test-platform",
-    ],
+    descriptor = "resources/META-INF/plugin.xml",
+    descriptors = {
+        "//android/compose-ide-plugin:resources/META-INF/plugin.k2.xml": "META-INF/plugin.k2.xml",
+    },
+    jars = {
+        "lib/android-compose-ide-plugin.jar": ["intellij.android.compose-ide-plugin"],
+    },
     main_module = "intellij.android.compose-ide-plugin",
-    module_targets = MODULE_TARGETS,
 )
 ### auto-generated section `dev intellij.android.compose-ide-plugin` end
 
