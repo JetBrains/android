@@ -29,12 +29,20 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentOfTypes
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.kotlin.analysis.api.KaSession
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.analysis.api.components.resolveToCall
+import org.jetbrains.kotlin.analysis.api.expressions.expectedType
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.resolution.KaCallInfo
+import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.session.analyze
 import org.jetbrains.kotlin.analysis.api.session.useSiteSession
+import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.psi.hasInlineModifier
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -62,11 +70,13 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.allConstructors
+import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 private val composableFunctionKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isComposableFunction")
 private val deprecatedKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
 private val COMPOSABLE_CLASS_ID = ClassId(FqName("androidx.compose.runtime"), Name.identifier("Composable"))
+private val DISALLOW_COMPOSABLE_CALLS_CLASS_ID = ClassId(FqName("androidx.compose.runtime"), Name.identifier("DisallowComposableCalls"))
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 fun PsiElement.isComposableFunction(): Boolean =
@@ -219,6 +229,72 @@ private fun KtElement.possibleComposableScope(): KtExpression? =
   }
 
 private fun KtModifierListOwner.hasComposableAnnotation(): Boolean = hasAnnotation(COMPOSABLE_CLASS_ID)
+
+@OptIn(KaAllowAnalysisOnEdt::class)
+fun PsiElement?.isInsideComposableControlFlow(): Boolean = allowAnalysisOnEdt {
+  when (this) {
+    null -> false
+    is KtPropertyAccessor, is KtNamedFunction -> hasComposableAnnotation()
+    is KtLambdaExpression -> analyze(this) { ownsComposableControlFlow() }
+    is KtLambdaArgument -> analyze(this) { ownsComposableControlFlow() }
+    else -> parent.isInsideComposableControlFlow()
+  }
+}
+
+context(session: KaSession)
+private fun KtLambdaExpression.ownsComposableControlFlow(): Boolean =
+  getAnnotationEntries().containsAnnotation(COMPOSABLE_CLASS_ID) ||
+    expectedType?.isAnnotatedWith(COMPOSABLE_CLASS_ID) == true ||
+    (parent as? KtValueArgument)?.ownsComposableControlFlow() == true
+
+context(session: KaSession)
+private fun KtValueArgument.ownsComposableControlFlow(): Boolean =
+  parentOfType<KtCallExpression>()
+    ?.resolveToCall()
+    .let { functionCall -> functionCall != null && ownsComposableControlFlowWhenArgumentOf(functionCall) }
+
+context(session: KaSession)
+private fun KtValueArgument.ownsComposableControlFlowWhenArgumentOf(functionCall: KaCallInfo): Boolean =
+  hasAnnotationIn(functionCall, COMPOSABLE_CLASS_ID) ||
+    (
+      !hasAnnotationIn(functionCall, DISALLOW_COMPOSABLE_CALLS_CLASS_ID) &&
+        isInlinedInside(functionCall) &&
+        parent.isInsideComposableControlFlow()
+      )
+
+context(session: KaSession)
+private fun KtValueArgument.hasAnnotationIn(function: KaCallInfo, classId: ClassId): Boolean =
+  function.parameterSymbolOf(this)?.returnType?.isAnnotatedWith(classId) == true
+
+context(session: KaSession)
+private fun KaCallInfo.parameterSymbolOf(argument: KtValueArgument): KaValueParameterSymbol? =
+  argument.getArgumentExpression()?.let { expression ->
+    successfulFunctionCallOrNull()
+      ?.valueArgumentMapping
+      ?.get(expression)
+      ?.symbol
+  }
+
+context(session: KaSession)
+private fun KtValueArgument.isInlinedInside(function: KaCallInfo): Boolean =
+  function.isInline() &&
+    function.parameterSymbolOf(this)?.let { !it.isNoinline && !it.isCrossinline } ?: true
+
+context(session: KaSession)
+private fun KaCallInfo.isInline(): Boolean =
+  successfulFunctionCallOrNull()
+    ?.symbol
+    ?.let { it as? KaNamedFunctionSymbol }
+    ?.isInline
+    ?: false
+
+context(session: KaSession)
+private fun KaAnnotated.isAnnotatedWith(classId: ClassId): Boolean =
+  classId in annotations
+
+context(session: KaSession)
+private fun Iterable<KtAnnotationEntry>.containsAnnotation(classId: ClassId): Boolean =
+  any { it.resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId == classId }
 
 private fun KtValueArgument.toFunction(): KtFunction? {
   val callee = parentOfType<KtCallExpression>()?.calleeExpression?.mainReference?.resolve()

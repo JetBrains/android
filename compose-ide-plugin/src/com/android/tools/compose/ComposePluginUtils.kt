@@ -21,6 +21,7 @@ import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
@@ -38,6 +39,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KaType
+import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -56,6 +58,13 @@ internal val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
   TextAttributesKey.createTextAttributesKey(COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME, DefaultLanguageHighlighterColors.FUNCTION_CALL)
 
 fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false
+
+fun isCommonComposeAnnotationAvailable(element: PsiElement): Boolean {
+  val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return false
+  val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(/*includeTests = */true)
+  val foundClasses = KotlinFullClassNameIndex[COMPOSABLE_ANNOTATION_FQ_NAME, module.project, moduleScope]
+  return foundClasses.isNotEmpty()
+}
 
 fun isModifierChainLongerThanTwo(element: KtElement): Boolean {
   if (element.getChildrenOfType<KtDotQualifiedExpression>().isNotEmpty()) {
