@@ -16,10 +16,15 @@
 package com.android.screenshottest.ui
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.LoggedAction
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.LoggedToggleAction
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotToolbarAnalytics
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ImageWithToolbarPanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotAttributesView
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -28,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
@@ -72,14 +78,14 @@ private val LOG = Logger.getInstance(PreviewDetailsPanel::class.java)
  * A panel that displays detailed views of screenshot previews. It can show a single preview with extensive details or a list of previews
  * grouped by test method.
  */
-class PreviewDetailsPanel : JPanel(CardLayout()) {
+class PreviewDetailsPanel(private val project: Project? = null) : JPanel(CardLayout()) {
 
   @VisibleForTesting val screenshotAttributesView = ScreenshotAttributesView()
   private val multiplePreviewsPanel = JPanel(BorderLayout())
   private val singlePreviewPanel = JPanel(BorderLayout())
 
   private val listModel = DefaultListModel<MethodGroup>()
-  private val methodGroupRenderer = MethodGroupRenderer()
+  private val methodGroupRenderer = MethodGroupRenderer(project)
   // Use JBList for virtualization: only visible rows are rendered, which is essential for scalability.
   private val multiplePreviewsList =
     JBList(listModel).apply {
@@ -90,81 +96,129 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       setCellRenderer(methodGroupRenderer)
     }
 
+  private val toolbarAnalytics = ScreenshotToolbarAnalytics(project)
+
   // Panels for the "All" view (3-way split) in single preview mode.
-  private val newImagePanel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true)
-  private val diffImagePanel = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true)
-  private val refImagePanel = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = false, showTitle = true)
+  private val newImagePanel =
+    ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true, onActionTriggered = toolbarAnalytics::logAction)
+  private val diffImagePanel =
+    ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true, onActionTriggered = toolbarAnalytics::logAction)
+  private val refImagePanel =
+    ImageWithToolbarPanel(
+      ScreenshotViewType.REFERENCE,
+      showToolbar = false,
+      showTitle = true,
+      onActionTriggered = toolbarAnalytics::logAction,
+    )
 
   private val multiViewPanels = listOf(newImagePanel, diffImagePanel, refImagePanel)
 
   // Panels for the individual tabbed views in single preview mode.
-  private val newImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false)
-  private val diffImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false)
-  private val refImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = true, showTitle = false)
+  private val newImagePanelSingle =
+    ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false, onActionTriggered = toolbarAnalytics::logAction)
+  private val diffImagePanelSingle =
+    ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false, onActionTriggered = toolbarAnalytics::logAction)
+  private val refImagePanelSingle =
+    ImageWithToolbarPanel(
+      ScreenshotViewType.REFERENCE,
+      showToolbar = true,
+      showTitle = false,
+      onActionTriggered = toolbarAnalytics::logAction,
+    )
 
   // Common actions for the "All" view toolbar.
   private val commonZoomInAction =
-    object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomIn() }
+    LoggedAction(
+      object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.zoomIn() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonZoomOutAction =
-    object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomOut() }
+    LoggedAction(
+      object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.zoomOut() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonOneToOneAction =
-    object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.setActualSize() }
+    LoggedAction(
+      object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.setActualSize() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonFitToScreenAction =
-    object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.fitToScreen() }
+    LoggedAction(
+      object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.fitToScreen() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonToggleGridViewAction =
-    object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
-      override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isGridVisible() ?: false
+    LoggedToggleAction(
+      object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
+        override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isGridVisible() ?: false
 
-      override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setGridVisible(state) }
+        override fun setSelected(e: AnActionEvent, state: Boolean) {
+          multiViewPanels.forEach { it.setGridVisible(state) }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   private val commonToggleChessboardAction =
-    object :
-      ToggleAction(
-        "Chessboard",
-        "Toggle Chessboard Background",
-        IconLoader.getIcon(CHESSBOARD_ICON_PATH, PreviewDetailsPanel::class.java),
-      ) {
-      override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
+    LoggedToggleAction(
+      object :
+        ToggleAction(
+          "Chessboard",
+          "Toggle Chessboard Background",
+          IconLoader.getIcon(CHESSBOARD_ICON_PATH, PreviewDetailsPanel::class.java),
+        ) {
+        override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
 
-      override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setChessboardVisible(state) }
+        override fun setSelected(e: AnActionEvent, state: Boolean) {
+          multiViewPanels.forEach { it.setChessboardVisible(state) }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   init {
     val scrollPane =
@@ -339,15 +393,27 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
     targetPanel.setPlaceholder(placeholder)
     if (filePath == null) {
       targetPanel.setImage(null)
+      if (placeholder == NO_NEW_IMAGE_TEXT) {
+        // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event if image doesn't exist
+        logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
+      }
       return
     }
     AppExecutorUtil.getAppExecutorService().submit {
       val image =
         try {
           val file = File(filePath)
-          if (file.exists()) ImageIO.read(file) else null
+          if (file.exists()) {
+            ImageIO.read(file)
+          } else {
+            // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event if file doesn't exist
+            logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
+            null
+          }
         } catch (e: Exception) {
           LOG.error("Error loading screenshot image from path: $filePath", e)
+          // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event on exception
+          logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
           null // Log the error, the placeholder text will be shown.
         }
       UIUtil.invokeLaterIfNeeded { targetPanel.setImage(image) }
@@ -407,7 +473,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
    * A renderer for a group of previews belonging to the same test method. This renderer uses a "rubber stamp" pattern, reusing the same
    * panel instance for all rows to optimize memory and performance.
    */
-  private class MethodGroupRenderer : JPanel(), ListCellRenderer<MethodGroup> {
+  private class MethodGroupRenderer(private val project: Project?) : JPanel(), ListCellRenderer<MethodGroup> {
     var viewType: ScreenshotViewType = ScreenshotViewType.NEW
     // Shared cache for scaled thumbnails to prevent redundant disk I/O and memory pressure.
     private val thumbnailCache =
@@ -474,7 +540,7 @@ class PreviewDetailsPanel : JPanel(CardLayout()) {
       // Manage the pool of PreviewItemPanels to match the current row's preview count.
       while (previewPanelPool.size < previews.size) {
         val dummyData = previews[0] // Use any data for initial creation
-        val panel = PreviewItemPanel(dummyData, showDetails = true, thumbnailCache = thumbnailCache)
+        val panel = PreviewItemPanel(dummyData, project, showDetails = true, thumbnailCache = thumbnailCache)
         previewPanelPool.add(panel)
         horizontalPreviewsPanel.add(panel)
       }

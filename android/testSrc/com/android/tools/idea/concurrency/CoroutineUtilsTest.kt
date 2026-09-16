@@ -18,13 +18,12 @@ package com.android.tools.idea.concurrency
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
@@ -34,6 +33,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -45,6 +45,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -58,11 +59,12 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 const val UI_THREAD = "UI thread"
-const val WORKER_THREAD = "Worker thread"
+const val WORKER_THREAD = "DefaultDispatcher"
 const val IO_THREAD = "IO thread"
 
 class CoroutineUtilsTest {
@@ -127,7 +129,7 @@ class CoroutineUtilsTest {
       /** Fake method that is aware of coroutines and enforces its own threading rules. */
       @AnyThread
       private suspend fun suspendComputeData(): String =
-        withContext(workerThread) {
+        withContext(Dispatchers.Default) {
           checkThread(WORKER_THREAD)
           "computed"
         }
@@ -136,10 +138,10 @@ class CoroutineUtilsTest {
       fun buttonClicked() {
         checkThread(UI_THREAD)
 
-        launch(uiThread) {
+        launch(Dispatchers.EDT) {
           checkThread(UI_THREAD)
           // This suspends the coroutine, releasing the IO thread until computation is done on the worker thread.
-          val computedData: String = withContext(workerThread) { computeData() }
+          val computedData: String = withContext(Dispatchers.Default) { computeData() }
           val anotherData = suspendComputeData()
 
           checkThread(UI_THREAD)
@@ -164,7 +166,7 @@ class CoroutineUtilsTest {
       fun compute2() = launch(CoroutineName("computing")) { error("expected failure") }
     }
 
-    val messages = mutableListOf<String>()
+    val messages = Collections.synchronizedList(mutableListOf<String>())
 
     LoggedErrorProcessor.executeWith<RuntimeException>(
       object : LoggedErrorProcessor() {
@@ -177,11 +179,13 @@ class CoroutineUtilsTest {
       val fooManager = FooManager()
       Disposer.register(projectRule.project, fooManager)
 
-      fooManager.compute1()
-      fooManager.compute2()
+      val job1 = fooManager.compute1()
+      val job2 = fooManager.compute2()
 
-      workerExecutor.shutdown()
-      workerExecutor.awaitTermination(2, TimeUnit.SECONDS)
+      runBlocking {
+        job1.join()
+        job2.join()
+      }
       assertThat(messages).containsExactly("expected failure", "computing")
     }
   }
@@ -198,7 +202,7 @@ class CoroutineUtilsTest {
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
       override fun dispose() {}
 
-      suspend fun updateUi() = withContext(uiThread) { uiUpdated.set(true) }
+      suspend fun updateUi() = withContext(Dispatchers.EDT) { uiUpdated.set(true) }
 
       fun computeAndUpdateUi() = launch {
         checkThread(WORKER_THREAD)
@@ -264,11 +268,11 @@ class CoroutineUtilsTest {
 
     // Wait until we know the read action has the lock
     readActionIsReady.await()
-    runBlocking(workerThread) {
+    runBlocking(Dispatchers.Default) {
       val writeActionExecuted = CompletableDeferred<Boolean>()
       try {
         val smartReadJob =
-          launch(workerThread) {
+          launch(Dispatchers.Default) {
             assertThat(writeActionExecuted.isCompleted).isFalse()
             runWriteActionAndWait { writeActionExecuted.complete(true) }
             assertThat(writeActionExecuted.isCompleted).isTrue()
@@ -373,7 +377,7 @@ class CoroutineUtilsTest {
     val countDownLatch = CountDownLatch(10)
     runBlocking {
       val collectJob =
-        launch(workerThread) {
+        launch(Dispatchers.Default) {
           disposableFlow.collect {
             flowReceiverCount.incrementAndGet()
             countDownLatch.countDown()
@@ -405,7 +409,7 @@ class CoroutineUtilsTest {
     val flowReceiverCount = AtomicInteger(0)
     val countDownLatch = CountDownLatch(expectedModeChanges)
     val job =
-      GlobalScope.launch(workerThread) {
+      GlobalScope.launch(Dispatchers.Default) {
         smartModeFlow.collect {
           flowReceiverCount.incrementAndGet()
           countDownLatch.countDown()

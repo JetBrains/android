@@ -24,9 +24,10 @@ import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValue
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.android.tools.property.panel.api.PropertiesView
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.platform.ide.documentation.DOCUMENTATION_TARGETS
 import com.intellij.util.Alarm
@@ -46,7 +47,7 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 
 /** Create the models and views for the properties tool content. */
 class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable) :
-  JPanel(BorderLayout()), ToolContent<DesignSurface<*>> {
+  JPanel(BorderLayout()), ToolContent<DesignSurface<*>>, UiDataProvider {
   private val queue =
     MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null, Alarm.ThreadToUse.SWING_THREAD)
   private val componentModel = NlPropertiesModel(this, facet, queue)
@@ -65,9 +66,6 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     motionEditorView?.let { properties.addView(it) }
-    DataManager.registerDataProvider(properties.component) { dataId ->
-      if (DOCUMENTATION_TARGETS.`is`(dataId)) listOf(documentationTarget) else null
-    }
     registerAnActionKey(
       { showResolvedValueAction },
       ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke,
@@ -103,6 +101,10 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
 
   val isInspectorSectionsActive
     get() = !componentModel.properties.isEmpty
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[DOCUMENTATION_TARGETS] = listOf(documentationTarget)
+  }
 
   private fun createFilterKeyListener() =
     object : KeyAdapter() {

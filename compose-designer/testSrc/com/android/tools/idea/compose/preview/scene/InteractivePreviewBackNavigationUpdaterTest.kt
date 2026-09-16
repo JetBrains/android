@@ -15,23 +15,35 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
+import com.android.tools.idea.compose.preview.InteractiveNavigationHandler
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
-private class FakeComposeViewAdapter() {
-  @Suppress("unused") // This property is called via reflection
+class FakeComposeViewAdapter {
+  @Suppress("unused", "PrivatePropertyName") // This property is called via reflection
   private val FakeOnBackPressedDispatcherOwner =
     object : Any() {
-      val onBackPressedDispatcher = {}
+      // We can perform back navigation
+      fun onBackPressCompleted() {}
     }
 }
 
 class InteractivePreviewBackNavigationUpdaterTest {
+  lateinit var interactiveNavigationHandler: InteractiveNavigationHandler
+
+  @Before
+  fun setUp() {
+    interactiveNavigationHandler = InteractiveNavigationHandler()
+  }
 
   val composable =
     SingleComposePreviewElementInstance(
@@ -51,14 +63,23 @@ class InteractivePreviewBackNavigationUpdaterTest {
     )
 
   @Test
-  fun `check backDispatcher is only set in interactive mode`() {
+  fun `check backDispatcher from ComposeViewAdapter is only set in interactive mode`() {
     val previewManager = TestComposePreviewManager().apply { setMode(PreviewMode.Default()) }
-    val fakeComposeViewAdapter = FakeComposeViewAdapter()
-    InteractivePreviewBackNavigationUpdater.update(fakeComposeViewAdapter, previewManager, composable)
-    assertThat(composable.backPressedDispatcher).isNull()
+    val layoutlibSceneManagerMock = mock<LayoutlibSceneManager>().apply { whenever(viewObject).thenReturn(FakeComposeViewAdapter()) }
+    InteractivePreviewBackNavigationUpdater.update(
+      previewManager = previewManager,
+      layoutlibSceneManager = layoutlibSceneManagerMock,
+      interactiveNavigationHandler = interactiveNavigationHandler,
+    )
+    assertThat(interactiveNavigationHandler.canPerformBackNavigation()).isFalse()
 
     previewManager.setMode(PreviewMode.Interactive(composable))
-    InteractivePreviewBackNavigationUpdater.update(fakeComposeViewAdapter, previewManager, composable)
-    assertThat(composable.backPressedDispatcher).isNotNull()
+
+    InteractivePreviewBackNavigationUpdater.update(
+      previewManager = previewManager,
+      layoutlibSceneManager = layoutlibSceneManagerMock,
+      interactiveNavigationHandler = interactiveNavigationHandler,
+    )
+    assertThat(interactiveNavigationHandler.canPerformBackNavigation()).isTrue()
   }
 }

@@ -39,7 +39,6 @@ import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.truth.Truth.assertThat
 import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.ApplicationRule
@@ -47,6 +46,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.nio.file.Files
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -127,7 +127,7 @@ class LocalVirtualDeviceSourceTest {
     }
 
     private suspend fun finish(device: VirtualDevice): Boolean {
-      withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(sdkFixture.avdManager).add(device) }
+      withContext(Dispatchers.IO) { VirtualDevices(sdkFixture.avdManager).add(device) }
       return true
     }
   }

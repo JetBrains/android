@@ -21,6 +21,7 @@ interface GoogleApiKeyProvider {
   enum class GoogleApi(val apiName: String) {
     CONTENT_SERVING("developerscontentserving-pa"),
     CHIME("notifications-pa"),
+    DEVELOPER_ID("androiddeveloperid-pa"),
   }
 
   fun getApiKey(api: GoogleApi): String?

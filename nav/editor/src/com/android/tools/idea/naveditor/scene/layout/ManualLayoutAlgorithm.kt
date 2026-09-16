@@ -173,7 +173,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     }
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   private fun getPositions(component: SceneComponent): LayoutPositions {
     var componentPositions = getPosition(component.nlComponent.tag)
     if (componentPositions == null) {
@@ -274,7 +274,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     layoutPositions.myPositions.keys.retainAll(seenComponents)
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   private fun getPosition(tag: XmlTag?): LayoutPositions? {
     return tag?.let { tagPositionMap[SmartPointerManager.createPointer(it)] }
   }

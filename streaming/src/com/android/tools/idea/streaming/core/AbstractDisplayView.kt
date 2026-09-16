@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.rotatedByQuadrants
@@ -160,7 +159,7 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
   protected fun drawMultiTouchFeedback(graphics: Graphics2D, displayRectangle: Rectangle, dragging: Boolean) {
     val mouseLocation = MouseInfo.getPointerInfo().location
     SwingUtilities.convertPointFromScreen(mouseLocation, this)
-    val touchPoint = mouseLocation.scaled(screenScale)
+    val touchPoint = mouseLocation.scaled(screenScalingFactor)
 
     if (!displayRectangle.contains(touchPoint)) {
       return
@@ -292,20 +291,20 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
       }
     when (rotation) {
       0 -> {
-        normalized.x = p.x.scaled(screenScale) - displayRectangle.x
-        normalized.y = p.y.scaled(screenScale) - displayRectangle.y
+        normalized.x = p.x.scaled(screenScalingFactor) - displayRectangle.x
+        normalized.y = p.y.scaled(screenScalingFactor) - displayRectangle.y
       }
       1 -> {
-        normalized.x = displayRectangle.bottom - p.y.scaled(screenScale)
-        normalized.y = p.x.scaled(screenScale) - displayRectangle.x
+        normalized.x = displayRectangle.bottom - p.y.scaled(screenScalingFactor)
+        normalized.y = p.x.scaled(screenScalingFactor) - displayRectangle.x
       }
       2 -> {
-        normalized.x = displayRectangle.right - p.x.scaled(screenScale)
-        normalized.y = displayRectangle.bottom - p.y.scaled(screenScale)
+        normalized.x = displayRectangle.right - p.x.scaled(screenScalingFactor)
+        normalized.y = displayRectangle.bottom - p.y.scaled(screenScalingFactor)
       }
       else -> { // 3
-        normalized.x = p.y.scaled(screenScale) - displayRectangle.y
-        normalized.y = displayRectangle.right - p.x.scaled(screenScale)
+        normalized.x = p.y.scaled(screenScalingFactor) - displayRectangle.y
+        normalized.y = displayRectangle.right - p.x.scaled(screenScalingFactor)
       }
     }
     // Device display coordinates.
@@ -351,7 +350,7 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
   /** Given a graphics context for drawing in logical pixels returns a context for drawing in physical pixels. */
   protected fun createAdjustedGraphicsContext(graphics: Graphics): Graphics2D {
     val g = graphics.create() as Graphics2D
-    val physicalToVirtualScale = 1.0 / screenScale
+    val physicalToVirtualScale = 1.0 / screenScalingFactor
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
     if (SystemInfo.isMac) {
       // Disable dithering that is for some bizarre reason is used by default on Mac.
@@ -369,13 +368,13 @@ internal abstract class AbstractDisplayView(project: Project, override val displ
     }
   }
 
-  override fun canZoomIn(): Boolean = deviceType == DeviceType.XR_HEADSET || super.canZoomIn()
-
-  override fun canZoomOut(): Boolean = deviceType == DeviceType.XR_HEADSET || super.canZoomOut()
-
-  override fun canZoomToActual(): Boolean = deviceType != DeviceType.XR_HEADSET && super.canZoomToActual()
-
-  override fun canZoomToFit(): Boolean = deviceType != DeviceType.XR_HEADSET && super.canZoomToFit()
+  override fun canZoom(type: ZoomType): Boolean {
+    return when (type) {
+      ZoomType.IN,
+      ZoomType.OUT -> deviceType == DeviceType.XR_HEADSET || super.canZoom(type)
+      else -> deviceType != DeviceType.XR_HEADSET && super.canZoom(type)
+    }
+  }
 
   override fun zoom(type: ZoomType): Boolean {
     if (deviceType == DeviceType.XR_HEADSET) {

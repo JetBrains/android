@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -98,7 +97,7 @@ class ComposeParametersCache(private val client: ComposeLayoutInspectorClient?, 
     }
 
     CoroutineScope(Dispatchers.Unconfined).launch {
-      val expansion = withContext(AndroidDispatchers.workerThread) { fetchMoreDataFor(rootId, reference, startIndex, maxElements) }
+      val expansion = withContext(Dispatchers.Default) { fetchMoreDataFor(rootId, reference, startIndex, maxElements) }
       ApplicationManager.getApplication().invokeLater {
         if (cachedParameter != null) {
           val modification = expansion?.let { cachedParameter.applyReplacement(it) }

@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -34,7 +33,6 @@ import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.KeyEvent.VK_SHIFT
-import java.nio.file.Path
 import javax.swing.Box.createHorizontalGlue
 import javax.swing.BoxLayout
 import kotlin.time.Duration.Companion.seconds
@@ -48,9 +46,11 @@ class TouchpadPanelTest {
 
   private val applicationRule = ApplicationRule()
   private val emulatorRule = FakeEmulatorRule()
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/TouchpadPanelTest/golden")
 
   @get:Rule
-  val ruleChain = RuleChain(applicationRule, emulatorRule, ClipboardSynchronizationDisablementRule(), EdtRule(), PortableUiFontRule())
+  val ruleChain =
+    RuleChain(applicationRule, emulatorRule, ClipboardSynchronizationDisablementRule(), goldenImageRule, EdtRule(), PortableUiFontRule())
 
   private val glasses by lazy { createGlassesAvd() }
   private val touchpadPanel by lazy { createTouchpadPanel() }
@@ -189,10 +189,6 @@ class TouchpadPanelTest {
         SystemInfo.isWindows -> 0.5
         else -> 0.0
       }
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent)
+    goldenImageRule.assertImageSimilar(goldenImageName, image, maxPercentDifferent)
   }
-
-  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/$name.png")
 }
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/TouchpadPanelTest/golden"

@@ -105,7 +105,7 @@ class NetworkInspectorModel(
 
     if (StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
       dataSource.addOnExtendTimelineListener {
-        scope.launch(services.uiDispatcher) {
+        scope.launch(services.uiContext) {
           val isLive = isLive()
           val timestampUs = TimeUnit.NANOSECONDS.toMicros(it).toDouble()
           if (timeline.dataRange.isPoint) {

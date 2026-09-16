@@ -21,7 +21,7 @@ PROJECT                       : project
         BUILD_TASKS
                 ASSEMBLE                      : :assemble, :testClasses
                 REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                COMPILE_JAVA                  : :compileJava, :compileTestJava
     MODULE                        : project.main
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -43,9 +43,9 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/java/main
             -                             : file://<PROJECT>/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
+                COMPILE_JAVA                  : :compileJava
     MODULE                        : project.test
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -72,9 +72,9 @@ PROJECT                       : project
             -                             : file://<PROJECT>/build/classes/java/test
             -                             : file://<PROJECT>/build/resources/test
         BUILD_TASKS
-                ASSEMBLE                      : :assemble, :testClasses
-                REBUILD                       : :assemble, :clean, :testClasses
-                COMPILE_JAVA                  : :compileJava, :testClasses
+                ASSEMBLE                      : :testClasses
+                REBUILD                       : :clean, :testClasses
+                COMPILE_JAVA                  : :compileTestJava
     LIBRARY_TABLE
         LIBRARY                       : Gradle: junit:junit:4.12
             *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
@@ -83,4 +83,4 @@ PROJECT                       : project
     BUILD_TASKS
             ASSEMBLE                      : <PROJECT>::assemble, <PROJECT>::testClasses
             REBUILD                       : <PROJECT>::assemble, <PROJECT>::clean, <PROJECT>::testClasses
-            COMPILE_JAVA                  : <PROJECT>::compileJava, <PROJECT>::testClasses
+            COMPILE_JAVA                  : <PROJECT>::compileJava, <PROJECT>::compileTestJava

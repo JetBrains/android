@@ -31,11 +31,11 @@ class AiInsightCache(
 ) {
 
   fun getAiInsight(connection: Connection, issueId: IssueId, variantId: String?, contextSharingState: ContextSharingState) =
-    cache.getIfPresent(connection)?.getIfPresent(issueId)?.getIfPresent(AiInsightKey(variantId, contextSharingState))?.copy(isCached = true)
+    cache.getIfPresent(connection)?.getIfPresent(issueId)?.getIfPresent(AiInsightKey(variantId, contextSharingState))
 
   fun putAiInsight(connection: Connection, issueId: IssueId, variantId: String?, aiInsight: AiInsight) {
     val issuesCache = cache.get(connection) { createNew(ISSUE_CACHE_MAX_SIZE) }
     val aiInsightCache = issuesCache.get(issueId) { createNew(VARIANT_CACHE_MAX_SIZE) }
-    aiInsightCache.put(AiInsightKey(variantId, aiInsight.codeContextData.contextSharingState), aiInsight)
+    aiInsightCache.put(AiInsightKey(variantId, aiInsight.codeContextData.contextSharingState), aiInsight.copy(isCached = true))
   }
 }

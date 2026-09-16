@@ -22,6 +22,9 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
+import com.android.tools.idea.insights.model.connection.Connection
+import com.android.tools.idea.insights.model.issue.IssueId
+import com.github.benmanes.caffeine.cache.Cache
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -49,5 +52,20 @@ class AiInsightCacheTest {
     cache.putAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT)
     assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED))
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
+  }
+
+  @Test
+  fun `passed cache holds insight with isCached set to true`() {
+    val connection = TestConnection("blah", "1234", "project12", "12")
+    val underlyingCache = createNew<Connection, Cache<IssueId, Cache<AiInsightKey, AiInsight>>>(10)
+    val cache = AiInsightCache(underlyingCache)
+    val insight = AiInsight("blah", ISSUE1.sampleEvent, isCached = false)
+
+    cache.putAiInsight(connection, ISSUE1.id, null, insight)
+
+    val insightFromUnderlyingCache =
+      underlyingCache.getIfPresent(connection)?.getIfPresent(ISSUE1.id)?.getIfPresent(AiInsightKey(null, ContextSharingState.DISABLED))
+
+    assertThat(insightFromUnderlyingCache?.isCached).isTrue()
   }
 }

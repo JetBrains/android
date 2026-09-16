@@ -65,6 +65,9 @@ import java.util.regex.Pattern
 import kotlin.reflect.KClass
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
+import org.jetbrains.kotlin.idea.base.psi.deleteValueArgument
+import org.jetbrains.kotlin.idea.base.psi.insertValueArgumentAfter
+import org.jetbrains.kotlin.idea.base.psi.insertValueArgumentBefore
 import org.jetbrains.kotlin.idea.base.psi.isNullExpression
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.lexer.KtTokens.LPAR
@@ -657,7 +660,7 @@ internal fun deletePsiElement(dslElement: GradleDslElement, psiElement: PsiEleme
   // If the psiElement is a KtValueArgument, we use the removeArgument method provided by the KTS psi that handles removing COMMAs between
   // arguments.
   if (psiElement is KtValueArgument) {
-    (parent as KtValueArgumentList).removeArgument(psiElement)
+    (parent as KtValueArgumentList).deleteValueArgument(psiElement)
   } else {
     psiElement.delete()
   }
@@ -754,7 +757,7 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
       }
       is KtValueArgument -> {
         if (psiElement.getArgumentExpression() == null) {
-          (psiParent as KtValueArgumentList).removeArgument(psiElement)
+          (psiParent as KtValueArgumentList).deleteValueArgument(psiElement)
           // Delete any space that might remain after the argument deletion.
           if (psiParent.firstChild.node.elementType == LPAR && psiParent.firstChild.nextSibling.node.elementType == WHITE_SPACE) {
             psiParent.firstChild.nextSibling.delete()
@@ -832,7 +835,7 @@ internal fun createMapElement(expression: GradleDslSettableExpression): PsiEleme
   val argumentValue = psiFactory.createArgument(mapArgument)
 
   val added =
-    parentPsiElement.valueArgumentList?.addArgumentAfter(argumentValue, parentPsiElement.valueArgumentList?.arguments?.lastOrNull())
+    parentPsiElement.valueArgumentList?.insertValueArgumentAfter(argumentValue, parentPsiElement.valueArgumentList?.arguments?.lastOrNull())
 
   val argumentExpression = added?.getArgumentExpression() as? KtBinaryExpression // Map elements are KtBinaryExpression.
   val expressionRight = argumentExpression?.right
@@ -904,9 +907,9 @@ internal fun createPsiElementInsideList(
         ?: getNextValidParentPsiElement(anchor.dslElement.psiElement, KtValueArgument::class) as? KtValueArgument
         ?: return null
 
-    return parentPsiElement.addArgumentAfter(argument, anchorPsi)
+    return parentPsiElement.insertValueArgumentAfter(argument, anchorPsi)
   }
-  return parentPsiElement.addArgumentBefore(argument, parentPsiElement.arguments.firstOrNull()).getArgumentExpression()
+  return parentPsiElement.insertValueArgumentBefore(argument, parentPsiElement.arguments.firstOrNull()).getArgumentExpression()
 }
 
 /** Return, if found, first parent psiElement that is of the type eClass, otherwise, return null. */
@@ -1071,7 +1074,7 @@ internal fun createBinaryExpression(expressionList: GradleDslExpressionList): Ps
   val argumentsList = (mapPsiElement as? KtCallExpression)?.valueArgumentList ?: return null
   val mapValueArgument = psiFactory.createArgument(expression)
   val lastArgument = argumentsList.arguments.last()
-  added = argumentsList.addArgumentAfter(mapValueArgument, lastArgument)
+  added = argumentsList.insertValueArgumentAfter(mapValueArgument, lastArgument)
   expressionList.psiElement = added.getArgumentExpression()
   return expressionList.psiElement
 }

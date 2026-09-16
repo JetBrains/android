@@ -167,6 +167,7 @@ class UiSettingsRule : ExternalResource() {
       DeviceType.WEAR -> FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
       DeviceType.AUTOMOTIVE -> FakeEmulator.createAutomotiveAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
       DeviceType.XR_HEADSET -> FakeEmulator.createXrHeadsetAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
+      DeviceType.TV -> FakeEmulator.createTvAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
       else -> FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
     }
   }

@@ -20,6 +20,7 @@ import com.intellij.openapi.util.Disposer
 import java.awt.Component
 import java.awt.DefaultKeyboardFocusManager
 import java.awt.KeyboardFocusManager
+import java.awt.Window
 import java.awt.event.FocusEvent
 import java.awt.event.FocusEvent.FOCUS_GAINED
 import java.awt.event.FocusEvent.FOCUS_LOST
@@ -32,6 +33,7 @@ import java.awt.event.FocusEvent.FOCUS_LOST
  */
 class FakeKeyboardFocusManager(parentDisposable: Disposable) : DefaultKeyboardFocusManager() {
   private var focusOwner: Component? = null
+  private var _activeWindow: Window? = null
 
   init {
     replaceKeyboardFocusManager(this, parentDisposable)
@@ -60,6 +62,14 @@ class FakeKeyboardFocusManager(parentDisposable: Disposable) : DefaultKeyboardFo
 
   override fun clearFocusOwner() {
     focusOwner = null
+  }
+
+  override fun getActiveWindow(): Window? {
+    return _activeWindow
+  }
+
+  fun setActiveWindow(window: Window) {
+    _activeWindow = window
   }
 }
 

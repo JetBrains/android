@@ -21,21 +21,18 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.testFramework.registerServiceInstance
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -51,39 +48,6 @@ class AppInspectionToolWindowManagerListenerTest {
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-
-  private class FakeToolWindow(
-    project: Project,
-    private val toolWindowManager: ToolWindowManager,
-    ideServices: AppInspectionIdeServices,
-    inspectionView: AppInspectionView,
-  ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-
-    val listener = AppInspectionToolWindowManagerListener(project, ideServices, this, inspectionView)
-
-    var shouldBeAvailable = true
-    var visible = false
-
-    override fun setAvailable(available: Boolean, runnable: Runnable?) {
-      shouldBeAvailable = available
-    }
-
-    override fun isAvailable() = shouldBeAvailable
-
-    override fun show(runnable: Runnable?) {
-      visible = true
-      listener.stateChanged(toolWindowManager)
-    }
-
-    override fun hide(runnable: Runnable?) {
-      visible = false
-      listener.stateChanged(toolWindowManager)
-    }
-
-    override fun isVisible(): Boolean {
-      return visible
-    }
-  }
 
   private val ideServices =
     object : AppInspectionIdeServicesAdapter() {
@@ -113,15 +77,11 @@ class AppInspectionToolWindowManagerListenerTest {
         }
       }
     Disposer.register(disposableRule.disposable, inspectionView)
-    lateinit var toolWindow: ToolWindow
-    val toolWindowManager =
-      object : ToolWindowHeadlessManagerImpl(projectRule.project) {
-        override fun getToolWindow(id: String?): ToolWindow {
-          return toolWindow
-        }
-      }
-    toolWindow = FakeToolWindow(projectRule.project, toolWindowManager, ideServices, inspectionView)
-    projectRule.project.registerServiceInstance(ToolWindowManager::class.java, toolWindowManager)
+
+    val toolWindow = createFakeToolWindow(projectRule.project, disposableRule.disposable, "App Inspection")
+    val listener = AppInspectionToolWindowManagerListener(projectRule.project, ideServices, toolWindow, inspectionView)
+    projectRule.project.messageBus.connect(disposableRule.disposable).subscribe(ToolWindowManagerListener.TOPIC, listener)
+
     // bubble isn't shown when inspection not running
     toolWindow.show()
     toolWindow.hide()

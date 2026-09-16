@@ -17,10 +17,16 @@ package com.example.project
 
 import com.example.external.ExternalJavaInSrcJar
 import com.example.external.ExternalJavaSource
-import com.example.external.ExternalKtInSrcJar
-import com.example.external.ExternalKtSource
 import com.example.external.gensrcjar.ExternalJavaSourceInGenSrcjar
-import com.example.external.gensrcjar.ExternalKtSourceInGenSrcjar
+import com.example.external.withjvmname.ExternalKtSource1
+import com.example.external.withjvmname.ExternalKtSource2
+import com.example.external.withjvmname.gensrcjar.ExternalKtSourceInGenSrcjar1
+import com.example.external.withjvmname.gensrcjar.ExternalKtSourceInGenSrcjar2
+import com.example.external.withjvmname.srcjar.ExternalKtInSrcJar1
+import com.example.external.withjvmname.srcjar.ExternalKtInSrcJar2
+import com.example.external.withoutjvmname.ExternalKtSource
+import com.example.external.withoutjvmname.srcjar.ExternalKtInSrcJar
+import com.example.external.withoutjvmname.gensrcjar.ExternalKtSourceInGenSrcjar
 
 /** Class1 test class  */
 class Class2 {
@@ -29,9 +35,24 @@ class Class2 {
       val s: ExternalJavaSource = ExternalJavaSource()
       return (s.copy(ExternalJavaSource.STRING)
               + s.copy(ExternalKtSource.STRING)
+              + ExternalKtSource1.STRING
+              + ExternalKtSource2.STRING
+              + com.example.external.withjvmname.STRING1
+              + com.example.external.withjvmname.STRING2
+              + com.example.external.withoutjvmname.STRING
               + ExternalJavaInSrcJar.STRING
               + ExternalJavaSourceInGenSrcjar.STRING
               + ExternalKtInSrcJar.STRING
-              + ExternalKtSourceInGenSrcjar.STRING)
+              + ExternalKtInSrcJar1.STRING
+              + ExternalKtInSrcJar2.STRING
+              + com.example.external.withjvmname.srcjar.STRING1
+              + com.example.external.withjvmname.srcjar.STRING2
+              + com.example.external.withoutjvmname.srcjar.STRING
+              + ExternalKtSourceInGenSrcjar.STRING
+              + ExternalKtSourceInGenSrcjar1.STRING
+              + ExternalKtSourceInGenSrcjar2.STRING
+              + com.example.external.withjvmname.gensrcjar.STRING1
+              + com.example.external.withjvmname.gensrcjar.STRING2
+              + com.example.external.withoutjvmname.gensrcjar.STRING)
     }
 }

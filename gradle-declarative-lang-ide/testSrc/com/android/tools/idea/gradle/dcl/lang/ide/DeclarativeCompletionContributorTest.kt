@@ -1185,7 +1185,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
 
     val knownPaths = listOf(listOf("rootProject", "name"))
-    val schema = DeclarativeService.getInstance(fixture.project).getDeclarativeSchema() ?: return
+    val file = fixture.addFileToProject("dummy.dcl", "")
+    val schema = DeclarativeService.getInstance(fixture.project).getDeclarativeSchema(file) ?: return
 
     fun EntryWithContext.check(path: List<String>) {
       val maybeDataProperty = entry

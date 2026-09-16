@@ -117,6 +117,41 @@ class DevicesSelectedServiceTest {
   }
 
   @Test
+  fun newRunConfig() = runTestWithFixture {
+    val device1 = createDevice("1")
+    val target1 = DeploymentTarget(device1, DefaultBoot)
+    val device2 = createDevice("2")
+    val target2 = DeploymentTarget(device2, DefaultBoot)
+
+    devices = listOf(device1, device2)
+
+    // We default to the first in the list (ordered by DeviceComparator)
+    testScope.advanceUntilIdle()
+    assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target1)
+
+    // The user selects device 2
+    devicesSelectedService.setTargetSelectedWithComboBox(target2)
+    testScope.advanceUntilIdle()
+    assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target2)
+
+    // Change run config: we should keep the existing device
+    val originalRunConfig = runConfigurationFlow.value
+    runConfigurationFlow.value = runManager.createTestConfig(name = "new_config")
+    testScope.advanceUntilIdle()
+    assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target2)
+
+    // User explicitly changes it
+    devicesSelectedService.setTargetSelectedWithComboBox(target1)
+    testScope.advanceUntilIdle()
+    assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target1)
+
+    // Change run config back: we should change to the previously selected device
+    runConfigurationFlow.value = originalRunConfig
+    testScope.advanceUntilIdle()
+    assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target2)
+  }
+
+  @Test
   fun resolve() = runTestWithFixture {
     val template1 = createTemplate("T1")
     val device1a = createDevice("D1A", sourceTemplate = template1)

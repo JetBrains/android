@@ -17,6 +17,7 @@ package com.google.idea.blaze.android.run.binary
 
 import com.android.tools.idea.run.classes.BuildOutcome
 import com.android.tools.idea.run.classes.BuildOutcomeCache
+import com.google.idea.blaze.android.projectsystem.DesugaringLibraryConfigFilesLocator
 import com.google.idea.blaze.android.run.runner.LiveEditDataExtractor
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.command.BlazeCommand
@@ -24,10 +25,12 @@ import com.google.idea.blaze.base.qsync.DependencyBuilder
 import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.scope.BlazeContext
+import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
 import java.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
@@ -36,6 +39,7 @@ import kotlinx.coroutines.runBlocking
 class AndroidBinaryLiveEditDataExtractor(private val project: Project, private val binaryTarget: Label) : LiveEditDataExtractor {
   private var preparedInvocation: DependencyBuilder.PreparedInvocation? = null
   private val outcome: CompletableDeferred<BuildOutcome> = CompletableDeferred()
+  private val desugarConfigs: CompletableDeferred<List<Path>> = CompletableDeferred()
 
   override fun prepareInvocation(context: BlazeContext, buildInvoker: BuildSystem.BuildInvoker, commandBuilder: BlazeCommand.Builder) {
     val dependencyBuilder = QuerySyncManager.getInstance(project).assertProjectLoaded().dependencyBuilder
@@ -63,7 +67,21 @@ class AndroidBinaryLiveEditDataExtractor(private val project: Project, private v
     )
   }
 
+  override fun fetchAdditionalData(context: BlazeContext) {
+    desugarConfigs.completeWith(
+      runCatching {
+        DesugaringLibraryConfigFilesLocator.forBuildSystem(Blaze.getBuildSystemName(project)).flatMap {
+          it.fetchDesugarLibraryConfigFiles(project, context)
+        }
+      }
+    )
+  }
+
   override fun getBuildOutcomeBlocking(): BuildOutcome {
     return runBlocking { outcome.await() }
+  }
+
+  override fun getDesugarConfigs(): List<Path> {
+    return runBlocking { desugarConfigs.await() }
   }
 }

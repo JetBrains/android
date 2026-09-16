@@ -193,9 +193,9 @@
     <action overrides="true" class="com.intellij.openapi.actionSystem.EmptyAction" id="SaveProjectAsTemplate"/>
     <action overrides="true" class="com.intellij.openapi.actionSystem.EmptyAction" id="ManageProjectTemplates"/>
 
-    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
+    <reference ref="Android.SyncProject">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
-    </action>
+    </reference>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

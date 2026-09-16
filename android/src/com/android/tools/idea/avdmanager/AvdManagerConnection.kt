@@ -39,7 +39,6 @@ import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.NULL_CONNECTION
 import com.android.tools.idea.avdmanager.DeviceSkinUpdater.updateSkin
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -175,7 +174,7 @@ constructor(
       updateSkin(skin)
     }
 
-    return withContext(AndroidDispatchers.workerThread) {
+    return withContext(Dispatchers.Default) {
       val code = checkAcceleration(sdkHandler)
       continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, avd, forceLaunchInToolWindow, bootMode)
     }
@@ -192,7 +191,8 @@ constructor(
       IJ_LOG.warn(String.format("Launching %s: %s: %s", avd.name, code, code.problem))
     }
     when (code) {
-      AccelerationErrorCode.ALREADY_INSTALLED -> return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
+      AccelerationErrorCode.ALREADY_INSTALLED,
+      AccelerationErrorCode.WHPX_RECOMMENDED -> return continueToStartAvd(project, avd, forceLaunchInToolWindow, bootMode)
       AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED,
       AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED ->
         // Launch the virtual device with possibly degraded performance even if there are updates

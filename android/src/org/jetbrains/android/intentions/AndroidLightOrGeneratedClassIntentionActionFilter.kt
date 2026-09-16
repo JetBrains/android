@@ -18,6 +18,7 @@ package org.jetbrains.android.intentions
 import com.android.SdkConstants
 import com.intellij.codeInsight.daemon.impl.IntentionActionFilter
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.lang.jvm.actions.JvmGroupModCommandAction
 import com.intellij.openapi.roots.JavaProjectRootsUtil.isInGeneratedCode
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
@@ -32,7 +33,7 @@ import org.jetbrains.android.augment.AndroidLightClassBase
 class AndroidLightOrGeneratedClassIntentionActionFilter : IntentionActionFilter {
 
   override fun accept(intentionAction: IntentionAction, file: PsiFile?): Boolean {
-    val targetPsiClass = file?.let(intentionAction::getElementToMakeWritable) as? PsiClass ?: return true
+    val targetPsiClass = findTargetClass(intentionAction, file) ?: return true
 
     return when {
       targetPsiClass is AndroidLightClassBase -> false
@@ -42,5 +43,18 @@ class AndroidLightOrGeneratedClassIntentionActionFilter : IntentionActionFilter 
       }
       else -> true
     }
+  }
+
+  /**
+   * Finds the class which the action adds a member to.
+   *
+   * A [JvmGroupModCommandAction] names its target class directly. A legacy action names it through
+   * [IntentionAction.getElementToMakeWritable]. A `ModCommandAction` cannot use that method, because
+   * a mod command writes into a copy of the file.
+   */
+  private fun findTargetClass(intentionAction: IntentionAction, file: PsiFile?): PsiClass? {
+    val modTarget = (intentionAction.asModCommandAction() as? JvmGroupModCommandAction)?.getTarget()
+    return modTarget as? PsiClass
+           ?: file?.let(intentionAction::getElementToMakeWritable) as? PsiClass
   }
 }

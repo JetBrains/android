@@ -30,7 +30,7 @@ class DesignerAnalyticsManagerTest : AndroidTestBase() {
   override fun setUp() {
     super.setUp()
     val surface = mock(DesignSurface::class.java)
-    myAnalyticsManager = DesignerAnalyticsManager(surface)
+    myAnalyticsManager = DesignerAnalyticsManager(surface, mock())
   }
 
   fun testBasicTracking() {

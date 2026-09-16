@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
@@ -32,6 +31,7 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.run.ProcessHandlerApplicationTerminator
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
@@ -55,6 +55,7 @@ import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Computable
@@ -62,6 +63,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -153,7 +155,8 @@ constructor(
             project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
           }
           LaunchUtils.initiateDismissKeyguard(device)
-          getDeployTask(device).run(device, indicator)
+          val terminator = ProcessHandlerApplicationTerminator(indicator, devices, packageName)
+          getDeployTask(device, terminator).run(device, indicator)
           // Notify listeners of the deployment.
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
         }
@@ -166,8 +169,7 @@ constructor(
     Futures.whenAllComplete(futures).call({ processHandler.detachProcess() }, appExecutorService)
   }
 
-  private fun getDeployTask(device: IDevice): DeployTask {
-    val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
+  private fun getDeployTask(device: IDevice, terminator: ProcessHandlerApplicationTerminator): DeployTask {
     val packages = apkProvider.getApks(device)
     val pmInstallOptions =
       if (device.version.apiLevel >= 23) {
@@ -177,7 +179,7 @@ constructor(
       }
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-    return DeployTask(project, packages, pmInstallOptions, false, false, false, containsMakeBeforeRun)
+    return DeployTask(project, packages, terminator, pmInstallOptions, false, false, false, containsMakeBeforeRun)
   }
 
   /**
@@ -288,7 +290,7 @@ constructor(
   }
 
   private suspend fun createAndroidTestSuiteView() =
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       AndroidTestSuiteView(project, project, configuration.configurationModule.androidTestModule, env.executor.toolWindowId, configuration)
     }
 

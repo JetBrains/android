@@ -53,6 +53,12 @@
 
   <actions>
     <group id="Streaming">
+      <action id="android.streaming.microphone.input" class="com.android.tools.idea.streaming.emulator.actions.EmulatorMicrophoneToggleAction"
+          icon="AllIcons.CodeWithMe.CwmMicOn" text="Turn Microphone On/Off" description="Turn microphone on/off">
+        <keyboard-shortcut first-keystroke="control M" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta M" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta M" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.device.power.button" class="com.android.tools.idea.streaming.actions.StreamingPowerButtonAction"
               icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button of the device">
         <keyboard-shortcut first-keystroke="control shift P" keymap="$default"/>
@@ -118,17 +124,17 @@
         <keyboard-shortcut first-keystroke="meta shift L" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift L" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.glasses1.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlasses1ButtonAction"
+      <action id="android.emulator.glasses.display.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlassesDisplayButtonAction"
+          icon="StudioIcons.Emulator.XR.GLASSES_DISPLAY" text="Display" description="Press the Display button of the device">
+        <keyboard-shortcut first-keystroke="control shift 2" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.glasses.camera.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlassesCameraButtonAction"
               icon="StudioIcons.Emulator.XR.GLASSES_CAMERA" text="Camera" description="Press the Camera button of the device">
         <keyboard-shortcut first-keystroke="control shift 1" keymap="$default"/>
         <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X 10.5+"/>
-      </action>
-      <action id="android.emulator.glasses2.button" class="com.android.tools.idea.streaming.emulator.actions.EmulatorGlasses2ButtonAction"
-          icon="StudioIcons.Emulator.Toolbar.POWER" text="Display" description="Press the Display button of the device">
-        <keyboard-shortcut first-keystroke="control shift 2" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
@@ -253,6 +259,49 @@
               icon="StudioIcons.Emulator.Toolbar.DEVICE_SETTINGS" text="Device UI Shortcuts" description="Shortcuts to common Android settings"/>
     </group>
 
+    <group id="android.streaming.zoom">
+      <action id="android.streaming.zoom.in"
+          icon="AllIcons.General.Add"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$In"
+          text="Zoom In"
+          description="Zoom in" >
+        <keyboard-shortcut keymap="$default" first-keystroke="control ADD" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control EQUALS" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta ADD" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta EQUALS" />
+      </action>
+      <action id="android.streaming.zoom.out"
+          icon="AllIcons.General.Remove"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$Out"
+          text="Zoom Out"
+          description="Zoom out">
+        <keyboard-shortcut keymap="$default" first-keystroke="control MINUS" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control SUBTRACT" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta MINUS" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta SUBTRACT" />
+      </action>
+      <action id="android.streaming.zoom.actual"
+          icon="AllIcons.General.ActualZoom"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$Actual"
+          text="Zoom to Actual Size (100%)"
+          description="Zoom to actual size">
+        <keyboard-shortcut keymap="$default" first-keystroke="control PERIOD" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control NUMPAD0" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta PERIOD" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta NUMPAD0" />
+      </action>
+      <action id="android.streaming.zoom.fit"
+          icon="AllIcons.General.FitContent"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$Fit"
+          text="Zoom to Fit in Window"
+          description="Zoom the view to fit in the available space">
+        <keyboard-shortcut keymap="$default" first-keystroke="control SLASH" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control DIVIDE" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta SLASH" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta DIVIDE" />
+      </action>
+    </group>
+
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
             icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"
             description="Benchmark embedded emulator or mirroring of physical device" internal="true">
@@ -281,6 +330,11 @@
     </group>
     <group id="android.streaming.xr.passthrough.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
       <reference ref="android.streaming.xr.passthrough"/>
+    </group>
+
+    <group id="StreamingToolbarGlasses">
+      <reference ref="android.emulator.glasses.display.button"/>
+      <reference ref="android.emulator.glasses.camera.button"/>
     </group>
 
     <group id="ContextMenuOnlyVirtualDevice">
@@ -316,9 +370,9 @@
         <reference ref="android.emulator.display.mode.tablet"/>
       </group>
       <separator/>
+      <reference ref="android.streaming.microphone.input"/>
+      <separator/>
       <reference ref="android.device.power.button"/>
-      <reference ref="android.emulator.glasses2.button"/>
-      <reference ref="android.emulator.glasses1.button"/>
       <reference ref="android.device.wear1.button"/>
       <reference ref="android.device.wear2.button"/>
       <reference ref="android.device.volume.up.button"/>

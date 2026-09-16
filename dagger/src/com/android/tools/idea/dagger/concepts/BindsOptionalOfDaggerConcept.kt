@@ -34,12 +34,11 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
+import com.intellij.util.io.IOUtil
 import java.io.DataInput
 import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.base.util.projectScope
-import org.jetbrains.kotlin.idea.core.script.v1.readString
-import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
@@ -92,13 +91,13 @@ internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSi
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(methodSimpleName)
+    IOUtil.writeUTF(output, methodSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.BINDS_OPTIONAL_OF_METHOD
 
-    override fun read(input: DataInput) = BindsOptionalOfIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = BindsOptionalOfIndexValue(input.readClassId(), IOUtil.readUTF(input))
   }
 
   companion object {

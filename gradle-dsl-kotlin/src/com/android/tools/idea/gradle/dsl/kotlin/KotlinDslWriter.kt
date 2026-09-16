@@ -46,6 +46,9 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTA
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.base.psi.appendValueArgument
+import org.jetbrains.kotlin.idea.base.psi.deleteValueArgument
+import org.jetbrains.kotlin.idea.base.psi.insertValueArgumentAfter
 import org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
@@ -251,12 +254,12 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         } else {
           // This is the case os an extra property, and we will need to delete the value from the extra() callExpression.
           val delegateExpression = statement.delegateExpression as? KtCallExpression ?: return null
-          delegateExpression.valueArgumentList?.removeArgument(0)
+          delegateExpression.valueArgumentList?.deleteValueArgument(0)
         }
       }
       is KtDotQualifiedExpression -> {
         val call = statement.getChildOfType<KtCallExpression>() ?: return null
-        call.valueArgumentList?.removeArgument(0)
+        call.valueArgumentList?.deleteValueArgument(0)
       }
     }
 
@@ -307,12 +310,12 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       }
       is KtValueArgumentList -> {
         val argumentValue = psiFactory.createArgument(statement)
-        addedElement = parentPsiElement.addArgumentAfter(argumentValue, anchor as? KtValueArgument)
+        addedElement = parentPsiElement.insertValueArgumentAfter(argumentValue, anchor as? KtValueArgument)
       }
       is KtCallExpression -> {
         val argumentList = parentPsiElement.valueArgumentList ?: return null
         val argumentValue = psiFactory.createArgument(statement)
-        addedElement = argumentList.addArgumentAfter(argumentValue, anchor as? KtValueArgument)?.getArgumentExpression() ?: return null
+        addedElement = argumentList.insertValueArgumentAfter(argumentValue, anchor as? KtValueArgument)?.getArgumentExpression() ?: return null
       }
       else -> {
         addedElement = parentPsiElement.addAfter(statement, anchor)
@@ -390,13 +393,13 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       val valueArgument = KtPsiFactory(newLiteral.project).createArgument(newLiteral as? KtExpression)
       val valueArgumentList = psiElement.valueArgumentList
       val added =
-        valueArgumentList?.addArgumentAfter(valueArgument, valueArgumentList?.arguments?.lastOrNull())?.getArgumentExpression() ?: return
+        valueArgumentList?.insertValueArgumentAfter(valueArgument, valueArgumentList?.arguments?.lastOrNull())?.getArgumentExpression() ?: return
       literal.setExpression(added)
     } else if (psiElement is KtProperty && psiElement.hasDelegate()) {
       // This is an extra property that has just been created.
       val delegateExpression = requireNotNull(psiElement.delegateExpression as KtCallExpression)
       val valueArgument = KtPsiFactory(newLiteral.project).createArgument(newLiteral as? KtExpression)
-      val added = delegateExpression.valueArgumentList?.addArgument(valueArgument)?.getArgumentExpression() ?: return
+      val added = delegateExpression.valueArgumentList?.appendValueArgument(valueArgument)?.getArgumentExpression() ?: return
       literal.setExpression(added)
     } else {
       // This element has just been created and will be like "propertyName = " or "val propertyName = ".
@@ -465,7 +468,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     val addedElement: PsiElement
     if (parentPsiElement is KtValueArgumentList) {
       val valueArgument = psiFactory.createArgument(expression)
-      val addedArgument = parentPsiElement.addArgumentAfter(valueArgument, anchor as? KtValueArgument)
+      val addedArgument = parentPsiElement.insertValueArgumentAfter(valueArgument, anchor as? KtValueArgument)
       addedElement = requireNotNull(addedArgument.getArgumentExpression())
     } else {
       // If the parent is a KtFile, we should be careful adding the methodCall to its main block.
@@ -592,7 +595,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         // This is the case of a property with a delegate (ex: extra property).
         val delegateExpressionArgs = (psiElement.delegateExpression as? KtCallExpression)?.valueArgumentList ?: return null
         val valueArgument = KtPsiFactory(psiElement.project).createArgument(emptyListText)
-        val listElement = delegateExpressionArgs.addArgument(valueArgument).getArgumentExpression() ?: return null
+        val listElement = delegateExpressionArgs.appendValueArgument(valueArgument).getArgumentExpression() ?: return null
         expressionList.psiElement = listElement
         return expressionList.psiElement
       } else {
@@ -624,7 +627,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       // This is the case of an extra property, and the map is used as the property delegate expression.
       val delegateExpressionArgs = (psiElement.delegateExpression as? KtCallExpression)?.valueArgumentList ?: return null
       val valueArgument = psiFactory.createArgument("mapOf()")
-      val mapElement = delegateExpressionArgs.addArgument(valueArgument).getArgumentExpression() ?: return null
+      val mapElement = delegateExpressionArgs.appendValueArgument(valueArgument).getArgumentExpression() ?: return null
       expressionMap.psiElement = mapElement
     }
     return expressionMap.psiElement

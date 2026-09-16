@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.WearTileProjectRule
+import com.android.tools.idea.wear.preview.withTilePreviewDependency
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -26,7 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class WearTilePreviewComposableAnnotationIsNotSupportedTest {
-  @get:Rule val projectRule = WearTileProjectRule()
+  @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel(AndroidProjectBuilder().withTilePreviewDependency()))
 
   private val fixture
     get() = projectRule.fixture
@@ -36,14 +39,14 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
   @Before
   fun setUp() {
     fixture.enableInspections(inspection)
-    fixture.stubComposableAnnotation()
+    fixture.stubComposableAnnotation("src/main/java")
   }
 
   @Test
   fun composableAnnotationOnATilePreviewResultsInAnErrorKotlin() {
     composableAnnotationOnATilePreviewResultsInAnError(
       fixture.addFileToProject(
-        "src/main/test.kt",
+        "src/main/java/test.kt",
         // language=kotlin
         """
         import androidx.compose.runtime.Composable
@@ -72,7 +75,7 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
   fun composableAnnotationOnATilePreviewResultsInAnErrorJava() {
     composableAnnotationOnATilePreviewResultsInAnError(
       fixture.addFileToProject(
-        "src/main/Test.java",
+        "src/main/java/Test.java",
         // language=java
         """
         import androidx.compose.runtime.Composable;

@@ -22,12 +22,14 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import java.nio.file.Path
 
 /**
  * A fully sync'd project at a point in time. This consists of:
  * * The output from the query part of sync, [.queryData].
  * * Build graph information derived form the sync data, [.graph].
+ * * The IDE project structure metadata, [.projectStructureData].
  * * The output from all dependency builds to date, [.artifactState].
  * * The IntelliJ project structure derived from the above, presented as a proto, [ ][.project].
  *
@@ -36,6 +38,7 @@ import java.nio.file.Path
 data class QuerySyncProjectSnapshot(
   val queryData: PostQuerySyncData,
   val graph: BuildGraphData,
+  val projectStructureData: ProjectStructureData,
   val artifactState: ArtifactTracker.State,
   val project: ProjectProto.Project,
   val incompleteTargets: Set<Label>,
@@ -46,6 +49,7 @@ data class QuerySyncProjectSnapshot(
       QuerySyncProjectSnapshot(
         queryData = PostQuerySyncData.EMPTY,
         graph = BuildGraphData.EMPTY,
+        projectStructureData = ProjectStructureData.EMPTY,
         artifactState = ArtifactTracker.State.EMPTY,
         project = ProjectProto.Project.getDefaultInstance(),
         incompleteTargets = emptySet(),
@@ -56,7 +60,11 @@ data class QuerySyncProjectSnapshot(
 
   fun withGraph(value: BuildGraphData): QuerySyncProjectSnapshot = copy(graph = value)
 
-  fun withArtifactState(value: ArtifactTracker.State): QuerySyncProjectSnapshot = copy(artifactState = value)
+  fun withProjectStructureData(value: ProjectStructureData): QuerySyncProjectSnapshot =
+    copy(projectStructureData = value)
+
+  fun withArtifactState(value: ArtifactTracker.State): QuerySyncProjectSnapshot =
+    copy(artifactState = value)
 
   fun withProject(value: ProjectProto.Project): QuerySyncProjectSnapshot = copy(project = value)
 
@@ -73,13 +81,15 @@ data class QuerySyncProjectSnapshot(
     /** Returns mapping of targets to [BuildTarget] */
     get() = graph.allLoadedTargets()
 
-  val artifactIndex: ArtifactIndex by lazy(LazyThreadSafetyMode.PUBLICATION) { ArtifactIndex.create(artifactState) }
+  val artifactIndex: ArtifactIndex by
+    lazy(LazyThreadSafetyMode.PUBLICATION) { ArtifactIndex.create(artifactState) }
 
   /**
-   * For given project targets, returns all dependency targets that are [ ][BuildGraphDataImpl.projectDeps] external} to the project, from
-   * which build artifacts are needed for the targets sources to be edited fully. This method returns the dependencies for the target with
-   * fewest pending so that if dependencies have been built for one, the empty set will be returned even if others have pending
-   * dependencies.
+   * For given project targets, returns all dependency targets that are
+   * [ ][BuildGraphDataImpl.projectDeps] external} to the project, from which build artifacts are
+   * needed for the targets sources to be edited fully. This method returns the dependencies for the
+   * target with fewest pending so that if dependencies have been built for one, the empty set will
+   * be returned even if others have pending dependencies.
    *
    * @param projectTargets The set of project targets which include a given source file.
    */
@@ -89,7 +99,10 @@ data class QuerySyncProjectSnapshot(
     return projectTargets
       .map { target ->
         graph
-          .computeRequestedTargets(listOf(target), replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false)
+          .computeRequestedTargets(
+            listOf(target),
+            replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false,
+          )
           .requiredTargets
           .filter { !syncedTargets.contains(it) || incompleteTargets.contains(it) }
           .toSet()

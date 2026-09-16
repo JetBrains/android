@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreRef
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -31,18 +32,18 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
-class X(val hashCode: Int) {}
-
 @RunWith(JUnit4::class)
 class ModelEqualityTest {
+  val example =
+    AndroidProjectBuilder()
+      .build()
+      .invoke("projectName", ":", File("root"), File("root/module"), "9.0.0", InternedModels(buildRootDirectory = null))
+
   @Test
   fun testIdeAndroidProjectImpl() {
-    val project =
-      AndroidProjectBuilder()
-        .build()
-        .invoke("projectName", ":", File("root"), File("root/module"), "9.0.0", InternedModels(buildRootDirectory = null))
-        .androidProject
-    EqualsVerifier.forClass(IdeAndroidProjectImpl::class.java).withCachedHashCode("hashCode", "computeHashCode", project).verify()
+    EqualsVerifier.forClass(IdeAndroidProjectImpl::class.java)
+      .withCachedHashCode("hashCode", "computeHashCode", example.androidProject)
+      .verify()
   }
 
   @Test
@@ -76,6 +77,13 @@ class ModelEqualityTest {
   fun testIdeVariantImpl() {
     EqualsVerifier.forClass(IdeVariantImpl::class.java)
       .withOnlyTheseFields("core") // delegates equality check to core
+      .verify()
+  }
+
+  @Test
+  fun testIdeVariantCoreImpl() {
+    EqualsVerifier.forClass(IdeVariantCoreImpl::class.java)
+      .withCachedHashCode("hashCode", "computeHashCode", example.variants.first())
       .verify()
   }
 

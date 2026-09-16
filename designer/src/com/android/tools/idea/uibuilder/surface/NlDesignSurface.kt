@@ -163,7 +163,7 @@ internal constructor(
 
   private val layoutScannerControl: LayoutScannerControl = NlLayoutScanner(this)
 
-  override val analyticsManager: DesignerAnalyticsManager = NlAnalyticsManager(this)
+  override val analyticsManager: DesignerAnalyticsManager = NlAnalyticsManager(this, scope)
 
   override val zoomController: ZoomController =
     NlDesignSurfaceZoomController(

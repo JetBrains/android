@@ -172,7 +172,8 @@ private fun PreviewConfiguration.applyTo(
     highestApiTarget(renderConfiguration)?.let { updateRenderConfigurationTargetIfChanged(it) }
   }
 
-  renderConfiguration.locale = Locale.create(locale)
+  // Default to English locale if a locale is not set
+  renderConfiguration.locale = Locale.create(locale.ifEmpty { java.util.Locale.ENGLISH.toString() })
   renderConfiguration.fontScale = max(0f, fontScale)
   renderConfiguration.setWallpaper(Wallpaper.values().getOrNull(wallpaper))
 

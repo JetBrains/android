@@ -19,7 +19,6 @@ import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils.scale
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -28,6 +27,7 @@ import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.BUTTON_MASK
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.core.buttonToMask
 import com.android.tools.idea.streaming.core.constrainInside
 import com.android.tools.idea.streaming.core.contains
@@ -505,7 +505,8 @@ internal class DeviceView(
         displayOrientationQuadrants = displayFrame.orientation
         ActivityTracker.getInstance().inc() // Size and orientation changes may affect enablement of zoom actions.
       }
-      deviceScaleFactor = min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScale / min(displayRect.width, displayRect.height)
+      deviceScaleFactor =
+        min(deviceDisplaySize.width, deviceDisplaySize.height) * screenScalingFactor / min(displayRect.width, displayRect.height)
       displayOrientationCorrectionQuadrants = displayFrame.orientationCorrection
       frameNumber = displayFrame.frameNumber
 
@@ -623,7 +624,8 @@ internal class DeviceView(
     )
   }
 
-  private fun isInsideDisplay(event: MouseEvent) = displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
+  private fun isInsideDisplay(event: MouseEvent) =
+    displayRectangle?.contains(event.x * screenScalingFactor, event.y * screenScalingFactor) ?: false
 
   /**
    * Adds a [listener] to receive callbacks when the state of the agent's connection changes. The added listener immediately receives a call

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPresenter
@@ -28,7 +27,9 @@ import com.intellij.openapi.editor.Document
 import java.time.Clock
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.measureTimeMillis
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
@@ -47,11 +48,13 @@ constructor(
   private val maxTimePerBatchMs: Int,
   private val maxMessagesPerBatch: Int,
   autoStart: Boolean,
+  private val workerDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
   constructor(
     logcatPresenter: LogcatPresenter,
     formatMessagesInto: (TextAccumulator, List<LogcatMessage>) -> Unit,
     logcatFilter: LogcatFilter?,
+    workerDispatcher: CoroutineDispatcher,
   ) : this(
     logcatPresenter,
     formatMessagesInto,
@@ -60,6 +63,7 @@ constructor(
     MAX_TIME_PER_BATCH_MS,
     StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
     autoStart = true,
+    workerDispatcher,
   )
 
   private val context = AtomicReference<Any?>(null)
@@ -97,7 +101,7 @@ constructor(
   @TestOnly
   internal fun start() {
     val exceptionHandler = CoroutineExceptionHandler { _, e -> LOGGER.error("Error processing logcat message", e) }
-    logcatPresenter.createCoroutineScope(workerThread).launch(exceptionHandler) {
+    logcatPresenter.createCoroutineScope(workerDispatcher).launch(exceptionHandler) {
       // TODO(b/200322275): Manage the life cycle of textAccumulator in a more GC friendly way.
       var textAccumulator = TextAccumulator()
       var totalMessages = 0 // Number of messages in current batch

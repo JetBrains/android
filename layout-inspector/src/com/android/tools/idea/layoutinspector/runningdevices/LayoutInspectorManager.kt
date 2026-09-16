@@ -19,21 +19,16 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
-import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
+import com.android.tools.idea.layoutinspector.runningdevices.ui.createTabComponents
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.core.DisplayOwner
-import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.util.concurrency.ThreadingAssertions
 
 const val SPLITTER_KEY = "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
 
@@ -197,23 +192,7 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
   }
 
   private fun createTabState(deviceId: DeviceId): SelectedTabState {
-    ThreadingAssertions.assertEventDispatchThread()
-    val selectedTabContent = RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
-
-    val streamingDevicePanel = checkNotNull(selectedTabContent?.component)
-
-    val selectedTabDataProvider = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, streamingDevicePanel)
-
-    val streamingContentPanel = STREAMING_CONTENT_PANEL_KEY.getData(selectedTabDataProvider)
-
-    checkNotNull(streamingContentPanel)
-
-    val tabComponents =
-      TabComponents(
-        disposable = selectedTabContent,
-        tabContentPanel = streamingContentPanel,
-        displayOwner = streamingDevicePanel as DisplayOwner,
-      )
+    val tabComponents = createTabComponents(project, deviceId)
 
     val layoutInspector = project.getLayoutInspector()
     return SelectedTabState(

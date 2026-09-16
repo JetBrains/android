@@ -32,6 +32,7 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
 import com.android.emulator.control.InputEvent
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.MicrophoneState
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
@@ -168,7 +169,21 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   @Volatile
   var xrOptions: XrOptions = XrOptions.newBuilder().setEnvironment(XrOptions.Environment.LIVING_ROOM_DAY).build()
-    private set
+    private set(value) {
+      if (value != field) {
+        field = value
+        notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setXrOptions(value).build())
+      }
+    }
+
+  @Volatile
+  var microphoneState: MicrophoneState = MicrophoneState.newBuilder().build()
+    private set(value) {
+      if (value != field) {
+        field = value
+        notificationStreamObserver?.sendStreamingResponse(Notification.newBuilder().setMicrophoneState(value).build())
+      }
+    }
 
   private var foldedDisplay: FoldedDisplay? = null
     set(value) {
@@ -529,8 +544,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   private fun createPostureNotification(posture: PostureValue): Notification =
     Notification.newBuilder().setPosture(Posture.newBuilder().setValue(posture)).build()
 
-  private fun createXrOptionsNotification(xrOptions: XrOptions): Notification = Notification.newBuilder().setXrOptions(xrOptions).build()
-
   private fun readDisplayRegion(avdFolder: Path): FoldedDisplay? {
     val configIniFile = avdFolder.resolve("config.ini")
     val configIni = readKeyValueFile(configIniFile)
@@ -584,6 +597,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       executor.execute { sendResponse(responseObserver, xrOptions) }
     }
 
+    override fun setMicrophoneState(request: MicrophoneState, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        microphoneState = request
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun getMicrophoneState(request: Empty, responseObserver: StreamObserver<MicrophoneState>) {
+      executor.execute { sendResponse(responseObserver, microphoneState) }
+    }
+
     private fun findPosture(valueType: PostureDescriptor.ValueType, value: Float): PostureValue? =
       config.postures.find { it.valueType == valueType && it.minValue <= value && value <= it.maxValue }?.posture
 
@@ -617,8 +641,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         }
         devicePosture?.let { responseObserver.sendStreamingResponse(createPostureNotification(it)) }
         if (config.deviceType == DeviceType.XR_HEADSET) {
-          responseObserver.sendStreamingResponse(createXrOptionsNotification(xrOptions))
+          responseObserver.sendStreamingResponse(Notification.newBuilder().setXrOptions(xrOptions).build())
         }
+        responseObserver.sendStreamingResponse(Notification.newBuilder().setMicrophoneState(microphoneState).build())
       }
     }
 
@@ -865,7 +890,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     /** One element is added to this queue for every response message sent to the client. */
     val responseMessageCounter = LinkedBlockingDeque<Unit>()
 
-    /** Completed or cancelled when the gRPC call is completed or cancelled. */
+    /** Completed or canceled when the gRPC call is completed or canceled. */
     val completion: SettableFuture<Unit> = SettableFuture.create()
 
     fun waitForResponse(timeout: Duration) {
@@ -879,7 +904,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     fun waitForCancellation(timeout: Duration) {
       try {
         waitForCompletion(timeout)
-        fail("The $methodName call was not cancelled")
+        fail("The $methodName call was not canceled")
       } catch (_: CancellationException) {
         // Expected.
       }
@@ -2026,6 +2051,103 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         SystemImage.Abi=x86_64
         SystemImage.TagId=android-automotive-playstore
         SystemImage.TagDisplay=Automotive with Play Store
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
+
+      createSystemImage(systemImageFolder, androidVersion, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
+    }
+
+    /** Creates a fake TV AVD. */
+    @JvmStatic
+    fun createTvAvd(
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(30, 0),
+    ): Path {
+      val api = androidVersion.androidApiLevel.majorVersion
+      val avdId = "Android_TV_1080p_API_$api"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val systemImage = "system-images/android-$api/android-tv/x86/"
+      val systemImageFolder = sdkFolder.resolve(systemImage)
+
+      val configIni =
+        """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=2G
+          hw.accelerometer=no
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=no
+          hw.camera.back=None
+          hw.camera.front=None
+          hw.cpu.arch=x86
+          hw.cpu.ncore=4
+          hw.dPad=yes
+          hw.device.manufacturer=Google
+          hw.device.name=tv_1080p
+          hw.gps=no
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=landscape
+          hw.keyboard=yes
+          hw.lcd.density=320
+          hw.lcd.height=1080
+          hw.lcd.width=1920
+          hw.mainKeys=no
+          hw.ramSize=1536
+          hw.sdCard=no
+          hw.sensors.orientation=no
+          hw.sensors.proximity=no
+          hw.trackBall=no
+          image.sysdir.1=$systemImage
+          runtime.network.latency=none
+          runtime.network.speed=full
+          showDeviceFrame=no
+          skin.dynamic=yes
+          skin.path=_no_skin
+          tag.display=Android TV
+          tag.id=android-tv
+          """
+          .trimIndent()
+
+      val hardwareIni =
+        """
+          hw.cpu.arch = x86
+          hw.cpu.model = qemu32
+          hw.cpu.ncore = 4
+          hw.lcd.density = 320
+          hw.lcd.width = 1920
+          hw.lcd.height = 1080
+          hw.ramSize = 1536
+          hw.screen = no-touch
+          hw.dPad = true
+          hw.rotaryInput = false
+          hw.gsmModem = false
+          hw.gps = false
+          hw.battery = false
+          hw.accelerometer = false
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = false
+          android.sdk.root = $sdkFolder
+          """
+          .trimIndent()
+
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86 with Android TV.
+        SystemImage.Abi=x86
+        SystemImage.TagId=android-tv
+        SystemImage.TagDisplay=Android TV
         SystemImage.GpuSupport=true
         Addon.VendorId=google
         Addon.VendorDisplay=Google Inc.

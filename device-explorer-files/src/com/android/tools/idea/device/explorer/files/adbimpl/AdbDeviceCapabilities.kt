@@ -21,12 +21,12 @@ import com.android.adblib.syncSend
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.adb.AdbShellCommandResult
 import com.android.tools.idea.adb.AdbShellCommandsUtil
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.io.FileUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -315,7 +315,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
 
     /** Create an empty file on the remote device by first creating a local empty temporary file, then pushing it to the remote device. */
     private suspend fun createRemoteTemporaryFile() =
-      withContext(diskIoThread) {
+      withContext(Dispatchers.IO) {
         val tempFile = FileUtil.createTempFile(remotePath, "", true)
         try {
           val tempFileChannel = device.session.channelFactory.openFile(tempFile.toPath())

@@ -28,12 +28,13 @@ import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.devices.Abi
 import com.android.testutils.retryUntilPassing
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.ApplicationRule
 import icons.StudioIcons
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -188,7 +189,7 @@ class DeviceInfoPanelTest {
 
   @Test
   fun infoSectionFormat() = runBlocking {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       val buffer = StringBuilder()
       InfoSection(
           "Properties",

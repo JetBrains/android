@@ -22,12 +22,15 @@ import com.android.repository.Revision
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.internal.avd.getEmulatorPackage
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.util.SystemInfo
 
 /** Run "emulator -accel-check" to check the status for emulator acceleration on this machine. Return a [AccelerationErrorCode]. */
 fun checkAcceleration(sdk: AndroidSdkHandler): AccelerationErrorCode {
@@ -65,6 +68,35 @@ fun checkAcceleration(sdk: AndroidSdkHandler): AccelerationErrorCode {
   if (!sdk.hasSystemImagesForQemu2Installed()) {
     return AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED
   }
+
+  // Run emulator-check with hyper-V parameter for the purpose of WHPX enabling
+  if (StudioFlags.EMULATOR_AEHD_TO_WHPX_CONVERSION.get() && SystemInfo.isWindows) {
+    val commandLineHv = GeneralCommandLine()
+    if (checkBinary == null) return AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED
+    commandLineHv.exePath = checkBinary.toString()
+    commandLineHv.addParameter("hyper-v")
+
+    try {
+      val exitCode = CapturingAnsiEscapesAwareProcessHandler(commandLineHv).runProcess().exitCode
+      logger<EmulatorAccelerationChecks>().info("Command \"emulator-check hyper-v\" returned " + exitCode)
+      val pendingRestart = PropertiesComponent.getInstance().getBoolean(WHPX_ENABLE_PENDING_RESTART, false)
+      logger<EmulatorAccelerationChecks>().info("Property Read: " + WHPX_ENABLE_PENDING_RESTART + " is " + pendingRestart)
+      /*
+       * "emulator-check.exe hyper-v" returns 2 when hyper-V is up and running.
+       * Combining the result from "emulator-check.exe accel", this means WHPX is installed and usable.
+       * Otherwise, it means AEHD is up and running.
+       */
+      if (exitCode != 2 && !pendingRestart) {
+        return AccelerationErrorCode.WHPX_RECOMMENDED
+      } else if (exitCode == 2) {
+        PropertiesComponent.getInstance().setValue(WHPX_ENABLE_PENDING_RESTART, false)
+      }
+    } catch (e: ExecutionException) {
+      logger<EmulatorAccelerationChecks>().warn(e)
+      return AccelerationErrorCode.UNKNOWN_ERROR
+    }
+  }
+
   return AccelerationErrorCode.ALREADY_INSTALLED
 }
 

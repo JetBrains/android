@@ -15,8 +15,9 @@
  */
 package com.android.tools.profilers
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.codenavigation.CodeNavigator
-import com.android.tools.idea.transport.EventStreamServer
+import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
@@ -212,17 +213,12 @@ interface IdeProfilerServices {
   fun buildAndLaunchAction(profileableMode: Boolean, device: ProcessListModel.ProfilerDeviceSelection)
 
   /**
-   * Attempts to open a trace file directly if it's already backed by a local file in the EventStreamServer. This acts as an optimization
-   * for imported sessions to avoid duplicating the file from the transport pipeline.
+   * Adds a dependency to the current project.
    *
-   * TODO(b/472667234) Revisit to check if openTrace file should be used
+   * @param artifact The artifact to add.
+   * @param dependencyType The type of dependency (e.g., implementation, debugImplementation).
+   * @param callback A callback to be executed after the user accepts/rejects the dependency addition (or if it's already present).
    */
-  fun openFileFromEventStream(eventStreamServer: EventStreamServer, byteId: String): Boolean
-
-  /**
-   * Returns a hash of the project home location (or other stable unique project identifier). This is used to create unique directories for
-   * storing temporary capture files per project.
-   */
-  val projectHomeHash: String
-    get() = ""
+  fun addDependency(artifact: GoogleMavenArtifactId, dependencyType: DependencyType): CompletableFuture<Boolean> =
+    CompletableFuture.completedFuture(false)
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run
 
-import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.App
@@ -31,7 +30,6 @@ import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.AndroidRunConfiguration.Companion.CURRENT_SCHEMA_VERSION
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider
-import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch
 import com.android.tools.idea.run.activity.launch.LaunchOptionState
@@ -259,13 +257,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     if (device.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)) {
       extraFlags += (if (extraFlags.isEmpty()) "" else " ") + "--splashscreen-show-icon"
     }
-    val startActivityFlagsProvider =
-      if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
-        InstantAppStartActivityFlagsProvider()
-      } else {
-        DefaultStartActivityFlagsProvider(project, isDebug, extraFlags)
-      }
-
+    val startActivityFlagsProvider = DefaultStartActivityFlagsProvider(project, isDebug, extraFlags)
     return state.launch(device, app, apkProvider, isDebug, startActivityFlagsProvider.getFlags(device), consoleView, stats)
   }
 

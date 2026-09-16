@@ -31,7 +31,7 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlin.reflect" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-fe10" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.fe10" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.test" scope="TEST" />
@@ -99,10 +99,10 @@
     <orderEntry type="module" module-name="intellij.kotlin.highlighting" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.refactorings.base" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.base.psi" scope="TEST" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.compose.compiler.plugin" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinTest" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.codeInsight.liveTemplates" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-ide-plugin" />

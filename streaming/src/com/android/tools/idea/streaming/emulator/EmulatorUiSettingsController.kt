@@ -102,8 +102,7 @@ internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
     "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
-  "cmd uimode night no; " +
-    "cmd locale set-app-locales %s --locales; " +
+  "cmd locale set-app-locales %s --locales; " +
     "settings put system font_scale 1; " +
     "setprop debug.layout false; " +
     "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
@@ -408,9 +407,9 @@ internal class EmulatorUiSettingsController(
     var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent && !lastDebugLayout
     val extraChecks =
       when (deviceType) {
-        DeviceType.WEAR -> true
+        DeviceType.WEAR,
         DeviceType.TV,
-        DeviceType.AUTOMOTIVE -> !lastDarkMode
+        DeviceType.AUTOMOTIVE -> true
         DeviceType.XR_HEADSET ->
           lastDarkMode && // Dark mode is default on XR emulator
             !lastSelectToSpeak &&

@@ -16,13 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.extensions.getGradleVersion
-import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleDaemonJvmSettingsQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.SelectJdkFromFileSystemQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
@@ -34,23 +28,18 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /**
  * A [GradleIssueChecker] class used as base for related errors regarding runtime Java compiled version, parsing different expected
- * exceptions to add more precise message when AGP requires a newer version of Gradle JVM. The result message:
- *
- * Gradle JVM version incompatible. This project is configured to use an older Gradle JVM that supports up to version X but the current AGP
- * requires a Gradle JVM that supports version Y.
- * - [UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix] apply compatible Gradle JDK configuration and sync
- * - [SelectJdkFromFileSystemQuickFix] that will open the settings tab to configure Gradle JVM
- * - [OpenLinkQuickFix] with message "See AGP Release Notes..."
+ * exceptions to add more precise message when the project requires a newer version of Gradle JVM.
  */
 @Suppress("UnstableApiUsage")
 abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
 
   abstract val expectedErrorRegex: Regex
+
+  abstract val failure: AndroidStudioEvent.GradleSyncFailure
 
   abstract fun parseErrorRegexMatch(matchResult: MatchResult): Pair<String, String>?
 
@@ -60,11 +49,18 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
     val buildIssue = createBuildIssue(issueData)
     if (buildIssue != null) {
       // Log metrics.
-      SyncFailureUsageReporter.getInstance()
-        .collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP)
+      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, failure)
     }
     return buildIssue
   }
+
+  abstract fun createJdkVersionIncompatibleBuildIssue(
+    dependencyMinCompatibleJdkVersion: String,
+    gradleJdkVersion: String,
+    projectPath: Path,
+    gradleVersion: GradleVersion,
+    exception: Throwable,
+  ): BuildIssue
 
   override fun consumeBuildOutputFailureMessage(
     message: String,
@@ -79,35 +75,10 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
   fun createBuildIssue(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     val match = expectedErrorRegex.find(message) ?: return null
-    return parseErrorRegexMatch(match)?.let { (agpMinCompatibleJdkVersion, gradleJdkVersion) ->
+    return parseErrorRegexMatch(match)?.let { (pluginMinCompatibleJdkVersion, gradleJdkVersion) ->
       val projectPath = Path(issueData.projectPath)
       val gradleVersion = issueData.getGradleVersion() ?: return null
-      createJdkVersionIncompatibleBuildIssue(agpMinCompatibleJdkVersion, gradleJdkVersion, projectPath, gradleVersion)
+      createJdkVersionIncompatibleBuildIssue(pluginMinCompatibleJdkVersion, gradleJdkVersion, projectPath, gradleVersion, issueData.error)
     }
   }
-
-  private fun createJdkVersionIncompatibleBuildIssue(
-    agpMinCompatibleJdkVersion: String,
-    gradleJdkVersion: String,
-    projectPath: Path,
-    gradleVersion: GradleVersion,
-  ) =
-    BuildIssueComposer("Gradle JVM version incompatible.")
-      .apply {
-        addDescriptionOnNewLine(
-          "This project is configured to use an older Gradle JVM that supports up to version $gradleJdkVersion but the " +
-            "current AGP requires a Gradle JVM that supports version $agpMinCompatibleJdkVersion."
-        )
-        startNewParagraph()
-
-        if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(projectPath, gradleVersion)) {
-          addQuickFix(UpdateDaemonJvmCriteriaCompatibleGradleVersionQuickFix(gradleVersion, projectPath.toString()))
-          addQuickFix(OpenGradleDaemonJvmSettingsQuickFix)
-        } else {
-          addQuickFix(UpdateGradleJdkConfigurationCompatibleGradleVersionQuickFix(gradleVersion, projectPath.toString()))
-          addQuickFix(SelectJdkFromFileSystemQuickFix())
-        }
-        addQuickFix("See AGP Release Notes...", OpenLinkQuickFix("https://developer.android.com/studio/releases/gradle-plugin"))
-      }
-      .composeBuildIssue()
 }

@@ -16,8 +16,10 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.wm.ToolWindowEP
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
@@ -37,10 +39,8 @@ class VisualizationToolWindowFactoryTest {
 
   @Test
   fun testToolWindowIsRegistered() {
-    // VisualizationTestToolWindowManager loads the tool window from extension point.
-    val toolManager = VisualizationTestToolWindowManager(projectRule.project, projectRule.fixture.testRootDisposable)
-    projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-    assertNotNull(ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID))
+    val ep = ToolWindowEP.EP_NAME.extensions.firstOrNull { ex -> ex.id == VisualizationToolWindowFactory.TOOL_WINDOW_ID }
+    assertNotNull(ep, "${VisualizationToolWindowFactory.TOOL_WINDOW_ID} tool window is not registered")
   }
 
   @Test
@@ -67,7 +67,10 @@ class VisualizationToolWindowFactoryTest {
 
   @Test
   fun testAvailableWhenSwitchingFile() {
-    val toolWindow = VisualizationTestToolWindow(projectRule.project)
+    val toolWindow =
+      createFakeToolWindow(projectRule.project, projectRule.testRootDisposable, VisualizationToolWindowFactory.TOOL_WINDOW_ID).apply {
+        isAvailable = false
+      }
     val factory = VisualizationToolWindowFactory()
     WriteCommandAction.runWriteCommandAction(projectRule.project) { factory.init(toolWindow) }
 
@@ -92,7 +95,9 @@ class VisualizationToolWindowFactoryTest {
 
   @Test
   fun testAvailableWhenClosingFile() {
-    val toolWindow = VisualizationTestToolWindow(projectRule.project)
+    val toolWindow =
+      createFakeToolWindow(projectRule.project, projectRule.fixture.testRootDisposable, VisualizationToolWindowFactory.TOOL_WINDOW_ID)
+        .apply { isAvailable = false }
     val factory = VisualizationToolWindowFactory()
     factory.init(toolWindow)
 
@@ -108,7 +113,9 @@ class VisualizationToolWindowFactoryTest {
 
   @Test
   fun testAvailableWhenEditorIsOpenedBeforeInit() {
-    val toolWindow = VisualizationTestToolWindow(projectRule.project)
+    val toolWindow =
+      createFakeToolWindow(projectRule.project, projectRule.fixture.testRootDisposable, VisualizationToolWindowFactory.TOOL_WINDOW_ID)
+        .apply { isAvailable = false }
     val factory = VisualizationToolWindowFactory()
 
     val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)

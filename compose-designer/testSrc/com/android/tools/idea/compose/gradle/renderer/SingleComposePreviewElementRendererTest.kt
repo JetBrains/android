@@ -191,12 +191,12 @@ class SingleComposePreviewElementRendererTest {
           mainActivityFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview",
-            configuration = PreviewConfiguration.cleanAndGet(null, null, null, "en-rUS", null, null, null),
+            configuration = PreviewConfiguration.cleanAndGet(null, null, null, "fr", null, null, null),
           ),
         )
         .get()!!
     assertImageSimilar(
-      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withEnUsLocale.png"),
+      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withFrLocale.png"),
       defaultRenderWithLocale,
       0.1,
       1,

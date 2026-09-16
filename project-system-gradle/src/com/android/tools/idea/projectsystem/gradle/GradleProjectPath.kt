@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
+import com.android.tools.idea.gradle.project.entities.gradleProjectPath
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.utils.FileUtils
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -28,6 +29,7 @@ import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.text.nullize
+import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
 import java.io.File
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
@@ -71,7 +73,7 @@ fun GradleProjectPath.toSourceSetPath(sourceSet: IdeModuleSourceSet): GradleSour
 }
 
 /** Returns Gradle identity path (composite build-aware path) of the Gradle build this module belongs to e.g. ":" or ":includedBuild". */
-private fun Module.getGradleBuildIdentityPath(): String? {
+internal fun Module.getGradleBuildIdentityPath(): String? {
   fun computeValue(): String? {
     val mainModuleDataNode = CachedModuleDataFinder.findMainModuleData(this) ?: return null
     if (!mainModuleDataNode.data.isIncludedBuild) return ":"
@@ -83,6 +85,10 @@ private fun Module.getGradleBuildIdentityPath(): String? {
   return CachedValuesManager.getManager(this.project).getCachedValue(this) {
     CachedValueProvider.Result.create(computeValue(), gradleProjectPathModificationTrackers(this.project))
   }
+}
+
+private fun Module.internalGetGradleProjectPathFromEntityStorage(): GradleProjectPath? {
+  return findModuleEntity()?.gradleProjectPath?.gradleProjectPath
 }
 
 private fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
@@ -144,7 +150,19 @@ fun Module.getGradleIdentityPath(): String? {
 
 fun Module.getGradleProjectPath(): GradleProjectPath? {
   return CachedValuesManager.getManager(project).getCachedValue(this) {
-    CachedValueProvider.Result.create(internalGetGradleProjectPath(), gradleProjectPathModificationTrackers(project))
+    CachedValueProvider.Result.create(
+      internalGetGradleProjectPathFromEntityStorage() ?: internalGetGradleProjectPath(),
+      gradleProjectPathModificationTrackers(project),
+    )
+  }
+}
+
+@VisibleForTesting
+fun Module.getGradleProjectPathWithoutCache(useWorkspace: Boolean): GradleProjectPath? {
+  return if (useWorkspace) {
+    internalGetGradleProjectPathFromEntityStorage()
+  } else {
+    internalGetGradleProjectPath()
   }
 }
 

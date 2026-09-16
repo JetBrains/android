@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
@@ -32,6 +33,7 @@ import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Expect
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
@@ -219,7 +221,9 @@ class MultipleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
 
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
-  fun `Given multiple roots gradleJdk GRADLE_LOCAL_JAVA_HOME with different valid javaHome When sync project Then project Jdk is using the highest version`() =
+  fun `Given multiple roots gradleJdk GRADLE_LOCAL_JAVA_HOME with different valid javaHome When sync project Then project Jdk is using the highest version`() {
+    // Disable project import Gradle JVM compatibility check
+    StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.overrideForTest(false, projectRule.testRootDisposable)
     jdkIntegrationTest.run(
       project =
         SimpleApplicationMultipleRoots(
@@ -251,6 +255,7 @@ class MultipleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
         expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
+  }
 
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])

@@ -182,6 +182,8 @@ class ComposePreviewRepresentationGradleTest {
     // This test only makes sense when fast preview is disabled, as some build related logic is
     // being tested.
     FastPreviewManager.getInstance(project).disable()
+
+    projectRule.buildAndRefresh(failOnTimeout = false)
     val firstRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
 
     // Make a change to the preview
@@ -194,8 +196,8 @@ class ComposePreviewRepresentationGradleTest {
     }
 
     projectRule.buildAndRefresh(failOnTimeout = false)
-
     val secondRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
+
     assertTrue(
       "Second image expected at least 10% higher but were second=${secondRender.height} first=${firstRender.height}",
       secondRender.height > (firstRender.height * 1.10),
@@ -213,8 +215,8 @@ class ComposePreviewRepresentationGradleTest {
     }
 
     projectRule.buildAndRefresh(failOnTimeout = false)
-
     val thirdRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
+
     ImageDiffUtil.assertImageSimilar("testImage", firstRender, thirdRender, 10.0, 20)
   }
 
@@ -745,90 +747,86 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  fun testPreviewRenderQuality_zoom() {
-    projectRule.runWithRenderQualityEnabled {
-      var firstPreview: SceneViewPeerPanel? = null
-      // zoom and center to one preview (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
-        firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
-        firstPreview!!.sceneView.let { previewView.mainSurface.zoomAndCenter(it, Rectangle(Point(it.x, it.y), it.scaledContentSize)) }
-      }
-      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
-      // Default quality should have been used
-      assertEquals(
-        getDefaultPreviewQuality(),
-        (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
-            as LayoutlibSceneManager)
-          .lastRenderQuality,
-      )
-
-      // Now zoom out a lot to go below the threshold (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
-        previewView.mainSurface.zoomController.setScale(DefaultRenderQualityPolicy.scaleVisibilityThreshold / 2.0)
-      }
-      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
-      assertEquals(
-        DefaultRenderQualityPolicy.lowestQuality,
-        (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
-            as LayoutlibSceneManager)
-          .lastRenderQuality,
-      )
-
-      // Now zoom in a little bit to go above the threshold (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
-        previewView.mainSurface.zoomController.setScale(DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2.0)
-      }
-      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
-      assertEquals(
-        DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2,
-        (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
-            as LayoutlibSceneManager)
-          .lastRenderQuality,
-      )
+  fun testPreviewRenderQuality_zoom() = runBlocking {
+    var firstPreview: SceneViewPeerPanel? = null
+    // zoom and center to one preview (quality change refresh should happen)
+    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
+      firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
+      firstPreview!!.sceneView.let { previewView.mainSurface.zoomAndCenter(it, Rectangle(Point(it.x, it.y), it.scaledContentSize)) }
     }
+    withContext(Dispatchers.EDT) { fakeUi.root.validate() }
+    // Default quality should have been used
+    assertEquals(
+      getDefaultPreviewQuality(),
+      (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
+          as LayoutlibSceneManager)
+        .lastRenderQuality,
+    )
+
+    // Now zoom out a lot to go below the threshold (quality change refresh should happen)
+    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
+      previewView.mainSurface.zoomController.setScale(DefaultRenderQualityPolicy.scaleVisibilityThreshold / 2.0)
+    }
+    withContext(Dispatchers.EDT) { fakeUi.root.validate() }
+    assertEquals(
+      DefaultRenderQualityPolicy.lowestQuality,
+      (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
+          as LayoutlibSceneManager)
+        .lastRenderQuality,
+    )
+
+    // Now zoom in a little bit to go above the threshold (quality change refresh should happen)
+    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
+      previewView.mainSurface.zoomController.setScale(DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2.0)
+    }
+    withContext(Dispatchers.EDT) { fakeUi.root.validate() }
+    assertEquals(
+      DefaultRenderQualityPolicy.scaleVisibilityThreshold * 2,
+      (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
+          as LayoutlibSceneManager)
+        .lastRenderQuality,
+    )
   }
 
   @Test
-  fun testPreviewRenderQuality_lifecycle() {
-    projectRule.runWithRenderQualityEnabled {
-      var firstPreview: SceneViewPeerPanel? = null
-      // zoom and center to one preview (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
-        firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
-        firstPreview!!.sceneView.let { previewView.mainSurface.zoomAndCenter(it, Rectangle(Point(it.x, it.y), it.scaledContentSize)) }
-      }
-      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
-      // Default quality should have been used
-      assertEquals(
-        getDefaultPreviewQuality(),
-        (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
-            as LayoutlibSceneManager)
-          .lastRenderQuality,
-      )
-
-      // Now deactivate the preview representation (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
-        composePreviewRepresentation.onDeactivate()
-      }
-      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
-      assertEquals(
-        DefaultRenderQualityPolicy.lowestQuality,
-        (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
-            as LayoutlibSceneManager)
-          .lastRenderQuality,
-      )
-
-      // Now reactivate the preview representation (quality change refresh should happen)
-      projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
-        composePreviewRepresentation.onActivate()
-      }
-      withContext(Dispatchers.EDT) { fakeUi.root.validate() }
-      assertEquals(
-        getDefaultPreviewQuality(),
-        (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
-            as LayoutlibSceneManager)
-          .lastRenderQuality,
-      )
+  fun testPreviewRenderQuality_lifecycle() = runBlocking {
+    var firstPreview: SceneViewPeerPanel? = null
+    // zoom and center to one preview (quality change refresh should happen)
+    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
+      firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
+      firstPreview!!.sceneView.let { previewView.mainSurface.zoomAndCenter(it, Rectangle(Point(it.x, it.y), it.scaledContentSize)) }
     }
+    withContext(Dispatchers.EDT) { fakeUi.root.validate() }
+    // Default quality should have been used
+    assertEquals(
+      getDefaultPreviewQuality(),
+      (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
+          as LayoutlibSceneManager)
+        .lastRenderQuality,
+    )
+
+    // Now deactivate the preview representation (quality change refresh should happen)
+    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
+      composePreviewRepresentation.onDeactivate()
+    }
+    withContext(Dispatchers.EDT) { fakeUi.root.validate() }
+    assertEquals(
+      DefaultRenderQualityPolicy.lowestQuality,
+      (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
+          as LayoutlibSceneManager)
+        .lastRenderQuality,
+    )
+
+    // Now reactivate the preview representation (quality change refresh should happen)
+    projectRule.runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
+      composePreviewRepresentation.onActivate()
+    }
+    withContext(Dispatchers.EDT) { fakeUi.root.validate() }
+    assertEquals(
+      getDefaultPreviewQuality(),
+      (fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.displayName == firstPreview!!.displayName }.sceneView.sceneManager
+          as LayoutlibSceneManager)
+        .lastRenderQuality,
+    )
   }
 }

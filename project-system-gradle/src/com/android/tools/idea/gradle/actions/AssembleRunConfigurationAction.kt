@@ -28,8 +28,11 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunCo
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons.Shell.Toolbar.BUILD_RUN_CONFIGURATION
 import org.jetbrains.kotlin.idea.base.projectStructure.externalProjectPath
+import org.jetbrains.kotlin.idea.util.sourceRoots
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
@@ -83,21 +86,27 @@ abstract class AbstractBuildRunConfigurationAction :
     if (configuration is GradleRunConfiguration && configuration.isRunAsTest) {
       // The test task is the first one in the taskNames.
       val testTask = configuration.settings.taskNames.firstOrNull() ?: return null
-      val modules =
-        ModuleManager.getInstance(project).modules.filter {
-          CachedModuleDataFinder.getGradleModuleData(it)
-            ?.findAll(ProjectKeys.TEST)
-            ?.filter { x -> x.testTaskName == testTask }
-            ?.isNotEmpty() == true
+      return ModuleManager.getInstance(project)
+        .modules
+        .singleOrNull { module ->
+          CachedModuleDataFinder.getGradleModuleData(module)?.findAll(ProjectKeys.TEST)?.any { x ->
+            x.testTaskName == testTask && (module.isUnitTestModule() || verifyIfModuleHasTestSources(x.sourceFolders, module.sourceRoots))
+          } == true
         }
-      // As this is a unitTest run config, it will belong to the unitTest module.
-      return modules.firstOrNull { it.isUnitTestModule() }?.let { arrayOf(it) }
+        ?.let { arrayOf(it) }
     } else if (configuration is GradleRunConfiguration) {
       val configurationProjectPath = configuration.settings.externalProjectPath
       // Get the modules that have the same Gradle project path as the Run Configuration.
       return ModuleManager.getInstance(project).modules.filter { it.externalProjectPath == configurationProjectPath }.toTypedArray()
     }
     return null
+  }
+
+  /** Verify is a module has test sources in it, while will make it a test module. */
+  private fun verifyIfModuleHasTestSources(testDataSources: Set<String>, moduleSourceRoots: Array<VirtualFile>): Boolean {
+    return testDataSources.any { testSource ->
+      moduleSourceRoots.any { moduleSource -> FileUtil.isAncestor(testSource, moduleSource.path, false) }
+    }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {

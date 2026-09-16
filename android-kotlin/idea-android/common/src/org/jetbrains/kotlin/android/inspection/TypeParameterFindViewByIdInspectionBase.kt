@@ -26,6 +26,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.util.applyIf
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.base.psi.appendTypeArgument
+import org.jetbrains.kotlin.idea.base.psi.setPropertyTypeReference
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -39,7 +41,6 @@ import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.psi.createExpressionByPattern
-import org.jetbrains.kotlin.psi.psiUtil.addTypeArgument
 import org.jetbrains.kotlin.psi.psiUtil.getBinaryWithTypeParent
 import org.jetbrains.kotlin.psi.psiUtil.getOutermostParenthesizerOrThis
 
@@ -131,7 +132,7 @@ abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspectio
                     } ?: return
 
                 if (tightenedResultType.text != assignmentDeclaration.typeReference?.typeElement?.text) {
-                    assignmentDeclaration.typeReference = psiFactory.createType(tightenedResultType)
+                    assignmentDeclaration.setPropertyTypeReference(psiFactory.createType(tightenedResultType))
                 }
 
                 // For a non-null cast target type, we only need a !! if the return type of the findView call
@@ -141,7 +142,7 @@ abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspectio
             } else {
                 // Add the type parameter.
                 val typeArgument = psiFactory.createTypeArgument(typeText)
-                newCall.addTypeArgument(typeArgument)
+                newCall.appendTypeArgument(typeArgument)
                 // For a non-null cast target type, we need to explicitly use !! if the return type of the
                 // findView call isn't known to be non-null, to match the cast behavior. This includes both
                 // known nullable types, and platform types that were previously null-checked by the cast.

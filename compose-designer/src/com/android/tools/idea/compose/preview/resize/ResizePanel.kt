@@ -210,8 +210,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    */
   private fun revertResizing() {
     dimensionInputsAction.resetErrors()
-    currentSceneManager?.sceneRenderConfiguration?.clearOverrideRenderSize = true
-    currentSceneManager?.forceNextResizeToUseOriginalSize = true
+    currentSceneManager?.sceneRenderConfiguration?.needsInflation?.set(true)
     currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
     dimensionInputsAction.updateTextFieldsFromConfiguration()
     ComposeResizeToolingUsageTracker.logResizeReverted(
@@ -403,11 +402,11 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
       resetErrors()
       val config = currentConfiguration ?: return
       val (wDp, hDp) = config.deviceSizeDp()
-      if (widthTextField.value != wDp) {
+      if (widthTextField.value != wDp || widthTextField.text != wDp.toString()) {
         widthTextField.value = wDp
       }
 
-      if (heightTextField.value != hDp) {
+      if (heightTextField.value != hDp || heightTextField.text != hDp.toString()) {
         heightTextField.value = hDp
       }
     }
@@ -519,6 +518,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
         dpi,
         ResizeComposePreviewEvent.ResizeSource.TEXT_FIELD,
       )
+      updateTextFieldsFromConfiguration()
     }
 
     override fun actionPerformed(e: AnActionEvent) {

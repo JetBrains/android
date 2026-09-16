@@ -17,13 +17,14 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceZoomController
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import org.mockito.Mockito
 
 fun createDesignerAnalyticsManagerFake(trackZoom: (ZoomType) -> Unit): DesignerAnalyticsManager =
-  object : DesignerAnalyticsManager(Mockito.mock()) {
+  object : DesignerAnalyticsManager(Mockito.mock(), Mockito.mock()) {
     override fun trackZoom(type: ZoomType) {
       trackZoom(type)
     }
@@ -37,7 +38,7 @@ fun createDesignSurfaceZoomControllerFake(
 ): DesignSurfaceZoomController {
   val designerAnalyticsManager =
     trackZoom?.let {
-      object : DesignerAnalyticsManager(TestDesignSurface(project, disposable)) {
+      object : DesignerAnalyticsManager(TestDesignSurface(project, disposable), disposable.createCoroutineScope()) {
         override fun trackZoom(type: ZoomType) {
           trackZoom(type)
         }

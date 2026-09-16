@@ -61,7 +61,7 @@ class PlaybackControls(
 
   private val toolbars = mutableListOf<PlaybackToolbar>()
 
-  @RequiresEdt
+  @RequiresEdt(generateAssertion = false /* IJPL-115548 */)
   private fun updateActionsAsync() {
     toolbars.forEach { it.playbackControls.updateActionsAsync() }
   }

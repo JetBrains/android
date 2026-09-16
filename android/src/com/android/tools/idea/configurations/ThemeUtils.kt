@@ -25,16 +25,15 @@ import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.DefaultThemeProvider.computeDefaultThemeForConfiguration
 import com.android.tools.configurations.ThemeInfoProvider
-import com.android.tools.dom.ActivityAttributesSnapshot
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
 import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
 import com.android.tools.idea.model.queryIsMainManifestIndexReady
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.util.uiSafeRunReadActionInSmartMode
 import com.android.tools.module.AndroidModuleInfo
@@ -42,6 +41,7 @@ import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
@@ -63,7 +63,7 @@ typealias ThemeStyleFilter = (ConfiguredThemeEditorStyle) -> Boolean
  */
 private class MainManifestIndexNotReadyException : Exception()
 
-/** Try to get application theme from [AndroidManifestIndex]. And it falls back to the merged manifest snapshot if necessary. */
+/** Try to get application theme from [AndroidManifestIndex]. */
 fun Module.getAppThemeName(): String? {
   try {
     val facet = AndroidFacet.getInstance(this)
@@ -79,32 +79,26 @@ fun Module.getAppThemeName(): String? {
       )
     }
   } catch (e: MainManifestIndexNotReadyException) {
-    // In this case, fallback to the merged manifest until the main manifest index is ready
-
+    thisLogger().info("Manifest was not ready", e)
   } catch (e: IndexNotReadyException) {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
     //  We need to refactor the callers of this to require a *smart*
     //  read action, at which point we can remove this try-catch.
     logManifestIndexQueryError(e)
   }
-
-  return MergedManifestManager.getFreshSnapshot(this).manifestTheme
+  return null
 }
 
-/** Try to get activity themes from [AndroidManifestIndex]. And it falls back to the merged manifest snapshot if necessary. */
+/** Try to get activity themes from [AndroidManifestIndex]. */
 fun Module.getAllActivityThemeNames(): Set<String> {
   val activities = safeQueryActivitiesFromManifestIndex()
   if (activities != null) {
     return activities.asSequence().mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme).toSet()
   }
-  val manifest = MergedManifestManager.getSnapshot(this)
-  return manifest.activityAttributesMap.values.asSequence().mapNotNull(ActivityAttributesSnapshot::getTheme).toSet()
+  return emptySet()
 }
 
-/**
- * Try to get value of theme corresponding to the given activity from {@link AndroidManifestIndex}. And it falls back to merged manifest
- * snapshot if necessary.
- */
+/** Try to get value of theme corresponding to the given activity from {@link AndroidManifestIndex}. */
 fun Module.getThemeNameForActivity(activityFqcn: String): String? {
   val activities = safeQueryActivitiesFromManifestIndex()
   if (activities != null) {
@@ -115,8 +109,7 @@ fun Module.getThemeNameForActivity(activityFqcn: String): String? {
       .filter { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
       .firstOrNull()
   }
-  val manifest = MergedManifestManager.getSnapshot(this)
-  return manifest.getActivityAttributes(activityFqcn)?.theme?.takeIf { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
+  return null
 }
 
 fun Module.safeQueryActivitiesFromManifestIndex(): List<DefaultActivityLocator.ActivityWrapper>? {
@@ -138,8 +131,7 @@ fun <T> Module.safeQueryManifestIndex(manifestIndexQueryAction: (AndroidFacet) -
       )
     }
   } catch (e: MainManifestIndexNotReadyException) {
-    // In this case, fallback to the merged manifest until the main manifest index is ready
-
+    logManifestIndexQueryError(e)
   } catch (e: IndexNotReadyException) {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
     //  We need to refactor the callers of this to require a *smart*
@@ -196,6 +188,7 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
           { weakConfig.get()?.modificationCount ?: 0 },
           { modificationTracker.modificationCount },
           { dumbServiceTracker.modificationTracker.modificationCount },
+          { ProjectSyncModificationTracker.getInstance(module.project).modificationCount },
         ),
       )
     }

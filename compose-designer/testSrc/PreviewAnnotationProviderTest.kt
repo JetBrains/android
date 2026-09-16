@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,8 +39,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testCancellation() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     val collectedPreviews = mutableListOf<Set<String>>()
 
     val provider = projectRule.project.service<PreviewAnnotationProvider>()
@@ -88,8 +85,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testFindsDirectAnnotationClass() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Annotations.kt",
       """
@@ -111,8 +106,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testFindsDirectTypeAlias() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Aliases.kt",
       """
@@ -133,8 +126,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testFindsTransitiveAnnotations() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Annotations.kt",
       """
@@ -162,8 +153,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testFindsTransitiveAliases() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Aliases.kt",
       """
@@ -186,8 +175,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testFindsMixedChain() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Mixed.kt",
       """
@@ -223,8 +210,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testHandlesCircularDependencies() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Circular.kt",
       """
@@ -247,8 +232,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testDoesNotIncludeAliasesWithSameShortName() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/other/library/Annotations.kt",
       """
@@ -278,8 +261,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testFindsNestedAnnotation() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Nested.kt",
       """
@@ -303,8 +284,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testFindsDiamondDependencies() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Diamond.kt",
       """
@@ -341,8 +320,6 @@ class PreviewAnnotationProviderTest {
 
   @Test
   fun testFindsWithImportAlias() = runTest {
-    if (!KotlinPluginModeProvider.isK2Mode()) return@runTest
-
     projectRule.fixture.addFileToProject(
       "src/com/example/Annotations.kt",
       """

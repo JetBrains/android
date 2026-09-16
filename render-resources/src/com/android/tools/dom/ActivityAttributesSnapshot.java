@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public final class ActivityAttributesSnapshot {
-  @NotNull private final Element myElement;
   @Nullable private final ResourceValue myIcon;
   @Nullable private final ResourceValue myLabel;
   @NotNull private final String myName;
@@ -29,13 +28,14 @@ public final class ActivityAttributesSnapshot {
   @Nullable private final String myTheme;
   @Nullable private final String myUiOptions;
 
-  public ActivityAttributesSnapshot(@NotNull Element element,
-                             @Nullable ResourceValue icon,
-                             @Nullable ResourceValue label,
-                             @NotNull String name,
-                             @Nullable String parentActivity,
-                             @Nullable String theme, @Nullable String uiOptions) {
-    myElement = element;
+  public ActivityAttributesSnapshot(
+    @Nullable ResourceValue icon,
+    @Nullable ResourceValue label,
+    @NotNull String name,
+    @Nullable String parentActivity,
+    @Nullable String theme,
+    @Nullable String uiOptions
+  ) {
     myIcon = icon;
     myLabel = label;
     myName = name;
@@ -72,10 +72,5 @@ public final class ActivityAttributesSnapshot {
   @Nullable
   public String getUiOptions() {
     return myUiOptions;
-  }
-
-  @NotNull
-  public Element getElement() {
-    return myElement;
   }
 }

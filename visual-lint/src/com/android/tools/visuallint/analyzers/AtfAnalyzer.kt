@@ -18,16 +18,16 @@ package com.android.tools.visuallint.analyzers
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.configurations.Configuration
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
-import com.android.tools.rendering.RenderResult
 import com.android.tools.visuallint.VisualLintAnalyzer
 import com.android.tools.visuallint.VisualLintAnalyzer.VisualLintIssueContent
+import com.android.tools.visuallint.VisualLintConfiguration
 import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintRenderResult
 import com.android.utils.HtmlBuilder
 import java.util.EnumSet
 
@@ -43,14 +43,13 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   }
 
   /** Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint. */
-  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: VisualLintRenderResult, configuration: VisualLintConfiguration): List<VisualLintIssueContent> {
     when (val validatorResult = renderResult.validatorResult) {
       is ValidatorHierarchy -> {
         if (!validatorResult.isHierarchyBuilt) {
           // Result not available
-          return ArrayList<VisualLintIssueContent>()
+          return emptyList()
         }
-
         val policy =
           ValidatorData.Policy(
             EnumSet.of(ValidatorData.Type.ACCESSIBILITY, ValidatorData.Type.RENDER),
@@ -62,13 +61,16 @@ object AtfAnalyzer : VisualLintAnalyzer() {
       }
       else -> {
         // Result not available.
-        return ArrayList<VisualLintIssueContent>()
+        return emptyList()
       }
     }
   }
 }
 
-private fun validateAndUpdateLint(renderResult: RenderResult, validatorResult: ValidatorResult): MutableList<VisualLintIssueContent> {
+private fun validateAndUpdateLint(
+  renderResult: VisualLintRenderResult,
+  validatorResult: ValidatorResult,
+): MutableList<VisualLintIssueContent> {
   val issues = ArrayList<VisualLintIssueContent>()
   val accessibilityToViewInfo = mutableMapOf<AccessibilityNodeInfo, ViewInfo>()
   val viewToViewInfo = mutableMapOf<View, ViewInfo>()

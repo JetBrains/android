@@ -149,6 +149,7 @@ import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.panel
@@ -176,6 +177,7 @@ import javax.swing.JPanel
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.math.max
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -262,6 +264,7 @@ constructor(
   hyperlinkDetector: HyperlinkDetector?,
   foldingDetector: FoldingDetector?,
   zoneId: ZoneId = ZoneId.systemDefault(),
+  private val workerDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, UiDataProvider, Disposable {
 
   constructor(
@@ -323,11 +326,11 @@ constructor(
 
   @VisibleForTesting
   internal val messageProcessor =
-    MessageProcessor(this, ::formatMessages, logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase))
+    MessageProcessor(this, ::formatMessages, logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase), workerDispatcher)
 
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor, this, ModalityState.stateForComponent(this))
-  private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
+  private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor, workerDispatcher = workerDispatcher)
   private val logcatService = LogcatService.getInstance(project)
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
@@ -474,7 +477,7 @@ constructor(
         )
     }
 
-    coroutineScope.launch(Dispatchers.Default) {
+    coroutineScope.launch(workerDispatcher) {
       deviceComboBox.trackSelected().collect { item ->
         messageProcessor.context(item)
         pausedBanner.isVisible = false
@@ -498,9 +501,11 @@ constructor(
               try {
                 LogcatFileIo().readLogcat(item.path)
               } catch (e: Exception) {
-                LOGGER.warn("Failed to load Logcat from file ${item.path}", e)
+                LOGGER.debug("Failed to load Logcat from file ${item.path}", e)
                 withContext(Dispatchers.EDT) {
-                  deviceComboBox.handleItemError(item, LogcatBundle.message("logcat.device.combo.error.load.file", item.path))
+                  if (item == deviceComboBox.selectedItem) {
+                    deviceComboBox.handleItemError(item, LogcatBundle.message("logcat.device.combo.error.load.file", item.path))
+                  }
                 }
                 null
               }
@@ -597,6 +602,12 @@ constructor(
     scrollPane.addMouseWheelListener(mouseListener)
     scrollPane.verticalScrollBar.addMouseListener(mouseListener)
     scrollPane.verticalScrollBar.addMouseMotionListener(mouseListener)
+
+    Disposer.register(this) {
+      scrollPane.removeMouseListener(mouseListener)
+      scrollPane.verticalScrollBar.removeMouseListener(mouseListener)
+      scrollPane.verticalScrollBar.removeMouseMotionListener(mouseListener)
+    }
   }
 
   override suspend fun processMessages(messages: List<LogcatMessage>) {
@@ -697,7 +708,7 @@ constructor(
   @UiThread
   override fun reloadMessages() {
     clearDocument()
-    coroutineScope.launch(Dispatchers.Default) {
+    coroutineScope.launch(workerDispatcher) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
       withContext(Dispatchers.EDT) { noLogsBanner.isVisible = isLogsMissing() }
     }
@@ -807,7 +818,7 @@ constructor(
   }
 
   override fun clearMessageView() {
-    coroutineScope.launch(Dispatchers.Default) {
+    coroutineScope.launch(workerDispatcher) {
       val device = connectedDevice.get()
       val systemMessages = mutableListOf<LogcatMessage>()
       if (device != null) {

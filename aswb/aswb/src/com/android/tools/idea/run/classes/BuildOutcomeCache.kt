@@ -52,7 +52,7 @@ data class BuildOutcome(
   )
 }
 
-private data class CachedArtifacts(val jars: Collection<Path>, val externalJars: Collection<Path>)
+private data class CachedArtifacts(val internalJars: Collection<Path>, val externalJars: Collection<Path>)
 
 class BuildOutcomeCache {
   private val cache: MutableMap<Label, BuildOutcome> = ConcurrentHashMap()
@@ -82,19 +82,28 @@ class BuildOutcomeCache {
         BuildOutcome(ProjectSystemBuildManager.BuildStatus.FAILED, Instant.now())
       } else {
         val cache = RuntimeArtifactCache.getInstance(project)
-        val jars = cache.fetchArtifacts(label, output.transitiveRuntimeJars, context, RuntimeArtifactKind.TRANSITIVE_RUNTIME_JAR)
+        val transitiveArtifacts = output.transitiveRuntimeJars.toSet()
+        val externalArtifacts = output.externalTransitiveRuntimeJars.toSet()
+
+        val internalJars =
+          cache.fetchArtifacts(
+            label,
+            (transitiveArtifacts - externalArtifacts).toList(),
+            context,
+            RuntimeArtifactKind.TRANSITIVE_RUNTIME_JAR,
+          )
 
         val externalJars =
-          cache.fetchArtifacts(label, output.externalTransitiveRuntimeJars, context, RuntimeArtifactKind.EXTERNAL_TRANSITIVE_RUNTIME_JAR)
+          cache.fetchArtifacts(label, externalArtifacts.toList(), context, RuntimeArtifactKind.EXTERNAL_TRANSITIVE_RUNTIME_JAR)
 
-        val artifacts = CachedArtifacts(jars, externalJars)
+        val artifacts = CachedArtifacts(internalJars, externalJars)
         val builtJarTargets = output.javaArtifactInfo.keys.toSet()
         BuildOutcome(
           ProjectSystemBuildManager.BuildStatus.SUCCESS,
           Instant.now(),
           builtTargets = output.javaArtifactInfo.keys.toSet(),
           bootClasspath = emptyList(),
-          BazelClassFileFinder(artifacts.jars),
+          BazelClassFileFinder(artifacts.internalJars),
           artifacts.externalJars.toList(),
           builtJarTargets::contains,
         )

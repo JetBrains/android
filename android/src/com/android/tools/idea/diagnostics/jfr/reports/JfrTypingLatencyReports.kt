@@ -17,7 +17,6 @@ package com.android.tools.idea.diagnostics.jfr.reports
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.diagnostics.jfr.CallTreeAggregator
 import com.android.tools.idea.diagnostics.jfr.EventFilter
 import com.android.tools.idea.diagnostics.jfr.JfrReportGenerator
@@ -27,6 +26,7 @@ import com.android.tools.idea.serverflags.protos.JfrTypingLatencyConfig
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import jdk.jfr.consumer.RecordedEvent
@@ -34,6 +34,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -63,7 +64,7 @@ object JfrTypingLatencyReports {
           this.currentReportGenerator?.keystrokeCount = keystrokes
           this.stopCapture()
         }
-      val coroutineScope = AndroidCoroutineScope(parentDisposable, uiThread)
+      val coroutineScope = AndroidCoroutineScope(parentDisposable, Dispatchers.EDT)
       val latencyListener = MyLatencyListener(config, ::startCapture, stopCapture, coroutineScope)
       ApplicationManager.getApplication().messageBus.connect(parentDisposable).subscribe(LatencyListener.TOPIC, latencyListener)
     }

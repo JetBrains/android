@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
@@ -26,7 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class WearTilePreviewEntryPointTest {
-  @get:Rule val projectRule = WearTileProjectRule()
+  @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.inMemory())
 
   private val fixture
     get() = projectRule.fixture

@@ -34,10 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import java.awt.BorderLayout
 import java.io.File
 import javax.swing.JOptionPane
@@ -103,8 +104,9 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
     return this.zip(other).all { (a, b) -> a == b }
   }
 
-  private fun openImageInEditor(imageFile: File) {
-    val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(imageFile)
+  @VisibleForTesting
+  fun openImageInEditor(imageFile: File) {
+    val virtualFile = VfsUtil.findFileByIoFile(imageFile, true)
     if (virtualFile == null) {
       JOptionPane.showMessageDialog(this, "Image file not found: " + imageFile.absolutePath, "Error", JOptionPane.ERROR_MESSAGE)
       return

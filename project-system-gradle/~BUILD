@@ -100,7 +100,7 @@ iml_module(
         "//tools/base/tracer:studio.android.sdktools.tracer",
         "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models",
         "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
-        "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
+        "//tools/adt/idea/.idea/libraries:test-result-proto",
         "@intellij//:org.intellij.groovy",
         "//tools/base/lint:studio.android.sdktools.lint-checks",
         "@intellij//:org.toml.lang",
@@ -122,6 +122,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
         "@intellij//:intellij.spellchecker",
         "@intellij//:intellij.properties.backend.psi",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
     ],
 )
 
@@ -193,8 +194,10 @@ iml_module(
                 "//tools/base/build-system:gradle-runtime-maven",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
                 "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
                 "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
                 "//prebuilts/studio/jdk:jdk21",
+                "//tools/base/build-system:declarative_gradle_runtime",
                 "//tools/base/build-system:declarative_android_gradle_plugin.zip",
                 "//tools/base/firebase/testlab/testlab-gradle-plugin:maven_dependencies",
                 "//tools/base/firebase/testlab/testlab-gradle-plugin:testlab-gradle-plugin",
@@ -386,6 +389,30 @@ iml_module(
         "runs_indexing_with_gradle_snapshots": {
             "test_filter": ".runsIndexingWithGradleSnapshots",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
+            "shard_count": 5,
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:declarative_android_gradle_plugin.zip",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system:gradle-runtime-maven",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
+        "runs_indexing_with_gradle_snapshots.complete": {
+            "test_filter": ".runsIndexingWithGradleSnapshots",
+            "additional_jvm_args": [
+                "-Didea.skip.indices.initialization=false",
+                "-Dflags.configuration.level=COMPLETE",
+            ],
             "tags": [
                 "cpu:4",
                 "noci:studio-win",
@@ -643,6 +670,7 @@ iml_module(
         "@intellij//:intellij.properties.backend.psi",
         "//tools/adt/idea/.idea/libraries:equalsverifier",
         "@intellij//:tanvd.grazi",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testResources"],

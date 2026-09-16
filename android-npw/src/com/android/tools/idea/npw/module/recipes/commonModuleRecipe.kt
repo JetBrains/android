@@ -84,6 +84,7 @@ fun RecipeExecutor.generateCommonModule(
       cppStandard = cppStandard,
       useVersionCatalog = useVersionCatalog,
       hasCode = hasCode,
+      kotlinSupport = projectData.kotlinSupport,
     ),
     moduleOut.resolve(buildFile),
   )

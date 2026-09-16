@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.builders
 
-import org.gradle.util.GradleVersion
 import java.net.URL
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.FOOJAY_RESOLVER_CONVENTION_NAME
 import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
 
@@ -35,7 +35,7 @@ class GradleSettingsBuilder(
     val gradleSettings = GradleSettings(settingsStringBuilder)
     builderFunction.invoke(gradleSettings)
 
-    val escapedAppTitle = projectName.replace("$", "\\$")
+    val escapedAppTitle = projectName.replace("$", "\\$").replace("'", "\\'")
     return settingsStringBuilder
       .apply {
         if (isNotEmpty()) {
@@ -49,7 +49,11 @@ class GradleSettingsBuilder(
 
   private fun String.gradleSettingsToKtsIfKts(isKts: Boolean): String =
     if (isKts) {
-      split("\n").joinToString("\n") { it.replace("'", "\"").replace("id ", "id(").replace(" version", ") version") }
+      // Find every single quote, but only if there isn't a backslash right in front of it.
+      // This is used to replace Groovy-style structural quotes (id '...') with KTS-style double quotes (id("...")),
+      // while preserving escaped single quotes within the project name.
+      val unescapedQuote = Regex("(?<!\\\\)'")
+      split("\n").joinToString("\n") { it.replace(unescapedQuote, "\"").replace("id ", "id(").replace(" version", ") version") }
     } else {
       this
     }

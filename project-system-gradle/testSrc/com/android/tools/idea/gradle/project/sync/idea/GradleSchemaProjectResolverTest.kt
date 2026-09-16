@@ -24,10 +24,13 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.testFramework.ApplicationRule
+import java.io.File
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
+import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.idea.IdeaProject
+import org.jetbrains.plugins.gradle.model.GradleLightBuild
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.junit.Rule
@@ -70,6 +73,11 @@ class GradleSchemaProjectResolverTest {
       val resolverContext = mock(ProjectResolverContext::class.java)
       val schemaModel = mock(DeclarativeSchemaModel::class.java)
 
+      val build = mock(GradleLightBuild::class.java)
+      val buildIdentifier = mock(BuildIdentifier::class.java)
+      Mockito.`when`(build.buildIdentifier).thenReturn(buildIdentifier)
+      Mockito.`when`(buildIdentifier.rootDir).thenReturn(File("/tmp/project"))
+
       val sequence =
         object : InterpretationSequence {
           override val steps: Iterable<InterpretationSequenceStep>
@@ -78,7 +86,10 @@ class GradleSchemaProjectResolverTest {
 
       Mockito.`when`(schemaModel.settingsSequence).thenReturn(sequence)
       Mockito.`when`(schemaModel.projectSequence).thenReturn(sequence)
-      Mockito.`when`(resolverContext.getRootModel(DeclarativeSchemaModel::class.java)).thenReturn(schemaModel)
+
+      Mockito.`when`(resolverContext.allBuilds).thenReturn(listOf(build))
+      Mockito.`when`(resolverContext.getBuildModel(build, DeclarativeSchemaModel::class.java)).thenReturn(schemaModel)
+
       provider.setProjectResolverContext(resolverContext)
       provider.setNext(nextResolver)
 

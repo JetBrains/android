@@ -39,7 +39,7 @@ interface PreviewAnnotationChecker {
 
   fun isPreview(annotation: KtAnnotationEntry): Boolean
 
-  @RequiresReadLock fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry): Boolean
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */) fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry): Boolean
 }
 
 /** Base class for inspection that depend on methods and annotation classes annotated with `@Preview`, or with a MultiPreview. */

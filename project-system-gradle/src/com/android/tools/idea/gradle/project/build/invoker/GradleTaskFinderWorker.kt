@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.project.ProjectStructure.isAndroidOrJavaHolderModule
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds
@@ -37,6 +38,8 @@ import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.addIfNotNull
 import java.io.File
 import java.nio.file.Path
@@ -47,6 +50,7 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataOrNull
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -272,33 +276,46 @@ private fun Module.isGradleJavaModule(): Boolean {
   return extensions.extensions.any { it.name == "java" }
 }
 
+private fun Module.getJavaSourceSetName(): String? {
+  val data = CachedModuleDataFinder.findModuleData(this)?.data as? GradleSourceSetData ?: return null
+
+  // Copied from GradleSourceSetData.
+  return StringUtil.substringAfterLast(data.externalName, ":")
+}
+
 private fun getGradleJavaTaskNames(buildMode: BuildMode, module: Module): Set<String> {
-  return setOfNotNull(
-    when (buildMode) {
-      BuildMode.ASSEMBLE -> GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME
-      BuildMode.REBUILD -> GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME
-      BuildMode.COMPILE_JAVA -> JavaPlugin.COMPILE_JAVA_TASK_NAME
-      BuildMode.CLEAN -> null // Handled directly.
-      BuildMode.SOURCE_GEN -> null
-      BuildMode.BUNDLE -> null
-      BuildMode.APK_FROM_BUNDLE -> null
-      BuildMode.BASELINE_PROFILE_GEN -> null
-      BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> null
-    },
-    if (module.isUnitTestModule() || module.isHolderModule()) {
-      when (buildMode) {
-        BuildMode.ASSEMBLE -> JavaPlugin.TEST_CLASSES_TASK_NAME
-        BuildMode.REBUILD -> JavaPlugin.TEST_CLASSES_TASK_NAME
-        BuildMode.COMPILE_JAVA -> JavaPlugin.TEST_CLASSES_TASK_NAME
-        BuildMode.CLEAN -> null // Handled directly.
-        BuildMode.SOURCE_GEN -> null
-        BuildMode.BUNDLE -> null
-        BuildMode.APK_FROM_BUNDLE -> null
-        BuildMode.BASELINE_PROFILE_GEN -> null
-        BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> null
+  return if (isAndroidOrJavaHolderModule(module)) {
+    val moduleDataNode = CachedModuleDataFinder.findMainModuleData(module) ?: return emptySet()
+    // Get the sourceSet modules data.
+    val sourceSetModulesData = ExternalSystemApiUtil.findAll(moduleDataNode, GradleSourceSetData.KEY)
+    sourceSetModulesData.mapNotNullTo(mutableSetOf()) { sourceSetModule ->
+      getTaskForSourceSet(StringUtil.substringAfterLast(sourceSetModule.data.externalName, ":"), buildMode)
+    }
+  } else {
+    val sourceSetName = module.getJavaSourceSetName()
+    setOfNotNull(getTaskForSourceSet(sourceSetName, buildMode))
+  }
+}
+
+private fun getTaskForSourceSet(sourceSetName: String?, buildMode: BuildMode): String? {
+  return when (buildMode) {
+    BuildMode.ASSEMBLE,
+    BuildMode.REBUILD ->
+      when (sourceSetName) {
+        null -> JavaPlugin.CLASSES_TASK_NAME
+        "main" -> GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME
+        else -> "${sourceSetName}Classes"
       }
-    } else null,
-  )
+    BuildMode.COMPILE_JAVA ->
+      if (sourceSetName == null || sourceSetName == "main") JavaPlugin.COMPILE_JAVA_TASK_NAME
+      else "compile${StringUtil.capitalize(sourceSetName)}Java"
+    BuildMode.CLEAN,
+    BuildMode.SOURCE_GEN,
+    BuildMode.BUNDLE,
+    BuildMode.APK_FROM_BUNDLE,
+    BuildMode.BASELINE_PROFILE_GEN,
+    BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> null // Handled directly.
+  }
 }
 
 private fun ModuleAndMode.getTasksBy(isClean: Boolean = false, by: (artifact: IdeBaseArtifactCore) -> List<String>): ModuleTasks {

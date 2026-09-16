@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.api.SampleDataResourceValue
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.readAction
@@ -30,6 +29,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
@@ -78,7 +78,7 @@ private suspend fun loadSampleDataItems(
     .mapNotNull { it.getModuleSystem().getSampleDataDirectory().toVirtualFile() }
     .flatMap { it.children.toList() }
     .mapNotNull { readAction { if (it.isDirectory) psiManager.findDirectory(it) else psiManager.findFile(it) } }
-    .flatMap { withContext(AndroidDispatchers.diskIoThread) { SampleDataResourceItem.getFromPsiFileSystemItem(repository, it) } }
+    .flatMap { withContext(Dispatchers.IO) { SampleDataResourceItem.getFromPsiFileSystemItem(repository, it) } }
     .toImmutableList()
 }
 

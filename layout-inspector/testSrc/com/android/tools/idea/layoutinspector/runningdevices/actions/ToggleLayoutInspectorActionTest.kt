@@ -16,10 +16,10 @@
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.layoutinspector.runningdevices.FakeToolWindowManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.runningdevices.TabInfo
+import com.android.tools.idea.layoutinspector.runningdevices.addContent
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -30,6 +30,7 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.ActionUiKind
@@ -40,7 +41,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTENT_MANAGER
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -71,7 +72,7 @@ class ToggleLayoutInspectorActionTest {
 
   private lateinit var tab1: TabInfo
 
-  private lateinit var toolWindowManager: FakeToolWindowManager
+  private lateinit var fakeToolWindow: ToolWindowEx
 
   @Before
   fun setUp() {
@@ -79,10 +80,8 @@ class ToggleLayoutInspectorActionTest {
 
     tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorDisplayView()))
 
-    toolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1))
-
-    // replace ToolWindowManager with fake one
-    displayViewRule.project.replaceService(ToolWindowManager::class.java, toolWindowManager, displayViewRule.disposable)
+    fakeToolWindow = createFakeToolWindow(displayViewRule.project, displayViewRule.disposable, RUNNING_DEVICES_TOOL_WINDOW_ID)
+    addContent(fakeToolWindow, tab1)
 
     displayView = spy(displayViewRule.newEmulatorDisplayView())
 
@@ -228,7 +227,7 @@ class ToggleLayoutInspectorActionTest {
         .add(DISPLAY_VIEW_KEY, displayView)
         .add(DEVICE_ID_KEY, deviceId)
         .add(DEVICE_TYPE_KEY, deviceType)
-        .add(CONTENT_MANAGER, toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager)
+        .add(CONTENT_MANAGER, fakeToolWindow.contentManager)
         .build()
 
     return createEvent(this, dataContext, null, "", ActionUiKind.NONE, null)

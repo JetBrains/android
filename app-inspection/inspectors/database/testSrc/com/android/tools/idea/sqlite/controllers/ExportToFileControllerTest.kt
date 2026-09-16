@@ -103,6 +103,8 @@ import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.name
+import kotlin.io.path.nameWithoutExtension
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -357,7 +359,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     verifyExportCallbacks(stopwatch.elapsed(MILLISECONDS))
     exportRequest.srcDatabase.let { db -> assertThat(databaseLockingTestFixture.wasLocked(db)).isEqualTo(db is LiveSqliteDatabaseId) }
 
-    val actualFiles = decompress(exportRequest.dstPath).sorted()
+    val actualFiles = decompress(exportRequest.dstPath).filter { it.nameWithoutExtension != "sqlite_schema" }.sorted()
     assertThat(actualFiles).isEqualTo(expectedOutput.map { it.path }.sorted())
     actualFiles.zip(expectedOutput.sortedBy { it.path }) { actualPath, (expectedPath, expectedValues) ->
       assertThat(actualPath.toFile().canonicalPath).isEqualTo(expectedPath.toFile().canonicalPath)

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.analytics;
 
+import static kotlinx.coroutines.future.FutureKt.asCompletableFuture;
+
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.analytics.UsageTracker;
@@ -38,6 +40,7 @@ import java.lang.ref.WeakReference;
 import java.util.Random;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -118,7 +121,12 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
     if (surface == null) {
       return EditorFileType.UNKNOWN;
     }
-    return surface.getAnalyticsManager().getEditorFileType();
+    try {
+      return asCompletableFuture(surface.getAnalyticsManager().getEditorFileType()).get(2, TimeUnit.SECONDS);
+    }
+    catch (Throwable e) {
+      return EditorFileType.UNKNOWN;
+    }
   }
 
   /**

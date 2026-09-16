@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.diagnostic.Logger
+import kotlinx.coroutines.CoroutineScope
 
 private val LOG = Logger.getInstance(NlAnalyticsManager::class.java)
 
@@ -29,7 +30,7 @@ private val LOG = Logger.getInstance(NlAnalyticsManager::class.java)
  * Handles analytics that are specific to the UI builder. Acts as an interface between [NlDesignSurface] and the usage tracker, being
  * responsible for converting the surface state to data that can be tracked.
  */
-class NlAnalyticsManager(private val nlSurface: NlDesignSurface) : DesignerAnalyticsManager(nlSurface) {
+class NlAnalyticsManager(private val nlSurface: NlDesignSurface, scope: CoroutineScope) : DesignerAnalyticsManager(nlSurface, scope) {
 
   override val surfaceType
     get() = nlSurface.screenViewProvider.surfaceType

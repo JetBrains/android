@@ -15,14 +15,13 @@
  */
 package com.google.idea.blaze.base;
 
-
 import com.android.tools.idea.projectsystem.ProjectSystemService;
-import com.google.idea.blaze.android.projectsystem.BlazeProjectSystemProvider;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.io.InputStreamProvider;
 import com.google.idea.blaze.base.io.VirtualFileSystemProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.project.BazelProjectSystemId;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
@@ -109,7 +108,7 @@ public abstract class BlazeIntegrationTestCase {
     // cases indexing finishes sooner and processing events runs all startup activities, but when it
     // does not they get deferred. This seems to be a bug in the platform's test utils, which should
     // soon become irrelevant as it only affects old style `StartupActivity`es.
-    ProjectSystemService.getInstance(getProject()).setProviderId(BlazeProjectSystemProvider.ID);
+    ProjectSystemService.getInstance(getProject()).setProviderId(BazelProjectSystemId.ID);
     EdtTestUtil.runInEdtAndWait(UIUtil::dispatchAllInvocationEvents);
     fileSystem =
         new TestFileSystem(getProject(), testFixture.getTempDirFixture(), isLightTestCase());
@@ -143,7 +142,6 @@ public abstract class BlazeIntegrationTestCase {
             }
             return vf.getInputStream();
           }
-
         });
 
     registerApplicationService(QuerySyncSettings.class, new QuerySyncSettings());
@@ -164,7 +162,7 @@ public abstract class BlazeIntegrationTestCase {
     System.setProperty(
         "idea.python.helpers.path",
         Runfiles.runfilesPath("tools/vendor/google/aswb/third_party/java/jetbrains/python/helpers")
-        .toString());
+            .toString());
   }
 
   @After

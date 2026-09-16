@@ -43,9 +43,9 @@ private class ComposeStateReadInlayHintsAction(private val enable: Boolean) : In
 
   override fun startInWriteAction(): Boolean = true
 
-  @RequiresReadLock override fun isAvailable(project: Project, editor: Editor, file: PsiFile) = hintsEnabled() != enable
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */) override fun isAvailable(project: Project, editor: Editor, file: PsiFile) = hintsEnabled() != enable
 
-  @RequiresWriteLock
+  @RequiresWriteLock(generateAssertion = false /* IJPL-115548 */)
   override fun invoke(project: Project, editor: Editor, file: PsiFile) {
     DeclarativeInlayHintsSettings.getInstance().setProviderEnabled(ComposeStateReadInlayHintsProvider.PROVIDER_ID, enable)
     DeclarativeInlayHintsPassFactory.scheduleRecompute(editor, project)

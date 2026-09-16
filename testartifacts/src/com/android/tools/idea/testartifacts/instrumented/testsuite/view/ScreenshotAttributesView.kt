@@ -19,6 +19,7 @@ import androidx.compose.foundation.ContextMenuArea
 import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -43,8 +44,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.annotations.concurrency.UiThread
@@ -55,9 +57,14 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.util.NOT_APPL
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.calculateMatchPercentage
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.accessibility.AccessibilityUtils
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.openapi.util.SystemInfoRt
+import com.intellij.ui.JBColor
 import java.awt.Desktop
 import java.io.File
+import javax.accessibility.AccessibleRole
 import javax.swing.JComponent
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation
@@ -93,10 +100,35 @@ class ScreenshotAttributesView {
   var state by mutableStateOf(ScreenshotAttributesState())
     private set
 
+  private val panel: JComponent by lazy {
+    val composePanel = StudioComposePanel { ScreenshotAttributesUi(state) }
+    object : javax.swing.JPanel(java.awt.BorderLayout()) {
+        override fun getAccessibleContext(): javax.accessibility.AccessibleContext {
+          if (accessibleContext == null) {
+            accessibleContext =
+              object : AccessibleJPanel() {
+                  override fun getAccessibleRole() =
+                    if (SystemInfoRt.isMac) {
+                      AccessibilityUtils.GROUPED_ELEMENTS
+                    } else {
+                      AccessibleRole.PANEL
+                    }
+                }
+                .apply { accessibleName = "Test Results Panel Structure" }
+          }
+          return accessibleContext
+        }
+      }
+      .apply {
+        isOpaque = false
+        add(composePanel, java.awt.BorderLayout.CENTER)
+      }
+  }
+
   /** Returns the Swing component for this view. */
   @UiThread
   fun getComponent(): JComponent {
-    return StudioComposePanel { ScreenshotAttributesUi(state) }
+    return panel
   }
 
   /**
@@ -138,15 +170,56 @@ class ScreenshotAttributesView {
    *
    * @param currentState The current state of the view.
    */
+  @VisibleForTesting
   @Composable
-  private fun ScreenshotAttributesUi(currentState: ScreenshotAttributesState) {
+  fun ScreenshotAttributesUi(currentState: ScreenshotAttributesState) {
     var refMetadata by remember { mutableStateOf(ImageMetadata()) }
     var newMetadata by remember { mutableStateOf(ImageMetadata()) }
 
     LaunchedEffect(currentState.refLocation) { refMetadata = loadImageMetadata(currentState.refLocation.takeIf { it != NOT_APPLICABLE }) }
     LaunchedEffect(currentState.newLocation) { newMetadata = loadImageMetadata(currentState.newLocation.takeIf { it != NOT_APPLICABLE }) }
 
+    LaunchedEffect(currentState, refMetadata, newMetadata) {
+      val matchText =
+        currentState.matchPercentage?.let { "Match: $it" }
+          ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) "Match: 0.00%"
+          else "Match: ${currentState.testResult?.name ?: NOT_APPLICABLE}"
+
+      val description =
+        """
+        $matchText
+        Preview: ${currentState.methodName}
+        Related Composables: ${currentState.className}
+        Preview configuration: @Preview(${currentState.methodName})
+        File info:
+        Reference dimensions: ${refMetadata.dimensions}, New dimensions: ${newMetadata.dimensions}
+        Reference size: ${refMetadata.size}, New size: ${newMetadata.size}
+        Reference date: ${refMetadata.date}, New date: ${newMetadata.date}
+        Reference location: ${currentState.refLocation}, New location: ${currentState.newLocation}
+      """
+          .trimIndent()
+    }
+
     val scrollState = rememberScrollState()
+
+    val matchText =
+      currentState.matchPercentage?.let { "Match: $it" }
+        ?: if (currentState.testResult == AndroidTestCaseResult.FAILED) "Match: 0.00%"
+        else "Match: ${currentState.testResult?.name ?: NOT_APPLICABLE}"
+
+    val summarySemanticsDescription =
+      """
+      $matchText
+      Preview: ${currentState.methodName}
+      Related Composables: ${currentState.className}
+      Preview configuration: @Preview(${currentState.methodName})
+      Reference dimensions: ${refMetadata.dimensions}, New dimensions: ${newMetadata.dimensions}
+      Reference size: ${refMetadata.size}, New size: ${newMetadata.size}
+      Reference date: ${refMetadata.date}, New date: ${newMetadata.date}
+      Reference location: ${currentState.refLocation}, New location: ${currentState.newLocation}
+    """
+        .trimIndent()
+
     Row(modifier = Modifier.fillMaxSize()) {
       Column(modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(scrollState), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Section("Summary") {
@@ -197,7 +270,7 @@ class ScreenshotAttributesView {
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    BoldLightText(title)
+    BoldLightText(title, modifier = Modifier.focusable(true).semantics { heading() })
     Column(modifier = Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { content() }
   }
 }
@@ -302,7 +375,7 @@ private fun FileInfoRow(attribute: String, refValue: String, newValue: String, c
  */
 @Composable
 private fun CodeSnippet(text: String, modifier: Modifier = Modifier) {
-  Text(text = text, modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontFamily = FontFamily.Monospace)
+  Text(text = text, modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = JewelTheme.editorTextStyle)
 }
 
 /**
@@ -319,7 +392,8 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
     val clipboardManager = LocalClipboardManager.current
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val color = if (isHovered) JewelTheme.colorPalette.blue[6].copy(alpha = 0.8f) else JewelTheme.colorPalette.blue[6]
+    val blue7 = JewelTheme.colorPalette.blueOrNull(7) ?: Color(JBColor.BLUE.rgb)
+    val color = if (isHovered) blue7.copy(alpha = 0.8f) else blue7
 
     ContextMenuArea(items = { listOf(ContextMenuItem("Copy Path") { clipboardManager.setText(AnnotatedString(path)) }) }) {
       BlueText(
@@ -339,13 +413,19 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
 }
 
 /**
- * Blue text.
+ * Blue text component with theme-safe color retrieval.
  *
  * @param text The text.
  * @param modifier The modifier.
+ * @param color The color. Defaults to the 7th shade of blue from the Jewel palette, falling back to the standard platform link blue if
+ *   unavailable.
  */
 @Composable
-private fun BlueText(text: String, modifier: Modifier = Modifier, color: Color = JewelTheme.colorPalette.blue[6]) {
+private fun BlueText(
+  text: String,
+  modifier: Modifier = Modifier,
+  color: Color = JewelTheme.colorPalette.blueOrNull(7) ?: Color(JBColor.BLUE.rgb),
+) {
   Text(text = text, color = color, modifier = modifier)
 }
 
@@ -394,12 +474,13 @@ private fun RedText(text: String, modifier: Modifier = Modifier) {
 }
 
 /**
- * Green text.
+ * Green text component with theme-safe color retrieval.
  *
  * @param text The text.
  * @param modifier The modifier.
  */
 @Composable
 private fun GreenText(text: String, modifier: Modifier = Modifier) {
-  JewelTheme.colorPalette.greenOrNull(7)?.let { Text(text = text, color = it, modifier = modifier) }
+  val green7 = JewelTheme.colorPalette.greenOrNull(7) ?: Color(ColorProgressBar.GREEN.rgb)
+  Text(text = text, color = green7, modifier = modifier)
 }

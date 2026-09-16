@@ -63,7 +63,8 @@ fun selectAllAndRowIdFromTable(table: SqliteTable): String {
   // _rowid_ FROM table",
   // in the result set the column corresponding to rowid is always called "rowid".
   // But in [SqliteTable] we save the name of the rowid column as "rowid", "_rowid_" or "oid"
-  val columnsToSelect = table.rowIdName?.let { rowIdName -> "*, ${rowIdName.stringName} as ${rowIdName.stringName}" } ?: "*"
+  val columnsToSelect =
+    table.rowIdName?.takeUnless { table.isView }?.let { rowIdName -> "*, ${rowIdName.stringName} as ${rowIdName.stringName}" } ?: "*"
   return "SELECT $columnsToSelect FROM ${AndroidSqlLexer.getValidName(table.name)}"
 }
 

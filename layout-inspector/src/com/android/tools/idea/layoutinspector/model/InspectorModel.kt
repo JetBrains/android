@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -328,11 +329,17 @@ class InspectorModel(
         }
 
         updateRoot(allIds)
-        if (selection?.parentSequence?.lastOrNull() !== root) {
-          lastSelection = null
+        if (selection != null && selection?.parentSequence?.lastOrNull() !== root) {
+          invokeLater {
+            // Using invokeLater to avoid triggering callback on background thread while holding the ViewNode.writeAccess
+            setSelection(null, SelectionOrigin.INTERNAL)
+          }
         }
-        if (hoveredNode?.parentSequence?.lastOrNull() !== root) {
-          hoveredNode = null
+        if (hoveredNode != null && hoveredNode?.parentSequence?.lastOrNull() !== root) {
+          invokeLater {
+            // Using invokeLater to avoid triggering callback on background thread while holding the ViewNode.writeAccess
+            hoveredNode = null
+          }
         }
         lastGeneration = generation
         idLookup.clear()

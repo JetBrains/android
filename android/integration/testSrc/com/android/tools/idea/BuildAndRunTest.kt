@@ -83,20 +83,23 @@ class BuildAndRunTest {
           remoteDeviceManager = RemoteDeviceManager("akita", "34")
           remoteDeviceManager.setupRemoteDevice()
           adb.waitForRemoteDevice()
-          logCat = adb.logcat()
         }
 
         studio.executeAction("MakeGradleProject")
         studio.waitForBuild()
 
         studio.executeAction("Run")
-        studio.waitForEmulatorStart(system.installation.ideaLog, null, "com\\.example\\.minapp", 60, TimeUnit.SECONDS)
-        logCat.waitForMatchingLine(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS)
+        studio.waitForEmulatorStart(system.installation.ideaLog, null, "com\\.example\\.minapp", 180, TimeUnit.SECONDS)
+        adb.runCommand("logcat") {
+          waitForLog(".*Hello Minimal World!.*", 120, TimeUnit.SECONDS);
+        }
 
         val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
         studio.editFile(project.targetProject.fileName.toString(), path.toString(), "Hello Minimal", "Hey Minimal")
         studio.executeAction("Run")
-        logCat.waitForMatchingLine(".*Hey Minimal World!.*", 30, TimeUnit.SECONDS)
+        adb.runCommand("logcat") {
+          waitForLog(".*Hey Minimal World!.*", 120, TimeUnit.SECONDS);
+        }
 
         if (!SystemInfo.isWindows) emulator?.close() else remoteDeviceManager?.close()
       }

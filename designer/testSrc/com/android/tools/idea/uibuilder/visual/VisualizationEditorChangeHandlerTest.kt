@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -50,7 +51,9 @@ class VisualizationEditorChangeHandlerTest {
     val ktFile = projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
 
     // The initial availability of tool window is false because there is no editor.
-    val toolWindow = VisualizationTestToolWindow(projectRule.project).apply { isAvailable = false }
+    val toolWindow =
+      createFakeToolWindow(projectRule.project, projectRule.fixture.testRootDisposable, VisualizationToolWindowFactory.TOOL_WINDOW_ID)
+        .apply { isAvailable = false }
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
     handler.onFileEditorChange(FileEditorManager.getInstance(projectRule.project).selectedEditor, projectRule.project, toolWindow)
@@ -71,7 +74,9 @@ class VisualizationEditorChangeHandlerTest {
     val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
 
     // The initial availability of tool window is false because there is no editor.
-    val toolWindow = VisualizationTestToolWindow(projectRule.project).apply { isAvailable = false }
+    val toolWindow =
+      createFakeToolWindow(projectRule.project, projectRule.fixture.testRootDisposable, VisualizationToolWindowFactory.TOOL_WINDOW_ID)
+        .apply { isAvailable = false }
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
     handler.onFileEditorChange(FileEditorManager.getInstance(projectRule.project).selectedEditor, projectRule.project, toolWindow)

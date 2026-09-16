@@ -67,6 +67,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.insertValueArgumentBefore
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.util.addAnnotation
@@ -390,7 +391,7 @@ class AndroidLintMissingPermissionInspection :
       val newFirstArg = KtPsiFactory(ktAnnotated.project).createArgument(internals)
       // If there are other arguments, we will need to add this one before those.
       val existingFirstArg = existing.valueArgumentList?.arguments?.firstOrNull()
-      existing.valueArgumentList?.addArgumentBefore(newFirstArg, existingFirstArg)
+      existing.valueArgumentList?.insertValueArgumentBefore(newFirstArg, existingFirstArg)
     }
 
     private fun getKotlinInnerText(): String {

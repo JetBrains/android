@@ -22,8 +22,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
@@ -49,6 +47,7 @@ import com.intellij.CommonBundle
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationBundle
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -86,6 +85,7 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -105,7 +105,7 @@ class DeviceFileExplorerControllerImpl(
   private val fileOpener: FileOpener,
 ) : Disposable, DeviceExplorerTabController {
 
-  private val scope = AndroidCoroutineScope(this, uiThread)
+  private val scope = AndroidCoroutineScope(this, Dispatchers.EDT)
   var showLoadingNodeDelayMillis = 200
     @TestOnly set
 
@@ -338,7 +338,7 @@ class DeviceFileExplorerControllerImpl(
     }
 
     private suspend fun downloadAndOpenFile(treeNode: DeviceFileEntryNode) =
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         try {
           val path = downloadFileEntryToDefaultLocation(treeNode)
           DeviceExplorerFilesUtils.findFile(path)
@@ -470,7 +470,7 @@ class DeviceFileExplorerControllerImpl(
       performTransfer: suspend (FileTransferOperationTracker) -> Unit,
       backgroundable: Boolean,
     ): FileTransferSummary =
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         val tracker = FileTransferOperationTracker(view, backgroundable)
         registerLongRunningOperation(tracker)
         tracker.start()
@@ -556,7 +556,7 @@ class DeviceFileExplorerControllerImpl(
       }
       tracker.processDirectory()
 
-      withContext(diskIoThread) {
+      withContext(Dispatchers.IO) {
         // Ensure directory is created locally
         FileUtils.mkdirs(localDirectoryPath.toFile())
       }
@@ -1129,12 +1129,12 @@ class DeviceFileExplorerControllerImpl(
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
       val baseDir =
-        withContext(diskIoThread) {
+        withContext(Dispatchers.IO) {
           FileUtils.mkdirs(localPath.parent.toFile())
           VfsUtil.findFileByIoFile(localPath.parent.toFile(), true) ?: throw Exception("Unable to locate file \"${localPath.parent}\"")
         }
       val fileWrapper =
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           val descriptor = FileSaverDescriptor("Save As", "")
           val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
           saveFileDialog.save(baseDir, localPath.fileName.toString()) ?: cancelAndThrow()
@@ -1146,13 +1146,13 @@ class DeviceFileExplorerControllerImpl(
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
       val localDir =
-        withContext(diskIoThread) {
+        withContext(Dispatchers.IO) {
           FileUtils.mkdirs(localPath.toFile())
           VfsUtil.findFileByIoFile(localPath.toFile(), true) ?: throw Exception("Unable to locate directory \"${localPath.parent}\"")
         }
       val descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
       val resultPath = AtomicReference<Path?>(null)
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         FileChooser.chooseFiles(descriptor, project, localDir) { files: List<VirtualFile> ->
           if (files.size == 1) {
             val path = Paths.get(files[0].path)

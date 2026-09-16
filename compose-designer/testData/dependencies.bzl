@@ -29,6 +29,37 @@ SIMPLE_COMPOSE_APPLICATION_DEPS = [
     "@maven//:androidx.compose.animation.animation_" + COMPOSE_UI_VERSION,
 ]
 
+ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW_DEPS = [
+    # Direct dependencies
+    "@maven//:androidx.activity.activity-compose_" + ACTIVITY_COMPOSE_VERSION,
+    "@maven//:org.jetbrains.compose.compose-gradle-plugin_1.10.1",
+    "@maven//:org.jetbrains.kotlin.multiplatform.org.jetbrains.kotlin.multiplatform.gradle.plugin_2.2.10",
+    "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.2.10",
+
+    # Transitive dependencies
+    "@maven//:androidx.collection.collection-ktx_1.5.0",
+    "@maven//:androidx.lifecycle.lifecycle-common-java8_2.9.4",
+    "@maven//:androidx.lifecycle.lifecycle-livedata_2.9.4",
+    "@maven//:androidx.lifecycle.lifecycle-process_2.9.4",
+    "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.9.4",
+    "@maven//:androidx.savedstate.savedstate-ktx_1.3.3",
+    "@maven//:androidx.window.window-core-android_1.5.0",
+    "@maven//:org.jetbrains.compose.components.components-ui-tooling-preview_1.10.1",
+    "@maven//:org.jetbrains.compose.components.components-ui-tooling-preview-android_1.10.1",
+    "@maven//:org.jetbrains.compose.desktop.desktop_1.10.1",
+    "@maven//:org.jetbrains.compose.material3.material3_1.9.0",
+    "@maven//:org.jetbrains.compose.org.jetbrains.compose.gradle.plugin_1.10.1",
+    "@maven//:org.jetbrains.compose.runtime.runtime_1.10.1",
+    "@maven//:org.jetbrains.compose.ui.ui_1.10.1",
+    "@maven//:org.jetbrains.compose.ui.ui-backhandler-android-debug_1.9.1",
+    "@maven//:org.jetbrains.compose.ui.ui-backhandler_1.9.1",
+    "@maven//:org.jetbrains.compose.ui.ui-desktop_1.10.1",
+    "@maven//:org.jetbrains.compose.ui.ui-tooling-preview_1.10.1",
+    "@maven//:org.jetbrains.compose.ui.ui-tooling_1.10.1",
+    "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.2.10",
+    "@maven//:org.jetbrains.skiko.skiko-js-wasm-runtime_0.9.37.4",
+]
+
 # Dependencies for OnboardingAuth IBM project
 ONBOARDING_AUTH_CORE_KTX_VERSION = "1.16.0"
 ONBOARDING_AUTH_ACTIVITY_COMPOSE_VERSION = "1.7.2"

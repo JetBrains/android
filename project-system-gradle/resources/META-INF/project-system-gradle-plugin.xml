@@ -84,6 +84,7 @@
     <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.jdk.GradleJvmCompatibilityChecker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.Info"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerManager"/>
@@ -181,6 +182,7 @@
     <psi.referenceContributor language="kotlin" implementation="com.android.tools.idea.gradle.service.resolve.KotlinNamespacePsiPackageReferenceContributor"/>
     <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.service.resolve.DeclarativeNamespacePsiPackageReferenceContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.service.resolve.PsiPackageGradleUseScopeEnlarger"/>
+    <additionalLibraryRootsProvider implementation="com.android.tools.idea.gradle.catalog.GradleVersionCatalogLibraryRootsProvider"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">
     <kotlinMultiplatformProducersProvider implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"/>
@@ -293,6 +295,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedClassVersionIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedJavaVersionForAgpIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedDependencyJavaVersionIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingNdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker"/>

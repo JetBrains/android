@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 /**
- * A [RuntimeJavaCompiledVersionIssueChecker] for [AndroidPluginBaseServices.checkMinJvmVersion] with messages following this format:
+ * A [AgpRuntimeJavaCompiledVersionIssueChecker] for [AndroidPluginBaseServices.checkMinJvmVersion] with messages following this format:
  * Android Gradle plugin requires Java <AGP Minimum supported JDK> to run. You are currently using Java <Gradle JDK version>.
  */
 @Suppress("KDocUnresolvedReference")
-class UnsupportedJavaVersionForAgpIssueChecker : RuntimeJavaCompiledVersionIssueChecker() {
+class UnsupportedJavaVersionForAgpIssueChecker : AgpRuntimeJavaCompiledVersionIssueChecker() {
 
   override val expectedErrorRegex =
     Regex("Android Gradle plugin requires Java (\\d+\\.?\\d*) to run. You are currently using Java (\\d+\\.?\\d*).")

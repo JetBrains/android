@@ -27,6 +27,7 @@ import com.google.gson.annotations.SerializedName
 import com.intellij.openapi.diagnostic.Logger
 import java.io.BufferedReader
 import java.io.IOException
+import java.io.InputStream
 import java.io.InputStreamReader
 import java.lang.reflect.Type
 import java.net.URL
@@ -59,8 +60,20 @@ data class MaterialIconsMetadata(
      */
     fun parse(url: URL): Result<MaterialIconsMetadata> =
       try {
+        parse(url.openStream())
+      } catch (t: Throwable) {
+        Result.failure(t)
+      }
+
+    /**
+     * Parses the content from the given [inputStream] into [MaterialIconsMetadata].
+     *
+     * Returns an empty instance if the parsing fails. See [EMPTY].
+     */
+    fun parse(inputStream: InputStream): Result<MaterialIconsMetadata> =
+      try {
         Result.success(
-          BufferedReader(InputStreamReader(url.openStream(), Charsets.UTF_8)).use { reader ->
+          BufferedReader(InputStreamReader(inputStream, Charsets.UTF_8)).use { reader ->
             getGson().fromJson(reader, MaterialIconsMetadata::class.java)
           }
         )

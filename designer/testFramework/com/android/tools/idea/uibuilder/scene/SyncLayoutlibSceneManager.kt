@@ -60,7 +60,6 @@ constructor(surface: DesignSurface<LayoutlibSceneManager>, model: NlModel, priva
   var ignoreModelUpdateRequests: Boolean = false
 
   init {
-    sceneRenderConfiguration.setRenderModuleWrapperForTest { TestRenderModelModule(it) }
     sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { it.disableSecurityManager() }
   }
 

@@ -19,7 +19,6 @@ import com.android.sdklib.devices.Device
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.previewElement
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -35,12 +34,10 @@ class EnableUiCheckAction :
 
   override fun update(e: AnActionEvent) {
     val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
-    val disableForWear = Device.isWear(e.getData(SCENE_VIEW)?.configuration?.device) && !StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.get()
     e.presentation.isVisible = true
-    e.presentation.isEnabled = !isEssentialsModeEnabled && !disableForWear
+    e.presentation.isEnabled = !isEssentialsModeEnabled
     e.presentation.description =
-      if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description")
-      else if (disableForWear) message("action.uicheck.wear.description") else message("action.uicheck.description")
+      if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description") else message("action.uicheck.description")
   }
 
   override fun actionPerformed(e: AnActionEvent) {

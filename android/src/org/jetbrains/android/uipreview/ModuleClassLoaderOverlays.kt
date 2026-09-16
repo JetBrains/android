@@ -111,6 +111,10 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
 
   @Synchronized
   fun pushOverlayPath(path: Path) {
+    if (path in overlayPaths) {
+      logger.debug("Overlay $path is already registered")
+      return
+    }
     if (overlayPaths.size == maxNumOverlays) {
       val removedPath = overlayPaths.removeLast()
       logger.debug("Removing overlay $removedPath")

@@ -37,6 +37,7 @@ import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 private const val PREVIEW_TEST_ANNOTATION = "com.android.tools.screenshot.PreviewTest"
 
 val IS_SCREENSHOT_TEST_CONFIGURATION = Key.create<Boolean>("com.android.tools.idea.testartifacts.screenshot.isScreenshotTest")
+val IS_SCREENSHOT_UPDATE_CONFIGURATION = Key.create<Boolean>("com.android.tools.idea.testartifacts.screenshot.isScreenshotUpdate")
 
 /**
  * Checks if the given location belongs to screenshot test source set. It verifies if the virtual file associated with the location either

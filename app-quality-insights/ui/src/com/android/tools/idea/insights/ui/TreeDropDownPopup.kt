@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.model.common.GroupAware
 import com.android.tools.idea.insights.model.common.WithCount
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -61,6 +61,7 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class TreeDropDownPopup<T, U : GroupAware<U>>(
@@ -363,7 +364,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     val popup =
       JBPopupFactory.getInstance().createComponentPopupBuilder(this, searchTextField).setFocusable(true).setRequestFocus(true).createPopup()
     val updatePopupSize = {
-      scope.launch(AndroidDispatchers.uiThread) { popup.size = Dimension(preferredSize.width, preferredSize.height + 3) }
+      scope.launch(Dispatchers.EDT) { popup.size = Dimension(preferredSize.width, preferredSize.height + 3) }
       Unit
     }
     updatePopupSize()

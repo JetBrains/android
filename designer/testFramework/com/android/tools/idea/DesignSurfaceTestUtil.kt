@@ -30,6 +30,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.TestInteractable
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -74,7 +75,7 @@ object DesignSurfaceTestUtil {
     val interactable = TestInteractable(pannable, JPanel(), surface)
     whenever(surface.guiInputHandler).thenReturn(GuiInputHandler(surface, interactable, interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {
-      whenever(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface))
+      whenever(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface, disposableParent.createCoroutineScope()))
       whenever(surface.actionManager).thenReturn(NlActionManager(surface))
       whenever(surface.layoutPreviewHandler)
         .thenReturn(

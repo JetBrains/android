@@ -16,6 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
@@ -26,6 +27,7 @@ import com.android.tools.idea.preview.representation.CommonRepresentationEditorF
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.isAndroidModule
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.google.wireless.android.sdk.stats.LayoutEditorState
@@ -60,9 +62,12 @@ class WearTilePreviewRepresentationProvider(
     if (!virtualFile.isSourceFileType()) return false
     if (DumbService.isDumb(project)) return false
     // Wear Tile previews are only supported in Android modules.
-    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true) return false
+    val module = ModuleUtilCore.findModuleForFile(virtualFile, project) ?: return false
+    if (!module.isAndroidModule()) return false
 
-    return StudioFlags.WEAR_TILE_PREVIEW.get() && filePreviewElementFinder.hasPreviewElements(project, virtualFile)
+    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
+      module.dependsOn(GoogleMavenArtifactId.WEAR_TILES_TOOLING_PREVIEW) &&
+      filePreviewElementFinder.hasPreviewElements(project, virtualFile)
   }
 
   /** Creates a [WearTilePreviewRepresentation] for the input [psiFile]. */

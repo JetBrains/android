@@ -264,7 +264,7 @@ private val jbModelDumpers =
  * Note: Other tests in the IDE (e.g., templates, editor, UI tools, deployment) should not use this constant as they don't need to test
  * against the latest preview version of Kotlin.
  */
-const val KOTLIN_VERSION_FOR_TESTS = "2.3.20-Beta1"
+const val KOTLIN_VERSION_FOR_TESTS = "2.3.20-RC"
 
 fun String.replaceKotlinVersionForTests(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
 
@@ -684,6 +684,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) =
         }
         ideSourceProvider.baselineProfileDirectories.forEach { prop("BaselineProfileDirectories") { it.path.toPrintablePath() } }
         ideSourceProvider.keepRulesDirectories.forEach { prop("KeepRulesDirectories") { it.path.toPrintablePath() } }
+        ideSourceProvider.aarKeepRulesDirectories.forEach { prop("AarKeepRulesDirectories") { it.path.toPrintablePath() } }
       }
 
       private fun dump(extraSourceProvider: IdeExtraSourceProvider) {

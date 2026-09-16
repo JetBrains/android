@@ -53,7 +53,7 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver",
         "//tools/base/flags:studio.android.sdktools.flags",

@@ -20,15 +20,14 @@ import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.protobuf.UnsafeByteOperations;
+import com.android.tools.idea.util.AndroidPluginPathManager;
 import com.android.tools.idea.util.StudioPathManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.system.CpuArch;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
@@ -104,14 +103,13 @@ public class ImageConverter {
 
   private static @NotNull Path getLibLocation() {
     String libName = getLibName();
-    Path homePath = Paths.get(PathManager.getHomePath());
+    Path nativeDir = AndroidPluginPathManager.getResource("native"); // JetBrains patch
     // Installed Studio.
     Path libFile;
     if (IdeInfo.getInstance().isAndroidStudio()) {
-      libFile = homePath.resolve("plugins/android/resources/native").resolve(libName);
+      libFile = nativeDir.resolve(libName);
     } else  {
-      libFile = homePath
-        .resolve("plugins/android/resources/native")
+      libFile = nativeDir
         .resolve(getPlatformName())
         .resolve(libName);
     }

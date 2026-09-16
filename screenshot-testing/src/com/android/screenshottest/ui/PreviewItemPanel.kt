@@ -17,9 +17,12 @@ package com.android.screenshottest.ui
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.ScreenshotViewType
+import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
@@ -48,6 +51,7 @@ private val MAX_IMAGE_SIZE: Int
 /** A UI panel that displays a single screenshot test preview image. */
 class PreviewItemPanel(
   var previewData: PreviewDetails,
+  private val project: Project? = null,
   private val showDetails: Boolean = true,
   private val thumbnailCache: MutableMap<String, JBImageIcon>? = null,
   private val logger: Logger = Logger.getInstance(PreviewItemPanel::class.java),
@@ -164,7 +168,12 @@ class PreviewItemPanel(
     when (viewType) {
       ScreenshotViewType.ALL -> {}
       ScreenshotViewType.NEW -> {
-        previewData.srcImagePath?.let { loadImage(it, previewData.testId, onImageLoaded) } ?: showError(NO_NEW_IMAGE_TEXT)
+        previewData.srcImagePath?.let { loadImage(it, previewData.testId, onImageLoaded) }
+          ?: run {
+            // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event
+            logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
+            showError(NO_NEW_IMAGE_TEXT)
+          }
       }
       ScreenshotViewType.DIFF -> {
         val diffPath = previewData.diffImagePath
@@ -235,6 +244,8 @@ class PreviewItemPanel(
             onImageLoaded?.invoke()
           } else {
             logger.error("Couldn't load image from path: $newPath")
+            // Log the SCREENSHOT_DIALOG_RENDER_FAILURE event
+            logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_RENDER_FAILURE, project)
             showError(COULD_NOT_LOAD_IMAGE_TEXT)
           }
         }

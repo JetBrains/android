@@ -207,7 +207,14 @@ private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile, deviceTy
 
 /**
  * Obtains flavor based on test-result.pb location, we either get its parent name or its skip parent name flavors folder is structured as
- * below flavors |-> flavor1 |-> test-result.pb |-> testDevice1 |-> test-result.pb
+ * below
+ * <pre>
+ * flavors
+ *    |-> flavor1
+ *           |-> test-result.pb
+ *           |-> testDevice1
+ *                  |-> test-result.pb
+ * </pre>
  */
 private fun getFlavorName(dir: VirtualFile, layer: Int): String? {
   if (layer < 2) {

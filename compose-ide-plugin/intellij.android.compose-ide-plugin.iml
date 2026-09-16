@@ -33,8 +33,8 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.k2" />
     <orderEntry type="module" module-name="intellij.kotlin.references" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-ir" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.fe10" scope="PROVIDED" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.ir" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.fir" scope="PROVIDED" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -103,7 +103,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.refactorings.base" />
     <orderEntry type="module" module-name="intellij.kotlin.highlighting" />
     <orderEntry type="module" module-name="intellij.android.completion" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.compose.compiler.plugin" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.kotlin.compilerPlugins.support.bundled" />
     <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />

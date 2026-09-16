@@ -610,6 +610,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myStreamIdToStreams.getOrDefault(streamId, Common.Stream.getDefaultInstance());
   }
 
+  public long getStreamId(@NotNull Common.Device device) {
+    Long streamId = myDeviceToStreamIds.get(device);
+    return streamId == null ? 0L : streamId;
+  }
+
   @Override
   public void update(long elapsedNs) {
     myEventPollingInternvalNs += elapsedNs;
@@ -658,6 +663,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         boolean isTaskBasedUXEnabled = getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
         if (!isTaskBasedUXEnabled) {
           setProcess(findPreferredDevice(), null);
+        } else {
+          syncSelectedProcessState();
         }
 
         if (isTaskBasedUXEnabled) {
@@ -836,6 +843,32 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
+   * In the Task-Based UX, we need to keep the state of the currently selected process in sync.
+   * If the process dies (e.g. app is closed), we ensure the session is ended, which will
+   * subsequently trigger the task to stop via the UI listeners.
+   */
+  private void syncSelectedProcessState() {
+    if (myProcess == null) {
+      return;
+    }
+
+    List<Common.Process> processes = myProcesses.get(myDevice);
+    if (processes == null) {
+      return;
+    }
+
+    for (Common.Process p : processes) {
+      if (isSameProcess(p, myProcess) && !p.equals(myProcess)) {
+        updateProcessState(p);
+        if (p.getState() == Common.Process.State.DEAD && mySessionsManager.isSessionAlive()) {
+          mySessionsManager.endCurrentSession();
+        }
+        break;
+      }
+    }
+  }
+
+  /**
    * Register the listener to set proper stage when a new session is selected.
    *
    * @param sessionType type of the new session.
@@ -901,7 +934,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myTaskHomeTabModel.resetSelectionStateAndClearStartupTaskConfigs();
       }
 
-      if (isStartupTask && !startupProfilingStarted() && mySessionsManager.isSessionAlive()) {
+      boolean isLeakCanaryTask = selectedTaskType == ProfilerTaskType.LEAKCANARY;
+      // If the task is not LeakCanary, check if startup profiling has started successfully.
+      boolean hasStartupProfilingFailed = !isLeakCanaryTask && !startupProfilingStarted();
+
+      if (isStartupTask && hasStartupProfilingFailed && mySessionsManager.isSessionAlive()) {
         mySessionsManager.endSelectedSession();
         myIdeServices.showNotification(TaskNotifications.STARTUP_TASK_FAILURE);
         return;

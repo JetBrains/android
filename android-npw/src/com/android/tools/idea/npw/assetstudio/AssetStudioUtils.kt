@@ -22,9 +22,9 @@ package com.android.tools.idea.npw.assetstudio
 import com.android.ide.common.util.AssetUtil
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.util.AndroidPluginPathManager
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.base.CaseFormat
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -140,7 +140,7 @@ fun getBundledImage(dir: String, fileName: String): Path {
     when {
       StudioPathManager.isRunningFromSources() ->
         StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/resources/images/$dir/$fileName")
-      else -> Paths.get(PathManager.getHomePath()).resolve("plugins/android/resources/images/$dir/$fileName")
+      else -> AndroidPluginPathManager.getResource("images/$dir/$fileName") // JetBrains patch
     }
 
   if (!Files.exists(imageFile)) {

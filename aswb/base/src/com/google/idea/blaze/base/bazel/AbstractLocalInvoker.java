@@ -294,7 +294,7 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
       return BuildEventStreamProvider.fromInputStream(
           new BufferedInputStream(new FileInputStream(outputFile)));
     } catch (FileNotFoundException e) {
-      logger.error(e);
+      logger.warn(e);
       throw new GetArtifactsException(e.getMessage());
     }
   }

@@ -16,16 +16,14 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.util.TestToolWindowManager
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -43,11 +41,9 @@ class ToggleIssueDetailActionTest {
 
   @Before
   fun setup() {
-    rule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
     rule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
     HeadlessDataManager.fallbackToProductionDataManager(rule.testRootDisposable)
-    val manager = ToolWindowManager.getInstance(rule.project)
-    toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
+    toolWindow = createFakeToolWindow(rule.project, rule.testRootDisposable, ProblemsView.ID)
     runInEdtAndWait { ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project)) }
   }
 

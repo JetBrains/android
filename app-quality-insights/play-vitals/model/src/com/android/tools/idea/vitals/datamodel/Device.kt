@@ -19,23 +19,23 @@ import com.android.tools.idea.insights.model.event.Device
 import com.android.tools.idea.insights.model.event.DeviceType
 import com.google.play.developer.reporting.DeviceModelSummary
 
-fun Device.Companion.fromProto(proto: DeviceModelSummary): Device {
-  val brand = proto.deviceId.buildBrand
-  val model = proto.deviceId.buildDevice
+fun DeviceModelSummary.toDevice(): Device {
+  val brand = deviceId.buildBrand
+  val model = deviceId.buildDevice
   return Device(
     manufacturer = brand, // e.g. xiaomi
     model = model, // e.g. cereus
-    displayName = createFullDisplayName(brand, model, proto.marketingName),
+    displayName = createFullDisplayName(brand, model, marketingName),
   )
 }
 
-fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
+fun List<Dimension>.toDevice(): Device {
   var deviceModel = ""
   var displayName = ""
   var manufacturer = ""
   var deviceType = ""
 
-  dimensions.map {
+  forEach {
     when (it.type) {
       DimensionType.DEVICE_BRAND -> {
         manufacturer = (it.value as DimensionValue.StringValue).value

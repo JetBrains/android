@@ -223,6 +223,7 @@ class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutIns
     when (recomposition) {
       2 -> addStateReadGroup2()
       3 -> addStateReadGroup3()
+      4 -> addStateReadGroup4()
       102 -> addStateReadGroup102()
       103 -> addStateReadGroup103()
       else -> return false
@@ -265,8 +266,12 @@ class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutIns
   }
 
   private fun RecompositionStateReadResponseBuilder.addStateReadGroup3() {
+    StateReadGroup { Recomposition(3) }
+  }
+
+  private fun RecompositionStateReadResponseBuilder.addStateReadGroup4() {
     StateReadGroup {
-      Recomposition(3)
+      Recomposition(4)
       StateRead {
         Parameter("value", Type.ITERABLE, "List[2]") {
           Element("[0]", Type.STRING, "b")

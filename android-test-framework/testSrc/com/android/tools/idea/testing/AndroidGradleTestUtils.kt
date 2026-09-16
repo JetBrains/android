@@ -239,6 +239,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
+import org.jetbrains.kotlin.idea.core.script.KotlinScriptWorkspaceFileIndexContributor
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -818,6 +819,7 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
     customSourceDirectories = emptyList(),
     baselineProfileDirectories = emptyList(),
     keepRulesDirectoriesField = emptyList(),
+    aarKeepRulesDirectoriesField = emptyList(),
   )
 }
 
@@ -900,6 +902,7 @@ private fun sourceProvider(
     customSourceDirectories = listOf(/*IdeCustomSourceDirectoryImpl("custom", rootDir, "custom")*/ ),
     baselineProfileDirectories = listOf("baselineProfiles"),
     keepRulesDirectoriesField = listOf("keepRules"),
+    aarKeepRulesDirectoriesField = listOf("aarKeepRules"),
   )
 }
 
@@ -1834,7 +1837,7 @@ private fun setupTestProjectFromAndroidModelCore(
       // Here we are setting up the modules per each source set (with the holder module as the
       // parent)
       moduleDataNode.findAll(GradleSourceSetData.KEY).forEach { data ->
-        val sourceSetEntitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, data.data.internalName)
+        val sourceSetEntitySource = AndroidGradleSourceSetEntitySource(linkedProjectRootPath, data.data.internalName)
         entityChanges addEntity
           ModuleEntity(
               name = data.data.internalName,
@@ -1940,9 +1943,10 @@ private fun createAndroidModuleDataNode(
         moduleBasePath.resolve("build.gradle").toImpl(),
         gradleVersion,
         agpVersion,
-        false,
-        false,
-        false,
+        safeArgsJava = false,
+        safeArgsKotlin = false,
+        hasFtlPlugin = false,
+        hasLegacyKaptPlugin = false,
       ),
       null,
     )
@@ -2116,9 +2120,10 @@ private fun createJavaModuleDataNode(
           moduleBasePath.resolve("build.gradle").toImpl(),
           null,
           null,
-          false,
-          false,
-          false,
+          safeArgsJava = false,
+          safeArgsKotlin = false,
+          hasFtlPlugin = false,
+          hasLegacyKaptPlugin = false,
         ),
         null,
       )
@@ -2427,7 +2432,7 @@ fun <T> IntegrationTestEnvironment.openPreparedProject(
   return openPreparedProject(this, nameToPath(name), options, action)
 }
 
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 private fun <T> openPreparedProject(
   integrationTestEnvironment: IntegrationTestEnvironment,
   projectPath: File,
@@ -2923,8 +2928,7 @@ private fun Project.maybeOutputDiagnostics() {
 
 fun disableKtsIndexing(project: Project, disposable: Disposable) {
   val ep = WorkspaceFileIndexImpl.EP_NAME
-  val filteredExtensions =
-    ep.extensionList.filter { it !is org.jetbrains.kotlin.idea.core.script.k2.KotlinScriptWorkspaceFileIndexContributor }
+  val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
 
   ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
 }

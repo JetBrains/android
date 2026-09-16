@@ -124,7 +124,7 @@ class StateReadMenuTest {
     val observeNode = actions[0]
     observeNode.checkText(event, "Observe Node")
     ActionUtil.performAction(observeNode, event)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2)))
+    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2.anchorHash)))
     observeNode.checkText(event, "Stop Observing Node")
     ActionUtil.performAction(observeNode, event)
     assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(None)

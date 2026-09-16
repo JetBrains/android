@@ -223,7 +223,7 @@ public abstract class ViewEditor {
 
   /**
    * Inserts the children into the parent. This method will also add missing dependencies after prompting the developer.
-   * If no user interaction is wanted you can call canInsertChildren first and then addDependencies if neccessary.
+   * If no user interaction is wanted you can call canInsertChildren first and then addDependencies if necessary.
    * This method can optionally be called from within a write transaction.
    *
    * @param index the index at which to insert the children or -1 to insert them at the end. If existing children are being moved to a new

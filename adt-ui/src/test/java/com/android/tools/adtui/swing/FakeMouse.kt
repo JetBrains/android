@@ -193,11 +193,15 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
 
   private fun click(x: Int, y: Int, button: Button, clickCount: Int, timestamp: Long) {
     check(cursor == null) { "Mouse already pressed. Call release before clicking." }
-    moveTo(x, y, timestamp)
-    val cursor = press(x, y, button, clickCount, timestamp)
-    release(timestamp)
-    // PRESSED + RELEASED should additionally fire a CLICKED event
-    dispatchMouseEvent(MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount, false, timestamp)
+    try {
+      moveTo(x, y, timestamp)
+      val cursor = press(x, y, button, clickCount, timestamp)
+      release(timestamp)
+      // PRESSED + RELEASED should additionally fire a CLICKED event
+      dispatchMouseEvent(MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount, false, timestamp)
+    } finally {
+      this.cursor = null
+    }
   }
 
   /**

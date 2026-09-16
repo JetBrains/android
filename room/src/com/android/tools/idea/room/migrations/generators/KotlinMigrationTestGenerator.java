@@ -42,6 +42,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
 import org.jetbrains.kotlin.name.FqName;
+import org.jetbrains.kotlin.idea.base.psi.KotlinPsiModificationUtils;
 import org.jetbrains.kotlin.psi.KtAnnotationEntry;
 import org.jetbrains.kotlin.psi.KtBlockExpression;
 import org.jetbrains.kotlin.psi.KtClass;
@@ -87,7 +88,7 @@ public class KotlinMigrationTestGenerator implements MigrationTestGenerator {
     KtAnnotationEntry runnerAnnotation = ktPsiFactory.createAnnotationEntry(
       getAnnotationWithParameter(RUN_WITH_ANNOTATION_QUALIFIED_NAME,
                                  selectRunnerClass(JavaPsiFacade.getInstance(project), ktMigrationTest.getResolveScope())));
-    ktMigrationTest.addAnnotationEntry(runnerAnnotation);
+    KotlinPsiModificationUtils.addAnnotation(ktMigrationTest, runnerAnnotation);
 
     addTestDatabaseNameField(ktMigrationTest, StringUtil.getShortName(databaseClassFullyQualifiedName));
     addMigrationTestHelperField(ktMigrationTest, databaseClassFullyQualifiedName);
@@ -157,7 +158,7 @@ public class KotlinMigrationTestGenerator implements MigrationTestGenerator {
       ktPsiFactory.createDeclaration(getHelperInitializationExpression(CodeType.KOTLIN_CODE, databaseClassQualifiedName));
 
     KtAnnotationEntry ruleAnnotation = ktPsiFactory.createAnnotationEntry(getAnnotationName(RULE_ANNOTATION_QUALIFIED_NAME));
-    ruleAnnotation = migrationTestHelperFieldDeclaration.addAnnotationEntry(ruleAnnotation);
+    ruleAnnotation = KotlinPsiModificationUtils.addAnnotation(migrationTestHelperFieldDeclaration, ruleAnnotation);
     ruleAnnotation.add(ktPsiFactory.createNewLine());
 
     addElementToTestClass(migrationTestHelperFieldDeclaration, ktMigrationTest);
@@ -177,8 +178,8 @@ public class KotlinMigrationTestGenerator implements MigrationTestGenerator {
     KtAnnotationEntry throwsAnnotation =
       ktPsiFactory.createAnnotationEntry(getAnnotationWithParameter("Throws", IO_EXCEPTION_QUALIFIED_NAME));
 
-    ktMigrationFunction.addAnnotationEntry(throwsAnnotation);
-    ktMigrationFunction.addAnnotationEntry(testAnnotation);
+    KotlinPsiModificationUtils.addAnnotation(ktMigrationFunction, throwsAnnotation);
+    KotlinPsiModificationUtils.addAnnotation(ktMigrationFunction, testAnnotation);
 
     addExpressionToMethod(ktPsiFactory.createDeclaration(getCreateDatabaseStatement(CodeType.KOTLIN_CODE, databaseName, startVersion)),
                           ktPsiFactory.createComment(getCreateDatabaseComment(startVersion)),

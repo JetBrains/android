@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromClass
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.UNIT_TESTING
 import com.android.tools.idea.testing.onEdt
@@ -24,8 +29,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.project.modules
 import com.intellij.testFramework.RunsInEdt
-import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
 import org.junit.Before
@@ -34,6 +39,7 @@ import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.verify
 
 /** Tests for {@link AssembleRunConfigurationAction }. */
 @RunsInEdt
@@ -44,6 +50,9 @@ class AssembleRunConfigurationActionTest {
   private var myPresentation: Presentation? = null
 
   @Mock private var myEvent: AnActionEvent? = null
+
+  @Mock private val myBuildInvoker: GradleBuildInvoker? = null
+
   private val myAction = AssembleRunConfigurationAction()
 
   @Before
@@ -52,11 +61,15 @@ class AssembleRunConfigurationActionTest {
     myPresentation = Presentation()
     Mockito.`when`(myEvent!!.presentation).thenReturn(myPresentation)
     Mockito.`when`(myEvent!!.project).thenReturn(project)
+    IdeComponents(project).replaceProjectService<GradleBuildInvoker?>(GradleBuildInvoker::class.java, myBuildInvoker!!)
   }
 
-  /** Test to verify that the Java Run Configs are not enabled on Android Studio. Context: b/467659028. */
+  /**
+   * Test to verify that the Java Run Configs are enabled on Android Studio, and that for test configs, we only invoke the task to build the
+   * test module.
+   */
   @Test
-  fun testJavaRunConfigIsNotEnabled() {
+  fun testJavaRunConfigIsEnabled() {
     projectRule.loadProject(UNIT_TESTING)
     val gradleJavaConfiguration = createAndroidGradleTestConfigurationFromClass(project, "com.example.javalib.JavaLibJavaTest")
     assertThat(gradleJavaConfiguration).isNotNull()
@@ -67,7 +80,19 @@ class AssembleRunConfigurationActionTest {
 
     myAction.update(myEvent!!)
     // Check that we, in fact, have this action disabled for the Java Run Config.
-    assertFalse(myPresentation!!.isEnabledAndVisible)
+    assertTrue(myPresentation!!.isEnabledAndVisible)
+
+    myAction.actionPerformed(myEvent!!)
+    val testModules =
+      project.modules.filter { module ->
+        (module.getGradleProjectPath() as? GradleSourceSetProjectPath).let { gradleId ->
+          gradleId?.path?.contains("javalib") == true && gradleId.sourceSet == IdeModuleSourceSetImpl("test", true)
+        }
+      }
+
+    assertTrue(testModules.size == 1)
+    // Verify that the task was invoked to build the test module only.
+    verify(myBuildInvoker)?.buildConfiguration(testModules.toTypedArray(), false)
   }
 
   @Test

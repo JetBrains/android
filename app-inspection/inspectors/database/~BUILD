@@ -59,7 +59,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",

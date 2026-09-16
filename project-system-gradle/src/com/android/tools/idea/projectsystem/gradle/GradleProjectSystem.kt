@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.ddmlib.IDevice
+import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
@@ -237,6 +238,9 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
     val packageToModule: Map<String, Set<Module>>,
     val namespacesWithPrefixes: Set<String>,
     val applicationIdToModule: Map<String, Set<Module>>,
+    val builtInKotlinDefaultEnabled: Boolean,
+    // versions of AGP sorted descending.
+    val agpVersions: Set<AgpVersion>,
   )
 
   private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
@@ -244,6 +248,8 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       .getCachedValue(
         project,
         CachedValueProvider {
+          val agpVersions = mutableSetOf<AgpVersion>()
+          var builtInKotlinDefaultEnabled: Boolean? = null
           val packageToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
           val applicationIdsToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
           // It's generally expected that an application ID will map to a single module.
@@ -256,6 +262,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
             val model = GradleAndroidModel.get(androidFacet) ?: continue
             val mainModule = androidFacet.module.getMainModule()
             val androidTestModule = mainModule.getAndroidTestModule()
+            agpVersions.add(model.agpVersion)
             model.androidProject.namespace?.let { namespace -> packageToModule.put(namespace, mainModule) }
 
             if (androidTestModule != null) {
@@ -276,6 +283,9 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
                 applicationIdsToModule.put(applicationId, androidTestModule)
               }
             }
+            // Assume built-in kotlin is default enabled if it is enabled anywhere
+            builtInKotlinDefaultEnabled =
+              (builtInKotlinDefaultEnabled ?: false) || model.androidProject.agpFlags.builtInKotlinDefaultEnabled
           }
           // Only sort if there are multiple values, and only realise the comparator if it is needed
           var comparator: Comparator<Module>? = null
@@ -301,6 +311,8 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
               packageToModule = packageToModule.build(),
               namespacesWithPrefixes = namespacesWithPrefixes.build(),
               applicationIdToModule = applicationIdsToModule.build(),
+              builtInKotlinDefaultEnabled = builtInKotlinDefaultEnabled ?: true,
+              agpVersions = agpVersions.sortedDescending().toPersistentSet(),
             ),
             ProjectSyncModificationTracker.getInstance(project),
           )
@@ -328,6 +340,16 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override fun findModulesWithApplicationId(applicationId: String): Collection<Module> {
     val census = getGradleProjectCensus(project)
     return census.applicationIdToModule[applicationId] ?: emptyList()
+  }
+
+  fun getBuiltInKotlinDefaultEnabled(): Boolean {
+    val census = getGradleProjectCensus(project)
+    return census.builtInKotlinDefaultEnabled
+  }
+
+  fun getHeuristicAgpVersion(): AgpVersion? {
+    val census = getGradleProjectCensus(project)
+    return census.agpVersions.firstOrNull()
   }
 
   /** Gradle supports the profiling mode flag. */

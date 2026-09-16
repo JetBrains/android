@@ -52,7 +52,9 @@ import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.extractValue
-import com.android.tools.idea.vitals.datamodel.fromDimensions
+import com.android.tools.idea.vitals.datamodel.toDevice
+import com.android.tools.idea.vitals.datamodel.toOperatingSystemInfo
+import com.android.tools.idea.vitals.datamodel.toVersion
 import io.grpc.Channel
 import io.grpc.ClientInterceptor
 import kotlinx.coroutines.async
@@ -212,7 +214,7 @@ class VitalsClient(
       )
       .map { dataPoint ->
         val version =
-          Version.fromDimensions(dataPoint.dimensions).let { rawVersion ->
+          dataPoint.dimensions.toVersion().let { rawVersion ->
             val tracks = releases.singleOrNull { release -> release.buildVersion == rawVersion.buildVersion }?.tracks ?: emptySet()
             rawVersion.copy(tracks = tracks)
           }
@@ -239,7 +241,7 @@ class VitalsClient(
         metrics = listOf(metricType),
       )
       .map { dataPoint ->
-        val device = Device.fromDimensions(dataPoint.dimensions)
+        val device = dataPoint.dimensions.toDevice()
         val count = dataPoint.metrics.extractValue(metricType)
 
         device to count
@@ -262,7 +264,7 @@ class VitalsClient(
         metrics = listOf(metricType),
       )
       .map { dataPoint ->
-        val os = OperatingSystemInfo.fromDimensions(dataPoint.dimensions)
+        val os = dataPoint.dimensions.toOperatingSystemInfo()
         val count = dataPoint.metrics.extractValue(metricType)
 
         os to count

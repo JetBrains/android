@@ -35,9 +35,22 @@ class GradleSchemaProjectResolver : AbstractProjectResolverExtension() {
 
   override fun populateProjectExtraModels(gradleProject: IdeaProject, ideProject: DataNode<ProjectData>) {
     if (DeclarativeIdeSupport.isEnabled()) {
-      val declarativeSchemaModel = resolverCtx.getRootModel(DeclarativeSchemaModel::class.java) ?: return
-      ideProject.createChild(DECLARATIVE_PROJECT_SCHEMAS, declarativeSchemaModel.convertProject())
-      ideProject.createChild(DECLARATIVE_SETTINGS_SCHEMAS, declarativeSchemaModel.convertSettings())
+      val projectSchemasMap = mutableMapOf<String, Set<BuildDeclarativeSchema>>()
+      val settingsSchemasMap = mutableMapOf<String, Set<BuildDeclarativeSchema>>()
+
+      for (build in resolverCtx.allBuilds) {
+        val model = resolverCtx.getBuildModel(build, DeclarativeSchemaModel::class.java) ?: continue
+        val buildPath = build.buildIdentifier.rootDir.absolutePath.replace('\\', '/')
+        projectSchemasMap[buildPath] = model.convertProject()
+        settingsSchemasMap[buildPath] = model.convertSettings()
+      }
+
+      if (projectSchemasMap.isNotEmpty()) {
+        ideProject.createChild(DECLARATIVE_PROJECT_SCHEMAS, ProjectSchemas(projectSchemasMap))
+      }
+      if (settingsSchemasMap.isNotEmpty()) {
+        ideProject.createChild(DECLARATIVE_SETTINGS_SCHEMAS, SettingsSchemas(settingsSchemasMap))
+      }
     }
     nextResolver.populateProjectExtraModels(gradleProject, ideProject)
   }

@@ -67,7 +67,7 @@ interface LightGradleTestProject : TestProjectDefinition {
         return openProjectAndRunTestWithTestFixturesAvailable(openProjectImplementation = ::openProject, testBody = body)
       }
 
-      @RequiresBackgroundThread
+      @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
       private fun <T> openProject(body: (project: Project, projectRoot: File) -> T): T {
         val options = createTestOpenProjectOptions(true)
         val project =

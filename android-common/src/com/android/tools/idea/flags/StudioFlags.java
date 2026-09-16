@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
@@ -273,6 +274,10 @@ public final class StudioFlags {
     NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
     "Show template to create a new Kotlin Multiplatform module in the new module wizard.");
 
+  public static final Flag<Boolean> NPW_EMPTY_CAL_APP_TEMPLATE = new BooleanFlag(
+    NPW, "emptycalapp.template", "Enable Empty CAL App Template",
+    "Enable Empty Car App Library App template in the New Project Wizard.");
+
   static class AndroidApiFlag extends CustomTypeFlag<AndroidApiLevel> {
     public AndroidApiFlag(FlagGroup group, String name, String displayName, String description, AndroidApiLevel defaultValue) {
       super(AndroidApiLevel.class, group, name, displayName, description, defaultValue, AndroidApiFlagConverter, examples);
@@ -414,6 +419,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> GENERATE_VECTOR_DRAWABLE_TOOL = new BooleanFlag(
     DESIGN_TOOLS, "generate.vector.drawable.tool", "Enable the Generate Vector Drawable agent tool",
     "If enabled, an agent tool to generate vector drawables will be available for agents.");
+
+  public static final Flag<Boolean> MATERIAL_SYMBOLS_TOOL = new BooleanFlag(
+    DESIGN_TOOLS, "material.symbols.tool", "Enable the Material Symbols Search agent tool",
+    "If enabled, an agent tool to search and find Material Symbol AVD and Compose icons will be available to the agent.");
   //endregion
 
   //region Layout Editor
@@ -940,9 +949,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_UI =
     new BooleanFlag(GRADLE_IDE, "gradle.sync.control.enabled", "Allow disabling of Auto Sync", "Allow opting-out from Gradle Auto Syncing.");
 
-  public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI =
-    new BooleanFlag(GRADLE_IDE, "gradle.sync.control.enabled.stable", "Allow disabling of Auto Sync via non-experimental settings",
-                    "Allow opting-out from Gradle Auto Syncing via non-experimental part of settings.");
+  public static final Flag<Boolean> EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK = new BooleanFlag(
+    GRADLE_IDE, "execute.gradle.jvm.compatibility.check", "Execute Gradle JVM compatibility check",
+    "Run during project opening the Gradle JVM compatibility check to ensure configuration is compatible with selected Gradle and AGP versions.");
+
   /**
    * Don't read this directly, use AgpVersions.agpVersionStudioFlagOverride which handles the 'stable' alias
    */
@@ -1092,6 +1102,19 @@ public final class StudioFlags {
     "enable.multiple.device.specs",
     "Multiple Device Specs",
     "Allows Studio to pass multiple device spec files separately to AGP along with target device spec.");
+
+  public static final Flag<Boolean> SIGNED_BUILD_ADV_FEATURE = new BooleanFlag(
+    GRADLE_IDE,
+    "enable.adv.in.signed.build.feature",
+    "ADV Registration in signed build feature",
+    "Include information about ADV in the signed build wizard."
+  );
+
+  public static final Flag<Boolean> SIGNED_BUILD_ADV_ENFORCEMENT_STARTED = new BooleanFlag(
+    GRADLE_IDE,
+    "adv.enforcement.started",
+    "ADV enforcement has started",
+    "Update the ADV message to indicate that registration is enforced.");
 
   //endregion
 
@@ -1484,11 +1507,6 @@ public final class StudioFlags {
   // region Preview Common
   private static final FlagGroup PREVIEW_COMMON = new FlagGroup(FLAGS, "preview", "Preview");
 
-  public static final Flag<Boolean> PREVIEW_RENDER_QUALITY = new BooleanFlag(
-    PREVIEW_COMMON, "render.quality", "Enable the usage of a render quality management mechanism for Preview tools",
-    "If enabled, different Previews will be rendered with different qualities according to zoom level, layout and scroll position"
-  );
-
   public static final Flag<Long> PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME = new LongFlag(
     PREVIEW_COMMON, "render.quality.debounce.time", "Render quality debounce time",
     "Milliseconds to wait before adjusting the quality of Previews, after a scroll or zoom change happens",
@@ -1502,12 +1520,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> PREVIEW_ESSENTIALS_MODE = new BooleanFlag(
     PREVIEW_COMMON, "essentials.mode", "Enable Preview Essentials Mode",
     "If enabled, Preview Essentials Mode will be enabled."
-  );
-
-  public static final Flag<Boolean> ADD_PREVIEW_IMAGE_TO_AI_REQUEST_FOR_CODE_GENERATION = new BooleanFlag(
-    PREVIEW_COMMON, "add.image.to.ai.request.for.preview",
-    "Add preview image to AI request for code generation",
-    "If enabled, adds current preview image to an AI request for code generation."
   );
 
   public static final Flag<Boolean> FIND_PREVIEWS_FROM_PREVIEW_SOURCESET = new BooleanFlag(
@@ -1624,26 +1636,11 @@ public final class StudioFlags {
     "If enabled, limits the number of allocations that user code can do in a single render action"
     );
 
-  public static final Flag<Boolean> COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE = new BooleanFlag(
-    COMPOSE, "preview.invalidate.on.resource.change", "When a resource changes, invalidate the current preview",
-    "Invalidates the preview is there is a resource change"
-    );
-
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action.agentic", "Use agents to generate Compose Previews",
     "Uses agentic approach when generating Compose Previews corresponding to the selected @Composable."
   );
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_EXTRA_PARAMETER_CONTEXT = new BooleanFlag(
-    COMPOSE, "preview.generate.extra.parameter.context", "Enable additional parameter context when generating Compose Previews",
-    "Enables an experiment of adding extra context when generating Compose Previews. The extra context will include information that should help instantiate parameters required by the Composable method used in the preview."
-    );
-
-  public static final Flag<Boolean> COMPOSE_UI_CHECK_FOR_WEAR = new BooleanFlag(
-    COMPOSE, "ui.check.mode.wear", "Enable UI Check mode for Compose preview for Wear OS",
-    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices."
-    );
 
   public static final Flag<Boolean> COMPOSE_UI_CHECK_FIX_WITH_AI = new BooleanFlag(
     COMPOSE, "ui.check.fix.with.ai", "Enable fix with AI button to fix UI Check errors",
@@ -1655,12 +1652,18 @@ public final class StudioFlags {
     "Enables a button to fix with AI render errors related to previews"
   );
 
+  public static final Flag<Boolean> COMPOSE_ENABLE_GDP_MCP_DIALOG = new BooleanFlag(
+    COMPOSE, "enable.gdp.mcp.dialog", "Enable GDP MCP server dialog",
+    "Enables the dialog prompting to enable the GDP MCP server.");
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC = new BooleanFlag(
     COMPOSE, "transform.ui.with.ai.agentic", "Use agent for Transform UI with Gemini",
     "Uses agentic approach when performing transform UI with Gemini."
     );
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_SUBCOMPONENT_CONTEXT_CHANGE_UI = new BooleanFlag(
+    COMPOSE, "preview.subcomponent.change.ui", "Enable subcomponent context to be sent to AI",
+    "Enables the change UI to have subcomponent selection when entering through clicking on preview.");
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCREENSHOT_TO_CODE = new BooleanFlag(
     COMPOSE, "preview.screenshot.to.code", "Enable screenshot to code action",
@@ -1852,6 +1855,13 @@ public final class StudioFlags {
     "Enable AI glasses emulator and phone emulator pairing wizard",
     "Enables the pairing assistant for glasses and phone emulators."
   );
+
+  public static final Flag<Boolean> EMULATOR_AEHD_TO_WHPX_CONVERSION = new BooleanFlag(
+    DEVICE_MANAGER,
+    "emulator.aehd.to.whpx.conversion",
+    "Emulator AEHD to WHPX Conversion",
+    "Migreate emulator AEHD users to use WHPX instead."
+  );
   // endregion
 
   // region Play Policy Insights
@@ -1873,6 +1883,14 @@ public final class StudioFlags {
       "Play Policy Insights target library version",
       "Force a specific version of the Play Policy Insights.",
       "");
+
+  public static final Flag<String> PLAY_POLICY_INSIGHTS_HOLDOUT_RATIO =
+    new StringFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights.holdout.ratio",
+      "Play Policy Insights Holdout Ratio",
+      "Holdout some Play Policy lint checks for a subset of applications.",
+      "0.0");
   // endregion Play Policy Insights
 
   // region Firebase Test Lab
@@ -1959,7 +1977,7 @@ public final class StudioFlags {
   // endregion Firebase Test Lab
 
   // region App Insights
-  private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
+  @VisibleForTesting public static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
   public static final Flag<Boolean> GEMINI_ASSISTED_CONTEXT_FETCH =
     new BooleanFlag(
@@ -2285,10 +2303,20 @@ public final class StudioFlags {
                     "Enable the integration with Google one.",
                     "When enabled, the studio-bot will show UI and upgrade paths corresponding to the Google one subscription held by the user.");
 
+  public static final Flag<Boolean> STUDIOBOT_IS_ASK_MODE_IN_DROPDOWN_ENABLED =
+    new BooleanFlag(STUDIOBOT, "ask.mode.in.dropdown.enabled",
+                    "Enable Ask mode in dropdown",
+                    "If enabled, Ask mode is available as a dropdown option instead of a separate tab.");
+
   public static final Flag<Boolean> STUDIOBOT_IS_SKILLS_ENABLED =
     new BooleanFlag(STUDIOBOT, "skills.enabled",
                     "Enable Studio Bot Skills.",
                     "When enabled, the studio-bot agents will be able to use skills.");
+
+  public static final Flag<Boolean> STUDIOBOT_IS_IDE_HISTORY_EVENTS_IN_CONTEXT =
+    new BooleanFlag(STUDIOBOT, "ide.history.enabled",
+                    "Enable IDE history in context",
+                    "When enabled, the agent will be told about IDE events.");
 
   public static final Flag<Boolean> STUDIOBOT_IS_QUICK_EDIT_ENABLED =
     new BooleanFlag(STUDIOBOT, "quick.edit.enabled",
@@ -2528,6 +2556,12 @@ public final class StudioFlags {
                     "When enabled, a setting and various UI is made visible to configure local models, and when provided and " +
                     "enabled it add local model option to Chat model picker.");
 
+  public static Flag<Boolean> LOCAL_GEMMA_ENABLED =
+    new BooleanFlag(STUDIOBOT, "local.gemma.enabled",
+                    "Enable local Gemma model.",
+                    "When enabled, a setting and various UI is made visible to configure the local Gemma model, and when provided and " +
+                    "enabled it adds Gemma model option to Chat model picker.");
+
   public static Flag<Boolean> REMOTE_MODELS_ENABLED =
     new BooleanFlag(STUDIOBOT, "remote.models.enabled",
                     "Add remote models for Chat.",
@@ -2643,6 +2677,16 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "regenerate.chat.request.button.enabled",
                     "Enable regenerating past chat queries.",
                     "Enable regenerating past chat queries by hovering and clicking a regenerate button.");
+
+  public static final Flag<Boolean> STUDIOBOT_TRAJECTORY_UI_TOOL_WINDOW_ENABLED =
+    new BooleanFlag(STUDIOBOT, "trajectory.ui.toolwindow.enabled",
+                    "Enable Trajectory UI in Tool Window",
+                    "Enables viewing the Trajectory based UI as a Tool Window");
+
+  public static final Flag<Boolean> STUDIOBOT_TRAJECTORY_UI_EDITOR_ACTION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "trajectory.ui.editor.action.enabled",
+                    "Enable Trajectory UI in Editor Tabs",
+                    "Enables viewing the Trajectory based UI on Editor tabs through a global Action.");
 
   public static final Flag<Boolean> GEMINI_DEBUGGER_TOOLS_ENABLED =
     new BooleanFlag(STUDIOBOT, "debugger.tools",
@@ -2760,6 +2804,11 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "new.subagent.mode",
                     "Enable new Sub-Agent mode",
                     "This enable the new sub-agent infrastructure,bringing in the task and run_skill tool");
+
+  public static final Flag<Boolean> STUDIOBOT_AGY_HARNESS =
+    new BooleanFlag(STUDIOBOT, "agy.harness",
+                    "Enable support for Antigravity Harness",
+                    "Enables the integration to connect and use Antigravity Harness");
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
@@ -2864,7 +2913,7 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.test.suite.journeys.engine.dep",
     "The name of the Journeys test engine dependency used by the Journeys test suite",
     "This dependency is automatically added by the Journeys template engine when configuring a test suite.",
-    "com.android.tools.journeys:journeys-junit-engine:0.2.1"
+    "com.android.tools.journeys:journeys-junit-engine:0.2.2"
   );
   public static final Flag<String> JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_ENGINE_DEP = new StringFlag(
     JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.test.suite.junit.platform.engine.dep",
@@ -2988,6 +3037,28 @@ public final class StudioFlags {
       "enabled",
       "Enable IDE support for AGP test suites",
       "Enables IDE support for AGP test suites. This value is overridden to `true` when Journeys with Gemini is enabled."
+    );
+  // endregion AGP Test Suites
+
+  // region Android Lint
+  private static final FlagGroup LINT = new FlagGroup(FLAGS, "lint", "Android Lint");
+  public static final Flag<Boolean> ANALYSIS_SCRIPTS =
+    new BooleanFlag(
+      LINT,
+      "analysis.scripts",
+      "Enable support for analysis scripts",
+      "Enable support for analysis scripts"
+    );
+  // endregion Android Lint
+
+  // region Marketing Data Collection
+  private static final FlagGroup MARKETING_DATA_COLLECTION = new FlagGroup(FLAGS, "marketing.data.collection", "Marketing Data Collection");
+  public static final Flag<Boolean> MARKETING_DATA_COLLECTION_ENABLED =
+    new BooleanFlag(
+      MARKETING_DATA_COLLECTION,
+      "enabled",
+      "Enable Marketing Data Collection",
+      "Enables the collection of usage data for Gemini marketing activation."
     );
   // endregion AGP Test Suites
 

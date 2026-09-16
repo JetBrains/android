@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.rendering.RenderTask
 import com.android.tools.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.visuallint.analyzers.LocaleAnalyzer
@@ -83,7 +85,8 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, configuration)
+        val issues =
+          analyzer.findIssues(renderResult = result.toVisualLintRenderResult(), configuration = configuration.toVisualLintConfiguration())
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -95,7 +98,8 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, configuration)
+        val issues =
+          analyzer.findIssues(renderResult = result.toVisualLintRenderResult(), configuration = configuration.toVisualLintConfiguration())
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("The text might be cut off.", issues[0].message)
       } catch (ex: java.lang.Exception) {
@@ -144,7 +148,8 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, configuration)
+        val issues =
+          analyzer.findIssues(renderResult = result.toVisualLintRenderResult(), configuration = configuration.toVisualLintConfiguration())
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -156,7 +161,8 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, configuration)
+        val issues =
+          analyzer.findIssues(renderResult = result.toVisualLintRenderResult(), configuration = configuration.toVisualLintConfiguration())
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("The text is ellipsized in locale \"fr\".", issues[0].message)
       } catch (ex: java.lang.Exception) {
@@ -204,7 +210,8 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, configuration)
+        val issues =
+          analyzer.findIssues(renderResult = result.toVisualLintRenderResult(), configuration = configuration.toVisualLintConfiguration())
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -216,7 +223,8 @@ class LocaleAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = analyzer.findIssues(result, configuration)
+        val issues =
+          analyzer.findIssues(renderResult = result.toVisualLintRenderResult(), configuration = configuration.toVisualLintConfiguration())
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)

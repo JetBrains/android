@@ -88,7 +88,7 @@ open class StubAppInsightsProjectLevelController(
 
   override fun selectIssueVariant(variant: IssueVariant?) {}
 
-  override fun refreshInsight(regenerateWithContext: Boolean) {}
+  override fun refreshInsight(regenerateWithContext: Boolean, forceGenerateNewInsight: Boolean) {}
 
   override fun submitInsightFeedback(insightFeedback: InsightFeedback) {}
 

@@ -84,6 +84,7 @@
     <taskManager implementation="com.android.tools.idea.testartifacts.testsuite.GradleAndroidTestsTaskManager"/>
     <syncExtension implementation="com.android.tools.idea.projectsystem.gradle.phased.CleanupAndroidGroupSyncExtension" />
     <syncExtension implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncExtension"/>
+    <syncExtension implementation="com.android.tools.idea.gradle.project.sync.idea.GradleProjectPathSyncExtension"/>
     <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncAdditionalPhaseContributor"/>
     <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncDependencyPhaseContributor"/>
     <syncContributor implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidSourceRootSyncSourceSetPhaseContributor"/>

@@ -17,16 +17,17 @@ package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.selectionOf
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -50,7 +51,7 @@ class AppInsightsDropDownActionTest {
 
   @Test
   fun `popup has the right value selected`(): Unit =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableStateFlow(selectionOf(TestValues.ONE))
       val dropdown = AppInsightsDropDownAction("testName", null, null, flow, null, {})
 
@@ -71,7 +72,7 @@ class AppInsightsDropDownActionTest {
 
   @Test
   fun `icons for entries are correctly set when available`(): Unit =
-    runBlocking(AndroidDispatchers.uiThread) {
+    runBlocking(Dispatchers.EDT) {
       val flow = MutableStateFlow(selectionOf(TestValues.ONE))
       val dropdown = AppInsightsDropDownAction("testName", null, null, flow, { value -> if (value == TestValues.TWO) ICON else null }, {})
 

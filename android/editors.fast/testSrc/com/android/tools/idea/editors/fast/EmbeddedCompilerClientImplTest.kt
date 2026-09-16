@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.compile.fast.CompilationResult
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.composeRuntimePath
@@ -42,6 +41,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -438,7 +438,7 @@ internal class EmbeddedCompilerClientImplTest {
             ProgressManager.checkCanceled()
           }
         }
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         compilationHasStarted.await()
 
         // Trigger a write action that should abort the compilation

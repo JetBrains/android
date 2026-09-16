@@ -27,6 +27,11 @@ public interface BlazeProjectData {
   @Nullable
   BuildTarget getBuildTarget(Label label);
 
+  @Nullable
+  default BuildTarget getBuildTarget(com.google.idea.blaze.common.Label label) {
+    return getBuildTarget(Label.create(label));
+  }
+
   WorkspacePathResolver getWorkspacePathResolver();
 
   WorkspaceLanguageSettings getWorkspaceLanguageSettings();

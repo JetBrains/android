@@ -131,17 +131,3 @@ class DefaultRenderQualityManager(
 
   @TestOnly internal fun sceneViewRectanglesContainsForTest(sceneView: SceneView) = sceneViewRectangles.containsKey(sceneView)
 }
-
-/**
- * A [RenderQualityManager] that doesn't detect the need of changing quality and delegates the target quality calculation to a
- * [qualityProvider].
- */
-class SimpleRenderQualityManager(private val qualityProvider: () -> Float) : RenderQualityManager {
-  override fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float {
-    return qualityProvider()
-  }
-
-  override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean {
-    return false
-  }
-}

@@ -33,15 +33,20 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory;
 import com.android.tools.idea.projectsystem.SourceProvidersImpl;
 import com.android.tools.idea.res.AndroidInnerClassFinder;
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
+import com.google.idea.blaze.android.run.BazelApplicationIdProvider;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElementFinder;
@@ -56,12 +61,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class to implement common methods in {@link AndroidProjectSystem} for blaze with different
  * sdk
  */
 public class BazelProjectSystem implements AndroidProjectSystem {
+  public static final Key<BazelApplicationIdProvider> RUN_CONFIG_APPLICATION_ID_PROVIDER =
+      Key.create("run_config_application_id_provider");
   protected final Project project;
   protected final ProjectSystemSyncManager syncManager;
   protected final List<PsiElementFinder> myFinders;
@@ -118,30 +126,39 @@ public class BazelProjectSystem implements AndroidProjectSystem {
     return new SourceProvidersFactory() {
       @Override
       public SourceProviders createSourceProvidersFor(AndroidFacet facet) {
-        QuerySyncManager querySyncManager = QuerySyncManager.getInstance(facet.getModule().getProject());
+        QuerySyncManager querySyncManager =
+            QuerySyncManager.getInstance(facet.getModule().getProject());
         final var querySyncProject = querySyncManager.getLoadedProject();
         if (querySyncProject.isEmpty()) return createSourceProvidersForLegacyModule(facet);
         final var data = querySyncManager.getCurrentSnapshot();
         if (data.isEmpty()) return createSourceProvidersForLegacyModule(facet);
-        final var androidResourceDirectories = data.get().getProject().getModules().stream().flatMap(it -> it.getAndroidResourceDirectories().stream())
-          .toList();
+        final var androidResourceDirectories =
+            data.get().getProject().getModules().stream()
+                .flatMap(it -> it.getAndroidResourceDirectories().stream())
+                .toList();
         var androidResourceDirectoryFiles =
-          androidResourceDirectories
-            .stream()
-            .flatMap (it -> querySyncProject.map(p -> p.getProjectPathResolver().resolve(it).toFile()).stream())
-            .collect(toImmutableSet());
+            androidResourceDirectories.stream()
+                .flatMap(
+                    it ->
+                        querySyncProject
+                            .map(p -> p.getProjectPathResolver().resolve(it).toFile())
+                            .stream())
+                .collect(toImmutableSet());
         var mainSourceProvider =
-          NamedIdeaSourceProviderBuilder.create(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME, VfsUtilCore.fileToUrl(new File("MissingManifest.xml")))
-            .withScopeType(ScopeType.MAIN)
-            .withResDirectoryUrls(androidResourceDirectoryFiles.stream().map (VfsUtilCore::fileToUrl).toList())
-      .build();
+            NamedIdeaSourceProviderBuilder.create(
+                    BlazeProjectDataStorage.WORKSPACE_MODULE_NAME,
+                    VfsUtilCore.fileToUrl(new File("MissingManifest.xml")))
+                .withScopeType(ScopeType.MAIN)
+                .withResDirectoryUrls(
+                    androidResourceDirectoryFiles.stream().map(VfsUtilCore::fileToUrl).toList())
+                .build();
         return new SourceProvidersImpl(
-          mainSourceProvider,
-          ImmutableList.of(mainSourceProvider),
-          ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of()),
-          ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of()),
-          ImmutableList.of(),
-          ImmutableMap.of(),
+            mainSourceProvider,
+            ImmutableList.of(mainSourceProvider),
+            ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of()),
+            ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of()),
+            ImmutableList.of(),
+            ImmutableMap.of(),
             ImmutableList.of(mainSourceProvider),
             ImmutableList.of(mainSourceProvider),
             ImmutableList.of(mainSourceProvider),
@@ -219,11 +236,20 @@ public class BazelProjectSystem implements AndroidProjectSystem {
     return Collections.unmodifiableSet(applicationIds);
   }
 
+  @Override
+  public @Nullable ApplicationIdProvider getApplicationIdProvider(
+      @NotNull RunConfiguration runConfiguration) {
+    if (runConfiguration instanceof UserDataHolder ud) {
+      return ud.getUserData(RUN_CONFIG_APPLICATION_ID_PROVIDER);
+    }
+    return null;
+  }
+
   @NotNull
   @Override
   public Collection<Module> findModulesWithApplicationId(@NotNull String applicationId) {
     Module workspaceModule =
-      ModuleManager.getInstance(project).findModuleByName(WORKSPACE_MODULE_NAME);
+        ModuleManager.getInstance(project).findModuleByName(WORKSPACE_MODULE_NAME);
     if (workspaceModule != null) {
       return ImmutableList.of(workspaceModule);
     } else {
@@ -238,8 +264,10 @@ public class BazelProjectSystem implements AndroidProjectSystem {
 
   @Override
   public boolean isAndroidProject() {
-    return QuerySyncManager.getInstance(project).getLoadedProject().map(it -> it.getProjectDefinition().isAndroidWorkspace())
-      .orElse(false);
+    return QuerySyncManager.getInstance(project)
+        .getLoadedProject()
+        .map(it -> it.getProjectDefinition().isAndroidWorkspace())
+        .orElse(false);
   }
 
   private static boolean hasPackageName(AndroidFacet facet, String packageName) {

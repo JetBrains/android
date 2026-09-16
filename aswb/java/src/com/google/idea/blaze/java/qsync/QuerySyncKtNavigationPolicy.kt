@@ -17,15 +17,21 @@ package com.google.idea.blaze.java.qsync
 
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
+import com.google.idea.common.experiments.BoolExperiment
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
+import java.util.concurrent.CancellationException
 import org.jetbrains.kotlin.analysis.decompiler.psi.file.KtClsFile
 import org.jetbrains.kotlin.idea.navigation.KotlinAnalysisApiBasedDeclarationNavigationPolicyImpl
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtClassLikeDeclaration
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -34,8 +40,56 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationPolicyImpl() {
-
   private val localCache = ThreadLocal.withInitial { mutableMapOf<ClassId, KtClsFile>() }
+
+  companion object {
+    private val logger = Logger.getInstance(QuerySyncKtNavigationPolicy::class.java)
+    val navigateToSourceForTopLevelDeclaration = BoolExperiment("querysync.navigate.kotlin.topleveldeclaration.enable", true)
+
+    private fun <T> getCachedResult(ktClsFile: KtClsFile, project: Project, provider: (KtClsFile) -> T): T {
+      return CachedValuesManager.getCachedValue(ktClsFile) {
+        val result =
+          try {
+            provider(ktClsFile)
+          } catch (e: Exception) {
+            if (e is ProcessCanceledException || e is CancellationException || e is InterruptedException) {
+              throw e
+            }
+            logger.error("Failed to find navigation file for: ${ktClsFile.name}", e)
+            null
+          }
+        Result.create(result, ktClsFile, QuerySyncManager.getInstance(project).projectModificationTracker)
+      }
+    }
+
+    /**
+     * Returns candidate source file for KtClsFile provided. It will go over source files of target, source files in generated source jar
+     * and in source jar of java target to find the one matched class file.
+     */
+    private fun findCandiateSourceFile(file: KtClsFile): PsiFile? {
+      return ClassFileKtSourceFinder(file).findSourceFile()
+        ?: ClassFileGenSrcJarJavaSourceFinder(file).findSourceFile()
+        ?: ClassFileSrcJarJavaSourceFinder(file).findSourceFile()
+    }
+
+    /**
+     * Returns a list of candidate source files for KtClsFile provided. It will go over source files in project, source files in generated
+     * source jar and in source jar of java target.
+     *
+     * In most of cases, we should only have one candidate source file. But it's not true if your target declaration is top level
+     * declaration whose class file may merged from multiple kotlin files.
+     */
+    private fun findCandiateSourceFiles(file: KtClsFile): Collection<PsiFile> {
+      return ClassFileKtSourceFinder(file).findSourceFiles()?.takeIf { it.isNotEmpty() }
+        ?: ClassFileGenSrcJarJavaSourceFinder(file).findSourceFiles()?.takeIf { it.isNotEmpty() }
+        ?: ClassFileSrcJarJavaSourceFinder(file).findSourceFiles()?.takeIf { it.isNotEmpty() }
+        ?: if (navigateToSourceForTopLevelDeclaration.value) ClassFileIterateOverAllKtSourceFinder(file).findSourceFiles() else emptySet()
+    }
+  }
+
+  private fun eligibleToRun(project: Project): Boolean {
+    return project.isQuerySyncProject() && !DaemonCodeAnalyzer.getInstance(project).isRunning
+  }
 
   override fun getNavigationElement(ktDeclaration: KtDeclaration): KtElement {
     if (!ENABLED_NAVIGATION_POLICY.value) return super.getNavigationElement(ktDeclaration)
@@ -43,7 +97,7 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
     val classIdToKtClsFile = localCache.get()
     var classId: ClassId? = null
     val project = ktDeclaration.project
-    if (!project.isQuerySyncProject() || DaemonCodeAnalyzer.getInstance(project).isRunning) {
+    if (!eligibleToRun(project)) {
       return super.getNavigationElement(ktDeclaration)
     }
 
@@ -74,30 +128,46 @@ class QuerySyncKtNavigationPolicy : KotlinAnalysisApiBasedDeclarationNavigationP
     }
   }
 
+  override fun getTopLevelCallablesByName(
+    declaration: KtCallableDeclaration,
+    callableId: CallableId,
+    project: Project,
+    scope: Scope,
+  ): Sequence<KtCallableDeclaration> {
+    if (!eligibleToRun(project)) {
+      return super.getTopLevelCallablesByName(declaration, callableId, project, scope)
+    }
+    val containingFile = declaration.containingFile
+    if (containingFile is KtClsFile) {
+      val candidateSourceFiles = getCachedResult(containingFile, project, ::findCandiateSourceFiles)
+      return candidateSourceFiles
+        .asSequence()
+        .filterIsInstance<KtFile>()
+        .filter { it.packageFqName == callableId.packageName }
+        .flatMap { sourceFile ->
+          PsiTreeUtil.findChildrenOfType(sourceFile, KtCallableDeclaration::class.java).asSequence().filter {
+            it.name == callableId.callableName.asString()
+          }
+        }
+    }
+    return super.getTopLevelCallablesByName(declaration, callableId, project, scope)
+  }
+
   override fun getClassesByClassId(classId: ClassId, project: Project, scope: Scope): Sequence<KtClassOrObject> {
+    if (!eligibleToRun(project)) {
+      return super.getClassesByClassId(classId, project, scope)
+    }
     val ktClsFile = localCache.get()[classId] ?: return super.getClassesByClassId(classId, project, scope)
 
-    val psiFile = getSourceFile(ktClsFile, project)
+    val candidateSourceFile = getCachedResult(ktClsFile, project, ::findCandiateSourceFile)
 
-    if (psiFile is KtFile) {
-      return PsiTreeUtil.findChildrenOfType(psiFile, KtClassOrObject::class.java)
+    if (candidateSourceFile is KtFile) {
+      return PsiTreeUtil.findChildrenOfType(candidateSourceFile, KtClassOrObject::class.java)
         .asSequence()
         .filter { it.name == classId.shortClassName.asString() }
         .filter { classId.asSingleFqName() == it.fqName }
     }
 
     return super.getClassesByClassId(classId, project, scope)
-  }
-
-  private fun getSourceFile(ktClsFile: KtClsFile, project: Project): PsiFile? {
-    return CachedValuesManager.getCachedValue(ktClsFile) {
-      Result.create(
-        ClassFileKtSourceFinder(ktClsFile).findSourceFile()
-          ?: ClassFileGenSrcJarJavaSourceFinder(ktClsFile).findSourceFile()
-          ?: ClassFileSrcJarJavaSourceFinder(ktClsFile).findSourceFile(),
-        ktClsFile,
-        QuerySyncManager.getInstance(project).projectModificationTracker,
-      )
-    }
   }
 }

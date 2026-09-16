@@ -19,13 +19,18 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_DEBUGGABLE
 import com.android.SdkConstants.ATTR_ENABLED
 import com.android.SdkConstants.ATTR_EXPORTED
+import com.android.SdkConstants.ATTR_ICON
+import com.android.SdkConstants.ATTR_LABEL
 import com.android.SdkConstants.ATTR_MIN_SDK_VERSION
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PACKAGE
+import com.android.SdkConstants.ATTR_PARENT_ACTIVITY_NAME
 import com.android.SdkConstants.ATTR_REQUIRED
+import com.android.SdkConstants.ATTR_SUPPORTS_RTL
 import com.android.SdkConstants.ATTR_TARGET_ACTIVITY
 import com.android.SdkConstants.ATTR_TARGET_SDK_VERSION
 import com.android.SdkConstants.ATTR_THEME
+import com.android.SdkConstants.ATTR_UI_OPTIONS
 import com.android.SdkConstants.ATTR_VALUE
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.TAG_ACTION
@@ -226,7 +231,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getName() = NAME
 
-  override fun getVersion() = 12
+  override fun getVersion() = 13
 
   override fun getIndexer() = Indexer
 
@@ -309,6 +314,9 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       }
     }
 
+    private fun KXmlParser.getNamespaces(): Set<NamespaceRawText> =
+      (0..depth).flatMap { d -> (0..<getNamespaceCount(d)).map { NamespaceRawText(getNamespacePrefix(it), getNamespaceUri(it)) } }.toSet()
+
     private fun KXmlParser.parseManifestTag(): AndroidManifestRawText {
       require(START_TAG, null, TAG_MANIFEST)
       val activities = hashSetOf<ActivityRawText>()
@@ -316,8 +324,11 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       val customPermissionGroupNames = hashSetOf<String>()
       val customPermissionNames = hashSetOf<String>()
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      var icon: NamespacedValueRawText? = null
+      var label: NamespacedValueRawText? = null
       var minSdkLevel: String? = null
       val packageName = getAttributeValue(null, ATTR_PACKAGE)
+      var supportsRtl: String? = null
       val usedPermissionNames = hashSetOf<String>()
       val usedFeatures = hashSetOf<UsedFeatureRawText>()
       var debuggable: String? = null
@@ -331,6 +342,9 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
           TAG_APPLICATION -> {
             theme = getAttributeValue(ANDROID_URI, ATTR_THEME)
             debuggable = getAttributeValue(ANDROID_URI, ATTR_DEBUGGABLE)
+            icon = getAttributeValue(ANDROID_URI, ATTR_ICON)?.let { NamespacedValueRawText(it, getNamespaces()) }
+            label = getAttributeValue(ANDROID_URI, ATTR_LABEL)?.let { NamespacedValueRawText(it, getNamespaces()) }
+            supportsRtl = getAttributeValue(ANDROID_URI, ATTR_SUPPORTS_RTL)
             processChildTags {
               when (name) {
                 TAG_ACTIVITY -> activities.add(parseActivityTag())
@@ -376,8 +390,11 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         customPermissionNames = customPermissionNames.toSet(),
         debuggable = debuggable,
         enabled = enabled,
+        icon = icon,
+        label = label,
         minSdkLevel = minSdkLevel,
         packageName = packageName,
+        supportsRtl = supportsRtl,
         usedPermissionNames = usedPermissionNames.toSet(),
         usedFeatures = usedFeatures.toSet(),
         targetSdkLevel = targetSdkLevel,
@@ -393,6 +410,12 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       val enabled: String? = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
       val exported: String? = getAttributeValue(ANDROID_URI, ATTR_EXPORTED)
       val theme: String? = getAttributeValue(ANDROID_URI, ATTR_THEME)
+      // In theory for very old versions we should be looking inside the meta-data for the android.support.PARENT_ACTIVITY property
+      // but I can't really believe that that's still relevant in practice.
+      val parentActivityName: String? = getAttributeValue(ANDROID_URI, ATTR_PARENT_ACTIVITY_NAME)
+      val uiOptions: String? = getAttributeValue(ANDROID_URI, ATTR_UI_OPTIONS)
+      val icon: NamespacedValueRawText? = getAttributeValue(ANDROID_URI, ATTR_ICON)?.let { NamespacedValueRawText(it, getNamespaces()) }
+      val label: NamespacedValueRawText? = getAttributeValue(ANDROID_URI, ATTR_LABEL)?.let { NamespacedValueRawText(it, getNamespaces()) }
       val intentFilters = hashSetOf<IntentFilterRawText>()
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
@@ -406,7 +429,11 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         enabled = enabled,
         exported = exported,
         theme = theme,
+        parentActivityName = parentActivityName,
+        uiOptions = uiOptions,
         intentFilters = intentFilters.toSet(),
+        icon = icon,
+        label = label,
       )
     }
 
@@ -555,8 +582,11 @@ data class AndroidManifestRawText(
   val customPermissionNames: Set<String>,
   val debuggable: String?,
   val enabled: String?,
+  val icon: NamespacedValueRawText?,
+  val label: NamespacedValueRawText?,
   val minSdkLevel: String?,
   val packageName: String?,
+  val supportsRtl: String?,
   val usedPermissionNames: Set<String>,
   val usedFeatures: Set<UsedFeatureRawText>,
   val targetSdkLevel: String?,
@@ -580,8 +610,11 @@ data class AndroidManifestRawText(
         writeSeq(out, customPermissionGroupNames) { writeUTF(out, it) }
         writeNullable(out, debuggable) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
+        writeNullable(out, icon) { NamespacedValueRawText.Externalizer.save(out, it) }
+        writeNullable(out, label) { NamespacedValueRawText.Externalizer.save(out, it) }
         writeNullable(out, minSdkLevel) { writeUTF(out, it) }
         writeNullable(out, packageName) { writeUTF(out, it) }
+        writeNullable(out, supportsRtl) { writeUTF(out, it) }
         writeSeq(out, usedPermissionNames) { writeUTF(out, it) }
         writeSeq(out, usedFeatures) { UsedFeatureRawText.Externalizer.save(out, it) }
         writeNullable(out, targetSdkLevel) { writeUTF(out, it) }
@@ -599,8 +632,11 @@ data class AndroidManifestRawText(
         customPermissionGroupNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
         debuggable = readNullable(`in`) { readUTF(`in`) },
         enabled = readNullable(`in`) { readUTF(`in`) },
+        icon = readNullable(`in`) { NamespacedValueRawText.Externalizer.read(`in`) },
+        label = readNullable(`in`) { NamespacedValueRawText.Externalizer.read(`in`) },
         minSdkLevel = readNullable(`in`) { readUTF(`in`) },
         packageName = readNullable(`in`) { readUTF(`in`) },
+        supportsRtl = readNullable(`in`) { readUTF(`in`) },
         usedPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
         usedFeatures = readSeq(`in`) { UsedFeatureRawText.Externalizer.read(`in`) }.toSet(),
         targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
@@ -621,7 +657,11 @@ data class ActivityRawText(
   val enabled: String?,
   val exported: String?,
   val theme: String?,
+  val parentActivityName: String?,
+  val uiOptions: String?,
   val intentFilters: Set<IntentFilterRawText>,
+  val icon: NamespacedValueRawText?,
+  val label: NamespacedValueRawText?,
 ) {
   /**
    * Singleton responsible for serializing/de-serializing [ActivityRawText]s to/from disk.
@@ -637,7 +677,11 @@ data class ActivityRawText(
         writeNullable(out, enabled) { writeUTF(out, it) }
         writeNullable(out, exported) { writeUTF(out, it) }
         writeNullable(out, theme) { writeUTF(out, it) }
+        writeNullable(out, parentActivityName) { writeUTF(out, it) }
+        writeNullable(out, uiOptions) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
+        writeNullable(out, icon) { NamespacedValueRawText.Externalizer.save(out, it) }
+        writeNullable(out, label) { NamespacedValueRawText.Externalizer.save(out, it) }
       }
     }
 
@@ -647,7 +691,11 @@ data class ActivityRawText(
         enabled = readNullable(`in`) { readUTF(`in`) },
         exported = readNullable(`in`) { readUTF(`in`) },
         theme = readNullable(`in`) { readUTF(`in`) },
+        parentActivityName = readNullable(`in`) { readUTF(`in`) },
+        uiOptions = readNullable(`in`) { readUTF(`in`) },
         intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet(),
+        icon = readNullable(`in`) { NamespacedValueRawText.Externalizer.read(`in`) },
+        label = readNullable(`in`) { NamespacedValueRawText.Externalizer.read(`in`) },
       )
   }
 }
@@ -813,5 +861,32 @@ data class MetaDataRawText(val name: String?, val value: String?) {
 
     override fun read(`in`: DataInput) =
       MetaDataRawText(name = readNullable(`in`) { readUTF(`in`) }, value = readNullable(`in`) { readUTF(`in`) })
+  }
+}
+
+data class NamespaceRawText(val name: String, val url: String) {
+  object Externalizer : DataExternalizer<NamespaceRawText> {
+    override fun save(out: DataOutput, namespace: NamespaceRawText) {
+      namespace.apply {
+        writeUTF(out, name)
+        writeUTF(out, url)
+      }
+    }
+
+    override fun read(`in`: DataInput) = NamespaceRawText(name = readUTF(`in`), url = readUTF(`in`))
+  }
+}
+
+data class NamespacedValueRawText(val value: String, val namespaces: Set<NamespaceRawText>) {
+  object Externalizer : DataExternalizer<NamespacedValueRawText> {
+    override fun save(out: DataOutput, namespacedValue: NamespacedValueRawText) {
+      namespacedValue.apply {
+        writeUTF(out, value)
+        writeSeq(out, namespaces) { NamespaceRawText.Externalizer.save(out, it) }
+      }
+    }
+
+    override fun read(`in`: DataInput) =
+      NamespacedValueRawText(value = readUTF(`in`), namespaces = readSeq(`in`) { NamespaceRawText.Externalizer.read(`in`) }.toSet())
   }
 }

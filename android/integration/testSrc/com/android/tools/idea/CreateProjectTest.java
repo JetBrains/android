@@ -22,6 +22,7 @@ import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
+import com.android.tools.asdriver.tests.UIXpathGenerator;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.util.SystemInfo;
@@ -63,8 +64,8 @@ public class CreateProjectTest {
     // error saying that no SDK has been configured, so we configure it first.
     system.getInstallation().setGlobalSdk(system.getSdk());
     // See class-level comments
-    system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=8.13.0");
-    system.getInstallation().addVmOption("-Dnpw.new.project.compile.sdk=34");
+    system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=9.0.0");
+    system.getInstallation().addVmOption("-Dnpw.new.project.compile.sdk=36");
 
     String distributionPath = "tools/external/gradle/";
     String localDistributionUrl = TestUtils.resolveWorkspacePathUnchecked(distributionPath).toUri().toString();
@@ -99,9 +100,10 @@ public class CreateProjectTest {
         studio.invokeByIcon("welcome/createNewProjectTab.svg");
 
         // This only causes the item to be selected, so we still have to click "Next" below.
-        studio.invokeComponent("Empty Activity");
-        studio.invokeComponent("Next");
-        studio.invokeComponent("Finish");
+        studio.invokeComponentByXpath(new UIXpathGenerator().setClass("ComposeNode").setText("Empty Activity").build());
+        studio.invokeComponentByXpath(new UIXpathGenerator().setText("Next").build());
+        studio.invokeComponentByXpath(new UIXpathGenerator().setText("Finish").build());
+
         studio.waitForSync();
         studio.waitForIndex();
         studio.executeAction("MakeGradleProject");

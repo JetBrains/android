@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.ui.NotificationHolderPanel

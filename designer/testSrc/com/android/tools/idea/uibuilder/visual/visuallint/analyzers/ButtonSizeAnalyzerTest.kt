@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.rendering.RenderTask
 import com.android.tools.visuallint.analyzers.ButtonSizeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -64,7 +66,11 @@ class ButtonSizeAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = ButtonSizeAnalyzer.findIssues(result, configuration)
+        val issues =
+          ButtonSizeAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -95,7 +101,11 @@ class ButtonSizeAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = ButtonSizeAnalyzer.findIssues(result, configuration)
+        val issues =
+          ButtonSizeAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("The button button <Button> is too wide", issues[0].message)
       } catch (ex: java.lang.Exception) {

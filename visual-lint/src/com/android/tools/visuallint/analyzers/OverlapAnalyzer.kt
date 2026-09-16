@@ -21,13 +21,12 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Button
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.configurations.Configuration
-import com.android.tools.rendering.RenderResult
 import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.VisualLintConfiguration
 import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintRenderResult
 import com.android.utils.HtmlBuilder
 import java.awt.Rectangle
-import kotlin.jvm.java
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -43,7 +42,7 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.OVERLAP
 
-  override fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent> {
+  override fun findIssues(renderResult: VisualLintRenderResult, configuration: VisualLintConfiguration): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     val backgroundBounds = Rectangle(0, 0, 0, 0)

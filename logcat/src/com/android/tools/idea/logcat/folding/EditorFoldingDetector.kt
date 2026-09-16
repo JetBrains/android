@@ -22,6 +22,7 @@ import com.intellij.openapi.application.readAndEdtWriteAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.FoldRegion
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -76,6 +77,7 @@ internal class EditorFoldingDetector(
   private val project: Project,
   private val editor: Editor,
   consoleFoldings: List<ConsoleFolding> = ConsoleFolding.EP_NAME.extensionList + ExceptionFolding(),
+  private val workerDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : FoldingDetector {
   private val document = editor.document
   private val foldingModel = editor.foldingModel
@@ -87,7 +89,7 @@ internal class EditorFoldingDetector(
     val addList = mutableListOf<Folding>()
     val removeList = mutableListOf<FoldRegion>()
     val version = document.getVersion()
-    withContext(Dispatchers.Default) {
+    withContext(workerDispatcher) {
       readAndEdtWriteAction {
         if (document.getVersion() != version) {
           return@readAndEdtWriteAction value(Unit)

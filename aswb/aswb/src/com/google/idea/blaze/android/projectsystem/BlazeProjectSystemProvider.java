@@ -17,8 +17,10 @@ package com.google.idea.blaze.android.projectsystem;
 
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider;
-import com.google.idea.blaze.base.settings.Blaze;
+import com.google.idea.blaze.base.project.BazelProjectSystemId;
+import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.intellij.openapi.project.Project;
+import java.util.Optional;
 
 /**
  * A BlazeProjectSystemProvider determines whether or not a BazelProjectSystem would be applicable
@@ -33,16 +35,21 @@ import com.intellij.openapi.project.Project;
  * instantiation.
  */
 public class BlazeProjectSystemProvider implements AndroidProjectSystemProvider {
-  public static final String ID = "com.google.idea.blaze.BazelProjectSystem";
 
   @Override
   public boolean isApplicable(Project project) {
-    return Blaze.isBlazeProject(project);
+    return BlazeImportSettingsManager.loadImportSettings(
+            project.getBasePath(),
+            project.getName(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty())
+        .isPresent();
   }
 
   @Override
   public String getId() {
-    return ID;
+    return BazelProjectSystemId.ID;
   }
 
   @Override

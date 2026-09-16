@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.analytics;
 
 import static com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake;
+import static com.android.tools.idea.concurrency.CoroutineUtilsKt.createCoroutineScope;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,13 +43,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.UIUtil;
 import java.util.Collections;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 
 public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
 
   protected CommonUsageTracker getUsageTracker() {
     DesignSurface<?> surface = mock(DesignSurface.class);
-    DesignerAnalyticsManager analyticsManager = new DesignerAnalyticsManager(surface);
+    CoroutineScope
+      scope = createCoroutineScope(myFixture.getTestRootDisposable(), Dispatchers.getDefault(), EmptyCoroutineContext.INSTANCE);
+    DesignerAnalyticsManager analyticsManager = new DesignerAnalyticsManager(surface, scope);
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
     when(surface.getZoomController()).thenReturn(createZoomControllerFake(0.5, null));
     Configuration configuration = getConfigurationMock();

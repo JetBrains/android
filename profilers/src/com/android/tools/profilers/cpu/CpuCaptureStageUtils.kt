@@ -15,49 +15,35 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.tools.profilers.IdeProfilerServices
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
-import java.io.IOException
 
 object CpuCaptureStageUtils {
   /**
-   * If the unified preview is enabled, we need to ensure that we create a permanent trace file and put in directory specific to the project
-   * This method checks if the given capture file is already in the temp directory with the correct name. If so, it returns the file.
-   * Otherwise, it creates a copy in the temp directory with the correct name and returns the copy.
+   * Renames a temporary capture file to an identifiable trace file within the system's temporary directory.
    *
-   * TODO(b/472667234) Remove file copy logic since original file will be used If copying fails, null is returned.
+   * This is used when a system trace is captured and needs to be saved with a specific name so it can
+   * be easily identified and opened by the editor.
+   *
+   * @param captureFile the source temporary file
+   * @param targetFileName the desired name for the trace file
+   * @return the renamed [File] if successful, or null otherwise
    */
   @JvmStatic
-  fun getPermanentCaptureFile(services: IdeProfilerServices, captureFile: File, targetFileName: String): File? {
-    val projectId =
-      if (services.projectHomeHash.isNotEmpty()) {
-        services.projectHomeHash
-      } else {
-        Integer.toHexString(System.identityHashCode(services))
-      }
-    val rootDir = File(FileUtil.getTempDirectory(), "AndroidStudioProfiler")
-    val outputDir = File(rootDir, projectId)
+  fun renameTempToTraceFile(captureFile: File, targetFileName: String): File? {
+    // Use the system temp directory as the destination folder for the permanent file.
+    val outputDir = File(FileUtil.getTempDirectory())
+    val traceFile = File(outputDir, targetFileName)
 
-    if (!outputDir.exists()) {
-      outputDir.mkdirs()
-    }
-    // If a copy of the file is already present in temp directory. Return that
-    // instead of creating a new one
-    if (FileUtil.filesEqual(captureFile.parentFile, outputDir) && captureFile.name == targetFileName) {
-      return captureFile
-    }
-    try {
-      val permanentFile = File(outputDir, targetFileName)
-      if (permanentFile.exists()) {
-        return permanentFile
-      }
-      FileUtil.copy(captureFile, permanentFile)
-      return permanentFile
-    } catch (e: IOException) {
-      Logger.getInstance(CpuCaptureStage::class.java).warn("Failed to create permanent capture file", e)
+    // Try to rename the capture file to the target file.
+    if (captureFile.renameTo(traceFile)) {
+      return traceFile
     }
     return null
+  }
+
+  @JvmStatic
+  fun getTraceFile(traceId: Long): File {
+    return File(FileUtil.getTempDirectory(), "capture_$traceId.trace")
   }
 }

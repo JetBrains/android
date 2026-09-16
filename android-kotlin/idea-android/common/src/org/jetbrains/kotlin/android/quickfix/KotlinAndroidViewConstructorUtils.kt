@@ -17,6 +17,7 @@ package org.jetbrains.kotlin.android.quickfix
 
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.getOrCreatePrimaryConstructor
 import org.jetbrains.kotlin.idea.base.psi.replaced
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.ClassId
@@ -24,7 +25,6 @@ import org.jetbrains.kotlin.name.JvmStandardClassIds
 import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtSuperTypeEntry
-import org.jetbrains.kotlin.psi.createPrimaryConstructorIfAbsent
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 object KotlinAndroidViewConstructorUtils {
@@ -63,7 +63,7 @@ object KotlinAndroidViewConstructorUtils {
             }
         val newPrimaryConstructor = psiFactory.createPrimaryConstructor(constructorSignature)
 
-        val primaryConstructor = ktClass.createPrimaryConstructorIfAbsent().replaced(newPrimaryConstructor)
+        val primaryConstructor = ktClass.getOrCreatePrimaryConstructor().replaced(newPrimaryConstructor)
         primaryConstructor.valueParameterList?.let { ShortenReferencesFacility.getInstance().shorten(it) }
         primaryConstructor.addAnnotation(JvmStandardClassIds.JVM_OVERLOADS_CLASS_ID)
 

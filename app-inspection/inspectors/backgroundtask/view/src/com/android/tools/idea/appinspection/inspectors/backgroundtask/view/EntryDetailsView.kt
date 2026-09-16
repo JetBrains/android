@@ -61,7 +61,7 @@ import javax.swing.JPanel
 import javax.swing.JTextArea
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
@@ -80,7 +80,7 @@ class EntryDetailsView(
   private val entriesView: BackgroundTaskEntriesView,
   uiComponentsProvider: UiComponentsProvider,
   private val scope: CoroutineScope,
-  private val uiDispatcher: CoroutineDispatcher,
+  private val uiContext: CoroutineContext,
 ) : JPanel() {
 
   // A configuration map to add extra paddings at the bottom of certain components.
@@ -118,7 +118,7 @@ class EntryDetailsView(
       }
     }
     client.addEntryUpdateEventListener { type, _ ->
-      scope.launch(uiDispatcher) {
+      scope.launch(uiContext) {
         if (type == EntryUpdateEventType.UPDATE || type == EntryUpdateEventType.REMOVE) {
           updateSelectedTask(false)
         }

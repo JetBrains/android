@@ -256,7 +256,7 @@ class ParametrizedPreviewTest {
       )
       .inOrder()
 
-    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus("Failed waiting to start UI check mode", 5.seconds) {
+    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus("Failed waiting to start UI check mode", 30.seconds) {
       val stringValue =
         it.asCollection().filterIsInstance<ParametrizedComposePreviewElementInstance<*>>().joinToString("\n") {
           "${it.methodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
@@ -319,6 +319,9 @@ class ParametrizedPreviewTest {
         .resolve()
     assertEquals(6, elements.count())
 
+    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus("Failed waiting for previews to be rendered", 30.seconds) {
+      it.asCollection().count { element -> element.displaySettings.organizationName == "TestWithProviderMultiplePreviewsAnnotation" } == 6
+    }
     assertThat(
         preview.composePreviewFlowManager.renderedPreviewElementsFlow.value
           .asCollection()
@@ -363,6 +366,9 @@ class ParametrizedPreviewTest {
     composeView.runAndWaitForRefresh { preview.onActivate() }
     composeView.runAndWaitForRefresh { preview.setMode(PreviewMode.Default()) }
 
+    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus("Failed waiting for previews to be rendered", 30.seconds) {
+      it.asCollection().count { element -> element.displaySettings.organizationName == "TestWithProviderMultiplePreviews" } == 6
+    }
     assertThat(
         preview.composePreviewFlowManager.renderedPreviewElementsFlow.value
           .asCollection()

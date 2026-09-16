@@ -475,6 +475,24 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName("GradlePlugins/BaselineProfilePluginVersionInClasspathExpected"))
   }
 
+  @Test
+  fun testAndroidxRoomVersion() {
+    writeToBuildFile(TestFileName("GradlePlugins/AndroidXRoomVersion"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/AndroidXRoomVersionExpected"))
+  }
+
+  @Test
+  fun testAndroidxRoomVersionInDsl() {
+    writeToBuildFile(TestFileName("GradlePlugins/AndroidXRoomVersionInDsl"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/AndroidXRoomVersionInDslExpected"))
+  }
+
   private fun writeToVersionCatalogFile(fileName: TestFileName) {
     val testFile = fileName.toFile(testDataPath, ".toml")
     Assert.assertTrue(testFile.exists())

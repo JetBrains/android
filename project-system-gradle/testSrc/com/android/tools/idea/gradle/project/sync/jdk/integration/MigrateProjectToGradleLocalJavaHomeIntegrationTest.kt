@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
@@ -35,6 +36,7 @@ import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_VERSION
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
@@ -190,7 +192,9 @@ class MigrateProjectToGradleLocalJavaHomeIntegrationTest {
 
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
-  fun `Given multiple roots with different JDK configuration When sync project Then only expected JDK config was migrated to Gradle local javaHome`() =
+  fun `Given multiple roots with different JDK configuration When sync project Then only expected JDK config was migrated to Gradle local javaHome`() {
+    // Disable project import Gradle JVM compatibility check
+    StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.overrideForTest(false, projectRule.testRootDisposable)
     jdkIntegrationTest.run(
       project =
         SimpleApplicationMultipleRoots(
@@ -238,4 +242,5 @@ class MigrateProjectToGradleLocalJavaHomeIntegrationTest {
         expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
+  }
 }

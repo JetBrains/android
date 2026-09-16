@@ -33,6 +33,7 @@ import com.intellij.testFramework.RuleChain
 import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.Executors
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
@@ -44,7 +45,8 @@ private val timestamp = Instant.ofEpochMilli(1000)
 
 /** Tests for [MessageProcessor] */
 class MessageProcessorTest {
-  @get:Rule val rule = RuleChain(ApplicationRule(), AndroidExecutorsRule(Executors.newCachedThreadPool()))
+  private val executor = Executors.newCachedThreadPool()
+  @get:Rule val rule = RuleChain(ApplicationRule(), AndroidExecutorsRule(workerThreadExecutor = executor))
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
   private val messageFormatter = ::formatMessages
@@ -52,6 +54,7 @@ class MessageProcessorTest {
   @After
   fun tearDown() {
     Disposer.dispose(fakeLogcatPresenter)
+    executor.shutdown()
   }
 
   @Test
@@ -141,7 +144,6 @@ class MessageProcessorTest {
     messageProcessor.appendMessages(batch1)
     messageProcessor.onIdle {}
     messageProcessor.appendMessages(batch2)
-
     messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
       assertThat(fakeLogcatPresenter.lineBatches).containsExactly(batch1.mapMessages(), batch2.mapMessages()).inOrder()
@@ -179,7 +181,17 @@ class MessageProcessorTest {
     maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
     maxMessagesPerBatch: Int = StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
     autoStart: Boolean = true,
-  ) = MessageProcessor(logcatPresenter, formatMessagesInto, logcatFilter = null, clock, maxTimePerBatchMs, maxMessagesPerBatch, autoStart)
+  ) =
+    MessageProcessor(
+      logcatPresenter,
+      formatMessagesInto,
+      logcatFilter = null,
+      clock,
+      maxTimePerBatchMs,
+      maxMessagesPerBatch,
+      autoStart,
+      executor.asCoroutineDispatcher(),
+    )
 }
 
 private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {

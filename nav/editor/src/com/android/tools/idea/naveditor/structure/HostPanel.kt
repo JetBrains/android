@@ -30,7 +30,6 @@ import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.GeneralSettings
@@ -76,6 +75,7 @@ import java.awt.event.MouseEvent
 import javax.swing.DefaultListModel
 import javax.swing.DefaultListSelectionModel
 import javax.swing.JList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
 import org.jetbrains.android.dom.navigation.isNavHostFragment
@@ -216,7 +216,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
   }
 
   private fun startLoading() {
-    scope.launch(workerThread) {
+    scope.launch(Dispatchers.Default) {
       val model = surface.models.singleOrNull()
       if (model == null) {
         cardLayout.show(this@HostPanel, "ERROR")

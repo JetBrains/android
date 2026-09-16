@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.fast
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.rendering.BuildTargetReference
@@ -48,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -189,7 +189,7 @@ private constructor(
   val isDisposed: Boolean
     get() = _isDisposed.get()
 
-  private val scope: CoroutineScope by lazy { AndroidCoroutineScope(this, workerThread) }
+  private val scope: CoroutineScope by lazy { AndroidCoroutineScope(this, Dispatchers.Default) }
   private val daemonFactory: ((String) -> CompilerDaemonClient) = { version ->
     alternativeDaemonFactory?.invoke(version, project, log, scope) ?: embeddedDaemonFactory(project, log)
   }

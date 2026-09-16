@@ -29,6 +29,7 @@ import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.InputEvent
+import com.android.emulator.control.MicrophoneState
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
@@ -416,6 +417,28 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     emulatorControllerStub.getXrOptions(
       EMPTY_PROTO,
       DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetXrOptionsMethod()),
+    )
+  }
+
+  /** Sets the state of microphone input. */
+  fun setMicrophoneState(microphoneState: MicrophoneState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setMicrophoneState(${shortDebugString(microphoneState)})")
+    }
+    emulatorControllerStub.setMicrophoneState(
+      microphoneState,
+      DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetMicrophoneStateMethod()),
+    )
+  }
+
+  /** Retrieves the state of microphone input. */
+  fun getMicrophoneState(streamObserver: StreamObserver<MicrophoneState>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getMicrophoneState()")
+    }
+    emulatorControllerStub.getMicrophoneState(
+      EMPTY_PROTO,
+      DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetMicrophoneStateMethod()),
     )
   }
 

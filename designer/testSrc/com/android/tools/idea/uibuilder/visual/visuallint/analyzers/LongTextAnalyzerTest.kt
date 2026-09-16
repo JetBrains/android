@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.rendering.RenderTask
 import com.android.tools.visuallint.analyzers.LongTextAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -65,7 +67,11 @@ class LongTextAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = LongTextAnalyzer.findIssues(result, configuration)
+        val issues =
+          LongTextAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -83,7 +89,11 @@ class LongTextAnalyzerTest {
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = LongTextAnalyzer.findIssues(result, configuration)
+        val issues =
+          LongTextAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = configuration.toVisualLintConfiguration(),
+          )
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("textview1 <TextView> has lines containing more than 120 characters", issues[0].message)
       } catch (ex: java.lang.Exception) {

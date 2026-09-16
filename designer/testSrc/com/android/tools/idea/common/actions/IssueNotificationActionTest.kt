@@ -22,11 +22,11 @@ import com.android.tools.idea.common.error.SharedIssuePanelProvider
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
-import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableSet
@@ -37,8 +37,6 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.wm.RegisterToolWindowTask
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import icons.StudioIcons
@@ -123,12 +121,9 @@ class IssueNotificationActionTest {
   }
 
   // Regression test for b/349037677
-  @Suppress("UnstableApiUsage")
   @Test
   fun testToggleBehaviour() {
-    projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(projectRule.project))
-    val manager = ToolWindowManager.getInstance(projectRule.project)
-    val toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
+    val toolWindow = createFakeToolWindow(projectRule.project, projectRule.testRootDisposable, ProblemsView.ID)
     runInEdtAndWait {
       val contentManager = toolWindow.contentManager
       val content =

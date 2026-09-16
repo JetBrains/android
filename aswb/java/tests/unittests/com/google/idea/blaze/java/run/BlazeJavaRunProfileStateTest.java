@@ -272,14 +272,14 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
 
   private static class MockTargetFinder implements TargetFinder {
     @Override
-    public Future<TargetInfo> findTarget(Project project, Label label) {
+    public Future<TargetInfo> findTarget(Project project, com.google.idea.blaze.common.Label label) {
       String kind;
-      if (label.targetName().toString().equals("java_binary_rule")) {
+      if (label.getName().equals("java_binary_rule")) {
         kind = "java_binary";
       } else {
         kind = "java_test";
       }
-      return Futures.immediateFuture(new TargetInfo(label, kind));
+      return Futures.immediateFuture(new TargetInfo(Label.create(label), kind));
     }
   }
 

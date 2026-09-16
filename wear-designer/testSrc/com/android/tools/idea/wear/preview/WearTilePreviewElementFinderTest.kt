@@ -43,6 +43,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
@@ -996,6 +997,28 @@ class WearTilePreviewElementFinderTest {
 
     assertTrue(firstCall.isNotEmpty())
     assertTrue("The same instances of collections should be returned for each call", firstCall === secondCall && firstCall === thirdCall)
+  }
+
+  @Test
+  // Regression test for b/477852888
+  fun testIsTileAnnotationUsedReturnsFalseForComposePreviews() = runBlocking {
+    fixture.stubPreviewAnnotation()
+
+    val composePreviewFile =
+      fixture.addFileToProjectAndInvalidate(
+        "app/src/main/java/com/android/test/ComposeSrc.kt",
+        // language=kotlin
+        """
+        package com.android.test
+        import androidx.compose.ui.tooling.preview.Preview
+
+        @Preview
+        fun MyComposable() {}
+        """
+          .trimIndent(),
+      )
+
+    assertThat(isTileAnnotationUsed(project, composePreviewFile.virtualFile)).isFalse()
   }
 }
 

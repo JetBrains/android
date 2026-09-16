@@ -35,8 +35,11 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
 /** Bazel implementation of [ApplicationLiveEditServices] for Live Edit and Compose previews. */
-class BazelApplicationLiveEditServices(private val project: Project, private val buildOutcomeProvider: BuildOutcomeProvider) :
-  ApplicationLiveEditServices {
+class BazelApplicationLiveEditServices(
+  private val project: Project,
+  private val buildOutcomeProvider: BuildOutcomeProvider,
+  val desugarConfigsProvider: () -> List<Path>,
+) : ApplicationLiveEditServices {
 
   /**
    * An interface to the most recent build result relevant to this [ApplicationLiveEditServices].
@@ -99,7 +102,7 @@ class BazelApplicationLiveEditServices(private val project: Project, private val
   }
 
   override fun getDesugarConfigs(): DesugarConfigs {
-    return DesugarConfigs.NotKnown("Desugar configs not implemented for Bazel yet.")
+    return DesugarConfigs.Known(desugarConfigsProvider())
   }
 
   override fun getRuntimeVersionString(): String {

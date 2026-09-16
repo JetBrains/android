@@ -17,30 +17,28 @@ package com.android.tools.idea.run.editor;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
-import java.util.Arrays;
-import java.util.Collections;
+
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
+
 public final class DeployTargetContextTest {
   private DeployTargetProvider myDeviceAndSnapshotComboBoxTargetProvider;
-  private DeployTargetProvider myCloudTestMatrixTargetProvider;
 
   private DeployTargetContext myContext;
 
   @Before
   public void initProviders() {
     myDeviceAndSnapshotComboBoxTargetProvider = DeviceAndSnapshotComboBoxTargetProvider.getInstance();
-    myCloudTestMatrixTargetProvider = new CloudTestMatrixTargetProvider();
   }
 
   @Before
   public void initContext() {
-    myContext = new DeployTargetContext(Arrays.asList(
-      myDeviceAndSnapshotComboBoxTargetProvider,
-      myCloudTestMatrixTargetProvider));
+        myContext =
+                new DeployTargetContext(
+                        Collections.singletonList(myDeviceAndSnapshotComboBoxTargetProvider));
   }
 
   @Test
@@ -57,8 +55,10 @@ public final class DeployTargetContextTest {
     // Act
     Object actualProviders = myContext.getApplicableDeployTargetProviders(true);
 
-    // Assert
-    assertEquals(Arrays.asList(myDeviceAndSnapshotComboBoxTargetProvider, myCloudTestMatrixTargetProvider), actualProviders);
+        // Assert
+        assertEquals(
+                Collections.singletonList(myDeviceAndSnapshotComboBoxTargetProvider),
+                actualProviders);
   }
 
   @Test
@@ -66,17 +66,5 @@ public final class DeployTargetContextTest {
     Object provider = myContext.getCurrentDeployTargetProvider();
 
     assertEquals(myDeviceAndSnapshotComboBoxTargetProvider, provider);
-  }
-
-  @Test
-  public void getCurrentDeployTargetProviderTargetSelectionModeEqualsFirebaseDeviceMatrix() {
-    // Arrange
-    myContext.setTargetSelectionMode(TargetSelectionMode.FIREBASE_DEVICE_MATRIX);
-
-    // Act
-    Object actualProvider = myContext.getCurrentDeployTargetProvider();
-
-    // Assert
-    assertEquals(myCloudTestMatrixTargetProvider, actualProvider);
   }
 }

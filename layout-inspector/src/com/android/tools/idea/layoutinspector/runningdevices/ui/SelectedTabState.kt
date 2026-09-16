@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.HorizontalSplitAction
@@ -43,13 +44,18 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 @VisibleForTesting const val UI_CONFIGURATION_KEY = "com.android.tools.idea.layoutinspector.runningdevices.ui.uiconfigkey"
+
+private const val MULTIPLE_GLASSES_TAB_ID = "multiple.ai.glasses.tabs"
+private const val MULTIPLE_DISPLAYS_ID = "multiple.secondary.displays"
 
 private val logger = Logger.getInstance(SelectedTabState::class.java)
 
@@ -105,12 +111,33 @@ data class SelectedTabState(
     val uiConfigString = PropertiesComponent.getInstance().getValue(UI_CONFIGURATION_KEY)
     uiConfig = uiConfigString?.let { UiConfig.valueOf(uiConfigString) } ?: UiConfig.HORIZONTAL
 
+    val aiGlassesDataFlow = aiGlassesDataFlow(project = project, model = layoutInspector.inspectorModel)
+
     coroutineScope.launch(Dispatchers.EDT) {
-      tabComponents.displayList.collect { displayViews ->
-        val newRenderingComponents =
-          createRenderingComponents(disposable = this@SelectedTabState, displayList = displayViews, layoutInspector = layoutInspector)
-        renderingComponents = newRenderingComponents
-      }
+      combine(tabComponents.displayList, aiGlassesDataFlow) { displayList, aiGlassesState ->
+          val aiGlassesData =
+            when (aiGlassesState) {
+              is AiGlassesState.Active -> aiGlassesState.pair
+              AiGlassesState.Error.MultipleGlassesTabs,
+              AiGlassesState.Error.MultipleSecondaryDisplays,
+              AiGlassesState.Inactive -> null
+            }
+
+          if (aiGlassesState is AiGlassesState.Error) {
+            showWarning(aiGlassesState)
+          } else {
+            layoutInspector.notificationModel.removeNotification(MULTIPLE_GLASSES_TAB_ID)
+            layoutInspector.notificationModel.removeNotification(MULTIPLE_DISPLAYS_ID)
+          }
+
+          createRenderingComponents(
+            disposable = this@SelectedTabState,
+            displayList = displayList,
+            layoutInspector = layoutInspector,
+            aiGlassesData = aiGlassesData,
+          )
+        }
+        .collect { newComponents: List<RenderingComponents> -> renderingComponents = newComponents }
     }
 
     coroutineScope.launch(Dispatchers.EDT) {
@@ -248,5 +275,18 @@ data class SelectedTabState(
       layoutInspector.inspectorClientSettings.inLiveMode = true
       toolbarState.setDeepInspectEnabled(false)
     }
+  }
+
+  private fun showWarning(aiGlassesState: AiGlassesState.Error) {
+    val messageId =
+      when (aiGlassesState) {
+        is AiGlassesState.Error.MultipleGlassesTabs -> MULTIPLE_GLASSES_TAB_ID
+        is AiGlassesState.Error.MultipleSecondaryDisplays -> MULTIPLE_DISPLAYS_ID
+      }
+    layoutInspector.notificationModel.addNotification(
+      id = messageId,
+      text = LayoutInspectorBundle.message(messageId),
+      status = EditorNotificationPanel.Status.Warning,
+    )
   }
 }

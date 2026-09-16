@@ -17,12 +17,12 @@ package com.android.tools.idea.execution.common.adb.shell.tasks
 
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.test.fail
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -40,7 +40,7 @@ class SandboxSdkLaunchTest {
 
   @Test
   fun successful() =
-    runBlocking(AndroidDispatchers.workerThread) {
+    runBlocking(Dispatchers.Default) {
       val packageID = "testPackageID"
       launchSandboxSdk(device, packageID, LOG)
       verify(device).executeShellCommand(eq("cmd sdk_sandbox stop $packageID"), any())
@@ -50,7 +50,7 @@ class SandboxSdkLaunchTest {
 
   @Test
   fun successAfterFailureToStop() =
-    runBlocking(AndroidDispatchers.workerThread) {
+    runBlocking(Dispatchers.Default) {
       val packageID = "testPackageID"
 
       val error = "Error: Sdk sandbox not running for $packageID and user 0"
@@ -68,7 +68,7 @@ class SandboxSdkLaunchTest {
 
   @Test
   fun sandboxSdkIsDisabled() =
-    runBlocking(AndroidDispatchers.workerThread) {
+    runBlocking(Dispatchers.Default) {
       val packageID = "testPackageID"
 
       val error = "Error: SDK sandbox is disabled."
@@ -89,7 +89,7 @@ class SandboxSdkLaunchTest {
 
   @Test
   fun packageDoesNotExist() =
-    runBlocking(AndroidDispatchers.workerThread) {
+    runBlocking(Dispatchers.Default) {
       val packageID = "com.android.test.testPackageID"
       val error = "Error: No such package $packageID for user 0"
       val output = error.toByteArray(Charsets.UTF_8)
@@ -110,7 +110,7 @@ class SandboxSdkLaunchTest {
 
   @Test
   fun failedToStart() =
-    runBlocking(AndroidDispatchers.workerThread) {
+    runBlocking(Dispatchers.Default) {
       val packageID = "com.android.test.testPackageID"
       val error = "Error: Sdk sandbox failed to start in 15 seconds"
       val output = error.toByteArray(Charsets.UTF_8)
@@ -131,7 +131,7 @@ class SandboxSdkLaunchTest {
 
   @Test
   fun packageNotDebuggable() =
-    runBlocking(AndroidDispatchers.workerThread) {
+    runBlocking(Dispatchers.Default) {
       val packageID = "com.android.test.testPackageID"
       val error = "Error: Package $packageID must be debuggable"
       val output = error.toByteArray(Charsets.UTF_8)
@@ -152,7 +152,7 @@ class SandboxSdkLaunchTest {
 
   @Test
   fun backgroundStartNotAllowed() =
-    runBlocking(AndroidDispatchers.workerThread) {
+    runBlocking(Dispatchers.Default) {
       val packageID = "testPackageID"
 
       val allowListError = "Error: Setting device white" + "list for $packageID"

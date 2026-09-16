@@ -75,6 +75,7 @@ jvm_library(
         "//xml/xml-analysis-api:analysis",
         "//plugins/gradle/java/groovy",
         "//plugins/kotlin/code-insight/utils",
+        "//plugins/kotlin/base/psi",
     ],
 )
 
@@ -137,6 +138,7 @@ jvm_library(
         "//xml/xml-analysis-api:analysis_test_lib",
         "//plugins/gradle/java/groovy:groovy_test_lib",
         "//plugins/kotlin/code-insight/utils:utils_test_lib",
+        "//plugins/kotlin/base/psi:psi_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.lint.common` end

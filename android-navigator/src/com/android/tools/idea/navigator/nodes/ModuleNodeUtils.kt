@@ -24,8 +24,10 @@ import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.kotlin.idea.base.util.module
 
 /** Creates Android project view nodes for a given [project]. */
@@ -33,6 +35,7 @@ fun createChildModuleNodes(project: Project, submodules: Collection<Module>, set
   val providers = AndroidViewNodeProvider.getProviders()
   val children = ArrayList<AbstractTreeNode<*>>(submodules.size)
   submodules.forEach { module ->
+    if (module.isMultiPlatformModule && ModuleRootManager.getInstance(module).contentRoots.isEmpty()) return@forEach
     val nodeGroups = providers.mapNotNull { provider -> provider.getModuleNodes(module, settings) }
     children.addAll(if (nodeGroups.isNotEmpty()) nodeGroups.flatten() else listOf(NonAndroidModuleNode(project, module, settings)))
   }

@@ -19,11 +19,14 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.repository.Revision
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.npw.project.determineKotlinVersionOrDefault
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.net.URL
@@ -49,6 +52,8 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var debugKeyStoreSha1: String? = null
   var overridePathCheck: Boolean? = null
   var applicationName: String? = null
+  var builtInKotlinDefaultEnabled = true
+  var kotlinSupport: TemplateKotlinSupport? = null
 
   internal fun setEssentials(project: Project) {
     applicationName = project.name
@@ -56,6 +61,9 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     // If we create a new project, then we have a checkbox for androidX support
     if (!isNewProject) {
       androidXSupport = project.isAndroidx()
+      val gradleProjectSystem = project.getProjectSystem() as GradleProjectSystem
+      builtInKotlinDefaultEnabled = gradleProjectSystem.getBuiltInKotlinDefaultEnabled()
+      if (agpVersion == null) agpVersion = gradleProjectSystem.getHeuristicAgpVersion()
     }
   }
 
@@ -88,5 +96,13 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
       debugKeyStoreSha1,
       overridePathCheck,
       isNewProject,
+      kotlinSupport =
+        kotlinSupport
+          ?: when {
+            language!! == Language.Java -> TemplateKotlinSupport.NO_KOTLIN
+            !agpVersion!!.isAtLeast(9, 0, 0) -> TemplateKotlinSupport.LEGACY_KOTLIN_GRADLE_PLUGIN_BEFORE_AGP9
+            !builtInKotlinDefaultEnabled -> TemplateKotlinSupport.EXPLICIT_BUILT_IN_KOTLIN
+            else -> TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN
+          },
     )
 }

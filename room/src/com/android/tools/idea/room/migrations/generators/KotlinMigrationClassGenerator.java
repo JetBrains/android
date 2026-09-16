@@ -32,6 +32,7 @@ import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
 import org.jetbrains.kotlin.name.FqName;
+import org.jetbrains.kotlin.idea.base.psi.KotlinPsiModificationUtils;
 import org.jetbrains.kotlin.psi.KtBlockExpression;
 import org.jetbrains.kotlin.psi.KtClassBody;
 import org.jetbrains.kotlin.psi.KtClassOrObject;
@@ -122,7 +123,7 @@ public class KotlinMigrationClassGenerator implements MigrationClassGenerator<Kt
     KtParameter ktMigrationMethodParameter = ktPsiFactory.createParameter(
       String.format(PARAMETER_DECLARATION_TEMPLATE, MIGRATION_METHOD_PARAMETER_NAME,
                     StringUtil.getShortName(MIGRATION_METHOD_PARAMETER_TYPE)));
-    parameterList.addParameter(ktMigrationMethodParameter);
+    KotlinPsiModificationUtils.appendParameter(parameterList, ktMigrationMethodParameter);
 
     List<String> sqlUpdateStatements = SqlStatementsGenerator.getMigrationStatements(databaseUpdate);
     for (String sqlStatement : sqlUpdateStatements) {

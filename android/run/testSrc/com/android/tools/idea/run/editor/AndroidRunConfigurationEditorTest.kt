@@ -181,13 +181,13 @@ class AndroidRunConfigurationEditorTest {
   }
 
   private fun getProfilingTabIndex(): Int {
-    val provider: DeployTargetProvider = CloudTestMatrixTargetProvider()
+    val provider: DeployTargetProvider = DeviceAndSnapshotComboBoxTargetProvider.getInstance()
     var androidRunConfigurationEditor = getAndroidRunConfigurationEditor(provider, projectRule.project)
     return androidRunConfigurationEditor.myTabbedPane.indexOfTab("Profiling")
   }
 
   fun getTargetProviders(provider: DeployTargetProvider): List<DeployTargetProvider> {
-    return listOf(DeviceAndSnapshotComboBoxTargetProvider.getInstance(), provider)
+    return listOf(provider)
   }
 
   fun getAndroidRunConfigurationEditor(

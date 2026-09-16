@@ -17,5 +17,5 @@
 package com.android.tools.idea.run;
 
 public enum TargetSelectionMode {
-  DEVICE_AND_SNAPSHOT_COMBO_BOX, FIREBASE_DEVICE_MATRIX
+    DEVICE_AND_SNAPSHOT_COMBO_BOX
 }

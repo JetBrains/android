@@ -1,4 +1,4 @@
-load("//tools/adt/idea/compose-designer/testData:dependencies.bzl", "ONBOARDING_AUTH_IBM_PROJECT_DEP", "SIMPLE_COMPOSE_APPLICATION_DEPS")
+load("//tools/adt/idea/compose-designer/testData:dependencies.bzl", "ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW_DEPS", "ONBOARDING_AUTH_IBM_PROJECT_DEP", "SIMPLE_COMPOSE_APPLICATION_DEPS")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 filegroup(
@@ -22,6 +22,12 @@ filegroup(
 filegroup(
     name = "glassespreview",
     srcs = glob(["glassesPreview/**"]),
+    visibility = ["//visibility:public"],
+)
+
+maven_repository(
+    name = "android_kotlin_multiplatform_multi_preview_deps",
+    artifacts = ANDROID_KOTLIN_MULTIPLATFORM_MULTI_PREVIEW_DEPS,
     visibility = ["//visibility:public"],
 )
 

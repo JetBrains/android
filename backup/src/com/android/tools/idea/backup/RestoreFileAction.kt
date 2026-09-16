@@ -21,16 +21,17 @@ import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.PROJECT_VIEW
 import com.android.tools.idea.backup.RestoreFileAction.RestoreInfo.Invalid
 import com.android.tools.idea.backup.RestoreFileAction.RestoreInfo.Valid
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import kotlin.io.path.pathString
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -102,6 +103,6 @@ internal class RestoreFileAction(
   }
 
   private suspend fun Valid.restore(project: Project) {
-    withContext(uiThread) { BackupManager.getInstance(project).restoreModal(serialNumber, backupFile, PROJECT_VIEW) }
+    withContext(Dispatchers.EDT) { BackupManager.getInstance(project).restoreModal(serialNumber, backupFile, PROJECT_VIEW) }
   }
 }

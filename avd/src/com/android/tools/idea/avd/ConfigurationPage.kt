@@ -45,10 +45,10 @@ import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
@@ -62,6 +62,7 @@ import java.nio.file.Path
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -164,7 +165,7 @@ internal fun WizardPageScope.ConfigurationPage(
     if (state.isValid) {
       WizardAction {
         runWithModalProgressBlocking(ModalTaskOwner.component(parent), "Creating AVD", TaskCancellation.nonCancellable()) {
-          withContext(AndroidDispatchers.uiThread) { finish(state.device, parent, finish, sdkHandler) }
+          withContext(Dispatchers.EDT) { finish(state.device, parent, finish, sdkHandler) }
         }
       }
     } else {

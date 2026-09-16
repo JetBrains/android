@@ -20,7 +20,6 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.debug.utils.waitForClientReadyForDebug
@@ -37,6 +36,7 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -45,6 +45,7 @@ import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import icons.StudioIcons
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object DebugSessionStarter {
@@ -82,7 +83,7 @@ object DebugSessionStarter {
           consoleView,
         )
       val session =
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           indicator.text = "Attaching debugger"
           XDebuggerManager.getInstance(environment.project)
             .newSessionBuilder(debugProcessStarter)
@@ -202,7 +203,7 @@ object DebugSessionStarter {
 
       LOG.info("Start first session")
 
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         val sessionResult =
           XDebuggerManager.getInstance(environment.project).newSessionBuilder(debugProcessStarter).environment(environment).startSession()
 
@@ -231,7 +232,7 @@ object DebugSessionStarter {
     val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationContext, androidDebuggerState)
 
     val session =
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         XDebuggerManager.getInstance(project)
           .newSessionBuilder(starter)
           .sessionName(sessionName)

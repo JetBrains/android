@@ -43,6 +43,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -85,6 +86,7 @@ class WifiAvailableDevicesDialogTest {
     wifiAvailableDevicesDialog = WifiAvailableDevicesDialog(projectRule.project, mockWiFiPairingService)
     whenever(mockPairDevicesUsingWiFiService.createPairingDialogController(any())).thenReturn(mockPairingDialogController)
     whenever(mockWiFiPairingService.trackMdnsServices()).thenReturn(adblibMdnsServicesFlow)
+    runBlocking { whenever(mockWiFiPairingService.getAdbVersion()).thenReturn("37.0.0") }
   }
 
   @After
@@ -146,6 +148,49 @@ class WifiAvailableDevicesDialogTest {
     composeTestRule.onNodeWithText("ADB Version Too Low", substring = true).assertIsDisplayed()
     composeTestRule.onNodeWithText("Open SDK Manager", substring = true).assertIsDisplayed()
     composeTestRule.onNodeWithText("Learn more", substring = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun mdnsSupported_adbVersionBelow37_showsAdbVersionTooLowError() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    whenever(mockWiFiPairingService.getAdbVersion()).thenReturn("36.0.0")
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNodeWithText("ADB Version Too Low", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Open SDK Manager", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Learn more", substring = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun mdnsSupported_adbVersion37_showsDevices() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    whenever(mockWiFiPairingService.getAdbVersion()).thenReturn("37.0.0")
+
+    val service = createMdnsTlsService("service1", "192.168.1.101", 5555, "Device A", "30")
+    adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(service), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNodeWithText("Device A").assertIsDisplayed()
+    composeTestRule.onNodeWithText("192.168.1.101:5555").assertIsDisplayed()
+  }
+
+  @Test
+  fun mdnsSupported_adbVersion3703_showsDevices() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    whenever(mockWiFiPairingService.getAdbVersion()).thenReturn("37.0.3")
+
+    val service = createMdnsTlsService("service1", "192.168.1.101", 5555, "Device A", "30")
+    adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(service), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNodeWithText("Device A").assertIsDisplayed()
+    composeTestRule.onNodeWithText("192.168.1.101:5555").assertIsDisplayed()
   }
 
   @Test
@@ -230,7 +275,13 @@ class WifiAvailableDevicesDialogTest {
 
     composeTestRule.onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true).lingerMouseHover(composeTestRule)
 
-    composeTestRule.onNodeWithText("Check for device software updates to improve Wi-Fi pairing.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("ADB Wi-Fi 1.0 Device").assertIsDisplayed()
+    composeTestRule
+      .onNodeWithText(
+        "ADB Wi-Fi v1.0 has limited pairing capability. Update device to the latest API to use ADB Wi-Fi 2.0 or higher. Note: Some hardware may not support the latest API version."
+      )
+      .assertIsDisplayed()
+    composeTestRule.onNodeWithText("Learn More").assertIsDisplayed()
   }
 
   @Test
@@ -253,7 +304,13 @@ class WifiAvailableDevicesDialogTest {
 
     composeTestRule.onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true).lingerMouseHover(composeTestRule)
 
-    composeTestRule.onNodeWithText("Check for device software updates to improve Wi-Fi pairing.").assertIsDisplayed()
+    composeTestRule.onNodeWithText("ADB Wi-Fi 1.0 Device").assertIsDisplayed()
+    composeTestRule
+      .onNodeWithText(
+        "ADB Wi-Fi v1.0 has limited pairing capability. Update device to the latest API to use ADB Wi-Fi 2.0 or higher. Note: Some hardware may not support the latest API version."
+      )
+      .assertIsDisplayed()
+    composeTestRule.onNodeWithText("Learn More").assertIsDisplayed()
   }
 
   @Test
@@ -261,6 +318,30 @@ class WifiAvailableDevicesDialogTest {
     whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
     whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
     val deviceUpToDate = createMdnsTlsService("service1", "192.168.1.101", 5555, "New Device", "30", mdnsServiceVersion = "2.0")
+    adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(deviceUpToDate), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true).assertDoesNotExist()
+  }
+
+  @Test
+  fun deviceUpToDate_version2_1_dontShowWarning() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    val deviceUpToDate = createMdnsTlsService("service1", "192.168.1.101", 5555, "New Device", "30", mdnsServiceVersion = "2.1")
+    adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(deviceUpToDate), emptyList())
+
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNode(hasTestTag(WARNING_TOOLTIP_TEST_TAG), useUnmergedTree = true).assertDoesNotExist()
+  }
+
+  @Test
+  fun deviceUpToDate_version10_dontShowWarning() = runTest {
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+    val deviceUpToDate = createMdnsTlsService("service1", "192.168.1.101", 5555, "New Device", "30", mdnsServiceVersion = "10.0")
     adblibMdnsServicesFlow.value = MdnsServices(emptyList(), listOf(deviceUpToDate), emptyList())
 
     composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
@@ -423,5 +504,24 @@ class WifiAvailableDevicesDialogTest {
     verify(mockPairDevicesUsingWiFiService)
       .createPairingDialogController(argThat { serviceName == expectedTrackingMdnsService.serviceName })
     verify(mockPairingDialogController).showDialog()
+  }
+
+  @Test
+  fun refreshButton_rechecksSupport() = runTest {
+    // Initial state: Not Supported
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.NotSupported)
+    composeTestRule.setContent { wifiAvailableDevicesDialog.WifiDialog() }
+
+    composeTestRule.onNodeWithText("Refresh").assertIsDisplayed()
+
+    // Change mock to Supported
+    whenever(mockWiFiPairingService.checkMdnsSupport()).thenReturn(MdnsSupportState.Supported)
+    whenever(mockWiFiPairingService.isTrackMdnsServiceAvailable()).thenReturn(true)
+
+    // Click Refresh
+    composeTestRule.onNodeWithText("Refresh").performClick()
+
+    // Expect: Supported UI (e.g. "No devices found" if list empty)
+    composeTestRule.onNodeWithText("No devices found.", substring = true).assertIsDisplayed()
   }
 }

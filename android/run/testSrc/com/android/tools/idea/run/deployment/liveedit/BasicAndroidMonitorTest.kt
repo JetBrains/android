@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
@@ -54,7 +53,7 @@ class BasicAndroidMonitorTest {
   private lateinit var project: Project
   private lateinit var monitor: LiveEditProjectMonitor
   private lateinit var service: LiveEditService
-  private lateinit var client: ClientImpl
+  private var client = mock<Client>()
   private lateinit var connection: FakeLiveEditAdbListener
 
   private var clients: Array<Client> = arrayOf()
@@ -63,17 +62,20 @@ class BasicAndroidMonitorTest {
 
   private val gradleSyncString = "Gradle sync needs to be performed. Sync and rerun the app."
 
-  private val mySyncState: GradleSyncState = mock()
+  private lateinit var mySyncState: GradleSyncState
 
-  private val device: IDevice = mock()
+  private val device = mock<IDevice>()
 
   @get:Rule var projectRule = AndroidProjectRule.onDisk()
 
   @Before
   fun setUp() {
+    // GradleSyncState initialization needs happen after AndroidProjectRule had a chance
+    // to initialize Application.
+    mySyncState = mock()
+
     Logger.getInstance(LiveEditProjectMonitor::class.java).setLevel(LogLevel.ALL)
     project = projectRule.project
-    client = mock()
     whenever(client.device).thenReturn(device)
 
     project.replaceService(GradleSyncState::class.java, mySyncState, projectRule.testRootDisposable)

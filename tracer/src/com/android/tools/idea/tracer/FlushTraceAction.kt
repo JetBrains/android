@@ -16,17 +16,18 @@
 package com.android.tools.idea.tracer
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.tracer.TracingService
+import com.android.tools.tracer.Tracing
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import kotlin.io.path.Path
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,21 +35,22 @@ import kotlinx.coroutines.withContext
 class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
 
   override fun update(e: AnActionEvent) {
-    // TODO(b/467364934): Use the feature flag to control the feature, not enablement.
-    val enabled = StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get()
-    e.presentation.isEnabledAndVisible = enabled
+    val featureEnabled = StudioFlags.STUDIO_TRACE_LIBRARY_ENABLED.get()
+    e.presentation.isVisible = featureEnabled
+    e.presentation.isEnabled = featureEnabled && PropertiesComponent.getInstance().getBoolean(TRACING_ENABLED_KEY, false)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project
-    val service = TracingService.getInstance() ?: return
+    val log = thisLogger()
 
-    CoroutineScope(Dispatchers.Default).launch {
+    studioTracingScope.launch {
       val virtualFile =
         withContext(Dispatchers.IO) {
-          val pathString = service.flush()
+          val pathString = Tracing.flush() ?: return@withContext null
+          log.info("Perfetto Traces are flushed to ${pathString}.")
           LocalFileSystem.getInstance().refreshAndFindFileByNioFile(Path(pathString))
         }
 

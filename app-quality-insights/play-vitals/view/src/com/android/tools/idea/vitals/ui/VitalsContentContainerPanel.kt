@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsContentPanel
@@ -28,6 +27,7 @@ import com.android.tools.idea.insights.ui.insight.InsightToolWindow
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.SimpleTextAttributes
@@ -35,6 +35,7 @@ import com.intellij.util.ui.StatusText
 import java.awt.CardLayout
 import java.awt.Graphics
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -52,7 +53,7 @@ class VitalsContentContainerPanel(
   tabVisibilityFlow: Flow<Boolean>,
 ) : JPanel(CardLayout()), Disposable {
 
-  private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
+  private val scope = AndroidCoroutineScope(this, Dispatchers.EDT)
 
   init {
     Disposer.register(parentDisposable, this)

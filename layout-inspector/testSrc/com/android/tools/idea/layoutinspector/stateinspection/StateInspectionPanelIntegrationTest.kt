@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorStateReads
 import com.android.tools.idea.layoutinspector.window
@@ -113,7 +114,11 @@ class StateInspectionPanelIntegrationTest {
     val minimize = panel.buttonWithIcon(AllIcons.General.HideToolWindow)
     val recompositionText = panel.getDescendant<JLabel> { it.name == RECOMPOSITION_TEXT_LABEL_NAME }
 
-    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 4" }
+
+    // Check that the HyperLinkDetector processed the content with all available filters.
+    val editor = panel.getUserData(STATE_READ_EDITOR_KEY)!!
+    assertThat(editor.markupModel.allHighlighters.size).isEqualTo(3)
 
     // Layout the swing components since InnerStateInspectionPanel was just created.
     ui.layout()
@@ -124,6 +129,14 @@ class StateInspectionPanelIntegrationTest {
     assertThat(next.isEnabled).isFalse()
 
     ui.click(prev)
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
+    val emptyStateLabel = panel.getDescendant<JLabel> { it.name == EMPTY_STATE_NAME }
+    waitForCondition(10.seconds) { emptyStateLabel.text.contains("without making any state reads") }
+    panel.checkContent("")
+    waitForCondition(10.seconds) { prev.isEnabled }
+    waitForCondition(10.seconds) { next.isEnabled }
+
+    ui.click(prev)
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 2" }
     panel.checkContent("state_reads_1_2.txt")
     panel.checkComposableInspected()
@@ -132,6 +145,13 @@ class StateInspectionPanelIntegrationTest {
 
     ui.click(next)
     waitForCondition(10.seconds) { recompositionText.text == "Recomposition 3" }
+    waitForCondition(10.seconds) { emptyStateLabel.text.contains("without making any state reads") }
+    panel.checkContent("")
+    waitForCondition(10.seconds) { prev.isEnabled }
+    waitForCondition(10.seconds) { next.isEnabled }
+
+    ui.click(next)
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 4" }
     panel.checkContent("state_reads_1_3.txt")
     panel.checkComposableInspected()
     waitForCondition(10.seconds) { prev.isEnabled }
@@ -168,9 +188,9 @@ class StateInspectionPanelIntegrationTest {
 
     val data = DynamicLayoutInspectorSession.newBuilder()
     inspectorRule.inspectorClient.stats.save(data)
-    assertThat(data.stateReads.prevRecompositionChosen).isEqualTo(1)
-    assertThat(data.stateReads.nextRecompositionChosen).isEqualTo(2)
-    assertThat(data.stateReads.pagesShownObservingAll).isEqualTo(3)
+    assertThat(data.stateReads.prevRecompositionChosen).isEqualTo(2)
+    assertThat(data.stateReads.nextRecompositionChosen).isEqualTo(3)
+    assertThat(data.stateReads.pagesShownObservingAll).isEqualTo(5)
     assertThat(data.stateReads.pagesShownObservingById).isEqualTo(1)
     assertThat(data.stateReads.stackTraceLinksClicked).isEqualTo(2)
     assertThat(data.stateReads.aiLinksClicked).isEqualTo(1)
@@ -239,11 +259,12 @@ class StateInspectionPanelIntegrationTest {
     val model = inspectorRule.inspectorModel
     val window =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        compose(COMPOSE1, "Column", composeCount = 3, composeFilename = "MainActivity.kt") {
+        compose(COMPOSE1, "Column", composeCount = 4, composeFilename = "MainActivity.kt") {
           compose(COMPOSE2, "Button", composeCount = 2) { compose(COMPOSE3, "Text", composeCount = 0) }
         }
       }
     model.update(window, listOf(ROOT), 0)
     model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
+    model.setSelection(model[COMPOSE1], SelectionOrigin.INTERNAL)
   }
 }

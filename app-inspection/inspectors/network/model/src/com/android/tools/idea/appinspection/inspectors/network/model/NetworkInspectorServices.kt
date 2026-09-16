@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.StopwatchTimer
 import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 
 interface NetworkInspectorServices {
@@ -26,7 +27,7 @@ interface NetworkInspectorServices {
   val client: NetworkInspectorClient
   val updater: Updater
   val workerDispatcher: CoroutineDispatcher
-  val uiDispatcher: CoroutineDispatcher
+  val uiContext: CoroutineContext
   val usageTracker: NetworkInspectorTracker
   val ideServices: AppInspectionIdeServices
 }
@@ -37,7 +38,7 @@ class NetworkInspectorServicesImpl(
   override val client: NetworkInspectorClient,
   timer: StopwatchTimer,
   override val workerDispatcher: CoroutineDispatcher,
-  override val uiDispatcher: CoroutineDispatcher,
+  override val uiContext: CoroutineContext,
   override val usageTracker: NetworkInspectorTracker,
   override val ideServices: AppInspectionIdeServices,
 ) : NetworkInspectorServices {

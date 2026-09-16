@@ -82,7 +82,7 @@ fun insertBracketsAroundIfNeeded(context: InsertionContext, lookupElement: Looku
 }
 
 /** Extracts [UserConfiguration]s from a Declarative Watch Face file. */
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun XmlFile.extractUserConfigurations(): List<UserConfiguration> {
   if (rootTag?.name != TAG_WATCH_FACE) return emptyList()
   val userConfigurationTags = rootTag?.findSubTags(TAG_USER_CONFIGURATIONS)?.flatMap { it.subTags.toList() } ?: return emptyList()

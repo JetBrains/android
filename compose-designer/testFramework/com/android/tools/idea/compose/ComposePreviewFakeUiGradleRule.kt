@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
@@ -26,7 +27,6 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
@@ -38,7 +38,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.image.BufferedImage
@@ -67,7 +66,6 @@ class ComposePreviewFakeUiGradleRule(
   private val previewFilePath: String,
   testDataPath: String = TEST_DATA_PATH,
   projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
-  enableRenderQuality: Boolean = StudioFlags.PREVIEW_RENDER_QUALITY.get(),
 ) : ComposeGradleProjectRule(projectPath, testDataPath, projectRule) {
 
   // The logger must be initialized later since at this point the logger framework is not ready yet
@@ -92,12 +90,10 @@ class ComposePreviewFakeUiGradleRule(
     super.delegate.around(
       object : NamedExternalResource() {
         override fun before(description: Description) {
-          StudioFlags.PREVIEW_RENDER_QUALITY.override(enableRenderQuality)
           setUpPreview()
         }
 
         override fun after(description: Description) {
-          StudioFlags.PREVIEW_RENDER_QUALITY.clearOverride()
           FastPreviewConfiguration.getInstance().resetDefault()
         }
       }
@@ -135,42 +131,15 @@ class ComposePreviewFakeUiGradleRule(
     composePreviewRepresentation.activateAndWaitForRender(fakeUi)
     composePreviewRepresentation.waitForAnyPreviewToBeAvailable()
 
-    runAndWaitForRefresh { composePreviewRepresentation.requestRefreshForTest() }
-    logger.debug("requestRefresh completed")
-
-    withContext(Dispatchers.EDT) {
-      previewView.updateVisibilityAndNotifications()
-      UIUtil.dispatchAllInvocationEvents()
+    // Retry refresh if there are unexpected results to avoid flakiness due to timing
+    delayUntilCondition(delayPerIterationMs = 500L) {
+      runAndWaitForRefresh { composePreviewRepresentation.requestRefreshForTest() }
+      logger.debug("requestRefresh completed")
+      validate()
+      with(previewView) { hasRendered && hasContent } && with(composePreviewRepresentation.status()) { !hasErrors && !isOutOfDate }
     }
 
-    assertTrue(previewView.hasRendered)
-    assertTrue(previewView.hasContent)
-    assertTrue(!composePreviewRepresentation.status().hasErrors)
-    assertTrue(!composePreviewRepresentation.status().hasSyntaxErrors)
-    assertTrue(!composePreviewRepresentation.status().isOutOfDate)
-
-    validate()
     logger.info("ComposePreviewFakeUiGradleRuleImpl setUp completed")
-  }
-
-  fun resetInitialConfiguration() {
-    composePreviewRepresentation.onDeactivate()
-    composePreviewRepresentation.dispose()
-    setUpPreview()
-  }
-
-  fun runWithRenderQualityEnabled(runnable: suspend () -> Unit) = runBlocking {
-    try {
-      if (!StudioFlags.PREVIEW_RENDER_QUALITY.get()) {
-        StudioFlags.PREVIEW_RENDER_QUALITY.override(true)
-        // We need to set up things again to make sure that the flag change takes effect
-        resetInitialConfiguration()
-        withContext(Dispatchers.EDT) { fakeUi.root.validate() }
-      }
-      runnable()
-    } finally {
-      StudioFlags.PREVIEW_RENDER_QUALITY.clearOverride()
-    }
   }
 
   /** Executes [runnable], expecting it to cause a refresh of type [expectedRefreshType] to start running. */

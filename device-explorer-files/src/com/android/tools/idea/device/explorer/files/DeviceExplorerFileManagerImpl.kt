@@ -17,8 +17,6 @@ package com.android.tools.idea.device.explorer.files
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesUtils.findFile
@@ -30,6 +28,7 @@ import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.application.TransactionGuardImpl
 import com.intellij.openapi.diagnostic.thisLogger
@@ -47,6 +46,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
@@ -81,8 +81,8 @@ constructor(private val project: Project, private val defaultDownloadPathSupplie
   }
 
   override suspend fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): VirtualFile {
-    withContext(diskIoThread) { FileUtils.mkdirs(localPath.parent.toFile()) }
-    return withWriteSafeContextWithCurrentModality {
+    withContext(Dispatchers.IO) { FileUtils.mkdirs(localPath.parent.toFile()) }
+    return withContext(Dispatchers.EDT) {
       // findFileByIoFile should be called from the write thread, in a write-safe context
       VfsUtil.findFileByIoFile(localPath.toFile(), true)?.let {
         runWriteActionAndWait {
@@ -95,7 +95,7 @@ constructor(private val project: Project, private val defaultDownloadPathSupplie
   }
 
   override suspend fun deleteFile(virtualFile: VirtualFile) {
-    withWriteSafeContextWithCurrentModality {
+    withContext(Dispatchers.EDT) {
       ApplicationManager.getApplication().runWriteAction {
         // must be called from a write action
         deleteVirtualFile(virtualFile)
@@ -179,7 +179,7 @@ constructor(private val project: Project, private val defaultDownloadPathSupplie
 
   override suspend fun openFile(localPath: Path) {
     val file = findFile(localPath, true)
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       file.name.let { fileName ->
         file.fileType.takeIf { it != FileTypes.UNKNOWN }
           ?: FileTypeManager.getInstance().getFileTypeByFileName(fileName).takeIf { it != FileTypes.UNKNOWN }

@@ -2895,6 +2895,7 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2910,6 +2911,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -2924,6 +2926,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -2946,6 +2949,7 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2961,6 +2965,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2976,6 +2981,7 @@ MODULE                        : project.lib
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/lib/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/lib/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-<AGP_VERSION> [-]
@@ -3000,6 +3006,7 @@ MODULE                        : project.lib
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/lib/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/lib/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3896,6 +3903,7 @@ MODULE                        : project.nested1
             JniLibsDirectories            : <ROOT>/nested1/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested1/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested1/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested1/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3911,6 +3919,7 @@ MODULE                        : project.nested1
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested1/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested1/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -3925,6 +3934,7 @@ MODULE                        : project.nested1
                     JniLibsDirectories            : <ROOT>/nested1/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested1/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested1/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -3947,6 +3957,7 @@ MODULE                        : project.nested1
             JniLibsDirectories            : <ROOT>/nested1/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested1/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested1/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested1/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3962,6 +3973,7 @@ MODULE                        : project.nested1
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested1/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested1/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -3977,6 +3989,7 @@ MODULE                        : project.nested1
                     JniLibsDirectories            : <ROOT>/nested1/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested1/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested1/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -3998,6 +4011,7 @@ MODULE                        : project.nested1
             JniLibsDirectories            : <ROOT>/nested1/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested1/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested1/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested1/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4188,6 +4202,7 @@ MODULE                        : project.nested1.deep
             JniLibsDirectories            : <ROOT>/nested1/deep/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested1/deep/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested1/deep/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested1/deep/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4203,6 +4218,7 @@ MODULE                        : project.nested1.deep
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested1/deep/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested1/deep/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4217,6 +4233,7 @@ MODULE                        : project.nested1.deep
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested1/deep/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested1/deep/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -4239,6 +4256,7 @@ MODULE                        : project.nested1.deep
             JniLibsDirectories            : <ROOT>/nested1/deep/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested1/deep/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested1/deep/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested1/deep/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4254,6 +4272,7 @@ MODULE                        : project.nested1.deep
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested1/deep/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested1/deep/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4269,6 +4288,7 @@ MODULE                        : project.nested1.deep
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested1/deep/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested1/deep/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested1/deep/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -4290,6 +4310,7 @@ MODULE                        : project.nested1.deep
             JniLibsDirectories            : <ROOT>/nested1/deep/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested1/deep/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested1/deep/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested1/deep/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4492,6 +4513,7 @@ MODULE                        : project.nested2
             JniLibsDirectories            : <ROOT>/nested2/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4507,6 +4529,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4521,6 +4544,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -4543,6 +4567,7 @@ MODULE                        : project.nested2
             JniLibsDirectories            : <ROOT>/nested2/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4558,6 +4583,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4573,6 +4599,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -4594,6 +4621,7 @@ MODULE                        : project.nested2
             JniLibsDirectories            : <ROOT>/nested2/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/src/release/aarKeepRules [-]
     ProductFlavors
         ProductFlavor
             Name                          : basic
@@ -4611,6 +4639,7 @@ MODULE                        : project.nested2
             JniLibsDirectories            : <ROOT>/nested2/src/basic/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/basic/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/src/basic/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/src/basic/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4626,6 +4655,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestBasic/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestBasic/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/androidTestBasic/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/androidTestBasic/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4640,6 +4670,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasic/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/testBasic/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/testBasic/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/testBasic/aarKeepRules [-]
         ProductFlavor
             Name                          : paid
             Dimension                     : foo
@@ -4656,6 +4687,7 @@ MODULE                        : project.nested2
             JniLibsDirectories            : <ROOT>/nested2/src/paid/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/src/paid/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/src/paid/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/src/paid/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4671,6 +4703,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestPaid/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestPaid/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/androidTestPaid/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/androidTestPaid/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4685,6 +4718,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/testPaid/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/testPaid/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/testPaid/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/testPaid/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4740,6 +4774,7 @@ MODULE                        : project.nested2
                     JniLibsDirectories            : <ROOT>/nested2/src/basicDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/src/basicDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/src/basicDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/src/basicDebug/aarKeepRules [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -4917,6 +4952,7 @@ MODULE                        : project.nested2.deep
             JniLibsDirectories            : <ROOT>/nested2/deep/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/deep/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/deep/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/deep/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4932,6 +4968,7 @@ MODULE                        : project.nested2.deep
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/deep/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/deep/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4946,6 +4983,7 @@ MODULE                        : project.nested2.deep
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/deep/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/deep/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -4968,6 +5006,7 @@ MODULE                        : project.nested2.deep
             JniLibsDirectories            : <ROOT>/nested2/deep/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/deep/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/deep/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/deep/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4983,6 +5022,7 @@ MODULE                        : project.nested2.deep
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/deep/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/deep/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4998,6 +5038,7 @@ MODULE                        : project.nested2.deep
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/deep/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/deep/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/deep/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -5019,6 +5060,7 @@ MODULE                        : project.nested2.deep
             JniLibsDirectories            : <ROOT>/nested2/deep/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/deep/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/deep/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/deep/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5219,6 +5261,7 @@ MODULE                        : project.nested2.trans.deep2
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/main/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/main/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/trans/deep2/src/main/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/trans/deep2/src/main/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5234,6 +5277,7 @@ MODULE                        : project.nested2.trans.deep2
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTest/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/androidTest/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/trans/deep2/src/androidTest/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/trans/deep2/src/androidTest/aarKeepRules [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -5248,6 +5292,7 @@ MODULE                        : project.nested2.trans.deep2
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/test/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/test/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/trans/deep2/src/test/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/trans/deep2/src/test/aarKeepRules [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -5270,6 +5315,7 @@ MODULE                        : project.nested2.trans.deep2
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/debug/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/debug/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/trans/deep2/src/debug/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/trans/deep2/src/debug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5285,6 +5331,7 @@ MODULE                        : project.nested2.trans.deep2
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/androidTestDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/trans/deep2/src/androidTestDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/trans/deep2/src/androidTestDebug/aarKeepRules [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5300,6 +5347,7 @@ MODULE                        : project.nested2.trans.deep2
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/jniLibs [-]
                     BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/testDebug/baselineProfiles [-]
                     KeepRulesDirectories          : <ROOT>/nested2/trans/deep2/src/testDebug/keepRules [-]
+                    AarKeepRulesDirectories       : <ROOT>/nested2/trans/deep2/src/testDebug/aarKeepRules [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -5321,6 +5369,7 @@ MODULE                        : project.nested2.trans.deep2
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/release/jniLibs [-]
             BaselineProfileDirectories    : <ROOT>/nested2/trans/deep2/src/release/baselineProfiles [-]
             KeepRulesDirectories          : <ROOT>/nested2/trans/deep2/src/release/keepRules [-]
+            AarKeepRulesDirectories       : <ROOT>/nested2/trans/deep2/src/release/aarKeepRules [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

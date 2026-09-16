@@ -35,8 +35,11 @@ import com.google.common.truth.TruthJUnit.assume
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.testFramework.PsiTestUtil
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
@@ -373,37 +376,55 @@ class GradleTaskFinderTest : HeavyPlatformTestCase() {
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
+  fun testFindTasksToExecuteForJavaSourceSetModules() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"))
+
+    val mainModule = modules.find { it.name.endsWith(".main") }!!
+    val testModule = modules.find { it.name.endsWith(".test") }!!
+
+    // Add sourceRoots to the test module, so we can check it is a test module in GradleTaskFinderWorker.
+    val fakeSourceDir = Files.createDirectories(projectDir.toPath().resolve("lib/src/test/java"))
+    val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(fakeSourceDir)!!
+    PsiTestUtil.addSourceRoot(testModule, virtualFile)
+
+    val mainTasks = taskFinder.findTasksToExecute(arrayOf(mainModule), BuildMode.ASSEMBLE)
+    assertThat(mainTasks.forTest()).containsExactly(projectDir, listOf(":lib:assemble"))
+
+    val testTasks = taskFinder.findTasksToExecute(arrayOf(testModule), BuildMode.ASSEMBLE)
+    assertThat(testTasks.forTest()).containsExactly(projectDir, listOf(":lib:testClasses"))
+  }
+
   fun testFindTasksToExecuteForCompilingJavaModule_rootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, javaModule(":"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava", ":testClasses"))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava", ":compileTestJava"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForCompilingJavaModule_NonRootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"))
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava", ":lib:testClasses"))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava", ":lib:compileTestJava"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForCompilingJavaModuleAndTests_rootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, javaModule(":"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava", ":testClasses"))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava", ":compileTestJava"))
     // check it also when compiling all.
     tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava", ":testClasses"))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava", ":compileTestJava"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
   fun testFindTasksToExecuteForCompilingJavaModuleAndTests_nonRootModule() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava", ":lib:testClasses"))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava", ":lib:compileTestJava"))
     // check it also when compiling all.
     tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA)
-    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava", ":lib:testClasses"))
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava", ":lib:compileTestJava"))
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 

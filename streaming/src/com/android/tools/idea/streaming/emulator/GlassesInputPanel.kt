@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBBox
 import com.intellij.util.ui.JBUI.Borders
@@ -32,6 +34,15 @@ class GlassesInputPanel(private val emulator: EmulatorController) : JBBox(BoxLay
     if (touchpadSize != null) {
       val touchpadPanel = TouchpadPanel(emulator, touchpadSize)
       add(touchpadPanel)
+
+      val actionManager = ActionManager.getInstance()
+      val actionGroup = actionManager.getAction("StreamingToolbarGlasses") as? ActionGroup
+      if (actionGroup != null) {
+        val toolbar = actionManager.createActionToolbar("GlassesInputPanel", actionGroup, true)
+        toolbar.targetComponent = this
+        add(toolbar.component)
+      }
+
       add(createHorizontalGlue())
     }
   }

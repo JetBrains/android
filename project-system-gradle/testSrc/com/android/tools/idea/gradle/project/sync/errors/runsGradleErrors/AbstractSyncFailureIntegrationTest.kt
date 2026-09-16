@@ -52,7 +52,7 @@ abstract class AbstractSyncFailureIntegrationTest {
   protected val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   @Before
-  fun setUp() {
+  open fun setUp() {
     UsageTracker.setWriterForTest(usageTracker)
   }
 

@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import kotlin.test.assertEquals
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,6 +36,12 @@ class UniqueModuleGradlePathWithParentExpressionTest {
       AndroidModuleModelBuilder(":libs:lib", "debug", AndroidProjectBuilder()),
       AndroidModuleModelBuilder(":libs:lib2", "debug", AndroidProjectBuilder()),
     )
+
+  @After
+  fun tearDown() {
+    // TODO(b/485476622): Give the VFS events a chance to finish to prevent the test time out issue
+    Thread.sleep(2000)
+  }
 
   @Test
   fun testFindUniqueName() {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.debuggers.coroutine
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -24,7 +23,6 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
@@ -38,7 +36,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
   fun testNoAmOptionsIfFlagIsDisabled() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val device = mock<IDevice>()
 
     runWithFlagState(false) {
       val amStartOptions =
@@ -49,7 +47,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
   fun testNoAmOptionsIfNotDebuggable() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val device = mock<IDevice>()
 
     runWithFlagState(true) {
       val amStartOptions =
@@ -61,7 +59,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
   fun testNoAmOptionsIfSettingsNotEnabled() {
     CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(false)
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = mock<IDevice>()
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 
@@ -76,7 +74,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
   fun testNoAmOptionsOnAPI28AndLower() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = mock<IDevice>()
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
 
@@ -113,7 +111,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
   fun testAmOptionsIsCorrect() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = mock<IDevice>()
     CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(true)
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
@@ -130,7 +128,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     project.registerServiceInstance(CoroutineDebuggerAnalyticsTracker::class.java, fakeTracker)
 
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = mock<IDevice>()
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 

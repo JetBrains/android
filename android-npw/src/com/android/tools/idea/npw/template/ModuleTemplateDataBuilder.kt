@@ -46,6 +46,7 @@ import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.PackageName
+import com.android.tools.idea.wizard.template.TemplateKotlinSupport
 import com.android.tools.idea.wizard.template.ThemeData
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
@@ -283,6 +284,8 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
       topOut = project.guessProjectDir()!!.toIoFile()
       applicationPackage = ""
       overridePathCheck = false
+      kotlinSupport =
+        TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN // Don't try to add explicit Kotlin support, If it's needed, it's already working
     }
 
   return ModuleTemplateDataBuilder(projectStateBuilder, true, project.isViewBindingSupported()).apply {

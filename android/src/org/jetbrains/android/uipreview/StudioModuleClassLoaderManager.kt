@@ -75,7 +75,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) : Proj
     }
   }
 
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private fun clearCaches() {
     StudioModuleClassLoaderManager.get().clearCache(project)
   }
@@ -356,6 +356,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
       captureDiagnostics = enabled
     }
 
+    @Suppress("VisibleForTests")
     internal fun createDiagnostics() = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
 
     @JvmStatic fun get(): StudioModuleClassLoaderManager = application.service<StudioModuleClassLoaderManager>()

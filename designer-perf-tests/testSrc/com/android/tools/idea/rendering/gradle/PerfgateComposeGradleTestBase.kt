@@ -58,7 +58,6 @@ open class PerfgateComposeGradleTestBase {
       projectPath = SIMPLE_COMPOSE_PROJECT_PATH,
       previewFilePath = "app/src/main/java/google/simpleapplication/MainActivity.kt",
       testDataPath = "tools/adt/idea/designer-perf-tests/testData",
-      enableRenderQuality = false,
     )
 
   protected val fixture: CodeInsightTestFixture

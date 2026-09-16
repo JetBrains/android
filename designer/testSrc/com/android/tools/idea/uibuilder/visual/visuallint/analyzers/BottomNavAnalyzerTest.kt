@@ -19,6 +19,8 @@ import com.android.AndroidXConstants
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.visuallint.analyzers.BottomNavAnalyzer
 import com.google.common.collect.ImmutableList
 
@@ -37,7 +39,11 @@ class BottomNavAnalyzerTest : LayoutTestCase() {
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = BottomNavAnalyzer.findIssues(renderResult, model.configuration)
+    val issues =
+      BottomNavAnalyzer.findIssues(
+        renderResult = renderResult.toVisualLintRenderResult(),
+        configuration = model.configuration.toVisualLintConfiguration(),
+      )
     assertEquals(0, issues.size)
   }
 
@@ -54,7 +60,11 @@ class BottomNavAnalyzerTest : LayoutTestCase() {
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = BottomNavAnalyzer.findIssues(renderResult, model.configuration)
+    val issues =
+      BottomNavAnalyzer.findIssues(
+        renderResult = renderResult.toVisualLintRenderResult(),
+        configuration = model.configuration.toVisualLintConfiguration(),
+      )
     assertEquals(1, issues.size)
     assertEquals("Bottom navigation bar is not recommended for breakpoints over 600dp", issues[0].message)
   }

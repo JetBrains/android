@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.DeviceId
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -46,6 +47,10 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
+    if (getDeviceType(event) == DeviceType.AI_GLASSES) {
+      event.presentation.isEnabledAndVisible = false
+      return
+    }
     val presentation = event.presentation
     if (getXrInputController(event)?.isMouseUsedForNavigation() == true) {
       presentation.isEnabled = false

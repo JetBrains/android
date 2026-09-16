@@ -17,6 +17,9 @@ package com.android.tools.idea.actions.license;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Locates the appropriate licenses to display from the Studio installation. This includes:
@@ -40,17 +42,17 @@ public class LicensesLocator {
   private final Path myIdeHome;
   private final boolean myOnMac;
 
-  private final List<String> myGooglePlugins = Arrays.asList(
-    "android",
-    "firebase",
-    "firebase-testing",
-    "google-appindexing",
-    "google-cloud-tools",
-    "google-cloud-tools-core",
-    "google-login",
-    "google-services",
-    "test-recorder"
-  );
+    private final List<String> myGooglePlugins =
+            Arrays.asList(
+                    "android",
+                    "firebase",
+                    "google-appindexing",
+                    "google-cloud-tools",
+                    "google-cloud-tools-core",
+                    "google-login",
+                    "google-services",
+                    "gmd-code-completion",
+                    "test-recorder");
 
   public LicensesLocator(@NotNull Path ideHome, boolean isMacLayout) {
     myIdeHome = ideHome;
@@ -97,7 +99,8 @@ public class LicensesLocator {
 
   @NotNull
   private List<Path> getThirdPartyLibrariesForPlugin(@NotNull String plugin) {
-    Path pluginLicenseFolder = Paths.get(myIdeHome.toString(), "plugins", plugin, "lib", "licenses");
+        Path pluginLicenseFolder =
+                Paths.get(myIdeHome.toString(), "plugins", plugin, "lib", "licenses");
     if (Files.isDirectory(pluginLicenseFolder)) {
       try (Stream<Path> stream = Files.list(pluginLicenseFolder)) {
         return stream.sorted().collect(Collectors.toList());

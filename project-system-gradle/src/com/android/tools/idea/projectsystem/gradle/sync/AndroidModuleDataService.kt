@@ -74,10 +74,10 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
-import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.function.Function
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 
@@ -111,10 +111,17 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       resolver: IdeLibraryModelResolverImpl,
       modelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl,
     ) {
+      val storage = (modelsProvider as IdeModifiableModelsProviderImpl).actualStorageBuilder
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
-
+      // In the case of duplicated module names, the final module name may have been updated.
+      // Make sure to update the data node with the new name.
+      nodeToImport.visitData(Function<GradleAndroidModelData, GradleAndroidModelData> {
+        it.copy(moduleNameField = mainIdeModule.name)
+      })
       val gradleAndroidModelData = nodeToImport.data
+      val coreModel = modelFactory(gradleAndroidModelData)
+      setGradleAndroidModelFromDataNode(storage, mainIdeModule, coreModel, resolver)
 
       mainModuleDataNode.linkAndroidModuleGroup(project, modelsProvider)
 
@@ -125,11 +132,8 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         val androidFacet =
           modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID) ?: createAndroidFacet(module, facetModel)
         // Configure that Android facet from the information in the GradleAndroidModel.
-        val coreModel = modelFactory(gradleAndroidModelData)
         configureFacet(androidFacet, module, coreModel)
-        val storage = (modelsProvider as IdeModifiableModelsProviderImpl).actualStorageBuilder
 
-        setGradleAndroidModelFromDataNode(storage, storage.resolve(ModuleId(module.name))!!, coreModel, resolver)
         // We need to get back the mapped dependency model instead of recreate it from the core
         val dependencyModel = storage.getGradleAndroidModel(module)!!
         moduleValidator.validate(module, dependencyModel)

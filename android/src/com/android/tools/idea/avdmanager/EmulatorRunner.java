@@ -58,7 +58,9 @@ public class EmulatorRunner {
     if (avdInfo != null) {
       event.setDeviceInfo(DeviceInfo.newBuilder()
                             .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(avdInfo.getAbiType()))
-                            .setBuildApiLevelFull(avdInfo.getAndroidVersion().getApiStringWithExtension()));
+                            .setBuildApiLevelFull(avdInfo.getAndroidVersion().getApiStringWithExtension())
+                            .setModel(avdInfo.getDeviceName())
+                            .setManufacturer(avdInfo.getDeviceManufacturer()));
     }
 
     UsageTracker.log(event);

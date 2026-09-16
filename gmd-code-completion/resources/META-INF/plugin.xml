@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (C) 2021 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!--suppress PluginXmlReferencesModuleReachability (an Android Studio descriptor that no JPS module owns; it must not add android edges to intellij.idea.community.main) -->
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <id>com.android.gmdcodecompletion</id>
+  <name>GMD Code Completion</name>
+  <vendor>Google</vendor>
+
+  <depends>org.intellij.groovy</depends>
+  <depends>org.jetbrains.kotlin</depends>
+  <depends>org.jetbrains.android</depends>
+  <depends>com.android.tools.gradle.dsl</depends>
+  <depends>com.google.services.firebase</depends>
+  <depends>com.intellij.java</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <completion.contributor language="any"
+                            id="GmdCodeCompletionContributor"
+                            implementationClass="com.android.gmdcodecompletion.completions.GmdCodeCompletionContributor"
+                            order="first, before KotlinCompletionContributor"/>
+    <completion.confidence language="any"
+                           id="EnableAutoPopupInStringLiteralForGmdCompletion"
+                           implementationClass="com.android.gmdcodecompletion.completions.EnableAutoPopupInStringLiteralForGmdCodeCompletion"
+                           order="first"/>
+  </extensions>
+
+  <projectListeners>
+    <listener class="com.android.gmdcodecompletion.GmdCodeCompletionGradleSyncListener"
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
+  </projectListeners>
+</idea-plugin>

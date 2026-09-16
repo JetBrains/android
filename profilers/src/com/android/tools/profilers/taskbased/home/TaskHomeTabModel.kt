@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.taskbased.home
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.LogUtils
 import com.android.tools.profilers.ProcessUtils.isProfileable
@@ -202,15 +204,26 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
       ProfilingProcessStartingPoint.PROCESS_START -> {
         assert(canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers))
 
+        val device = selectedDevice ?: return
+        val startTaskAction = Runnable {
+          val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
+          profilers.ideServices.buildAndLaunchAction(prefersProfileable, device)
+          // Reset process selection as process will be recreated and thus the original selection will be lost.
+          processListModel.resetProcessSelection()
+        }
+
         // The only way the user would be able to set `isProfilingFromProcessStart` to be true is if they already selected a startup-capable
         // task. Thus, it is safe to enable the corresponding startup config for the selected task.
-        profilers.ideServices.enableStartupTask(selectedTaskType, _taskRecordingType.value)
-
-        val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
-        profilers.ideServices.buildAndLaunchAction(prefersProfileable, selectedDevice!!)
-
-        // Reset process selection as process will be recreated and thus the original selection will be lost.
-        processListModel.resetProcessSelection()
+        if (selectedTaskType == ProfilerTaskType.LEAKCANARY && profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled) {
+          profilers.ideServices.addDependency(GoogleMavenArtifactId.LEAKCANARY, DependencyType.DEBUG_IMPLEMENTATION).thenAccept { success ->
+            if (success) {
+              startTaskAction.run()
+            }
+          }
+        } else {
+          profilers.ideServices.enableStartupTask(selectedTaskType, _taskRecordingType.value)
+          startTaskAction.run()
+        }
       }
 
       ProfilingProcessStartingPoint.NOW -> {

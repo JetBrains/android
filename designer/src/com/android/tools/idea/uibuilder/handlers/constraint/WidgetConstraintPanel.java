@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.registerAttributeHelp;
+import com.android.tools.property.panel.api.HelpSupport;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_BOTTOM;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_LEFT;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_RIGHT;
@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBDimension;
@@ -46,6 +47,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import java.util.function.Supplier;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -77,8 +79,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
 
   @NotNull private final SingleWidgetView mMain;
   protected JLabel mTitle;
-  private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
-  private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
+  private final WidgetSlider mVerticalSlider = new WidgetSlider(SwingConstants.VERTICAL);
+  private final WidgetSlider mHorizontalSlider = new WidgetSlider(SwingConstants.HORIZONTAL);
   @NotNull final private WidgetSection myConstraintSection;
 
   private final InspectorColorSet mColorSet = new InspectorColorSet();
@@ -91,6 +93,20 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private final WidgetConstraintModel myWidgetModel = getWidgetModel(() -> configureUI());
 
   private boolean myInitialized;
+
+  static class WidgetSlider extends JSlider implements com.intellij.openapi.actionSystem.UiDataProvider {
+    private Supplier<ConstraintAttribute> myAttributeSupplier;
+
+    WidgetSlider(int orientation) { super(orientation); }
+
+    void setAttributeSupplier(Supplier<ConstraintAttribute> supplier) { myAttributeSupplier = supplier; }
+
+    @Override public void uiDataSnapshot(@NotNull DataSink sink) {
+      if (myAttributeSupplier != null) {
+        sink.lazy(HelpSupport.Companion.getPROPERTY_ITEM(), () -> myAttributeSupplier.get());
+      }
+    }
+  }
 
   static class InspectorColorSet extends BlueprintColorSet {
     InspectorColorSet() {
@@ -150,8 +166,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     myCustomPanel.add(myConstraintSection, BorderLayout.CENTER);
     myCustomPanel.add(new MySeparator(), BorderLayout.SOUTH);
 
-    registerAttributeHelp(mVerticalSlider, myWidgetModel::getVerticalBiasAttribute);
-    registerAttributeHelp(mHorizontalSlider, myWidgetModel::getHorizontalBiasAttribute);
+    mVerticalSlider.setAttributeSupplier(myWidgetModel::getVerticalBiasAttribute);
+    mHorizontalSlider.setAttributeSupplier(myWidgetModel::getHorizontalBiasAttribute);
 
     myInitialized = true;
   }

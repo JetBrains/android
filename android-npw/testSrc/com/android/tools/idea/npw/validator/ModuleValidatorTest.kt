@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import org.junit.After
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertSame
 import org.junit.Before
@@ -41,6 +42,12 @@ class ModuleValidatorTest {
   @Before
   fun createModuleValidator() {
     moduleValidator = ModuleValidator(projectRule.project)
+  }
+
+  @After
+  fun tearDown() {
+    // TODO(b/485476622): Give the VFS events a chance to finish to prevent the test time out issue
+    Thread.sleep(2000)
   }
 
   @Test

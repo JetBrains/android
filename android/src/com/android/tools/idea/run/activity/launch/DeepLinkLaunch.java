@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.run.activity.launch;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 import static com.android.tools.idea.run.configuration.execution.ExecutionUtils.printShellCommand;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.tools.deployer.model.App;
-import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
@@ -31,7 +28,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -93,30 +89,8 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     @NotNull
     @Override
     public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-      boolean isInstantApp = facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP;
-
       if ((DEEP_LINK == null || DEEP_LINK.isEmpty())) {
-        if (isInstantApp) {
-          // The new AIA SDK library supports launching instant apps without a URL
-          return ImmutableList.of();
-        }
-        else {
-          return ImmutableList.of(ValidationError.warning("URL not specified"));
-        }
-      }
-
-      if (isInstantApp) {
-        boolean matched = false;
-        List<Module> featureModules = findFeatureModules(facet);
-        for (Module featureModule : featureModules) {
-          if (new InstantAppUrlFinder(featureModule).matchesUrl(DEEP_LINK)) {
-            matched = true;
-            break;
-          }
-        }
-        if (!matched) {
-          return ImmutableList.of(ValidationError.warning("URL \"" + DEEP_LINK + "\" not defined in the manifest."));
-        }
+        return ImmutableList.of(ValidationError.warning("URL not specified"));
       }
       return ImmutableList.of();
     }

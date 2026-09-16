@@ -28,7 +28,7 @@
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinTest" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
@@ -73,10 +73,10 @@
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.test" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-ir" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.ir" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="android.tools.analytics.library.testing" level="project" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.database" />
@@ -143,11 +143,11 @@
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.compose.compiler.plugin" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.platform.interface" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.compilerPlugins.support.bundled" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-fe10" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.fe10" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.templates.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.images.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.regexp.tests" scope="TEST" />

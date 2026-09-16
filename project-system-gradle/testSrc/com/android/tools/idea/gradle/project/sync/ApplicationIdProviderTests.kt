@@ -34,6 +34,99 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 
+/** Legacy API deprecation warnings expected when applying the 'com.android.application' plugin. */
+private val APP_LEGACY_WARNINGS =
+  listOf(
+    """
+    API 'applicationVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+    It will be removed in version 10.0 of the Android Gradle plugin.
+    The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding
+        android.newDsl=false
+    to this project's gradle.properties file.
+    For more information, see http://developer.android.com/build/r/new-dsl.
+
+    To determine what is calling applicationVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+    """
+      .trimIndent()
+      .replace("adding\n", "adding \n"),
+    """
+    API 'unitTestVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+    It will be removed in version 10.0 of the Android Gradle plugin.
+    The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding
+        android.newDsl=false
+    to this project's gradle.properties file.
+    For more information, see http://developer.android.com/build/r/new-dsl.
+
+    To determine what is calling unitTestVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+    """
+      .trimIndent()
+      .replace("adding\n", "adding \n"),
+    """
+    API 'testVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+    It will be removed in version 10.0 of the Android Gradle plugin.
+    The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding
+        android.newDsl=false
+    to this project's gradle.properties file.
+    For more information, see http://developer.android.com/build/r/new-dsl.
+
+    To determine what is calling testVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+    """
+      .trimIndent()
+      .replace("adding\n", "adding \n"),
+  )
+
+/** Legacy API deprecation warnings expected when applying the 'com.android.library' plugin. */
+private val LIB_LEGACY_WARNINGS =
+  listOf(
+    """
+    API 'libraryVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+    It will be removed in version 10.0 of the Android Gradle plugin.
+    The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding
+        android.newDsl=false
+    to this project's gradle.properties file.
+    For more information, see http://developer.android.com/build/r/new-dsl.
+
+    To determine what is calling libraryVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+    """
+      .trimIndent()
+      .replace("adding\n", "adding \n")
+  )
+
+/** Combined legacy API deprecation warnings for test projects applying both application and library plugins. */
+private val ALL_LEGACY_WARNINGS = APP_LEGACY_WARNINGS + LIB_LEGACY_WARNINGS
+
+/**
+ * A specialized map that prevents the test harness from falling back to [AGP_CURRENT] expectations when testing against older AGP versions.
+ *
+ * By overriding [containsKey] to always return true, we bypass the default `forVersion()` fallback logic. This ensures older AGP versions
+ * strictly receive an empty list of warnings rather than incorrectly inheriting the modern [AGP_CURRENT] warnings.
+ */
+private class SafeWarningMap(private val warnings: List<String>) : Map<AgpVersionSoftwareEnvironmentDescriptor, List<String>> {
+
+  override val entries: Set<Map.Entry<AgpVersionSoftwareEnvironmentDescriptor, List<String>>> = emptySet()
+  override val keys: Set<AgpVersionSoftwareEnvironmentDescriptor> = emptySet()
+  override val size: Int = 0
+  override val values: Collection<List<String>> = emptyList()
+
+  override fun isEmpty(): Boolean = false
+
+  override fun containsKey(key: AgpVersionSoftwareEnvironmentDescriptor): Boolean {
+    return true
+  }
+
+  override fun containsValue(value: List<String>): Boolean = false
+
+  override fun get(key: AgpVersionSoftwareEnvironmentDescriptor): List<String>? {
+    return if (key == AGP_CURRENT) warnings else emptyList()
+  }
+}
+
+/** Wraps the provided [warnings] in a [SafeWarningMap] to ensure strict version matching during test evaluation. */
+private fun expectedWarnings(warnings: List<String>): Map<AgpVersionSoftwareEnvironmentDescriptor, List<String>> {
+  if (warnings.isEmpty()) return emptyMap()
+  return SafeWarningMap(warnings)
+}
+
 internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
   listOf(
     def(
@@ -47,6 +140,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX, executeMakeBeforeRun = false),
       expectPackageName = "one.name.defaultConfig.debug",
       expectTestPackageName = "(null)",
+      expectSyncIssueContent = ALL_LEGACY_WARNINGS,
     ),
     def(
       stackMarker = { it() },
@@ -57,6 +151,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       expectPackageName = "one.name.defaultConfig.debug",
       expectTestPackageName = "one.name.test_app",
+      expectSyncIssueContent = ALL_LEGACY_WARNINGS,
     ),
     def(
       stackMarker = { it() },
@@ -64,6 +159,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
       expectPackageName = "one.dynamic.name.debug",
       expectTestPackageName = "(null)",
+      expectSyncIssueContent = APP_LEGACY_WARNINGS,
     ),
     def(
       stackMarker = { it() },
@@ -78,6 +174,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       },
       expectPackageName = "one.dynamic.name.debug",
       expectTestPackageName = "one.dynamic.name.debug.test",
+      expectSyncIssueContent = APP_LEGACY_WARNINGS,
     ),
     def(
       stackMarker = { it() },
@@ -104,13 +201,13 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
               "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
               "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
               "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
-            ),
+            ) + APP_LEGACY_WARNINGS, // <--- ADDED HERE
           AGP_72 to
             listOf(
               "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
               "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
               "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
-            ),
+            ), // AGP_72 does not get legacy warnings
         ),
     ),
     def(
@@ -149,6 +246,8 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_40 to "com.example.projectwithappandlib.lib.test",
           AGP_41 to "com.example.projectwithappandlib.lib.test",
         ),
+      // CHANGE: Use the helper here to ensure old versions (AGP_35 etc) don't inherit AGP_CURRENT's warnings
+      expectSyncIssueContent = expectedWarnings(ALL_LEGACY_WARNINGS),
     ),
     def(
       stackMarker = { it() },
@@ -234,7 +333,8 @@ private fun def(
     expectPackageName = mapOf(AGP_CURRENT to expectPackageName),
     expectTestPackageName = expectTestPackageName?.let { mapOf(AGP_CURRENT to expectTestPackageName) } ?: emptyMap(),
     stackMarker = stackMarker,
-    expectSyncIssueContent = mapOf(AGP_CURRENT to expectSyncIssueContent),
+    // CHANGE: Wrap the list in the safe map that prevents fallback
+    expectSyncIssueContent = expectedWarnings(expectSyncIssueContent),
   )
 
 private fun def(

@@ -18,6 +18,7 @@ package com.android.tools.idea.analytics
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.startup.AndroidStudioAnalyticsImpl
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ConsentOptionsProvider
@@ -75,6 +76,8 @@ class AnalyticsSettingsUiTest {
 
   @Test
   fun testConsistencyWithPlatformConsents() {
+    // this test only works in AndroidStudio because the data sharing sync listener is registered only in the Studio plugin descriptor
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     // Background: we reuse the platform "Data Sharing" UI and consent ID, but we also have our own
     // mechanism for storing and querying the data-sharing consent (see AnalyticsSettings.optedIn).
     // That means there are two different places where the data-sharing consent gets stored:

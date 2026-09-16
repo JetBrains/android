@@ -107,6 +107,10 @@ class DeviceMenuActionTest {
         getReferenceDevicesExpected() +
           """
           Phones
+                  Pixel 10 (411 × 923 dp, 420dpi)
+                  Pixel 10 Pro XL (448 × 997 dp, xxhdpi)
+                  Pixel 10 Pro Fold (852 × 883 dp, 390dpi)
+                  Pixel 10 Pro (427 × 952 dp, xxhdpi)
                   Pixel 9 (411 × 923 dp, 420dpi)
                   Pixel 9 Pro XL (448 × 997 dp, xxhdpi)
                   Pixel 9 Pro Fold (852 × 883 dp, 390dpi)

@@ -84,6 +84,13 @@ import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.event.HyperlinkEvent;
 
+import com.jetbrains.performancePlugin.remotedriver.xpath.XpathDataModelCreator;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Service responsible for interacting with the interface.
@@ -603,30 +610,6 @@ public class StudioInteractionService {
   }
 
   /**
-   * Given a set of AccessibleContext returns the Set of wrapper components from @ComposeJComponentsWrapper.kt if one
-   * exists
-   */
-  private Set<Component> getComponentsFromContext(Set<AccessibleContext> contexts) {
-    Set<Component> components = new HashSet<>();
-    for (AccessibleContext context : contexts) {
-      if (context == null) {
-        continue;
-      }
-      if (context.getAccessibleRole() != null && context.getAccessibleRole().toString().contains("label")) {
-        JLabel label = new ComposeJLabelWrapper(context);
-        components.add(label);
-      }
-      else if (context.getAccessibleRole() != null &&
-               (context.getAccessibleRole().toString().contains("push button") ||
-                context.getAccessibleRole().toString().contains("radio button"))) {
-        JButton button = new ComposeJButtonWrapper(context);
-        components.add(button);
-      }
-    }
-    return components;
-  }
-
-  /**
    * Gets all the AccessibleContext from the children of the passed in context
    */
   private Set<AccessibleContext> getAllAccessibleContext(AccessibleContext context) {
@@ -695,6 +678,178 @@ public class StudioInteractionService {
       sb.append("\n");
     }
     return sb.toString();
+  }
+
+  /**
+   * Given a set of AccessibleContext returns the Set of wrapper components from @ComposeJComponentsWrapper.kt if one
+   * exists
+   */
+  private Set<Component> getComponentsFromContext(Set<AccessibleContext> contexts) {
+    Set<Component> components = new HashSet<>();
+    for (AccessibleContext context : contexts) {
+      if (context == null) {
+        continue;
+      }
+      if (context.getAccessibleRole() != null && context.getAccessibleRole().toString().contains("label")) {
+        JLabel label = new ComposeJLabelWrapper(context);
+        components.add(label);
+      }
+      else if (context.getAccessibleRole() != null &&
+               (context.getAccessibleRole().toString().contains("push button") ||
+                context.getAccessibleRole().toString().contains("radio button"))) {
+        JButton button = new ComposeJButtonWrapper(context);
+        components.add(button);
+      }
+    }
+    return components;
+  }
+
+  /**
+   * Searches for a component matching the provided XPath and attempts to invoke it.
+   *
+   * @param xpath XPath to locate the component.
+   * @throws InterruptedException if retry loop is interrupted.
+   * @throws TimeoutException if component is not found or cannot be clicked within timeout period.
+   */
+  public void invokeComponentByXpath(String xpath) throws InterruptedException, TimeoutException {
+    long timeoutMillis = 30000;
+    long msBetweenRetries = 300;
+    long startTime = System.currentTimeMillis();
+    long elapsedTime = 0;
+    final AtomicBoolean clicked = new AtomicBoolean(false);
+
+    while (elapsedTime < timeoutMillis) {
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        try {
+          XpathDataModelCreator creator = new XpathDataModelCreator(true);
+          org.w3c.dom.Document doc = creator.create(null, false, null);
+
+          // System.out.println("Namrata print doc = "+doc.toString());
+
+          XPathFactory xPathFactory = XPathFactory.newInstance();
+          NodeList result = (NodeList)xPathFactory.newXPath().compile(xpath).evaluate(doc, XPathConstants.NODESET);
+
+          Component componentToClick = null;
+          for (int i = 0; i < result.getLength(); i++) {
+            if (result.item(i) instanceof Element element) {
+              Object userObj = element.getUserData("component");
+
+              // System.out.println("Namrata print result.item(i) = "+result.item(i).toString());
+
+              // System.out.println("Namrata print userObj = "+userObj.toString());
+
+              if (userObj instanceof Component) {
+                Component c = (Component)userObj;
+                if (c.isShowing()) {
+                  componentToClick = c;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (componentToClick != null && componentToClick.isEnabled()) {
+            if (tryClickStrategies(componentToClick)) {
+              clicked.set(true);
+            }
+          }
+        }
+        catch (Throwable e) {
+          // Retry
+        }
+      }, ModalityState.any());
+
+      if (clicked.get()) {
+        return;
+      }
+
+      Thread.sleep(msBetweenRetries);
+      elapsedTime = System.currentTimeMillis() - startTime;
+    }
+
+    throw new TimeoutException("Timed out after " + elapsedTime + "ms trying to click component by xpath: " + xpath);
+  }
+
+  /**
+   * Attempts to invoke a component.
+   *
+   * @param component Component object to interact with.
+   * @return true if component was invoked.
+   */
+  private boolean tryClickStrategies(Object component) {
+    if (invokeMethodIfExists(component, "click") || invokeMethodIfExists(component, "doClick")) {
+      return true;
+    }
+
+    if (component.getClass().getName().contains("ComposeSemanticsNodeWrapper")) {
+      return tryClickCompose(component);
+    }
+
+    return false;
+  }
+
+  /**
+   * Invoke a method on an object if it exists.
+   *
+   * @param obj The target object.
+   * @param methodName The name of the method to call.
+   * @return true if the method was successfully invoked.
+   */
+  private boolean invokeMethodIfExists(Object obj, String methodName) {
+    try {
+      Method m = obj.getClass().getMethod(methodName);
+      m.setAccessible(true);
+      m.invoke(obj);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  /**
+   * Handles clicking on Compose components.
+   *
+   * @param component The ComposeSemanticsNodeWrapper instance.
+   * @return true if Compose element was successfully invoked.
+   */
+  private boolean tryClickCompose(Object component) {
+    try {
+      Field nodeField = component.getClass().getDeclaredField("node");
+      nodeField.setAccessible(true);
+      Object semanticsNode = nodeField.get(component);
+
+      Method getConfig = semanticsNode.getClass().getMethod("getConfig");
+      Object config = getConfig.invoke(semanticsNode);
+
+      Class<?> actionsClass = Class.forName("androidx.compose.ui.semantics.SemanticsActions");
+      Field instanceField = actionsClass.getField("INSTANCE");
+      Object actionsInstance = instanceField.get(null);
+
+      Object actionKey = actionsClass.getMethod("getOnClick").invoke(actionsInstance);
+
+      Class<?> keyClass = Class.forName("androidx.compose.ui.semantics.SemanticsPropertyKey");
+      Method contains = config.getClass().getMethod("contains", keyClass);
+      if (!(Boolean) contains.invoke(config, actionKey)) {
+        return false;
+      }
+
+      Method getMethod = config.getClass().getMethod("get", keyClass);
+      Object accessibilityAction = getMethod.invoke(config, actionKey);
+
+      Method getAction = accessibilityAction.getClass().getMethod("getAction");
+      Object actionFunc = getAction.invoke(accessibilityAction);
+
+      if (actionFunc == null) {
+        return false;
+      }
+
+      Method invoke = actionFunc.getClass().getMethod("invoke");
+      invoke.setAccessible(true);
+      invoke.invoke(actionFunc);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private static class JListItemComponent extends Component {

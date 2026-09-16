@@ -78,6 +78,8 @@ class AndroidManifestIndexTest {
                 enabled = "true",
                 exported = "true",
                 theme = "@style/AppTheme.NoActionBar",
+                parentActivityName = null,
+                uiOptions = null,
                 intentFilters =
                   setOf(
                     IntentFilterRawText(
@@ -85,8 +87,20 @@ class AndroidManifestIndexTest {
                       categoryNames = setOf("android.intent.category.DEFAULT"),
                     )
                   ),
+                icon = null,
+                label = null,
               ),
-              ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = "true", theme = null, intentFilters = setOf()),
+              ActivityRawText(
+                name = ".DisabledActivity",
+                enabled = "false",
+                exported = "true",
+                theme = null,
+                parentActivityName = null,
+                uiOptions = null,
+                intentFilters = setOf(),
+                icon = null,
+                label = null,
+              ),
             ),
           activityAliases =
             setOf(
@@ -109,8 +123,11 @@ class AndroidManifestIndexTest {
           customPermissionNames = setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP"),
           debuggable = "true",
           enabled = "true",
+          icon = null,
+          label = null,
           minSdkLevel = "22",
           packageName = "com.example",
+          supportsRtl = null,
           usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
           usedFeatures = setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true")),
           targetSdkLevel = "28",
@@ -180,6 +197,8 @@ class AndroidManifestIndexTest {
                 enabled = "true",
                 exported = null,
                 theme = "@style/AppTheme.NoActionBar",
+                parentActivityName = null,
+                uiOptions = null,
                 intentFilters =
                   setOf(
                     IntentFilterRawText(
@@ -187,8 +206,20 @@ class AndroidManifestIndexTest {
                       categoryNames = setOf("android.intent.category.DEFAULT"),
                     )
                   ),
+                icon = null,
+                label = null,
               ),
-              ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = null, theme = null, intentFilters = setOf()),
+              ActivityRawText(
+                name = ".DisabledActivity",
+                enabled = "false",
+                exported = null,
+                theme = null,
+                parentActivityName = null,
+                uiOptions = null,
+                intentFilters = setOf(),
+                icon = null,
+                label = null,
+              ),
             ),
           activityAliases =
             setOf(
@@ -211,8 +242,11 @@ class AndroidManifestIndexTest {
           customPermissionNames = setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP"),
           debuggable = "true",
           enabled = "true",
+          icon = null,
+          label = null,
           minSdkLevel = "22",
           packageName = "com.example",
+          supportsRtl = null,
           usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
           usedFeatures = setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true")),
           targetSdkLevel = "28",
@@ -248,8 +282,11 @@ class AndroidManifestIndexTest {
           customPermissionNames = emptySet(),
           debuggable = null,
           enabled = null,
+          icon = null,
+          label = null,
           minSdkLevel = null,
           packageName = "com.example",
+          supportsRtl = null,
           usedPermissionNames = emptySet(),
           usedFeatures = emptySet(),
           targetSdkLevel = null,
@@ -289,8 +326,11 @@ class AndroidManifestIndexTest {
           customPermissionNames = emptySet(),
           debuggable = null,
           enabled = null,
+          icon = null,
+          label = null,
           minSdkLevel = null,
           packageName = "com.example",
+          supportsRtl = null,
           usedPermissionNames = emptySet(),
           usedFeatures = emptySet(),
           targetSdkLevel = null,
@@ -301,6 +341,119 @@ class AndroidManifestIndexTest {
               ServiceRawText(name = ".MyService", enabled = "true", metaData = setOf(MetaDataRawText("meta1", "val1"))),
               ServiceRawText(name = "com.other.OtherService", enabled = null, metaData = setOf(MetaDataRawText("meta2", "val2"))),
             ),
+        ),
+      )
+  }
+
+  @Test
+  fun indexer_manifestWithNamespacedApplicationAttributes() {
+    @Language("xml")
+    val manifestContent =
+      """
+      <?xml version='1.0' encoding='utf-8'?>
+      <manifest xmlns:android2='http://schemas.android.com/apk/res/android' package='com.example'>
+        <application
+          android2:label="@android2:strings/cancel"
+          android2:icon="@android2:drawable/ic_media_play">
+        </application>
+      </manifest>
+      """
+        .trimIndent()
+    val manifestMap = AndroidManifestIndex.Indexer.map(FakeXmlFileContent(manifestContent))
+    assertThat(manifestMap)
+      .containsExactly(
+        "com.example",
+        AndroidManifestRawText(
+          activities = emptySet(),
+          activityAliases = emptySet(),
+          customPermissionGroupNames = emptySet(),
+          customPermissionNames = emptySet(),
+          debuggable = null,
+          enabled = null,
+          icon =
+            NamespacedValueRawText(
+              value = "@android2:drawable/ic_media_play",
+              namespaces = setOf(NamespaceRawText("android2", "http://schemas.android.com/apk/res/android")),
+            ),
+          label =
+            NamespacedValueRawText(
+              value = "@android2:strings/cancel",
+              namespaces = setOf(NamespaceRawText("android2", "http://schemas.android.com/apk/res/android")),
+            ),
+          minSdkLevel = null,
+          packageName = "com.example",
+          supportsRtl = null,
+          usedPermissionNames = emptySet(),
+          usedFeatures = emptySet(),
+          targetSdkLevel = null,
+          theme = null,
+          applicationProperties = emptySet(),
+          services = emptySet(),
+        ),
+      )
+  }
+
+  @Test
+  fun indexer_manifestWithNamespacedActivityAttributes() {
+    @Language("xml")
+    val manifestContent =
+      """
+      <?xml version='1.0' encoding='utf-8'?>
+      <manifest xmlns:android2='http://schemas.android.com/apk/res/android' package='com.example'>
+        <application>
+          <activity
+            android2:name=".Foo"
+            android2:enabled="true"
+            android2:label="@android2:strings/cancel"
+            android2:icon="@android2:drawable/ic_media_play">
+          </activity>
+        </application>
+      </manifest>
+      """
+        .trimIndent()
+    val manifestMap = AndroidManifestIndex.Indexer.map(FakeXmlFileContent(manifestContent))
+    assertThat(manifestMap)
+      .containsExactly(
+        "com.example",
+        AndroidManifestRawText(
+          activities =
+            setOf(
+              ActivityRawText(
+                name = ".Foo",
+                enabled = "true",
+                exported = null,
+                theme = null,
+                parentActivityName = null,
+                uiOptions = null,
+                intentFilters = emptySet(),
+                label =
+                  NamespacedValueRawText(
+                    "@android2:strings/cancel",
+                    setOf(NamespaceRawText("android2", "http://schemas.android.com/apk/res/android")),
+                  ),
+                icon =
+                  NamespacedValueRawText(
+                    "@android2:drawable/ic_media_play",
+                    setOf(NamespaceRawText("android2", "http://schemas.android.com/apk/res/android")),
+                  ),
+              )
+            ),
+          activityAliases = emptySet(),
+          customPermissionGroupNames = emptySet(),
+          customPermissionNames = emptySet(),
+          debuggable = null,
+          enabled = null,
+          icon = null,
+          label = null,
+          minSdkLevel = null,
+          packageName = "com.example",
+          supportsRtl = null,
+          usedPermissionNames = emptySet(),
+          usedFeatures = emptySet(),
+          targetSdkLevel = null,
+          theme = null,
+          applicationProperties = emptySet(),
+          services = emptySet(),
         ),
       )
   }

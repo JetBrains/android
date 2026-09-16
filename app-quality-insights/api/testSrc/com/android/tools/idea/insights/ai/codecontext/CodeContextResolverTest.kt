@@ -197,8 +197,8 @@ private val STACKTRACE =
               ),
           ),
         type = "javax.net.ssl.SSLHandshakeException",
-        exceptionMessage = "Trust anchor for certification path not found ",
-        rawExceptionMessage = "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+        exceptionMessage = "Trust anchor for certification path not found",
+        rawExceptionMessage = "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found",
       ),
       ExceptionStack(
         stacktrace =
@@ -241,8 +241,8 @@ private val STACKTRACE =
               ),
           ),
         type = "javax.net.ssl.SSLHandshakeException",
-        exceptionMessage = "Trust anchor for certification path not found ",
-        rawExceptionMessage = "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+        exceptionMessage = "Trust anchor for certification path not found",
+        rawExceptionMessage = "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found",
       ),
     )
   )

@@ -85,6 +85,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     val projectStructureExperiment = EnumExperiment("query.sync.project.structure", ProjectStructure.SHARDED_LIBRARY)
     val libraryShardsExperiment = IntExperiment("query.sync.library.shards", 10)
     val coexistWithJpsSourceEntitiesExperiment = BoolExperiment("query.sync.coexist.with.jps.source", true)
+    val setInheritSdkOrderLastExperiment = BoolExperiment("query.sync.sdk.order.last", false)
   }
 
   private var lastProjectProtoSnapshot: ProjectProto.Project = ProjectProto.Project.getDefaultInstance()
@@ -330,15 +331,28 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
           }
 
         for (moduleData in projectData.modules) {
+          val libraryDeps =
+            moduleData.dependencies.map {
+              LibraryDependency(
+                libraries[it]?.symbolicId ?: error("Unresolved library dependency: $it"),
+                exported = false,
+                scope = DependencyScope.COMPILE,
+              )
+            }
+
+          val inheritDeps = listOf(ModuleSourceDependency, InheritedSdkDependency)
+
           val dependencies =
-            listOf(ModuleSourceDependency, InheritedSdkDependency) +
-              moduleData.dependencies.map {
-                LibraryDependency(
-                  libraries[it]?.symbolicId ?: error("Unresolved library dependency: $it"),
-                  exported = false,
-                  scope = DependencyScope.COMPILE,
-                )
-              }
+            if (setInheritSdkOrderLastExperiment.value) {
+              // The order of dependencies determines the classpath priority.
+              // Usually, the SDK (InheritedSdkDependency) should have higher priority to ensure standard API behavior.
+              // However, if a user provides a custom android.jar (e.g., containing @SystemApi),
+              // they may need that library to take precedence for symbol resolution.
+              libraryDeps + inheritDeps
+            } else {
+              inheritDeps + libraryDeps
+            }
+
           val moduleEntity =
             addEntity(
               ModuleEntity(name = WORKSPACE_MODULE_NAME, dependencies = dependencies, entitySource = BazelEntitySource) {

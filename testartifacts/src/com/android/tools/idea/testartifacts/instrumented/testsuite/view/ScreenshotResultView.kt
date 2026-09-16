@@ -28,7 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.unit.dp
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.LoggedAction
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.LoggedToggleAction
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotToolbarAnalytics
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -36,6 +41,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -55,21 +61,45 @@ import org.jetbrains.jewel.ui.component.SegmentedControlButtonData
 import org.jetbrains.jewel.ui.component.Text
 
 /** This is a placeholder for showing Screenshot Test Results. */
-class ScreenshotResultView {
+class ScreenshotResultView(private val project: Project? = null) {
 
   val myView: JPanel = JPanel(BorderLayout())
 
+  private val toolbarAnalytics = ScreenshotToolbarAnalytics(project)
+
   // Panels for the "All" tab (common toolbar, individual titles)
-  @VisibleForTesting val newImagePanel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true)
-  @VisibleForTesting val diffImagePanel = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true)
-  @VisibleForTesting val refImagePanel = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = false, showTitle = true)
+  @VisibleForTesting
+  val newImagePanel =
+    ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true, onActionTriggered = toolbarAnalytics::logAction)
+  @VisibleForTesting
+  val diffImagePanel =
+    ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true, onActionTriggered = toolbarAnalytics::logAction)
+  @VisibleForTesting
+  val refImagePanel =
+    ImageWithToolbarPanel(
+      ScreenshotViewType.REFERENCE,
+      showToolbar = false,
+      showTitle = true,
+      onActionTriggered = toolbarAnalytics::logAction,
+    )
 
   private val multiViewPanels = listOf(newImagePanel, diffImagePanel, refImagePanel)
 
   // Panels for the single-view tabs (with individual toolbars and titles)
-  @VisibleForTesting val newImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false)
-  @VisibleForTesting val diffImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false)
-  @VisibleForTesting val refImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = true, showTitle = false)
+  @VisibleForTesting
+  val newImagePanelSingle =
+    ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false, onActionTriggered = toolbarAnalytics::logAction)
+  @VisibleForTesting
+  val diffImagePanelSingle =
+    ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false, onActionTriggered = toolbarAnalytics::logAction)
+  @VisibleForTesting
+  val refImagePanelSingle =
+    ImageWithToolbarPanel(
+      ScreenshotViewType.REFERENCE,
+      showToolbar = true,
+      showTitle = false,
+      onActionTriggered = toolbarAnalytics::logAction,
+    )
 
   private val contentPanel = JPanel(CardLayout())
 
@@ -106,16 +136,24 @@ class ScreenshotResultView {
   // Expose common actions for testing
   @VisibleForTesting
   val commonZoomInAction =
-    object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomIn() }
+    LoggedAction(
+      object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.zoomIn() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   @VisibleForTesting
   fun selectTab(tab: String) {
+    if (selectedTab != tab) {
+      logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_VIEW_TYPE_CHANGED, project)
+    }
     selectedTab = tab
     val cardLayout = contentPanel.layout as CardLayout
     cardLayout.show(contentPanel, tab)
@@ -123,64 +161,87 @@ class ScreenshotResultView {
 
   @VisibleForTesting
   val commonZoomOutAction =
-    object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomOut() }
+    LoggedAction(
+      object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.zoomOut() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
+        }
+      },
+      toolbarAnalytics,
+    )
   @VisibleForTesting
   val commonOneToOneAction =
-    object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.setActualSize() }
+    LoggedAction(
+      object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.setActualSize() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
+        }
+      },
+      toolbarAnalytics,
+    )
   @VisibleForTesting
   val commonFitToScreenAction =
-    object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
-      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.fitToScreen() }
+    LoggedAction(
+      object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
+        override fun actionPerformed(e: AnActionEvent) {
+          multiViewPanels.forEach { it.fitToScreen() }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
+        }
+      },
+      toolbarAnalytics,
+    )
   @VisibleForTesting
   val commonToggleGridViewAction =
-    object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
-      override fun isSelected(e: AnActionEvent): Boolean {
-        // The state should be the same for all, so checking the first is enough.
-        return multiViewPanels.firstOrNull()?.isGridVisible() ?: false
-      }
+    LoggedToggleAction(
+      object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
+        override fun isSelected(e: AnActionEvent): Boolean {
+          // The state should be the same for all, so checking the first is enough.
+          return multiViewPanels.firstOrNull()?.isGridVisible() ?: false
+        }
 
-      override fun setSelected(e: AnActionEvent, state: Boolean) {
-        multiViewPanels.forEach { it.setGridVisible(state) }
-      }
+        override fun setSelected(e: AnActionEvent, state: Boolean) {
+          multiViewPanels.forEach { it.setGridVisible(state) }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   @VisibleForTesting
   val commonToggleChessboardAction =
-    object :
-      ToggleAction(
-        "Chessboard",
-        "Toggle Chessboard Background",
-        IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", ScreenshotResultView::class.java),
-      ) {
-      override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
+    LoggedToggleAction(
+      object :
+        ToggleAction(
+          "Chessboard",
+          "Toggle Chessboard Background",
+          IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", ScreenshotResultView::class.java),
+        ) {
+        override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
 
-      override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setChessboardVisible(state) }
+        override fun setSelected(e: AnActionEvent, state: Boolean) {
+          multiViewPanels.forEach { it.setChessboardVisible(state) }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
-      }
-    }
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+        }
+      },
+      toolbarAnalytics,
+    )
 
   init {
     // Use nested OnePixelSplitters to create a three-panel view

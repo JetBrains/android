@@ -54,7 +54,7 @@ import org.jetbrains.android.sdk.getInstance
  */
 open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvider {
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   override fun collectNotificationData(project: Project, file: VirtualFile): Function<FileEditor, EditorNotificationPanel?>? {
     return createNotificationPanelForDebugSession(file, project) ?: createNotificationPanelForClassFiles(file, project)
   }
@@ -91,7 +91,7 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     doCreatePanel(project, requestedSourceVersion, refreshAfterDownload, fileEditor)
   }
 
-  @RequiresEdt
+  @RequiresEdt(generateAssertion = false /* IJPL-115548 */)
   private fun doCreatePanel(
     project: Project,
     requestedSourceVersion: AndroidVersion,

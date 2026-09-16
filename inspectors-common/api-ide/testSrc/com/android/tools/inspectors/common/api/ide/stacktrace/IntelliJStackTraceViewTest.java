@@ -35,10 +35,17 @@ import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser;
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
 import com.android.tools.inspectors.common.api.stacktrace.ThreadElement;
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.ui.IdeUiService;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ProjectRule;
+import java.awt.datatransfer.DataFlavor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -174,6 +181,37 @@ public class IntelliJStackTraceViewTest {
   }
 
   @Test
+  public void copyDisabledWhenNothingSelected() {
+    myStackView.getModel().setStackFrames(STACK_STRING);
+    waitForModel();
+
+    DataContext[] context = new DataContext[1];
+    ApplicationManager.getApplication().invokeAndWait(() -> { context[0] = IdeUiService.getInstance().createUiDataContext(myStackView.getListView()); });
+    CopyProvider provider = PlatformDataKeys.COPY_PROVIDER.getData(context[0]);
+    assertThat(provider).isNotNull();
+    assertThat(provider.isCopyVisible(context[0])).isTrue();
+    assertThat(provider.isCopyEnabled(context[0])).isFalse();
+  }
+
+  @Test
+  public void copySelected() {
+    myStackView.getModel().setStackFrames(STACK_STRING);
+    waitForModel();
+    myStackView.getModel().setSelectedIndex(2);
+
+    DataContext[] context = new DataContext[1];
+    ApplicationManager.getApplication().invokeAndWait(() -> { context[0] = IdeUiService.getInstance().createUiDataContext(myStackView.getListView()); });
+    CopyProvider provider = PlatformDataKeys.COPY_PROVIDER.getData(context[0]);
+    assertThat(provider).isNotNull();
+    assertThat(provider.isCopyVisible(context[0])).isTrue();
+    assertThat(provider.isCopyEnabled(context[0])).isTrue();
+    provider.performCopy(context[0]);
+    String copy = CopyPasteManager.getInstance().getContents(DataFlavor.stringFlavor);
+    assertThat(copy).isEqualTo("methodName:257, Class (package)");
+  }
+
+
+  @Test
   public void doubleClickingStackViewNavigatesToSelectedElement() {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
     AspectObserver observer = new AspectObserver();
@@ -271,19 +309,19 @@ public class IntelliJStackTraceViewTest {
     @NotNull
     @Override
     public String getPackageName() {
-      return "";
+      return "package";
     }
 
     @NotNull
     @Override
     public String getSimpleClassName() {
-      return "";
+      return "Class";
     }
 
     @NotNull
     @Override
     public String getMethodName() {
-      return "";
+      return "methodName";
     }
 
     @Override

@@ -58,6 +58,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
@@ -187,46 +188,62 @@ class TransportServiceProxy(
   fun getFile(request: BytesRequest, responseObserver: StreamObserver<FileResponse>) =
     synchronized(proxyFilePathCache) {
       val startTimeNs = System.nanoTime()
-      // Step 1: Get the initial content, either from the device or the cache.
-      var content =
-        when (val cachedPath = proxyFilePathCache.remove(request.id)) {
-          null -> {
-            // Not in cache, fetch from device
-            TransportServiceUtils.aggregateByteChunks(serviceStub.getBytesInChunks(request))
-          }
-          else -> {
-            // In cache, read from file
+      val cachedPath = proxyFilePathCache.remove(request.id)
+      val cachedFile = cachedPath?.let { File(it) }?.takeIf { it.exists() }
+
+      val file: File?
+      if (dataPreprocessors.none { it.shouldPreprocess(request) }) {
+        file =
+          cachedFile
+            ?: FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).also { tempFile ->
+              FileOutputStream(tempFile).use { stream ->
+                serviceStub.getBytesInChunks(request).forEach { response -> response.chunk?.writeTo(stream) }
+              }
+            }
+      } else {
+        // Step 1: Get the initial content, either from the device or the cache.
+        var content =
+          if (cachedFile != null) {
             try {
-              ByteString.readFrom(FileInputStream(cachedPath))
+              ByteString.readFrom(FileInputStream(cachedFile))
             } catch (e: IOException) {
-              log.warn("Failed to read from cached file: $cachedPath", e)
+              log.warn("Failed to read from cached file: ${cachedFile.absolutePath}", e)
               ByteString.EMPTY
             }
+          } else {
+            TransportServiceUtils.aggregateByteChunks(serviceStub.getBytesInChunks(request))
           }
-        }
 
-      // Step 2: Run registered preprocessors on the content.
-      content =
-        dataPreprocessors.fold(content) { contents, preprocessor ->
-          if (preprocessor.shouldPreprocess(request)) preprocessor.preprocessBytes(request.id, contents) else contents
-        }
+        // Step 2: Run registered preprocessors on the content.
+        content =
+          dataPreprocessors.fold(content) { contents, preprocessor ->
+            if (preprocessor.shouldPreprocess(request)) preprocessor.preprocessBytes(request.id, contents) else contents
+          }
 
-      // Step 3: Save the final (possibly preprocessed) content to a file and return the path.
-      val path =
+        // Step 3: Save the final (possibly preprocessed) content to a file and return the path.
         if (content.isEmpty) {
           log.warn("Content for stream ${request.streamId}, id ${request.id} is empty after fetch/preprocessing. Not saving to file.")
-          "" // Return an empty string for the path
+          file = null
         } else {
-          FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).absolutePath.also {
-            FileOutputStream(it).use { stream -> content.writeTo(stream) }
-            val totalDurationMs = (System.nanoTime() - startTimeNs) / 1_000_000
-            val seconds = totalDurationMs / 1000
-            val remainingMs = totalDurationMs % 1000
-            log.info(
-              "Processed bytes (stream ${request.streamId}, id ${request.id}),\nsize ${StringUtil.formatFileSize(content.size().toLong())}, saved in file\n$it. " +
-                "Total time was ${seconds}s and ${remainingMs}ms."
-            )
-          }
+          file =
+            FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).also {
+              FileOutputStream(it).use { stream -> content.writeTo(stream) }
+            }
+        }
+      }
+
+      val path =
+        if (file != null) {
+          val totalDurationMs = (System.nanoTime() - startTimeNs) / 1_000_000
+          val seconds = totalDurationMs / 1000
+          val remainingMs = totalDurationMs % 1000
+          log.info(
+            "Processed bytes (stream ${request.streamId}, id ${request.id}),\nsize ${StringUtil.formatFileSize(file.length())}, saved in file\n${file.absolutePath}. " +
+              "Total time was ${seconds}s and ${remainingMs}ms."
+          )
+          file.absolutePath
+        } else {
+          ""
         }
 
       responseObserver.onLast(FileResponse.newBuilder().setFilePath(path).build())

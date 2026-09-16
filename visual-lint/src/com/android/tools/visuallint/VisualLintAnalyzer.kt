@@ -16,27 +16,23 @@
 package com.android.tools.visuallint
 
 import android.view.accessibility.AccessibilityNodeInfo
-import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.Density.DEFAULT_DENSITY
-import com.android.resources.ResourceUrl
-import com.android.tools.configurations.Configuration
 import com.android.tools.idea.validator.ValidatorData
-import com.android.tools.rendering.RenderResult
-import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.utils.HtmlBuilder
+import kotlin.collections.emptyList
 
 /** Base class for all Visual Linting analyzers. */
 abstract class VisualLintAnalyzer {
   abstract val type: VisualLintErrorType
 
-  /** Analyze the given [RenderResult] for visual lint issues and return found [VisualLintIssueContent]s */
-  fun analyze(renderResult: RenderResult): List<VisualLintIssueContent> {
-    val configuration = renderResult.renderContext?.configuration ?: return emptyList()
+  /** Analyze the given [VisualLintRenderResult] for visual lint issues and return found [VisualLintIssueContent]s */
+  fun analyze(renderResult: VisualLintRenderResult): List<VisualLintIssueContent> {
+    val configuration = renderResult.configuration ?: return emptyList()
     return findIssues(renderResult, configuration)
   }
 
-  abstract fun findIssues(renderResult: RenderResult, configuration: Configuration): List<VisualLintIssueContent>
+  abstract fun findIssues(renderResult: VisualLintRenderResult, configuration: VisualLintConfiguration): List<VisualLintIssueContent>
 
   data class VisualLintIssueContent(
     val view: ViewInfo?,
@@ -50,29 +46,43 @@ abstract class VisualLintAnalyzer {
       return if (count == 1) "a preview configuration" else "$count preview configurations"
     }
 
-    fun simpleName(view: ViewInfo): String {
-      if (view.cookie is TagSnapshot) {
-        return (view.cookie as TagSnapshot).tagName.substringAfterLast('.')
-      } else if (view.accessibilityObject is AccessibilityNodeInfo && view.className == "android.view.View") {
-        return "Composable"
-      }
-      return view.className.substringAfterLast('.')
-    }
+    fun simpleName(view: ViewInfo): String = ViewInfoProvider.simpleName(view)
 
-    fun nameWithId(viewInfo: ViewInfo): String {
-      val tagSnapshot = (viewInfo.cookie as? TagSnapshot)
-      val name = simpleName(viewInfo)
-      val id = tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let { ResourceUrl.parse(it)?.name }
-      return id?.let { "$id <$name>" } ?: name
-    }
+    fun nameWithId(viewInfo: ViewInfo): String = ViewInfoProvider.nameWithId(viewInfo)
 
     fun checkIsClass(viewInfo: ViewInfo, clazz: Class<*>): Boolean {
       return clazz.isInstance(viewInfo.viewObject) || clazz.canonicalName == viewInfo.className
     }
 
-    fun pxToDp(config: Configuration, androidPx: Int): Int {
+    fun pxToDp(config: VisualLintConfiguration, androidPx: Int): Int {
       val dpiValue = config.density.dpiValue
       return androidPx * DEFAULT_DENSITY / dpiValue
     }
   }
+}
+
+/** [VisualLintViewInfoProvider] used by [VisualLintAnalyzer]. */
+object ViewInfoProvider : VisualLintViewInfoProvider {
+  /** Custom [VisualLintViewInfoProvider] that can be used to override the default behavior. */
+  private var customProvider: VisualLintViewInfoProvider? = null
+
+  /** Sets a custom [VisualLintViewInfoProvider]. */
+  @JvmStatic
+  fun setCustomProvider(provider: VisualLintViewInfoProvider?) {
+    customProvider = provider
+  }
+
+  /** Returns a simple name for the given [viewInfo]. */
+  override fun simpleName(viewInfo: ViewInfo): String {
+    customProvider?.let {
+      return it.simpleName(viewInfo)
+    }
+    if (viewInfo.accessibilityObject is AccessibilityNodeInfo && viewInfo.className == "android.view.View") {
+      return "Composable"
+    }
+    return viewInfo.className.substringAfterLast('.')
+  }
+
+  /** Returns a name with ID for the given [viewInfo]. */
+  override fun nameWithId(viewInfo: ViewInfo): String = customProvider?.nameWithId(viewInfo) ?: simpleName(viewInfo)
 }

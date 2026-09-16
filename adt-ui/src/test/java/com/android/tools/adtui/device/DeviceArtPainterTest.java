@@ -25,8 +25,7 @@ import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
-import com.android.testutils.ImageDiffUtil;
-import com.android.testutils.TestUtils;
+import com.android.testutils.GoldenImageRule;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.webp.WebpNativeLibDownloader;
 import com.google.common.base.Charsets;
@@ -40,7 +39,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -63,6 +61,9 @@ public class DeviceArtPainterTest {
 
   @Rule
   public TemporaryFolder myTemporaryFolder = new TemporaryFolder();
+
+  @Rule
+  public GoldenImageRule goldenImageRule = new GoldenImageRule("tools/adt/idea/adt-ui/testData/DeviceArtPaiterTest/golden");
 
   @Before
   public void setUp() {
@@ -438,10 +439,6 @@ public class DeviceArtPainterTest {
   private void assertAppearance(DeviceArtDescriptor descriptor) throws IOException {
     BufferedImage sample = createSampleImage(new Dimension(400, 800), Color.RED);
     BufferedImage image = DeviceArtPainter.createFrame(sample, descriptor);
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(descriptor.getId()), image, 0.0);
-  }
-
-  private Path getGoldenFile(String name) {
-    return TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/adt-ui/testData/DeviceArtPaiterTest/golden/" + name + ".png");
+    goldenImageRule.assertImageSimilar(descriptor.getId(), image, 0.0);
   }
 }

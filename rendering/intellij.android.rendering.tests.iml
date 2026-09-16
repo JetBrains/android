@@ -13,7 +13,7 @@
     <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.asm.tools" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinTest" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlin.reflect" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kxml2" scope="TEST" />
@@ -30,9 +30,9 @@
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.bouncy.castle.provider" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.rendering" />
 </module>

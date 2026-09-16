@@ -21,14 +21,15 @@ import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.ReservationAction
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -43,7 +44,7 @@ suspend fun runCatchingDeviceActionException(project: Project?, title: String, b
     logger<DeviceAction>().info(e.message)
   } catch (e: DeviceActionException) {
     logger<DeviceAction>().warn(e)
-    withContext(AndroidDispatchers.uiThread) { Messages.showErrorDialog(project, e.message, title) }
+    withContext(Dispatchers.EDT) { Messages.showErrorDialog(project, e.message, title) }
   }
 }
 

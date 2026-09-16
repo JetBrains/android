@@ -1,0 +1,21 @@
+plugins {
+    id 'com.android.library'
+}
+android {
+    namespace 'template.test.in.shared'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 29
+        targetSdk 35
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+dependencies {
+    implementation libs.androidx.app
+}

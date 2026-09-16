@@ -28,15 +28,14 @@ import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.type.TEMP_ANIMATED_SELECTOR_FOLDER
-import com.android.tools.idea.util.toIoFile
-import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.util.io.FileUtilRt
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileListener
@@ -45,11 +44,11 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ui.JBUI
 import java.io.File
+import java.io.IOException
 import java.util.UUID
 import java.util.function.Consumer
 import javax.swing.DefaultComboBoxModel
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 
 /** Control that provides controls for animations (play, pause, stop and frame-by-frame steps). */
 class AnimatedSelectorToolbar
@@ -265,13 +264,22 @@ class AnimatedSelectorModel(
   }
 
   private fun createTempAnimatedSelectorFile(): VirtualFile {
-    ApplicationManager.getApplication().assertWriteAccessAllowed()
-    val fileName = "drawable_" + UUID.randomUUID().toString().replace("-", "_")
-    val systemTempDir = File(FileUtilRt.getTempDirectory()).toVirtualFile()!!
-    val tempDrawableDir =
-      systemTempDir.findChild(TEMP_ANIMATED_SELECTOR_FOLDER) ?: systemTempDir.createChildDirectory(this, TEMP_ANIMATED_SELECTOR_FOLDER)
-    val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), fileName, ".xml", true, true)
-    return physicalChildInTempDrawableFile.toVirtualFile(true)!!
+    val tempDir = File(FileUtil.getTempDirectory(), TEMP_ANIMATED_SELECTOR_FOLDER)
+    if (!tempDir.exists()) {
+      tempDir.mkdirs()
+    }
+    val fileName = "drawable_" + UUID.randomUUID().toString().replace("-", "_") + ".xml"
+    val physicalFile = File(tempDir, fileName)
+    try {
+      physicalFile.createNewFile()
+    } catch (_: IOException) {
+      // Ignore
+    }
+
+    var vFile: VirtualFile? = null
+    ApplicationManager.getApplication().invokeAndWait({ vFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(physicalFile) })
+
+    return vFile!!
   }
 
   private fun getTransitionContent(embeddedAnimationTag: XmlTag): String {
@@ -291,9 +299,17 @@ class AnimatedSelectorModel(
     }
     currentOption = option
     val tag = animationTags[option] ?: return
-    WriteCommandAction.runWriteCommandAction(nlModelOfTempFile.project) {
-      tempModelFile.getOutputStream(this).writer().use { it.write(getTransitionContent(tag)) }
-    }
+    val content = getTransitionContent(tag)
+    ApplicationManager.getApplication()
+      .invokeLater({
+        WriteCommandAction.runWriteCommandAction(nlModelOfTempFile.project) {
+          try {
+            tempModelFile.getOutputStream(this).writer().use { it.write(content) }
+          } catch (e: IOException) {
+            // Ignore
+          }
+        }
+      })
   }
 
   fun getPreviewOptionTagName(option: String): String? {

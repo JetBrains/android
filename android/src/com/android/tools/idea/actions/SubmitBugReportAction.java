@@ -17,6 +17,8 @@ package com.android.tools.idea.actions;
 
 import com.android.annotations.concurrency.Slow;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -79,8 +81,21 @@ public class SubmitBugReportAction extends AnAction implements DumbAware {
       var sb = new StringBuilder();
       sb.append(String.format("AS: %1$s\n", ApplicationInfo.getInstance().getFullVersion()));
       sb.append(StringUtil.trimLeading(SubmitBugReportActionShim.INSTANCE.getDescription(project)));
+      sb.append(getNonBundledPlugins());
       return sb.toString();
     });
+  }
+
+  private static String getNonBundledPlugins() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("\nNon-Bundled Plugins:\n");
+    IdeaPluginDescriptor[] plugins = PluginManagerCore.getPlugins();
+    for (IdeaPluginDescriptor plugin : plugins) {
+      if (!plugin.isBundled() && plugin.isEnabled()) {
+        sb.append(String.format("    %s (%s)\n", plugin.getPluginId().getIdString(), plugin.getVersion()));
+      }
+    }
+    return sb.toString();
   }
 
   public static String safeCall(@NotNull Supplier<String> runnable) {

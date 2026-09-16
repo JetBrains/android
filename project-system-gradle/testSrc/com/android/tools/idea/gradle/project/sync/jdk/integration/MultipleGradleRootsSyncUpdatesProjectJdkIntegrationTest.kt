@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
@@ -30,6 +31,7 @@ import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
@@ -70,7 +72,9 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
-  fun `Given root using gradleJdk #JAVA_HOME pointing to JDK_EMBEDDED When synced project successfully Then projectJdk is updated with JDK_EMBEDDED`() =
+  fun `Given root using gradleJdk #JAVA_HOME pointing to JDK_EMBEDDED When synced project successfully Then projectJdk is updated with JDK_EMBEDDED`() {
+    // Disable project import Gradle JVM compatibility check
+    StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.overrideForTest(false, projectRule.testRootDisposable)
     jdkIntegrationTest.run(
       project =
         SimpleApplicationMultipleRoots(
@@ -85,6 +89,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
         assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) },
       )
     }
+  }
 
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])

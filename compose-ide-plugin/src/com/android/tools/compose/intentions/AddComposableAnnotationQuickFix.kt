@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtModifierListOwner
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
@@ -138,9 +139,13 @@ class AddComposableAnnotationQuickFix private constructor(element: KtModifierLis
         }
         return ComposeBundle.message("add.composable.to.lambda.parameter.of.anonymous.function", paramName)
       }
-      // Second case - this is a type of a property (with a functional type).
-      val propertyName = (parent as? KtProperty)?.name ?: return null
-      return ComposeBundle.message("add.composable.to.property.type", propertyName)
+      // Second case - this is a property type or a function return type.
+      val name = (parent as? KtNamedDeclaration)?.name ?: return null
+      return when (parent) {
+        is KtProperty -> ComposeBundle.message("add.composable.to.property.type", name)
+        is KtNamedFunction -> ComposeBundle.message("add.composable.to.element.with.name", name)
+        else -> null
+      }
     }
   }
 }

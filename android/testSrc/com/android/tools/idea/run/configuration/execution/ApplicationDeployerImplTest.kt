@@ -72,7 +72,7 @@ class ApplicationDeployerImplTest {
     val apkInfo = ApkInfo(apk.toFile(), "com.example.myapplication")
 
     val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-    deployer.fullDeploy(device, apkInfo, deployOptions, true, EmptyProgressIndicator())
+    deployer.fullDeploy(device, apkInfo, deployOptions, true, EmptyProgressIndicator(), null)
 
     runStat.success()
 

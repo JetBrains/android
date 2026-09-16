@@ -143,7 +143,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
    * Returns the [TextRange] of the first component associated with the issue source. This is used to determine the location of the issue in
    * the source code. Returns null if there are no components associated with the issue source.
    */
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   private fun getTextRange(): TextRange? {
     synchronized(_components) {
       return source.components.firstNotNullOfOrNull { it.getTextRange() }
@@ -153,7 +153,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
   /**
    * Returns the 0-based line number in the source file where the issue is located, or [UNDEFINED_LINE_NUMBER] if it cannot be determined.
    */
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   private fun getIssueLineNumber(): Int {
     val offset = range?.startOffset ?: return UNDEFINED_LINE_NUMBER
     val navigatableFile = (navigatable as? OpenFileDescriptor)?.file ?: affectedFiles.firstOrNull()
@@ -170,7 +170,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
    *
    * This is extracted from the function call text at the issue's start offset in the affected file.
    */
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   private fun getIssueComponentSignature(): String? {
     val offset = range?.startOffset ?: return null
     val model = components.firstOrNull()?.model ?: return null

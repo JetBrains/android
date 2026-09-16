@@ -26,7 +26,7 @@ iml_module(
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/base/build-system/manifest-merger:studio.android.sdktools.manifest-merger",
-        "//tools/base/apkparser:studio.android.sdktools.binary-resources",
+        "//tools/adt/idea/.idea/libraries:libbinary-resources",
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",

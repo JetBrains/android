@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
@@ -31,12 +32,14 @@ class GetComposeLayoutInspectorJarGradleToken : GetComposeLayoutInspectorJarToke
     compatibility: LibraryCompatibilityInfo?,
     logErrorToMetrics: (AttachErrorCode) -> Unit,
     isRunningFromSourcesInTests: Boolean?,
+    process: ProcessDescriptor,
   ): String? =
     ComposeLayoutInspectorClient.handleCompatibilityAndComputeVersion(
       notificationModel,
       compatibility,
       logErrorToMetrics,
       isRunningFromSourcesInTests,
+      process,
     )
 
   override fun getAppInspectorJar(

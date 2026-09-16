@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import java.awt.Point
 
 open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
@@ -30,27 +31,32 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
   }
 
   private fun fakeDefaultActionGroup(): DefaultActionGroup {
-    return DefaultActionGroup("previewAgents", listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")))
+    return DefaultActionGroup("previewAgents", listOf(changeUIAction(), fakeAction("Match UI"), fakeAction("Fix UI")))
   }
 
-  private fun fakeDropDownAction(): DropDownAction {
+  private fun fakeDropDownAction(point: Point?): DropDownAction {
     return object : DropDownAction("previewAgents", null, null) {
       init {
-        listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")).forEach { add(it) }
+        add(changeUIAction())
+        point?.let { add(changeSubComponentAction(it)) }
+        add(fakeAction("Match UI"))
+        add(fakeAction("Fix UI"))
       }
     }
   }
 
   override fun createPreviewGenerator(): AnAction = fakeAction("previewGenerator")
 
-  override fun transformPreviewAction() = fakeAction("transformPreview")
+  override fun changeUIAction() = fakeAction("changeUI")
+
+  override fun changeSubComponentAction(point: Point) = fakeAction("changeSubComponent")
 
   override fun fixVisualLintIssuesAction(methodFqn: String) = fakeAction("fixVisualLintIssues")
 
   override fun fixComposeRenderIssueAction() = fakeAction("fixComposeRender")
 
-  override fun previewAgentsDropDownAction(): DropDownAction {
-    return fakeDropDownAction()
+  override fun previewAgentsDropDownAction(point: Point): DropDownAction {
+    return fakeDropDownAction(point)
   }
 
   override fun previewAgentsActionGroup(): DefaultActionGroup {
@@ -61,5 +67,5 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
     return fakeAction("Generate Code From Screenshot")
   }
 
-  override fun previewAgentsToolbarAction(): DropDownAction = fakeDropDownAction()
+  override fun previewAgentsToolbarAction(): DropDownAction = fakeDropDownAction(null)
 }

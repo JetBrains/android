@@ -17,8 +17,8 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.util.TestToolWindow
-import com.android.tools.idea.util.TestToolWindowManager
+import com.android.tools.idea.testing.ui.FakeToolWindow
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel
@@ -27,8 +27,6 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.RegisterToolWindowTask
-import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
@@ -51,15 +49,13 @@ class IssuePanelServiceTest {
 
   @JvmField @Rule val rule = AndroidProjectRule.withAndroidModel().onEdt()
 
-  private lateinit var toolWindow: ToolWindow
+  private lateinit var toolWindow: FakeToolWindow
   private lateinit var service: IssuePanelService
 
   @Before
   fun setup() {
-    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
     rule.projectRule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
-    val manager = ToolWindowManager.getInstance(rule.project)
-    toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
+    toolWindow = createFakeToolWindow(rule.project, rule.testRootDisposable, ProblemsView.ID)
     runInEdtAndWait {
       val contentManager = toolWindow.contentManager
       val content =
@@ -225,40 +221,37 @@ class IssuePanelServiceTest {
 
   @Test
   fun testFocusingIssuePanelWhenVisible() {
-    val window = toolWindow as TestToolWindow
-
     service.showSharedIssuePanel()
-    assertFalse(window.isFocused())
-    window.hide()
+    assertFalse(toolWindow.isFocused())
+    toolWindow.hide()
     service.showSharedIssuePanel(true)
-    assertTrue(window.isFocused())
+    assertTrue(toolWindow.isFocused())
 
     // Hide issue panel will lose the focus because the component is no longer visible.
-    window.hide()
-    assertFalse(window.isFocused())
+    toolWindow.hide()
+    assertFalse(toolWindow.isFocused())
   }
 
   @Test
   fun testSetIssuePanelVisibility() {
-    val window = toolWindow as TestToolWindow
-    val contentManager = window.contentManager
+    val contentManager = toolWindow.contentManager
     val additionalContent =
       contentManager.factory.createContent(mock(), "Additional Content", false).apply {
         tabName = "Additional Content"
         isCloseable = false
       }
-    window.hide()
+    toolWindow.hide()
     contentManager.setSelectedContent(additionalContent)
 
     ProblemsViewToolWindowUtils.selectTab(rule.project, HighlightingPanel.ID)
-    runInEdtAndWait { assertTrue(window.isVisible) }
+    runInEdtAndWait { assertTrue(toolWindow.isVisible) }
     assertTrue(ProblemsView.getSelectedTab(rule.project)?.getTabId() == HighlightingPanel.ID)
 
-    window.hide()
+    toolWindow.hide()
     contentManager.setSelectedContent(additionalContent)
 
     service.showSharedIssuePanel()
-    assertTrue(window.isVisible)
+    assertTrue(toolWindow.isVisible)
     assertTrue(ProblemsView.getSelectedTab(rule.project)?.getTabId() == SHARED_ISSUE_PANEL_TAB_ID)
   }
 

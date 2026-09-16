@@ -76,6 +76,14 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    */
   abstract fun startTask(args: TaskArgs)
 
+  /**
+   * Allows caller to make an optional safety check before calling stopTask. For example, if the recording is already stopped or stopTask is
+   * called on an invalid stage.
+   *
+   * Returns a boolean indicating if we can stop the task.
+   */
+  open fun canStop(): Boolean = false
+
   /** Task behavior on stop. */
   abstract fun stopTask()
 

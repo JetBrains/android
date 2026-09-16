@@ -36,11 +36,10 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.parentOfType
+import com.intellij.util.io.IOUtil
 import java.io.DataInput
 import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.core.script.v1.readString
-import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtParameter
@@ -140,13 +139,13 @@ internal data class AssistedInjectConstructorUnassistedParameterIndexValue(val c
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(parameterName)
+    IOUtil.writeUTF(output, parameterName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_INJECT_CONSTRUCTOR_UNASSISTED_PARAMETER
 
-    override fun read(input: DataInput) = AssistedInjectConstructorUnassistedParameterIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = AssistedInjectConstructorUnassistedParameterIndexValue(input.readClassId(), IOUtil.readUTF(input))
   }
 
   companion object {

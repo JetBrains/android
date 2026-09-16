@@ -43,12 +43,6 @@ class SkinLayout(
   val buttons: List<SkinButton>,
 ) {
 
-  /** Creates a layout without a frame or mask. */
-  constructor(
-    width: Int,
-    height: Int,
-  ) : this(Dimension(width, height), Dimension(0, 0), Rectangle(0, 0, width, height), emptyList(), emptyList(), emptyList())
-
   /**
    * Draws frame and mask to the given graphics context. The [displayRectangle] parameter defines the coordinates and the scaled size of the
    * display.

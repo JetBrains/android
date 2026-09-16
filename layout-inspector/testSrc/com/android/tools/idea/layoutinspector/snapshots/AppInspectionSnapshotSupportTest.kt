@@ -17,6 +17,10 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.actions.createDataContext
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.DEVICE_1
@@ -25,6 +29,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
@@ -54,14 +59,29 @@ import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_SMALL
 import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_STYLUS
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
+import com.android.tools.idea.layoutinspector.ui.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.layoutinspector.util.tab
+import com.android.tools.idea.layoutinspector.util.zoomIn
+import com.android.tools.idea.layoutinspector.util.zoomOut
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.property.panel.impl.ui.InspectorPanelImpl
+import com.android.tools.property.ptable.PTable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.treeStructure.treetable.TreeTable
+import java.awt.Component
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
+import javax.swing.SwingUtilities
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -126,7 +146,7 @@ class AppInspectionSnapshotSupportTest {
 
   @Test
   fun saveAndLoadSnapshotWithSkiaImage() = runBlocking {
-  inspectorClientSettings.inLiveMode = false
+    inspectorClientSettings.inLiveMode = false
     runBlocking { inspectorRule.inspectorClient.stopFetching() }
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent { rootsEventBuilder.apply { addIds(1L) } }
@@ -150,8 +170,109 @@ class AppInspectionSnapshotSupportTest {
     val editor = LayoutInspectorFileEditor(inspectorRule.project, savePath)
     Disposer.register(projectRule.testRootDisposable, editor)
     val status = editor.component.getClientProperty(STATUS_TEXT_KEY)
-    assertThat(status.toString()).isEqualTo(
-      "Error loading snapshot\nSKP image type is no longer supported starting with Android Studio Panda 2")
+    assertThat(status.toString())
+      .isEqualTo("Error loading snapshot\nSKP image type is no longer supported starting with Android Studio Panda 2")
+  }
+
+  @Test
+  fun testFocusNavigation() = runBlocking {
+    val disposable = projectRule.testRootDisposable
+    HeadlessDataManager.fallbackToProductionDataManager(disposable) // Necessary to properly find the zoomable controller via the data sink
+
+    inspectorClientSettings.inLiveMode = true
+    val inspectorState = FakeInspectorState(appInspectorRule.viewInspector, appInspectorRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeViewTreeAsSnapshot()
+
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ -> modelUpdatedLatch.countDown() }
+
+    inspectorRule.processNotifier.fireConnected(PROCESS)
+    waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
+
+    inspectorRule.inspectorClient.saveSnapshot(savePath, Screenshot.Type.BITMAP)
+    val editor = LayoutInspectorFileEditor(inspectorRule.project, savePath)
+    Disposer.register(disposable, editor)
+    runInEdtAndWait {
+      val editorComponent = editor.component
+      val layoutInspector = createDataContext(editorComponent, DataContext.EMPTY_CONTEXT).getData(LAYOUT_INSPECTOR_DATA_KEY)!!
+      val model = layoutInspector.inspectorModel
+      val settings = layoutInspector.renderSettings
+      model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
+      editorComponent.size = Dimension(800, 600)
+      val ui = FakeUi(editorComponent, createFakeWindow = true, parentDisposable = disposable)
+      val focusManager = FakeKeyboardFocusManager(disposable)
+      focusManager.setActiveWindow(SwingUtilities.getWindowAncestor(editorComponent))
+
+      // Start with focus on the editorComponent
+      editorComponent.requestFocusInWindow()
+      assertThat(focusManager.focusOwner).isEqualTo(editorComponent)
+      assertThat(settings.scalePercent).isEqualTo(100)
+
+      // Wait until the properties table is displaying attributes
+      waitForCondition(30.seconds) {
+        editorComponent.propertyTables.let { tables -> tables.isNotEmpty() && tables.all { it.itemCount > 3 } }
+      }
+
+      // Move to the next focusable component, which should be the toolbar for the component tree
+      ui.tab()
+      assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
+
+      // Verify that the zoom controls shortcut keys are active from the action buttons
+      zoomOut()
+      assertThat(settings.scalePercent).isEqualTo(90)
+
+      // Move out of the component tree toolbar
+      while (focusManager.focusOwner is ActionButton) {
+        ui.tab()
+      }
+
+      // The component tree should now have focus
+      assertThat(focusManager.focusOwner).isInstanceOf(TreeTable::class.java)
+
+      // Verify that the zoom controls shortcut keys are active from the component tree
+      // TODO(b/485272696) the keystrokes should cause expand all/collapse all in the component tree
+      zoomIn()
+      assertThat(settings.scalePercent).isEqualTo(100)
+
+      // Move out of the component tree
+      ui.tab()
+
+      // An actionButton in the zoom controls
+      assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
+
+      // Verify that the zoom controls shortcut keys are active from the zoom action buttons
+      zoomOut()
+      assertThat(settings.scalePercent).isEqualTo(90)
+
+      // Move out of the zoom buttons
+      while (focusManager.focusOwner is ActionButton) {
+        ui.tab()
+      }
+
+      // The attributes table should now have focus
+      assertThat(SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner)).isNotNull()
+
+      // Verify that the zoom controls shortcut keys are active from the attributes table
+      zoomIn()
+      assertThat(settings.scalePercent).isEqualTo(100)
+
+      // Move out of the attributes table
+      while (SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner) != null) {
+        ui.tab()
+      }
+
+      // We should be back in the toolbar for the component tree
+      assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
+
+      // Verify that by moving out of the toolbar
+      while (focusManager.focusOwner is ActionButton) {
+        ui.tab()
+      }
+
+      // The Component Tree should now have focus again
+      assertThat(focusManager.focusOwner).isInstanceOf(TreeTable::class.java)
+    }
   }
 
   @Test
@@ -427,4 +548,7 @@ class AppInspectionSnapshotSupportTest {
       }
     }
   }
+
+  private val Component.propertyTables: List<PTable>
+    get() = findAllDescendants<PTable>().toList()
 }

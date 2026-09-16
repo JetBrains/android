@@ -26,6 +26,8 @@ import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.Companion.createVisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.tools.visuallint.analyzers.AtfAnalyzer
@@ -170,6 +172,10 @@ class AtfAnalyzerComposeTest {
       // the NlModel
       val result = renderResult.result!!
       NlModelHierarchyUpdater.updateHierarchy(result, nlModel)
-      AtfAnalyzer.findIssues(result, nlModel.configuration).map { createVisualLintRenderIssue(it, nlModel, VisualLintErrorType.ATF) }
+      AtfAnalyzer.findIssues(
+          renderResult = renderResult.result!!.toVisualLintRenderResult(),
+          configuration = nlModel.configuration.toVisualLintConfiguration(),
+        )
+        .map { createVisualLintRenderIssue(it, nlModel, VisualLintErrorType.ATF) }
     }
 }

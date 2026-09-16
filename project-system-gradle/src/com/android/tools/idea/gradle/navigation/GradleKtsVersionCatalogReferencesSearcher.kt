@@ -7,14 +7,12 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.RequestResultProcessor
 import com.intellij.psi.search.UsageSearchContext
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PropertyUtilBase
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.Processor
-import org.jetbrains.kotlin.idea.core.script.v1.KotlinScriptSearchScope
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -35,12 +33,7 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
     val identifier = nameParts.lastOrNull() ?: return
     val getter = PropertyUtilBase.getAccessorName(identifier, PropertyKind.GETTER)
 
-    val project = element.project
-    val searchScope =
-      when (val effectiveScope = queryParameters.effectiveSearchScope) {
-        is GlobalSearchScope -> KotlinScriptSearchScope(project, effectiveScope)
-        else -> effectiveScope
-      }
+    val searchScope = queryParameters.effectiveSearchScope
     val searchContext = UsageSearchContext.IN_CODE
     val processor = MyProcessor(keyValue, nameParts)
     val search: (String) -> Unit = { queryParameters.optimizer.searchWord(it, searchScope, searchContext, true, element, processor) }

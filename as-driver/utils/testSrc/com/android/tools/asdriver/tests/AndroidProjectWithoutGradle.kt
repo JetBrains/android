@@ -26,4 +26,8 @@ class AndroidProjectWithoutGradle(path: String) : AndroidProject(path) {
   override fun injectGradle() {
     // Do nothing. APK projects do not use Gradle.
   }
+
+  override fun stopGradleDaemon() {
+    // Do nothing. APK projects do not use Gradle.
+  }
 }

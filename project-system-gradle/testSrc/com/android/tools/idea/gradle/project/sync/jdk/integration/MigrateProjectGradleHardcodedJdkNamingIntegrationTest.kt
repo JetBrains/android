@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk.integration
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
@@ -32,6 +33,7 @@ import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_VERSION
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
@@ -79,7 +81,9 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
     }
 
   @Test
-  fun `Given gradleJdk and projectJdk as 'Embedded JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() =
+  fun `Given gradleJdk and projectJdk as 'Embedded JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() {
+    // Disable project import Gradle JVM compatibility check
+    StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.overrideForTest(false, projectRule.testRootDisposable)
     jdkIntegrationTest.run(
       project = SimpleApplication(ideaGradleJdk = EMBEDDED_JDK_NAME, ideaProjectJdk = EMBEDDED_JDK_NAME),
       environment = TestEnvironment(jdkTable = listOf(Jdk(EMBEDDED_JDK_NAME, JDK_11_PATH))),
@@ -90,6 +94,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
         expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
+  }
 
   @Test
   fun `Given gradleJdk 'Embedded JDK' and daemon JVM criteria When pre-sync project Then gradleJdk got unconfigured`() =
@@ -200,7 +205,9 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
     }
 
   @Test
-  fun `Given gradleJdk and projectJdk as 'Android Studio default JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() =
+  fun `Given gradleJdk and projectJdk as 'Android Studio default JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() {
+    // Disable project import Gradle JVM compatibility check
+    StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.overrideForTest(false, projectRule.testRootDisposable)
     jdkIntegrationTest.run(
       project = SimpleApplication(ideaGradleJdk = ANDROID_STUDIO_DEFAULT_JDK_NAME, ideaProjectJdk = ANDROID_STUDIO_DEFAULT_JDK_NAME),
       environment = TestEnvironment(jdkTable = listOf(Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_11_PATH))),
@@ -211,6 +218,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
         expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
+  }
 
   @Test
   fun `Given gradleJdk 'Android Studio default JDK' When pre-sync failure project Then this was migrated to vendor plus version JDK naming`() =
@@ -223,7 +231,9 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
     }
 
   @Test
-  fun `Given multiple roots project using hardcore gradleJvm naming When pre-sync project Then those were migrated away from hardcoded naming`() =
+  fun `Given multiple roots project using hardcore gradleJvm naming When pre-sync project Then those were migrated away from hardcoded naming`() {
+    // Disable project import Gradle JVM compatibility check
+    StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.overrideForTest(false, projectRule.testRootDisposable)
     jdkIntegrationTest.run(
       project =
         SimpleApplicationMultipleRoots(
@@ -256,4 +266,5 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
         expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
+  }
 }

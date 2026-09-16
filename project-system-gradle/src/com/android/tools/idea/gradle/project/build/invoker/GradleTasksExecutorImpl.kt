@@ -100,10 +100,10 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.plugins.gradle.service.GradleFileModificationTracker
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContextImpl
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.AUTO_JAVA_HOME
+import org.jetbrains.plugins.gradle.service.task.GradleTaskExecutionContextImpl
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 
 internal class GradleTasksExecutorImpl : GradleTasksExecutor {
@@ -201,14 +201,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
     private fun invokeGradleTasks(buildAction: BuildAction<*>?): GradleInvocationResult {
       val project = myRequest.project
-      val executionSettings =
-        myRequest.data.executionSettings
-          ?: GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
-            this.withVmOptions(myRequest.jvmArguments)
-              .withArguments(myRequest.commandLineArguments)
-              .withEnvironmentVariables(myRequest.env)
-              .passParentEnvs(myRequest.isPassParentEnvs)
-          }
+      val executionSettings = myRequest.toExecutionSettings()
       val model = AtomicReference<Any?>(null)
       val gradleRootProjectPath = myRequest.rootProjectPath.path
       val executeTasksFunction = Function { connection: ProjectConnection ->
@@ -253,12 +246,14 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
           }
+        val context = GradleTaskExecutionContextImpl(gradleRootProjectPath, id, listener)
         var buildEnvironment: BuildEnvironment? = null
         val invocationResult =
           try {
-            val context =
-              GradleExecutionContextImpl(gradleRootProjectPath, id, executionSettings, listener, cancellationTokenSource.token())
-            buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, context).also { context.buildEnvironment = it }
+            val executionContext = GradleExecutionContextImpl(context.projectPath, context.taskId, executionSettings, context.listener, cancellationToken)
+              .also { context.executionContext = it }
+            buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, executionContext)
+              .also { executionContext.buildEnvironment = it }
             val buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project)
             val commandLineArguments: MutableList<String?> = Lists.newArrayList(*buildConfiguration.commandLineOptions)
             if (
@@ -302,10 +297,9 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             // Add trace arguments to jvmArguments.
             Trace.addVmArgs(traceJvmArgs)
             executionSettings.withVmOptions(traceJvmArgs).withArguments(commandLineArguments)
+            GradleTaskManager.configureTasks(executionSettings, context)
             val operation: LongRunningOperation = if (isRunBuildAction) connection.action(buildAction) else connection.newBuild()
-            val gradleVersion = context.buildEnvironment?.gradle?.gradleVersion?.let(GradleInstallationManager::getGradleVersionSafe)
-            GradleTaskManager.configureTasks(myRequest.rootProjectPath.path, myRequest.taskId, executionSettings, gradleVersion)
-            GradleExecutionHelper.prepareForExecution(operation, context)
+            GradleExecutionHelper.prepareForExecution(operation, executionContext)
             if (enableBuildAttribution) {
               buildAttributionManager = project.getService(BuildAttributionManager::class.java)
               setUpBuildAttributionManager(

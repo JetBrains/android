@@ -35,6 +35,16 @@
     <!-- endregion -->
   </dependencies>
 
+  <!-- Library wrapper module used only by this plugin. The <content> tag has no 'namespace' attribute on purpose:
+       that registers the module in this plugin's implicit private namespace, so other plugins may bundle their own
+       copy without a runtime module ID clash. loading="embedded" is required because intellij.android.layoutlib,
+       intellij.android.designer and intellij.android.visual-lint are packed into this plugin's JARs as plain modules
+       and their sources import com.android.layoutlib.bridge.*, com.android.internal.* and
+       com.android.tools.idea.validator.* directly, so the classes must be on the plugin's main classloader. -->
+  <content>
+    <module name="intellij.libraries.layoutlib" loading="embedded"/>
+  </content>
+
   <change-notes><![CDATA[
    This release contains updates from Android Studio Panda 2.
 

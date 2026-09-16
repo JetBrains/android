@@ -268,7 +268,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
-        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema(parameters.position) ?: return
 
         // if user edit existing assignment - we don't need to add += with augmentations
         val includeAugmentation = !isLeftHandAssignment(parameters.position)
@@ -307,7 +307,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
-        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema(parameters.position) ?: return
 
         val element = parameters.position.parent
         val suggestions = getSuggestionList(element, schema).map { it.second }
@@ -320,7 +320,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
-        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema(parameters.position) ?: return
 
         val element = parameters.position
         // do not show any suggestions if += is used for inappropriate property
@@ -353,7 +353,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
-        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema(parameters.position) ?: return
 
         val element = parameters.position
         val blockFunctions =
@@ -390,7 +390,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
-        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema(parameters.position) ?: return
         findPreviousSimpleFunction(parameters.position)?.let { parent ->
           result.addAllElements(
             getSuggestionList(parent, schema, true)
@@ -411,7 +411,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val project = parameters.originalFile.project
-        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema(parameters.position) ?: return
         val offset = parameters.offset
         val psiFile = parameters.originalFile
         val element = psiFile.findElementAt(max(0, offset - 1)) ?: return

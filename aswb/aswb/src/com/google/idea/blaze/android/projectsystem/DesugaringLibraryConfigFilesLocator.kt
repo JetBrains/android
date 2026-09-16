@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.android.projectsystem
 
+import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.settings.BuildSystemName
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -30,7 +31,7 @@ interface DesugaringLibraryConfigFilesLocator {
   fun getDesugarLibraryConfigFilesKnown(): Boolean
 
   /** Returns the list of paths to the desugaring library config files */
-  fun getDesugarLibraryConfigFiles(project: Project): List<Path>
+  fun fetchDesugarLibraryConfigFiles(project: Project, context: BlazeContext): List<Path>
 
   /** Returns the [BuildSystemName] this [DesugaringLibraryConfigFilesLocator] supports. */
   fun buildSystem(): BuildSystemName

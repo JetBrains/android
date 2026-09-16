@@ -362,6 +362,112 @@ class AddComposableAnnotationQuickFixTest {
   }
 
   @Test
+  fun errorInReturnedLambda_invokeOnFunctionCall() {
+    myFixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun ComposableFunction() {}
+      fun NonComposableFunction(): () -> Unit {
+          return {
+              ComposableFunction()  // invocation
+          }
+      }
+      """
+        .trimIndent(),
+    )
+
+    assertQuickFixNotAvailable("fun NonComposable|Function()")
+
+    invokeQuickFix("Composable|Function()  // invocation", "NonComposableFunction")
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun ComposableFunction() {}
+      fun NonComposableFunction(): @Composable () -> Unit {
+          return {
+              ComposableFunction()  // invocation
+          }
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
+  fun errorInReturnedLambdaWithParameters_invokeOnFunctionCall() {
+    myFixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun ComposableFunction(text: String) {}
+      fun NonComposableFunction(): (String) -> Unit {
+          return { text ->
+              ComposableFunction(text)  // invocation
+          }
+      }
+      """
+        .trimIndent(),
+    )
+
+    invokeQuickFix("Composable|Function(text)  // invocation", "NonComposableFunction")
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun ComposableFunction(text: String) {}
+      fun NonComposableFunction(): @Composable (String) -> Unit {
+          return { text ->
+              ComposableFunction(text)  // invocation
+          }
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
+  fun errorInReturnedLambdaExpression_invokeOnFunctionCall() {
+    myFixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun ComposableFunction() {}
+      fun NonComposableFunction(): () -> Unit = {
+          ComposableFunction()  // invocation
+      }
+      """
+        .trimIndent(),
+    )
+
+    invokeQuickFix("Composable|Function()  // invocation", "NonComposableFunction")
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun ComposableFunction() {}
+      fun NonComposableFunction(): @Composable () -> Unit = {
+          ComposableFunction()  // invocation
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
   fun errorInClassInit() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",

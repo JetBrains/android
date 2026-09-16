@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package google.play.developer.reporting.v1beta1;
+
+import "metrics.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "InstallBaseServiceProto";
+option java_package = "com.google.play.developer.reporting";
+
+// Service to describe and query Install Base metrics.
+service InstallBaseService {
+  // Describes the properties of the metric set.
+  rpc GetInstallBaseMetricSet(GetInstallBaseMetricSetRequest)
+      returns (InstallBaseMetricSet) {}
+
+  // Queries the metrics in the metric set.
+  rpc QueryInstallBaseMetricSet(QueryInstallBaseMetricSetRequest)
+      returns (QueryInstallBaseMetricSetResponse) {}
+}
+
+// Singleton resource representing the set of Install Base metrics.
+//
+// **Supported aggregation periods:**
+//
+//  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
+//    metrics are aggregated in calendar date intervals in the Google Standard
+//    Time Zone (America/Los_Angeles).
+//
+// **Supported metrics:**
+//
+//  * `activeUserInstalls` (`google.type.Decimal`): (Installed Audience) The
+//     number of unique users who have the app installed on at least one active
+//     device.
+//  * `activeDeviceInstalls` (`google.type.Decimal`): (Install Base) The number
+//     of active devices that have the app installed.
+//
+// **Supported dimensions:**
+//
+//  * `apiLevel`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     The API level of Android that was running on the user's device.
+//  * `deviceModel`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     Unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
+//  * `deviceType`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
+//  * `language`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     The user's device language, represented as a BCP-47 language tag (e.g.
+//     en-US for English as used in the United States).
+//  * `regionCode`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     The country or region of the user's device, represented as a 2-letter
+//     Unicode CLDR region code (e.g. US for the United States).
+//  * `trafficSource`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     How the user got to your store listing (e.g., 'Google Play Search',
+//     'Google Play Explore', 'Ads and referrals').
+//  * `versionCode`
+//     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
+//     The version of the app that was running on the user's device.
+//
+// (== resource_for v1beta1.platform.installs ==)
+message InstallBaseMetricSet {
+  // The resource name.
+  string name = 1;
+
+  // Summary about data freshness in this resource.
+  FreshnessInfo freshness_info = 2;
+}
+
+// Request message for [GetInstallBaseMetricSet].
+message GetInstallBaseMetricSetRequest {
+  // The resource name.
+  // Format: apps/{app}/installBaseMetricSet
+  string name = 1;
+}
+
+// Request message for [QueryInstallBaseMetricSet].
+message QueryInstallBaseMetricSetRequest {
+  // The resource name.
+  string name = 1;
+
+  // Specification of the timeline aggregation parameters.
+  //
+  // **Supported aggregation periods:**
+  //
+  //  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
+  //    metrics are aggregated in calendar date intervals in the Google Standard
+  //    Time Zone (America/Los_Angeles).
+  TimelineSpec timeline_spec = 2;
+
+  // Dimensions to slice the metrics by.
+  //
+  // **Supported dimensions:**
+  //
+  //  * `apiLevel`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     The API level of Android that was running on the user's device.
+  //  * `deviceModel`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     Unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
+  //  * `deviceType`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
+  //  * `language`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     The user's device language, represented as a BCP-47 language tag (e.g.
+  //     en-US for English as used in the United States).
+  //  * `regionCode`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     The country or region of the user's device, represented as a 2-letter
+  //     Unicode CLDR region code (e.g. US for the United States).
+  //  * `trafficSource`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     How the user got to your store listing (e.g., 'Google Play Search',
+  //     'Google Play Explore', 'Ads and referrals').
+  //  * `versionCode`
+  //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
+  //     The version of the app that was running on the user's device.
+  repeated string dimensions = 3;
+
+  // Metrics to aggregate.
+  //
+  // **Supported metrics:**
+  //
+  //  * `activeUserInstalls` (`google.type.Decimal`): (Installed Audience) The
+  //     number of unique users who have the app installed on at least one
+  //     active device.
+  //  * `activeDeviceInstalls` (`google.type.Decimal`): (Install Base) The
+  //  number
+  //     of active devices that have the app installed.
+  repeated string metrics = 4;
+
+  // Filters to apply to data. The filtering expression follows
+  // [AIP-160](https://google.aip.dev/160) standard and supports filtering
+  // by equality of all breakdown dimensions.
+  string filter = 7;
+
+  // Maximum size of the returned data.
+  //
+  // If unspecified, at most 1000 rows will be returned.
+  // The maximum value is 100,000; values above 100,000 will be coerced to
+  // 100,000.
+  int32 page_size = 5;
+
+  // A page token, received from a previous call.
+  // Provide this to retrieve the subsequent page.
+  //
+  // When paginating, all other parameters provided to the request must
+  // match the call that provided the page token.
+  string page_token = 6;
+}
+
+// Response message for [QueryInstallBaseMetricSet].
+message QueryInstallBaseMetricSetResponse {
+  // The returned rows of metrics.
+  repeated MetricsRow rows = 1;
+
+  // A token, which can be sent as `page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
+}

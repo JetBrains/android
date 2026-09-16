@@ -3,8 +3,6 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
@@ -175,13 +173,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     switch (projectType) {
       // Supported project types.
       case PROJECT_TYPE_APP:
-      case PROJECT_TYPE_INSTANTAPP:
       case PROJECT_TYPE_TEST:
         break;
 
       // Project types that need further check for the eligibility.
       case PROJECT_TYPE_LIBRARY:
-      case PROJECT_TYPE_FEATURE:
       case PROJECT_TYPE_DYNAMIC_FEATURE:
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {

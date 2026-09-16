@@ -30,6 +30,7 @@ data class AiEventStats(
     FEATURE_UNSPECIFIED,
     CHAT,
     AGENT,
+    QUICK_EDIT,
     CODE_COMPLETION,
     TRANSFORM_CODE,
   }
@@ -115,6 +116,7 @@ data class ChatBotEventMetadata(
     UNKNOWN_CHAT_MODE,
     CHAT,
     AGENT_MODE,
+    QUICK_EDIT,
   }
 
   enum class ToolCallResponseStatus {

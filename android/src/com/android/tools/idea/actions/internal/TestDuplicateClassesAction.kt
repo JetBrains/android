@@ -46,26 +46,6 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
     mapOf(
       "org.jetbrains.android" to
         setOf(
-          "com.google.devrel.gmscore.tools.apk.arsc", // b/476427677
-          // b/476430566 below here
-          "io.opencensus.common",
-          "io.opencensus.metrics",
-          "io.opencensus.metrics.data",
-          "io.opencensus.metrics.export",
-          "io.opencensus.resource",
-          "io.opencensus.stats",
-          "io.opencensus.tags",
-          "io.opencensus.tags.unsafe",
-          "io.opencensus.trace",
-          "io.opencensus.trace.config",
-          "io.opencensus.trace.export",
-          "io.opencensus.trace.internal",
-          "io.opencensus.trace.propagation",
-          "io.opencensus.trace.samplers",
-          "io.opencensus.trace.unsafe",
-          "io.opencensus.internal",
-          "io.opencensus.tags.propagation",
-          // end b/476430566
           "com.android.annotations.concurrency",
           "com.android.annotations",
           "com.android.tools.instrumentation.threading.agent.callback",
@@ -86,37 +66,9 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "org.objectweb.asm.tree",
           "org.objectweb.asm",
           "org.xmlpull.v1",
-          "com.google.errorprone.annotations",
         ),
       "com.android.tools.design" to setOf("org.json", "com.google.errorprone.annotations", "android.annotation"),
-      "com.google.tools.ij.aiplugin" to
-        setOf(
-          "androidx.annotation",
-          "com.android.tools.journeys.proto", // b/476493309
-          // b/476493791 below here
-          "com.google.api",
-          "com.google.apps.card.v1",
-          "com.google.cloud.audit",
-          "com.google.cloud.location",
-          "com.google.cloud",
-          "com.google.geo.type",
-          "com.google.logging.type",
-          "com.google.longrunning",
-          "com.google.shopping.type",
-          // end b/476493791
-          "com.google.type",
-          "kotlinx.atomicfu.locks",
-          "kotlinx.atomicfu",
-          // b/476502383 below here
-          "org.sqlite.core",
-          "org.sqlite.date",
-          "org.sqlite.javax",
-          "org.sqlite.jdbc3",
-          "org.sqlite.jdbc4",
-          "org.sqlite.util",
-          "org.sqlite",
-          // end b/476502383
-        ),
+      "com.google.tools.ij.aiplugin" to setOf("androidx.annotation", "kotlinx.atomicfu.locks", "kotlinx.atomicfu"),
 
       // The below are all coming from the platform: we can't do anything about them directly.
       "com.intellij.cidr.base" to

@@ -17,8 +17,7 @@ package com.android.tools.idea.streaming.device.screenshot
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpNativeLibDownloader
@@ -28,12 +27,14 @@ import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import java.nio.file.Path
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 /** Tests for [DeviceScreenshotDecorator]. */
 class DeviceScreenshotPostprocessorTest {
+
+  @get:Rule val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/DeviceScreenshotTest/golden")
 
   @Before
   fun setUp() {
@@ -76,9 +77,5 @@ class DeviceScreenshotPostprocessorTest {
   }
 
   private fun assertImageSimilar(name: String, image: BufferedImage) =
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(name), ImageUtils.scale(image, 0.125))
-
-  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
+    goldenImageRule.assertImageSimilar(name, ImageUtils.scale(image, 0.125))
 }
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceScreenshotTest/golden"

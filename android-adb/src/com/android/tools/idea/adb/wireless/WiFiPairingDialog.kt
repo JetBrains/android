@@ -136,5 +136,5 @@ class WiFiPairingDialog(
   }
 
   private val panelPreferredSize: JBDimension
-    get() = JBDimension(600, 600)
+    get() = JBDimension(600, 650)
 }

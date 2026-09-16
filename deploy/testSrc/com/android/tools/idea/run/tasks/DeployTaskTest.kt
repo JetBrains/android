@@ -215,5 +215,5 @@ class DeployTaskTest {
     alwaysInstallWithPm: Boolean = false,
     allowAssumeVerified: Boolean = false,
     makeBeforeRun: Boolean = true,
-  ) = DeployTask(project, packages, userInstallOptions, installOnAllUsers, alwaysInstallWithPm, allowAssumeVerified, makeBeforeRun)
+  ) = DeployTask(project, packages, null, userInstallOptions, installOnAllUsers, alwaysInstallWithPm, allowAssumeVerified, makeBeforeRun)
 }

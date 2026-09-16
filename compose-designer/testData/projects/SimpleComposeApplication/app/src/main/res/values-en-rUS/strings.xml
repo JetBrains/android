@@ -15,6 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-  <string name="greeting">Android (en-rUS)</string>
+  <string name="greeting">Android</string>
   <string name="app_name">Simple Application</string>
 </resources>

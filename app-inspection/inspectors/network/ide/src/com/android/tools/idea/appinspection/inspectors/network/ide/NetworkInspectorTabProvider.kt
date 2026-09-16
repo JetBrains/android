@@ -31,13 +31,14 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServicesImpl
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR_TAB
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /** The number of updates per second our simulated object models receive. */
@@ -82,8 +83,8 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
           codeNavigationProvider,
           client,
           FpsTimer(UPDATES_PER_SECOND),
-          AndroidDispatchers.workerThread,
-          AndroidDispatchers.uiThread,
+          Dispatchers.Default,
+          Dispatchers.EDT,
           usageTracker,
           ideServices,
         )

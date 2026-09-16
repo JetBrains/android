@@ -32,8 +32,8 @@ import com.intellij.ui.components.JBScrollPane
 import java.awt.BorderLayout
 import javax.swing.Box
 import javax.swing.JPanel
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -63,7 +63,7 @@ internal class PairedDevicesPanel
 private constructor(
   private val pairingManager: PairingManager,
   scope: CoroutineScope,
-  private val uiDispatcher: CoroutineDispatcher,
+  private val uiContext: CoroutineContext,
   val handle: DeviceHandle,
   private val subjectWearPairingId: String,
 ) : JPanel() {
@@ -81,7 +81,7 @@ private constructor(
       it.addActionListener { removeSelectedPairing() }
     }
 
-  val pairingsTable = PairedDevicesTable.create(uiDispatcher)
+  val pairingsTable = PairedDevicesTable.create(uiContext)
   val scrollPane = JBScrollPane(pairingsTable)
 
   init {
@@ -96,7 +96,7 @@ private constructor(
     )
     add(scrollPane)
 
-    scope.launch(uiDispatcher) { pairingsTable.selection.asFlow().collect { removeButton.isEnabled = it.isNotEmpty() } }
+    scope.launch(uiContext) { pairingsTable.selection.asFlow().collect { removeButton.isEnabled = it.isNotEmpty() } }
   }
 
   fun updatePairedDeviceData(pairedDeviceData: PairedDeviceData) {
@@ -153,9 +153,9 @@ private constructor(
             PairedDeviceData.create(device, deviceState, pairingStatus?.state ?: WearPairingManager.PairingState.UNKNOWN)
           }
           .distinctUntilChanged()
-          .collect { withContext(uiDispatcher) { updatePairedDeviceData(it) } }
+          .collect { withContext(uiContext) { updatePairedDeviceData(it) } }
       } catch (e: CancellationException) {
-        withContext(NonCancellable + uiDispatcher) { removeDevice(device) }
+        withContext(NonCancellable + uiContext) { removeDevice(device) }
       }
     }
   }
@@ -181,14 +181,14 @@ private constructor(
     fun create(
       pairingManager: PairingManager,
       scope: CoroutineScope,
-      uiDispatcher: CoroutineDispatcher,
+      uiContext: CoroutineContext,
       handle: DeviceHandle,
       devicesFlow: Flow<List<DeviceHandle>>,
       pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>,
     ): PairedDevicesPanel {
       val subjectDevicePairingId = checkNotNull(handle.state.properties.wearPairingId)
 
-      return PairedDevicesPanel(pairingManager, scope, uiDispatcher, handle, subjectDevicePairingId).also {
+      return PairedDevicesPanel(pairingManager, scope, uiContext, handle, subjectDevicePairingId).also {
         scope.launch { it.trackPairedDevices(devicesFlow, pairedDevicesFlow) }
       }
     }

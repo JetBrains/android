@@ -31,7 +31,6 @@ import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.CommonPreviewRefreshType
@@ -48,7 +47,6 @@ import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.RenderQualityPolicy
-import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.animation.AnimationPreview
@@ -62,7 +60,6 @@ import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
-import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
@@ -76,6 +73,7 @@ import com.android.tools.idea.preview.navigation.AbstractPreviewNavigationHandle
 import com.android.tools.idea.preview.pagination.PreviewPaginationManager
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
+import com.android.tools.idea.preview.util.PreviewFilePointer
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.projectsystem.needsBuild
@@ -115,7 +113,6 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Rectangle
 import java.util.concurrent.atomic.AtomicBoolean
@@ -182,10 +179,16 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   protected val project = psiFile.project
-  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val psiFilePointer =
+    PreviewFilePointer(psiFile) {
+      // If file reference changes, make sure to invalidate and refresh again
+      // as the last refresh might have failed midway due to this change.
+      invalidate()
+      requestRefresh()
+    }
   private val buildTargetReference = BuildTargetReference.from(psiFile) ?: error("Cannot obtain build reference to: $psiFile")
 
-  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
+  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFilePointer)
 
   @TestOnly internal fun getProjectBuildStatusForTest() = renderingBuildStatusManager.status
 
@@ -284,9 +287,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
    * [RenderQualityManager] for more details.
    */
   private val qualityManager: RenderQualityManager =
-    if (StudioFlags.PREVIEW_RENDER_QUALITY.get())
-      DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = CommonPreviewRefreshType.QUALITY) }
-    else SimpleRenderQualityManager { getDefaultPreviewQuality() }
+    DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = CommonPreviewRefreshType.QUALITY) }
 
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)
@@ -620,11 +621,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     type: CommonPreviewRefreshType = CommonPreviewRefreshType.NORMAL,
     onRefreshCompleted: CompletableDeferred<Unit>? = null,
   ) {
-    // Make sure not to allow quality change refreshes when the flag is disabled
-    if (type == CommonPreviewRefreshType.QUALITY && !StudioFlags.PREVIEW_RENDER_QUALITY.get()) {
-      onRefreshCompleted?.completeExceptionally(IllegalStateException("Not enabled"))
-      return
-    }
     // Make sure not to request refreshes when deactivated, unless it is an allowed quality refresh,
     // which is expected to happen to decrease the quality of the previews when deactivating.
     val shouldEnqueueRequest =

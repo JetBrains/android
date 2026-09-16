@@ -16,18 +16,21 @@
 package com.android.tools.idea.device.explorer.files
 
 import com.android.annotations.concurrency.AnyThread
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object DeviceExplorerFilesUtils {
   /** Creates a [VirtualFile] corresponding to the [Path] passed as argument. */
   @AnyThread
   suspend fun findFile(localPath: Path, inReadOnly: Boolean = false): VirtualFile {
-    // We run this operation using invokeLater because we need to refresh a VirtualFile instance
+    // We run this operation using the EDT dispatcher because we need to refresh a VirtualFile instance
     // this has to be done in a write-safe context.
     // See https://github.com/JetBrains/intellij-community/commit/10c0c11281b875e64c31186eac20fc28ba3fc37a
-    return withWriteSafeContextWithCurrentModality {
+    return withContext(Dispatchers.EDT) {
       // findFileByIoFile should be called from the write thread, in a write-safe context
       val file = localPath.toFile().apply { if (inReadOnly) setReadOnly() }
       VfsUtil.findFileByIoFile(file, true) ?: throw RuntimeException("Unable to locate file \"$localPath\"")

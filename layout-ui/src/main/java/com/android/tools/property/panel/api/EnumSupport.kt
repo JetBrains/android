@@ -26,7 +26,7 @@ import javax.swing.ListCellRenderer
 interface EnumSupport {
   /** The values to display in the enum control. This getter should be called on a background thread. */
   val values: List<EnumValue>
-    @RequiresBackgroundThread get
+    @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */) get
 
   /** A [ListCellRenderer] for customizing the display of each value. */
   val renderer: ListCellRenderer<EnumValue>

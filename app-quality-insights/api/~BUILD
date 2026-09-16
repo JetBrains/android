@@ -20,6 +20,7 @@ iml_module(
         "@intellij//:intellij.platform.vcs.impl",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
+        "//tools/adt/idea/.idea/libraries:kotlin-test",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

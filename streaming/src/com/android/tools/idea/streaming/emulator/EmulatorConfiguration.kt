@@ -82,7 +82,15 @@ private constructor(
     fun readAvdDefinition(avdFolder: Path): EmulatorConfiguration {
       val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
       val keysToExtract =
-        setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density", "hw.sensor.hinge.resizable.config")
+        setOf(
+          "android.sdk.root",
+          "hw.audioOutput",
+          "hw.initialOrientation",
+          "hw.lcd.height",
+          "hw.lcd.width",
+          "hw.lcd.density",
+          "hw.sensor.hinge.resizable.config",
+        )
       val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract)
       val sdkPath = hardwareIni["android.sdk.root"] ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.resolve(sdkPath)
@@ -95,16 +103,16 @@ private constructor(
 
       val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() ?: true
 
+      val initialOrientation =
+        when {
+          "landscape".equals(hardwareIni["hw.initialOrientation"], ignoreCase = true) -> 1
+          else -> 0
+        }
+
       val configIniFile = avdFolder.resolve("config.ini")
       val configIni = readKeyValueFile(configIniFile)
 
       val avdName = configIni["avd.ini.displayname"] ?: avdFolder.fileName.toString().removeSuffix(".avd").replace('_', ' ')
-
-      val initialOrientation =
-        when {
-          "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> 1
-          else -> 0
-        }
 
       val w = parseInt(configIni["environment.width"], 0)
       val h = parseInt(configIni["environment.height"], 0)

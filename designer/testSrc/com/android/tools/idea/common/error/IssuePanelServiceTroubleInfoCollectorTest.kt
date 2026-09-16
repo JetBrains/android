@@ -16,10 +16,8 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.util.TestToolWindowManager
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-import com.intellij.openapi.wm.RegisterToolWindowTask
-import com.intellij.openapi.wm.ToolWindowManager
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -30,9 +28,7 @@ class IssuePanelServiceTroubleInfoCollectorTest {
 
   @Before
   fun setup() {
-    projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(projectRule.project))
-    val manager = ToolWindowManager.getInstance(projectRule.project)
-    manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
+    createFakeToolWindow(projectRule.project, projectRule.testRootDisposable, ProblemsView.ID)
   }
 
   @Test

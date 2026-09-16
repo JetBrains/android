@@ -1144,7 +1144,7 @@ PROJECT                       : project
         BUILD_TASKS
                 ASSEMBLE                      : :contentLib:assemble, :contentLib:testClasses
                 REBUILD                       : :contentLib:assemble, :contentLib:clean, :contentLib:testClasses
-                COMPILE_JAVA                  : :contentLib:compileJava, :contentLib:testClasses
+                COMPILE_JAVA                  : :contentLib:compileJava, :contentLib:compileTestJava
     MODULE                        : project.contentLib.main
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -1204,9 +1204,9 @@ PROJECT                       : project
             -                             : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/main
             -                             : file://<PROJECT>/contentLib/build/resources/main
         BUILD_TASKS
-                ASSEMBLE                      : :contentLib:assemble, :contentLib:testClasses
-                REBUILD                       : :contentLib:assemble, :contentLib:clean, :contentLib:testClasses
-                COMPILE_JAVA                  : :contentLib:compileJava, :contentLib:testClasses
+                ASSEMBLE                      : :contentLib:assemble
+                REBUILD                       : :contentLib:assemble, :contentLib:clean
+                COMPILE_JAVA                  : :contentLib:compileJava
     MODULE                        : project.contentLib.test
         ExternalModuleGroup           : project
         ExternalModuleType            : sourceSet
@@ -1272,9 +1272,9 @@ PROJECT                       : project
             -                             : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/test
             -                             : file://<PROJECT>/contentLib/build/resources/test
         BUILD_TASKS
-                ASSEMBLE                      : :contentLib:assemble, :contentLib:testClasses
-                REBUILD                       : :contentLib:assemble, :contentLib:clean, :contentLib:testClasses
-                COMPILE_JAVA                  : :contentLib:compileJava, :contentLib:testClasses
+                ASSEMBLE                      : :contentLib:testClasses
+                REBUILD                       : :contentLib:clean, :contentLib:testClasses
+                COMPILE_JAVA                  : :contentLib:compileTestJava
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : project.app
@@ -1426,7 +1426,7 @@ PROJECT                       : project
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:createMockableJar, <PROJECT>::awesomeandroidlibrary:generateDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugAndroidTest, <PROJECT>::awesomeandroidlibrary:assembleDebugUnitTest, <PROJECT>::contentLib:assemble, <PROJECT>::contentLib:testClasses
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugAndroidTest, <PROJECT>::awesomeandroidlibrary:assembleDebugUnitTest, <PROJECT>::awesomeandroidlibrary:clean, <PROJECT>::contentLib:assemble, <PROJECT>::contentLib:clean, <PROJECT>::contentLib:testClasses
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::awesomeandroidlibrary:compileDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:compileDebugSources, <PROJECT>::awesomeandroidlibrary:compileDebugUnitTestSources, <PROJECT>::contentLib:compileJava, <PROJECT>::contentLib:testClasses
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::awesomeandroidlibrary:compileDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:compileDebugSources, <PROJECT>::awesomeandroidlibrary:compileDebugUnitTestSources, <PROJECT>::contentLib:compileJava, <PROJECT>::contentLib:compileTestJava
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:createMockableJar, <PROJECT>::awesomeandroidlibrary:generateDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

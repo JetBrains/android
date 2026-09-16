@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.qsync;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -26,7 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /** Implementation of {@link SourceToTargetMap} for query sync. */
-public class QuerySyncSourceToTargetMap implements SourceToTargetMap {
+public class QuerySyncSourceToTargetMap {
 
   private final Logger logger = Logger.getInstance(getClass());
 
@@ -38,7 +37,6 @@ public class QuerySyncSourceToTargetMap implements SourceToTargetMap {
     this.workspaceRoot = workspaceRoot;
   }
 
-  @Override
   public ImmutableList<Label> getTargetsToBuildForSourceFile(File file) {
     Path rel = workspaceRoot.relativize(file.toPath());
 

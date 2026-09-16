@@ -293,7 +293,7 @@ private class ResourceFolderDocumentListener(private val project: Project, priva
  */
 private class ResourceFolderVfsListener(private val registry: ResourceFolderRegistry) : BulkFileListener {
 
-  @RequiresWriteLock
+  @RequiresWriteLock(generateAssertion = false /* IJPL-115548 */)
   override fun before(events: List<VFileEvent>) {
     for (event in events) {
       when (event) {
@@ -304,7 +304,7 @@ private class ResourceFolderVfsListener(private val registry: ResourceFolderRegi
     }
   }
 
-  @RequiresWriteLock
+  @RequiresWriteLock(generateAssertion = false /* IJPL-115548 */)
   override fun after(events: List<VFileEvent>) {
     for (event in events) {
       when (event) {

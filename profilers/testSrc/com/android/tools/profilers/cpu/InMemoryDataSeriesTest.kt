@@ -37,41 +37,75 @@ class InMemoryDataSeriesTest {
     assertThat(TestInMemoryDataSeries(dataList).getDataForRange(Range(0.0, 101.0))).containsExactlyElementsIn(dataList)
   }
 
-  /** 1 2 | 3 4 5 | 6 7 should return {2, 3, 4, 5, 6} */
+  /**
+   * <pre>
+   * 1 2 | 3 4 5 | 6 7
+   * </pre>
+   * should return {2, 3, 4, 5, 6}
+   */
   @Test
   fun rangeIntersectsWithDataList() {
     assertThat(TestInMemoryDataSeries(generateDataList(1L, 10L)).getDataForRange(Range(25.0, 55.0)))
       .containsExactly(SeriesData(20L, 2L), SeriesData(30L, 3L), SeriesData(40L, 4L), SeriesData(50L, 5L), SeriesData(60L, 6L))
   }
 
-  /** 1 2 | | 3 4 should return {2, 3} */
+  /**
+   * <pre>
+   * 1 2 | | 3 4
+   * </pre>
+   * should return {2, 3}
+   */
   @Test
   fun rangeBetweenTwoDataPoints() {
     assertThat(TestInMemoryDataSeries(generateDataList(1L, 4L)).getDataForRange(Range(21.0, 22.0)))
       .containsExactly(SeriesData(20L, 2L), SeriesData(30L, 3L))
   }
 
-  /** | | 1 2 3 should return {1} */
+  /**
+   * <pre>
+   * | | 1 2 3
+   * </pre>
+   * should return {1}
+   */
   @Test
   fun rangeBeforeAllDataPoints() {
     assertThat(TestInMemoryDataSeries(generateDataList(1L, 3L)).getDataForRange(Range(0.0, 5.0))).containsExactly(SeriesData(10L, 1L))
   }
 
-  /** 8 9 10 | | should return {10} */
+  /**
+   * <pre>
+   * 8 9 10 | |
+   * </pre>
+   * should return {10}
+   */
   @Test
   fun rangeAfterAllDataPoints() {
     assertThat(TestInMemoryDataSeries(generateDataList(8L, 10L)).getDataForRange(Range(101.0, 105.0)))
       .containsExactly(SeriesData(100L, 10L))
   }
 
-  /** | | 1 2 3 4 5 | | should return {2, 3, 4} */
+  /**
+   * <pre>
+   *   |   |
+   * 1 2 3 4 5
+   *   |   |
+   * </pre>
+   * should return {2, 3, 4}
+   */
   @Test
   fun rangeRightOnDataPoints() {
     assertThat(TestInMemoryDataSeries(generateDataList(1L, 5L)).getDataForRange(Range(20.0, 40.0)))
       .containsExactly(SeriesData(20L, 2L), SeriesData(30L, 3L), SeriesData(40L, 4L))
   }
 
-  /** | 1 | | | 1 1 | | should all return {1} */
+  /**
+   * <pre>
+   * | 1 |
+   * | | 1
+   * 1 | |
+   * </pre>
+   * should all return {1}
+   */
   @Test
   fun singleElementList() {
     val dataList = generateDataList(1L, 1L)
@@ -80,7 +114,19 @@ class InMemoryDataSeriesTest {
     assertThat(TestInMemoryDataSeries(dataList).getDataForRange(Range(20.0, 30.0))).containsExactlyElementsIn(dataList)
   }
 
-  /** | | 1 2 should return {1} 1 2 | | should return {2} 1 | | 2 | 1 | 2 1 | 2 | | 1 2 | should all return {1, 2} */
+  /**
+   * <pre>
+   * | | 1 2
+   * should return {1}
+   * 1 2 | |
+   * should return {2}
+   * 1 | | 2
+   * | 1 | 2
+   * 1 | 2 |
+   * | 1 2 |
+   * </pre>
+   * should all return {1, 2}
+   */
   @Test
   fun twoElementList() {
     val dataList = generateDataList(1L, 2L)

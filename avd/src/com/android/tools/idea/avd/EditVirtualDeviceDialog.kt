@@ -31,14 +31,15 @@ import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import java.awt.Component
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
@@ -86,7 +87,7 @@ internal class EditVirtualDeviceDialog(
         avdBuilder.avdFolder = avdManager.uniquifyAvdFolder(avdBuilder.avdName)
       }
     }
-    withContext(AndroidDispatchers.diskIoThread) {
+    withContext(Dispatchers.IO) {
       when (mode) {
         Mode.EDIT -> avdManager.editAvd(avdInfo, avdBuilder)
         Mode.DUPLICATE -> avdManager.duplicateAvd(avdInfo, avdBuilder)
@@ -98,13 +99,13 @@ internal class EditVirtualDeviceDialog(
   companion object {
     suspend fun show(project: Project?, parent: Component?, avdInfo: AvdInfo, mode: Mode): Boolean {
       val skins =
-        withContext(AndroidDispatchers.workerThread) {
+        withContext(Dispatchers.Default) {
           SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
         }
       val baseDevice = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice(avdInfo.deviceName, avdInfo.deviceManufacturer)
 
       if (baseDevice == null) {
-        withContext(AndroidDispatchers.uiThread) {
+        withContext(Dispatchers.EDT) {
           Messages.showErrorDialog(
             parent,
             "The hardware profile for this device is no longer present. Please create a new device.",
@@ -116,7 +117,7 @@ internal class EditVirtualDeviceDialog(
 
       val systemImageFlow = ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler())
       val dialog = EditVirtualDeviceDialog(avdInfo, baseDevice, mode, systemImageFlow, skins)
-      return withContext(AndroidDispatchers.uiThread) {
+      return withContext(Dispatchers.EDT) {
         val wizard = with(dialog) { ComposeWizard(project, "Edit Device", parent, minimumSize = DEVICE_DIALOG_MIN_SIZE) { Page() } }
         wizard.showAndGet()
       }

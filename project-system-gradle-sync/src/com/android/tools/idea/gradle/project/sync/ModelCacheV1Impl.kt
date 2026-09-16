@@ -152,6 +152,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       customSourceDirectories = emptyList(),
       baselineProfileDirectories = emptyList(),
       keepRulesDirectoriesField = emptyList(),
+      aarKeepRulesDirectoriesField = emptyList(),
     )
   }
 

@@ -17,11 +17,18 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
+import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.core.DisplayView
+import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.ThreadingAssertions
 import java.awt.Component
 import java.awt.Container
 import javax.swing.JComponent
@@ -81,4 +88,24 @@ private fun Container.allChildren(): List<Component> {
       listOf(child)
     }
   }
+}
+
+/** Creates a new [TabComponents] object for the provided [deviceId] */
+fun createTabComponents(project: Project, deviceId: DeviceId): TabComponents {
+  ThreadingAssertions.assertEventDispatchThread()
+  val selectedTabContent = RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
+
+  val streamingDevicePanel = checkNotNull(selectedTabContent?.component)
+
+  val selectedTabDataProvider = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, streamingDevicePanel)
+
+  val streamingContentPanel = STREAMING_CONTENT_PANEL_KEY.getData(selectedTabDataProvider)
+
+  checkNotNull(streamingContentPanel)
+
+  return TabComponents(
+    disposable = selectedTabContent,
+    tabContentPanel = streamingContentPanel,
+    displayOwner = streamingDevicePanel as DisplayOwner,
+  )
 }

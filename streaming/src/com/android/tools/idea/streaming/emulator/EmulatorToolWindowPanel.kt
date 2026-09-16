@@ -21,7 +21,9 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.AbstractDevicePanel
@@ -32,6 +34,7 @@ import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.core.PanelState
+import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.core.computeBestLayout
@@ -49,6 +52,7 @@ import com.android.tools.idea.ui.screenrecording.ScreenRecordingParameters
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ActivityTracker
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.components.PersistentStateComponent
@@ -60,7 +64,9 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
@@ -87,6 +93,8 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
   private val multiDisplayStateUpdater = Runnable {
     multiDisplayStateStorage.setMultiDisplayState(emulatorId.avdId, displayConfigurator.getMultiDisplayState())
   }
+
+  private var subscribedToEmulatorNotifications = false
 
   private val emulatorId
     get() = emulator.emulatorId
@@ -274,6 +282,18 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
       ScreenRecordingParameters(emulatorId.serialNumber, emulatorId.avdName, emulator.emulatorConfig.api, emulator, emulatorId.avdFolder)
     } else {
       null
+    }
+  }
+
+  override fun addNotify() {
+    super.addNotify()
+
+    if (!subscribedToEmulatorNotifications) {
+      ProcessHandleProvider.getProcessHandle(emulatorId.pid)?.let { processHandle ->
+        val emulatorNotificationPresenter = EmulatorNotificationPresenter()
+        EmulatorNotificationDispatcher.getInstance().addListener(processHandle, emulatorNotificationPresenter)
+        subscribedToEmulatorNotifications = true
+      }
     }
   }
 
@@ -475,6 +495,45 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
         return project.getService(MultiDisplayStateStorage::class.java)
       }
     }
+  }
+
+  private inner class EmulatorNotificationPresenter : EmulatorNotificationDispatcher.Listener, Disposable {
+
+    init {
+      Disposer.register(this@EmulatorToolWindowPanel, this)
+    }
+
+    override fun notificationMessageLogged(severity: EmulatorLogListener.Severity, message: String) {
+      if (isShowing) {
+        showNotificationInPanel(severity, message)
+      } else {
+        showToolWindowNotification(severity, message)
+      }
+    }
+
+    private fun showNotificationInPanel(severity: EmulatorLogListener.Severity, message: String) {
+      val status =
+        when (severity) {
+          EmulatorLogListener.Severity.WARNING -> EditorNotificationPanel.Status.Warning
+          EmulatorLogListener.Severity.ERROR,
+          EmulatorLogListener.Severity.FATAL -> EditorNotificationPanel.Status.Error
+          else -> return
+        }
+      UIUtil.invokeLaterIfNeeded { notificationHolderPanel.showFadeOutNotification(message, status) }
+    }
+
+    private fun showToolWindowNotification(severity: EmulatorLogListener.Severity, message: String) {
+      val notificationType =
+        when (severity) {
+          EmulatorLogListener.Severity.WARNING -> NotificationType.WARNING
+          EmulatorLogListener.Severity.ERROR,
+          EmulatorLogListener.Severity.FATAL -> NotificationType.ERROR
+          else -> return
+        }
+      RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(title, message, notificationType).notify(project)
+    }
+
+    override fun dispose() {}
   }
 }
 

@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
+import com.android.tools.idea.wear.preview.withTilePreviewDependency
 import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,7 +30,9 @@ import org.junit.Test
 class WearTilePreviewNotSupportedInUnitTestFilesTest {
   @get:Rule
   val projectRule =
-    WearTileProjectRule(AndroidProjectRule.withAndroidModels(AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())))
+    WearTileProjectRule(
+      AndroidProjectRule.withAndroidModels(AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder().withTilePreviewDependency()))
+    )
 
   private val fixture
     get() = projectRule.fixture

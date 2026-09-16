@@ -66,7 +66,6 @@ import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
-import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
@@ -78,7 +77,6 @@ import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
-import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
@@ -93,6 +91,7 @@ import com.android.tools.idea.preview.representation.CommonPreviewStateManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
+import com.android.tools.idea.preview.util.PreviewFilePointer
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.RenderUtils
 import com.android.tools.idea.rendering.isErrorResult
@@ -135,7 +134,6 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.AncestorListenerAdapter
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.UIUtil
@@ -186,6 +184,7 @@ private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityMo
  * @param previewFlowManager the [PreviewFlowManager] that manages flows of [ComposePreviewElementInstance]
  * @param previewElement the [ComposePreviewElementInstance] associated to this model
  * @param fastPreviewSurface the [FastPreviewSurface] of the preview
+ * @param interactiveNavigationHandler the [InteractiveNavigationHandler] used to enable back navigation in Interactive mode
  */
 private fun createPreviewElementDataProvider(
   project: Project,
@@ -193,6 +192,7 @@ private fun createPreviewElementDataProvider(
   previewFlowManager: PreviewFlowManager<out ComposePreviewElementInstance<*>>,
   previewElement: PsiComposePreviewElementInstance,
   fastPreviewSurface: FastPreviewSurface,
+  interactiveNavigationHandler: InteractiveNavigationHandler,
 ) =
   object :
     NlDataProvider(
@@ -207,6 +207,7 @@ private fun createPreviewElementDataProvider(
       PREVIEW_VIEW_MODEL_STATUS,
       FastPreviewSurface.KEY,
       PreviewInvalidationManager.KEY,
+      InteractiveNavigationHandler.KEY,
     ) {
     override fun getData(dataId: String): Any? =
       when (dataId) {
@@ -221,6 +222,7 @@ private fun createPreviewElementDataProvider(
         PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
         FastPreviewSurface.KEY.name -> fastPreviewSurface
         PreviewInvalidationManager.KEY.name -> composePreviewManager
+        InteractiveNavigationHandler.KEY.name -> interactiveNavigationHandler
         else -> null
       }
   }
@@ -273,9 +275,9 @@ fun configureLayoutlibSceneManager(
       config.quality = quality
       config.customContentHierarchyParser = if (runVisualAnalysis) accessibilityBasedHierarchyParser else null
       config.layoutScannerConfig.isLayoutScannerEnabled = runVisualAnalysis
-      // During configure of SceneManager, always clear the override render size in SceneManagers,
-      // as they are reused and may have old resize data.
-      config.clearOverrideRenderSize = true
+      // During configure of SceneManager, always force re-inflation. This ensures that the
+      // RenderTask is recreated, clearing any old resize data or state.
+      config.needsInflation.set(true)
       config.disableAnimation = disableAnimation
       config.useLoadViewFallbacks = useLoadViewFallbacks
     }
@@ -307,10 +309,18 @@ class ComposePreviewRepresentation(
   private val log = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val isDisposed = AtomicBoolean(false)
 
-  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val psiFilePointer =
+    PreviewFilePointer(psiFile) {
+      // If file reference changes, make sure to invalidate and refresh again
+      // as the last refresh might have failed midway due to this change.
+      invalidate()
+      requestRefresh()
+    }
+
   private val project
     get() = psiFilePointer.project
 
+  private val interactiveNavigationHandler = InteractiveNavigationHandler()
   override val caretNavigationHandler = CaretNavigationHandlerImpl()
 
   private val previewBuildListenersManager =
@@ -351,7 +361,7 @@ class ComposePreviewRepresentation(
   /** Gives access to the rendered preview elements. For testing only. Users of this class should not use this method. */
   @TestOnly fun renderedPreviewElementsInstancesFlowForTest() = composePreviewFlowManager.renderedPreviewElementsFlow
 
-  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
+  private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFilePointer)
 
   /**
    * This field will be false until the preview has rendered at least once. If the preview has not rendered once we do not have enough
@@ -502,6 +512,7 @@ class ComposePreviewRepresentation(
           composePreviewFlowManager,
           previewElement,
           this@ComposePreviewRepresentation,
+          interactiveNavigationHandler,
         )
 
       override fun toXml(previewElement: PsiComposePreviewElementInstance) =
@@ -695,9 +706,7 @@ class ComposePreviewRepresentation(
   private val allowQualityChangeIfInactive = AtomicBoolean(false)
   private val qualityPolicy = DefaultRenderQualityPolicy { surface.zoomController.screenScalingFactor }
   private val qualityManager: RenderQualityManager =
-    if (StudioFlags.PREVIEW_RENDER_QUALITY.get())
-      DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) }
-    else SimpleRenderQualityManager { getDefaultPreviewQuality() }
+    DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) }
 
   private val myPsiCodeFileOutOfDateStatusReporter = PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
@@ -973,7 +982,7 @@ class ComposePreviewRepresentation(
     composeWorkBench.hasRendered = true
     surface.sceneManagers.forEach {
       ComposeAnimationToolbarUpdater.update(this, it) { AnimationToolingUsageTracker.getInstance(surface) }
-      InteractivePreviewBackNavigationUpdater.update(this, it)
+      InteractivePreviewBackNavigationUpdater.update(this, it, interactiveNavigationHandler)
     }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,
@@ -1004,6 +1013,7 @@ class ComposePreviewRepresentation(
    * in Focus mode.
    */
   private fun updateResizePanel() {
+    if (isDisposed.get()) return
     activeResizePanelInFocusMode?.let { panel ->
       val focusedSceneManager = surface.sceneManagers.singleOrNull()
       if (focusedSceneManager != null) {
@@ -1057,7 +1067,7 @@ class ComposePreviewRepresentation(
         } else {
           element
         }
-      } ?: return
+      } ?: throw Throwable("null or invalid PsiFile reference found when attempting to refresh previews")
 
     // Restore
     stateManager.restoreState()
@@ -1118,11 +1128,7 @@ class ComposePreviewRepresentation(
       completableDeferred?.completeAlreadyDisposed()
       return
     }
-    // Make sure not to allow quality change refreshes when the flag is disabled
-    if (type == ComposePreviewRefreshType.QUALITY && !StudioFlags.PREVIEW_RENDER_QUALITY.get()) {
-      completableDeferred?.completeExceptionally(IllegalStateException("Not enabled"))
-      return
-    }
+
     // Make sure not to request refreshes when deactivated, unless it is an allowed quality refresh,
     // which is expected to happen to decrease the quality of the previews when deactivating.
     if (!lifecycleManager.isActive() && !(type == ComposePreviewRefreshType.QUALITY && allowQualityChangeIfInactive.get())) {
@@ -1288,9 +1294,9 @@ class ComposePreviewRepresentation(
             // the job that is returned as the invokeOnComplete is run concurrently with the next
             // refresh request and there can be race conditions.
             if (invalidateIfCancelled) invalidate()
-            // Make sure to propagate cancellations
-            throw t
           } else requestLogger.warn("Request failed", t)
+          // Rethrow any exception to the refreshJob
+          throw t
         } finally {
           // Force updating toolbar icons after refresh
           ActivityTracker.getInstance().inc()
@@ -1304,7 +1310,7 @@ class ComposePreviewRepresentation(
         composeWorkBench.onRefreshCancelledByTheUser()
       } else {
         if (it != null) invalidate()
-        composeWorkBench.onRefreshCompleted()
+        composeWorkBench.onRefreshCompleted(it)
       }
 
       if (it == null && previewModeManager.mode.value is PreviewMode.UiCheck) {

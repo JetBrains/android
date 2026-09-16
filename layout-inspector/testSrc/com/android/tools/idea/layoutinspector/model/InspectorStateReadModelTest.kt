@@ -39,12 +39,12 @@ class InspectorStateReadModelTest {
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE2))).isFalse()
 
     model.stateReadsModel.observeNode(model.node(COMPOSE2))
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2)))
+    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2.anchorHash)))
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE8))).isFalse()
 
     model.stateReadsModel.observeNode(model.node(COMPOSE8))
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2, compose8)))
+    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2.anchorHash, compose8.anchorHash)))
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE8))).isTrue()
   }
@@ -60,16 +60,18 @@ class InspectorStateReadModelTest {
     model.stateReadsModel.observeNode(compose3)
     model.stateReadsModel.observeNode(compose4)
     model.stateReadsModel.observeNode(compose5)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2, compose3, compose4, compose5)))
+    assertThat(model.stateReadsModel.observedForStateReads.value)
+      .isEqualTo(Some(setOf(compose2.anchorHash, compose3.anchorHash, compose4.anchorHash, compose5.anchorHash)))
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE2))).isTrue()
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE4))).isTrue()
     assertThat(model.stateReadsModel.isNodeObserved(model.node(COMPOSE5))).isTrue()
 
     model.stateReadsModel.stopObservingNode(compose4)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2, compose3, compose5)))
+    assertThat(model.stateReadsModel.observedForStateReads.value)
+      .isEqualTo(Some(setOf(compose2.anchorHash, compose3.anchorHash, compose5.anchorHash)))
     assertThat(model.stateReadsModel.isNodeObserved(compose4)).isFalse()
     model.stateReadsModel.stopObservingNode(compose5)
-    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2, compose3)))
+    assertThat(model.stateReadsModel.observedForStateReads.value).isEqualTo(Some(setOf(compose2.anchorHash, compose3.anchorHash)))
     assertThat(model.stateReadsModel.isNodeObserved(compose5)).isFalse()
   }
 

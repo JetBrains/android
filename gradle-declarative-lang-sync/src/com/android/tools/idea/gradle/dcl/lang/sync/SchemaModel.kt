@@ -177,9 +177,9 @@ class BuildDeclarativeSchema(
 }
 
 // Idea cannot serialize lazy attributes so we pass schemas in simple wrappers
-data class ProjectSchemas(val projects: Set<BuildDeclarativeSchema>) : Serializable
+data class ProjectSchemas(val projectsByBuildPath: Map<String, Set<BuildDeclarativeSchema>>) : Serializable
 
-data class SettingsSchemas(val settings: Set<BuildDeclarativeSchema>) : Serializable
+data class SettingsSchemas(val settingsByBuildPath: Map<String, Set<BuildDeclarativeSchema>>) : Serializable
 
 // iterates over tree structure
 internal fun getEntries(

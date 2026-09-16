@@ -19,6 +19,7 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTI
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_TURN_OFF_HYPER_V;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.DOWNLOAD_EMULATOR;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.ENABLE_WHPX;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_AEHD;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_KVM;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
@@ -27,9 +28,11 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_EMULATOR;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_PLATFORM_TOOLS;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_SYSTEM_IMAGES;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_WHPX;
 import static com.android.tools.idea.avdmanager.EmulatorAccelerationCheck.MINIMUM_EMULATOR_VERSION;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.system.OS;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +49,8 @@ public enum AccelerationErrorCode {
   NO_CPU_VTX_SUPPORT(4, "Your CPU does not support VT-x.", NONE, SOLUTION_ACCELERATION_NOT_SUPPORTED),
   NO_CPU_NX_SUPPORT(5, "Your CPU does not support NX.", NONE, SOLUTION_ACCELERATION_NOT_SUPPORTED),
   ACCELERATION_NOT_INSTALLED_LINUX(6, "KVM is not installed.", INSTALL_KVM, "Enable Linux KVM for better emulation performance."),
-  ACCELERATION_NOT_INSTALLED_WIN(6, "Android Emulator hypervisor driver is not installed.", INSTALL_AEHD, "Install Android Emulator hypervisor driver for better emulation performance."),
+  ACCELERATION_NOT_INSTALLED_WIN_AEHD(6, "Android Emulator hypervisor driver is not installed.", INSTALL_AEHD, "Install Android Emulator hypervisor driver for better emulation performance."),
+  ACCELERATION_NOT_INSTALLED_WIN_WHPX(6, "Windows Hypervisor Platform is not enabled.", ENABLE_WHPX, "Enable Windows Hypervisor Platform."),
   ACCELERATION_OBSOLETE(7, "Virtual machine acceleration driver is out-of-date.", REINSTALL_AEHD, "Reinstall Android Emulator hypervisor driver."),
   DEV_NOT_FOUND_LINUX(8, "/dev/kvm is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that your Linux distro has working KVM module."),
   DEV_NOT_FOUND_WIN(8, "Android Emulator hypervisor driver device is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that Android Emulator hypervisor driver is installed properly. Try disabling 3rd party security software if the problem still occurs."),
@@ -61,6 +65,7 @@ public enum AccelerationErrorCode {
   DEV_OBSOLETE_LINUX(14, "KVM module is too old.", NONE, "Upgrade your kernel."),
   DEV_OBSOLETE_WIN(14, "Virtual machine acceleration driver out-of-date.", REINSTALL_AEHD, "Reinstall Android Emulator hypervisor driver."),
   HYPER_V_ENABLED(15, "Android Emulator is incompatible with Hyper-V.", TURNOFF_HYPER_V, SOLUTION_TURN_OFF_HYPER_V),
+  WHPX_RECOMMENDED(16, "Update to Windows Hypervisor Platform by Jan 1, 2027 to continue using the emulator", UPDATE_WHPX, "Enable Windows Hypervisor Platform."),
   EMULATOR_ERROR(138, "Accelerator Detection Problem.", NONE, "Please file a bug against Android Studio."),
   UNKNOWN_ERROR(-1, "Unknown Error", NONE, "Please file a bug against Android Studio."),
   NO_EMULATOR_INSTALLED(-2, "No emulator installed", DOWNLOAD_EMULATOR, "Please download the emulator."),
@@ -112,7 +117,7 @@ public enum AccelerationErrorCode {
       case   4 -> NO_CPU_VTX_SUPPORT;
       case   5 -> NO_CPU_NX_SUPPORT;
       case   6 -> OS.CURRENT == OS.Linux ? ACCELERATION_NOT_INSTALLED_LINUX :
-                  OS.CURRENT == OS.Windows ? ACCELERATION_NOT_INSTALLED_WIN :
+                  OS.CURRENT == OS.Windows ? ((StudioFlags.EMULATOR_AEHD_TO_WHPX_CONVERSION.get()) ? ACCELERATION_NOT_INSTALLED_WIN_WHPX : ACCELERATION_NOT_INSTALLED_WIN_AEHD) :
                   UNKNOWN_ERROR;
       case   8 -> OS.CURRENT == OS.Linux ? DEV_NOT_FOUND_LINUX :
                   OS.CURRENT == OS.Windows ? DEV_NOT_FOUND_WIN :

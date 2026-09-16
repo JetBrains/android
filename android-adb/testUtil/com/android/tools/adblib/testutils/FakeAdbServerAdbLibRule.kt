@@ -35,7 +35,13 @@ class FakeAdbServerAdbLibRule(configure: (FakeAdbServer.Builder.() -> Unit)? = n
     super.before()
     // Instantiate `AdbLibApplicationService`, which initializes adblib's application-level
     // components such as `AdbSession` and `ChannelProvider`.
+    AdbLibApplicationService.reinitializeForTests()
     AdbLibApplicationService.instance
+  }
+
+  override fun after() {
+    super.after()
+    AdbLibApplicationService.disposeForTests()
   }
 
   override fun apply(base: Statement, description: Description): Statement {

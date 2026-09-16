@@ -57,13 +57,13 @@ import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewService
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.testing.ui.createFakeToolWindow
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
-import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewDisplaySettings.Background
 import com.google.common.truth.Truth.assertThat
@@ -92,7 +92,6 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
@@ -172,13 +171,11 @@ class ComposePreviewRepresentationTest {
     val testProjectSystem = TestProjectSystem(project).apply { usesCompose = true }
     runInEdtAndWait { testProjectSystem.useInTests() }
     logger.info("setup complete")
-    project.replaceService(ToolWindowManager::class.java, TestToolWindowManager(project), fixture.testRootDisposable)
-    ToolWindowManager.getInstance(project).registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
+    createFakeToolWindow(project, fixture.testRootDisposable, ProblemsView.ID).apply { isAvailable = false }
   }
 
   @After
   fun tearDown() {
-    StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.clearOverride()
     StudioFlags.COMPOSE_PREVIEW_RESIZING.clearOverride()
     composePreviewEssentialsModeEnabled = false
   }
@@ -253,11 +250,13 @@ class ComposePreviewRepresentationTest {
     val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
     val problemsView = ProblemsView.getToolWindow(project)!!
 
-    val contentManager = runBlocking(Dispatchers.EDT) { problemsView.contentManager }
-    withContext(Dispatchers.EDT) {
-      ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
-      assertEquals(1, contentManager.contents.size)
-    }
+    val contentManager =
+      withContext(Dispatchers.EDT) {
+        val contentManager = problemsView.contentManager
+        ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
+        assertEquals(1, contentManager.contents.size)
+        contentManager
+      }
 
     // Start UI Check mode
     setModeAndWaitForRefresh(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false)))
@@ -875,8 +874,6 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testWearUiCheckMode() {
-    StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.overrideForTest(true, projectRule.fixture.testRootDisposable)
-
     val testPsiFile = runWriteActionAndWait {
       fixture.addFileToProjectAndInvalidate(
         "Test.kt",

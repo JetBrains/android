@@ -107,7 +107,7 @@ class InsightBottomPanel(
     leftPanel.add(fixInsightButton)
     add(leftPanel, BorderLayout.CENTER)
 
-    add(InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback), BorderLayout.EAST)
+    add(InsightToolbarPanel(controller, currentInsightFlow, parentDisposable, controller::submitInsightFeedback), BorderLayout.EAST)
 
     border = SideBorder(JBColor.border(), SideBorder.TOP)
   }

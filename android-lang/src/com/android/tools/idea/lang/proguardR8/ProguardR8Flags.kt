@@ -66,7 +66,8 @@ private val COMMON_FLAGS =
     "optimizations",
   )
 
-val R8_FLAGS = COMMON_FLAGS + setOf("alwaysinline", "checkdiscard", "identifiernamestring", "shrinkunusedprotofields")
+val R8_FLAGS =
+  COMMON_FLAGS + setOf("alwaysinline", "checkdiscard", "identifiernamestring", "shrinkunusedprotofields", "processkotlinnullchecks")
 
 val PROGUARD_FLAGS =
   COMMON_FLAGS +

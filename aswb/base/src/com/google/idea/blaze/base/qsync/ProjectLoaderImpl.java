@@ -53,19 +53,21 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.DependenciesProjectProtoUpdater;
 import com.google.idea.blaze.qsync.ProjectBuilder;
 import com.google.idea.blaze.qsync.ProjectRefresher;
+import com.google.idea.blaze.qsync.ProjectStructureReader;
 import com.google.idea.blaze.qsync.VcsStateDiffer;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.java.AddProjectKotlinCompilerFlags;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.java.AddProjectKotlinCompilerFlags;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.ParallelPackageReader;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
+import com.google.idea.blaze.qsync.project.FileExtensions;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectDirectoryConfigurator;
 import com.google.idea.blaze.qsync.project.ProjectPath;
@@ -128,7 +130,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
       ProjectQuerier projectQuerier,
       QuerySyncSourceToTargetMap sourceToTargetMap,
       ImmutableSet<String> handledRuleKinds,
-      BuildGraphData.ProtoRules protoRules) {}
+      BuildGraphData.ProtoRules protoRules,
+      ProjectStructureReader projectStructureReader,
+      boolean readProjectStructureFromDirectory) {}
 
   public ProjectLoaderImpl(Project project) {
     this(
@@ -180,7 +184,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
                 .addAll(ProjectProtoTransformProvider.getAll(result.latestProjectDef()))
                 .build(),
             result.handledRuleKinds(),
-            result.protoRules());
+            result.protoRules(),
+            result.projectStructureReader(),
+            result.readProjectStructureFromDirectory());
 
     return querySyncProject;
   }
@@ -223,7 +229,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
     BlazeImportSettings importSettings =
         Preconditions.checkNotNull(
             BlazeImportSettingsManager.getInstance(project).getImportSettings());
-    final var querySyncUserPreferences = QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences();
+    final var querySyncUserPreferences =
+        QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences();
     final var projectToLoad =
         loadProjectDefinition(BlazeImportSettingsManager.getInstance(project).getProjectViewSet());
     final var workspaceRoot = projectToLoad.workspaceRoot();
@@ -292,16 +299,22 @@ public class ProjectLoaderImpl implements ProjectLoader {
     AppInspectorTracker appInspectorTracker =
         new AppInspectorTrackerImpl(appInspectorBuilder, appInspectorArtifactTracker);
     DependencyTracker dependencyTracker =
-        new DependencyTrackerImpl(snapshotHolder, dependencyBuilder, artifactTracker, querySyncUserPreferences);
+        new DependencyTrackerImpl(
+            snapshotHolder, dependencyBuilder, artifactTracker, querySyncUserPreferences);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
             vcsHandler.map(it -> (VcsStateDiffer) it::diffVcsState).orElse(VcsStateDiffer.NONE),
             workspaceRoot.path(),
             enableExperimentalQuery.getValue(),
             snapshotHolder::getCurrent);
+    ProjectStructureReader projectStructureReader = ProjectStructureReader.Companion.create(new FileExtensions());
+    boolean readProjectStructureFromDirectory = querySyncUserPreferences.getLoadProjectStructureFromDirectoryTraversal();
+
     ProjectBuilder snapshotBuilder =
         new ProjectBuilder(
-            createPackageReader(), createParallelPackageReader(), workspaceRoot.path());
+            createPackageReader(),
+            createParallelPackageReader(),
+            workspaceRoot.path());
     QueryRunner queryRunner = createQueryRunner(buildSystem);
     ProjectQuerier projectQuerier =
         createProjectQuerier(
@@ -333,7 +346,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
         projectQuerier,
         sourceToTargetMap,
         handledRules,
-        buildSystem.getProtoRules());
+        buildSystem.getProtoRules(),
+        projectStructureReader,
+        readProjectStructureFromDirectory);
   }
 
   private static Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>

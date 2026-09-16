@@ -784,6 +784,8 @@ MODULE: kotlinMultiPlatform.module2
                 ./module2/src/main/baselineProfiles
             KeepRulesDirectories:
                 ./module2/src/main/keepRules
+            AarKeepRulesDirectories:
+                ./module2/src/main/aarKeepRules
         Active:
             main
                 Manifest:
@@ -810,6 +812,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./module2/src/main/keepRules
+                AarKeepRulesDirectories:
+                    ./module2/src/main/aarKeepRules
             debug
                 Manifest:
                     ./module2/src/androidDebug/AndroidManifest.xml
@@ -835,6 +839,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./module2/src/debug/keepRules
+                AarKeepRulesDirectories:
+                    ./module2/src/debug/aarKeepRules
             debug_KotlinMPP
                 Manifest:
                     ./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
@@ -868,6 +874,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./module2/src/main/keepRules
+                AarKeepRulesDirectories:
+                    ./module2/src/main/aarKeepRules
             debug
                 Manifest:
                     ./module2/src/androidDebug/AndroidManifest.xml
@@ -893,6 +901,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./module2/src/debug/keepRules
+                AarKeepRulesDirectories:
+                    ./module2/src/debug/aarKeepRules
             debug_KotlinMPP
                 Manifest:
                     ./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
@@ -925,6 +935,8 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./module2/src/release/keepRules
+                AarKeepRulesDirectories:
+                    ./module2/src/release/aarKeepRules
         HostTest:
             UnitTest
                 test
@@ -952,6 +964,8 @@ MODULE: kotlinMultiPlatform.module2
                         ./module2/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./module2/src/test/keepRules
+                    AarKeepRulesDirectories:
+                        ./module2/src/test/aarKeepRules
                 testDebug
                     Manifest:
                         ./module2/src/androidUnitTestDebug/AndroidManifest.xml
@@ -977,6 +991,8 @@ MODULE: kotlinMultiPlatform.module2
                         ./module2/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./module2/src/testDebug/keepRules
+                    AarKeepRulesDirectories:
+                        ./module2/src/testDebug/aarKeepRules
                 debug_KotlinMPP
                     Manifest:
                         ./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
@@ -1011,6 +1027,8 @@ MODULE: kotlinMultiPlatform.module2
                         ./module2/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./module2/src/androidTest/keepRules
+                    AarKeepRulesDirectories:
+                        ./module2/src/androidTest/aarKeepRules
                 androidTestDebug
                     Manifest:
                         ./module2/src/androidInstrumentedTestDebug/AndroidManifest.xml
@@ -1036,6 +1054,8 @@ MODULE: kotlinMultiPlatform.module2
                         ./module2/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./module2/src/androidTestDebug/keepRules
+                    AarKeepRulesDirectories:
+                        ./module2/src/androidTestDebug/aarKeepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

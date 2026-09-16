@@ -46,7 +46,7 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.jps.common" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.scripting.compiler.impl" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.libraries.gradle" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.fe10" scope="PROVIDED" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
@@ -153,6 +153,7 @@
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.analysis" />
     <orderEntry type="module" module-name="intellij.kotlin.base.externalSystem" />
     <orderEntry type="module" module-name="intellij.kotlin.base.facet" />
     <orderEntry type="module" module-name="intellij.kotlin.base.projectModel" />
@@ -179,7 +180,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.scripting.shared" />
     <orderEntry type="module" module-name="intellij.platform.util.classLoader" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
     <orderEntry type="module" module-name="intellij.gradle.java.groovy" />

@@ -22,7 +22,6 @@ import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.syntaxErrorFlow
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.outOfDateKtFiles
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.BackgroundManager
 import com.android.tools.idea.preview.PsiPreviewElement
 import com.android.tools.idea.preview.PsiPreviewElementInstance
@@ -255,21 +254,19 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
       // Flow handling file changes and syntax error changes.
       launch(Dispatchers.Default) {
         val resourceChangedFlow =
-          if (StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE.get()) {
-            readAction { psiFilePointer.element?.module?.findAndroidModule() }
-              ?.let { module ->
-                resourceChangedFlow(module, disposable, log, null)
-                  .filter { reasons ->
-                    reasons.contains(ResourceNotificationManager.Reason.EDIT) ||
-                      reasons.contains(ResourceNotificationManager.Reason.IMAGE_RESOURCE_CHANGED)
-                  }
-                  .onEach {
-                    // Invalidate the preview to re-inflate the layouts when resources have
-                    // changed. This ensures the new values are correctly loaded.
-                    invalidate()
-                  }
-              } ?: emptyFlow()
-          } else emptyFlow()
+          readAction { psiFilePointer.element?.module?.findAndroidModule() }
+            ?.let { module ->
+              resourceChangedFlow(module, disposable, log, null)
+                .filter { reasons ->
+                  reasons.contains(ResourceNotificationManager.Reason.EDIT) ||
+                    reasons.contains(ResourceNotificationManager.Reason.IMAGE_RESOURCE_CHANGED)
+                }
+                .onEach {
+                  // Invalidate the preview to re-inflate the layouts when resources have
+                  // changed. This ensures the new values are correctly loaded.
+                  invalidate()
+                }
+            } ?: emptyFlow()
         merge(
             psiFileChangeFlow(project, this@launch)
               // Previews can only be affected by changes to Kotlin

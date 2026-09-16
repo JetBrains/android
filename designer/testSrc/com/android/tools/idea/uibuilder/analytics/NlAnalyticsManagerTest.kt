@@ -31,6 +31,8 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,11 +53,13 @@ class NlAnalyticsManagerTest {
 
   private lateinit var surface: NlDesignSurface
 
+  private val testScope = TestScope()
+
   @Before
   fun setUp() {
     surface = mock(NlDesignSurface::class.java)
     whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
-    analyticsManager = NlAnalyticsManager(surface)
+    analyticsManager = NlAnalyticsManager(surface, testScope)
   }
 
   @Test
@@ -101,168 +105,177 @@ class NlAnalyticsManagerTest {
   }
 
   @Test
-  fun testEditorFileTypeKotlin() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
+  fun testEditorFileTypeKotlin() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
 
-    val kotlinFile =
-      fixture.addFileToProject(
-        "Test.kt",
-        // language=kotlin
-        """
-        fun someFun() {
-        }
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(kotlinFile.virtualFile, project)
+      val kotlinFile =
+        fixture.addFileToProject(
+          "Test.kt",
+          // language=kotlin
+          """
+          fun someFun() {
+          }
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(kotlinFile.virtualFile, project)
 
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.KOTLIN)
-  }
-
-  @Test
-  fun testEditorFileTypeKotlinCompose() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
-
-    (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    val kotlinFile =
-      fixture.addFileToProject(
-        "Test.kt",
-        // language=kotlin
-        """
-        fun someFun() {
-        }
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(kotlinFile.virtualFile, project)
-
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.KOTLIN_COMPOSE)
-  }
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.KOTLIN)
+    }
 
   @Test
-  fun testEditorFileTypeJava() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
+  fun testEditorFileTypeKotlinCompose() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
 
-    val javaFile =
-      fixture.addFileToProject(
-        "Test.java",
-        // language=java
-        """
-        class Test {
-        }
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(javaFile.virtualFile, project)
+      (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+      val kotlinFile =
+        fixture.addFileToProject(
+          "Test.kt",
+          // language=kotlin
+          """
+          fun someFun() {
+          }
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(kotlinFile.virtualFile, project)
 
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.JAVA)
-  }
-
-  @Test
-  fun testEditorFileTypeLayout() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
-
-    val layoutFile =
-      fixture.addFileToProject(
-        "res/layout/layout.xml",
-        // language=XML
-        """
-        <LinearLayout />
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(layoutFile.virtualFile, project)
-
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.XML_RES_LAYOUT)
-  }
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.KOTLIN_COMPOSE)
+    }
 
   @Test
-  fun testEditorFileTypeDrawable() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
+  fun testEditorFileTypeJava() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
 
-    val drawableFile =
-      fixture.addFileToProject(
-        "res/drawable/drawable.xml",
-        // language=XML
-        """
-        <vector />
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(drawableFile.virtualFile, project)
+      val javaFile =
+        fixture.addFileToProject(
+          "Test.java",
+          // language=java
+          """
+          class Test {
+          }
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(javaFile.virtualFile, project)
 
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.XML_RES_DRAWABLE)
-  }
-
-  @Test
-  fun testEditorFileTypeDrawableWithExtraIdentifier() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
-
-    val drawableFile =
-      fixture.addFileToProject(
-        "res/drawable-hd/drawable.xml",
-        // language=XML
-        """
-        <vector />
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(drawableFile.virtualFile, project)
-
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.XML_RES_DRAWABLE)
-  }
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.JAVA)
+    }
 
   @Test
-  fun testEditorFileTypeAnim() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
+  fun testEditorFileTypeLayout() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
 
-    val animFile =
-      fixture.addFileToProject(
-        "res/anim/animated_vector.xml",
-        // language=XML
-        """
-        <animated-vector />
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(animFile.virtualFile, project)
+      val layoutFile =
+        fixture.addFileToProject(
+          "res/layout/layout.xml",
+          // language=XML
+          """
+          <LinearLayout />
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(layoutFile.virtualFile, project)
 
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.XML_RES_ANIM)
-  }
-
-  @Test
-  fun testEditorFileTypeFont() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
-
-    val fontFile =
-      fixture.addFileToProject(
-        "res/font/some_font.xml",
-        // language=XML
-        """
-        <font-family />
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(fontFile.virtualFile, project)
-
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.XML_RES_FONT)
-  }
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.XML_RES_LAYOUT)
+    }
 
   @Test
-  fun testEditorFileTypeRaw() {
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.UNKNOWN)
+  fun testEditorFileTypeDrawable() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
 
-    val rawFile =
-      fixture.addFileToProject(
-        "res/raw/some_font.xml",
-        // language=XML
-        """
-        <item />
-        """
-          .trimIndent(),
-      )
-    analyticsManager.setEditorFileTypeWithoutTracking(rawFile.virtualFile, project)
+      val drawableFile =
+        fixture.addFileToProject(
+          "res/drawable/drawable.xml",
+          // language=XML
+          """
+          <vector />
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(drawableFile.virtualFile, project)
 
-    assertThat(analyticsManager.editorFileType).isEqualTo(EditorFileType.XML_RES_RAW)
-  }
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.XML_RES_DRAWABLE)
+    }
+
+  @Test
+  fun testEditorFileTypeDrawableWithExtraIdentifier() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
+
+      val drawableFile =
+        fixture.addFileToProject(
+          "res/drawable-hd/drawable.xml",
+          // language=XML
+          """
+          <vector />
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(drawableFile.virtualFile, project)
+
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.XML_RES_DRAWABLE)
+    }
+
+  @Test
+  fun testEditorFileTypeAnim() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
+
+      val animFile =
+        fixture.addFileToProject(
+          "res/anim/animated_vector.xml",
+          // language=XML
+          """
+          <animated-vector />
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(animFile.virtualFile, project)
+
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.XML_RES_ANIM)
+    }
+
+  @Test
+  fun testEditorFileTypeFont() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
+
+      val fontFile =
+        fixture.addFileToProject(
+          "res/font/some_font.xml",
+          // language=XML
+          """
+          <font-family />
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(fontFile.virtualFile, project)
+
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.XML_RES_FONT)
+    }
+
+  @Test
+  fun testEditorFileTypeRaw() =
+    testScope.runTest {
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.UNKNOWN)
+
+      val rawFile =
+        fixture.addFileToProject(
+          "res/raw/some_font.xml",
+          // language=XML
+          """
+          <item />
+          """
+            .trimIndent(),
+        )
+      analyticsManager.setEditorFileTypeWithoutTracking(rawFile.virtualFile, project)
+
+      assertThat(analyticsManager.editorFileType.await()).isEqualTo(EditorFileType.XML_RES_RAW)
+    }
 }

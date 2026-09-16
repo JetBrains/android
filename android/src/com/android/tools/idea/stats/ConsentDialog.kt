@@ -130,9 +130,23 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
 
   companion object {
     const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
+    const val DISABLE_DIALOG_PROPERTY = "disable.android.analytics.consent.dialog"
 
     val isConsentDialogEnabledInTests
       get() = Boolean.getBoolean(ENABLE_DIALOG_PROPERTY)
+
+    val isConsentDialogDisabled
+      get() = Boolean.getBoolean(DISABLE_DIALOG_PROPERTY)
+
+    val shouldShowConsentDialog: kotlin.Boolean
+      get() {
+        if (isConsentDialogDisabled) {
+          return false
+        }
+        val application = ApplicationManager.getApplication()
+        val isTestOrHeadless = GuiTestingService.isInTestingMode() || application.isHeadlessEnvironment
+        return !isTestOrHeadless || isConsentDialogEnabledInTests
+      }
 
     // If the user hasn't opted in, we will ask IJ to check if the user has
     // provided a decision on the statistics consent. If the user hasn't made a
@@ -149,7 +163,7 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
       // NOTE: in this case the metrics logic will be left in the opted-out state
       // and no metrics are ever sent.
       val application = ApplicationManager.getApplication()
-      if ((GuiTestingService.isInTestingMode() || application.isHeadlessEnvironment) && !isConsentDialogEnabledInTests) {
+      if (!shouldShowConsentDialog) {
         return
       }
 

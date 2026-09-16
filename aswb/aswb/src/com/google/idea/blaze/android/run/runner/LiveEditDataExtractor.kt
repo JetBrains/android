@@ -20,6 +20,7 @@ import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
+import java.nio.file.Path
 
 /** An entity that knows how to instrument Bazel build and how to collect data required for Live Edit from the build results. */
 interface LiveEditDataExtractor {
@@ -27,5 +28,9 @@ interface LiveEditDataExtractor {
 
   fun blockingExtract(context: BlazeContext, buildOutputs: BlazeBuildOutputs)
 
+  fun fetchAdditionalData(context: BlazeContext)
+
   fun getBuildOutcomeBlocking(): BuildOutcome
+
+  fun getDesugarConfigs(): List<Path>
 }

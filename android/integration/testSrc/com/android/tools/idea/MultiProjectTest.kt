@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea
 
-import com.android.tools.asdriver.tests.AndroidProject
+import com.android.tools.asdriver.tests.AndroidProjectRule
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import org.junit.Rule
@@ -23,11 +23,13 @@ import org.junit.Test
 
 class MultiProjectTest {
   @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule val androidProjectRule = AndroidProjectRule("tools/adt/idea/android/integration/testData/minapp", system.fileSystem)
+  @JvmField @Rule val androidProjectRule2 = AndroidProjectRule("tools/adt/idea/android/integration/testData/liveedit", system.fileSystem)
 
   @Test
   fun multiProjectTest() {
     // Create a new android project, and set a fixed distribution
-    val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
+    val project = androidProjectRule.project
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
@@ -36,12 +38,12 @@ class MultiProjectTest {
       studio.waitForSync()
       studio.waitForIndex()
 
-      val project2 = createLiveEditProject()
+      val project2 = androidProjectRule2.project
+      project2.setDistribution("tools/external/gradle/gradle-9.0.0-bin.zip")
       system.installLiveEditMavenDependencies()
-      val targetPath = project2.install(system.installation.fileSystem.root)
-      system.installation.trustPath(targetPath)
+      system.installation.trustPath(project2.targetProject)
       project2.setSdkDir(system.sdk.sourceDir)
-      studio.openProject(targetPath.toString(), true)
+      studio.openProject(project2.targetProject.toString(), true)
 
       val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
       // Make first edit

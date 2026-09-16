@@ -31,12 +31,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.IdeProfilerComponents
+import com.android.tools.profilers.leakcanary.LeakCanaryTaskHandler
 import com.android.tools.profilers.taskbased.common.buttons.OpenTaskButton
 import com.android.tools.profilers.taskbased.common.buttons.StartTaskButton
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.NOTIFICATION_ICON_SIZE_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_CONTAINER_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.STARTUP_TASK_ERRORS
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canStartTask
@@ -50,7 +53,9 @@ import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notif
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.StartTaskError
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options.TaskRecordingTypeDropdown
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options.TaskStartingPointDropdown
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Text
 
 /**
  * The action bar for performing a task from the profiler's past recordings tab. This action bar allows the user to perform a task using a
@@ -112,6 +117,17 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
 
   val profilers = taskHomeTabModel.profilers
 
+  // Observe the async state of the LeakCanary pre-start verification. This forces the Compose UI
+  // to instantly recompose whenever the background agent finishes attaching or the network responds.
+  val leakCanaryHandler = profilers.taskHandlers[ProfilerTaskType.LEAKCANARY] as? LeakCanaryTaskHandler
+  val leakCanaryCheckState by
+    (leakCanaryHandler?.checkState ?: kotlinx.coroutines.flow.MutableStateFlow(LeakCanaryTaskHandler.LeakCanaryCheckState.IDLE))
+      .collectAsState()
+
+  // Explicitly read the state to register the Compose dependency. This guarantees
+  // that canStartTask() and the error UI are re-evaluated when the async check updates.
+  @Suppress("UNUSED_EXPRESSION") leakCanaryCheckState
+
   val canStartTask = canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
   Row(
     modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP),
@@ -157,7 +173,17 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
           if (!canStartTask) {
             val startTaskError =
               getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
-            StartTaskError(startTaskError)
+
+            // When the async agent is attaching, don't show a red error icon.
+            // Instead, show a clean, neutral "Checking..." text label.
+            if (
+              selectedTaskType == ProfilerTaskType.LEAKCANARY &&
+                startTaskError.startTaskSelectionErrorCode == StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS
+            ) {
+              Text(text = TaskBasedUxStrings.LEAKCANARY_CHECKING_PRESENCE)
+            } else {
+              StartTaskError(startTaskError)
+            }
           } else if (isProfileablePreferredButNotPresent) {
             ProfileablePreferredWarning(isSelectedProcessPreferred(selectedProcess, profilers))
           }

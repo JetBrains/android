@@ -41,7 +41,7 @@ class TestNetworkInspectorServices(
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)
   override val workerDispatcher = MoreExecutors.directExecutor().asCoroutineDispatcher()
-  override val uiDispatcher = Dispatchers.Main
+  override val uiContext = Dispatchers.Main
   override val ideServices =
     object : AppInspectionIdeServices {
       override fun showToolWindow() {

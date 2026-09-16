@@ -1,0 +1,127 @@
+Workspace model changed #1, phase: INITIAL_PHASE
+    Roots changed
+    Added ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Added ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #2, phase: PROJECT_MODEL_PHASE
+    Roots changed
+    Removed ModuleEntity for non-Gradle module, name: <omitted_for_snapshot_consistency>
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib)
+    Removed ContentRootEntity for non-Gradle module url: <omitted_for_snapshot_consistency>
+Workspace model changed #3, phase: SOURCE_SET_MODEL_PHASE
+    Roots changed
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
+    With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
+    Removed TestModulePropertiesEntity for MainActivity.javaLib.test
+    Replaced: GradleModuleModelEntity for MainActivity.app
+    With:     GradleModuleModelEntity for MainActivity.app
+Workspace model changed #4, phase: DEPENDENCY_MODEL_PHASE
+Workspace model changed #5, phase: ADDITIONAL_MODEL_PHASE
+Workspace model changed #6, phase: N/A
+Workspace model changed #7, phase: N/A
+Workspace model changed #8, phase: N/A
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.app.unitTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
+    With:     ModuleEntity for ModuleId(name=MainActivity.javaLib.test)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.androidTest)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.main)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.main)
+    Replaced: ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
+    With:     ModuleEntity for ModuleId(name=MainActivity.lib.unitTest)
+    Replaced: LibraryEntity: Gradle: androidx.annotation:annotation:1.0.0
+    With:     LibraryEntity: Gradle: androidx.annotation:annotation:1.0.0
+    Replaced: LibraryEntity: Gradle: androidx.arch.core:core-common:2.0.0
+    With:     LibraryEntity: Gradle: androidx.arch.core:core-common:2.0.0
+    Replaced: LibraryEntity: Gradle: androidx.collection:collection:1.0.0
+    With:     LibraryEntity: Gradle: androidx.collection:collection:1.0.0
+    Replaced: LibraryEntity: Gradle: androidx.lifecycle:lifecycle-common:2.0.0
+    With:     LibraryEntity: Gradle: androidx.lifecycle:lifecycle-common:2.0.0
+    Replaced: LibraryEntity: Gradle: com.google.code.findbugs:jsr305:2.0.1
+    With:     LibraryEntity: Gradle: com.google.code.findbugs:jsr305:2.0.1
+    Replaced: LibraryEntity: Gradle: com.google.dagger:dagger:2.6
+    With:     LibraryEntity: Gradle: com.google.dagger:dagger:2.6
+    Replaced: LibraryEntity: Gradle: com.squareup:javawriter:2.1.1
+    With:     LibraryEntity: Gradle: com.squareup:javawriter:2.1.1
+    Replaced: LibraryEntity: Gradle: javax.inject:javax.inject:1
+    With:     LibraryEntity: Gradle: javax.inject:javax.inject:1
+    Replaced: LibraryEntity: Gradle: junit:junit:4.12
+    With:     LibraryEntity: Gradle: junit:junit:4.12
+    Replaced: LibraryEntity: Gradle: net.sf.kxml:kxml2:2.3.0
+    With:     LibraryEntity: Gradle: net.sf.kxml:kxml2:2.3.0
+    Replaced: LibraryEntity: Gradle: org.hamcrest:hamcrest-core:1.3
+    With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-core:1.3
+    Replaced: LibraryEntity: Gradle: org.hamcrest:hamcrest-integration:1.3
+    With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-integration:1.3
+    Replaced: LibraryEntity: Gradle: org.hamcrest:hamcrest-library:1.3
+    With:     LibraryEntity: Gradle: org.hamcrest:hamcrest-library:1.3
+    Replaced: LibraryEntity: Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+    With:     LibraryEntity: Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+    Replaced: LibraryEntity: Gradle: org.jetbrains:annotations:13.0
+    With:     LibraryEntity: Gradle: org.jetbrains:annotations:13.0
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.app))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.app))
+    Replaced: FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.lib))
+    With:     FacetEntity for FacetId(name=Android-Gradle, type=FacetEntityTypeId(name=android-gradle), parentId=ModuleId(name=MainActivity.lib))
+    Added TestModulePropertiesEntity for MainActivity.javaLib.test
+    Added ModuleMavenCoordinateEntity for MainActivity.javaLib.main
+    Removed ModuleMavenCoordinateEntity for MainActivity.javaLib.main
+    Replaced: GradleModuleModelEntity for MainActivity.app
+    With:     GradleModuleModelEntity for MainActivity.app
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.0.0
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.arch.core:core-common:2.0.0
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.collection:collection:1.0.0
+    Added LibraryMavenCoordinateEntity for Gradle: androidx.lifecycle:lifecycle-common:2.0.0
+    Added LibraryMavenCoordinateEntity for Gradle: com.google.code.findbugs:jsr305:2.0.1
+    Added LibraryMavenCoordinateEntity for Gradle: com.google.dagger:dagger:2.6
+    Added LibraryMavenCoordinateEntity for Gradle: com.squareup:javawriter:2.1.1
+    Added LibraryMavenCoordinateEntity for Gradle: javax.inject:javax.inject:1
+    Added LibraryMavenCoordinateEntity for Gradle: junit:junit:4.12
+    Added LibraryMavenCoordinateEntity for Gradle: net.sf.kxml:kxml2:2.3.0
+    Added LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-core:1.3
+    Added LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-integration:1.3
+    Added LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-library:1.3
+    Added LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+    Added LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.annotation:annotation:1.0.0
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.arch.core:core-common:2.0.0
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.collection:collection:1.0.0
+    Removed LibraryMavenCoordinateEntity for Gradle: androidx.lifecycle:lifecycle-common:2.0.0
+    Removed LibraryMavenCoordinateEntity for Gradle: com.google.code.findbugs:jsr305:2.0.1
+    Removed LibraryMavenCoordinateEntity for Gradle: com.google.dagger:dagger:2.6
+    Removed LibraryMavenCoordinateEntity for Gradle: com.squareup:javawriter:2.1.1
+    Removed LibraryMavenCoordinateEntity for Gradle: javax.inject:javax.inject:1
+    Removed LibraryMavenCoordinateEntity for Gradle: junit:junit:4.12
+    Removed LibraryMavenCoordinateEntity for Gradle: net.sf.kxml:kxml2:2.3.0
+    Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-core:1.3
+    Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-integration:1.3
+    Removed LibraryMavenCoordinateEntity for Gradle: org.hamcrest:hamcrest-library:1.3
+    Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+    Removed LibraryMavenCoordinateEntity for Gradle: org.jetbrains:annotations:13.0
+Workspace model changed #9, phase: N/A
+    Roots changed (special batch for previous workspace model change)

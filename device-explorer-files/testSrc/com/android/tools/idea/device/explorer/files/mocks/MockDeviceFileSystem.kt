@@ -16,7 +16,6 @@
 package com.android.tools.idea.device.explorer.files.mocks
 
 import com.android.ddmlib.FileListingService
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.files.cancelAndThrow
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
@@ -29,6 +28,7 @@ import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.math.min
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
@@ -79,7 +79,7 @@ class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, over
     delay(OPERATION_TIMEOUT_MILLIS)
     downloadError?.let { throw it }
 
-    withContext(diskIoThread) {
+    withContext(Dispatchers.IO) {
       delay(downloadChunkIntervalMillis)
 
       // Create file if needed
@@ -128,7 +128,7 @@ class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, over
       throw AssertionError("Expected MockDeviceFileEntry")
     }
 
-    withContext(diskIoThread) {
+    withContext(Dispatchers.IO) {
       delay(uploadChunkIntervalMillis)
 
       val fileLength = Files.size(localFilePath)

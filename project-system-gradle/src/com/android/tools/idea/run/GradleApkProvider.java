@@ -16,7 +16,6 @@
 package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputFilesFromListingFile;
 import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
@@ -33,7 +32,6 @@ import com.android.builder.model.TestVariantBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.BaselineProfileDetails;
-import com.android.ide.common.build.GenericBuiltArtifact;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
@@ -472,52 +470,36 @@ public final class GradleApkProvider implements ApkProvider {
     }
 
     ModelCache.V1 modelCache = ModelCache.createForPostBuildModels();
-    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      InstantAppProjectBuildOutput outputModel =
-        outputModels.findInstantAppProjectBuildOutput(getGradlePathAsStringForPostBuildModels(facet.getModule()));
-      if (outputModel == null) {
-        throw new ApkProvisionException(
-          "Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");
-      }
-
-      for (InstantAppVariantBuildOutput instantAppVariantBuildOutput : outputModel.getInstantAppVariantsBuildOutput()) {
-        if (instantAppVariantBuildOutput.getName().equals(variantName)) {
-          outputs.add(modelCache.androidArtifactOutputFrom(instantAppVariantBuildOutput.getOutput()));
-        }
-      }
+    @SuppressWarnings("deprecation")
+    ProjectBuildOutput outputModel =
+      outputModels.findProjectBuildOutput(getGradlePathAsStringForPostBuildModels(facet.getModule()));
+    if (outputModel == null) {
+      throw new ApkProvisionException(
+        String.format("Couldn't get post build model. Module: %s Variant: %s", facet.getModule().getName(), variantName));
     }
-    else {
-      @SuppressWarnings("deprecation")
-      ProjectBuildOutput outputModel =
-        outputModels.findProjectBuildOutput(getGradlePathAsStringForPostBuildModels(facet.getModule()));
-      if (outputModel == null) {
-        throw new ApkProvisionException(
-          String.format("Couldn't get post build model. Module: %s Variant: %s", facet.getModule().getName(), variantName));
-      }
 
-      // Loop through the variants in the model and get the one that matches
-      //noinspection deprecation
-      for (VariantBuildOutput variantBuildOutput : outputModel.getVariantsBuildOutput()) {
-        if (variantBuildOutput.getName().equals(variantName)) {
+    // Loop through the variants in the model and get the one that matches
+    //noinspection deprecation
+    for (VariantBuildOutput variantBuildOutput : outputModel.getVariantsBuildOutput()) {
+      if (variantBuildOutput.getName().equals(variantName)) {
 
-          if (artifact.isTestArtifact()) {
-            // Get the output from the test artifact
-            for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
-              if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
-                if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE &&
-                    deviceVersion.compareTo(AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION) < 0) {
-                  // b/119663247
-                  throw new ApkProvisionException(
-                    "Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
-                }
-                outputs.addAll(ContainerUtil.map(testVariantBuildOutput.getOutputs(), modelCache::androidArtifactOutputFrom));
+        if (artifact.isTestArtifact()) {
+          // Get the output from the test artifact
+          for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
+            if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
+              if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE &&
+                  deviceVersion.compareTo(AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION) < 0) {
+                // b/119663247
+                throw new ApkProvisionException(
+                  "Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
               }
+              outputs.addAll(ContainerUtil.map(testVariantBuildOutput.getOutputs(), modelCache::androidArtifactOutputFrom));
             }
           }
-          else {
-            // Get the output from the main artifact
-            outputs.addAll(ContainerUtil.map(variantBuildOutput.getOutputs(), modelCache::androidArtifactOutputFrom));
-          }
+        }
+        else {
+          // Get the output from the main artifact
+          outputs.addAll(ContainerUtil.map(variantBuildOutput.getOutputs(), modelCache::androidArtifactOutputFrom));
         }
       }
     }

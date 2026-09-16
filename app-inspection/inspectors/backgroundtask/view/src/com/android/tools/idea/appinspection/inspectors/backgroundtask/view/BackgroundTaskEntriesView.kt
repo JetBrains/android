@@ -45,7 +45,7 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -58,7 +58,7 @@ class BackgroundTaskEntriesView(
   private val client: BackgroundTaskInspectorClient,
   private val selectionModel: EntrySelectionModel,
   scope: CoroutineScope,
-  uiDispatcher: CoroutineDispatcher,
+  uiContext: CoroutineContext,
 ) : JPanel() {
   enum class Mode {
     TABLE,
@@ -189,8 +189,8 @@ class BackgroundTaskEntriesView(
   @VisibleForTesting val graphView: WorkDependencyGraphView
 
   init {
-    tableView = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
-    graphView = WorkDependencyGraphView(tab, client, selectionModel, scope, uiDispatcher)
+    tableView = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiContext)
+    graphView = WorkDependencyGraphView(tab, client, selectionModel, scope, uiContext)
 
     layout = TabularLayout("*", "Fit,*")
     minimumSize = Dimension(MINIMUM_ENTRIES_VIEW_WIDTH, minimumSize.height)

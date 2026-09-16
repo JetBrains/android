@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.tools.adtui.Zoomable
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.util.scaled
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.diagnostic.thisLogger
@@ -31,19 +29,18 @@ import kotlin.math.roundToInt
 private val ZOOM_LEVELS = doubleArrayOf(0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0)
 
 /** A [BorderLayoutPanel] with zoom support. */
-abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeListener {
+internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeListener {
 
-  /** Scale factor of the host screen. Number of physical pixels in one logical pixel. */
-  protected val screenScale: Double
+  override val screenScalingFactor: Double
     get() = if (cachedScreenScale > 0.0) cachedScreenScale else getCurrentScreenScaleOr(1.0)
 
   /** Width in physical pixels. */
   protected val physicalWidth
-    get() = width.scaled(screenScale)
+    get() = width.scaled(screenScalingFactor)
 
   /** Height in physical pixels. */
   protected val physicalHeight
-    get() = height.scaled(screenScale)
+    get() = height.scaled(screenScalingFactor)
 
   /** Size in physical pixels. */
   protected val physicalSize
@@ -51,9 +48,6 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
 
   override val scale: Double
     get() = roundDownIfNecessary(computeScaleToFit(computeMaxImageSize()))
-
-  override val screenScalingFactor
-    get() = screenScale
 
   internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
@@ -102,27 +96,24 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
     return true
   }
 
-  override fun canZoomIn(): Boolean = canZoom() && computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
-
-  override fun canZoomOut(): Boolean =
-    canZoom() && (computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale))
-
-  override fun canZoomToActual(): Boolean =
-    canZoom() && (computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale))
-
-  override fun canZoomToFit(): Boolean {
-    if (!canZoom()) {
-      return false
-    }
-    if (isPreferredSizeSet) {
-      return true
-    }
-    if (fractionalScaleRange != 0.0) {
-      return false
-    }
-    val scaleToFit = computeScaleToFitInParent()
-    val roundedScale = roundDownIfGreaterThanOne(scaleToFit)
-    return roundedScale < scaleToFit
+  override fun canZoom(type: ZoomType): Boolean {
+    return canZoom() &&
+      when (type) {
+        ZoomType.IN -> computeZoomedSize(type) != explicitlySetPreferredSize
+        ZoomType.OUT,
+        ZoomType.ACTUAL -> computeZoomedSize(type) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale)
+        ZoomType.FIT -> {
+          if (isPreferredSizeSet) {
+            return true
+          }
+          if (fractionalScaleRange != 0.0) {
+            return false
+          }
+          val scaleToFit = computeScaleToFitInParent()
+          val roundedScale = roundDownIfGreaterThanOne(scaleToFit)
+          return roundedScale < scaleToFit
+        }
+      }
   }
 
   fun resetZoom() {
@@ -160,7 +151,7 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
   private fun getCurrentScreenScaleOr(defaultValue: Double) = graphicsConfiguration?.defaultTransform?.scaleX ?: defaultValue
 
   /** Computes the maximum allowed size of the device display image in physical pixels. */
-  protected fun computeMaxImageSize(): Dimension = (explicitlySetPreferredSize ?: size).scaled(screenScale)
+  protected fun computeMaxImageSize(): Dimension = (explicitlySetPreferredSize ?: size).scaled(screenScalingFactor)
 
   /** Computes the preferred size in virtual pixels after the given zoom operation. The preferred size is null for zoom to fit. */
   private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
@@ -194,17 +185,27 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
           }
         }
 
+        ZoomType.FIT -> return null
+
         ZoomType.ACTUAL -> {
           if (roundDownIfGreaterThanOne(computeScaleToFitInParent()) == 1.0) {
             return null
           }
           1.0
         }
-
-        ZoomType.FIT -> return null
       }
     val newScaledSize = computeActualSize().scaled(newScale)
-    return newScaledSize.scaled(1 / screenScale)
+    return newScaledSize.scaled(1 / screenScalingFactor)
+  }
+
+  /** Computes the preferred size in virtual pixels after zooming to the given scale. The preferred size is null for zoom to fit. */
+  private fun computeZoomedSize(scale: Double): Dimension? {
+    val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent())
+    if (scale <= fitScale) {
+      return null
+    }
+    val newScaledSize = computeActualSize().scaled(scale)
+    return newScaledSize.scaled(1 / screenScalingFactor)
   }
 
   /** Returns the index of the highest zoom level not exceeding [scale], or -1 if there is no such level. */
@@ -237,5 +238,5 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
   private fun isFractionalGreaterThanOne(scale: Double): Boolean = scale > 1.0 && floor(scale) != scale
 
   /** Returns the size of the containing scroll pane without insets. */
-  private fun computeAvailableSize(): Dimension = parent?.parent?.sizeWithoutInsets?.scaled(screenScale) ?: Dimension(0, 0)
+  private fun computeAvailableSize(): Dimension = parent?.parent?.sizeWithoutInsets?.scaled(screenScalingFactor) ?: Dimension(0, 0)
 }

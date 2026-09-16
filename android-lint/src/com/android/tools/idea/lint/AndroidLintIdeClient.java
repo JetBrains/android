@@ -371,7 +371,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
     for (Actions.Record record : records) {
       if (record.getActionType() == Actions.ActionType.ADDED ||
           record.getActionType() == Actions.ActionType.MERGED) {
-        Node sourceNode = ManifestUtils.getSourceNode(mergedManifest.getModule(), record);
+        Node sourceNode = ManifestUtils.getSourceNode(mergedManifest.getModule(), record, this::getMergedManifestSnapshot);
         if (sourceNode != null) {
           // Cache for next time
           File file = record.getActionLocation().getFile().getSourceFile();

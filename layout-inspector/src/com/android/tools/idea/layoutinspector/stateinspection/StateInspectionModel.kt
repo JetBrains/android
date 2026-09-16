@@ -26,6 +26,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadData
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult.StateReads
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecomposeStateReadResult.Waiting
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorRootPanel
 import com.intellij.icons.AllIcons
@@ -42,6 +44,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 private const val MAX_EXPRESSION_LENGTH = 80
 private const val STATE_READ_START_LINE = "State read value: "
@@ -49,6 +52,7 @@ private const val STACK_TRACE_START_LINE = "    at "
 private const val PREV_DESCRIPTION_KEY = "layout.inspector.recomposition.prev"
 private const val NEXT_DESCRIPTION_KEY = "layout.inspector.recomposition.next"
 private const val HIDE_DESCRIPTION_KEY = "layout.inspector.recomposition.hide"
+private const val NO_STATE_READS_ID = "layout.inspector.recomposition.no-state-reads"
 
 internal const val INVALIDATED = "<invalidated>"
 
@@ -64,8 +68,8 @@ data class StateInspectionContent(
   val stackTraceText: String = "",
   /** Specifies which composable that we are showing state reads for. */
   val composableInspected: ComposableDefinition? = null,
-  /** An update count. Can be used to indicate action mode changes, and for tests */
-  val updates: Int = 0,
+  /** An update count. Only meant for tests */
+  @TestOnly val updates: Int = 0,
 )
 
 /** Model for the [StateInspectionPanel]. */
@@ -75,6 +79,9 @@ internal interface StateInspectionModel {
 
   /** The content to show in the [StateInspectionPanel]. */
   val content: StateFlow<StateInspectionContent>
+
+  /** The total number of recompositions of the composable being inspected. */
+  val recompositions: StateFlow<Int>
 
   /** An action to navigate to the state reads for the previous recomposition */
   val prevAction: AnAction
@@ -103,6 +110,9 @@ internal class StateInspectionModelImpl(
   private val _content = MutableStateFlow(StateInspectionContent())
   override val content = _content.asStateFlow()
 
+  private val _recompositions = MutableStateFlow(0)
+  override val recompositions = _recompositions.asStateFlow()
+
   override val prevAction = createAction(AllIcons.Actions.Play_back, PREV_DESCRIPTION_KEY, ::gotoPrevRecomposition, ::hasPrevComposition)
 
   override val nextAction = createAction(AllIcons.Actions.Play_forward, NEXT_DESCRIPTION_KEY, ::gotoNextRecomposition, ::hasNextComposition)
@@ -111,6 +121,10 @@ internal class StateInspectionModelImpl(
     createAction(AllIcons.General.HideToolWindow, HIDE_DESCRIPTION_KEY, { model.stateReadsModel.stopShowingStateReads() })
 
   private enum class InactiveState(private val messageId: String, private val detailsId: String) {
+    NOTHING_SELECTED(
+      messageId = "layout.inspector.recomposition.nothing.selected",
+      detailsId = "layout.inspector.recomposition.nothing.selected.details",
+    ),
     WAITING(messageId = "layout.inspector.recomposition.waiting", detailsId = "layout.inspector.recomposition.waiting.details"),
     VIEW(messageId = "layout.inspector.recomposition.view", detailsId = "layout.inspector.recomposition.view.details"),
     NOT_OBSERVED(
@@ -125,16 +139,14 @@ internal class StateInspectionModelImpl(
 
   private val listener = SelectionListener { _, view, _ -> updateStateOfSelection(view) }
 
-  private val updateListener = InspectorModel.ModificationListener { _, _, _ -> incrementUpdates() }
+  private val updateListener = InspectorModel.ModificationListener { _, _, _ -> recompositionUpdate() }
 
   init {
     model.addSelectionListener(listener)
     model.addModificationListener(updateListener)
     scope.launch {
       model.stateReadsModel.stateReadRequested.collect { key ->
-        if (key != null) {
-          showInactiveState(InactiveState.WAITING, key)
-        } else {
+        if (key == null) {
           stopStateObservations()
         }
       }
@@ -148,14 +160,15 @@ internal class StateInspectionModelImpl(
     }
   }
 
-  private fun incrementUpdates() {
-    _content.value = _content.value.let { oldContent -> oldContent.copy(updates = oldContent.updates + 1) }
+  private fun recompositionUpdate() {
+    _recompositions.value = model.selection?.recompositions?.count ?: 0
   }
 
   private fun updateStateOfSelection(view: ViewNode?) {
     val requested = model.stateReadsModel.stateReadRequested.value
     if (requested != null) {
       when {
+        view == null -> showInactiveState(InactiveState.NOTHING_SELECTED)
         view !is ComposeViewNode -> showInactiveState(InactiveState.VIEW)
         !model.stateReadsModel.isNodeObserved(view) -> showInactiveState(InactiveState.NOT_OBSERVED)
         view.anchorHash == synchronized(lock) { currentKey?.composable?.anchorHash } -> {} // Keep current recomposition
@@ -164,20 +177,45 @@ internal class StateInspectionModelImpl(
     }
   }
 
+  private fun showResultFor(key: StateReadKey, result: RecomposeStateReadResult) {
+    when (result) {
+      is Waiting -> showInactiveState(InactiveState.WAITING)
+      is StateReads -> if (result.key == key) showStateReadsResult(result) else showInactiveState(InactiveState.WAITING)
+    }
+  }
+
   private fun showResult(result: RecomposeStateReadResult) {
+    when (result) {
+      is Waiting -> showInactiveState(InactiveState.WAITING)
+      is StateReads -> showStateReadsResult(result)
+    }
+  }
+
+  private fun showStateReadsResult(result: StateReads) {
     synchronized(lock) {
       currentKey = result.key
       val node = result.key.composable
       hasStateReadsForPreviousRecomposition = result.hasStateReadsForPreviousRecomposition
       _show.value = true
-      _content.value =
-        StateInspectionContent(
-          recompositionText = generateRecompositionText(result.key),
-          stateReadsText = generateStateReadsText(result.reads.size),
-          stackTraceText = generateStackTraces(result.reads),
-          composableInspected = ComposableDefinition(node.qualifiedName, node.composeFilename),
-          updates = _content.value.updates + 1,
-        )
+      _recompositions.value = model.selection?.recompositions?.count ?: 0
+      if (result.reads.isEmpty()) {
+        _content.value =
+          StateInspectionContent(
+            recompositionText = generateRecompositionText(result.key),
+            stateReadsText = generateStateReadsText(result.reads.size),
+            emptyStateText = LayoutInspectorBundle.message(NO_STATE_READS_ID),
+            updates = _content.value.updates + 1,
+          )
+      } else {
+        _content.value =
+          StateInspectionContent(
+            recompositionText = generateRecompositionText(result.key),
+            stateReadsText = generateStateReadsText(result.reads.size),
+            stackTraceText = generateStackTraces(result.reads),
+            composableInspected = ComposableDefinition(node.qualifiedName, node.composeFilename),
+            updates = _content.value.updates + 1,
+          )
+      }
     }
     resultShown()
   }
@@ -190,12 +228,7 @@ internal class StateInspectionModelImpl(
       // The user navigated back to an observable composable from either a View or a non
       // observable composable. The result may still hold the state reads for the wanted composable
       // and recomposition.
-      val result = model.stateReadsModel.stateReads.value
-      if (result?.key == key) {
-        showResult(result)
-      } else {
-        showInactiveState(InactiveState.WAITING)
-      }
+      showResultFor(key, model.stateReadsModel.stateReads.value ?: Waiting)
     }
   }
 
@@ -207,6 +240,7 @@ internal class StateInspectionModelImpl(
       }
       currentKey = null
       _show.value = true
+      _recompositions.value = model.selection?.recompositions?.count ?: 0
       _content.value =
         StateInspectionContent(
           recompositionText = state.message(),
@@ -224,6 +258,7 @@ internal class StateInspectionModelImpl(
     synchronized(lock) {
       currentKey = null
       _show.value = false
+      _recompositions.value = 0
       _content.value = StateInspectionContent()
     }
   }

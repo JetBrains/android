@@ -36,6 +36,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.addAnnotation
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -123,7 +124,7 @@ class ComposeVisualLintSuppressTask(
             ?.addNewValueArgument(KtPsiFactory(project).createArgument("\"${issueType.ignoredAttributeValue}\""), KtPsiFactory(project))
         } else {
           val suppress = KtPsiFactory(project).createAnnotationEntry("@kotlin.Suppress(\"${issueType.ignoredAttributeValue}\")")
-          ShortenReferencesFacility.getInstance().shorten(composableFunction.addAnnotationEntry(suppress))
+          ShortenReferencesFacility.getInstance().shorten(composableFunction.addAnnotation(suppress))
         }
       },
       previewElement.containingFile,

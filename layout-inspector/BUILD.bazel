@@ -1,11 +1,16 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.layout-inspector` start
 create_kotlinc_options(
     name = "custom_layout-inspector",
     opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
+)
+
+jvm_provided_library(
+    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
+    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
 )
 
 jvm_library(
@@ -29,7 +34,6 @@ jvm_library(
         # do not sort,
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
         "//libraries/gson",
         "//libraries/guava",
         "//libraries/io",
@@ -66,7 +70,6 @@ jvm_library(
         "//java/execution/openapi:java-execution",
         "//java/java-psi-api:psi",
         "//plugins/kotlin/base/plugin",
-        "//plugins/kotlin/base/scripting/scripting.shared",
         "//plugins/kotlin/base/util",
         "//plugins/maven/maven-server-indexer:server-indexer",
         "//platform/analysis-api:analysis",
@@ -100,6 +103,7 @@ jvm_library(
         "//xml/xml-psi-impl:psi-impl",
         "//platform/progress/shared:ide-progress",
         "//fleet/util/core",
+        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
     ],
 )
 
@@ -131,7 +135,8 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/gson",
         "//libraries/gson:gson_test_lib",
         "//libraries/guava",
@@ -193,7 +198,8 @@ jvm_library(
         "//libraries/kotlinx/coroutines/guava:guava_test_lib",
         "//libraries/protobuf",
         "//libraries/protobuf:protobuf_test_lib",
-        "@lib//:kotlin-test",
+        "//libraries/kotlin/test:libraries-kotlinTest",
+        "//libraries/kotlin/test:libraries-kotlinTest_test_lib",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
         "//java/debugger/openapi:java-debugger",
@@ -206,8 +212,6 @@ jvm_library(
         "//java/java-psi-api:psi_test_lib",
         "//plugins/kotlin/base/plugin",
         "//plugins/kotlin/base/plugin:plugin_test_lib",
-        "//plugins/kotlin/base/scripting/scripting.shared",
-        "//plugins/kotlin/base/scripting/scripting.shared:scripting.shared_test_lib",
         "//plugins/kotlin/base/util",
         "//plugins/kotlin/base/util:util_test_lib",
         "//plugins/maven/maven-server-indexer:server-indexer",
@@ -355,7 +359,8 @@ jvm_library(
         "//libraries/junit4:junit4_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:layoutlib",
+        "//libraries/layoutlib",
+        "//libraries/layoutlib:layoutlib_test_lib",
         "//android/as-driver/utils",
         "//android/as-driver/utils:utils_test_lib",
         "//plugins/kotlin/plugin",
@@ -435,7 +440,8 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
-        "@lib//:kotlin-test",
+        "//libraries/kotlin/test:libraries-kotlinTest",
+        "//libraries/kotlin/test:libraries-kotlinTest_test_lib",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/adt-ui",

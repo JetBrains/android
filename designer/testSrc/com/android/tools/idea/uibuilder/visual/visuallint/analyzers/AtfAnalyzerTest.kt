@@ -21,6 +21,8 @@ import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.rendering.RenderTask
 import com.android.tools.visuallint.analyzers.AtfAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -99,7 +101,11 @@ class AtfAnalyzerTest {
       try {
         val result = task.render().get()
         NlModelHierarchyUpdater.updateHierarchy(result, nlModel)
-        val issues = AtfAnalyzer.findIssues(result, nlModel.configuration)
+        val issues =
+          AtfAnalyzer.findIssues(
+            renderResult = result.toVisualLintRenderResult(),
+            configuration = nlModel.configuration.toVisualLintConfiguration(),
+          )
         assertEquals(1, issues.size)
         issues.forEach {
           assertEquals("Duplicated clickable Views", it.message)

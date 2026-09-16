@@ -21,7 +21,6 @@ import com.android.tools.adtui.stdui.StandardColors.DEFAULT_CONTENT_BACKGROUND_C
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.codenavigation.CodeLocation.INVALID_LINE_NUMBER
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.inspectors.common.api.stacktrace.CodeElement
 import com.android.tools.inspectors.common.api.stacktrace.StackElement
@@ -37,12 +36,14 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.icons.AllIcons
 import com.intellij.ide.CopyProvider
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.PlatformDataKeys.COPY_PROVIDER
+import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColoredListCellRenderer
@@ -71,6 +72,7 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
 import javax.swing.event.ListSelectionListener
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -89,7 +91,13 @@ internal constructor(
   private val copyPasteManager = CopyPasteManager.getInstance()
   private val scrollPane: JBScrollPane
   private val listModel = DefaultListModel<StackElement>()
-  @get:VisibleForTesting val listView = JBList(listModel)
+  @get:VisibleForTesting
+  val listView: JBList<StackElement> =
+    object : JBList<StackElement>(listModel), UiDataProvider {
+      override fun uiDataSnapshot(sink: DataSink) {
+        sink.uiDataSnapshot(this@IntelliJStackTraceView)
+      }
+    }
   private val renderer: StackElementRenderer
 
   constructor(
@@ -106,8 +114,6 @@ internal constructor(
     scrollPane = JBScrollPane(listView)
     scrollPane.horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
     scrollPane.verticalScrollBarPolicy = VERTICAL_SCROLLBAR_AS_NEEDED
-
-    DataManager.registerDataProvider(listView, this)
 
     listView.addListSelectionListener {
       if (listView.selectedValue == null) {
@@ -169,7 +175,7 @@ internal constructor(
       .onChange(STACK_FRAMES) {
         scope.launch(dispatcher) {
           val elements = model.codeLocations.map { generator(project, it) }
-          withContext(uiThread) {
+          withContext(Dispatchers.EDT) {
             listModel.removeAllElements()
             listView.clearSelection()
             listModel.addAll(elements)
@@ -224,14 +230,16 @@ internal constructor(
 
   override fun getActionUpdateThread() = BGT
 
-  override fun isCopyEnabled(dataContext: DataContext) = true
+  private fun isSelectedIndexValid(index: Int) = index >= 0 && index < listView.itemsCount
+
+  override fun isCopyEnabled(dataContext: DataContext) = isSelectedIndexValid(listView.selectedIndex)
 
   override fun isCopyVisible(dataContext: DataContext) = true
 
   /** Copies the selected list item to the clipboard. The copied text rendering is the same as the list rendering. */
   override fun performCopy(dataContext: DataContext) {
     val selectedIndex = listView.selectedIndex
-    if (selectedIndex >= 0 && selectedIndex < listView.itemsCount) {
+    if (isSelectedIndexValid(selectedIndex)) {
       renderer.getListCellRendererComponent(listView, listModel.getElementAt(selectedIndex), selectedIndex, true, false)
       val data = renderer.getCharSequence(false).toString()
       copyPasteManager.setContents(StringSelection(data))

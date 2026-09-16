@@ -39,7 +39,7 @@ jvm_library(
         "//platform/util",
         "//platform/util/base",
         "//platform/util-rt",
-        "@lib//:layoutlib",
+        "//libraries/layoutlib",
         "//libraries/fastutil",
     ],
 )
@@ -75,6 +75,7 @@ jvm_library(
         "//platform/util:util_test_lib",
         "//platform/util/base:base_test_lib",
         "//platform/util-rt:util-rt_test_lib",
+        "//libraries/layoutlib:layoutlib_test_lib",
         "//libraries/fastutil:fastutil_test_lib",
     ],
 )
@@ -133,7 +134,8 @@ jvm_library(
         "//libraries/asm-tools:asm-tools_test_lib",
         "//libraries/jetbrains/annotations",
         "//libraries/jetbrains/annotations:annotations_test_lib",
-        "@lib//:kotlin-test",
+        "//libraries/kotlin/test:libraries-kotlinTest",
+        "//libraries/kotlin/test:libraries-kotlinTest_test_lib",
         "//libraries/kotlin/reflect",
         "//libraries/kotlin/reflect:reflect_test_lib",
         "//libraries/kotlinx/coroutines/core",
@@ -159,10 +161,12 @@ jvm_library(
         "//platform/util-rt:util-rt_test_lib",
         "//android/android:core",
         "//android/android:core_test_lib",
-        "@lib//:layoutlib",
+        "//libraries/layoutlib",
+        "//libraries/layoutlib:layoutlib_test_lib",
         "//libraries/bouncy-castle-provider",
         "//libraries/bouncy-castle-provider:bouncy-castle-provider_test_lib",
-        "@lib//:mockito",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.rendering.tests` end

@@ -297,7 +297,7 @@ public class BlazeCommandRunConfiguration
       return;
     }
     Label label = (Label) targets.get(0);
-    ListenableFuture<TargetInfo> future = TargetFinder.findTargetInfoFuture(getProject(), label);
+    ListenableFuture<TargetInfo> future = TargetFinder.findTargetInfoFuture(getProject(), com.google.idea.blaze.common.Label.of(label.toString()));
     if (future.isDone()) {
       updateTargetKindFromTargetInfoFuture(future, label, null);
     }

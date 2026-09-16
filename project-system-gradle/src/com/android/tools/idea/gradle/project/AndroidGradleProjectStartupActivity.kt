@@ -21,9 +21,8 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
-import com.android.tools.idea.gradle.project.entities.gradleModuleModel
 import com.android.tools.idea.gradle.project.entities.setGradleAndroidModelFromDataNode
+import com.android.tools.idea.gradle.project.entities.setGradleModuleModelFromDataNode
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NativeHeaderRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
@@ -43,16 +42,19 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJvmCompatibilityChecker.Companion.isProjectUsingIncompatibleGradleJvm
 import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.LocalProperties
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.facet.Facet
+import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.edtWriteAction
@@ -86,11 +88,10 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES
 import com.intellij.platform.backend.workspace.workspaceModel
-import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.ui.EditorNotifications
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
-import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
 import java.io.File
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -150,8 +151,10 @@ private suspend fun performActivity(project: Project) {
   val gradleProjectInfo = GradleProjectInfo.getInstance(project)
   val info = Info.getInstance(project)
 
-  fun shouldSyncOrAttachModels(): Boolean {
+  suspend fun shouldSyncOrAttachModels(): Boolean {
     if (gradleProjectInfo.isSkipStartupActivity) return false
+
+    if (project.isProjectUsingIncompatibleGradleJvm()) return false
 
     // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
     if (info.androidModules.isNotEmpty()) return true
@@ -182,8 +185,8 @@ private suspend fun performActivity(project: Project) {
         SyncDueMessage.maybeShow(project)
       }
     }
-    subscribeToGradleSettingChanges(project)
   }
+  subscribeToGradleSettingChanges(project)
 
   gradleProjectInfo.isSkipStartupActivity = false
 }
@@ -196,6 +199,8 @@ private fun subscribeToGradleSettingChanges(project: Project) {
     object : GradleSettingsListener {
       override fun onGradleJvmChange(oldGradleJvm: String?, newGradleJvm: String?, linkedProjectPath: String) {
         GradleSyncStateHolder.getInstance(project).recordGradleJvmConfigurationChanged()
+        // Notify editor to display sync banner
+        EditorNotifications.getInstance(project).updateAllNotifications()
       }
     },
   )
@@ -290,6 +295,8 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
       }
       .toMap()
 
+  val facets = getFacetsFromModules(existingGradleModules).toMutableSet()
+
   val projectDataNodes: List<DataNode<ProjectData>> =
     GradleSettings.getInstance(project)
       .linkedProjectsSettings
@@ -323,23 +330,6 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
 
   if (projectDataNodes.isEmpty()) {
     requestSync("No linked projects found")
-  }
-
-  val facets =
-    existingGradleModules
-      .flatMap { module ->
-        FacetManager.getInstance(module).let {
-          it.getFacetsByType(GradleFacet.getFacetTypeId()) + it.getFacetsByType(AndroidFacet.ID) + it.getFacetsByType(NdkFacet.facetTypeId)
-        }
-      }
-      .toMutableSet()
-
-  // With phased sync, facet entities are stored in the workspace model instead of using JPS (i.e. XML) serialization.
-  // When deserializing the entities in the new workspace model, the external source is lost, but we know at this point these are
-  // facets tied to Gradle modules, so we can explicitly mark them here. We don't need to do anything similar for modules, as that
-  // information isn't lost for modules.
-  if (StudioFlags.PHASED_SYNC_ENABLED.get() && StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
-    facets.forEach { it.externalSource = ExternalProjectSystemRegistry.getInstance().getSourceById(GradleConstants.SYSTEM_ID.getId()) }
   }
 
   existingGradleModules
@@ -437,9 +427,9 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           getModelForMaybeSourceSetDataNode(),
           AndroidFacet::getInstance,
           { model, storage ->
-            module.findModuleEntity(storage)?.let { entity ->
+            if (module.isHolderModule()) {
               val coreModel = data.gradleAndroidModelFactory(model)
-              setGradleAndroidModelFromDataNode(storage, entity, coreModel, data.libraryResolver)
+              setGradleAndroidModelFromDataNode(storage, module, coreModel, data.libraryResolver)
             }
           },
           validate = GradleAndroidModelData::validate,
@@ -448,14 +438,7 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           GRADLE_MODULE_MODEL,
           ::getModelFromDataNode,
           GradleFacet::getInstance,
-          { model, storage ->
-            module.findModuleEntity(storage)?.let { entity ->
-              storage.modifyModuleEntity(entity) {
-                this.gradleModuleModel =
-                  GradleModuleModelEntity(entitySource = this@modifyModuleEntity.entitySource, gradleModuleModel = model)
-              }
-            }
-          },
+          { model, storage -> setGradleModuleModelFromDataNode(storage, module, model) },
         ),
         prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, { model, _ -> setNdkModuleModel(model) }),
       )
@@ -472,12 +455,40 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
   GradleSyncStateHolder.getInstance(project).syncSkipped(null)
 }
 
+private val isPhasedSyncWithDataServiceDisabled: Boolean
+  get() = StudioFlags.PHASED_SYNC_ENABLED.get() && StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()
+
+/**
+ * Gets all Android, Gradle and NDK facets from existing Gradle modules.
+ *
+ * @param updateExternalSource With phased sync, facet entities are stored in the workspace model instead of using JPS (i.e. XML)
+ *   serialization. When deserializing the entities in the new workspace model, the external source is lost, but we know at this point these
+ *   are facets tied to Gradle modules, so we can explicitly mark them here. We don't need to do anything similar for modules, as that
+ *   information isn't lost for modules.
+ */
+private fun getFacetsFromModules(
+  existingGradleModules: List<Module>,
+  updateExternalSource: Boolean = isPhasedSyncWithDataServiceDisabled,
+): List<Facet<out FacetConfiguration>> {
+  val facets =
+    existingGradleModules.flatMap { module ->
+      FacetManager.getInstance(module).let {
+        it.getFacetsByType(GradleFacet.getFacetTypeId()) + it.getFacetsByType(AndroidFacet.ID) + it.getFacetsByType(NdkFacet.facetTypeId)
+      }
+    }
+  if (updateExternalSource) {
+    val source = ExternalProjectSystemRegistry.getInstance().getSourceById(GradleConstants.SYSTEM_ID.getId())
+    facets.forEach { it.externalSource = source }
+  }
+  return facets
+}
+
 private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T>) =
   ExternalSystemApiUtil.getChildren(moduleDataNode, dataKey)
     .singleOrNull() // None or one node is expected here.
     ?.data
 
-private fun additionalProjectSetup(project: Project) {
+private suspend fun additionalProjectSetup(project: Project) {
   AndroidPluginInfo.findFromModel(project)?.let { info ->
     project.getService(AssistantInvoker::class.java).maybeForceOrRecommendPluginUpgrade(project, info)
   }
@@ -498,7 +509,7 @@ fun addJUnitProducersToIgnoredList(project: Project) {
   }
 }
 
-@RequiresBackgroundThread
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 private fun Module.isEmptyModule() =
   moduleFile == null &&
     rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }

@@ -36,10 +36,12 @@ import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
+import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.facet.AndroidFacet
@@ -106,6 +108,17 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
     val sampleDataPsi = AndroidModuleNode.getPsiDirectory(module.project, moduleSystem.getSampleDataDirectory())
     if (sampleDataPsi != null) {
       result.add(PsiDirectoryNode(module.project, sampleDataPsi, settings))
+    }
+
+    // Add google-services.json if present
+    for (contentRoot in ModuleRootManager.getInstance(module).contentRoots) {
+      val googleServicesJson = contentRoot.findChild("google-services.json")
+      if (googleServicesJson != null && !googleServicesJson.isDirectory) {
+        val psiFile = PsiManager.getInstance(project).findFile(googleServicesJson)
+        if (psiFile != null) {
+          result.add(PsiFileNode(project, psiFile, settings))
+        }
+      }
     }
 
     if (showBuildFilesInModule()) {

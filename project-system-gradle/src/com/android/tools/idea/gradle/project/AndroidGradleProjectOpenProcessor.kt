@@ -76,10 +76,12 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
     val adjustedOpenTarget = if (importTarget.isDirectory) importTarget else importTarget.parent
 
     if (!adjustedOpenTarget.toIoFile().canWrite()) {
-      Messages.showErrorDialog(
-        AndroidBundle.message("android.project.open.permission.readonly.message"),
-        AndroidBundle.message("android.project.open.permission.readonly.title"),
-      )
+      withContext(Dispatchers.EDT) {
+        Messages.showErrorDialog(
+          AndroidBundle.message("android.project.open.permission.readonly.message"),
+          AndroidBundle.message("android.project.open.permission.readonly.title"),
+        )
+      }
       return null
     }
 

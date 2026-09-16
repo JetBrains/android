@@ -28,7 +28,14 @@ interface ComposeStudioBotActionFactory {
    * An action to transform (e.g. fix, improve, evolve) the selected Compose Preview, taking both the preview image and its corresponding
    * code into account.
    */
-  fun transformPreviewAction(): AnAction
+  fun changeUIAction(): AnAction
+
+  /**
+   * An action to transform (e.g. fix, improve, evolve) a specific subcomponent of the selected Compose Preview.
+   *
+   * @param point The point where the context menu was triggered.
+   */
+  fun changeSubComponentAction(point: java.awt.Point): AnAction
 
   /**
    * An action to fix visual lint issues found by UI Check for a Compose Preview.
@@ -47,8 +54,10 @@ interface ComposeStudioBotActionFactory {
   /**
    * [DropdownAction] to list AI agent-based actions that are specific to a single preview. It's expected to be displayed in the context
    * menu.
+   *
+   * @param point The point where the context menu was triggered.
    */
-  fun previewAgentsDropDownAction(): DropDownAction
+  fun previewAgentsDropDownAction(point: java.awt.Point): DropDownAction
 
   /**
    * [DefaultActionGroup] to list AI agent-based actions that are specific to a single preview. It's expected to be displayed in overflow

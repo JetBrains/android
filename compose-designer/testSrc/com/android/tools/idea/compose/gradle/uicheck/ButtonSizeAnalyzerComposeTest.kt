@@ -23,6 +23,8 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintConfiguration
+import com.android.tools.idea.uibuilder.visual.visuallint.toVisualLintRenderResult
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
@@ -52,7 +54,11 @@ class ButtonSizeAnalyzerComposeTest {
     val file = renderResult.lightVirtualFile
     val nlModel =
       SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
-    val issues = ButtonSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
+    val issues =
+      ButtonSizeAnalyzer.findIssues(
+        renderResult = renderResult.result!!.toVisualLintRenderResult(),
+        configuration = nlModel.configuration.toVisualLintConfiguration(),
+      )
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("The button Button is too wide", issues[0].message)
   }
@@ -75,7 +81,11 @@ class ButtonSizeAnalyzerComposeTest {
     val file = renderResult.lightVirtualFile
     val nlModel =
       SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
-    val issues = ButtonSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
+    val issues =
+      ButtonSizeAnalyzer.findIssues(
+        renderResult = renderResult.result!!.toVisualLintRenderResult(),
+        configuration = nlModel.configuration.toVisualLintConfiguration(),
+      )
     Assert.assertEquals(0, issues.size)
   }
 }

@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener
 import com.android.tools.idea.device.explorer.common.DeviceExplorerTab
 import com.android.tools.idea.device.explorer.common.DeviceExplorerTabController
@@ -31,11 +30,13 @@ import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Compan
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import javax.swing.JComponent
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
@@ -47,7 +48,7 @@ class DeviceMonitorControllerImpl(
   private val deviceService: DeviceService,
 ) : Disposable, DeviceExplorerTabController {
 
-  private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
+  private val uiThreadScope = AndroidCoroutineScope(this, Dispatchers.EDT)
   private val setupJob = CompletableDeferred<Unit>()
   private val deviceServiceListener = ModelDeviceServiceListener()
   private val viewListener = ViewListener()

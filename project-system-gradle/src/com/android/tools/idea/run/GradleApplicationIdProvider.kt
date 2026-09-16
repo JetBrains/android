@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_TE
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getHolderModule
@@ -102,7 +101,7 @@ private constructor(
         PROJECT_TYPE_TEST ->
           getTestProjectTargetApplicationIdProvider(variant ?: throw ApkProvisionException("Cannot resolve test only project target"))
             ?.packageName
-        PROJECT_TYPE_INSTANTAPP -> getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
+        PROJECT_TYPE_INSTANTAPP -> getBaseFeatureApplicationIdProvider { null }.packageName
         PROJECT_TYPE_DYNAMIC_FEATURE ->
           getBaseFeatureApplicationIdProvider { DynamicAppUtils.getBaseFeature(it.module.getHolderModule()) }.packageName
         PROJECT_TYPE_APP -> basicVariant.applicationId.nullize()
@@ -110,7 +109,7 @@ private constructor(
         PROJECT_TYPE_FUSED_LIBRARY -> null
         PROJECT_TYPE_FEATURE ->
           if (androidModel.androidProject.isBaseSplit) androidModel.selectedVariant.mainArtifact.applicationId.nullize()
-          else getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
+          else getBaseFeatureApplicationIdProvider { null }.packageName
       }
     if (applicationId == null) {
       val errorMessage = "Could not get applicationId for ${androidFacet.module.name}. Project type: $projectType"

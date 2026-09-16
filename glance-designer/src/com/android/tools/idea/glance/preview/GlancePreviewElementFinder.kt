@@ -54,14 +54,14 @@ internal const val GLANCE_PREVIEW_ANNOTATION_FQN = "androidx.glance.preview.$GLA
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock private fun isGlancePreview(annotation: UAnnotation) = GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */) private fun isGlancePreview(annotation: UAnnotation) = GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
 
 /**
  * Returns true if the [UElement] is a `@Preview` annotation.
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock private fun UElement?.isGlancePreviewAnnotation() = (this as? UAnnotation)?.let { isGlancePreview(it) } == true
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */) private fun UElement?.isGlancePreviewAnnotation() = (this as? UAnnotation)?.let { isGlancePreview(it) } == true
 
 @Slow
 private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(uMethod: UMethod): PsiGlancePreviewElement? {
@@ -119,8 +119,8 @@ object AppWidgetPreviewElementFinder : GlancePreviewElementFinder()
  * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an annotation that is annotated with @Preview or
  * with other MultiPreview.
  */
-@RequiresReadLock
-@RequiresBackgroundThread
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
+@RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 fun isMultiPreviewAnnotation(annotation: UAnnotation) =
   !isGlancePreview(annotation) &&
     annotation.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME) != null &&

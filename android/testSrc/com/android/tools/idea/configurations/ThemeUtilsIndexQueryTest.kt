@@ -69,13 +69,14 @@ class ThemeUtilsIndexQueryTest {
   /**
    * Regression test for b/322507246.
    *
-   * [getAllActivityThemeNames] should not deadlock if called in the UI thread without the read lock.
+   * [getAllActivityThemeNames] should not deadlock if called in the UI thread without the read lock. (It is allowed to return incomplete
+   * data).
    */
   @Test
   fun testQueryDoesNotDeadlock() {
     DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {
       ApplicationManager.getApplication().invokeAndWait {
-        Truth.assertThat(facet.module.getAllActivityThemeNames()).containsExactly("@style/AppTheme")
+        Truth.assertThat(setOf("@style/AppTheme")).containsAllIn(facet.module.getAllActivityThemeNames())
       }
     }
   }

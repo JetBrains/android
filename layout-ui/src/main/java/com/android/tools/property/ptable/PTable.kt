@@ -16,6 +16,7 @@
 package com.android.tools.property.ptable
 
 import com.android.tools.property.ptable.impl.PTableImpl
+import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.Color
 import java.awt.Font
 import java.awt.event.MouseEvent
@@ -109,8 +110,18 @@ interface PTable {
       customToolTipHook: (MouseEvent) -> String? = { null },
       updatingUI: () -> Unit = {},
       nameColumnFraction: ColumnFraction = ColumnFraction(),
+      dataProvider: DataProvider? = null,
     ): PTable {
-      return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook, updatingUI, nameColumnFraction)
+      return PTableImpl(
+        tableModel,
+        context,
+        rendererProvider,
+        editorProvider,
+        customToolTipHook,
+        updatingUI,
+        nameColumnFraction,
+        dataProvider,
+      )
     }
   }
 }

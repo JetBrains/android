@@ -15,30 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.files
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.asContextElement
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
-
-/**
- * Executes the block in a write-safe scope in the current modality state.
- *
- * If this is called from a non-EDT thread, the "current" modality state cannot be observed, and thus directly using the uiThread context
- * results in the NON_MODAL state being used, preventing execution until modal dialogs complete (see [ModalityState.defaultModalityState]).
- *
- * Thus, this first uses [ModalityState.any()] to transfer control to the EDT, allowing us to access the current modality state, and then
- * invokes the block with that modality state.
- *
- * We cannot just stay in [ModalityState.any()], because accessing VFS, PSI, etc. is not allowed (see [ModalityState.any]).
- */
-suspend fun <T> withWriteSafeContextWithCurrentModality(block: suspend CoroutineScope.() -> T): T =
-  withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) { withContext(uiThread, block) }
 
 /** Cancels the current coroutine, then throws CancellationException to immediately start unwinding execution. */
 suspend fun cancelAndThrow(): Nothing = coroutineScope {

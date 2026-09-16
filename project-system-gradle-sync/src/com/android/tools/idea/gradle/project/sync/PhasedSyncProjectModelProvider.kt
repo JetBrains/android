@@ -110,8 +110,9 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                   val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
                   val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!
 
+                  val defaultVariantName = basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
                   val selectedVariantName =
-                    computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, androidDsl)
+                    computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, defaultVariantName)
                       ?: return@BuildAction null
 
                   val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = syncOptions.syncTestMode)
@@ -125,9 +126,9 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
                         androidProject,
                         modelVersions,
                         androidDsl,
-                        legacyAndroidGradlePluginProperties = null, // Is this actually needed now?
+                        legacyAndroidGradlePluginProperties = null, // Model shouldn't be fetched when using 8.0+, which is the case for phased sync
                         gradlePropertiesModel,
-                        defaultVariantName = null, // Is this actually needed now?
+                        defaultVariantName,
                       )
                       .let { it.exceptions.takeIf { it.isNotEmpty() }?.first()?.let { throw it } ?: it.ignoreExceptionsAndGet()!! }
                   gradleProject to
@@ -235,7 +236,7 @@ fun computeVariantNameToBeSynced(
   syncOptions: SyncActionOptions,
   moduleId: String,
   basicAndroidProject: BasicAndroidProject,
-  androidDsl: AndroidDsl,
+  defaultVariantName: String?,
 ): String? =
   when (syncOptions) {
     is SingleVariantSyncActionOptions ->
@@ -251,7 +252,7 @@ fun computeVariantNameToBeSynced(
           ?.also { LOG.debug("Picked selected variant from last sync $it for $moduleId") }
     else -> null
   } // default variant as specified by the build script (computation could still end up being null)
-  ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors).also {
+  ?: defaultVariantName.also {
       LOG.debug("Picked the default variant $it for $moduleId")
     }
 

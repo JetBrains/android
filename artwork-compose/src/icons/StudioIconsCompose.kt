@@ -989,6 +989,12 @@ object StudioIconsCompose {
           "/studio/icons/emulator/xr/glasses-button.svg",
           StudioIconsCompose.javaClass,
           ) // 16x16
+      val GlassesDisplay: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/emulator/xr/glasses-display.svg",
+          "/studio/icons/emulator/xr/glasses-display.svg",
+          StudioIconsCompose.javaClass
+        ) // 16x16
       val GlassesTouchbar: IntelliJIconKey =
         IntelliJIconKey(
           "/studio/icons/emulator/xr/glasses-touchbar.svg",
@@ -3916,6 +3922,30 @@ object StudioIconsCompose {
           "/studio/icons/shell/status-bar/essentials-mode.svg",
           "/studio/icons/shell/status-bar/essentials-mode.svg",
           StudioIconsCompose.javaClass,
+        ) // 16x16
+      val NepDefault: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/shell/status-bar/nep-default.svg",
+          "/studio/icons/shell/status-bar/nep-default.svg",
+          StudioIconsCompose.javaClass
+        ) // 16x16
+      val NepPause: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/shell/status-bar/nep-pause.svg",
+          "/studio/icons/shell/status-bar/nep-pause.svg",
+          StudioIconsCompose.javaClass
+        ) // 16x16
+      val NepRequest: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/shell/status-bar/nep-request.svg",
+          "/studio/icons/shell/status-bar/nep-request.svg",
+          StudioIconsCompose.javaClass
+        ) // 16x16
+      val NepUnavailable: IntelliJIconKey =
+        IntelliJIconKey(
+          "/studio/icons/shell/status-bar/nep-unavailable.svg",
+          "/studio/icons/shell/status-bar/nep-unavailable.svg",
+          StudioIconsCompose.javaClass
         ) // 16x16
     }
 

@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyId;
 import com.google.idea.blaze.android.projectsystem.BazelModuleSystem.BlazeRegisteredDependencyQueryId;
@@ -48,13 +47,10 @@ import com.intellij.openapi.editor.impl.LazyRangeMarkerFactoryImpl;
 import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -116,43 +112,6 @@ public class BazelModuleSystemTest extends BlazeTestCase {
     assertThat(id).isInstanceOf(BlazeUnknownRegisteredDependencyId.class);
     assertThat(((BlazeUnknownRegisteredDependencyId) id).id)
         .isEqualTo(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7);
-  }
-
-  @Test
-  public void testGetDesugaringConfigFilesWithoutLocators() throws Exception {
-    registerExtensionPoint(
-        DesugaringLibraryConfigFilesLocator.EP_NAME, DesugaringLibraryConfigFilesLocator.class);
-    assertThat(BazelModuleSystem.create(module).getDesugarLibraryConfigFilesKnown()).isFalse();
-    assertThat(BazelModuleSystem.create(module).getDesugarLibraryConfigFiles()).isEmpty();
-  }
-
-  @Test
-  public void testGetDesugaringConfigFiles() throws Exception {
-    ImmutableList<Path> desugaringFilePaths =
-        ImmutableList.of(Paths.get("a/a.json"), Paths.get("b/b.json"));
-    ExtensionPointImpl<DesugaringLibraryConfigFilesLocator> extensionPointImpl =
-        registerExtensionPoint(
-            DesugaringLibraryConfigFilesLocator.EP_NAME, DesugaringLibraryConfigFilesLocator.class);
-    extensionPointImpl.registerExtension(
-        new DesugaringLibraryConfigFilesLocator() {
-          @Override
-          public boolean getDesugarLibraryConfigFilesKnown() {
-            return true;
-          }
-
-          @Override
-          public ImmutableList<Path> getDesugarLibraryConfigFiles(Project project) {
-            return desugaringFilePaths;
-          }
-
-          @Override
-          public BuildSystemName buildSystem() {
-            return BuildSystemName.Blaze;
-          }
-        });
-    assertThat(BazelModuleSystem.create(module).getDesugarLibraryConfigFilesKnown()).isTrue();
-    assertThat(BazelModuleSystem.create(module).getDesugarLibraryConfigFiles())
-        .isEqualTo(desugaringFilePaths);
   }
 
   @Test

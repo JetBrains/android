@@ -45,6 +45,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl.RemoveRowsAction
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl.SetNullAction
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
+import com.android.tools.idea.sqlite.utils.findTable
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.toViewColumn
 import com.android.tools.idea.sqlite.utils.toViewColumns
@@ -477,7 +478,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
-    val sqliteTable = schema.tables.first()
+    val sqliteTable = schema.findTable("t1")
 
     val controller =
       TableController(
@@ -527,7 +528,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
-    val sqliteTable = schema.tables.first()
+    val sqliteTable = schema.findTable("t1")
 
     val controller =
       TableController(
@@ -577,7 +578,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
-    val sqliteTable = schema.tables.first()
+    val sqliteTable = schema.findTable("t1")
 
     val controller =
       TableController(
@@ -627,7 +628,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
-    val sqliteTable = schema.tables.first()
+    val sqliteTable = schema.findTable("t1")
 
     val controller =
       TableController(

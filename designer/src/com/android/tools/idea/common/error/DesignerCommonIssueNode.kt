@@ -47,8 +47,25 @@ import javax.swing.Icon
 
 /**
  * The issue node in [DesignerCommonIssuePanel]. The Tree architecture will be:
- * - DesignerCommonIssueRoot | |-- IssuedFileNode 1 | | -- IssueNode | | -- IssueNode | ... | |-- IssuedFileNode 2 | | -- IssueNode | | --
- *   IssueNode | ... | ... | |-- NoFileNode | -- IssueNode | -- IssueNode ...
+ * <pre>
+ * - DesignerCommonIssueRoot
+ *    |
+ *    |-- IssuedFileNode 1
+ *    |    | -- IssueNode
+ *    |    | -- IssueNode
+ *    |    ...
+ *    |
+ *    |-- IssuedFileNode 2
+ *    |    | -- IssueNode
+ *    |    | -- IssueNode
+ *    |    ...
+ *    | ...
+ *    |
+ *    |-- NoFileNode
+ *        | -- IssueNode
+ *        | -- IssueNode
+ *        ...
+ * </pre>
  */
 abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>?) :
   PresentableNodeDescriptor<DesignerCommonIssueNode>(project, parentDescriptor), LeafState.Supplier {

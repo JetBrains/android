@@ -328,7 +328,7 @@ open class LiveEditProjectMonitor(liveEditService: LiveEditService, private val 
     }
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   private fun getPsiInProject(file: VirtualFile): PsiFile? {
     // Ignore files in closed projects, deleted files, or read-only files.
     if (project.isDisposed || !file.isValid || !file.isWritable) {

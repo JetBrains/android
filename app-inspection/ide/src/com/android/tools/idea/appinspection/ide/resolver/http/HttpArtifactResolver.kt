@@ -25,13 +25,13 @@ import com.android.tools.idea.appinspection.ide.resolver.resolveExistsOrNull
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.sdk.StudioDownloader
 import com.intellij.util.io.createDirectories
 import java.io.IOException
 import java.net.URL
 import java.nio.file.Path
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class HttpArtifactResolver(
@@ -52,7 +52,7 @@ class HttpArtifactResolver(
       }
 
   private suspend fun downloadLibrary(targetDir: Path, artifactCoordinate: RunningArtifactCoordinate) =
-    withContext(AndroidDispatchers.diskIoThread) {
+    withContext(Dispatchers.IO) {
       try {
         val targetPath = targetDir.resolve(artifactCoordinate.fileName)
         downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), targetPath, null, ConsoleProgressIndicator())

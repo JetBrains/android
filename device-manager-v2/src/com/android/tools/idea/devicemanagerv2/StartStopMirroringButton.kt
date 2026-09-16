@@ -17,14 +17,15 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.adtui.categorytable.IconButton
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -40,7 +41,7 @@ internal class StartStopMirroringButton(private val deviceHandle: DeviceHandle, 
 
     deviceHandle.scope.launch {
       val mirroringHandles = project.service<MirroringManager>().mirroringHandles
-      mirroringHandles.collect { handles -> withContext(uiThread) { updateMirroring(handles[deviceHandle]) } }
+      mirroringHandles.collect { handles -> withContext(Dispatchers.EDT) { updateMirroring(handles[deviceHandle]) } }
     }
   }
 

@@ -15,33 +15,17 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE;
-import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_DIALOG_SHOWN;
-
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.ExperimentalConfigurable;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior;
-import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AutoSyncSettingChangeEvent;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import java.awt.Insets;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -54,8 +38,6 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
   private JCheckBox myShowAgpVersionChooserInNewProjectWizard;
   private JPanel myPanel;
-  private JComboBox<AutoSyncBehavior> autoSyncBehaviorComboBox;
-  private JLabel autoSyncSnoozeNote;
 
   @NotNull private final GradleExperimentalSettings mySettings;
 
@@ -72,13 +54,6 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
     myUseMultiVariantExtraArtifacts.setVisible(StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get());
     myShowAgpVersionChooserInNewProjectWizard.setVisible(StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get());
-    autoSyncBehaviorComboBox.setModel(new EnumComboBoxModel<>(AutoSyncBehavior.class));
-    autoSyncBehaviorComboBox.setRenderer(
-      BuilderKt.textListCellRenderer("", behavior -> AndroidBundle.message(behavior.getLabelBundleKey())));
-    boolean showAutoSyncControlInExperimentalSettings =
-      StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get() && !StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI.get();
-    autoSyncBehaviorComboBox.getParent().setVisible(showAutoSyncControlInExperimentalSettings);
-    autoSyncSnoozeNote.setText(SyncDueMessage.INSTANCE.getSnoozedProjectsSummaryNote());
     reset();
   }
 
@@ -95,8 +70,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
            mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
-           mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD != isShowAgpVersionChooserInNewProjectWizard() ||
-           AutoSyncSettingStore.INSTANCE.getAutoSyncBehavior() != getAutoSyncBehaviorComboBox();
+           mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD != isShowAgpVersionChooserInNewProjectWizard();
   }
 
   @Override
@@ -107,17 +81,6 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
     mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = isShowAgpVersionChooserInNewProjectWizard();
-    // todo b/422742936 cleanup
-    if (AutoSyncSettingStore.INSTANCE.getAutoSyncBehavior() != getAutoSyncBehaviorComboBox()) {
-      AutoSyncSettingStore.INSTANCE.setAutoSyncBehavior(getAutoSyncBehaviorComboBox());
-      trackAutoSyncSettingChanged();
-      clearAutoSyncVariables();
-      autoSyncSnoozeNote.setText(SyncDueMessage.INSTANCE.getSnoozedProjectsSummaryNote());
-      if (getAutoSyncBehaviorComboBox() == AutoSyncBehavior.Default) {
-        SyncDueMessage.INSTANCE.getProjectsWhereSyncIsDue().forEach(project -> GradleSyncInvoker.getInstance()
-          .requestProjectSync(project, new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST), null));
-      }
-    }
   }
 
   @Override
@@ -128,9 +91,6 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     myShowAgpVersionChooserInNewProjectWizard.setSelected(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
-    autoSyncBehaviorComboBox.setSelectedIndex(
-      AutoSyncBehavior.getEntries().indexOf(AutoSyncSettingStore.INSTANCE.getAutoSyncBehavior()));
-    autoSyncSnoozeNote.setText(SyncDueMessage.INSTANCE.getSnoozedProjectsSummaryNote());
   }
 
   @VisibleForTesting
@@ -188,31 +148,6 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myShowAgpVersionChooserInNewProjectWizard.setSelected(value);
   }
 
-  AutoSyncBehavior getAutoSyncBehaviorComboBox() {
-    return (AutoSyncBehavior)autoSyncBehaviorComboBox.getSelectedItem();
-  }
-
-  /**
-   * Clears snooze and first dialog flags that are used by Optional Auto Sync feature.
-   */
-  private void clearAutoSyncVariables() {
-    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE);
-    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN);
-  }
-
-  private void trackAutoSyncSettingChanged() {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.AUTO_SYNC_SETTING_CHANGE)
-        .setAutoSyncSettingChangeEvent(
-          AutoSyncSettingChangeEvent.newBuilder()
-            .setState(getAutoSyncBehaviorComboBox() == AutoSyncBehavior.Default)
-            .setChangeSource(AutoSyncSettingChangeEvent.ChangeSource.SETTINGS)
-            .build()
-        )
-    );
-  }
-
   private void setupUI() {
     myPanel = new JPanel();
     myPanel.setLayout(new GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
@@ -253,31 +188,5 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
                 new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    final JPanel panel1 = new JPanel();
-    panel1.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myPanel.add(panel1, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null,
-                                            0, false));
-    autoSyncSnoozeNote = new JLabel();
-    panel1.add(autoSyncSnoozeNote, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                                             GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                             null, null, 0, false));
-
-    autoSyncBehaviorComboBox = new JComboBox();
-    autoSyncBehaviorComboBox.setToolTipText("");
-    panel1.add(autoSyncBehaviorComboBox, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                                             GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                             null, null, 0, false));
-    final JLabel label1 = new JLabel();
-    label1.setText("Project Sync mode");
-    panel1.add(label1,
-               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-
-    autoSyncSnoozeNote = new JLabel();
-    panel1.add(autoSyncSnoozeNote, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
-                                                       GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                       null, null, 0, false));
   }
 }

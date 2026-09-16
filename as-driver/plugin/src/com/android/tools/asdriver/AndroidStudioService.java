@@ -100,6 +100,9 @@ import kotlin.coroutines.EmptyCoroutineContext;
 import kotlinx.coroutines.BuildersKt;
 import org.jetbrains.annotations.Nullable;
 
+import com.jetbrains.performancePlugin.jmxDriver.InvokerService;
+import javax.management.JMException;
+
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
   private static BleakOptions bleakOptions = StudioBleakOptions.getDefaults();
@@ -107,6 +110,22 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   static public void start() {
     ServerBuilder<?> builder = NettyServerBuilder.forAddress(new InetSocketAddress("localhost", 0));
     builder.addService(new AndroidStudioService());
+    InvokerService invokerService = InvokerService.getInstance();
+
+    if (!invokerService.isReady()) {
+      try {
+        invokerService.register(
+          () -> null,
+          () -> null,
+          (path) -> null
+        );
+      } catch (JMException e) {
+        System.err.println("Failed to register InvokerService: " + e.getMessage());
+        e.printStackTrace();
+
+        throw new RuntimeException("Error during InvokerService registration", e);
+      }
+    }
     Server server = builder.build();
 
     new Thread(() -> {
@@ -891,6 +910,30 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     responseObserver.onCompleted();
   }
 
+  /**
+   * Searches for a component matching the provided XPath and invokes it.
+   *
+   * @param request Request containing xpath to invoke component.
+   * @param responseObserver Default gRPC response observer.
+   */
+  @Override
+  public void invokeComponentByXpath(ASDriver.InvokeComponentByXpathRequest request, StreamObserver<ASDriver.InvokeComponentByXpathResponse> responseObserver) {
+    ASDriver.InvokeComponentByXpathResponse.Builder builder = ASDriver.InvokeComponentByXpathResponse.newBuilder();
+    try {
+      StudioInteractionService studioInteractionService = new StudioInteractionService();
+      studioInteractionService.invokeComponentByXpath(request.getXpath());
+      builder.setResult(ASDriver.InvokeComponentByXpathResponse.Result.OK);
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      builder.setResult(ASDriver.InvokeComponentByXpathResponse.Result.ERROR);
+      if (!StringUtil.isEmpty(e.getMessage())) {
+        builder.setErrorMessage(e.getMessage());
+      }
+    }
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
   private List<ASDriver.ComponentMatcher> createExactTextComponentMatcher(String text) {
     return List.of(
       ASDriver.ComponentMatcher.newBuilder()

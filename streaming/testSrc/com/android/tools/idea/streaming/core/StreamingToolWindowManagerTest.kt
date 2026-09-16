@@ -29,7 +29,6 @@ import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.testing.LightweightDeviceProvisionerRule
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.createTestEvent
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.actions.updateAndGetActionPresentation
@@ -136,7 +135,7 @@ class StreamingToolWindowManagerTest {
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private val toolWindow: FakeToolWindow by lazy {
-    createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, project, testRootDisposable)
+    createFakeToolWindow(project, testRootDisposable, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, windowFactory)
   }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
@@ -877,6 +876,38 @@ class StreamingToolWindowManagerTest {
       assertThat(it.isVisible).isFalse()
       assertThat(it.isEnabled).isFalse()
     }
+  }
+
+  @Test
+  fun testUserInvolvementRequiredTwoDevices() {
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val tempFolder = emulatorRule.avdRoot
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createAiGlassesAvd(tempFolder))
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+
+    toolWindow.show()
+    emulator1.start(standalone = false)
+    emulator2.start(standalone = false)
+
+    val runningEmulatorCatalog = RunningEmulatorCatalog.getInstance()
+    runBlocking { runningEmulatorCatalog.updateNow().await() }
+
+    waitForCondition(2.seconds) { contentManager.contents.size == 2 }
+    val content1 = contentManager.contents[0]
+    val content2 = contentManager.contents[1]
+    assertThat(content1.isSelected xor content2.isSelected).isTrue()
+    assertThat(content1.manager == content2.manager).isTrue()
+
+    project.messageBus
+      .syncPublisher(DeviceHeadsUpListener.TOPIC)
+      .userInvolvementRequired(emulator1.serialNumber, emulator2.serialNumber, project)
+    dispatchAllInvocationEvents()
+
+    assertThat(content1.isSelected).isTrue()
+    assertThat(content2.isSelected).isTrue()
+    assertThat(content1.manager == content2.manager).isFalse()
   }
 
   private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): UInt {

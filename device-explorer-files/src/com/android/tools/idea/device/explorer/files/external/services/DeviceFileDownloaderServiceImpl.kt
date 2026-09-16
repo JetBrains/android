@@ -17,7 +17,6 @@ package com.android.tools.idea.device.explorer.files.external.services
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AdbCommandRejectedException
-import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
@@ -30,6 +29,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.NonInjectable
 import java.nio.file.Path
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -79,7 +79,7 @@ constructor(private val deviceFileSystemManager: DeviceFileSystemManager, privat
   ): Map<String, VirtualFile> {
     val entries = mapPathsToEntries(deviceFileSystem, onDevicePaths)
     val entryToDeferredFile =
-      withContext(diskIoThread) {
+      withContext(Dispatchers.IO) {
         entries.associate { entry ->
           val localPath = fileManager.getPathForEntry(entry, localDestinationDirectory)
           FileUtils.mkdirs(localPath.parent.toFile())

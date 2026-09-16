@@ -85,6 +85,6 @@ internal object PreviewAnnotationCheck {
   }
 }
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 private fun hasValidTarget(annotation: UAnnotation) =
   annotation.getContainingComposableUMethod() != null || (annotation.getContainingUClass()?.isAnnotationType == true)

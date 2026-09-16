@@ -27,6 +27,8 @@ import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConvert
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.projectsystem.RegisteredDependencyId;
+import com.android.tools.idea.projectsystem.RegisteredDependencyQueryId;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
@@ -48,6 +50,7 @@ import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.Pro
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
@@ -80,7 +83,17 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
+import com.android.tools.idea.projectsystem.DependencyType;
+import com.android.tools.idea.util.DependencyConfirmationDialog;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.command.WriteCommandAction;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
@@ -209,21 +222,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
     });
     return true;
-  }
-
-  @Override
-  public boolean openFileFromEventStream(@NotNull EventStreamServer eventStreamServer, @NotNull String byteId) {
-    String filePath = eventStreamServer.getFilePathCache().get(byteId);
-    if (filePath == null) {
-      return false;
-    }
-    File file = new File(filePath);
-    if (!file.exists()) {
-      getLogger().warn("File does not exist at path: " + filePath);
-      return false;
-    }
-    // openFile handles the ApplicationManager.invokeLater() internally.
-    return openTraceFile(file);
   }
 
   @NotNull
@@ -408,7 +406,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     if (runManager != null) {
       RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
       if (configurationSettings != null &&
-          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
+          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase) {
+        AndroidRunConfigurationBase androidConfiguration = (AndroidRunConfigurationBase)configurationSettings.getConfiguration();
         ProfilerState profilerState = androidConfiguration.getProfilerState();
         // Disable/reset all startup profiling configurations before setting one.
         profilerState.disableStartupProfiling();
@@ -445,6 +444,112 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       });
   }
 
+  @NotNull
+  @Override
+  public CompletableFuture<Boolean> addDependency(@NotNull GoogleMavenArtifactId artifact, @NotNull DependencyType dependencyType) {
+    CompletableFuture<Boolean> future = new CompletableFuture<>();
+    ApplicationManager.getApplication().invokeLater(() -> {
+      AndroidRunConfigurationBase androidConfiguration = getAndroidRunConfiguration();
+      Module module = androidConfiguration != null ? androidConfiguration.getConfigurationModule().getModule() : null;
+
+      if (module != null && canRegisterDependency(module)) {
+        if (!isDependencyPresent(module, artifact)) {
+          addDependencyWithConfirmationDialog(module, artifact, dependencyType, future);
+        } else {
+          future.complete(true);
+        }
+      } else {
+        future.complete(false);
+      }
+    });
+    return future;
+  }
+
+  @Nullable
+  private AndroidRunConfigurationBase getAndroidRunConfiguration() {
+    RunManager runManager = RunManager.getInstance(myProject);
+    if (runManager != null) {
+      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+      if (configurationSettings != null &&
+          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
+        return androidConfiguration;
+      }
+    }
+    return null;
+  }
+
+  private boolean canRegisterDependency(@NotNull Module module) {
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    return moduleSystem.getRegisteringModuleSystem() != null;
+  }
+
+  private boolean isDependencyPresent(@NotNull Module module, @NotNull GoogleMavenArtifactId artifact) {
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    try {
+      return moduleSystem.hasResolvedDependency(artifact);
+    }
+    catch (Exception e) {
+      getLogger().warn("Failed to check for resolved dependency", e);
+    }
+    return false;
+  }
+
+  /**
+   * Shows a confirmation dialog to the user before adding a dependency.
+   * Uses {@link DependencyConfirmationDialog} which mimics the Firebase assistant UI.
+   */
+  private void addDependencyWithConfirmationDialog(Module module, GoogleMavenArtifactId artifact, DependencyType dependencyType, CompletableFuture<Boolean> future) {
+    if (showConfirmationDialog(module, artifact, dependencyType)) {
+      try {
+        AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+        RegisteringModuleSystem<@NotNull RegisteredDependencyQueryId, @NotNull RegisteredDependencyId> registeringModuleSystem =
+            moduleSystem.getRegisteringModuleSystem();
+        if (registeringModuleSystem != null) {
+
+          WriteCommandAction.runWriteCommandAction(myProject, "Add " + artifact.toString(), null, () -> {
+            registeringModuleSystem.registerDependency(artifact, dependencyType);
+          });
+
+          ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
+          ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = syncManager.requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+
+          syncResult.addListener(() -> {
+            try {
+              future.complete(syncResult.get().isSuccessful());
+            }
+            catch (Exception e) {
+              getLogger().warn("Sync failed or interrupted", e);
+              AndroidNotification.getInstance(myProject).showBalloon(
+                "LeakCanary",
+                "Failed to sync project after adding " + artifact + " dependency.",
+                NotificationType.WARNING
+              );
+              future.complete(false);
+            }
+          }, command -> command.run());
+        } else {
+          future.complete(false);
+        }
+      }
+      catch (Exception e) {
+        getLogger().error(e);
+        AndroidNotification.getInstance(myProject).showBalloon(
+            "LeakCanary",
+            "Failed to add dependency: " + e.getMessage(),
+            NotificationType.WARNING
+        );
+        future.complete(false);
+      }
+    } else {
+      future.complete(false);
+    }
+  }
+  @VisibleForTesting
+  protected boolean showConfirmationDialog(Module module, GoogleMavenArtifactId artifact, DependencyType dependencyType) {
+    DependencyConfirmationDialog dialog = new DependencyConfirmationDialog(myProject, module, artifact, dependencyType);
+    return dialog.showAndGet();
+  }
+
   @Override
   public int getNativeAllocationsMemorySamplingRate() {
 
@@ -454,10 +559,13 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       return configsState.getNativeAllocationsConfigForTaskConfig().getSamplingRateBytes();
     }
 
-    RunnerAndConfigurationSettings settings = RunManager.getInstance(myProject).getSelectedConfiguration();
-    if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
-      AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)settings.getConfiguration();
-      return runConfig.getProfilerState().NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+    RunManager runManager = RunManager.getInstance(myProject);
+    if (runManager != null) {
+      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+      if (configurationSettings != null && configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase) {
+        AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configurationSettings.getConfiguration();
+        return runConfig.getProfilerState().NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+      }
     }
     return ProfilerState.DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES;
   }
@@ -504,12 +612,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) {
     ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, device);
-  }
-
-  @NotNull
-  @Override
-  public String getProjectHomeHash() {
-    return Integer.toHexString(myProject.getLocationHash().hashCode());
   }
 
   /**

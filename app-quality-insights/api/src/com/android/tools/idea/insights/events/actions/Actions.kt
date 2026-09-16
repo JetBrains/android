@@ -131,8 +131,13 @@ sealed class Action {
   }
 
   /** Fetch AI generated insight */
-  data class FetchInsight(override val id: IssueId, val variantId: String?, val issueFatality: FailureType, val event: Event) :
-    IssueAction() {
+  data class FetchInsight(
+    override val id: IssueId,
+    val variantId: String?,
+    val issueFatality: FailureType,
+    val event: Event,
+    val forceGenerateNewInsight: Boolean = false,
+  ) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) = cancelIf(reasons) { it is FetchInsight || shouldCancelFetch(it) }
   }
 

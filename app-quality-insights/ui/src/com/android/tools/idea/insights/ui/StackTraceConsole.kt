@@ -17,7 +17,6 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.connection.Connection
@@ -42,6 +41,7 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.isDefaultForTheme
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.event.EditorMouseEvent
@@ -60,6 +60,7 @@ import java.awt.CardLayout
 import java.awt.Graphics
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -160,7 +161,7 @@ class StackTraceConsole(
     stackTraceConsoleState
       .filterNot { it.issue == null || it.event == null }
       .onEach { printStack(it.issue!!, it.event!!, it.connection, consoleView) }
-      .flowOn(AndroidDispatchers.uiThread)
+      .flowOn(Dispatchers.EDT)
       .launchIn(scope)
 
     project.messageBus

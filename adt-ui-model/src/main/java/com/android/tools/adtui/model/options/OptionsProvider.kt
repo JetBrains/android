@@ -43,8 +43,14 @@ data class PropertyInfo(val provider: OptionsProvider, val methodName: String) {
 
   /**
    * Group used to bucket like properties together. The {@link DEFAULT_GROUP} does not create a grouping instead acts as an empty group. Eg
-   * For two groups ("Trace", "Other") the UI may look like the following. Trace ------------- Name: [ ] Sample Rate: [ 100] Other
-   * ---------- [x] live allocation tracking
+   * For two groups ("Trace", "Other") the UI may look like the following.
+   * <pre>
+   * Trace -------------
+   * Name:        [        ]
+   * Sample Rate: [     100]
+   * Other ----------
+   *  [x] live allocation tracking
+   *  </pre>
    */
   var group: String = DEFAULT_GROUP
 

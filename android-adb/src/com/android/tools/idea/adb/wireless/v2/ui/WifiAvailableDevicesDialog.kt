@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -28,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -49,6 +51,7 @@ import com.android.adblib.MdnsTlsService
 import com.android.adblib.MdnsTrackServiceInfo
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
+import com.android.tools.adtui.compose.LingeringTooltip
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.adtui.compose.table.RowFilter
 import com.android.tools.adtui.compose.table.Table
@@ -60,6 +63,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.Urls
 import com.android.tools.idea.adb.wireless.WiFiPairingService
+import com.android.tools.idea.adb.wireless.isAdbVersionTooLow
 import com.android.tools.idea.adb.wireless.needsUpdate
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.SearchBar
@@ -89,7 +93,6 @@ import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
@@ -105,22 +108,28 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
 
   private val dialog: SimpleDialog
   private val model = WifiPairableDeviceModel()
+  private var refreshKey by mutableIntStateOf(0)
 
   private val panelPreferredSize: JBDimension
-    get() = JBDimension(700, 600)
+    get() = JBDimension(700, 650)
 
   private val rootView: JComponent = StudioComposePanel { WifiDialog() }
 
   @Composable
   internal fun WifiDialog() {
     val state by
-      produceState<MdnsSupportState?>(null) {
+      produceState<MdnsSupportState?>(null, refreshKey) {
         val supportState = wifiPairingService.checkMdnsSupport()
         if (supportState != MdnsSupportState.Supported) {
           value = supportState
           return@produceState
         }
         if (!wifiPairingService.isTrackMdnsServiceAvailable()) {
+          value = MdnsSupportState.AdbVersionTooLow
+          return@produceState
+        }
+        val adbVersion = wifiPairingService.getAdbVersion()
+        if (isAdbVersionTooLow(adbVersion)) {
           value = MdnsSupportState.AdbVersionTooLow
           return@produceState
         }
@@ -150,6 +159,7 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
               "Please update to the latest version of \"platform-tools\" using the SDK manager.",
             ),
           links = listOf(Urls.openSdkManager to "Open SDK Manager", Urls.learnMore to "Learn more"),
+          onRefresh = { refreshKey++ },
         )
       MdnsSupportState.AdbVersionTooLow ->
         ErrorStateDisplay(
@@ -160,12 +170,14 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
               "Please update to the latest version of \"platform-tools\" using the SDK manager.",
             ),
           links = listOf(Urls.openSdkManager to "Open SDK Manager", Urls.learnMore to "Learn more"),
+          onRefresh = { refreshKey++ },
         )
       MdnsSupportState.AdbInvocationError ->
         ErrorStateDisplay(
           title = "ADB Invocation Error",
           messages = listOf("There was an unexpected error during Wi-Fi pairing initialization."),
           links = listOf(Urls.learnMore to "Learn more"),
+          onRefresh = { refreshKey++ },
         )
       MdnsSupportState.AdbDisabled ->
         ErrorStateDisplay(
@@ -177,6 +189,7 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
               "2. Make sure you are not using a manually managed ADB server.",
             ),
           links = listOf(Urls.openAdbSettings to "Open ADB Settings", Urls.learnMore to "Learn more"),
+          onRefresh = { refreshKey++ },
         )
     }
   }
@@ -235,36 +248,42 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
   }
 
   @Composable
-  private fun ErrorStateDisplay(title: String, messages: List<String>, links: List<Pair<String, String>>) {
+  private fun ErrorStateDisplay(title: String, messages: List<String>, links: List<Pair<String, String>>, onRefresh: (() -> Unit)? = null) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-      Text(
-        buildAnnotatedString {
-          pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
-          append(title)
-          pop()
-          appendLine()
-          appendLine()
-
-          messages.forEach { message ->
-            append(message)
+      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+          buildAnnotatedString {
+            pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+            append(title)
+            pop()
             appendLine()
-          }
-          appendLine()
+            appendLine()
 
-          links.forEach { (url, text) ->
-            withLink(
-              LinkAnnotation.Url(
-                url = url,
-                styles = TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
-                linkInteractionListener = { WifiPairingLinkHandler.handleLinkActivation(url) },
-              )
-            ) {
-              append(text)
+            messages.forEach { message ->
+              append(message)
+              appendLine()
             }
             appendLine()
+
+            links.forEach { (url, text) ->
+              withLink(
+                LinkAnnotation.Url(
+                  url = url,
+                  styles = TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
+                  linkInteractionListener = { WifiPairingLinkHandler.handleLinkActivation(url) },
+                )
+              ) {
+                append(text)
+              }
+              appendLine()
+            }
           }
+        )
+        if (onRefresh != null) {
+          Spacer(Modifier.height(16.dp))
+          OutlinedButton(onClick = onRefresh) { Text("Refresh") }
         }
-      )
+      }
     }
   }
 
@@ -356,23 +375,49 @@ class WifiAvailableDevicesDialog(private val project: Project, private val wifiP
 
   private val columns =
     listOf<TableColumn<MdnsTlsService>>(
-      TableColumn<MdnsTlsService>("", TableColumnWidth.Fixed(16.dp)) { device, _ ->
-        if (device.service.needsUpdate()) {
-          Tooltip(
-            tooltip = { Text("Check for device software updates to improve Wi-Fi pairing.") },
-            modifier = Modifier.testTag(WARNING_TOOLTIP_TEST_TAG),
-          ) {
-            Icon(StudioIconsCompose.Common.Warning, contentDescription = "device needs update warning icon")
+      TableColumn<MdnsTlsService>("Name", TableColumnWidth.Weighted(2f)) { device, _ ->
+        Text(text = buildDeviceNameOrPlaceholder(device.service), maxLines = 2)
+      },
+      TableColumn<MdnsTlsService>("ADB Wi-Fi", TableColumnWidth.Weighted(1f)) { device, _ ->
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(text = device.service.getMdnsServiceVersion())
+          if (device.service.needsUpdate()) {
+            Spacer(Modifier.width(4.dp))
+            LingeringTooltip(
+              tooltip = {
+                Column(Modifier.width(300.dp)) {
+                  Text("ADB Wi-Fi 1.0 Device", fontWeight = FontWeight.Bold)
+                  Spacer(Modifier.height(8.dp))
+                  Text(
+                    "ADB Wi-Fi v1.0 has limited pairing capability. Update device to the latest API to use ADB Wi-Fi 2.0 or higher. Note: Some hardware may not support the latest API version."
+                  )
+                  Spacer(Modifier.height(8.dp))
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                      buildAnnotatedString {
+                        withLink(
+                          LinkAnnotation.Url(
+                            url = Urls.learnMore,
+                            styles = TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
+                            linkInteractionListener = { WifiPairingLinkHandler.handleLinkActivation(Urls.learnMore) },
+                          )
+                        ) {
+                          append("Learn More")
+                        }
+                      }
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Icon(AllIconsKeys.Ide.External_link_arrow, contentDescription = "Learn More")
+                  }
+                }
+              },
+              modifier = Modifier.testTag(WARNING_TOOLTIP_TEST_TAG),
+            ) {
+              Icon(StudioIconsCompose.Common.Warning, contentDescription = "device needs update warning icon")
+            }
           }
         }
       },
-      TableTextColumn<MdnsTlsService>(
-        "Name",
-        TableColumnWidth.Weighted(2f),
-        attribute = { buildDeviceNameOrPlaceholder(it.service) },
-        maxLines = 2,
-      ),
-      TableTextColumn<MdnsTlsService>("ADB Wi-Fi", attribute = { it.service.getMdnsServiceVersion() }),
       TableTextColumn("IP Address & Port", TableColumnWidth.Weighted(2f), attribute = { "${it.service.ipv4}:${it.service.port}" }),
       TableTextColumn<MdnsTlsService>("API", attribute = { it.service.buildVersionSdkFull.takeUnless { it.isNullOrEmpty() } ?: "Unknown" }),
       TableColumn("", TableColumnWidth.Weighted(1f)) { device, _ ->

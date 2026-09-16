@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.dialogs
 
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -52,7 +51,6 @@ import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.UIUtil
-import java.nio.file.Path
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import javax.swing.Icon
@@ -79,8 +77,9 @@ class ManageSnapshotsDialogTest {
   private val emulatorViewRule = EmulatorViewRule()
   private val headlessDialogRule = HeadlessDialogRule()
   private val timeoutRule = Timeout.builder().withTimeout(60, SECONDS).withLookingForStuckThread(true).build()
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/ManageSnapshotsDialogTest/golden")
 
-  @get:Rule val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule(), headlessDialogRule)
+  @get:Rule val ruleChain = RuleChain(timeoutRule, emulatorViewRule, goldenImageRule, EdtRule(), headlessDialogRule)
   @get:Rule val portableUiFontRule = PortableUiFontRule()
 
   private lateinit var emulator: FakeEmulator
@@ -161,7 +160,9 @@ class ManageSnapshotsDialogTest {
     assertThat(findPreviewImagePanel(ui)?.isVisible).isTrue()
     assertThat(findPreviewImagePanel(ui)?.image).isNotNull()
     ui.layout()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile("SnapshotPreview"), ui.render(findPreviewImagePanel(ui)!!), 0.0)
+    // The image is slightly taller on Mac due to a slight layout difference.
+    val platformSuffix = if (UIUtil.isRetina()) "_Mac" else ""
+    goldenImageRule.assertImageSimilar("SnapshotPreview$platformSuffix", ui.render(findPreviewImagePanel(ui)!!), 0.0)
     assertThat(snapshotDetailsPanel.isVisible).isTrue()
 
     assertThat(isPresentationEnabled(getLoadSnapshotAction(actionsPanel))).isTrue()
@@ -545,13 +546,6 @@ class ManageSnapshotsDialogTest {
       contextComponent = savedContextComponent
     }
   }
-
-  @Suppress("SameParameterValue")
-  private fun getGoldenFile(name: String): Path {
-    // The image is slightly taller on Mac due to a slight layout difference.
-    val platformSuffix = if (UIUtil.isRetina()) "_Mac" else ""
-    return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/$name$platformSuffix.png")
-  }
 }
 
 private class LoadingPanelListener : JBLoadingPanelListener {
@@ -569,8 +563,6 @@ private class LoadingPanelListener : JBLoadingPanelListener {
 
 private const val SNAPSHOT_NAME_COLUMN_INDEX = 0
 private const val USE_TO_BOOT_COLUMN_INDEX = 3
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/ManageSnapshotsDialogTest/golden"
 
 val GRPC_CALL_FILTER =
   DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamClipboard")

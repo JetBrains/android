@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.concurrency
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
@@ -41,7 +39,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter
 import com.intellij.util.concurrency.AppExecutorUtil
-import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -76,49 +73,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.annotations.VisibleForTesting
 
-/** [CoroutineDispatcher]s equivalent to executors defined in [AndroidExecutors]. */
-object AndroidDispatchers {
-  /**
-   * [CoroutineDispatcher] that dispatches to the UI thread with [ModalityState.defaultModalityState].
-   *
-   * @see AndroidExecutors.uiThreadExecutor
-   */
-  @Deprecated(
-    "Prefer using Dispatchers.EDT. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
-    replaceWith =
-      ReplaceWith(expression = "Dispatchers.EDT", imports = ["kotlinx.coroutines.Dispatchers", "com.intellij.openapi.application.EDT"]),
-  )
-  val uiThread: CoroutineDispatcher
-    get() =
-      Executor { block -> AndroidExecutors.getInstance().uiThreadExecutor(ModalityState.defaultModalityState(), block) }
-        .asCoroutineDispatcher()
-
-  /**
-   * [CoroutineDispatcher] that dispatches to a background worker thread.
-   *
-   * @see AndroidExecutors.workerThreadExecutor
-   */
-  @Deprecated(
-    "Prefer using Dispatchers.Default. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
-    replaceWith = ReplaceWith(expression = "Dispatchers.Default", imports = ["kotlinx.coroutines.Dispatchers"]),
-  )
-  val workerThread: CoroutineDispatcher
-    get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
-
-  /**
-   * [CoroutineDispatcher] that dispatches to a disk IO thread. Please notice that the disk IO thread pool is very limited and should not be
-   * used for anything except local disk IO. For socket IO and inter-process communication please use [kotlinx.coroutines.Dispatchers.IO].
-   *
-   * @see AndroidExecutors.diskIoThreadExecutor
-   */
-  @Deprecated(
-    "Prefer using Dispatchers.IO. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
-    replaceWith = ReplaceWith(expression = "Dispatchers.IO", imports = ["kotlinx.coroutines.Dispatchers"]),
-  )
-  val diskIoThread: CoroutineDispatcher
-    get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
-}
-
 private val LOG: Logger
   get() = Logger.getInstance("com.android.tools.idea.concurrency.CoroutinesUtils.kt")
 
@@ -149,7 +103,7 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
  * @see androidCoroutineExceptionHandler
  */
 fun Disposable.createCoroutineScope(
-  dispatcher: CoroutineDispatcher = Dispatchers.Default,
+  dispatcher: CoroutineContext = Dispatchers.Default,
   extraContext: CoroutineContext = EmptyCoroutineContext,
 ): CoroutineScope {
   val job = SupervisorJob()
@@ -166,7 +120,7 @@ fun SupervisorJob(disposable: Disposable): Job {
 /**
  * Returns a [CoroutineScope] containing:
  * - a [SupervisorJob] tied to the [Disposable] lifecycle of [disposable]
- * - [AndroidDispatchers.workerThread]
+ * - [Dispatchers.Default]
  * - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
  *
  * The optional [context] parameter can be used to override the [Job], [CoroutineDispatcher] and [CoroutineExceptionHandler] of the
@@ -181,7 +135,7 @@ fun SupervisorJob(disposable: Disposable): Job {
 )
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
-  return CoroutineScope(SupervisorJob() + workerThread + androidCoroutineExceptionHandler + context).apply {
+  return CoroutineScope(SupervisorJob() + Dispatchers.Default + androidCoroutineExceptionHandler + context).apply {
     cancelJobOnDispose(disposable, coroutineContext.job)
   }
 }
@@ -276,7 +230,7 @@ fun CoroutineScope.launchWithProgress(
     return scope.isActive
   }
 
-  scope.launch(workerThread) {
+  scope.launch(Dispatchers.Default) {
     while (checkProgressIndicatorState()) {
       delay(500)
     }
@@ -489,7 +443,7 @@ fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger
         },
       )
 
-    onConnected?.let { launch(workerThread) { it() } }
+    onConnected?.let { launch(Dispatchers.Default) { it() } }
 
     val isInDumbMode = DumbService.getInstance(project).isDumb
     logger?.debug { "SmartModeFlow setup complete wasInDumbMode=${wasInDumbMode.get()} isInDumbMode=${isInDumbMode}" }
@@ -520,7 +474,7 @@ fun psiFileChangeFlow(
         this.disposable,
       )
 
-      onConnected?.let { onConnected -> launch(workerThread) { onConnected() } }
+      onConnected?.let { onConnected -> launch(Dispatchers.Default) { onConnected() } }
     }
     // Avoid repeated change events for no modifications
     .distinctUntilChangedBy { psiManager.modificationTracker.modificationCount }

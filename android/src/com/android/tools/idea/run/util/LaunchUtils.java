@@ -15,30 +15,22 @@
  */
 package com.android.tools.idea.run.util;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
-import static com.android.xml.AndroidManifest.ATTRIBUTE_REQUIRED;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.android.tools.idea.model.AndroidManifestIndex;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
-import com.intellij.openapi.progress.ProgressManager;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
 
 public class LaunchUtils {
   /**
@@ -73,31 +65,14 @@ public class LaunchUtils {
       return false;
     }
 
-    try {
-      MergedManifestSnapshot info;
-      ListenableFuture<MergedManifestSnapshot> future = MergedManifestManager.getMergedManifest(facet.getModule());
-      // Don't just `future.get()`, which might outlive the project that the manifest is being computed for: instead
-      // loop .get() with a timeout and check for our own cancellation if the manifest computation hasn't finished yet.
-      while(true) {
-        try {
-          info = future.get(100, TimeUnit.MILLISECONDS);
-          break;
-        }
-        catch (TimeoutException e) {
-          ProgressManager.checkCanceled();
-        }
-      }
-      Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
-      if (usesFeatureElem != null) {
-        String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
-        return isEmpty(required) || VALUE_TRUE.equals(required);
-      }
-    }
-    catch (ExecutionException | InterruptedException ex) {
-      Logger.getInstance(LaunchUtils.class).warn(ex);
-    }
-    return false;
+    return ReadAction.nonBlocking(
+      () -> AndroidManifestIndex.getDataForMergedManifestContributors(facet)
+        .flatMap((it) -> it.getUsedFeatures().stream())
+        .filter((it) -> UsesFeature.HARDWARE_TYPE_WATCH.equals(it.getName()))
+        .anyMatch((it) -> !VALUE_FALSE.equals(it.getRequired())))
+      .inSmartMode(facet.getModule().getProject()).executeSynchronously();
   }
+
 
   public static void initiateDismissKeyguard(@NotNull final IDevice device) {
     // From Version 23 onwards (in the emulator, possibly later on devices), we can dismiss the keyguard

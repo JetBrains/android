@@ -16,11 +16,6 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.adtui.actions.ZoomActualAction
-import com.android.tools.adtui.actions.ZoomInAction
-import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
@@ -159,12 +154,13 @@ internal abstract class AbstractDisplayPanel<T : AbstractDisplayView>(disposable
 
   private fun createZoomToolbar() {
     if (StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get()) {
+      val actionManager = ActionManager.getInstance()
       val zoomGroup =
         DefaultActionGroup().apply {
-          add(ZoomInAction.getInstance())
-          add(ZoomOutAction.getInstance())
-          add(ZoomActualAction.getInstance())
-          add(ZoomToFitAction.getInstance())
+          add(actionManager.getAction("android.streaming.zoom.in"))
+          add(actionManager.getAction("android.streaming.zoom.out"))
+          add(actionManager.getAction("android.streaming.zoom.actual"))
+          add(actionManager.getAction("android.streaming.zoom.fit"))
           add(Separator())
           add(ZoomLevelIndicator())
           add(FloatingToolbarContainer.CollapserAction())

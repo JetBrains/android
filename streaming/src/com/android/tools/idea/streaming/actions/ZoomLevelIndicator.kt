@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.streaming.actions
 
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
+import com.android.tools.idea.streaming.core.ZOOMABLE_KEY
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction

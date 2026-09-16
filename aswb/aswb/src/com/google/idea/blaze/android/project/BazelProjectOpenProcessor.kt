@@ -16,7 +16,7 @@
 package com.google.idea.blaze.android.project
 
 import com.android.tools.idea.projectsystem.ProjectSystemService.Companion.projectSystemOpenProjectTask
-import com.google.idea.blaze.android.projectsystem.BlazeProjectSystemProvider
+import com.google.idea.blaze.base.project.BazelProjectSystemId
 import com.google.idea.blaze.base.settings.Blaze
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -57,7 +57,7 @@ class BazelProjectOpenProcessor : ProjectOpenProcessor() {
     return ProjectManagerEx.getInstanceEx()
       .openProjectAsync(
         file.toNioPath(),
-        projectSystemOpenProjectTask(BlazeProjectSystemProvider.ID, forceOpenInNewFrame, projectToClose) { project ->
+        projectSystemOpenProjectTask(BazelProjectSystemId.ID, forceOpenInNewFrame, projectToClose) { project ->
           if (application.isUnitTestMode) {
             PROJECT_INITIALIZER_FOR_TESTING_EXTENSION_POINT_NAME.extensionList.forEach { it(project) }
           }

@@ -82,7 +82,7 @@ fun <T> CachedValuesManager.getCachedValue(dataHolder: UserDataHolder, key: Key<
   this.getCachedValue(dataHolder, key, provider, false)
 
 /** Finds all the [UAnnotation]s in [vFile] in [project] with [shortAnnotationName] as name. */
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 @VisibleForTesting
 internal fun findAnnotations(project: Project, vFile: VirtualFile, shortAnnotationName: String): Collection<UAnnotation> {
   if (DumbService.isDumb(project)) {
@@ -125,7 +125,7 @@ private class PromiseModificationTracker(private val promise: Promise<*>) : Modi
     }
 }
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
   this?.uAnnotations?.any { annotation -> annotationFqn == annotation.qualifiedName } ?: false
 }
@@ -134,7 +134,7 @@ fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
  * Returns the [UMethod] annotated by this [UAnnotation], or null if it is not annotating a method, or if the method is not also annotated
  * with [annotationFqn].
  */
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMethod? {
   // TODO(b/349535556): Remove this. This is temporarily added to ensure that no paths without the
   // read lock are left to this method.

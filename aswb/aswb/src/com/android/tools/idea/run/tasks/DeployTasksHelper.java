@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.tools.deployer.DeployerApplicationTerminator;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.execution.common.AndroidExecutionException;
 import com.android.tools.idea.execution.common.DeployOptions;
 import com.android.tools.idea.run.ApkInfo;
 import com.google.idea.blaze.android.run.runner.BlazeLaunchTask;
+import com.android.tools.idea.run.ProcessHandlerApplicationTerminator;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
@@ -32,11 +34,20 @@ public class DeployTasksHelper {
   public static BlazeLaunchTask createDeployTask(
       Project project, Collection<ApkInfo> packages, DeployOptions deployOptions) {
     return launchContext -> {
+
+      // ASwB completely depend on the Android Process Handler to terminate while always
+      // install with 'dont-kill'. We create the terminator here just for completeness for now.
+      DeployerApplicationTerminator terminator = new ProcessHandlerApplicationTerminator(
+        launchContext.getProgressIndicator(),
+        List.of(launchContext.getDevice()),
+        launchContext.getApplicationContext().getApplicationId());
+
       try {
         List unused =
           new DeployTask(
             project,
             packages,
+            terminator,
             deployOptions.getPmInstallFlags(),
             deployOptions.getInstallOnAllUsers(),
             deployOptions.getAlwaysInstallWithPm(),

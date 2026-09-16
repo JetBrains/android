@@ -19,7 +19,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-api",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
-        "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+        "//tools/base/ddmlib-studio:studio.android.sdktools.ddmlib-studio",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
     ],

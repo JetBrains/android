@@ -196,6 +196,9 @@ internal class BazelBuildServices : BuildSystemFilePreviewServices.BuildServices
         QuerySyncManager.getInstance(project).getDependencyTracker() ?: error("Dependency track not available")
       tracker.updateDependenciesFromOutputInfo(context, output, targets)
     } catch (e: Exception) {
+      if (e is ProcessCanceledException || e is CancellationException || e is InterruptedException) {
+        throw e
+      }
       throw BuildException("Failed to update artifact tracker", e)
     }
   }

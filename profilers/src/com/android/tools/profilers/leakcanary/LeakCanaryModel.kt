@@ -86,6 +86,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   val isLeakCanaryMilestone2Enabled
     get() = profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled
 
+  // TODO: Use a real setting once settings UI is implemented.
+  @VisibleForTesting var leakcanaryMode = StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE
+
   override fun onEnter() {
     sessionData = profilers.session
     // If we are entering this stage for a past recording (i.e., the session is not live),
@@ -103,8 +106,13 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   fun startListening() {
     profilers.updater.register(this)
     setIsRecording(true)
-    checkLeakCanaryPresence()
-    checkLeakCanaryThreshold() // TODO(b/460283628): We need to check threshold only when milestone1 flow is selected.
+    if (!isLeakCanaryMilestone2Enabled) {
+      checkLeakCanaryPresence()
+    } else {
+      // TODO: While adding settings change (adding UI for choosing between on_device, on_host shark), code should be changed to pick the
+      // user inputed threshold for on_host shark flow.
+      _retainedObjectThreshold.value = profilers.ideServices.temporaryProfilerPreferences.getInt("LEAKCANARY_THRESHOLD", 5)
+    }
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
     registerLeakCanaryListeners()
@@ -115,8 +123,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     _isStopping.value = true
     if (objectRetainedCount.value > 0 && analysisProgress.value == 0) {
       forceHeapDump()
-    }
-    else if(analysisProgress.value == 0){
+    } else if (analysisProgress.value == 0) {
       stopListening()
     }
   }
@@ -132,8 +139,30 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
   }
 
+  /**
+   * Forces a heap dump based on the current mode.
+   *
+   * In ON_DEVICE mode, it sends a command to the device to trigger LeakCanary's internal heap dumper. In ON_HOST mode, it triggers the
+   * Studio-side heap dumper (LeakCanaryHeapDumper).
+   */
   fun forceHeapDump() {
-    profilers.ideServices.poolExecutor.execute { heapDumper.triggerAndAnalyze() }
+    if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
+      val forceDumpCommand =
+        Commands.Command.newBuilder()
+          .setStreamId(sessionData.streamId)
+          .setPid(sessionData.pid)
+          .setType(Commands.Command.CommandType.FORCE_DUMP_LEAKCANARY_ON_DEVICE)
+          .build()
+      profilers.ideServices.poolExecutor.execute {
+        try {
+          profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(forceDumpCommand).build())
+        } catch (e: Exception) {
+          logger.warn("Failed to execute force dump on device command", e)
+        }
+      }
+    } else {
+      profilers.ideServices.poolExecutor.execute { heapDumper.triggerAndAnalyze() }
+    }
   }
 
   fun setIsRecording(isRecording: Boolean) {
@@ -162,65 +191,38 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   /** Creates and registers transport event listeners that run from the start of the session until the end. */
   private fun registerLeakCanaryListeners() {
     val startTime = profilers.session.startTimestamp
-    // This is for shark running on the device and sending logcat readings.
-    statusListener =
-      TransportEventListener(
-        eventKind = Common.Event.Kind.LEAKCANARY_ANALYSIS,
-        executor = profilers.ideServices.mainExecutor,
-        streamId = { profilers.session.streamId },
-        processId = { profilers.session.pid },
-        startTime = { startTime },
-        callback = { event -> false.also { leakDetected(event) } },
-      )
-    profilers.transportPoller.registerListener(statusListener)
 
-    // This is for shark running on host and we are getting retained object count from the studio leakcanary integration library.
-    objectCountListener =
-      TransportEventListener(
-        eventKind = Common.Event.Kind.LEAKCANARY_OBJECT_COUNT,
-        executor = profilers.ideServices.mainExecutor,
-        streamId = { profilers.session.streamId },
-        processId = { profilers.session.pid },
-        startTime = { startTime },
-        callback = { event ->
-          val count = event.leakcanaryObjectCount.count
-          setObjectRetainedCount(count)
-          if (count >= _retainedObjectThreshold.value) {
-            forceHeapDump()
-          }
-          false
-        },
-      )
-    profilers.transportPoller.registerListener(objectCountListener)
-  }
-
-  private fun checkLeakCanaryThreshold() {
-    val command =
-      Commands.Command.newBuilder()
-        .apply {
-          streamId = profilers.session.streamId
-          pid = profilers.session.pid
-          type = Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD
-        }
-        .build()
-
-    profilers.ideServices.poolExecutor.execute {
-      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-
-      val listener =
+    if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
+      // This is for shark running on the device and sending logcat readings.
+      statusListener =
         TransportEventListener(
-          eventKind = Common.Event.Kind.LEAKCANARY_THRESHOLD,
-          executor = profilers.ideServices.poolExecutor,
-          filter = { it.commandId == response.commandId },
+          eventKind = Common.Event.Kind.LEAKCANARY_ANALYSIS,
+          executor = profilers.ideServices.mainExecutor,
           streamId = { profilers.session.streamId },
           processId = { profilers.session.pid },
+          startTime = { startTime },
+          callback = { event -> false.also { leakDetected(event) } },
+        )
+      profilers.transportPoller.registerListener(statusListener)
+    } else {
+      // This is for shark running on host and we are getting retained object count from the studio leakcanary integration library.
+      objectCountListener =
+        TransportEventListener(
+          eventKind = Common.Event.Kind.LEAKCANARY_OBJECT_COUNT,
+          executor = profilers.ideServices.mainExecutor,
+          streamId = { profilers.session.streamId },
+          processId = { profilers.session.pid },
+          startTime = { startTime },
           callback = { event ->
-            val threshold = event.leakcanaryThreshold.threshold
-            profilers.ideServices.mainExecutor.execute { _retainedObjectThreshold.value = threshold }
-            true // Unregister listener
+            val count = event.leakcanaryObjectCount.count
+            setObjectRetainedCount(count)
+            if (count >= _retainedObjectThreshold.value) {
+              forceHeapDump()
+            }
+            false
           },
         )
-      profilers.transportPoller.registerListener(listener)
+      profilers.transportPoller.registerListener(objectCountListener)
     }
   }
 
@@ -256,8 +258,12 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   }
 
   private fun deregisterLeakCanaryListeners() {
-    profilers.transportPoller.unregisterListener(statusListener)
-    profilers.transportPoller.unregisterListener(objectCountListener)
+    if (::statusListener.isInitialized) {
+      profilers.transportPoller.unregisterListener(statusListener)
+    }
+    if (::objectCountListener.isInitialized) {
+      profilers.transportPoller.unregisterListener(objectCountListener)
+    }
   }
 
   @VisibleForTesting
@@ -283,7 +289,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
 
   private fun handleRetainedObject(analysis: Analysis): Boolean {
     if (analysis !is AnalysisUpdate) return false
-    val retainedObjectsRegex = """Found (\d+) objects retained""".toRegex()
+    val retainedObjectsRegex = """Found (\d+) objects? retained""".toRegex()
     return retainedObjectsRegex.find(analysis.message)?.let { matchResult ->
       matchResult.groupValues.getOrNull(1)?.toIntOrNull()?.let { count ->
         logger.info("LeakCanary: $count objects retained.")
@@ -334,9 +340,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
    * @param endSession: true to end the session when stopping tracking.
    */
   private fun toggleLeakCanaryTracking(session: Common.Session, enable: Boolean, endSession: Boolean) {
-    // Default to ON_DEVICE mode for now as per requirement.
-    // This can be parameterized later when UI selection is available.
-    val startLeakCanaryTaskData = StartLeakCanaryTaskData.newBuilder().setMode(StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE).build()
+    val startLeakCanaryTaskData = StartLeakCanaryTaskData.newBuilder().setMode(leakcanaryMode).build()
 
     val cmd =
       Commands.Command.newBuilder().apply {
@@ -352,7 +356,13 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
           }
         }
       }
-    profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
+    profilers.ideServices.poolExecutor.execute {
+      try {
+        profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(cmd).build())
+      } catch (e: Exception) {
+        logger.warn("Failed to toggle LeakCanary tracking", e)
+      }
+    }
   }
 
   // Setting it to UNKNOWN_STAGE since stage usage is avoided in task-based ux.

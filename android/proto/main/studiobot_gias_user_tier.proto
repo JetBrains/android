@@ -10,6 +10,14 @@ message StudioUserTiers {
   // the user tier in the UI -
   // https://www.figma.com/proto/EXnu9cypiNRwV5TjeaQmpY/Gemini-Upgrade-Lifecycle?node-id=17935-59928&t=jxEbzeBuL4YVBB9l-1&scaling=scale-down&content-scaling=fixed&page-id=2%3A144&starting-point-node-id=17935%3A59928
   message TierMetadata {
+    enum UserType {
+      USER_TYPE_UNKNOWN = 0;
+      // Business users are connected to CCPA backend.
+      BUSINESS = 1;
+      // Consumer users are connected to AIDA / aicode backend.
+      CONSUMER = 2;
+    }
+
     // The display name of the tier (e.g., "Enterprise").
     optional string display_name = 1;
 
@@ -17,6 +25,10 @@ message StudioUserTiers {
     // should contain a hyperlink to a page with more information about how can
     // user upgrade to the next tier.
     optional string upgrade_message = 2;
+
+    // The type of user for this tier. This will be used to determine which
+    // backend to connect to.
+    optional UserType user_type = 3;
   }
   // A map from Tier Id to its corresponding display and upgrade metadata. The
   // tier id comes from the GCA backend when we hit the `loadCodeAssist` RPC.

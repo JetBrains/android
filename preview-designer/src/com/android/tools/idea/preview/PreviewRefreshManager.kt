@@ -314,6 +314,10 @@ class PreviewRefreshManager private constructor(private val scope: CoroutineScop
 
   @TestOnly fun getTotalRequestsInQueueForTest() = requestsLock.withLock { allPendingRequests.size }
 
+  @TestOnly
+  fun getTotalNonQualityRequestsInQueueForTest() =
+    requestsLock.withLock { allPendingRequests.filter { it.refreshType != CommonPreviewRefreshType.QUALITY }.size }
+
   companion object {
     private val coroutineScope by lazy { AndroidPluginDisposable.getApplicationInstance().createCoroutineScope() }
     private val managersByTopicLock = ReentrantLock()

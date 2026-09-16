@@ -1,6 +1,6 @@
 [versions]
-agp = "8.11.0-dev"
-leanback = "1.0.0"
+agp = "9.2.0-dev"
+leanback = "1.2.0"
 glide = "4.11.0"
 
 [libraries]

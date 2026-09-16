@@ -25,11 +25,17 @@ import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import java.nio.file.Path
 
-/** Project refresher creates an appropriate [RefreshOperation] based on the project and current VCS state. */
+/**
+ * Responsible for constructing the [ProjectProto.Project] for the IDE.
+ *
+ * It orchestrates the reading of the project structure (either from the build graph or via
+ * directory traversal) and conversion to the proto format.
+ */
 class ProjectBuilder(
   private val packageReader: PackageReader,
   private val parallelPackageReader: PackageReader.ParallelReader,
@@ -37,20 +43,24 @@ class ProjectBuilder(
 ) {
 
   /**
-   * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure, from the `postQuerySyncData` and a function
-   * `applyBuiltDependenciesTransform` that applies transformations required to account for any currently synced(i.e. built) dependencies.
+   * Creates a [QuerySyncProjectSnapshot], which includes an expected IDE project structure, from
+   * the `postQuerySyncData` and a function `applyBuiltDependenciesTransform` that applies
+   * transformations required to account for any currently synced(i.e. built) dependencies.
    */
   @Throws(BuildException::class)
   fun createBlazeProjectStructure(
     context: Context<*>,
     postQuerySyncData: PostQuerySyncData,
     graph: BuildGraphData,
+    projectStructureData: ProjectStructureData,
     artifactTrackerState: ArtifactTracker.State,
     projectProtoUpdates: Collection<ProjectProtoUpdateOperation>,
   ): ProjectProto.Project {
-    val effectiveWorkspaceRoot = postQuerySyncData.vcsState().flatMap { it.workspaceSnapshotPath }.orElse(workspaceRoot)
+    val effectiveWorkspaceRoot =
+      postQuerySyncData.vcsState().flatMap { it.workspaceSnapshotPath }.orElse(workspaceRoot)
     val packageReader = WorkspaceResolvingPackageReader(effectiveWorkspaceRoot, this.packageReader)
-    val javaPackagePrefixReader: JavaPackagePrefixReader = JavaPackagePrefixReaderImpl(workspaceRoot, packageReader, parallelPackageReader)
+    val javaPackagePrefixReader: JavaPackagePrefixReader =
+      JavaPackagePrefixReaderImpl(workspaceRoot, packageReader, parallelPackageReader)
 
     val graphToProjectConverter =
       GraphToProjectConverter(
@@ -58,14 +68,11 @@ class ProjectBuilder(
         context = context,
         projectDefinition = postQuerySyncData.projectDefinition(),
       )
-    val externalRepositoryFinder = ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
+    val externalRepositoryFinder =
+      ProjectPath.ExternalRepositoryFinder.createAndPrepare(workspaceRoot)
 
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
-   graphToProjectConverter.configureProject(
-      GraphToProjectConverter.initializeProjectStructureData(graph),
-      externalRepositoryFinder,
-      update,
-    )
+    graphToProjectConverter.configureProject(projectStructureData, externalRepositoryFinder, update)
     graphToProjectConverter.configureProject(graph, externalRepositoryFinder, update)
     ConfigureCcSources().update(update, graph, context)
     for (updateOperation in projectProtoUpdates) {

@@ -20,6 +20,8 @@ import com.android.screenshottest.util.UPDATE_ACTION_DESCRIPTION
 import com.android.screenshottest.util.UPDATE_ACTION_TEXT
 import com.android.screenshottest.util.UpdateReferenceImagesDialogManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
+import com.google.wireless.android.sdk.stats.ScreenshotTestComposePreviewEvent
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -46,6 +48,9 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT, UP
     LOG.debug("UpdateReferenceImagesFromTestPanelAction triggered for event: $e")
     val project = e.project ?: return
     val results = testResults ?: return
+
+    // Log the SCREENSHOT_DIALOG_SOURCE_TEST_RESULTS event
+    logScreenshotTestEvent(ScreenshotTestComposePreviewEvent.Type.SCREENSHOT_DIALOG_SOURCE_TEST_RESULTS, project)
 
     // Use Manager Service to prevent multiple dialogs
     val dialog = UpdateReferenceImagesDialogManager.getInstance(project).showOrGetDialog() ?: return
@@ -87,6 +92,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT, UP
     return JButton(presentation.text).apply {
       isFocusable = true
       toolTipText = presentation.description
+      accessibleContext.accessibleName = presentation.text
       addActionListener {
         val dataContext = DataManager.getInstance().getDataContext(this)
         val event =
@@ -109,6 +115,7 @@ class UpdateReferenceImagesFromTestPanelAction : AnAction(UPDATE_ACTION_TEXT, UP
       component.isEnabled = presentation.isEnabled
       component.isVisible = presentation.isVisible
       component.toolTipText = presentation.description
+      component.accessibleContext.accessibleName = presentation.text
     }
   }
 }

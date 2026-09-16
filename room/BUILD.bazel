@@ -49,6 +49,7 @@ jvm_library(
         "//platform/util:util-ui",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//platform/util/concurrency",
+        "//plugins/kotlin/base/psi",
     ],
 )
 
@@ -93,6 +94,7 @@ jvm_library(
         "//platform/util:util-ui_test_lib",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
         "//platform/util/concurrency:concurrency_test_lib",
+        "//plugins/kotlin/base/psi:psi_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.room` end

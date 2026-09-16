@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
@@ -35,11 +34,13 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -140,7 +141,7 @@ open class GradleAndroidTestRunConfigurationExecutor(env: ExecutionEnvironment, 
   }
 
   private suspend fun createAndroidTestSuiteView() =
-    withContext(AndroidDispatchers.uiThread) {
+    withContext(Dispatchers.EDT) {
       AndroidTestSuiteView(project, project, configuration.configurationModule.androidTestModule, env.executor.toolWindowId, configuration)
     }
 

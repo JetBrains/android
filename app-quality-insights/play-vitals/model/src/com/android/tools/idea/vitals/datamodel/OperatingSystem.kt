@@ -18,13 +18,12 @@ package com.android.tools.idea.vitals.datamodel
 import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.google.play.developer.reporting.OsVersion
 
-fun OperatingSystemInfo.Companion.fromProto(proto: OsVersion): OperatingSystemInfo {
-  return OperatingSystemInfo(displayVersion = proto.apiLevel.toString(), displayName = proto.apiLevel.toString())
+fun OsVersion.toOperatingSystemInfo(): OperatingSystemInfo {
+  return OperatingSystemInfo(displayVersion = apiLevel.toString(), displayName = apiLevel.toString())
 }
 
-fun OperatingSystemInfo.Companion.fromDimensions(dimensions: List<Dimension>): OperatingSystemInfo {
-  return dimensions
-    .filter { it.type == DimensionType.API_LEVEL }
+fun List<Dimension>.toOperatingSystemInfo(): OperatingSystemInfo {
+  return filter { it.type == DimensionType.API_LEVEL }
     .map {
       // E.g.
       // "stringValue": "31",

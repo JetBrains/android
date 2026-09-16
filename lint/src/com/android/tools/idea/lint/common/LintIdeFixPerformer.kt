@@ -284,7 +284,7 @@ class LintIdeFixPerformer(client: LintClient) : LintFixPerformer(client) {
 }
 
 open class LintIdeReadOnlyFileProvider(private val project: Project) : LintFixPerformer.FileProvider {
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   override fun getFileContents(file: PendingEditFile): String {
     return file.file.toPsiFile(project)?.text ?: ""
   }

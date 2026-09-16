@@ -49,9 +49,13 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
   companion object {
     /**
      * Finds the relevant package prefix given the current offset position.
-     *
-     * "abc.def.ghi.|" -> "abc.def.ghi" " abc.def.ghi.|" -> "abc.def.ghi" "abc.def.ghi.Cl|ass" -> "abc.def.ghi" "abc.de|f.ghi" -> "abc"
+     * <pre>
+     * "abc.def.ghi.|" -> "abc.def.ghi"
+     * "   abc.def.ghi.|" -> "abc.def.ghi"
+     * "abc.def.ghi.Cl|ass" -> "abc.def.ghi"
+     * "abc.de|f.ghi" -> "abc"
      * "ab|c.def.ghi" -> ""
+     * </pre>
      */
     private fun getPackagePrefix(context: PsiElement, offset: Int): String {
       return getPackagePrefix(context.containingFile.viewProvider.contents, offset)

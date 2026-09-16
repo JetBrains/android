@@ -55,7 +55,7 @@ class InsightLinksPanel(
         }
     }
     add(leftPanel, BorderLayout.WEST)
-    add(InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback), BorderLayout.EAST)
+    add(InsightToolbarPanel(controller, currentInsightFlow, parentDisposable, controller::submitInsightFeedback), BorderLayout.EAST)
   }
 }
 
@@ -69,6 +69,7 @@ private fun createLinks(event: Event, state: AppInsightsState, project: Project,
           val connection = state.connections.selected ?: return@addHyperlinkListener
           tracker.logAgentAction(action.metricsEvent, connection.appId, issue.issueDetails.fatality)
         }
+        isFocusable = true
       }
     }
   }

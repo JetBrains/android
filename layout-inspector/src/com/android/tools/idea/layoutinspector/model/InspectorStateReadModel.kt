@@ -52,8 +52,8 @@ class InspectorStateReadModel {
     _observedForStateReads.value =
       when (current) {
         is All -> All // Switch from All to Some is not supported
-        is None -> Some(setOf(node))
-        is Some -> Some(current.nodes + node)
+        is None -> Some(setOf(node.anchorHash))
+        is Some -> Some(current.nodeAnchors + node.anchorHash)
       }
   }
 
@@ -63,7 +63,7 @@ class InspectorStateReadModel {
       when (current) {
         is All -> All // Switch from All to Some is not supported
         is None -> None
-        is Some -> (current.nodes - node).let { remaining -> if (remaining.isEmpty()) None else Some(remaining) }
+        is Some -> (current.nodeAnchors - node.anchorHash).let { remaining -> if (remaining.isEmpty()) None else Some(remaining) }
       }
   }
 
@@ -83,7 +83,7 @@ class InspectorStateReadModel {
     return when (val current = _observedForStateReads.value) {
       is All -> true
       is None -> false
-      is Some -> current.nodes.contains(node)
+      is Some -> current.nodeAnchors.contains(node.anchorHash)
     }
   }
 }

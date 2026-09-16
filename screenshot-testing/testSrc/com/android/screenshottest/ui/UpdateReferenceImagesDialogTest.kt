@@ -32,6 +32,7 @@ import java.util.Base64
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -321,6 +322,41 @@ class UpdateReferenceImagesDialogTest {
 
     assertTrue("Should have logged build failure metric", failureEvent != null)
     assertEquals(DialogWrapper.CANCEL_EXIT_CODE, dialog.exitCode)
+  }
+
+  @Test
+  fun testOkActionLogsMetric() = runInEdtAndWait {
+    val srcPath = createTempImage("source.png")
+    val destPath = tempFolder.newFile("dest.png").absolutePath
+
+    val details =
+      PreviewDetails(
+        testId = "id",
+        className = "Class",
+        methodName = "method",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        srcImagePath = srcPath,
+        destImagePath = destPath,
+      )
+
+    dialog.updateDialogWithTestResult(details, isChecked = true)
+    dialog.onTestSuiteFinished()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    TestDialogManager.setTestDialog(TestDialog.OK)
+
+    callDoOKAction(dialog)
+
+    // Wait for the background copy task and subsequent UI update
+    PlatformTestUtil.waitWithEventsDispatching("Dialog did not close", { dialog.exitCode == DialogWrapper.OK_EXIT_CODE }, 10)
+
+    val usages = metricsTrackerRule.testTracker.usages
+    val updateEvent =
+      usages.find { it.studioEvent.screenshotTestComposePreviewEvent.type == ScreenshotTestComposePreviewEvent.Type.UPDATE_CLICKED }
+    assertNotNull("Should have logged UPDATE_CLICKED metric", updateEvent)
+
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT)
   }
 
   private fun findTree(dialog: UpdateReferenceImagesDialog): CheckboxTree {

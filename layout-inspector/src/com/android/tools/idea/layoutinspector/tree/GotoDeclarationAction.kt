@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.NO_COMPOSE_SOURCE_INFO_APP_KEY
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -29,9 +28,11 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.pom.Navigatable
 import com.intellij.ui.EditorNotificationPanel.Status
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -76,20 +77,20 @@ object GotoDeclaration {
     lastAction =
       coroutineScope.launch {
         val navigatable = findNavigatable(inspectorModel, client, notificationModel) ?: return@launch
-        withContext(AndroidDispatchers.uiThread) { navigatable.navigate(true) }
+        withContext(Dispatchers.EDT) { navigatable.navigate(true) }
       }
   }
 
   @Slow
   private suspend fun findNavigatable(model: InspectorModel, client: InspectorClient, notificationModel: NotificationModel): Navigatable? =
-    withContext(AndroidDispatchers.workerThread) {
+    withContext(Dispatchers.Default) {
       val resourceLookup = model.resourceLookup
       val node = model.selection ?: return@withContext null
       val navigatable =
         if (node is ComposeViewNode) {
           resourceLookup.findComposableNavigatable(node)
         } else {
-          withContext(AndroidDispatchers.uiThread) { resourceLookup.findFileLocation(node)?.navigatable }
+          withContext(Dispatchers.EDT) { resourceLookup.findFileLocation(node)?.navigatable }
         }
       updateNotifications(notificationModel, navigatable, client, node)
       navigatable

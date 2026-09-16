@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.find
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.preview.PreviewElement
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiFile
@@ -98,6 +99,7 @@ class FilePreviewElementProvider<P : PreviewElement<*>>(
   private val filePreviewElementFinder: FilePreviewElementFinder<P>,
 ) : PreviewElementProvider<P> {
   override suspend fun previewElements() =
-    psiFilePointer.virtualFile?.let { filePreviewElementFinder.findPreviewElements(psiFilePointer.project, it).asSequence() }
-      ?: emptySequence()
+    readAction { psiFilePointer.element?.takeIf { it.isValid } }
+      ?.virtualFile
+      ?.let { filePreviewElementFinder.findPreviewElements(psiFilePointer.project, it).asSequence() } ?: emptySequence()
 }

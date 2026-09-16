@@ -18,12 +18,10 @@ package com.android.tools.idea.streaming.device
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.mockito.kotlin.whenever
-import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.testutils.GoldenImageRule
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.executeAction
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse
@@ -38,6 +36,7 @@ import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -129,7 +128,6 @@ import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
-import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
@@ -161,9 +159,18 @@ internal class DeviceViewTest {
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val crashReporterRule = CrashReporterRule()
   private val notificationRule = NotificationRule()
+  private val goldenImageRule = GoldenImageRule("tools/adt/idea/streaming/testData/DeviceViewTest/golden")
   @get:Rule
   val ruleChain =
-    RuleChain(agentRule, crashReporterRule, androidExecutorsRule, notificationRule, ClipboardSynchronizationDisablementRule(), EdtRule())
+    RuleChain(
+      agentRule,
+      crashReporterRule,
+      androidExecutorsRule,
+      notificationRule,
+      ClipboardSynchronizationDisablementRule(),
+      goldenImageRule,
+      EdtRule(),
+    )
   @get:Rule val usageTrackerRule = UsageTrackerRule()
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
@@ -588,45 +595,45 @@ internal class DeviceViewTest {
 
     // Check zoom.
     assertThat(view.scale).isWithin(1e-4).of(fakeUi.screenScale * fakeUi.root.height / device.displaySize.height)
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isFalse()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isFalse()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isFalse()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isFalse()
 
     view.zoom(ZoomType.IN)
     fakeUi.layoutAndDispatchEvents()
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(270, 586)))
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isTrue()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isTrue()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isTrue()
 
     view.zoom(ZoomType.ACTUAL)
     fakeUi.layoutAndDispatchEvents()
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, device.displaySize))
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToActual()).isFalse()
-    assertThat(view.canZoomToFit()).isTrue()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isTrue()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isFalse()
+    assertThat(view.canZoom(ZoomType.FIT)).isTrue()
     val image = ImageUtils.scale(fakeUi.render(view), 0.125)
-    ImageDiffUtil.assertImageSimilar(getGoldenFile("Zoom1"), image, 0.0)
+    goldenImageRule.assertImageSimilar("Zoom1", image, 0.0)
 
     view.zoom(ZoomType.OUT)
     fakeUi.layoutAndDispatchEvents()
     assertThat(getNextControlMessageAndWaitForFrame())
       .isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(device.displaySize.width / 2, device.displaySize.height / 2)))
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isTrue()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isTrue()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isTrue()
 
     view.zoom(ZoomType.FIT)
     fakeUi.layoutAndDispatchEvents()
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 400)))
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isFalse()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isFalse()
+    assertThat(view.canZoom(ZoomType.IN)).isTrue()
+    assertThat(view.canZoom(ZoomType.OUT)).isFalse()
+    assertThat(view.canZoom(ZoomType.ACTUAL)).isTrue()
+    assertThat(view.canZoom(ZoomType.FIT)).isFalse()
 
     // Check clockwise rotation in zoomed-in state.
     for (i in 0 until 4) {
@@ -642,8 +649,8 @@ internal class DeviceViewTest {
       executeAction("android.device.rotate.right", view, project)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(3 - i))
       fakeUi.layoutAndDispatchEvents()
-      assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
-      assertThat(view.canZoomToFit()).isFalse()
+      assertThat(view.canZoom(ZoomType.OUT)).isFalse() // zoom-in mode cancelled by the rotation.
+      assertThat(view.canZoom(ZoomType.FIT)).isFalse()
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 400)))
     }
   }
@@ -1258,12 +1265,10 @@ internal class DeviceViewTest {
 
   private fun assertAppearance(goldenImageName: String) {
     // First rendering may be low quality.
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), 0.5, ignoreMissingGoldenFile = true)
+    goldenImageRule.assertImageSimilar(goldenImageName, fakeUi.render(), 0.5, ignoreMissingGoldenFile = true)
     // Second rendering is guaranteed to be high quality.
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render())
+    goldenImageRule.assertImageSimilar(goldenImageName, fakeUi.render())
   }
-
-  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 
   private fun getNextControlMessageAndWaitForFrame(displayId: Int = PRIMARY_DISPLAY_ID): ControlMessage {
     val message = agent.getNextControlMessage(5.seconds)
@@ -1317,5 +1322,3 @@ private fun CrashReport.toPartMap(): Map<String, String> {
   }
   return parts
 }
-
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceViewTest/golden"

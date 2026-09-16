@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.intellij.util.io.ZipUtil
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
@@ -30,7 +30,7 @@ import kotlinx.coroutines.withContext
  * Returns the resulting inspector jar's path.
  */
 suspend fun extractZipIfNeeded(targetDir: Path, libraryPath: Path) =
-  withContext(AndroidDispatchers.diskIoThread) {
+  withContext(Dispatchers.IO) {
     if (libraryPath.isDirectory()) {
       libraryPath
     } else {

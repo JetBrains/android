@@ -18,8 +18,6 @@ package com.android.tools.idea.wearwhs.action
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.findComponentForAction
@@ -32,6 +30,7 @@ import com.android.tools.idea.wearwhs.view.WearHealthServicesStateManagerImpl
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ui.popup.util.PopupUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -39,6 +38,7 @@ import com.intellij.openapi.util.getOrCreateUserData
 import com.intellij.ui.awt.RelativePoint
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 private val PANEL_CONTROLLER_KEY = Key.create<WearHealthServicesPanelController>("WearHealthServicesPanelController")
 
@@ -71,8 +71,8 @@ class OpenWearHealthServicesPanelAction :
 
     val panelController =
       emulatorController.getOrCreateUserData(PANEL_CONTROLLER_KEY) {
-        val workerScope: CoroutineScope = AndroidCoroutineScope(emulatorController, workerThread)
-        val uiScope: CoroutineScope = AndroidCoroutineScope(emulatorController, uiThread)
+        val workerScope: CoroutineScope = AndroidCoroutineScope(emulatorController, Dispatchers.Default)
+        val uiScope: CoroutineScope = AndroidCoroutineScope(emulatorController, Dispatchers.EDT)
         val adbSessionProvider = { AdbLibService.getSession(project) }
         val serialNumber = displayView.deviceSerialNumber
         val deviceManager = ContentProviderDeviceManager(adbSessionProvider)

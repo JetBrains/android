@@ -315,6 +315,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ENVIRONMENT = load("studio/icons/emulator/xr/environment.svg", 1722745446, 2);
       /** 16x16 */ public static final @NotNull Icon EYE_GAZE = load("studio/icons/emulator/xr/eye-gaze.svg", -1318900624, 2);
       /** 16x16 */ public static final @NotNull Icon GLASSES_CAMERA = load("studio/icons/emulator/xr/glasses-camera.svg", 517867713, 2);
+      /** 16x16 */ public static final @NotNull Icon GLASSES_DISPLAY = load("studio/icons/emulator/xr/glasses-display.svg", -1796968287, 2);
       /** 16x16 */ public static final @NotNull Icon GLASSES_TOUCHBAR = load("studio/icons/emulator/xr/glasses-touchbar.svg", 1238793853, 2);
       /** 16x16 */ public static final @NotNull Icon HAND_TRACKING = load("studio/icons/emulator/xr/hand-tracking.svg", -1757146482, 2);
       /** 16x16 */ public static final @NotNull Icon INTERACT = load("studio/icons/emulator/xr/interact.svg", -1981662969, 2);
@@ -885,6 +886,10 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ADB_MANAGED = load("studio/icons/shell/status-bar/adb-managed.svg", -791885379, 2);
       /** 16x16 */ public static final @NotNull Icon ADB_UNMANAGED = load("studio/icons/shell/status-bar/adb-unmanaged.svg", -514125107, 2);
       /** 16x16 */ public static final @NotNull Icon ESSENTIALS_MODE = load("studio/icons/shell/status-bar/essentials-mode.svg", -841940907, 2);
+      /** 16x16 */ public static final @NotNull Icon NEP_DEFAULT = load("studio/icons/shell/status-bar/nep-default.svg", 1542514924, 2);
+      /** 16x16 */ public static final @NotNull Icon NEP_PAUSE = load("studio/icons/shell/status-bar/nep-pause.svg", 1826186985, 2);
+      /** 16x16 */ public static final @NotNull Icon NEP_REQUEST = load("studio/icons/shell/status-bar/nep-request.svg", 659748623, 2);
+      /** 16x16 */ public static final @NotNull Icon NEP_UNAVAILABLE = load("studio/icons/shell/status-bar/nep-unavailable.svg", 206496986, 2);
     }
 
     public static final class Telemetry {

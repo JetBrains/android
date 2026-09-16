@@ -107,7 +107,8 @@ enum class ModelFeature(
   HAS_MATCHING_FALLBACKS(ModelVersion(20, 0)),
   HAS_MISSING_DIMENSION_STRATEGY(ModelVersion(21, 0)),
   HAS_TEST_SUITES_SOURCES(ModelVersion(21, 1)),
-  HAS_KEEP_RULES_SOURCES(ModelVersion(22, 0));
+  HAS_KEEP_RULES_SOURCES(ModelVersion(22, 0)),
+  HAS_AAR_KEEP_RULES_SOURCES(ModelVersion(23, 0));
 
   init {
     check(!enabledForModelVersions.isEmpty) { "All features should be enabled for some model versions" }

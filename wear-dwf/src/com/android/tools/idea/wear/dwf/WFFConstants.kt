@@ -53,6 +53,13 @@ object WFFConstants {
   val DRAWABLE_RESOURCE_ATTRIBUTES = setOf("resource", "icon", "defaultImageResource")
 
   /**
+   * Attributes that can reference font resources.
+   *
+   * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch Face Format reference</a>
+   */
+  val FONT_RESOURCE_ATTRIBUTES = setOf("family")
+
+  /**
    * Attributes that can reference colors.
    *
    * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch Face Format reference</a>

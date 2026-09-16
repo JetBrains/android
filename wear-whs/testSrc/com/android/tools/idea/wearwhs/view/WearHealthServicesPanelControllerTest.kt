@@ -20,7 +20,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.ActionPopupMenuRule
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
@@ -28,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JLabel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -69,8 +70,8 @@ class WearHealthServicesPanelControllerTest {
 
   @Before
   fun setup() {
-    uiScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
-    workerScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    workerScope = AndroidCoroutineScope(projectRule.testRootDisposable, Dispatchers.Default)
+    uiScope = AndroidCoroutineScope(projectRule.testRootDisposable, Dispatchers.EDT)
     deviceManager = FakeDeviceManager()
 
     stateManager =

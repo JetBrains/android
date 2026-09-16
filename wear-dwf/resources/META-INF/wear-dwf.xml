@@ -19,7 +19,7 @@
     <dom.fileMetaData implementation="com.android.tools.idea.wear.dwf.dom.xml.WatchFaceShapesDescription" rootTagName="WatchFaces" />
     <dom.fileMetaData implementation="com.android.tools.idea.wear.dwf.dom.xml.WatchFaceInfoDescription" rootTagName="WatchFaceInfo" />
     <externalAnnotator language="XML" implementationClass="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceDrawableResourceExternalAnnotator" />
-    <psi.referenceContributor language="XML" implementation="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceDrawableReferenceContributor" />
+    <psi.referenceContributor language="XML" implementation="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceResourceReferenceContributor" />
     <completion.contributor language="XML" implementationClass="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceComplicationDataSourceCompletionContributor" />
 
     <notificationGroup id="Wear Declarative Watch Faces" displayType="BALLOON"/>

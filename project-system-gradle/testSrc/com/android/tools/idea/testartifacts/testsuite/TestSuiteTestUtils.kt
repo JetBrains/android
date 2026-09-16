@@ -48,6 +48,7 @@ object TestSuiteTestUtils {
             ),
           baselineProfileDirectories = emptyList(),
           keepRulesDirectoriesField = emptyList(),
+          aarKeepRulesDirectoriesField = emptyList(),
         ),
     )
   }

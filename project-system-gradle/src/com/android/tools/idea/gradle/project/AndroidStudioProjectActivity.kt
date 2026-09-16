@@ -31,6 +31,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -55,6 +56,7 @@ class AndroidStudioProjectActivity : ProjectActivity {
         // Custom notifications for Android Studio, un-wanted or un-needed when running as the Android IntelliJ plugin
         notifyOnLegacyAndroidProject(project)
         notifyOnInvalidGradleJDKEnv(project)
+        notifyOnProtectedMacFolder(project)
 
         if (
           StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.get() &&
@@ -108,4 +110,26 @@ private suspend fun checkForInvalidGradleJvmConfigurationAndAttemptToRecover(pro
         withContext(Dispatchers.EDT) { runWriteAction { gradleJdkException.recover() } }
       }
     }
+}
+
+/** Notify developers if their projects is under a protected location, which might cause permission issues with project modifications. */
+private fun notifyOnProtectedMacFolder(project: Project) {
+  if (isProjectInProtectedMacFolder(project)) {
+    val msg =
+      "This project is located in a system-protected folder (for example, Desktop, Documents, or Downloads). This may cause " +
+        "permission issues. We recommend moving the project to a different location."
+    AndroidNotification.getInstance(project).showBalloon("Project in Protected Folder", msg, NotificationType.WARNING)
+  }
+}
+
+/** Verify if the project location is under a protected location. Context: b/473934349. */
+private fun isProjectInProtectedMacFolder(project: Project): Boolean {
+  if (!SystemInfo.isMac) return false
+  val projectPath = project.basePath ?: return false
+  val userHome = System.getProperty("user.home")
+
+  // Define protected subfolders.
+  val protectedFolders = listOf("Desktop", "Documents", "Downloads")
+
+  return protectedFolders.any { folder -> projectPath.startsWith("$userHome/$folder") }
 }

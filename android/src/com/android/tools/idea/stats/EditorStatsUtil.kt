@@ -18,7 +18,6 @@
 package com.android.tools.idea.stats
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
-import com.android.annotations.concurrency.WorkerThread
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceFolderType.ANIM
 import com.android.resources.ResourceFolderType.ANIMATOR
@@ -33,7 +32,6 @@ import com.android.resources.ResourceFolderType.NAVIGATION
 import com.android.resources.ResourceFolderType.RAW
 import com.android.resources.ResourceFolderType.TRANSITION
 import com.android.resources.ResourceFolderType.VALUES
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.getFolderType
 import com.google.wireless.android.sdk.stats.EditorFileType
@@ -71,11 +69,14 @@ import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_RAW
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_TRANSITION
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_VALUES
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_XML
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
@@ -107,7 +108,7 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
     "Kotlin" ->
       when {
         file.extension == "kts" -> KOTLIN_SCRIPT
-        withContext(workerThread) { isComposeEnabled(file, project) } -> KOTLIN_COMPOSE
+        isComposeEnabled(file, project) -> KOTLIN_COMPOSE
         else -> KOTLIN
       }
     "Groovy" -> GROOVY
@@ -157,12 +158,17 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
   }
 
 /**
- * This method is not expected to be slow, but it's possible the call to find the file's module could take longer in some circumstances. As
- * such, it's marked with [WorkerThread] to make sure there are no long calls on the UI thread.
+ * This method will perform a non-blocking read action to get the module attached to the file [file] in order to check if compose is being
+ * used.
  */
-@WorkerThread
-private fun isComposeEnabled(file: VirtualFile, project: Project?): Boolean {
+private suspend fun isComposeEnabled(file: VirtualFile, project: Project?): Boolean {
   if (project == null) return false
-  val module = runReadAction { ModuleUtilCore.findModuleForFile(file, project) } ?: return false
+  val module = findModuleForFileNonBlocking(file, project) ?: return false
   return module.getModuleSystem().usesCompose
+}
+
+/** Copy of [ModuleUtilCore.findModuleForFile] that uses a non-blocking read instead of a blocking read */
+private suspend fun findModuleForFileNonBlocking(file: VirtualFile, project: Project): Module? {
+  if (project.isDefault) return null
+  return withContext(Dispatchers.Default) { readAction { ProjectFileIndex.getInstance(project).getModuleForFile(file) } }
 }

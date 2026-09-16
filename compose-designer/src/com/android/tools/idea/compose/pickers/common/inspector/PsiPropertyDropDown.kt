@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.pickers.common.inspector
 
-import com.android.annotations.TestOnly
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
@@ -36,6 +35,7 @@ import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 import javax.swing.event.PopupMenuEvent
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Dropdown component for PsiProperties.

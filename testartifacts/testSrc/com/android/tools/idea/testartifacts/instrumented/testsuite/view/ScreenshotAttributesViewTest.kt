@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.truth.Truth.assertThat
 import java.io.File
+import org.jetbrains.jewel.foundation.theme.LocalColorPalette
+import org.jetbrains.jewel.foundation.theme.ThemeColorPalette
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -27,11 +31,43 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ScreenshotAttributesViewTest {
 
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
+
   private lateinit var view: ScreenshotAttributesView
 
   @Before
   fun setup() {
     view = ScreenshotAttributesView()
+  }
+
+  /**
+   * Verifies that the UI doesn't crash even if the theme color palette is empty.
+   *
+   * Older IDE themes like Darcula or High Contrast may not provide a full 14-shade palette for primary colors (e.g., blue[6]).
+   */
+  @Test
+  fun screenshotAttributesUi_doesNotCrash_withEmptyColorPalette() {
+    val emptyPalette =
+      ThemeColorPalette(
+        gray = emptyList(),
+        blue = emptyList(),
+        green = emptyList(),
+        red = emptyList(),
+        yellow = emptyList(),
+        orange = emptyList(),
+        purple = emptyList(),
+        teal = emptyList(),
+        rawMap = emptyMap(),
+        isIslands = false,
+      )
+
+    composeTestRule.setContent {
+      // Mock an empty palette to simulate themes that triggered the crash.
+      androidx.compose.runtime.CompositionLocalProvider(LocalColorPalette provides emptyPalette) { view.ScreenshotAttributesUi(view.state) }
+    }
+
+    // Ensure the composition completes without throwing an exception.
+    composeTestRule.waitForIdle()
   }
 
   /** Verifies that all fields are set correctly when a test has passed. This implicitly tests that the summary color is green. */

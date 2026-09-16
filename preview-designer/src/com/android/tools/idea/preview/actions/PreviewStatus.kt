@@ -105,7 +105,7 @@ sealed class PreviewStatus(
  *
  * @param [fileProvider] is lambda providing the [PsiFile] used to request the build. This lambda will be called under a read lock.
  */
-class BuildAndRefresh(@RequiresReadLock private val fileProvider: () -> PsiFile?) : AnAction() {
+class BuildAndRefresh(@RequiresReadLock(generateAssertion = false /* IJPL-115548 */) private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     ReadAction.nonBlocking<PsiFile?> { fileProvider() }
       .submit(AppExecutorUtil.getAppExecutorService())

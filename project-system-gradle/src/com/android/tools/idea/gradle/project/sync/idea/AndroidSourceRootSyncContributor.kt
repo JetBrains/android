@@ -31,7 +31,9 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
+import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityId
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
+import com.android.tools.idea.gradle.project.entities.attachDependenciesToModuleEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.entities.gradleModuleModel
 import com.android.tools.idea.gradle.project.entities.updateGradleAndroidModelMapping
@@ -61,6 +63,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager
+import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.progress.checkCanceled
@@ -69,7 +72,6 @@ import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.getAndUpdateUserData
 import com.intellij.openapi.util.io.CanonicalPathPrefixTree
-import com.intellij.openapi.util.io.toCanonicalPath
 import com.intellij.openapi.vfs.VfsUtilCore.pathToUrl
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ContentRootEntityBuilder
@@ -93,6 +95,7 @@ import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityStorage
 import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
@@ -119,6 +122,7 @@ import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 import org.jetbrains.plugins.gradle.service.syncAction.impl.bridge.GradleBridgeEntitySource
+import org.jetbrains.plugins.gradle.service.syncAction.impl.extensions.GradleBaseSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrl
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
@@ -140,23 +144,18 @@ internal data class SourceSetUpdateResult(
 data class AndroidGradleProjectEntitySource(override val projectPath: String, override val phase: GradleSyncPhase) :
   GradleBridgeEntitySource
 
-data class AndroidGradleSourceSetEntitySource(val projectEntitySource: AndroidGradleProjectEntitySource, val sourceSetName: String) :
-  GradleBridgeEntitySource {
-  override val projectPath: String by projectEntitySource::projectPath
-  override val phase: GradleSyncPhase by projectEntitySource::phase
+data class AndroidGradleSourceSetEntitySource(override val projectPath: String, val sourceSetName: String) : GradleBridgeEntitySource {
+  override val phase = GradleSyncPhase.SOURCE_SET_MODEL_PHASE
 }
 
 internal open class SyncContributorProjectContext(
   val context: ProjectResolverContext,
   val project: Project,
-  val phase: GradleSyncPhase,
   val buildModel: GradleLightBuild,
   val projectModel: GradleLightProject,
 ) {
   // For each project in the build, create an entity source representing the project, as the build entity source as the parent.
-  val projectEntitySource = AndroidGradleProjectEntitySource(context.projectPath, phase)
-
-  val isGradleRootProject = context.projectPath == projectModel.projectDirectory.toPath().toCanonicalPath()
+  fun createProjectEntitySource(phase: GradleSyncPhase) = AndroidGradleProjectEntitySource(context.projectPath, phase)
 
   val externalProject = context.getProjectModel(projectModel, ExternalProject::class.java)!!
 
@@ -167,12 +166,11 @@ internal class SyncContributorAndroidProjectContext(
   context: ProjectResolverContext,
   project: Project,
   storage: EntityStorage,
-  phase: GradleSyncPhase,
   buildModel: GradleLightBuild,
   projectModel: GradleLightProject,
   val syncOptions: SyncActionOptions,
   val versions: ModelVersions,
-) : SyncContributorProjectContext(context, project, phase, buildModel, projectModel) {
+) : SyncContributorProjectContext(context, project, buildModel, projectModel) {
   val basicAndroidProject = context.getProjectModel(projectModel, BasicAndroidProject::class.java)!!
   val androidProject = context.getProjectModel(projectModel, AndroidProject::class.java)!!
   val androidDsl = context.getProjectModel(projectModel, AndroidDsl::class.java)!!
@@ -190,7 +188,8 @@ internal class SyncContributorAndroidProjectContext(
     AndroidSdks.getInstance().findSuitableAndroidSdk(androidDsl.compileTarget)?.let {
       SdkDependency(SdkId(it.name, AndroidSdkType.SDK_NAME))
     }
-  val variantName: String = computeVariantNameToBeSynced(syncOptions, projectModel.moduleId(), basicAndroidProject, androidDsl)!!
+  val variantName: String =
+    computeVariantNameToBeSynced(syncOptions, projectModel.moduleId(), basicAndroidProject, ideAndroidProject.defaultVariantName)!!
 
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveHolderModuleName()))
 
@@ -207,15 +206,16 @@ internal class SyncContributorAndroidProjectContext(
         "Holder module is not populated via Android Gradle source sets for ${projectModel.path}"
       }
 
-  internal val gradleAndroidModelDataFactory: (String) -> GradleAndroidModelData
-    get() = { moduleName ->
+  internal val gradleAndroidModelDataFactory: (String, IdeVariantCoreImpl?) -> GradleAndroidModelData
+    get() = { moduleName, resolvedVariant ->
       val ideAndroidProject = ideAndroidProject.copy(baseFeature = baseFeature)
       GradleAndroidModelData.create(
         moduleName = moduleName,
         rootDirPath = File(externalProject.projectDir.path),
         ideAndroidProject.patchForKapt(kaptGradleModel),
         ideDeclaredDependencies,
-        ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl }.patchForKapt(kaptGradleModel),
+        resolvedVariant?.let { listOf(it) }
+          ?: ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl }.patchForKapt(kaptGradleModel),
         variantName,
       )
     }
@@ -251,7 +251,6 @@ internal class SyncContributorAndroidProjectContext(
       context: ProjectResolverContext,
       project: Project,
       storage: EntityStorage,
-      phase: GradleSyncPhase,
       syncOptions: SyncActionOptions,
       buildModel: GradleLightBuild,
       projectModel: GradleLightProject,
@@ -260,7 +259,6 @@ internal class SyncContributorAndroidProjectContext(
           context,
           project,
           storage,
-          phase,
           buildModel,
           projectModel,
           syncOptions,
@@ -272,11 +270,36 @@ internal class SyncContributorAndroidProjectContext(
   }
 }
 
-private val SOURCE_SET_UPDATE_RESULT_KEY: Key<SourceSetUpdateResult> = Key.create("SOURCE_SET_UPDATE_RESULT")
+internal val SOURCE_SET_UPDATE_RESULT_KEY: Key<SourceSetUpdateResult> = Key.create("SOURCE_SET_UPDATE_RESULT")
 
 private val MODULE_ACTION_KEY: Key<Map<String, List<ModuleAction>>> = Key.create("AndroidSourceRootSyncContributor.moduleActionKey")
 
+@Order(GradleBaseSyncExtension.ORDER - 100)
 internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
+  override fun updateProjectModel(
+    context: ProjectResolverContext,
+    syncStorage: MutableEntityStorage,
+    projectStorage: MutableEntityStorage,
+    phase: GradleSyncPhase,
+  ) {
+    if (!context.isPhasedSyncEnabled || phase < GradleSyncPhase.SOURCE_SET_MODEL_PHASE) return
+
+    val sourceSetResult = checkNotNull(context.getUserData(SOURCE_SET_UPDATE_RESULT_KEY)) { "No result from source set phase!" }
+    sourceSetResult.allAndroidProjectContexts.forEach {
+      with(it) {
+        val moduleName = resolveHolderModuleName()
+        val syncEntity = syncStorage.resolve(ModuleId(moduleName)) ?: return@forEach
+        val projectEntity = projectStorage.resolve(GradleAndroidModelEntityId(ModuleId(moduleName))) ?: return@forEach
+        if (syncEntity.gradleAndroidModel?.gradleAndroidModel?.selectedVariantName != projectEntity.gradleAndroidModel.selectedVariantName)
+          return@forEach
+
+        projectEntity.resolvedVariant?.let {
+          val coreModelWithDependencies = GradleAndroidModelImpl(gradleAndroidModelDataFactory(moduleName, it.core))
+          attachDependenciesToModuleEntity(syncStorage, syncEntity, coreModelWithDependencies, it)
+        }
+      }
+    }
+  }
 
   override suspend fun updateBridgeModel(context: ProjectResolverContext, phase: GradleSyncPhase) {
     performModuleActions(context)
@@ -338,7 +361,7 @@ internal class AndroidSourceRootSyncAdditionalPhaseContributor : GradleSyncContr
     val contentRootUrl = typeToDirsMap.values.flatten().reduce { acc, file -> findCommonAncestor(acc, file) }
 
     val newContentRoots =
-      listOf(createContentRootEntity(holderModuleEntity.name, projectEntitySource.copy(phase = phase), contentRootUrl, typeToDirsMap))
+      listOf(createContentRootEntity(holderModuleEntity.name, createProjectEntitySource(phase), contentRootUrl, typeToDirsMap))
     // It could be expensive to call modifyModuleEntity even if nothing has changed, so avoiding it if possible
     if (holderModuleEntity.contentRoots != newContentRoots) {
       storage.modifyModuleEntity(holderModuleEntity) { contentRoots = newContentRoots }
@@ -356,7 +379,7 @@ internal class AndroidSourceRootSyncDependencyPhaseContributor : GradleSyncContr
     LOG.info("Processing phase DEPENDENCY_MODEL_PHASE for Android.")
     val previousResult = checkNotNull(context.getUserData(SOURCE_SET_UPDATE_RESULT_KEY)) { "No result from source set phase!" }
     if (StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()) {
-      return setupAndroidDependenciesForAllProjects(context, previousResult.allAndroidProjectContexts, storage, phase)
+      return setupAndroidDependenciesForAllProjects(context, previousResult.allAndroidProjectContexts, storage)
     }
     return storage
   }
@@ -395,7 +418,7 @@ internal class AndroidSourceRootSyncSourceSetPhaseContributor : GradleSyncContri
       context.allBuilds.flatMap { buildModel ->
         buildModel.projects.mapNotNull { projectModel ->
           checkCanceled()
-          SyncContributorAndroidProjectContext.create(context, project, storage, phase, syncOptions, buildModel, projectModel)
+          SyncContributorAndroidProjectContext.create(context, project, storage, syncOptions, buildModel, projectModel)
         }
       }
 
@@ -427,19 +450,18 @@ internal class AndroidSourceRootSyncSourceSetPhaseContributor : GradleSyncContri
 
         val testSuiteSourceSetModules = sourceSetModuleEntitiesByArtifact.testSuites.values
 
-        updatedStorage.modifyModuleEntity(holderModuleEntity) {
-          setJavaSettingsForHolderModule(this)
-          setSdkForHolderModule(this)
-          createAndroidGradleFacet(this)
-          createAndroidFacet(this)
-          linkModuleGroup(this, knownArtifactsModuleEntitiesByArtifact, testSuiteSourceSetModules)
-          // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
-          this.facets = facets
-        }
-        (knownArtifactsModuleEntities + testSuiteSourceSetModules).forEach { newModuleEntity ->
-          val finalEntity = updatedStorage addEntity newModuleEntity
-          updateGradleAndroidModelMapping(updatedStorage, finalEntity)
-        }
+        updatedStorage
+          .modifyModuleEntity(holderModuleEntity) {
+            setJavaSettingsForHolderModule(this)
+            setSdkForHolderModule(this)
+            createAndroidGradleFacet(this)
+            createAndroidFacet(this)
+            linkModuleGroup(this, knownArtifactsModuleEntitiesByArtifact, testSuiteSourceSetModules)
+            // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
+            this.facets = facets
+          }
+          .also { updateGradleAndroidModelMapping(updatedStorage, it) }
+        (knownArtifactsModuleEntities + testSuiteSourceSetModules).forEach { newModuleEntity -> updatedStorage addEntity newModuleEntity }
       }
     }
 
@@ -475,7 +497,7 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(s
     allSourceSets.associate { (sourceSetArtifactName, typeToDirsMap) ->
       // For each source set in the project, create entity source and the actual entities.
       val sourceSetName = sourceSetArtifactName.toWellKnownSourceSet().sourceSetName
-      val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
+      val entitySource = AndroidGradleSourceSetEntitySource(context.projectPath, sourceSetName)
       val moduleName = resolveSourceSetModuleName(storage, sourceSetName)
       LOG.debug("Configuring source set for $moduleName: $typeToDirsMap")
       val productionModuleName =
@@ -522,7 +544,7 @@ private fun SyncContributorAndroidProjectContext.configureTestSuiteSourceSetModu
 
   // For each test suite in the project, create entity source and the actual entities.
   val sourceSetName = testSuite.name
-  val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
+  val entitySource = AndroidGradleSourceSetEntitySource(context.projectPath, sourceSetName)
   val moduleName = "$projectModuleName.$sourceSetName"
   LOG.debug("Configuring source set for $moduleName: $allSourcesForTestSuite")
   val newModuleEntity =
@@ -551,13 +573,14 @@ private fun SyncContributorAndroidProjectContext.linkModuleGroup(
       it.name to { moduleInstance -> moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup) }
     }
   )
-  linkedModules.forEach { entity ->
-    val gradleAndroidModelData = gradleAndroidModelDataFactory(entity.name)
-    entity.gradleAndroidModel =
-      GradleAndroidModelEntity(entitySource = projectEntitySource, gradleAndroidModel = GradleAndroidModelImpl(gradleAndroidModelData))
-    entity.gradleModuleModel =
-      GradleModuleModelEntity(entitySource = projectEntitySource, gradleModuleModel = gradleModuleModelFactory(entity.name))
-  }
+
+  val entitySource = createProjectEntitySource(GradleSyncPhase.SOURCE_SET_MODEL_PHASE)
+  val resolvedVariant: IdeVariantCoreImpl? = null
+  val gradleAndroidModelData = gradleAndroidModelDataFactory(holderModuleEntity.name, resolvedVariant)
+  holderModuleEntity.gradleAndroidModel =
+    GradleAndroidModelEntity(entitySource = entitySource, gradleAndroidModel = GradleAndroidModelImpl(gradleAndroidModelData))
+  holderModuleEntity.gradleModuleModel =
+    GradleModuleModelEntity(entitySource = entitySource, gradleModuleModel = gradleModuleModelFactory(holderModuleEntity.name))
 }
 
 private fun SyncContributorAndroidProjectContext.getModuleGroup(
@@ -579,7 +602,13 @@ private fun SyncContributorAndroidProjectContext.getModuleGroup(
 /** Set up the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any. */
 private fun SyncContributorAndroidProjectContext.setJavaSettingsForHolderModule(holderModuleEntity: ModuleEntityBuilder) {
   holderModuleEntity.javaSettings =
-    JavaModuleSettingsEntity(inheritedCompilerOutput = false, excludeOutput = context.isDelegatedBuild, entitySource = projectEntitySource)
+    JavaModuleSettingsEntity(
+      inheritedCompilerOutput = false,
+      excludeOutput = context.isDelegatedBuild,
+      entitySource = createProjectEntitySource(GradleSyncPhase.SOURCE_SET_MODEL_PHASE),
+    ) {
+      languageLevelId = androidProject.javaCompileOptions?.sourceCompatibility?.let { LanguageLevel.parse(it) }?.name
+    }
 }
 
 // entity creation
@@ -706,6 +735,7 @@ private fun SyncContributorAndroidProjectContext.createJavaModuleSettingsEntity(
       if (sourceSetArtifactName != IdeArtifactName.MAIN) artifact?.classesFolders?.firstOrNull()?.toVirtualFileUrl() else null
     this.compilerOutput = sourceCompilerOutput
     this.compilerOutputForTests = testCompilerOutput
+    this.languageLevelId = androidProject.javaCompileOptions?.sourceCompatibility?.let { LanguageLevel.parse(it) }?.name
   }
 }
 

@@ -193,8 +193,8 @@ internal fun actionEvent(dataContext: DataContext, place: String = "") =
 
 internal fun dataContext(project: Project) = SimpleDataContext.getProjectContext(project)
 
-internal fun RunManager.createTestConfig() =
-  createConfiguration("config", AndroidRunConfigurationType::class.java).also {
+internal fun RunManager.createTestConfig(name: String = "config") =
+  createConfiguration(name, AndroidRunConfigurationType::class.java).also {
     addConfiguration(it)
     selectedConfiguration = it
   }

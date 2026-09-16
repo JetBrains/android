@@ -41,9 +41,6 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
-import com.intellij.openapi.externalSystem.model.ProjectSystemId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import java.io.File
 import java.io.IOException
 import java.time.Duration
@@ -136,13 +133,9 @@ class BuildAnalyzerStorageFileManagerTest {
   private fun constructBuildResultsObject(buildID: String = UUID.randomUUID().toString()): BuildAnalysisResults {
     val requestHolder =
       BuildRequestHolder(
-        GradleBuildInvoker.Request(
-          BuildMode.DEFAULT_BUILD_MODE,
-          projectRule.project,
-          File(projectRule.project.projectFilePath),
-          emptyList(),
-          ExternalSystemTaskId.create(ProjectSystemId(""), ExternalSystemTaskType.EXECUTE_TASK, projectRule.project),
-        )
+        GradleBuildInvoker.Request.builder(projectRule.project, File(projectRule.project.projectFilePath), emptyList())
+          .setMode(BuildMode.DEFAULT_BUILD_MODE)
+          .build()
       )
     val annotationProcessorData =
       listOf(

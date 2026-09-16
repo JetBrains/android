@@ -34,6 +34,15 @@ public interface DeviceHeadsUpListener {
   void userInvolvementRequired(@NotNull String deviceSerialNumber, @NotNull Project project);
 
   /**
+   * Called when two devices require user attention at the same time.
+   *
+   * @param device1SerialNumber the serial number of the first device
+   * @param device2SerialNumber the serial number of the second device
+   * @param project the project associated with the event
+   */
+  void userInvolvementRequired(@NotNull String device1SerialNumber, @NotNull String device2SerialNumber, @NotNull Project project);
+
+  /**
    * Called when an app is being launched on a device.
    *
    * @param deviceSerialNumber the serial number of the device

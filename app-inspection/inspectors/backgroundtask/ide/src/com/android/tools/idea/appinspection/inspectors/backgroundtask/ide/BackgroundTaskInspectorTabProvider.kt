@@ -29,12 +29,13 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
+import kotlinx.coroutines.Dispatchers
 
 class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
   override val launchConfigs =
@@ -86,13 +87,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
     return object : AppInspectorTab {
       override val messengers = messengerTargets.mapNotNull { target -> (target as? AppInspectorMessengerTarget.Resolved)?.messenger }
       override val component =
-        BackgroundTaskInspectorTab(
-            client,
-            ideServices,
-            IntellijUiComponentsProvider(project, parentDisposable),
-            scope,
-            AndroidDispatchers.uiThread,
-          )
+        BackgroundTaskInspectorTab(client, ideServices, IntellijUiComponentsProvider(project, parentDisposable), scope, Dispatchers.EDT)
           .component
     }
   }

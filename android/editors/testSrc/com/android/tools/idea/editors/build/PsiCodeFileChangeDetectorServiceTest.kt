@@ -1,6 +1,5 @@
 package com.android.tools.idea.editors.build
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
@@ -13,6 +12,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -159,7 +159,7 @@ class PsiCodeFileChangeDetectorServiceTest {
     val semaphore = Semaphore(permits = 1, acquiredPermits = 1)
 
     val flowJob =
-      launch(workerThread) {
+      launch(Dispatchers.Default) {
         myPsiCodeFileOutOfDateStatusReporter.fileUpdatesFlow
           .take(6) // We expect 6 changes
           .collect {

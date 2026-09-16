@@ -34,14 +34,14 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 
-fun DeclarativeSchemaModel.convertProject(): ProjectSchemas {
+fun DeclarativeSchemaModel.convertProject(): Set<BuildDeclarativeSchema> {
   val projectSchemas = projectSequence.steps.map { it.evaluationSchemaForStep.analysisSchema }
-  return ProjectSchemas(projectSchemas.map { it.convert() }.toSet())
+  return projectSchemas.map { it.convert() }.toSet()
 }
 
-fun DeclarativeSchemaModel.convertSettings(): SettingsSchemas {
+fun DeclarativeSchemaModel.convertSettings(): Set<BuildDeclarativeSchema> {
   val settingSchemas = settingsSequence.steps.map { it.evaluationSchemaForStep.analysisSchema }
-  return SettingsSchemas(settingSchemas.map { it.convert() }.toSet())
+  return settingSchemas.map { it.convert() }.toSet()
 }
 
 @VisibleForTesting

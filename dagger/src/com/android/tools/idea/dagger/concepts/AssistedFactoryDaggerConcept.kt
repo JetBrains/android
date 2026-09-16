@@ -38,11 +38,10 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.containers.sequenceOfNotNull
+import com.intellij.util.io.IOUtil
 import java.io.DataInput
 import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.core.script.v1.readString
-import org.jetbrains.kotlin.idea.core.script.v1.writeString
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
@@ -149,13 +148,13 @@ internal data class AssistedFactoryMethodIndexValue(val classId: ClassId, val me
 
   override fun save(output: DataOutput) {
     output.writeClassId(classId)
-    output.writeString(methodSimpleName)
+    IOUtil.writeUTF(output, methodSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_FACTORY_METHOD
 
-    override fun read(input: DataInput) = AssistedFactoryMethodIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = AssistedFactoryMethodIndexValue(input.readClassId(), IOUtil.readUTF(input))
   }
 
   companion object {

@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.testutils.ProcessHandleProviderRule
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -27,6 +28,8 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import java.nio.file.Paths
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
 
@@ -43,7 +46,6 @@ class EmulatorNotificationDispatcherTest {
   @Test
   fun testDispatcher() {
     val notificationDispatcher = EmulatorNotificationDispatcher().also { Disposer.register(testRootDisposable, it) }
-    val receivedMessages = mutableListOf<String>()
     val avdFolder = Paths.get("/tmp/myAvd")
     val processHandle = ProcessHandleProvider.getProcessHandle(12345)!!
     val unrelatedProcessHandle = ProcessHandleProvider.getProcessHandle(67890)!!
@@ -52,16 +54,43 @@ class EmulatorNotificationDispatcherTest {
     publisher.messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.WARNING, false, "warning 2")
     publisher.messageLogged(unrelatedProcessHandle, avdFolder, EmulatorLogListener.Severity.WARNING, true, "warning 3")
     publisher.messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.INFO, true, "info 1")
-    notificationDispatcher.addListener(
-      processHandle,
-      object : EmulatorNotificationDispatcher.Listener {
-        override fun notificationMessageLogged(severity: EmulatorLogListener.Severity, message: String) {
-          receivedMessages.add(message)
-        }
-      },
-    )
-    assertThat(receivedMessages).containsExactly("warning 1", "info 1").inOrder()
+    val listener = TestListener()
+    notificationDispatcher.addListener(processHandle, listener)
+    assertThat(listener.receivedMessages).containsExactly("warning 1", "info 1").inOrder()
     publisher.messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.INFO, true, "info 2")
-    assertThat(receivedMessages).containsExactly("warning 1", "info 1", "info 2").inOrder()
+    assertThat(listener.receivedMessages).containsExactly("warning 1", "info 1", "info 2").inOrder()
+  }
+
+  @Test
+  fun testMessageExpiration() {
+    val notificationDispatcher =
+      EmulatorNotificationDispatcher().also {
+        Disposer.register(testRootDisposable, it)
+        it.setMessageExpiration(100.milliseconds)
+      }
+
+    val avdFolder = Paths.get("/tmp/myAvd")
+    val processHandle = ProcessHandleProvider.getProcessHandle(12345)!!
+    val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(EmulatorLogListener.TOPIC)
+
+    publisher.messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.WARNING, true, "warning 1")
+
+    // Wait for the message to expire
+    waitForCondition(2.seconds) { notificationDispatcher.getMessagesFor(processHandle).isEmpty() }
+  }
+
+  private fun EmulatorNotificationDispatcher.getMessagesFor(processHandle: ProcessHandle): List<String> {
+    val listener = TestListener()
+    addListener(processHandle, listener)
+    removeListener(processHandle, listener)
+    return listener.receivedMessages
+  }
+
+  private class TestListener() : EmulatorNotificationDispatcher.Listener {
+    val receivedMessages = mutableListOf<String>()
+
+    override fun notificationMessageLogged(severity: EmulatorLogListener.Severity, message: String) {
+      receivedMessages.add(message)
+    }
   }
 }

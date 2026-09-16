@@ -40,8 +40,8 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.max
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -53,7 +53,7 @@ class WorkDependencyGraphView(
   private val client: BackgroundTaskInspectorClient,
   private val selectionModel: EntrySelectionModel,
   private val scope: CoroutineScope,
-  private val uiDispatcher: CoroutineDispatcher,
+  private val uiContext: CoroutineContext,
 ) : JPanel() {
 
   private var works = listOf<WorkInfo>()
@@ -62,7 +62,7 @@ class WorkDependencyGraphView(
   init {
     border = JBUI.Borders.empty(JBUI.scale(50), JBUI.scale(100), JBUI.scale(50), 0)
 
-    client.addEntryUpdateEventListener { _, _ -> scope.launch(uiDispatcher) { updateWorks() } }
+    client.addEntryUpdateEventListener { _, _ -> scope.launch(uiContext) { updateWorks() } }
     selectionModel.registerEntrySelectionListener { updateWorks() }
 
     registerDirectionKeyStroke(KeyEvent.VK_UP, "Up", -1, 0)
